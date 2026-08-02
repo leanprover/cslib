@@ -103,7 +103,7 @@ scoped macro_rules
   | `(`(MechPre| $p:term . $e:term ⮕ $q:term . $x:term)) => `(Prefix.com $p $e $q $x)
   | `(`(MechPre| $p:term ⮕ $q:term [ $l:term ])) => `(Prefix.sel $p $q $l)
 
-/-- Syntactic category for processes. -/
+/-- Syntactic category for choreographies. -/
 declare_syntax_cat mechChor
 
 @[inherit_doc Choreography.nil]
