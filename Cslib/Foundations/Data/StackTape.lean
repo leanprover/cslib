@@ -160,7 +160,7 @@ lemma cons_head?_mapSome (l : List Symbol) :
   cases l <;> rfl
 
 @[simp]
-lemma mapSome_nil : mapSome ([] : List Symbol) = ∅ := rfl
+lemma mapSome_nil : mapSome ([] : List Symbol) = nil := rfl
 
 end mapSome
 
