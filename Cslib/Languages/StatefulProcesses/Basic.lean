@@ -138,7 +138,6 @@ scoped syntax "`(SP| " spProc ")" : term
 scoped macro_rules
   | `(`(SP| 0)) => `(0)
   | `(`(SP| $prf:spPre; $pr:spProc)) => `(Process.pre `(SPpre| $prf) `(SP| $pr))
-  -- | `(`(SP| $prf:spPre)) => `(Process.pre `(SPpre| $prf) 0)
   | `(`(SP| $p:term & $l:term)) => `(Process.recvLabel $p $l)
   | `(`(SP| if $e:term then $p₁:spProc else $p₂:spProc)) =>
     `(Process.cond $e `(SP| $p₁) `(SP| $p₂))

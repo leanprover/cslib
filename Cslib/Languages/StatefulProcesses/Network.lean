@@ -78,18 +78,18 @@ abbrev LocalStore Var Val := (x : Var) → Val
 abbrev FunCallEval FunId Val := (f : FunId) → (args : List Val) → Val → Prop
 
 /-- Evaluation relation. -/
-inductive FunCallEval.EvalExpr (Eval : FunCallEval FunId Val) :
+inductive FunCallEval.EvalExpr (eval : FunCallEval FunId Val) :
     (σ : LocalStore Var Val) → (e : Expr Var Val FunId) → (v : Val) → Prop where
   /-- A value evaluates to itself. -/
-  | val : Eval.EvalExpr σ (.val v) v
+  | val : eval.EvalExpr σ (.val v) v
   /-- A variable evaluates to its mapped value in the store. -/
-  | var : Eval.EvalExpr σ (.var x) (σ x)
+  | var : eval.EvalExpr σ (.var x) (σ x)
   /-- A function call first recursively evaluates its expression arguments, and then
   invokes the parameter for function evaluation. -/
   | call
-    (hArgs : List.Forall₂ (Eval.EvalExpr σ) args vals)
-    (hFun : Eval f vals v) :
-    Eval.EvalExpr σ (.call f args) v
+    (hArgs : List.Forall₂ (eval.EvalExpr σ) args vals)
+    (hFun : eval f vals v) :
+    eval.EvalExpr σ (.call f args) v
 
 /-- A global store represents the memory state of an entire system, mapping each process to its
 local store. -/
