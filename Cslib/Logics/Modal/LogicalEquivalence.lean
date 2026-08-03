@@ -29,26 +29,37 @@ def Proposition.Equiv (S : Set (Model World Atom)) (φ₁ φ₂ : Proposition At
     : Prop :=
   ∀ m ∈ S, ∀ w : World, ⇓Modal[m,w ⊨ φ₁ ↔ φ₂]
 
-@[inherit_doc]
-scoped notation φ₁ " ≡[" S "] " φ₂ => Proposition.Equiv S φ₁ φ₂
-
-@[inherit_doc]
-scoped notation φ₁ " ≡ " φ₂ => Proposition.Equiv Set.univ φ₁ φ₂
+instance : Congruence (Proposition.Equiv S) := ⟨⟩
 
 @[scoped grind =]
 theorem Proposition.equiv_def (S : Set (Model World Atom)) (φ₁ φ₂ : Proposition Atom) :
-    (φ₁ ≡[S] φ₂) ↔
-    (∀ m ∈ S, ∀ w : World, ⇓Modal[m,w ⊨ φ₁ ↔ φ₂]) := by rfl
+    φ₁.Equiv S φ₂ ↔ (φ₁ ≡[Equiv S] φ₂) := by rfl
 
-@[scoped grind =]
-theorem Proposition.equiv_iff (S : Set (Model World Atom)) (φ₁ φ₂ : Proposition Atom) :
-    (φ₁ ≡[S] φ₂) ↔
-    (∀ m ∈ S, ∀ w : World, ⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
-  simp [Proposition.equiv_def, Satisfies.iff_iff_iff]
+@[scoped grind ⇒]
+theorem Proposition.equiv_forall_der (S : Set (Model World Atom)) (φ₁ φ₂ : Proposition Atom)
+    (h : φ₁ ≡[Equiv S] φ₂) : ∀ m ∈ S, ∀ (w : World), ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] := by
+  intro s
+  specialize h s
+  assumption
 
+theorem Proposition.forall_der_equiv (S : Set (Model World Atom)) (φ₁ φ₂ : Proposition Atom)
+    (h : ∀ m ∈ S, ∀ (w : World), ⇓Modal[m,w ⊨ φ₁ ↔ φ₂]) : φ₁ ≡[Equiv S] φ₂ := by
+  intro s
+  specialize h s
+  assumption
+
+@[scoped grind ⇒]
+theorem Proposition.equiv_iff (S : Set (Model World Atom)) (φ₁ φ₂ : Proposition Atom)
+    (h : φ₁ ≡[Equiv S] φ₂) (m : Model World Atom) (hm : m ∈ S) (w : World) :
+    ⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂] := by
+  grind [=_ Satisfies.iff_iff_iff]
+
+/-- Logical equivalence preserves validity. -/
 theorem Proposition.equiv_valid (S : Set (Model World Atom))
-    (φ₁ φ₂ : Proposition Atom) (h : φ₁ ≡[S] φ₂) :
+    (φ₁ φ₂ : Proposition Atom) (h : φ₁ ≡[Equiv S] φ₂) :
     (φ₁.valid S ↔ φ₂.valid S) := by
+  apply Proposition.equiv_forall_der at h
+  simp only [Satisfies.iff_iff_iff] at h
   grind
 
 /-- Propositional contexts. -/
@@ -69,11 +80,11 @@ def Proposition.Context.fill (c : Context Atom) (φ : Proposition Atom) :=
   | andR φ' c => φ'.and (c.fill φ)
   | diamond c => .diamond (c.fill φ)
 
-instance : HasContext (Proposition Atom) := ⟨Proposition.Context Atom, Proposition.Context.fill⟩
+instance : HasContext (Proposition Atom) := ⟨Proposition.Context.fill⟩
 
-@[scoped grind =_]
-lemma Proposition.Context.fill_def {Γ : HasContext.Context (Proposition Atom)} :
-    Γ.fill φ = Γ<[φ] := rfl
+@[scoped grind =]
+lemma Proposition.Context.fill_def {c : HasContext.Context (Proposition Atom)} :
+    c.fill φ = c<[φ] := rfl
 
 open scoped Proposition Proposition.Context
 
@@ -81,24 +92,24 @@ open scoped Proposition Proposition.Context
 instance {World Atom} (S : Set (Model World Atom)) :
     IsEquiv (Proposition Atom) (Proposition.Equiv S) := by
   rw [← equivalence_iff_isEquiv]
-  grind [Equivalence]
+  grind [Equivalence, Proposition.Equiv]
 
 /-- Logical equivalence is a congruence. -/
 instance {World Atom} (S : Set (Model World Atom)) :
-    Congruence (Proposition Atom) (Proposition.Equiv S) where
+    LawfulCongruence (Proposition.Equiv S) where
   elim ctx φ₁ φ₂ heqv m hₘ w := by
     induction ctx generalizing w
-    case hole => grind
+    case hole => grind [=_ Proposition.Context.fill_def]
     case not c ih | andL c ih | andR c ih =>
       specialize ih w
-      grind
+      grind [=_ Proposition.Context.fill_def]
     case diamond c ih =>
       rw [Satisfies.iff_iff_iff]
       apply Iff.intro
       all_goals
         rintro ⟨w', h⟩
         specialize ih w'
-        grind
+        grind [=_ Proposition.Context.fill_def]
 
 /-- Judgemental contexts. -/
 structure Satisfies.Context (World Atom : Type*) where
@@ -111,22 +122,22 @@ structure Satisfies.Context (World Atom : Type*) where
 def Satisfies.Context.fill (c : Satisfies.Context World Atom) (φ : Proposition Atom) :
     Judgement World Atom := Modal[c.m, c.w ⊨ φ]
 
-instance judgementalContext :
-    HasHContext (Judgement World Atom) (Proposition Atom) :=
-  ⟨Satisfies.Context World Atom, Satisfies.Context.fill⟩
+instance : HasHContext (Judgement World Atom) (Proposition Atom) :=
+  ⟨Satisfies.Context.fill⟩
 
-@[scoped grind =_]
+@[scoped grind =]
 lemma Satisfies.Context.fill_def {c : Satisfies.Context World Atom} :
     Modal[c.m,c.w ⊨ φ] = c<[φ] := rfl
 
 open scoped Satisfies.Context
 
 /-- Logical equivalence for Modal Logic K. That is, no assumptions on models are made. -/
-instance : HasLogicalEquivalence
-    (Proposition Atom) (Judgement World Atom) where
-  eqv := Proposition.Equiv Set.univ
+instance : LogicalEquivalence
+    (α := Proposition Atom)
+    (Judgement := Judgement World Atom) InferenceSystem.Default
+    (Proposition.Equiv (Set.univ (α := Model World Atom))) where
   eqvFillValid heqv c h := by
     specialize heqv c.m
-    grind
+    grind [=_ Satisfies.Context.fill_def]
 
 end Cslib.Logic.Modal
