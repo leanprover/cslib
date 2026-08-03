@@ -25,7 +25,7 @@ variable {P M S : Type*} [DecidableEq P] [DecidableEq M]
 
 variable {a : Algorithm P M S}
 
-/-- `a.ReachableNonUniform inp s` means that `s` is a reahable and non-uniform state of
+/-- `a.ReachableNonUniform inp s` means that `s` is a reachable and non-uniform state of
 algorithm `a` on input `inp`. -/
 abbrev Algorithm.ReachableNonUniform [Fintype P]
     (a : Algorithm P M S) (inp : P → Bool) (s : State P M S) : Prop :=
