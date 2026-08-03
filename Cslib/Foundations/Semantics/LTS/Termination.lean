@@ -63,13 +63,13 @@ states. -/
 theorem Acyclic.toBoundedUpTo [Finite State] (h : lts.Acyclic) :
     lts.BoundedUpTo (Nat.card State) := by
   classical
-  letI := Fintype.ofFinite State
+  let := Fintype.ofFinite State
   rw [Nat.card_eq_fintype_card]
   intro s1 μs s2 hmtr
   obtain ⟨states, hexec⟩ := Execution.of_mTr hmtr
   have hchain : states.IsChain (Relation.TransGen lts.UnlabelledTr) :=
     hexec.isChain.imp_of_mem_imp fun _ _ _ _ htr => .single htr
-  letI : Std.Irrefl (Relation.TransGen lts.UnlabelledTr) := h.acyclic
+  let : Std.Irrefl (Relation.TransGen lts.UnlabelledTr) := h.acyclic
   have hcard := hchain.pairwise.nodup.length_le_card
   grind [Execution]
 
