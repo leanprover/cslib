@@ -196,6 +196,10 @@ theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) :
   simp_rw [iff_forall_sn, SN.iff_transGen] at ht ⊢
   exact ht
 
+/-- A terminating relation is acyclic. -/
+theorem Terminating.toAcyclic (ht : Terminating r) : Acyclic r :=
+  ⟨fun x hx => ht.toTransGen.irrefl.irrefl x hx⟩
+
 theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := by
   simp_rw [iff_forall_sn, SN.iff_transGen]
   exact id
