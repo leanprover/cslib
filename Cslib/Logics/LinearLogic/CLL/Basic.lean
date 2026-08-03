@@ -96,7 +96,7 @@ def Proposition.Context.fill (c : Context Atom) (a : Proposition Atom) : Proposi
   | bang c => .bang (c.fill a)
   | quest c => .quest (c.fill a)
 
-instance : HasContext (Proposition Atom) := ⟨Proposition.Context Atom, Proposition.Context.fill⟩
+instance : HasContext (Proposition Atom) := ⟨Proposition.Context.fill⟩
 
 /-- Definition of context filling. -/
 @[scoped grind =]
@@ -183,8 +183,7 @@ def Sequent.Context Atom := Sequent Atom
 /-- Filling a judgemental context returns a sequent. -/
 def Sequent.Context.fill (Γc : Sequent.Context Atom) (a : Proposition Atom) := a ::ₘ Γc
 
-instance : HasHContext (Sequent Atom) (Proposition Atom) :=
-  ⟨Sequent.Context Atom, Sequent.Context.fill⟩
+instance : HasHContext (Sequent Atom) (Proposition Atom) := ⟨Sequent.Context.fill⟩
 
 open Proposition in
 /-- A proof in the sequent calculus for classical linear logic. -/
@@ -259,8 +258,11 @@ open Sequent in
 def Proposition.Equiv (a b : Proposition Atom) :=
   Derivable ({a⫠, b} : Sequent Atom) ∧ Derivable ({b⫠, a} : Sequent Atom)
 
-@[inherit_doc]
-scoped infix:29 " ≡ " => Proposition.Equiv
+instance : DefaultCongruence (Proposition Atom) (Proposition.Equiv (Atom := Atom)) := ⟨⟩
+
+@[scoped grind =]
+theorem Proposition.prop_equiv_def {a b : Proposition Atom} : Proposition.Equiv a b ↔ a ≡ b := by
+  rfl
 
 /-- Conversion from proof-relevant to proof-irrelevant versions of propositional
 equivalence. -/
@@ -643,19 +645,16 @@ private lemma Proposition.equiv_quest {a a' : Proposition Atom} (h : a ≡ a') :
       apply Proof.quest
       apply h₂.rwConclusion (by grind)
 
-instance : Congruence (Proposition Atom) Proposition.Equiv where
+instance : LawfulCongruence (Proposition.Equiv (Atom := Atom)) where
   elim :
       Covariant (Proposition.Context Atom) (Proposition Atom) (Proposition.Context.fill)
       Proposition.Equiv := by
     intro ctx a b hab
     induction ctx <;> grind [= Context.fill]
 
-noncomputable instance : HasLogicalEquivalence (Proposition Atom) (Sequent Atom) where
-  eqv := Proposition.Equiv
-  eqvFillValid {a b : Proposition Atom} (heqv : a.Equiv b)
-      (c : HasHContext.Context (Sequent Atom) (Proposition Atom))
-      (h : ⇓c<[a]) : ⇓c<[b] := by
-    apply substEqvHead (chooseEquiv heqv) h
+noncomputable instance : LogicalEquivalence
+    (Judgement := Sequent Atom) InferenceSystem.Default (Proposition.Equiv (Atom := Atom)) where
+  eqvFillValid heqv _ h := substEqvHead (chooseEquiv heqv) h
 
 /-- Tensor is commutative. -/
 @[scoped grind ←]

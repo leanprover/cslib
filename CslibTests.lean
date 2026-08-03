@@ -1,6 +1,7 @@
 import CslibTests.Bisimulation
 import CslibTests.CCS
 import CslibTests.CLL
+import CslibTests.Congruence
 import CslibTests.DFA
 import CslibTests.FreeMonad
 import CslibTests.GrindLint
@@ -9,6 +10,7 @@ import CslibTests.HasFresh
 import CslibTests.HasSubstitution
 import CslibTests.HasWellFormed
 import CslibTests.ImportWithMathlib
+import CslibTests.InferenceSystem
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.MLL

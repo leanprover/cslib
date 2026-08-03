@@ -17,7 +17,7 @@ namespace Cslib
 /-- Class for types with a canonical notion of heterogeneous single-hole contexts. -/
 class HasHContext (α β : Type*) where
   /-- The type of contexts. -/
-  Context : Type*
+  {Context : Type*}
   /-- Replaces the hole in the context with a value, resulting in a new value. -/
   fill (c : Context) (b : β) : α
 
