@@ -6,6 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
+public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Foundations.Semantics.LTS.Basic
 
 set_option linter.style.header false in
@@ -43,26 +44,11 @@ described in [Acclavio2026].
 
 namespace Cslib.StatefulProcesses
 
+open Cslib.Mech
+
 section Syntax
 
 /-! ## Syntax of process terms -/
-
-/-- Expressions for local computation. -/
-inductive Expr (Var Val FunId : Type*) where
-  /-- Read variable `x`. -/
-  | var (x : Var)
-  /-- Value `v`. -/
-  | val (v : Val)
-  /-- Call function `f` with arguments `args`. -/
-  | call (f : FunId) (args : List (Expr Var Val FunId))
-
-/-- Utility instance to write variables directly as expressions. -/
-instance : Coe Var (Expr Var Val FunId) where
-  coe x := .var x
-
-/-- Utility instance to write values directly as expressions. -/
-instance : Coe Val (Expr Var Val FunId) where
-  coe v := .val v
 
 /-- Prefixes. -/
 inductive Prefix (Pid Var Val FunId SelLabel : Type*) where

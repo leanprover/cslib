@@ -9,7 +9,7 @@ import Cslib.Languages.StatefulProcesses.Network
 
 namespace CslibTests
 
-open Cslib.StatefulProcesses
+open Cslib.StatefulProcesses Cslib.Mech
 
 -- Notation
 

@@ -28,6 +28,8 @@ definition of parallel composition.
 
 namespace Cslib.StatefulProcesses
 
+open Cslib.Mech
+
 /-! ## Networks and their symbolic semantics -/
 
 /-- A network maps process names to process terms. -/
@@ -71,30 +73,6 @@ def Network.lts :
 
 /-! ## Stores, evaluation, and concrete semantics of networks -/
 
-/-- A local store represents the memory state of a process, mapping variables to values. -/
-abbrev LocalStore Var Val := (x : Var) → Val
-
-/-- Type of (potentially nondeterministic) evaluation relations for function calls. -/
-abbrev FunCallEval FunId Val := (f : FunId) → (args : List Val) → Val → Prop
-
-/-- Evaluation relation. -/
-inductive FunCallEval.EvalExpr (eval : FunCallEval FunId Val) :
-    (σ : LocalStore Var Val) → (e : Expr Var Val FunId) → (v : Val) → Prop where
-  /-- A value evaluates to itself. -/
-  | val : eval.EvalExpr σ (.val v) v
-  /-- A variable evaluates to its mapped value in the store. -/
-  | var : eval.EvalExpr σ (.var x) (σ x)
-  /-- A function call first recursively evaluates its expression arguments, and then
-  invokes the parameter for function evaluation. -/
-  | call
-    (hArgs : List.Forall₂ (eval.EvalExpr σ) args vals)
-    (hFun : eval f vals v) :
-    eval.EvalExpr σ (.call f args) v
-
-/-- A global store represents the memory state of an entire system, mapping each process to its
-local store. -/
-abbrev GlobalStore Pid Var Val := (p : Pid) → LocalStore Var Val
-
 /-- Configurations, consisting of a network and a global store. -/
 structure Cfg (Pid Var Val FunId SelLabel ProcName : Type*) where
   /-- The network of the configuration. -/
@@ -111,18 +89,6 @@ inductive Cfg.TrLabel Pid Val SelLabel
   | local (p : Pid)
   | com (p : Pid) (q : Pid) (v : Val)
   | sel (p : Pid) (q : Pid) (l : SelLabel)
-
-/-- Type of an element of type `α` located at a process. -/
-abbrev AtPid Pid α := Pid × α
-
-/-- The process name of a located element. -/
-abbrev AtPid.pid (a : AtPid Pid α) := a.fst
-
-/-- The element of a located element. -/
-abbrev AtPid.elem (a : AtPid Pid α) := a.snd
-
-instance [DecidableEq Var] : HasSubstitution (GlobalStore Pid Var Val) (AtPid Pid Var) Val where
-  subst gs px v := gs[px.fst := ((gs px.pid)[px.elem := v])]
 
 /-- Transition relation for network configurations. -/
 inductive Cfg.Tr [DecidableEq Var] (isTrue : Val → Bool) (Eval : FunCallEval FunId Val) :
