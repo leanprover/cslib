@@ -252,7 +252,7 @@ private lemma pi_map_graph_eq_one
     (Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x))))
       (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1})) = 1 := by
   have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
-  haveI : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
+  have : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
     Measure.isProbabilityMeasure_map hφ.aemeasurable
   rw [Measure.pi_pi]
   simp [map_graph_eq_one hcm P hG]
@@ -269,7 +269,7 @@ theorem ae_mem_versionSpace_of_realizable
       ∂(Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x)))),
       c ∈ VersionSpace C S := by
   have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
-  haveI : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
+  have : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
     Measure.isProbabilityMeasure_map hφ.aemeasurable
   rw [ae_iff]
   have hsub : {S : Fin m → α × β | ¬ c ∈ VersionSpace C S} ⊆
