@@ -15,12 +15,6 @@ public import Mathlib.Data.Finset.Basic
 A choreography defines the collective behaviour of a system of communicating participants
 (processes) [Montesi2023].
 
-## Implementation notes
-
-The way internal computation is modelled is intentionally copied from StatefulProcesses. We plan to
-create a shared module that captures internal computation both here and in such other calculi, which
-provides an API for escaping to Lean.
-
 ## Limitations
 
 Some notable features not yet included:
