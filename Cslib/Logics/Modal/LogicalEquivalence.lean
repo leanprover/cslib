@@ -122,8 +122,8 @@ lemma Satisfies.Context.fill_def {c : Satisfies.Context World Atom} :
 open scoped Satisfies.Context
 
 /-- Logical equivalence for Modal Logic K. That is, no assumptions on models are made. -/
-instance : LogicalEquivalence
-    (Proposition Atom) (Judgement World Atom) Satisfies.Bundled where
+instance : HasLogicalEquivalence
+    (Proposition Atom) (Judgement World Atom) where
   eqv := Proposition.Equiv Set.univ
   eqvFillValid heqv c h := by
     specialize heqv c.m

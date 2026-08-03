@@ -81,6 +81,8 @@ structure Satisfies.Judgement (State : Type u) (Label : Type v) where
 /-- `Satisfies` variant using bundled judgements. -/
 def Satisfies.Bundled (j : Satisfies.Judgement State Label) := Satisfies j.lts j.state j.φ
 
+instance : HasInferenceSystem (Satisfies.Judgement World Atom) := ⟨Satisfies.Bundled⟩
+
 @[scoped grind =]
 theorem Satisfies.bundled_char : Satisfies.Bundled j ↔ Satisfies j.lts j.state j.φ := by rfl
 
@@ -102,8 +104,8 @@ instance judgementalContext :
     HasHContext (Satisfies.Judgement State Label) (Proposition Label) :=
   ⟨Satisfies.Context State Label, Satisfies.Context.fill⟩
 
-instance : LogicalEquivalence
-    (Proposition Label) (Satisfies.Judgement State Label) (Satisfies.Bundled) where
+instance : HasLogicalEquivalence
+    (Proposition Label) (Satisfies.Judgement State Label) where
   eqv := Proposition.Equiv
   eqvFillValid {a b : Proposition Label} (heqv : a.Equiv (State := State) b)
       (c : HasHContext.Context (Satisfies.Judgement State Label) (Proposition Label))

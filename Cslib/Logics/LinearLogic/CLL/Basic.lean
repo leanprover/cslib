@@ -650,7 +650,7 @@ instance : Congruence (Proposition Atom) Proposition.Equiv where
     intro ctx a b hab
     induction ctx <;> grind [= Context.fill]
 
-noncomputable instance : LogicalEquivalence (Proposition Atom) (Sequent Atom) Proof where
+noncomputable instance : HasLogicalEquivalence (Proposition Atom) (Sequent Atom) where
   eqv := Proposition.Equiv
   eqvFillValid {a b : Proposition Atom} (heqv : a.Equiv b)
       (c : HasHContext.Context (Sequent Atom) (Proposition Atom))
