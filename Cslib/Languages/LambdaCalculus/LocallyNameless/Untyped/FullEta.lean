@@ -102,7 +102,7 @@ lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) : (M ^* x).abs ⭢
   grind [step_subst_cong_l]
 
 /-- Abstracting then closing preserves multiple reductions. -/
-lemma redex_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) : (M ^* x).abs ↠ηᶠ (M' ^* x).abs := by
+lemma steps_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) : (M ^* x).abs ↠ηᶠ (M' ^* x).abs := by
   induction steps using Relation.ReflTransGen.head_induction_on
   case refl => exact .refl
   case head b c st_bc _ ih => exact .head (step_abs_close st_bc lc_M) (ih (step_lc_r st_bc))
@@ -115,7 +115,7 @@ theorem redex_abs_cong {M M' : Term Var} (xs : Finset Var)
   case abs L hL =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     rw [open_close x M 0, open_close x M' 0]
-    all_goals grind [redex_abs_close (x := x) (cofin x ?_) (hL x ?_)]
+    all_goals grind [steps_abs_close (x := x) (cofin x ?_) (hL x ?_)]
 
 /- `t ⭢ηᶠ t'` implies `s[x := t] ↠ηᶠ s[x := t']`. -/
 lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
