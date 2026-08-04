@@ -123,7 +123,7 @@ theorem card_image_eval_le_two_pow [DecidableEq β]
       · simp
       obtain ⟨t, rfl⟩ : ∃ t', t = t' + 1 := by
         have h₁ := ht le₁ hle₁
-        simp only [Prog.time_liftBind, sortModelNat] at h₁
+        simp only [Prog.time_liftBind, sortModelNat_cost] at h₁
         exact ⟨t - 1, by omega⟩
       set St := S.filter (fun le => le x y = true) with hSt
       set Sf := S.filter (fun le => ¬le x y = true) with hSf
@@ -138,26 +138,23 @@ theorem card_image_eval_le_two_pow [DecidableEq β]
         congr 1
         · exact Finset.image_congr fun le hle => by
             have hxy : le x y = true := (Finset.mem_filter.mp hle).2
-            simp [sortModelNat, hxy]
+            simp [hxy]
         · exact Finset.image_congr fun le hle => by
             have hxy : le x y = false := by simpa using (Finset.mem_filter.mp hle).2
-            simp [sortModelNat, hxy]
+            simp [hxy]
       -- Each branch has cost at most `t` over its part of the family.
       have h₁ : (St.image fun le => Prog.eval (cont true) (sortModelNat le)).card ≤ 2 ^ t :=
         ih true St t fun le hle => by
-          have hxy : le x y = true := (Finset.mem_filter.mp hle).2
-          have h : 1 + Prog.time (cont (le x y)) (sortModelNat le) ≤ t + 1 := by
-            have h₀ := ht le (Finset.mem_filter.mp hle).1
-            rwa [Prog.time_liftBind] at h₀
-          rw [hxy] at h
+          have h := ht le (Finset.mem_filter.mp hle).1
+          simp only [Prog.time_liftBind, sortModelNat_cost, sortModelNat_evalQuery_cmpLE,
+            (Finset.mem_filter.mp hle).2] at h
           omega
       have h₂ : (Sf.image fun le => Prog.eval (cont false) (sortModelNat le)).card ≤ 2 ^ t :=
         ih false Sf t fun le hle => by
           have hxy : le x y = false := by simpa using (Finset.mem_filter.mp hle).2
-          have h : 1 + Prog.time (cont (le x y)) (sortModelNat le) ≤ t + 1 := by
-            have h₀ := ht le (Finset.mem_filter.mp hle).1
-            rwa [Prog.time_liftBind] at h₀
-          rw [hxy] at h
+          have h := ht le (Finset.mem_filter.mp hle).1
+          simp only [Prog.time_liftBind, sortModelNat_cost, sortModelNat_evalQuery_cmpLE,
+            hxy] at h
           omega
       calc (S.image fun le =>
               Prog.eval (FreeM.liftBind (SortOps.cmpLE x y) cont) (sortModelNat le)).card
@@ -323,6 +320,10 @@ family of comparators) satisfying order laws and unit comparison cost.
 def modelLE (M : Model (SortOps α) ℕ) : α → α → Bool :=
   fun x y => M.evalQuery (SortOps.cmpLE x y)
 
+@[simp]
+lemma modelLE_sortModelNat {α : Type*} (le : α → α → Bool) :
+    modelLE (sortModelNat le) = le := rfl
+
 /-- Order laws for a finite family of Boolean comparators. -/
 structure ComparatorLawsFamily {ι α : Type*} (le : ι → α → α → Bool) where
   total : ∀ i, Std.Total (fun x y => le i x y = true)
@@ -344,11 +345,11 @@ lemma modelLawsFamily_sortModelNat
     ModelLawsFamily (fun i => sortModelNat (le i)) := by
       refine ⟨?_, ⟨?_, ?_⟩⟩
       · intro i x y
-        grind [sortModelNat]
+        simp
       · intro i
-        simpa [modelLE, sortModelNat] using hLaws.total i
+        simpa using hLaws.total i
       · intro i
-        simpa [modelLE, sortModelNat] using hLaws.trans i
+        simpa using hLaws.trans i
 
 lemma eval_eq_eval_sortModelNat_modelLE
     (P : Prog (SortOps α) β) (M : Model (SortOps α) ℕ) :
@@ -359,7 +360,7 @@ lemma eval_eq_eval_sortModelNat_modelLE
   | liftBind op cont ih =>
       cases op with
       | cmpLE x y =>
-          simpa [Prog.eval_liftBind, modelLE, sortModelNat] using ih (modelLE M x y)
+          simpa [Prog.eval_liftBind, modelLE] using ih (modelLE M x y)
 
 lemma time_eq_time_sortModelNat_modelLE
     (P : Prog (SortOps α) β) (M : Model (SortOps α) ℕ)
@@ -371,7 +372,7 @@ lemma time_eq_time_sortModelNat_modelLE
   | liftBind op cont ih =>
       cases op with
       | cmpLE x y =>
-          simpa [Prog.time_liftBind, modelLE, sortModelNat, hCost x y] using
+          simpa [Prog.time_liftBind, modelLE, hCost x y] using
             ih (modelLE M x y)
 
 /-- Worst-case comparisons over a finite hidden family of `SortOps` models. -/

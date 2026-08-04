@@ -115,6 +115,22 @@ def sortModel {α : Type} (le : α → α → Bool) :
     | .cmpLE _ _ => ⟨1,0⟩
     | .insertHead _ _ => ⟨0,1⟩
 
+@[simp]
+lemma sortModel_evalQuery_cmpLE {α : Type} (le : α → α → Bool) (x y : α) :
+    (sortModel le).evalQuery (cmpLE x y) = le x y := rfl
+
+@[simp]
+lemma sortModel_evalQuery_insertHead {α : Type} (le : α → α → Bool) (x : α) (l : List α) :
+    (sortModel le).evalQuery (insertHead x l) = x :: l := rfl
+
+@[simp]
+lemma sortModel_cost_cmpLE {α : Type} (le : α → α → Bool) (x y : α) :
+    (sortModel le).cost (cmpLE x y) = ⟨1, 0⟩ := rfl
+
+@[simp]
+lemma sortModel_cost_insertHead {α : Type} (le : α → α → Bool) (x : α) (l : List α) :
+    (sortModel le).cost (insertHead x l) = ⟨0, 1⟩ := rfl
+
 end SortOpsCostModel
 
 section NatModel
@@ -141,6 +157,10 @@ def sortModelNat {α : Type*}
   evalQuery
     | .cmpLE x y => le x y
   cost _ := 1
+
+@[simp]
+lemma sortModelNat_evalQuery_cmpLE {α : Type*} (le : α → α → Bool) (x y : α) :
+    (sortModelNat le).evalQuery (SortOps.cmpLE x y) = le x y := rfl
 
 end NatModel
 
