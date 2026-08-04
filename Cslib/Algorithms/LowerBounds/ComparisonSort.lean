@@ -7,13 +7,12 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Foundations.Control.Monad.Free
+public import Cslib.Algorithms.Lean.TimeM
 public import Mathlib.Data.Finset.Basic
 public import Mathlib.Data.Finset.Lattice.Fold
-public import Mathlib.Data.Fintype.BigOperators
 public import Mathlib.Data.Fintype.Perm
 public import Mathlib.Data.Nat.Factorial.Basic
 public import Mathlib.Data.Nat.Log
-public import Mathlib.Algebra.Order.Group.Nat
 
 /-!
 # The comparison sort lower bound
@@ -23,8 +22,10 @@ This file proves the `Ω(n log n)` worst-case lower bound on comparison sorting.
 A program `P : FreeM (SortOps α) β` is a binary decision tree: `pure b` is a leaf, and
 `(FreeM.lift (SortOps.cmpLE x y)).bind cont` is a node with children `cont true` and
 `cont false`. `run P le` and `cost P le` give the result and the number of comparisons
-of `P` under a comparator `le`, and `worstTime P` is the worst case of `cost` over the
-orders `permLE σ` induced by permutations `σ` of `Fin n`.
+of `P` under a comparator `le`; they are the two projections of the canonical
+interpretation (`FreeM.liftM`) of `P` into `TimeM ℕ`, and so satisfy `run_bind` and
+`cost_bind`. `worstTime P` is the worst case of `cost` over the orders `permLE σ`
+induced by permutations `σ` of `Fin n`.
 
 By structural induction on `P`, `card_image_run_le_two_pow` bounds the number of
 distinct results over any finite family of comparators by `2 ^ c`, where `c` is the
@@ -59,13 +60,20 @@ inductive SortOps.{u} (α : Type u) : Type → Type _ where
   The specific order relation depends on the comparator the program is run against. -/
   | cmpLE (x : α) (y : α) : SortOps α Bool
 
-variable {α : Type u} {β : Type v}
+variable {α : Type u} {β γ : Type}
+
+open Cslib.Algorithms.Lean in
+/-- Interpret the comparison query into `TimeM ℕ`: answer with `le x y`, at cost `1`. -/
+def sortHandler (le : α → α → Bool) : {ι : Type} → SortOps α ι → TimeM ℕ ι
+  | _, .cmpLE x y => ⟨le x y, 1⟩
 
 /-- The result of running a comparison program against a comparator. -/
 def run (P : FreeM (SortOps α) β) (le : α → α → Bool) : β :=
-  match P with
-  | .pure b => b
-  | .liftBind (.cmpLE x y) cont => run (cont (le x y)) le
+  (P.liftM (sortHandler le)).ret
+
+/-- The number of comparisons a program performs against a comparator. -/
+def cost (P : FreeM (SortOps α) β) (le : α → α → Bool) : ℕ :=
+  (P.liftM (sortHandler le)).time
 
 @[simp, grind =]
 lemma run_pure (b : β) (le : α → α → Bool) : run (pure b) le = b := rfl
@@ -78,11 +86,11 @@ lemma run_lift (x y : α) (le : α → α → Bool) :
 lemma run_lift_bind (x y : α) (cont : Bool → FreeM (SortOps α) β) (le : α → α → Bool) :
     run ((FreeM.lift (SortOps.cmpLE x y)).bind cont) le = run (cont (le x y)) le := rfl
 
-/-- The number of comparisons a program performs against a comparator. -/
-def cost (P : FreeM (SortOps α) β) (le : α → α → Bool) : ℕ :=
-  match P with
-  | .pure _ => 0
-  | .liftBind (.cmpLE x y) cont => cost (cont (le x y)) le + 1
+@[simp, grind =]
+lemma run_bind (P : FreeM (SortOps α) β) (f : β → FreeM (SortOps α) γ)
+    (le : α → α → Bool) :
+    run (P >>= f) le = run (f (run P le)) le := by
+  simp [run, FreeM.liftM_bind]
 
 @[simp, grind =]
 lemma cost_pure (b : β) (le : α → α → Bool) :
@@ -94,7 +102,13 @@ lemma cost_lift (x y : α) (le : α → α → Bool) :
 
 @[simp, grind =]
 lemma cost_lift_bind (x y : α) (cont : Bool → FreeM (SortOps α) β) (le : α → α → Bool) :
-    cost ((FreeM.lift (SortOps.cmpLE x y)).bind cont) le = cost (cont (le x y)) le + 1 := rfl
+    cost ((FreeM.lift (SortOps.cmpLE x y)).bind cont) le = 1 + cost (cont (le x y)) le := rfl
+
+@[simp, grind =]
+lemma cost_bind (P : FreeM (SortOps α) β) (f : β → FreeM (SortOps α) γ)
+    (le : α → α → Bool) :
+    cost (P >>= f) le = cost P le + cost (f (run P le)) le := by
+  simp [run, cost, FreeM.liftM_bind]
 
 /--
 A comparison program making at most `t` comparisons against every comparator in a finite
@@ -115,10 +129,7 @@ theorem card_image_run_le_two_pow_of_cost_le [DecidableEq β]
     | cmpLE x y =>
       rcases S.eq_empty_or_nonempty with rfl | ⟨le₁, hle₁⟩
       · simp
-      obtain ⟨t, rfl⟩ : ∃ t', t = t' + 1 := by
-        have h₁ := ht le₁ hle₁
-        simp only [cost_lift_bind] at h₁
-        exact ⟨t - 1, by omega⟩
+      obtain ⟨t, rfl⟩ : ∃ t', t = t' + 1 := ⟨t - 1, by grind [ht le₁ hle₁]⟩
       set St := S.filter (fun le => le x y = true) with hSt
       set Sf := S.filter (fun le => ¬le x y = true) with hSf
       -- Split the image along the answer to the root comparison.
@@ -128,26 +139,19 @@ theorem card_image_run_le_two_pow_of_cost_le [DecidableEq β]
         rw [← Finset.filter_union_filter_not_eq (p := fun le => le x y = true) S,
           Finset.image_union, hSt, hSf]
         congr 1
-        · exact Finset.image_congr fun le hle => by simp [(Finset.mem_filter.mp hle).2]
-        · exact Finset.image_congr fun le hle => by
-            simp [Bool.not_eq_true _ ▸ (Finset.mem_filter.mp hle).2]
-      -- Each branch is a program of cost at most `t'` over its part of the family.
+        · exact Finset.image_congr fun le hle => by grind
+        · exact Finset.image_congr fun le hle => by grind
+      -- Each branch has cost at most `t` over its part of the family.
       have h₁ : (St.image fun le => run (cont true) le).card ≤ 2 ^ t :=
-        ih true fun le hle => by
-          have h := ht le (Finset.mem_filter.mp hle).1
-          simp only [cost_lift_bind, (Finset.mem_filter.mp hle).2] at h
-          omega
+        ih true fun le hle => by grind [ht le]
       have h₂ : (Sf.image fun le => run (cont false) le).card ≤ 2 ^ t :=
-        ih false fun le hle => by
-          have h := ht le (Finset.mem_filter.mp hle).1
-          simp only [cost_lift_bind, Bool.not_eq_true _ ▸ (Finset.mem_filter.mp hle).2] at h
-          omega
+        ih false fun le hle => by grind [ht le]
       calc (S.image fun le => run ((FreeM.lift (SortOps.cmpLE x y)).bind cont) le).card
           ≤ (St.image fun le => run (cont true) le).card +
             (Sf.image fun le => run (cont false) le).card :=
             himage ▸ Finset.card_union_le _ _
         _ ≤ 2 ^ t + 2 ^ t := Nat.add_le_add h₁ h₂
-        _ = 2 ^ (t + 1) := by rw [pow_succ, Nat.mul_two]
+        _ = 2 ^ (t + 1) := by grind
 
 /--
 Over a finite family `S` of comparators, a comparison program attains at most `2 ^ c`
