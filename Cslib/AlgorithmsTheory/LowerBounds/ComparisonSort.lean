@@ -324,33 +324,6 @@ def modelLE (M : Model (SortOps α) ℕ) : α → α → Bool :=
 lemma modelLE_sortModelNat {α : Type*} (le : α → α → Bool) :
     modelLE (sortModelNat le) = le := rfl
 
-/-- Order laws for a finite family of Boolean comparators. -/
-structure ComparatorLawsFamily {ι α : Type*} (le : ι → α → α → Bool) where
-  total : ∀ i, Std.Total (fun x y => le i x y = true)
-  trans : ∀ i, IsTrans α (fun x y => le i x y = true)
-
-/-- Laws required for a finite hidden family of `SortOps` models. -/
-structure ModelLawsFamily {ι α : Type*}
-    (models : ι → Model (SortOps α) ℕ) where
-  unitCost : ∀ i x y, (models i).cost (SortOps.cmpLE x y) = 1
-  cmpLaws : ComparatorLawsFamily (fun i => modelLE (models i))
-
-/--
-sortModelNats obey the model family laws and can therefore be instantiated
-to the modelLawsFamily structure.
--/
-lemma modelLawsFamily_sortModelNat
-    {ι α : Type*} {le : ι → α → α → Bool}
-    (hLaws : ComparatorLawsFamily le) :
-    ModelLawsFamily (fun i => sortModelNat (le i)) := by
-      refine ⟨?_, ⟨?_, ?_⟩⟩
-      · intro i x y
-        simp
-      · intro i
-        simpa using hLaws.total i
-      · intro i
-        simpa using hLaws.trans i
-
 lemma eval_eq_eval_sortModelNat_modelLE
     (P : Prog (SortOps α) β) (M : Model (SortOps α) ℕ) :
     P.eval M = P.eval (sortModelNat (modelLE M)) := by
@@ -388,7 +361,7 @@ comparison models.
 lemma hDecisionTreeLowerModel
     {ι : Type*} [Fintype ι]
     (models : ι → Model (SortOps α) ℕ)
-    (hLaws : ModelLawsFamily models)
+    (hCost : ∀ i x y, (models i).cost (SortOps.cmpLE x y) = 1)
     (P : Prog (SortOps α) (List α))
     (output : ι → List α)
     (hOutputInj : Function.Injective output)
@@ -396,7 +369,7 @@ lemma hDecisionTreeLowerModel
     Fintype.card ι ≤ 2 ^ worstTimeModel models P := by
   have hworst : worstTimeModel models P = worstTimeComp P (fun i => modelLE (models i)) :=
     Finset.sup_congr rfl fun i _ =>
-      time_eq_time_sortModelNat_modelLE P (models i) (hLaws.unitCost i)
+      time_eq_time_sortModelNat_modelLE P (models i) (hCost i)
   rw [hworst]
   exact card_le_two_pow_worstTimeComp P (fun i => modelLE (models i)) output hOutputInj
     fun i => (eval_eq_eval_sortModelNat_modelLE P (models i)).symm.trans (hCorrect i)
@@ -412,7 +385,7 @@ lemma cmpSort_lower_bound_model
     {ι : Type*} [Fintype ι]
     (n : ℕ)
     (models : ι → Model (SortOps α) ℕ)
-    (hLaws : ModelLawsFamily models)
+    (hCost : ∀ i x y, (models i).cost (SortOps.cmpLE x y) = 1)
     (P : Prog (SortOps α) (List α))
     (output : ι → List α)
     (hOutputInj : Function.Injective output)
@@ -420,36 +393,10 @@ lemma cmpSort_lower_bound_model
     (hCard : Nat.factorial n ≤ Fintype.card ι) :
     worstTimeModel models P ≥ (n / 2) * Nat.log 2 (n / 2) := by
   have hDecisionFamily : Fintype.card ι ≤ 2 ^ worstTimeModel models P :=
-    hDecisionTreeLowerModel models hLaws P output hOutputInj hCorrect
+    hDecisionTreeLowerModel models hCost P output hOutputInj hCorrect
   have hDecision : Nat.factorial n ≤ 2 ^ worstTimeModel models P :=
     le_trans hCard hDecisionFamily
   exact lowerBound_of_factorial_le_pow n (worstTimeModel models P) hDecision
-
-/--
-If program evaluations are injective across hidden comparators, then any pointwise
-equal output specification is injective as well.
--/
-lemma output_injective_of_eval_injective
-    {ι : Type*}
-    (le : ι → α → α → Bool)
-    (P : Prog (SortOps α) (List α))
-    (output : ι → List α)
-    (hCorrect : ∀ i, P.eval (sortModelNat (le i)) = output i)
-    (hEvalInj : Function.Injective (fun i => P.eval (sortModelNat (le i)))) :
-    Function.Injective output := by
-  intro i j hEq
-  apply hEvalInj
-  grind
-
-/-- Correctness witness for a hidden family of comparators used in the lower bound. -/
-structure LeFamilyCorrectness {ι α : Type*}
-    (n : ℕ) (evalF : ι → List α) where
-  /-- The output list -/
-  output : ι → List α
-  correct : ∀ i : ι, evalF i = output i
-  evalInj : Function.Injective evalF
-  /-- The embedding of a permutation on n elements into ι -/
-  orderEmbedding : Equiv.Perm (Fin n) ↪ ι
 
 lemma factorial_le_card_of_orderEmbedding
     {ι : Type*} [Fintype ι] (n : ℕ) (emb : Equiv.Perm (Fin n) ↪ ι) :
@@ -459,25 +406,22 @@ lemma factorial_le_card_of_orderEmbedding
   simpa [Fintype.card_perm] using hCardPerm
 
 /--
-`Ω(n log n)` lower bound from any hidden model family.
-Comparator-family formulation: hidden instances are given directly as `le i`.
+`Ω(n log n)` lower bound from any hidden comparator family: if a program's evaluations
+distinguish all members of a family into which the permutations of `Fin n` embed, it
+performs `Ω(n log n)` comparisons in the worst case.
 -/
 theorem cmpSort_lower_bound_le_family
     {ι : Type*} [Fintype ι]
     (n : ℕ)
     (le : ι → α → α → Bool)
-    (hLaws : ComparatorLawsFamily le)
     (P : Prog (SortOps α) (List α))
-    (hSpec : LeFamilyCorrectness n (fun i => P.eval (sortModelNat (le i)))) :
+    (hEvalInj : Function.Injective (fun i => P.eval (sortModelNat (le i))))
+    (emb : Equiv.Perm (Fin n) ↪ ι) :
     worstTimeModel (fun i => sortModelNat (le i)) P ≥
-      (n / 2) * Nat.log 2 (n / 2) := by
-  have hCard : Nat.factorial n ≤ Fintype.card ι :=
-    factorial_le_card_of_orderEmbedding n hSpec.orderEmbedding
-  have hOutputInj : Function.Injective hSpec.output := by
-    exact output_injective_of_eval_injective le P hSpec.output hSpec.correct hSpec.evalInj
-  refine cmpSort_lower_bound_model (n := n) (models := fun i => sortModelNat (le i))
-      (hLaws := modelLawsFamily_sortModelNat hLaws)
-      (P := P) (output := hSpec.output) hOutputInj hSpec.correct hCard
+      (n / 2) * Nat.log 2 (n / 2) :=
+  cmpSort_lower_bound_model n (fun i => sortModelNat (le i)) (fun _ _ _ => rfl) P
+    (fun i => P.eval (sortModelNat (le i))) hEvalInj (fun _ => rfl)
+    (factorial_le_card_of_orderEmbedding n emb)
 
 end HiddenModelFamily
 
