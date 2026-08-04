@@ -70,7 +70,7 @@ instance : Inhabited (StackTape Symbol) where
 instance : EmptyCollection (StackTape Symbol) :=
   ⟨nil⟩
 
-@[simp]
+@[simp, scoped grind =]
 lemma empty_eq_nil : (∅ : StackTape Symbol) = nil := rfl
 
 @[simp, scoped grind =]
@@ -84,8 +84,10 @@ def cons (x : Option Symbol) (xs : StackTape Symbol) : StackTape Symbol :=
   | some a, ⟨l, hl⟩ => ⟨some a :: l, by grind⟩
 
 @[simp, scoped grind =]
+lemma cons_none_nil : cons none (nil : StackTape Symbol) = nil := rfl
+
 lemma cons_none_nil_toList : (cons none (nil : StackTape Symbol)).toList = [] := by
-  grind only [nil, cons]
+  simp
 
 @[simp]
 lemma cons_some_toList (a : Symbol) (l : StackTape Symbol) :
@@ -137,9 +139,39 @@ lemma cons_head_tail (l : StackTape Symbol) :
   rw [eq_iff]
   simp
 
+section MapSome
+
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
-@[scoped grind]
 def mapSome (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
+
+@[simp, scoped grind =]
+lemma toList_mapSome (l : List Symbol) : (mapSome l).toList = l.map some := rfl
+
+@[simp, scoped grind =]
+lemma head_mapSome (l : List Symbol) : (mapSome l).head = l.head? := by
+  cases l <;> rfl
+
+@[scoped grind =]
+lemma tail_mapSome (l : List Symbol) : (mapSome l).tail = mapSome l.tail := by
+  cases l <;> rfl
+
+@[scoped grind =]
+lemma mapSome_cons (a : Symbol) (l : List Symbol) :
+    mapSome (a :: l) = cons (some a) (mapSome l) := rfl
+
+@[simp, scoped grind =]
+lemma cons_head?_mapSome (l : List Symbol) :
+    cons l.head? (mapSome l.tail) = mapSome l := by
+  cases l <;> rfl
+
+@[scoped grind =]
+lemma mapSome_nil : mapSome ([] : List Symbol) = nil := rfl
+
+@[simp, scoped grind =]
+lemma mapSome_eq_nil_iff (l : List Symbol) : mapSome l = nil ↔ l = [] := by
+  cases l <;> simp [mapSome, nil]
+
+end MapSome
 
 section Length
 
