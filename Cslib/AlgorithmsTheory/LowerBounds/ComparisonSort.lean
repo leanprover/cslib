@@ -33,7 +33,7 @@ open Prog
 Arithmetic lower bound used to derive an `Ω(n log n)` comparison lower bound
 from `Nat.log 2 (n!)`.
 -/
-lemma hFactorialLog (n : ℕ) :
+lemma div_two_mul_log_le_log_factorial (n : ℕ) :
     (n / 2) * Nat.log 2 (n / 2) ≤ Nat.log 2 (Nat.factorial n) := by
   let k := n / 2
   change k * Nat.log 2 k ≤ Nat.log 2 (Nat.factorial n)
@@ -73,7 +73,7 @@ lemma lowerBound_of_factorial_le_pow
     Nat.log_mono_right hDecision
   have hTime : Nat.log 2 (Nat.factorial n) ≤ t := by
     simpa [Nat.log_pow (b := 2) (x := t) (by decide : 1 < 2)] using hLog
-  exact le_trans (hFactorialLog n) hTime
+  exact le_trans (div_two_mul_log_le_log_factorial n) hTime
 
 /-- The order on `Fin n` induced by a hidden permutation `σ`. -/
 def permLE {n : ℕ} (σ : Equiv.Perm (Fin n)) : Fin n → Fin n → Bool :=
@@ -201,7 +201,7 @@ abbrev worstTime {n : ℕ} (P : Prog (SortOps (Fin n)) (List (Fin n))) : ℕ :=
 Decision-tree lower bound in the strong hidden-permutation model:
 `n!` distinct hidden orders require at least `log₂(n!)` worst-case comparisons.
 -/
-lemma hDecisionTreeLower
+lemma factorial_le_two_pow_worstTime
     {n : ℕ} (P : Prog (SortOps (Fin n)) (List (Fin n)))
     (hCorrect : ∀ σ : Equiv.Perm (Fin n),
       P.eval (sortModelNat (permLE σ)) = permOutput σ) :
@@ -220,7 +220,7 @@ theorem cmpSort_lower_bound
       P.eval (sortModelNat (permLE σ)) = permOutput σ) :
     worstTime P ≥ (n / 2) * Nat.log 2 (n / 2) := by
   have hDecision : Nat.factorial n ≤ 2 ^ worstTime P :=
-    hDecisionTreeLower P hCorrect
+    factorial_le_two_pow_worstTime P hCorrect
   exact lowerBound_of_factorial_le_pow n (worstTime P) hDecision
 
 section HiddenOrderEquiv
@@ -256,7 +256,7 @@ abbrev worstTimeEquiv {β : Type} {n : ℕ}
     (e : β ≃ Fin n) (P : Prog (SortOps β) (List β)) : ℕ :=
   worstTimeComp P (fun σ => permLEEquiv e σ)
 
-lemma hDecisionTreeLowerEquiv
+lemma factorial_le_two_pow_worstTimeEquiv
     {β : Type} {n : ℕ}
     (e : β ≃ Fin n) (P : Prog (SortOps β) (List β))
     (hCorrect : ∀ σ : Equiv.Perm (Fin n),
@@ -274,7 +274,7 @@ theorem cmpSort_lower_bound_equiv
       Prog.eval P (sortModelNat (α := β) (permLEEquiv e σ)) = permOutputEquiv e σ) :
     worstTimeEquiv e P ≥ (n / 2) * Nat.log 2 (n / 2) := by
   have hDecision : Nat.factorial n ≤ 2 ^ worstTimeEquiv e P :=
-    hDecisionTreeLowerEquiv e P hCorrect
+    factorial_le_two_pow_worstTimeEquiv e P hCorrect
   exact lowerBound_of_factorial_le_pow n (worstTimeEquiv e P) hDecision
 
 /-- `Ω(n log n)` lower bound stated directly for a finite carrier type `α`. -/
@@ -292,7 +292,7 @@ theorem cmpSort_lower_bound_fintype
 Lower bound specialized to a fixed nodup list `l`.
 This is a corollary of the fintype statement with carrier `{x // x ∈ l}`.
 -/
-theorem cmpSort_lower_bound_infinite_types
+theorem cmpSort_lower_bound_nodup
     {α : Type} [DecidableEq α]
     (l : List α) (hNodup : l.Nodup)
     (P : Prog (SortOps {x // x ∈ l}) (List {x // x ∈ l}))
@@ -358,7 +358,7 @@ def worstTimeModel {ι : Type*} [Fintype ι]
 Decision-tree lower bound over an arbitrary finite hidden family of unit-cost
 comparison models.
 -/
-lemma hDecisionTreeLowerModel
+lemma card_le_two_pow_worstTimeModel
     {ι : Type*} [Fintype ι]
     (models : ι → Model (SortOps α) ℕ)
     (hCost : ∀ i x y, (models i).cost (SortOps.cmpLE x y) = 1)
@@ -393,7 +393,7 @@ lemma cmpSort_lower_bound_model
     (hCard : Nat.factorial n ≤ Fintype.card ι) :
     worstTimeModel models P ≥ (n / 2) * Nat.log 2 (n / 2) := by
   have hDecisionFamily : Fintype.card ι ≤ 2 ^ worstTimeModel models P :=
-    hDecisionTreeLowerModel models hCost P output hOutputInj hCorrect
+    card_le_two_pow_worstTimeModel models hCost P output hOutputInj hCorrect
   have hDecision : Nat.factorial n ≤ 2 ^ worstTimeModel models P :=
     le_trans hCard hDecisionFamily
   exact lowerBound_of_factorial_le_pow n (worstTimeModel models P) hDecision
