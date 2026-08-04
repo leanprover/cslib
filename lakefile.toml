@@ -14,19 +14,29 @@ weak.linter.checkInitImports = false
 weak.linter.allScriptsDocumented = false
 
 [[require]]
-name = "mathlib"
-scope = "leanprover-community"
-rev = "v4.29.0"
-
-[[require]]
 name = "Strata"
 git = "https://github.com/strata-org/Strata"
-rev = "25f254373c9993b6a583744f5c1c8684cec86528"
+rev = "e912c9bba0ad82244185e9c75b9535a6aedbd0f3"
+
+[[require]]
+name = "Strata-Boole"
+git = "https://github.com/strata-org/Strata-Boole"
+rev = "897964f1397eaee070ba0e867216a749dbfcbc42"
+
+[[require]]
+name = "StrataDDM"
+git = "https://github.com/strata-org/Strata-DDM"
+rev = "55307b6705f6286d6ad04e326fb3a28f297f1712"
 
 [[require]]
 name = "smt"
 git = "https://github.com/ufmg-smite/lean-smt"
 rev = "7d1d8239e78daa5197f9a71948776c4627049f5f"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.29.1"
 
 [[lean_lib]]
 name = "Cslib"

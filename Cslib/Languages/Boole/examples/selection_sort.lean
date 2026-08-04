@@ -1,7 +1,7 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 
-------------------------------------------------------------
-namespace Strata
+open Strata
 
 -- Selection sort.
 --
@@ -9,7 +9,7 @@ namespace Strata
 --   `∀ k, 0 ≤ k ∧ k < n-1 → A[k] ≤ A[k+1]`
 -- instead of `∀ i j, i ≤ j → A[i] ≤ A[j]`, because it tends to generate
 -- simpler verification conditions.
-private def selectionSortPgm : Strata.Program :=
+private def selectionSortPgm : StrataDDM.Program :=
 #strata
 program Boole;
 
@@ -68,9 +68,64 @@ spec
 };
 #end
 
-set_option maxHeartbeats 1000000 in
-example : Strata.smtVCsCorrect selectionSortPgm := by
-  gen_smt_vcs
-  all_goals grind
+/-- info:
+Obligation: entry_invariant_0_0
+Property: assert
+Result: ✅ pass
 
-end Strata
+Obligation: entry_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_1_0
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_1_1
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_1_2
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_1_0
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_1_1
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_1_2
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: SelectionSort_ensures_0_527
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" selectionSortPgm (options := .quiet)
+
+-- `smt`/`smt +mono` don't fail fast on these swap-invariant goals (they hang for many
+-- minutes rather than erroring), so they're deliberately excluded here.
+set_option maxHeartbeats 1000000 in
+theorem selectionSortPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole selectionSortPgm := by
+  gen_smt_vcs_boole
+  all_goals (first | omega | trivial | grind)

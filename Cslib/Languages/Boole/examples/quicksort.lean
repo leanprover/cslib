@@ -1,4 +1,4 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
 import Smt
 
 namespace Strata
@@ -11,7 +11,7 @@ namespace Strata
 -- 2    then q <-- PARTITION(A, p, r)
 -- 3    QUICKSORT(A, p, q - 1)
 -- 4    QUICKSORT(A, q + 1, r)
--- To sort an entire array A, the initial call is QUICKSORT(A, 1 , lenght[A])
+-- To sort an entire array A, the initial call is QUICKSORT(A, 1, length[A])
 
 -- PARTITION(A, p, r)
 -- 1  x <-- A[r]
@@ -89,11 +89,70 @@ spec
 
 #end
 
-#eval Strata.Boole.verify "cvc5" quickSort
+/-- info:
+Obligation: callElimAssert_Partition_requires_2_1039_17
+Property: assert
+Result: ✅ pass
 
--- TODO: re-enable once Strata's `gen_smt_vcs` is fixed (modifies-global threading mis-binds `Partition`'s `p` formal to `A`; cvc5 `#eval verify` above still proves it).
+Obligation: callElimAssert_Partition_requires_3_1058_18
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_Quicksort_requires_0_739_10
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_Quicksort_requires_1_758_11
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_Quicksort_requires_0_739_4
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_Quicksort_requires_1_758_5
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: Partition_ensures_4_1091
+Property: assert
+Result: ✅ pass
+
+Obligation: Partition_ensures_5_1109
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" quickSort (options := .quiet)
+
+-- TODO: re-enable once Strata's `gen_smt_vcs_boole` is fixed (modifies-global threading mis-binds
+-- `Partition`'s `p` formal to `A`, producing a hard type error before any tactic runs: "expected
+-- Int, got SmtArray Int Int"); the cvc5 `#eval verify` above still proves it.
 /-
-example : Strata.smtVCsCorrect quickSort := by
-  gen_smt_vcs
+theorem quickSort_smtVCsCorrect : Strata.smtVCsCorrectBoole quickSort := by
+  gen_smt_vcs_boole
   all_goals smt
 -/

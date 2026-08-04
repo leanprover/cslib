@@ -1,7 +1,7 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 
-------------------------------------------------------------
-namespace Strata
+open Strata
 
 -- Euclid's algorithm for GCD, with a spec stated via a helper function/predicate.
 --
@@ -9,7 +9,7 @@ namespace Strata
 -- tends to produce large verification conditions.
 --
 -- Divisibility/maximality are stated as axioms about `GCDSpec`.
-private def euclidGcdPgm : Strata.Program :=
+private def euclidGcdPgm : StrataDDM.Program :=
 #strata
 program Boole;
 
@@ -67,9 +67,50 @@ spec
 };
 #end
 
-set_option maxHeartbeats 1000000 in
-example : Strata.smtVCsCorrect euclidGcdPgm := by
-  gen_smt_vcs
-  all_goals grind
+/-- info:
+Obligation: entry_invariant_0_0
+Property: assert
+Result: ✅ pass
 
-end Strata
+Obligation: entry_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: callElimAssert_GCDProperties_requires_3_1031_3
+Property: assert
+Result: ✅ pass
+
+Obligation: EuclidGCD_ensures_8_1303
+Property: assert
+Result: ✅ pass
+
+Obligation: EuclidGCD_ensures_9_1333
+Property: assert
+Result: ✅ pass
+
+Obligation: EuclidGCD_ensures_10_1375
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" euclidGcdPgm (options := .quiet)
+
+set_option maxHeartbeats 1000000 in
+theorem euclidGcdPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole euclidGcdPgm := by
+  gen_smt_vcs_boole
+  all_goals (try smt +mono)

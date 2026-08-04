@@ -1,34 +1,52 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 
 namespace Strata
+
+/-
+Verification example for `function ... { body }` definitions (verified by
+unfolding, i.e. "expansion") coexisting with independent quantified axioms
+about the same function: `is_positive`'s body proves `is_positive(12)`
+directly, while `increment` additionally has an axiom relating its result to
+its boolean flag argument.
+-/
 
 private def expansion :=
 #strata
 program Boole;
 
-function xxgz(x:int) : bool
+function is_positive(x:int) : bool
 {
   x > 0
 }
 
-function xxf1(x:int, y:bool) : int
+function increment(x:int, flag:bool) : int
 {
   x + 1
 }
 
-axiom (∀ z:int . z > 12 ==> xxgz(z));
-axiom (∀ y:int, x:bool . xxf1(y, x) > 1 ==> y > 0);
+axiom (∀ z:int . z > 12 ==> is_positive(z));
+axiom (∀ y:int, flag:bool . increment(y, flag) > 1 ==> y > 0);
 
-procedure foo() returns ()
+procedure test_expansion() returns ()
 {
-  assert xxgz(12);
-  assert xxf1(3,true) == 4;
+  assert is_positive(12);
+  assert increment(3, true) == 4;
 };
 
 #end
 
-#eval Strata.Boole.verify "cvc5" expansion
+/-- info:
+Obligation: assert_2_703
+Property: assert
+Result: ✅ pass
 
-example : Strata.smtVCsCorrect expansion := by
-  gen_smt_vcs
-  all_goals grind
+Obligation: assert_3_729
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" expansion (options := .quiet)
+
+theorem expansion_smtVCsCorrect : Strata.smtVCsCorrectBoole expansion := by
+  gen_smt_vcs_boole
+  all_goals (first | smt +mono | (intros; decide))

@@ -1,8 +1,17 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 
 namespace Strata
 
-private def maps2 :=
+/-
+Verification example for derived operations on nested `Map` types
+(`Map X (Map Y int)`): a pointwise if-then-else selector, pointwise equality,
+and pointwise negation, each axiomatized together with an extensionality
+axiom. Exercises reasoning about maps-of-maps via axiomatized higher-order
+map functions rather than Boole's native `[...]`/`=~=` operators.
+-/
+
+private def mapFunctionsSeed :=
 #strata
 program Boole;
 
@@ -32,13 +41,10 @@ axiom (∀ f: Map X bool, g: Map X bool .
   (∀ x: X . f[x] == g[x]) ==> f == g);
 
 
-procedure bar() returns () {
+procedure test_map_functions() returns () {
   var a: Map X (Map Y int);
   var b: Map X (Map Y int);
   var c: Map X bool;
-
-  //assert mapiteint(c, a, b) == mapiteint(mapnot(c), b, a);
-  // assert mapeq(a, b) == mapeq(b, a);
 
   assert (∀ x: X . mapiteint(c, a, b)[x] == mapiteint(mapnot(c), b, a)[x]);
   assert (∀ x: X . mapeq(a, b)[x] == mapeq(b, a)[x]);
@@ -46,8 +52,17 @@ procedure bar() returns () {
 
 #end
 
-#eval Strata.Boole.verify "cvc5" maps2
+/-- info:
+Obligation: assert_5_1386
+Property: assert
+Result: ✅ pass
 
-example : Strata.smtVCsCorrect maps2 := by
-  gen_smt_vcs
-  all_goals grind
+Obligation: assert_6_1465
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" mapFunctionsSeed (options := .quiet)
+
+theorem mapFunctionsSeed_smtVCsCorrect : Strata.smtVCsCorrectBoole mapFunctionsSeed := by
+  gen_smt_vcs_boole
+  all_goals (try smt +mono)

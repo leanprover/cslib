@@ -1,4 +1,5 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 
 ------------------------------------------------------------
 namespace Strata
@@ -117,8 +118,9 @@ spec
 
 #end
 
-example : Strata.smtVCsCorrect queueArrayPgm := by
-  gen_smt_vcs
-  all_goals grind
+theorem queueArrayPgm_smtVCsCorrect :
+    Strata.smtVCsCorrectBoole queueArrayPgm := by
+  gen_smt_vcs_boole
+  all_goals (first | smt +mono | omega | trivial | grind)
 
 end Strata

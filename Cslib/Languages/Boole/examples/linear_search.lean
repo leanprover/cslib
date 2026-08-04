@@ -1,10 +1,10 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 
-------------------------------------------------------------
-namespace Strata
+open Strata
 
 -- Linear search: return an index where `A[idx] == x`, or `-1` if not found.
-private def linearSearchPgm : Strata.Program :=
+private def linearSearchPgm : StrataDDM.Program :=
 #strata
 program Boole;
 
@@ -36,10 +36,42 @@ spec
 };
 #end
 
+/-- info:
+Obligation: entry_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: entry_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_0
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_1
+Property: assert
+Result: ✅ pass
+
+Obligation: arbitrary_iter_maintain_invariant_0_2
+Property: assert
+Result: ✅ pass
+
+Obligation: LinearSearch_ensures_1_337
+Property: assert
+Result: ✅ pass
+
+Obligation: LinearSearch_ensures_2_410
+Property: assert
+Result: ✅ pass-/
+#guard_msgs in
+#eval Strata.Boole.verify "cvc5" linearSearchPgm (options := .quiet)
+
 set_option maxHeartbeats 500000 in
-example : Strata.smtVCsCorrect linearSearchPgm := by
-  gen_smt_vcs
-  all_goals grind
-
-end Strata
-
+theorem linearSearchPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole linearSearchPgm := by
+  gen_smt_vcs_boole
+  all_goals (try smt +mono)
