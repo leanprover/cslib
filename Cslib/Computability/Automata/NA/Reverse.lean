@@ -18,30 +18,37 @@ open Acceptor Language
 
 variable {Symbol State : Type*}
 
+namespace FinAcc
+
 /-- `na.reverse` reverses every transition of `na` and swaps its start and accept states,
 so that it accepts exactly the reversals of the words accepted by `na`. -/
-def FinAcc.reverse (na : FinAcc State Symbol) : FinAcc State Symbol where
+def reverse (na : FinAcc State Symbol) : FinAcc State Symbol where
   Tr s x t := na.Tr t x s
   start := na.accept
   accept := na.start
 
 /-- Reversing an automaton twice gives back the original automaton. -/
 @[simp]
-theorem FinAcc.reverse_reverse (na : FinAcc State Symbol) : na.reverse.reverse = na := rfl
+theorem reverse_reverse (na : FinAcc State Symbol) : na.reverse.reverse = na := rfl
 
 /-- The multistep transitions of `na.reverse` are exactly the reversed multistep transitions
 of `na`. -/
-theorem reverse_mtr (na : FinAcc State Symbol) {xs : List Symbol} {s s' : State}
-    (hmtr : na.MTr s xs.reverse s') : na.reverse.MTr s' xs s := by
+theorem reverse_mtr_iff (na : FinAcc State Symbol) {xs : List Symbol} {s s' : State} :
+    na.reverse.MTr s' xs s ↔ na.MTr s xs.reverse s' := by
   induction xs generalizing s s' with
   | nil =>
-    simp_all
+    simp_all [eq_comm]
   | cons x xs ih =>
-    simp only [List.reverse_cons] at hmtr
+    simp only [List.reverse_cons]
     simp only [LTS.MTr.cons_iff]
-    obtain ⟨mid, h1, h2⟩ := LTS.MTr.split hmtr
-    simp only [LTS.MTr.singleton_iff] at h2
-    exact ⟨mid, h2, ih h1⟩
+    constructor
+    · intro hmtr
+      obtain ⟨mid, h1, h2⟩ := hmtr
+      exact LTS.MTr.stepR na.toLTS (ih.mp h2) h1
+    · intro hmtr
+      obtain ⟨mid, h1, h2⟩ := LTS.MTr.split hmtr
+      simp only [LTS.MTr.singleton_iff] at h2
+      exact ⟨mid, h2, ih.mpr h1⟩
 
 /-- `na.reverse` accepts exactly the reversals of the words accepted by `na`. -/
 theorem reverse_language_eq (na : FinAcc State Symbol) :
@@ -52,11 +59,17 @@ theorem reverse_language_eq (na : FinAcc State Symbol) :
   · intro h
     simp only [Accepts] at h ⊢
     obtain ⟨s, hs, s', hs', hmtr⟩ := h
-    rw [← List.reverse_reverse xs] at hmtr
-    exact ⟨s', hs', s, hs, reverse_mtr na.reverse hmtr⟩
+    exact ⟨s', hs', s, hs, (reverse_mtr_iff na).mp hmtr⟩
   · intro h_na
     simp only [Accepts] at h_na ⊢
     obtain ⟨s, hs, s', hs', hmtr⟩ := h_na
-    exact ⟨s', hs', s, hs, reverse_mtr na hmtr⟩
+    exact ⟨s', hs', s, hs, (reverse_mtr_iff na).mpr hmtr⟩
+
+/-- `na.reverse` accepts a word iff `na` accepts its reversal. -/
+theorem reverse_na_accepts (na : FinAcc State Symbol) (xs : List Symbol) :
+    Accepts na.reverse xs ↔ Accepts na xs.reverse := by
+  exact Set.ext_iff.mp (reverse_language_eq na) xs
+
+end FinAcc
 
 end Cslib.Automata.NA

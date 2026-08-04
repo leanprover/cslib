@@ -213,7 +213,15 @@ open NA in
 theorem IsRegular.reverse {l : Language Symbol} (h : l.IsRegular) : (l.reverse).IsRegular := by
   rw [IsRegular.iff_nfa] at h ⊢
   obtain ⟨State, h_fin, nfa, rfl⟩ := h
-  use State, inferInstance, nfa.reverse, reverse_language_eq nfa
+  use State, inferInstance, nfa.reverse, FinAcc.reverse_language_eq nfa
+
+/-- A language is regular iff its reversal is regular. -/
+@[simp]
+theorem IsRegular.reverse_iff {l : Language Symbol} : (l.reverse).IsRegular ↔ l.IsRegular := by
+  constructor
+  · intro h
+    simpa using IsRegular.reverse h
+  · exact IsRegular.reverse
 
 /-- Languages matching regular expressions are regular. -/
 theorem IsRegular.regex {r : RegularExpression Symbol} :
