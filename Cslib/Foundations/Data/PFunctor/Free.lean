@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Quang Dao. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Quang Dao
+Authors: Quang Dao, Devon Tuma
 -/
 
 module
@@ -61,6 +61,7 @@ This construction is ported from the [VCV-io](https://github.com/dtumad/VCV-io) 
 - `PFunctor.FreeM.lift`: Lift a shape of the base polynomial functor into the free monad.
 - `PFunctor.FreeM.liftObj`: Lift an object of the base polynomial functor into the free monad.
 - `PFunctor.FreeM.liftM`: Interpret `FreeM P` into any other monad.
+- `PFunctor.FreeM.equivWOfIsEmpty`: Identify `FreeM P α` with `P.W` when `α` is empty.
 -/
 
 @[expose] public section
@@ -185,6 +186,14 @@ lemma bind_pure_comp (f : α → β) : ∀ x : P.FreeM α, x.bind (pure ∘ f) =
   | .liftBind a cont => by simp only [FreeM.bind, map, bind_pure_comp]
 
 @[simp]
+theorem map_pure (f : α → β) (x : α) : map f (pure x : P.FreeM α) = pure (f x) := rfl
+
+@[simp]
+theorem map_bind (f : β → γ) (x : P.FreeM α) (cont : α → P.FreeM β) :
+    map f (x.bind cont) = x.bind fun a => (cont a).map f := by
+  simp_rw [← bind_pure_comp, FreeM.bind_assoc]
+
+@[simp]
 lemma liftBind_bind (a : P.A) (cont : P.B a → P.FreeM β) (f : β → P.FreeM γ) :
     ((FreeM.lift a).bind cont).bind f = (FreeM.lift a).bind (fun u ↦ (cont u).bind f) := by
   simp only [lift]
@@ -259,6 +268,30 @@ lemma liftBind_inj (a a' : P.A)
     exact ⟨rfl, rfl⟩
   · rintro ⟨rfl, rfl⟩
     rfl
+
+/-- Convert a leafless free polynomial tree to a W-type tree. -/
+def toW [IsEmpty α] : P.FreeM α → P.W
+  | .pure y => (IsEmpty.false y).elim
+  | .liftBind a cont => ⟨a, fun b => toW (cont b)⟩
+
+/-- Convert a W-type tree to a leafless free polynomial tree. -/
+def ofW [IsEmpty α] : P.W → P.FreeM α
+  | ⟨a, f⟩ => FreeM.liftBind a fun b => ofW (f b)
+
+@[simp] lemma ofW_toW [IsEmpty α] (x : P.FreeM α) : ofW (toW x) = x := by
+  induction x with
+  | pure y => exact (IsEmpty.false y).elim
+  | lift_bind a cont ih => exact congrArg (FreeM.liftBind a) (funext ih)
+
+@[simp] lemma toW_ofW [IsEmpty α] (w : P.W) : toW (ofW (α := α) w) = w := by
+  induction w with | mk a f ih => exact congrArg (WType.mk a) (funext ih)
+
+/-- When the value type is empty, `FreeM P α` is equivalent to the W-type `P.W`. -/
+def equivWOfIsEmpty [IsEmpty α] : P.FreeM α ≃ P.W where
+  toFun := toW
+  invFun := ofW
+  left_inv := ofW_toW
+  right_inv := toW_ofW
 
 section liftM
 
@@ -369,6 +402,11 @@ lemma liftM_lift (interp : (a : P.A) → m (P.B a)) (a : P.A) :
 lemma liftM_liftObj (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
     (FreeM.liftObj x).liftM interp = x.2 <$> interp x.1 := by
   simp [liftObj]
+
+/-- Folding a free polynomial tree by lifting each operation back into `FreeM` is the identity. -/
+@[simp]
+theorem liftM_lift_eq_self (x : P.FreeM α) : FreeM.liftM FreeM.lift x = x := by
+  induction x with | pure _ => simp | lift_bind _ _ ih => simp [ih]
 
 end liftM
 
