@@ -156,6 +156,13 @@ lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (ste
   case refl => rfl
   case head _ _ st _ ih => exact .trans (step_open_cong_r lc_s lc_t st) (ih (step_lc_r st))
 
+theorem steps_open_cong_l {s s' t : Term Var} (xs : Finset Var)
+  (h : ∀ x ∉ xs, (s ^ fvar x) ↠ηᶠ (s' ^ fvar x)) (h_lc : LC t) :
+  (s ^ t) ↠ηᶠ (s' ^ t) := by
+  have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+  rw [Term.subst_intro x _ s (by grind), Term.subst_intro x _ s' (by grind)]
+  exact steps_subst_cong_l _ _ _ (h x (by grind)) h_lc
+
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
 lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N) :
