@@ -7,7 +7,7 @@ Authors: David Wegmann
 module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.ListFullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Foundations.Relation.Confluence
 
@@ -120,10 +120,10 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN FullB
       1. M ^ N P₁ … Pₙ is strongly normalizing,
       1. N is locally closed,
       1. M ^ N P₁ … Pₙ is locally closed -/
-lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
-    (sn_N : SN FullBeta N) (sn_MNPs : SN FullBeta (multiApp (M ^ N) Ps))
-    (lc_N : LC N) (lc_MNPs : LC (multiApp (M ^ N) Ps)) :
-    SN FullBeta (multiApp (M.abs.app N) Ps) := by
+lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps : List (Term Var)} {M N : Term Var}
+    (sn_N : SN FullBeta N) (sn_MNPs : SN FullBeta (Ps.foldl Term.app (M ^ N)))
+    (lc_N : LC N) (lc_MNPs : LC (Ps.foldl app (M ^ N))) :
+    SN FullBeta (Ps.foldl app (M.abs.app N)) := by
   induction Ps using List.reverseRecOn with
   | nil =>
     apply sn_app
@@ -131,24 +131,24 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
     · exact sn_N
     · grind [→ steps_open_cong_abs, open_abs_lc, sn_steps]
   | append_singleton Ps P ih =>
-    rw [multiApp_tail]
+    rw [List.foldl_concat]
     apply sn_app
-    · grind [cases LC, multiApp_tail, sn_app_left]
-    · grind [multiApp_tail, sn_app_right]
+    · grind [cases LC, List.foldl_concat, sn_app_left]
+    · grind [List.foldl_concat, sn_app_right]
     · intro Q' P' hstep1 hstep2
       have ⟨M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases⟩ := invert_abs_multiApp_mst hstep1
       rcases h_cases with h_P | ⟨h_st1, h_st2⟩
-      · induction Ps' using List.reverseRecOn with grind [multiApp_tail]
-      · have innerSteps : (M ^ N).multiApp Ps ↠βᶠ (M' ^ N').multiApp Ps' := by
+      · induction Ps' using List.reverseRecOn with grind [List.foldl_concat]
+      · have innerSteps : Ps.foldl Term.app (M ^ N) ↠βᶠ Ps'.foldl Term.app (M' ^ N') := by
           trans
           · exact steps_multiApp_r h_Ps_red (by grind)
           · apply steps_multiApp_l
             · apply steps_open_cong_abs M M' N N' <;> grind [open_abs_lc]
             · grind [multiApp_steps_lc]
         refine sn_steps ?_ sn_MNPs
-        rw [multiApp_tail]
-        · calc ((M ^ N).multiApp Ps).app P
-            _ ↠βᶠ ((M ^ N).multiApp Ps).app P' := by grind
+        rw [List.foldl_concat]
+        · calc (Ps.foldl Term.app (M ^ N)).app P
+            _ ↠βᶠ (Ps.foldl Term.app (M ^ N)).app P' := by grind
             _ ↠βᶠ Q'.abs.app P' := redex_app_l_cong (.trans innerSteps h_st2) (by grind)
             _ ↠βᶠ Q' ^ P' := by
               rw [Relation.reflTransGen_iff_eq_or_transGen] at ⊢ innerSteps h_st2

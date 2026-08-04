@@ -44,7 +44,8 @@ structure Saturated (S : Set (Term Var)) : Prop where
   lc : ∀ M ∈ S, LC M
   sn : ∀ M ∈ S, SN FullBeta M
   neutal_lc : ∀ M, Neutral M → LC M → M ∈ S
-  multiApp : ∀ M N P, LC N → SN FullBeta N → multiApp (M ^ N) P ∈ S → multiApp (M.abs.app N) P ∈ S
+  multiApp : ∀ M N (P : List (Term Var)),
+    LC N → SN FullBeta N → P.foldl Term.app (M ^ N) ∈ S → P.foldl Term.app (M.abs.app N) ∈ S
 
 /-- The semantic map maps each type to a corresponding saturated set of terms.
     For the strong normalization proof to work, we must ensure that
@@ -70,7 +71,12 @@ lemma semanticMap_saturated (τ : Ty Base) : @Saturated Var (semanticMap τ) := 
     · grind [sn_app_left (Var := Var) (N := fvar <| fresh {})]
     · grind
     · intro M N P _ _ _ s _
-      grind [ih₂.multiApp M N (P ++ [s]), multiApp_tail]
+      grind only [semanticMap,
+                  = List.foldl_append,
+                  = List.foldl_cons,
+                  usr Set.mem_setOf_eq,
+                  = List.foldl_nil,
+                  ih₂.multiApp M N (P ++ [s])]
 
 /-- The `entailsContext` predicate ensures that each variable in the context
     is mapped to a term in the corresponding semantic map. -/
