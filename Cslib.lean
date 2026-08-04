@@ -1,5 +1,9 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
+public import Cslib.Algorithms.GrowthRate.Closure
+public import Cslib.Algorithms.GrowthRate.Defs
+public import Cslib.Algorithms.GrowthRate.Special
+public import Cslib.Algorithms.GrowthRate.Order
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
