@@ -11,6 +11,7 @@ public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
@@ -205,6 +206,14 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
     constructor
     · induction xs using List.reverseRec <;> grind
     · simp_all [flts, List.append_eq_cons_iff]
+
+open NA in
+/-- The reversal of a regular language is regular. -/
+@[simp]
+theorem IsRegular.reverse {l : Language Symbol} (h : l.IsRegular) : (l.reverse).IsRegular := by
+  rw [IsRegular.iff_nfa] at h ⊢
+  obtain ⟨State, h_fin, nfa, rfl⟩ := h
+  use State, inferInstance, nfa.reverse, reverse_language_eq nfa
 
 /-- Languages matching regular expressions are regular. -/
 theorem IsRegular.regex {r : RegularExpression Symbol} :
