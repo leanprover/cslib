@@ -187,6 +187,14 @@ lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x
 
 lemma SN.of_normal (hx : Normal r x) : SN r x := SN.intro fun y hy => (hx ⟨y, hy⟩).elim
 
+lemma SN.to_WN (hx : SN r x) : Normalizable r x := by
+  induction hx with | intro x h ih =>
+  by_cases hy: (∃ y, r x y)
+  · obtain ⟨y, hy⟩ := hy
+    obtain ⟨z, hz, hnormal⟩ := ih y hy
+    exact ⟨z, .trans (.single hy) hz, hnormal⟩
+  · exists x
+
 lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
 
 lemma Terminating.iff_forall_sn : Terminating r ↔ ∀ x, SN r x :=
