@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Shreyas Srinivas, Eric WIeser
+Authors: Shreyas Srinivas, Eric Wieser
 -/
 
 module
@@ -14,21 +14,21 @@ public import Mathlib.Order.Basic
 public import Mathlib.Tactic.FastInstance
 
 /-!
-# Query Type for Comparison Search in Lists
+# Query Types for Comparison-Based Sorting in Lists
 
-In this file we define two query types `SortOps` which is suitable for insertion sort, and
-`SortOps`for comparison based searching in Lists. We define a model `sortModel` for `SortOps`
-which uses a custom cost structure `SortOpsCost`. We define a model `sortModelCmp` for `SortOpsCmp`
-which defines a `ℕ` based cost structure.
+In this file we define two query types: `SortOpsInsertHead`, which is suitable for
+insertion sort, and `SortOps`, which only supports comparisons. We define a model
+`sortModel` for `SortOpsInsertHead` which uses a custom cost structure `SortOpsCost`, and
+a model `sortModelNat` for `SortOps` which defines a `ℕ` based cost structure.
 --
 ## Definitions
 
-- `SortOps`: A query type for comparison based sorting in lists which includes queries for
-   comparison and head-insertion into Lists. This is a suitable query for ordered insertion
-   and insertion sort.
-- `SortOpsCmp`:  A query type for comparison based sorting that only includes a comparison query.
-   This is more suitable for comparison based sorts for which it is only desirable to count
-   comparisons
+- `SortOpsInsertHead`: A query type for comparison based sorting in lists which includes
+   queries for comparison and head-insertion into Lists. This is a suitable query type for
+   ordered insertion and insertion sort.
+- `SortOps`: A query type for comparison based sorting that only includes a comparison
+   query. This is more suitable for comparison based sorts for which it is only desirable
+   to count comparisons.
 
 -/
 @[expose] public section
@@ -38,7 +38,7 @@ namespace Cslib.Algorithms
 open Prog
 
 /--
-A model for comparison sorting on lists.
+A query type for comparison sorting on lists, with comparison and head-insertion queries.
 -/
 inductive SortOpsInsertHead (α : Type) : Type → Type  where
   /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
@@ -53,11 +53,11 @@ section SortOpsCostModel
 
 /--
 A cost type for counting the operations of `SortOps` with separate fields for
-counting calls to `cmpLT` and `insertHead`
+counting calls to `cmpLE` and `insertHead`
 -/
 @[ext, grind]
 structure SortOpsCost where
-  /-- `compares` counts the number of calls to `cmpLT` -/
+  /-- `compares` counts the number of calls to `cmpLE` -/
   compares : ℕ
   /-- `inserts` counts the number of calls to `insertHead` -/
   inserts : ℕ
@@ -100,7 +100,7 @@ instance : AddCommMonoid SortOpsCost :=
 end SortOpsCost
 
 /--
-A model of `SortOps` that uses `SortOpsCost` as the cost type for operations.
+A model of `SortOpsInsertHead` that uses `SortOpsCost` as the cost type for operations.
 
 While this accepts any decidable relation `le`, most sorting algorithms are only well-behaved in the
 presence of `[Std.Total le] [IsTrans _ le]`.
@@ -136,8 +136,8 @@ end SortOpsCostModel
 section NatModel
 
 /--
-A model for comparison sorting on lists with only the comparison operation. This
-is used in mergeSort.
+A query type for comparison sorting on lists with only the comparison operation.
+This is used in mergeSort.
 -/
 inductive SortOps.{u} (α : Type u) : Type → Type _ where
   /-- `cmpLE x y` is intended to return `true` if `x ≤ y` and `false` otherwise.
