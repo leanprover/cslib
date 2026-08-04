@@ -156,28 +156,17 @@ lemma steps_open_cong_l_abs
     specialize ih s
     cases step with grind [invert_steps_abs, step_open_cong_l (L := free_union Var)]
 
-/- `t ↠βᶠ t'` implies `s[x := t] ↠βᶠ s[x := t']`.
-   There is no single step lemma in this case because x
-   may be substituted for n times, so a single step t ↠βᶠ t
-   in general requires n steps in `s[x := t] ↠βᶠ (s[x := t'])` -/
-lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_lc : LC s) :
-    (s[x := t]) ↠βᶠ (s[x := t']) := by
-  induction h_lc with
-  | fvar y => grind
-  | abs => grind [redex_abs_cong (free_union Var)]
-  | @app l r =>
-     calc
-       (l.app r)[x := t] ↠βᶠ l[x := t].app (r[x := t']) := by grind
-       _                 ↠βᶠ (l.app r)[x := t'] := by grind
-
 /- `step_subst_cong_r` can be generalized to multiple reductions `t ↠βᶠ t'`.
    This requires s to be locally closed, locally closedness of t and t'
    can be inferred by the fact t reduces to t' -/
 lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ↠βᶠ t') (h_lc : LC s) :
     (s[x := t]) ↠βᶠ (s[x := t']) := by
-  induction step with
-  | refl => rfl
-  | tail steps step ih => grind [Relation.ReflTransGen.trans, step_subst_cong_r]
+  induction h_lc with
+  | fvar _ => grind
+  | abs => grind [redex_abs_cong (free_union Var)]
+  | @app l r => calc
+       (l.app r)[x := t] ↠βᶠ l[x := t].app (r[x := t']) := by grind
+       _                 ↠βᶠ (l.app r)[x := t'] := by grind
 
 /- When both `t` and `s` reduce to `t'` and `s'`, then `t ^ s` reduces to `t' ^ s'` -/
 lemma steps_open_cong_abs (s s' t t' : Term Var)
