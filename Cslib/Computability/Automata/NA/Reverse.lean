@@ -42,8 +42,7 @@ theorem reverse_mtr_iff (na : FinAcc State Symbol) {xs : List Symbol} {s s' : St
     simp only [List.reverse_cons]
     simp only [LTS.MTr.cons_iff]
     constructor
-    · intro hmtr
-      obtain ⟨mid, h1, h2⟩ := hmtr
+    · rintro ⟨mid, h1, h2⟩
       exact LTS.MTr.stepR na.toLTS (ih.mp h2) h1
     · intro hmtr
       obtain ⟨mid, h1, h2⟩ := LTS.MTr.split hmtr
@@ -52,7 +51,7 @@ theorem reverse_mtr_iff (na : FinAcc State Symbol) {xs : List Symbol} {s s' : St
 
 /-- `na.reverse` accepts exactly the reversals of the words accepted by `na`. -/
 theorem reverse_language_eq (na : FinAcc State Symbol) :
-    language (na.reverse) = (language na).reverse := by
+    language na.reverse = (language na).reverse := by
   ext xs
   simp only [mem_language, mem_reverse]
   constructor
@@ -66,7 +65,8 @@ theorem reverse_language_eq (na : FinAcc State Symbol) :
     exact ⟨s', hs', s, hs, (reverse_mtr_iff na).mpr hmtr⟩
 
 /-- `na.reverse` accepts a word iff `na` accepts its reversal. -/
-theorem reverse_na_accepts (na : FinAcc State Symbol) (xs : List Symbol) :
+@[simp]
+theorem accepts_reverse {na : FinAcc State Symbol} {xs : List Symbol} :
     Accepts na.reverse xs ↔ Accepts na xs.reverse := by
   exact Set.ext_iff.mp (reverse_language_eq na) xs
 
