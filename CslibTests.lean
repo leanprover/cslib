@@ -14,6 +14,8 @@ import CslibTests.InferenceSystem
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.MLL
+import CslibTests.QueryModel.ProgExamples
+import CslibTests.QueryModel.QueryExamples
 import CslibTests.Modal
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
