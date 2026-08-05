@@ -58,7 +58,6 @@ def semanticMap : Ty Base → Set (Term Var)
   | .base _ => { t | SN FullBeta t ∧ LC t }
   | .arrow τ₁ τ₂ => { t | ∀ s, s ∈ semanticMap τ₁ → app t s ∈ semanticMap τ₂ }
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The sets constructed by semanticMap are saturated -/
 lemma semanticMap_saturated (τ : Ty Base) : @Saturated Var (semanticMap τ) := by
   induction τ with
@@ -67,11 +66,11 @@ lemma semanticMap_saturated (τ : Ty Base) : @Saturated Var (semanticMap τ) := 
     constructor
     · let x : Var := fresh {}
       have := ih₁.neutal_lc (fvar x) (.fvar x) (.fvar x)
-      grind only [semanticMap, usr Set.mem_setOf_eq, cases LC]
+      grind [cases LC]
     · grind [sn_app_left (Var := Var) (N := fvar <| fresh {})]
     · grind
     · intro M N P _ _ _ s _
-      grind [ih₂.multiApp M N (s :: P)]
+      grind [ih₂.multiApp M N (P ++ [s]), multiApp_tail]
 
 /-- The `entailsContext` predicate ensures that each variable in the context
     is mapped to a term in the corresponding semantic map. -/

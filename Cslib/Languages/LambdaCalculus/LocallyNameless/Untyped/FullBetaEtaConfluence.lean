@@ -95,7 +95,7 @@ open Commute in
 @[wikidata Q1308502]
 theorem confluent_beta_eta : Confluent (@FullBetaEta Var) := by
   apply join_confluent
-  · exact confluence_beta
+  · exact confluent_fullBeta
   · exact stronglyConfluent_eta.toConfluent
   apply symm
   exact stronglyCommute_eta_beta.toCommute

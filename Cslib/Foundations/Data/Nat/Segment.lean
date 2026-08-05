@@ -45,7 +45,7 @@ theorem infinite_strictMono {ns : Set ℕ} (h : ns.Infinite) :
 
 /-- There is a gap between two successive occurrences of a predicate `p : ℕ → Prop`,
 assuming `p` (as a set) is infinite. -/
-theorem nth_succ_gap {p : ℕ → Prop} (hf : (setOf p).Infinite) (n : ℕ) :
+theorem nth_succ_gap {p : ℕ → Prop} (hf : (ofPred p).Infinite) (n : ℕ) :
     ∀ k < nth p (n + 1) - nth p n, k > 0 → ¬ p (k + nth p n) := by
   classical
   intro k h_k1 h_k0 h_p_k
@@ -222,12 +222,12 @@ theorem segment'_eq_segment (hm : StrictMono f) :
       ({x ∈ Finset.range (k + 1) | x ∈ range f}) by
     grind [BijOn.finsetCard_eq, Finset.coe_filter]
   refine ⟨fun n ↦ n + f 0, ?_, ?_, ?_⟩
-  · intro n; simp only [mem_range, Finset.mem_range, mem_setOf_eq]
+  · intro n; simp only [mem_range, Finset.mem_range]
     rintro ⟨h_n, i, rfl⟩
     have := StrictMono.monotone hm <| zero_le i
     refine ⟨?_, i, ?_⟩ <;> omega
   · grind [injOn_of_injective, Injective]
-  · intro n; simp only [mem_range, Finset.mem_range, mem_setOf_eq, mem_image]
+  · intro n; simp only [mem_range, Finset.mem_range, mem_ofPred_eq, mem_image]
     rintro ⟨h_n, i, rfl⟩
     have := StrictMono.monotone hm <| zero_le i
     grind

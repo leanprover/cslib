@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Relation.Defs
 public import Mathlib.Data.Set.Finite.Basic
 public import Mathlib.Order.SetNotation
 
@@ -25,8 +25,12 @@ relation `Tr` between states. We follow the style and conventions in [Sangiorgi2
 - `LTS.MTr` extends the transition relation of any LTS to a multistep transition relation,
 formalising the inference system and admissible rules for such relations in [Montesi2023].
 
+- `LTS.BoundedUpTo` records an explicit global execution-length bound. `LTS.Bounded`,
+`LTS.Terminating`, and `LTS.Acyclic` distinguish globally bounded execution length, absence of
+infinite executions, and absence of nonempty cycles.
+
 - Definitions for all the common classes of LTSs: image-finite, finitely branching, finite-state,
-finite, and deterministic.
+and deterministic.
 
 ## Main statements
 
@@ -62,6 +66,10 @@ structure LTS (State : Type u) (Label : Type v) where
   Tr : State → Label → State → Prop
 
 namespace LTS
+
+/-- The unlabelled transition relation underlying an LTS. -/
+def UnlabelledTr (lts : LTS State Label) : State → State → Prop :=
+  fun s1 s2 => ∃ μ, lts.Tr s1 μ s2
 
 section MultiStep
 
@@ -148,7 +156,7 @@ theorem MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     cases hmtr
     exact htr
 
-/-- A 1-sized multistep transition is exactly a single transision with the given label. -/
+/-- A 1-sized multistep transition is exactly a single transition with the given label. -/
 @[simp] theorem MTr.singleton_iff (s1 : State) (μ : Label) (s2 : State) :
   lts.MTr s1 [μ] s2 ↔ lts.Tr s1 μ s2 := ⟨MTr.single_invert lts s1 μ s2, MTr.single lts⟩
 
@@ -356,15 +364,25 @@ attribute [instance] FinitelyBranching.image_finite FinitelyBranching.finite_sta
 /-- Every LTS with finite types for states and labels is also finitely branching. -/
 instance FinitelyBranching.of_finite [Finite State] [Finite Label] : lts.FinitelyBranching where
 
-/-- An LTS is acyclic if there are no infinite multistep transitions. -/
+/-- An LTS is bounded up to `n` if every finite execution has length strictly less than `n`. -/
+def BoundedUpTo (lts : LTS State Label) (n : ℕ) : Prop :=
+  ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
+
+/-- An LTS is bounded if there is a global bound on the length of all of its finite executions. -/
+class Bounded (lts : LTS State Label) where
+  bounded : ∃ n, lts.BoundedUpTo n
+
+/-- An LTS is terminating if its underlying unlabelled transition relation is terminating,
+equivalently if it admits no infinite execution. -/
+class Terminating (lts : LTS State Label) where
+  terminating : Relation.Terminating lts.UnlabelledTr
+
+/-- An LTS is acyclic if its underlying unlabelled transition relation contains no nonempty
+cycle. -/
 class Acyclic (lts : LTS State Label) where
-  acyclic : ∃ n, ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
+  [acyclic : Relation.Acyclic lts.UnlabelledTr]
 
-/-- An LTS is finite if it is finite-state and acyclic.
-
-We call this `FiniteLTS` instead of just `Finite` to avoid confusion with the standard `Finite`
-class. -/
-class FiniteLTS [Finite State] (lts : LTS State Label) extends lts.Acyclic
+attribute [instance] Acyclic.acyclic
 
 end Classes
 

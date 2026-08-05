@@ -196,6 +196,10 @@ theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) :
   simp_rw [iff_forall_sn, SN.iff_transGen] at ht ⊢
   exact ht
 
+/-- A terminating relation is acyclic. -/
+theorem Terminating.toAcyclic (ht : Terminating r) : Acyclic r :=
+  ⟨fun x hx => ht.toTransGen.irrefl.irrefl x hx⟩
+
 theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := by
   simp_rw [iff_forall_sn, SN.iff_transGen]
   exact id
@@ -362,8 +366,8 @@ theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
 theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTransGen r₁) :
     ReflTransGen r₁ = ReflTransGen r₂ := by
-  ext
-  exact ⟨ReflTransGen.mono @h₁, reflTransGen_closed @h₂⟩
+  ext a b
+  exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
 
 lemma ReflGen.compRel_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
 | .refl => .refl
