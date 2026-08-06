@@ -6,7 +6,6 @@ Authors: Vignesh Karri
 
 module
 
-public import Cslib.Foundations.Semantics.LTS.Basic
 public import Cslib.Foundations.Semantics.LTS.Execution
 
 /-!
