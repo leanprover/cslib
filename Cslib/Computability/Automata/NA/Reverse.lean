@@ -38,26 +38,18 @@ of `na`. -/
 theorem reverse_mTr (na : FinAcc State Symbol) {xs : List Symbol} {s s' : State} :
     na.reverse.MTr s' xs s ↔ na.MTr s xs.reverse s' := LTS.reverse_mTr
 
-/-- `na.reverse` accepts exactly the reversals of the words accepted by `na`. -/
-theorem reverse_language_eq (na : FinAcc State Symbol) :
-    language na.reverse = (language na).reverse := by
-  ext xs
-  simp only [mem_language, mem_reverse]
-  constructor
-  · intro h
-    simp only [Accepts] at h ⊢
-    obtain ⟨s, hs, s', hs', hmtr⟩ := h
-    exact ⟨s', hs', s, hs, (reverse_mTr na).mp hmtr⟩
-  · intro h_na
-    simp only [Accepts] at h_na ⊢
-    obtain ⟨s, hs, s', hs', hmtr⟩ := h_na
-    exact ⟨s', hs', s, hs, (reverse_mTr na).mpr hmtr⟩
-
 /-- `na.reverse` accepts a word iff `na` accepts its reversal. -/
 @[simp]
 theorem accepts_reverse {na : FinAcc State Symbol} {xs : List Symbol} :
     Accepts na.reverse xs ↔ Accepts na xs.reverse := by
-  exact Set.ext_iff.mp (reverse_language_eq na) xs
+  simp only [Accepts, reverse_mTr]
+  aesop
+
+/-- `na.reverse` accepts exactly the reversals of the words accepted by `na`. -/
+theorem reverse_language_eq (na : FinAcc State Symbol) :
+    language na.reverse = (language na).reverse := by
+  ext xs
+  simp only [mem_language, mem_reverse, accepts_reverse]
 
 end FinAcc
 

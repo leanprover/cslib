@@ -7,6 +7,7 @@ Authors: Vignesh Karri
 module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
+public import Cslib.Foundations.Semantics.LTS.Execution
 
 /-!
 # Reverse operation for LTS.
@@ -22,6 +23,7 @@ section Reverse
 def reverse (lts : LTS State Label) : LTS State Label where
   Tr s μ s' := lts.Tr s' μ s
 
+/-- The transitions of `lts.reverse` are exactly the reversed transitions of `lts`. -/
 @[simp]
 theorem reverse_tr {lts : LTS State Label} :
     (lts.reverse).Tr s μ s' ↔ lts.Tr s' μ s := by rfl
@@ -31,22 +33,85 @@ theorem reverse_tr {lts : LTS State Label} :
 theorem reverse_reverse (lts : LTS State Label) : lts.reverse.reverse = lts := rfl
 
 /-- The multistep transitions of `lts.reverse` are exactly the reversed multistep transitions of
-`lts` -/
+`lts`. -/
 @[simp]
 theorem reverse_mTr {lts : LTS State Label} :
     lts.reverse.MTr s' μs s ↔ lts.MTr s μs.reverse s' := by
   induction μs generalizing s s' with
   | nil =>
-    simp_all [eq_comm]
+    simp [eq_comm]
   | cons x xs ih =>
-    simp only [List.reverse_cons, LTS.MTr.cons_iff]
-    constructor
-    · rintro ⟨mid, h1, h2⟩
-      exact LTS.MTr.stepR lts (ih.mp h2) h1
-    · intro hmtr
-      obtain ⟨mid, h1, h2⟩ := LTS.MTr.split hmtr
-      simp only [LTS.MTr.singleton_iff] at h2
-      exact ⟨mid, h2, ih.mpr h1⟩
+    simp_rw [List.reverse_cons, MTr.append_iff, MTr.singleton_iff, MTr.cons_iff, and_comm, ih,
+      reverse_tr]
+
+/-- `lts.reverse` can reach `s'` from `s` iff `lts` can reach `s` from `s'`. -/
+@[simp]
+theorem reverse_canReach {lts : LTS State Label} :
+    lts.reverse.CanReach s s' ↔ lts.CanReach s' s := by
+  simp only [CanReach, reverse_mTr]
+  constructor
+  · rintro ⟨μs, h⟩
+    exact ⟨_, h⟩
+  · rintro ⟨μs, h⟩
+    exact ⟨μs.reverse, by simpa using h⟩
+
+/-- The unlabelled transitions of `lts.reverse` are those of `lts` with the endpoints swapped. -/
+@[simp]
+theorem reverse_unlabelledTr {lts : LTS State Label} :
+    lts.reverse.UnlabelledTr s s' ↔ lts.UnlabelledTr s' s := Iff.rfl
+
+/-- The `μ`-image of a state in `lts.reverse` is its `μ`-preimage in `lts`. -/
+@[simp]
+theorem reverse_image {lts : LTS State Label} :
+    lts.reverse.image s μ = {s' | lts.Tr s' μ s} := rfl
+
+/-- Membership form of `reverse_image`. -/
+theorem mem_reverse_image {lts : LTS State Label} :
+    s' ∈ lts.reverse.image s μ ↔ s ∈ lts.image s' μ := Iff.rfl
+
+/-- The `μs`-image of a state in `lts.reverse` is its `μs.reverse`-preimage in `lts`. -/
+@[simp]
+theorem reverse_imageMultistep {lts : LTS State Label} :
+    lts.reverse.imageMultistep s μs = {s' | lts.MTr s' μs.reverse s} :=
+  Set.ext fun _ => reverse_mTr
+
+/-- Membership version of `reverse_imageMultistep`. -/
+theorem mem_reverse_imageMultistep {lts : LTS State Label} :
+    s' ∈ lts.reverse.imageMultistep s μs ↔ s ∈ lts.imageMultistep s' μs.reverse := reverse_mTr
+
+/-- A state has `μ` as an outgoing label in `lts.reverse` iff it has `μ` as an incoming
+label in `lts`. -/
+@[simp]
+theorem reverse_hasOutLabel {lts : LTS State Label} :
+    lts.reverse.HasOutLabel s μ ↔ ∃ s', lts.Tr s' μ s := Iff.rfl
+
+/-- `lts.reverse` is bounded up to `n` iff `lts` is. -/
+@[simp]
+theorem reverse_boundedUpTo {lts : LTS State Label} {n : ℕ} :
+    lts.reverse.BoundedUpTo n ↔ lts.BoundedUpTo n := by
+  constructor <;> intro h s₁ μs s₂ hmtr <;> simpa using h s₂ μs.reverse s₁ (by simpa using hmtr)
+
+/-- Reversing an execution of `lts` gives an execution of `lts.reverse`, with the labels, states
+and endpoints reversed. -/
+theorem Execution.reverse {lts : LTS State Label} (h : lts.Execution s μs s' ss) :
+    lts.reverse.Execution s' μs.reverse s ss.reverse := by
+  induction μs generalizing s s' ss with
+  | nil => grind
+  | cons μ μs ih =>
+    cases ss with
+    | nil => grind
+    | cons t ts =>
+      obtain rfl : s = t := by grind
+      have htr : lts.Tr s μ (ts[0]'(by grind)) := by grind
+      simpa using Execution.comp (ih (Execution.cons_invert h))
+        (Execution.stepL htr (Execution.refl lts.reverse s))
+
+/-- An execution of `lts.reverse` is an execution of `lts` with the labels, states
+and endpoints reversed. -/
+@[simp]
+theorem reverse_execution {lts : LTS State Label} :
+    lts.reverse.Execution s μs s' ss ↔ lts.Execution s' μs.reverse s ss.reverse :=
+  ⟨fun h => by simpa using h.reverse, fun h => by simpa using h.reverse⟩
 
 end Reverse
 
