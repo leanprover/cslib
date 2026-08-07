@@ -140,9 +140,8 @@ def net [DecidableEq Pid] : Network Pid Var params.Val FunId params.SelLabel par
 
 variable [DecidableEq Pid] [DecidableEq Var]
 
-def _root_.Cslib.LTS.TrUnique (lts : LTS State Label) (s₁ : State) (μ : Label) (s₂ : State) :=
-  lts.Tr s₁ μ s₂ ∧ ∀ μ' s₃, lts.Tr s₁ μ' s₃ → μ' = μ ∧ s₃ = s₂
-  -- DeterministicStateLabel htr?
+def _root_.Cslib.LTS.TrUnique (lts : LTS State Label) (s : State) (μ : Label) (s' : State) :=
+  lts.Tr s μ s' ∧ ∀ μ' s'', lts.Tr s μ' s'' → μ' = μ ∧ s'' = s'
 
 /-- Alice's program after one step. -/
 @[local grind =]
@@ -182,8 +181,17 @@ lemma net_uniqueTr₁ :
     case hn' =>
       grind
   case right =>
-    intro μ s₃
-    sorry
+    intro μ net' htr
+    cases htr
+    case com _ p e prP q x prQ htr₁ htr₂ h =>
+      by_cases hq : q = params.alice
+      case pos =>
+        sorry
+      case neg =>
+        simp [net, hq] at htr₁
+        sorry
+      sorry
+    case _ => sorry
 
 /-- Characterisation of the complete symbolic traces of DH. -/
 theorem net_completeTraces :
