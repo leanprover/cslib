@@ -21,12 +21,13 @@ technique borrowed from @LaSpina25.
   abstract states.
 - Definitions of correctness (soundness + completeness) for the analysis result, as `Fixpoint`s over
   the analysis result `ρ`.
--
 
 ## Main theorems
 
 - Termination of the worklist algorithm
 - Correctness of the algorithm : The algorithm computes a postfixpoint.
+- Minimality of the algorithm : The algorithm computes the least solution if the transfer functions
+  are monotone.
 - Correctness of the algorithm : The algorithm computes a fixpoint if the transfer functions are
   monotone.
 
@@ -207,8 +208,9 @@ lemma kildall_invariant [DecidableEq L]
 
 /- ### Theorems -/
 
-/-- The result of the worklist algorithm is a `ForwardPostfixpoint`. -/
-theorem kildall_forwardPostFixpoint [DecidableEq L] {g : CFG Node Edge}
+/-- The result of the worklist algorithm on appropriate intermediate state is a
+    `ForwardPostFixpoint`. -/
+theorem kildall_forwardPostFixpoint_of_init [DecidableEq L] {g : CFG Node Edge}
     (nT : Transfer Node L) (eT : Transfer Edge L) (init : L) (ρ : DFState g L)
     (wl : List (NodeOf g))
     (hinv0 : ∀ m : NodeOf g, m ∉ wl → nT m (joinPred eT init ρ m) ≤ ρ m) :
@@ -230,8 +232,29 @@ theorem kildall_forwardPostFixpoint [DecidableEq L] {g : CFG Node Edge}
     case isFalse hneq =>
       apply hfp; grind
 
+/-- The result of the worklist algorithm on appropriate intermediate state is the least
+    `ForwardPostFixpoint`. -/
+theorem kildall_least_forwardPostFixpoint_of_init [DecidableEq L] {g : CFG Node Edge}
+    (nT : Transfer Node L) (hnT : ∀ n, Monotone (nT n))
+    (eT : Transfer Edge L) (heT : ∀ e, Monotone (eT e))
+    (init : L) (ρ σ : DFState g L) (wl : List (NodeOf g))
+    (hρ : ρ ≤ σ) (hσ : ForwardPostFixpoint nT eT init σ []) :
+    kildall nT eT init ρ wl ≤ σ := by
+  refine kildall_invariant nT eT init ρ wl
+    (fun ρ _ => ρ ≤ σ) hρ ?_ ?_
+  · exact fun hle _ => hle
+  · intro ρ n rest hle newOut hnout m
+    simp only [DFState.update]
+    split
+    case isTrue heq =>
+      subst m
+      apply sup_le (hle n)
+      refine (hnT n (monotone_joinPred eT init heT hle n)).trans ?_
+      apply hσ n (by simp)
+    case isFalse hneq => exact hle m
+
 /-- The worklist algorithm preserves forward pre-fixpoints when all transfers are monotone. -/
-lemma kildall_forwardPreFixpoint [DecidableEq L] {g : CFG Node Edge}
+lemma kildall_forwardPreFixpoint_of_init [DecidableEq L] {g : CFG Node Edge}
     (nT : Transfer Node L) (hnT : ∀ n, Monotone (nT n))
     (eT : Transfer Edge L) (heT : ∀ e, Monotone (eT e))
     (init : L) (ρ : DFState g L) (wl : List (NodeOf g))
@@ -251,9 +274,9 @@ lemma kildall_forwardPreFixpoint [DecidableEq L] {g : CFG Node Edge}
       hnT m (monotone_joinPred eT init heT hle m)
     grind [DFState.update, sup_le, hfp m]
 
-/-- If the transfer functions are monotone, the result of the worklist algorithm is a
-    `ForwardFixpoint`. -/
-theorem kildall_forwardFixpoint [DecidableEq L] {g : CFG Node Edge}
+/-- If the transfer functions are monotone, the result of the worklist algorithm on appropriate
+    intermediate state is a `ForwardFixpoint`. -/
+theorem kildall_forwardFixpoint_of_init [DecidableEq L] {g : CFG Node Edge}
     (nT : Transfer Node L) (hnT : ∀ n, Monotone (nT n))
     (eT : Transfer Edge L) (heT : ∀ e, Monotone (eT e))
     (init : L) (ρ : DFState g L) (wl : List (NodeOf g))
@@ -263,21 +286,39 @@ theorem kildall_forwardFixpoint [DecidableEq L] {g : CFG Node Edge}
     ForwardFixpoint nT eT init res [] := by
   intro res
   have hpost :=
-    kildall_forwardPostFixpoint nT eT init ρ wl hpost0
+    kildall_forwardPostFixpoint_of_init nT eT init ρ wl hpost0
   have hpre :=
-    kildall_forwardPreFixpoint nT hnT eT heT init ρ wl hpre0
+    kildall_forwardPreFixpoint_of_init nT hnT eT heT init ρ wl hpre0
   intro n hn
   exact le_antisymm (hpost n hn) (hpre n)
 
-/-- Final theorem: the result of a full run of the algorithm with the default arguments is the least
-    fixpoint of the equations induced by the transfer functions and the initial state. -/
-theorem kildall_correct [DecidableEq L] (g : CFG Node Edge)
+/-- Running Kildall's algorithm yields a postfixpoint of the forward dataflow constraints. -/
+theorem kildall_forwardPostFixpoint [DecidableEq L] (g : CFG Node Edge)
+    (nT : Transfer Node L) (eT : Transfer Edge L) (init : L) :
+    let res := kildall (g := g) nT eT init
+    ForwardPostFixpoint (g := g) nT eT init res [] := by
+  apply kildall_forwardPostFixpoint_of_init nT eT init
+  -- `∀ m ∉ g.nodesOf, ...`
+  -- since every `m` is in `g.nodesOf` this is vacuously true
+  grind [CFG.nodesOf]
+
+theorem kildall_least_forwardPostFixpoint [DecidableEq L] (g : CFG Node Edge)
+    (nT : Transfer Node L) (hnT : ∀ n, Monotone (nT n))
+    (eT : Transfer Edge L) (heT : ∀ e, Monotone (eT e))
+    (init : L) (σ : DFState g L) (hfpf : ForwardPostFixpoint nT eT init σ []) :
+    kildall (g := g) nT eT init ≤ σ := by
+  apply kildall_least_forwardPostFixpoint_of_init nT hnT eT heT init DFState.empty σ g.nodesOf
+    <;> simp [Pi.le_def, DFState.empty, hfpf]
+
+/-- If all transfer functions are monotone, running Kildall's algorithm yields a fixpoint of the
+     forward dataflow equations. -/
+theorem kildall_forwardFixpoint [DecidableEq L] (g : CFG Node Edge)
     (nT : Transfer Node L) (hnT : ∀ n, Monotone (nT n))
     (eT : Transfer Edge L) (heT : ∀ e, Monotone (eT e))
     (init : L) :
     let res := kildall (g := g) nT eT init
     ForwardFixpoint (g := g) nT eT init res [] := by
-  apply kildall_forwardFixpoint nT hnT eT heT init DFState.empty g.nodesOf
+  apply kildall_forwardFixpoint_of_init nT hnT eT heT init DFState.empty g.nodesOf
   case hpost0 => -- ≤
     -- `∀ m ∉ g.nodesOf, ...`
     -- since every `m` is in `g.nodesOf` this is vacuously true
