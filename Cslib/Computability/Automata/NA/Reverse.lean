@@ -17,7 +17,7 @@ namespace Cslib.Automata.NA
 
 open Acceptor Language
 
-variable {Symbol State : Type*}
+variable {State Symbol : Type*}
 
 namespace FinAcc
 
@@ -31,6 +31,10 @@ def reverse (na : FinAcc State Symbol) : FinAcc State Symbol where
 /-- Reversing an automaton twice gives back the original automaton. -/
 @[simp]
 theorem reverse_reverse (na : FinAcc State Symbol) : na.reverse.reverse = na := rfl
+
+/-- Reversal of an automaton is an involution. -/
+theorem reverse_involutive : Function.Involutive (reverse (State := State) (Symbol := Symbol)) :=
+  reverse_reverse
 
 /-- The multistep transitions of `na.reverse` are exactly the reversed multistep transitions
 of `na`. -/
@@ -46,6 +50,7 @@ theorem accepts_reverse {na : FinAcc State Symbol} {xs : List Symbol} :
   aesop
 
 /-- `na.reverse` accepts exactly the reversals of the words accepted by `na`. -/
+@[simp]
 theorem reverse_language_eq (na : FinAcc State Symbol) :
     language na.reverse = (language na).reverse := by
   ext xs

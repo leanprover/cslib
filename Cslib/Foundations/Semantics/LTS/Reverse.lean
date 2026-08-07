@@ -16,6 +16,8 @@ public import Cslib.Foundations.Semantics.LTS.Execution
 
 namespace Cslib.LTS
 
+variable {State Label : Type*}
+
 section Reverse
 
 /-- Constructs an LTS by reversing the transitions of an existing LTS. -/
@@ -30,6 +32,10 @@ theorem reverse_tr {lts : LTS State Label} :
 /-- Reversing an LTS twice gives back the original LTS. -/
 @[simp]
 theorem reverse_reverse (lts : LTS State Label) : lts.reverse.reverse = lts := rfl
+
+/-- Reversal of an LTS is an involution. -/
+theorem reverse_involutive : Function.Involutive (reverse (Label := Label) (State := State)) :=
+  reverse_reverse
 
 /-- The multistep transitions of `lts.reverse` are exactly the reversed multistep transitions of
 `lts`. -/
@@ -48,11 +54,7 @@ theorem reverse_mTr {lts : LTS State Label} :
 theorem reverse_canReach {lts : LTS State Label} :
     lts.reverse.CanReach s s' ↔ lts.CanReach s' s := by
   simp only [CanReach, reverse_mTr]
-  constructor
-  · rintro ⟨μs, h⟩
-    exact ⟨_, h⟩
-  · rintro ⟨μs, h⟩
-    exact ⟨μs.reverse, by simpa using h⟩
+  conv_rhs => rw [List.reverse_involutive.surjective.exists]
 
 /-- The unlabelled transitions of `lts.reverse` are those of `lts` with the endpoints swapped. -/
 @[simp]
