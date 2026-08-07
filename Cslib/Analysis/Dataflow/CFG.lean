@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jacopo Moretti
 -/
 
-import Cslib.Init
-import Mathlib.Data.Fintype.List
-import Mathlib.Data.DFinsupp.WellFounded
+module
+
+public import Cslib.Init
+public import Mathlib.Data.Fintype.List
+public import Mathlib.Data.DFinsupp.WellFounded
 
 
 /-!
@@ -17,6 +19,8 @@ import Mathlib.Data.DFinsupp.WellFounded
 - `CFG` is a structure representing Control Flow Graphs on which the dataflow
   algorithm defined in `Kildall.lean` runs.
 -/
+
+@[expose] public section
 
 variable {Node Edge : Type} [DecidableEq Node] [DecidableEq Edge]
 

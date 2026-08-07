@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jacopo Moretti
 -/
 
-import Cslib.Analysis.Dataflow.CFG
-import Mathlib.Order.Lattice
-import Mathlib.Data.DFinsupp.WellFounded
+module
+
+public import Cslib.Analysis.Dataflow.CFG
+public import Mathlib.Order.Lattice
+public import Mathlib.Data.DFinsupp.WellFounded
 
 /-!
 # Forward Worklist dataflow algorithm
@@ -37,6 +39,8 @@ technique borrowed from @LaSpina25.
 * [F. Nielson, H.R. Nielson, C. Hankin, *Principles of Program Analysis*][Nielson99]
 * [R. LaSpina, *Formal Verification of WTO-based Dataflow Solvers*][LaSpina25]
 -/
+
+@[expose] public section
 
 variable {Node Edge : Type} [DecidableEq Node] [DecidableEq Edge]
 
