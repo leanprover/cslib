@@ -33,7 +33,7 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.FinFun.fromFun_eq
 #grind_lint skip Cslib.FinFun.fromFun_idem
 #grind_lint skip Cslib.FinFun.fromFun_inter
-#grind_lint skip Cslib.LTS.deterministicStateLabel_not_lto
+#grind_lint skip Cslib.LTS.deterministicStateLabel_neq_tr
 #grind_lint skip Cslib.LTS.deterministicStateLabel_tr_image_singleton
 #grind_lint skip Cslib.LTS.Execution.refl
 #grind_lint skip Cslib.LTS.mem_saturate_image_τ

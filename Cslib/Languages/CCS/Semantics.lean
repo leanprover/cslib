@@ -57,7 +57,7 @@ open LTS
 
 /-- A terminated process has no outgoing transitions. -/
 @[scoped grind ⇒]
-theorem terminated_not_tr (h : Terminated p) : ¬(lts (defs := defs)).Tr p μ p' := by
+theorem not_tr_of_terminated (h : Terminated p) : ¬(lts (defs := defs)).Tr p μ p' := by
   intro htr
   induction htr <;> grind [Terminated]
 
