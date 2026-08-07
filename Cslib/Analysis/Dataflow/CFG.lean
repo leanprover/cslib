@@ -30,11 +30,11 @@ class CFG (Node Edge : Type) [DecidableEq Node] [DecidableEq Edge] where
   /-- A proof that the entry node is part of the graph's nodes. -/
   entry_mem : entry ∈ nodes
   /-- Extractor function for an edge's source node. -/
-  _srcOf : Edge -> Node
+  _srcOf : Edge → Node
   /-- Proof of correctness for the source extractor. -/
   srcOf_mem : ∀ e ∈ edges, _srcOf e ∈ nodes
   /-- Extractor function for an edge's destination node. -/
-  _dstOf : Edge -> Node
+  _dstOf : Edge → Node
   /-- Proof of correctness for the destination extractor. -/
   dstOf_mem : ∀ e ∈ edges, _dstOf e ∈ nodes
 

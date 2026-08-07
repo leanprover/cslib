@@ -40,7 +40,7 @@ variable {Node Edge : Type} [DecidableEq Node] [DecidableEq Edge]
 
 /-- The state of a dataflow analysis on graph `g` is a mapping from nodes `n`
     of `g` to elements of the abstract domain `L`. -/
-abbrev DFState (g : CFG Node Edge) (L : Type) : Type := NodeOf g -> L
+abbrev DFState (g : CFG Node Edge) (L : Type) : Type := NodeOf g → L
 
 namespace DFState
 
@@ -75,7 +75,7 @@ local instance {g : CFG Node Edge} [WellFoundedGT L] : WellFoundedRelation (DFSt
   ⟨(· > ·), IsWellFounded.wf⟩
 
 -- abstract shape of transfer function
-abbrev Transfer (α L : Type) := α -> L -> L
+abbrev Transfer (α L : Type) := α → L → L
 
 def joinPred (g : CFG Node Edge) (eT : Transfer Edge L) (init : L) (ρ : DFState g L)
     (n : NodeOf g) : L :=
