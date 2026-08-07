@@ -15,11 +15,12 @@ import Mathlib.Data.DFinsupp.WellFounded
 ## Main definitions
 
 - `CFG` is a structure representing Control Flow Graphs on which the dataflow
-  algorithm defined in Kildall.lean runs.
+  algorithm defined in `Kildall.lean` runs.
 -/
 
 variable {Node Edge : Type} [DecidableEq Node] [DecidableEq Edge]
 
+/-- Abstract structure defining the necessary operations on a CFG to define a Control Flow Graph. -/
 class CFG (Node Edge : Type) [DecidableEq Node] [DecidableEq Edge] where
   /-- All of the nodes in the CFG. -/
   nodes : List Node
