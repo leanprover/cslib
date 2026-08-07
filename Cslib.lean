@@ -2,6 +2,8 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
+public import Cslib.Analysis.Dataflow.CFG
+public import Cslib.Analysis.Dataflow.Kildall
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Computability.Automata.DA.Basic
