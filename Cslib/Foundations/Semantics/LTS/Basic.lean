@@ -314,7 +314,7 @@ abbrev ImageFinite := ∀ s μ, Finite (lts.image s μ)
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
 @[scoped grind ⇒]
-theorem deterministicStateLabel_not_lto (hdet : lts.DeterministicStateLabel s μ)
+theorem deterministicStateLabel_neq_tr (hdet : lts.DeterministicStateLabel s μ)
     (hneq : s₁ ≠ s₂) (htr₁ : lts.Tr s μ s₁) : ¬lts.Tr s μ s₂ := by
   grind
 
