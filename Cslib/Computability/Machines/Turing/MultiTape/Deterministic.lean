@@ -187,7 +187,7 @@ lemma moveInputPos_leftBoundary {n : ℕ} :
 lemma moveInputPos_rightBoundary {n : ℕ} :
     moveInputPos (⟨n + 1, by omega⟩ : Fin (n + 2)) 1 = ⟨n + 1, by omega⟩ := by
   unfold moveInputPos
-  rw [dite_eq_right (by simp; omega)]
+  rw [dif_neg (by simp; omega)]
 
 /-- A left move away from the left input boundary decrements the native input position. -/
 lemma moveInputPos_neg_of_ne_left {n : ℕ} (p : Fin (n + 2)) (h : p ≠ 0) :
@@ -195,13 +195,13 @@ lemma moveInputPos_neg_of_ne_left {n : ℕ} (p : Fin (n + 2)) (h : p ≠ 0) :
   have hp : 0 < p.val := Nat.pos_of_ne_zero (fun hz => h (Fin.ext hz))
   unfold moveInputPos
   apply Fin.ext
-  rw [dite_eq_left] <;> simp <;> omega
+  rw [dif_pos] <;> simp <;> omega
 
 /-- A right move away from the right input boundary increments the native input position. -/
 lemma moveInputPos_pos_of_ne_right {n : ℕ} (p : Fin (n + 2)) (h : p.val ≠ n + 1) :
     moveInputPos p .pos = ⟨p.val + 1, by have := p.isLt; omega⟩ := by
   unfold moveInputPos
-  rw [dite_eq_left]
+  rw [dif_pos]
   · apply Fin.ext
     simp
   · simp
