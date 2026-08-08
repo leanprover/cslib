@@ -5,5 +5,6 @@ Authors: Chris Anto Fröschl
 -/
 module
 
+public import Cslib.Init
 public import Mathlib.Algebra.Field.Defs
 public import Mathlib.FieldTheory.Finite.Basic
