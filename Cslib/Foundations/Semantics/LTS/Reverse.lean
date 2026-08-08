@@ -96,16 +96,8 @@ theorem reverse_boundedUpTo {lts : LTS State Label} {n : ℕ} :
 and endpoints reversed. -/
 theorem Execution.reverse {lts : LTS State Label} (h : lts.Execution s μs s' ss) :
     lts.reverse.Execution s' μs.reverse s ss.reverse := by
-  induction μs generalizing s s' ss with
-  | nil => grind
-  | cons μ μs ih =>
-    cases ss with
-    | nil => grind
-    | cons t ts =>
-      obtain rfl : s = t := by grind
-      have htr : lts.Tr s μ (ts[0]'(by grind)) := by grind
-      simpa using Execution.comp (ih (Execution.cons_invert h))
-        (Execution.stepL htr (Execution.refl lts.reverse s))
+  use by grind
+  grind [reverse_tr]
 
 /-- An execution of `lts.reverse` is an execution of `lts` with the labels, states
 and endpoints reversed. -/
