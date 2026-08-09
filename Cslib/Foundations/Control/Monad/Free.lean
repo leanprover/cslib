@@ -186,11 +186,11 @@ theorem map_bind (f : β → γ) (x : FreeM F α) (c : α → FreeM F β) :
 @[simp]
 theorem id_map : ∀ x : FreeM F α, map id x = x
   | .pure a => rfl
-  | .liftBind op cont => by simp_all [map, id_map]
+  | .liftBind op cont => by simp [map, id_map]
 
 theorem comp_map (h : β → γ) (g : α → β) : ∀ x : FreeM F α, map (h ∘ g) x = map h (map g x)
   | .pure a => rfl
-  | .liftBind op cont => by simp_all [map, comp_map]
+  | .liftBind op cont => by simp [map, comp_map]
 
 instance : LawfulFunctor (FreeM F) where
   map_const := rfl

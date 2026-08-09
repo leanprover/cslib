@@ -30,7 +30,7 @@ variable {Var : Type*} [DecidableEq Var] [HasFresh Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
-open Term Ty Ty.Wf Env.Wf Sub Context List Binding
+open Term Ty Ty.Wf Env.Wf Fsub.Sub Context List Binding
 
 /-- The typing relation. -/
 inductive Typing : Env Var → Term Var → Ty Var → Prop
