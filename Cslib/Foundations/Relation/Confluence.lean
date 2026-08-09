@@ -187,6 +187,14 @@ lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x
 
 lemma SN.of_normal (hx : Normal r x) : SN r x := SN.intro fun y hy => (hx ⟨y, hy⟩).elim
 
+theorem SN.normalizable (hx : SN r x) : Normalizable r x := by
+  induction hx with | intro x h ih =>
+  by_cases hy: (∃ y, r x y)
+  · obtain ⟨y, hy⟩ := hy
+    obtain ⟨z, hz, hnormal⟩ := ih y hy
+    exact ⟨z, .trans (.single hy) hz, hnormal⟩
+  · exists x
+
 lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
 
 lemma Terminating.iff_forall_sn : Terminating r ↔ ∀ x, SN r x :=
@@ -220,17 +228,8 @@ lemma Terminating.subtype_sn (r : α → α → Prop) :
     Terminating (α := {x // SN r x}) (fun a b => r a b) :=
   iff_forall_sn.mpr fun x => x.property.onFun_of_image
 
-theorem SN.isNormalizable (hx : SN r x) : Normalizable r x := by
-  -- restrict to the subtype where all elements are `SN`, so `flip r` is well-founded
-  obtain ⟨⟨y, hsn⟩, hred : ReflTransGen r x y, hnorm⟩ :=
-    (Terminating.subtype_sn r).has_min
-    (s := Subtype.val ⁻¹' ({y | ReflTransGen r x y})) ⟨⟨x, hx⟩, ReflTransGen.refl⟩
-  use y, hred
-  intro ⟨z, hyz⟩
-  exact hnorm ⟨z, hsn.of_rel hyz⟩ (.tail hred hyz) hyz
-
 theorem Terminating.isNormalizing (hr : Terminating r) : Normalizing r :=
-  fun x => (hr.apply x).isNormalizable
+  fun x => (hr.apply x).normalizable
 
 theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
     Confluent r ↔ ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n := by
