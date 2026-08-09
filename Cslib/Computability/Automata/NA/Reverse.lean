@@ -36,6 +36,14 @@ theorem reverse_reverse (na : FinAcc State Symbol) : na.reverse.reverse = na := 
 theorem reverse_involutive : Function.Involutive (reverse (State := State) (Symbol := Symbol)) :=
   reverse_reverse
 
+/-- The start states of `na.reverse` are the accept states of `na`. -/
+@[simp, grind =]
+theorem reverse_start (na : FinAcc State Symbol) : na.reverse.start = na.accept := rfl
+
+/-- The accept states of `na.reverse` are the start states of `na`. -/
+@[simp, grind =]
+theorem reverse_accept (na : FinAcc State Symbol) : na.reverse.accept = na.start := rfl
+
 /-- The multistep transitions of `na.reverse` are exactly the reversed multistep transitions
 of `na`. -/
 @[simp]
@@ -46,15 +54,13 @@ theorem reverse_mTr (na : FinAcc State Symbol) {xs : List Symbol} {s s' : State}
 @[simp]
 theorem accepts_reverse {na : FinAcc State Symbol} {xs : List Symbol} :
     Accepts na.reverse xs ↔ Accepts na xs.reverse := by
-  simp only [Accepts, reverse_mTr]
-  aesop
+  grind [Accepts, reverse_mTr]
 
 /-- `na.reverse` accepts exactly the reversals of the words accepted by `na`. -/
 @[simp]
 theorem reverse_language_eq (na : FinAcc State Symbol) :
     language na.reverse = (language na).reverse := by
-  ext xs
-  simp only [mem_language, mem_reverse, accepts_reverse]
+  ext; simp
 
 end FinAcc
 
