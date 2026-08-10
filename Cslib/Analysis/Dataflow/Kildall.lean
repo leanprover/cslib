@@ -43,6 +43,8 @@ technique borrowed from @LaSpina25.
 
 @[expose] public section
 
+namespace Kildall
+
 /-- The state of a dataflow analysis on graph `g` is a mapping from nodes `n`
     of `g` to elements of the abstract domain `L`. -/
 abbrev DFState (g : CFG) (L : Type) : Type := g.Node → L
@@ -81,15 +83,19 @@ local instance {g : CFG} [WellFoundedGT L] : WellFoundedGT (DFState g L) :=
 local instance {g : CFG} [WellFoundedGT L] : WellFoundedRelation (DFState g L) :=
   ⟨(· > ·), IsWellFounded.wf⟩
 
+/-- Convenience type for a transfer function over nodes. -/
 abbrev NodeTransfer (g : CFG) (L : Type) := g.Node -> L -> L
-abbrev EdgeTransfer (g : CFG) (L : Type) := ∀ {src dst : g.Node},
-  g.Edge src dst -> L -> L
+/-- Convenience type for a transfer function over edges. -/
+abbrev EdgeTransfer (g : CFG) (L : Type) := ∀ {src dst : g.Node}, g.Edge src dst -> L -> L
 
+/-- For a given CFG `g`, at node `n`, computes the join operation of all states incoming from
+    predecessor nodes through their relative edge transfers. Accounts for initialization at the
+    entry node. -/
 def joinPred {g : CFG} (eT : EdgeTransfer g L) (init : L) (ρ : DFState g L) (n : g.Node) : L :=
   letI := g.dEqNode
   (g.inEdges n).fold (· ⊔ ·)
     (if n = g.entry then init else ⊥)
-    (fun e => eT e.2 (ρ e.1))
+    (fun ⟨n, e⟩ => eT e (ρ n))
 
 /-- Kildall's worklist algorithm, propagating updates to the worklist based on new information.
     The termination proof uses wellfoundedness of · < · on `L`, i.e. the fact that the lattice
@@ -342,3 +348,5 @@ theorem kildall_forwardFixpoint [DecidableEq L] (g : CFG)
     -- `∀ m ∈ g.nodesOf, DFState.empty m ≤ ...`
     -- since `DFState.empty` is `λ _. ⊥`, it's ≤ anything, thanks to `OrderBot`.
     simp [ForwardPreFixpoint, DFState.empty]
+
+end Kildall
