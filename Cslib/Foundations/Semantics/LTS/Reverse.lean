@@ -105,7 +105,7 @@ and endpoints reversed. -/
 @[simp]
 theorem reverse_execution {lts : LTS State Label} :
     lts.reverse.Execution s μs s' ss ↔ lts.Execution s' μs.reverse s ss.reverse :=
-  ⟨fun h => by simpa using h.reverse, fun h => by simpa using h.reverse⟩
+  ⟨fun h => h.reverse, fun h => by simpa using h.reverse⟩
 
 end Reverse
 
