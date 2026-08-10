@@ -8,7 +8,11 @@ module
 
 public import Cslib.Init
 public import Mathlib.Data.Fintype.List
+public import Mathlib.Data.Fintype.Sigma
+public import Mathlib.Data.Finset.Sort
 public import Mathlib.Data.DFinsupp.WellFounded
+public import Mathlib.Combinatorics.Quiver.Basic
+public import Mathlib.Combinatorics.Quiver.Covering
 
 
 /-!
@@ -22,51 +26,56 @@ public import Mathlib.Data.DFinsupp.WellFounded
 
 @[expose] public section
 
-variable {Node Edge : Type} [DecidableEq Node] [DecidableEq Edge]
-
 /-- Abstract structure defining the necessary operations on a CFG to define a Control Flow Graph. -/
-class CFG (Node Edge : Type) [DecidableEq Node] [DecidableEq Edge] where
+structure CFG where
   /-- All of the nodes in the CFG. -/
-  nodes : List Node
-  /-- All of the edges in the CFG. -/
-  edges : List Edge
-  /-- A distinguished entry node in the CFG. -/
+  Node : Type u
+  [fintypeNode : Fintype Node]
+  [orderNode : LinearOrder Node]
+  [dEqNode : DecidableEq Node]
+  /-- Quiver structure for the edges of the CFG. -/
+  quiver : Quiver Node
+  [fintypeHom : ∀ a b, Fintype (@Quiver.Hom Node quiver a b)]
+  /-- Distinguished entry node in the CFG. -/
   entry : Node
-  /-- A proof that the entry node is part of the graph's nodes. -/
-  entry_mem : entry ∈ nodes
-  /-- Extractor function for an edge's source node. -/
-  _srcOf : Edge → Node
-  /-- Proof of correctness for the source extractor. -/
-  srcOf_mem : ∀ e ∈ edges, _srcOf e ∈ nodes
-  /-- Extractor function for an edge's destination node. -/
-  _dstOf : Edge → Node
-  /-- Proof of correctness for the destination extractor. -/
-  dstOf_mem : ∀ e ∈ edges, _dstOf e ∈ nodes
-
-abbrev NodeOf (g : CFG Node Edge) : Type := {n // n ∈ g.nodes}
-abbrev EdgeOf (g : CFG Node Edge) : Type := {e // e ∈ g.edges}
 
 namespace CFG
 
-/-- `g.nodes`, presented as `NodeOf g`. -/
-def nodesOf (g : CFG Node Edge) : List (NodeOf g) := g.nodes.attach
+instance {g : CFG} : Fintype (g.Node) :=
+  g.fintypeNode
 
-def edgesOf (g : CFG Node Edge) : List (EdgeOf g) := g.edges.attach
+instance {g : CFG} : LinearOrder (g.Node) :=
+  g.orderNode
 
-def dstOf (g : CFG Node Edge) (e : EdgeOf g) : NodeOf g :=
-  ⟨g._dstOf e, g.dstOf_mem e e.property⟩
+def nodesOf (g : CFG) : Finset g.Node := g.fintypeNode.elems
 
-def srcOf (g : CFG Node Edge) (e : EdgeOf g) : NodeOf g :=
-  ⟨g._srcOf e, g.srcOf_mem e e.property⟩
+def nodeList (g : CFG) : List g.Node := g.nodesOf.sort
 
-/-- All in-edges of a given node -/
-def inEdges (g : CFG Node Edge) (n : NodeOf g) : List (EdgeOf g) :=
-  g.edgesOf.filter (g.dstOf · = n)
+@[simp] theorem mem_nodeList (g : CFG) (n : g.Node) : n ∈ g.nodeList := by
+  rw [nodeList]
+  apply (Finset.mem_sort (· ≤ ·)).mpr
+  exact @Fintype.complete _ g.fintypeNode n
 
-def succOf (g : CFG Node Edge) (n : NodeOf g) : List (NodeOf g) :=
-  g.nodesOf.filter (fun m => (g.inEdges m).any (g.srcOf · = n))
+abbrev Edge {g : CFG} (src dst : g.Node) := @Quiver.Hom g.Node g.quiver src dst
+abbrev inEdge {g : CFG} (n : g.Node) := @Quiver.Costar g.Node g.quiver n
+abbrev outEdge {g : CFG} (n : g.Node) := @Quiver.Star g.Node g.quiver n
 
-instance {g : CFG Node Edge} : Fintype (NodeOf g) :=
-  List.Subtype.fintype g.nodes
+/-- All incoming edges of a given node, bundled with their source nodes. -/
+def inEdges {g : CFG} (n : g.Node) : Finset (inEdge n) := by
+  letI := g.quiver
+  letI := g.fintypeNode
+  letI := g.orderNode
+  letI (src dst : g.Node) := g.fintypeHom src dst
+  exact Finset.univ
+
+def outEdges {g : CFG} (n : g.Node) : Finset (outEdge n) := by
+  letI := g.quiver
+  letI := g.fintypeNode
+  letI (src dst : g.Node) := g.fintypeHom src dst
+  exact Finset.univ
+
+def succOf {g : CFG} (n : g.Node) : Finset g.Node :=
+  letI := g.dEqNode
+  (outEdges n).image Sigma.fst
 
 end CFG
