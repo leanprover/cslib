@@ -322,12 +322,12 @@ abbrev ImageFinite := ∀ s μ, Finite (lts.image s μ)
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
 @[scoped grind ⇒]
-theorem deterministicStateLabel_neq_tr (hdet : lts.DeterministicStateLabel s μ)
-    (hneq : s₁ ≠ s₂) (htr₁ : lts.Tr s μ s₁) : ¬lts.Tr s μ s₂ := by
+theorem DeterministicStateLabel.not_tr_of_ne (hdet : lts.DeterministicStateLabel s μ)
+    (hne : s₁ ≠ s₂) (htr₁ : lts.Tr s μ s₁) : ¬lts.Tr s μ s₂ := by
   grind
 
 @[scoped grind ⇒]
-theorem deterministicStateLabel_tr_image_singleton (h : lts.DeterministicStateLabel s μ) :
+theorem DeterministicStateLabel.image_singleton_iff_tr (h : lts.DeterministicStateLabel s μ) :
     lts.image s μ = {s'} ↔ lts.Tr s μ s' := by
   have := (lts.image s μ).eq_singleton_iff_unique_mem (a := s')
   grind
@@ -335,15 +335,15 @@ theorem deterministicStateLabel_tr_image_singleton (h : lts.DeterministicStateLa
 /-- If `s` is deterministic for `μ`, then the `μ`-image of `s` is either a singleton or the empty
 set. -/
 @[scoped grind →]
-theorem deterministicStateLabel_image_char (h : lts.DeterministicStateLabel s μ) :
+theorem DeterministicStateLabel.image_char (h : lts.DeterministicStateLabel s μ) :
     (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by
-  grind [=_ deterministicStateLabel_tr_image_singleton]
+  grind [=_ image_singleton_iff_tr]
 
 /-- If `s` is deterministic at `μ`, then the `μ`-image of `s` is finite. -/
 @[scoped grind →]
-theorem deterministicStateLabel_finite (h : lts.DeterministicStateLabel s μ) :
+theorem DeterministicStateLabel.finite_image (h : lts.DeterministicStateLabel s μ) :
     Finite (lts.image s μ) := by
-  have hDet := deterministicStateLabel_image_char lts h
+  have hDet := image_char lts h
   cases hDet
   case inl hDet =>
     obtain ⟨s', hDet'⟩ := hDet
@@ -354,7 +354,7 @@ theorem deterministicStateLabel_finite (h : lts.DeterministicStateLabel s μ) :
     apply Set.finite_empty
 
 instance [h : lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) :=
-  deterministicStateLabel_finite lts (h.deterministic s μ)
+  DeterministicStateLabel.finite_image lts (h.deterministic s μ)
 
 /-- Every deterministic LTS is also image-finite. -/
 instance deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := inferInstance
