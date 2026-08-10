@@ -6,7 +6,7 @@ Authors: Jesse Alama
 module
 
 public import Cslib.Computability.URM.Defs
-public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Relation.Confluence
 public import Mathlib.Data.Part
 
 /-! # URM Execution Semantics

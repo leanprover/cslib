@@ -6,7 +6,8 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Logic.Operators
+public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
@@ -30,8 +31,10 @@ theory.
 
 ## Notation
 
-We introduce notation for the logical connectives: `⊥ ⊤ ∧ ∨ → ¬` for, respectively, falsum, verum,
-conjunction, disjunction, implication and negation.
+We instantiate the notation classes `HasAnd`, `HasOr`, `HasImpl` and `HasNot` for `Proposition Atom`
+to give access to, respectively, the notations `∧, ∨, →` and `¬` for propositional connectives.
+In the case that `Atom` has a bottom element (respectively, is inhabited) we give instances
+`HasBot (Proposition Atom)` and (respectively, `HasTop (Proposition Atom)`).
 -/
 
 @[expose] public section
@@ -51,26 +54,30 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- Disjunction -/
   | or (a b : Proposition Atom)
   /-- Implication -/
-  | impl (a b : Proposition Atom)
+  | imp (a b : Proposition Atom)
 deriving DecidableEq, BEq
 
 instance instBotProposition [Bot Atom] : Bot (Proposition Atom) := ⟨.atom ⊥⟩
 instance instInhabitedOfBot [Bot Atom] : Inhabited Atom := ⟨⊥⟩
 
 /-- We view negation as a defined connective ~A := A → ⊥ -/
-abbrev Proposition.neg [Bot Atom] : Proposition Atom → Proposition Atom := (Proposition.impl · ⊥)
+abbrev Proposition.neg [Bot Atom] : Proposition Atom → Proposition Atom := (Proposition.imp · ⊥)
 
 /-- A fixed choice of a derivable proposition (of course any two are equivalent). -/
-abbrev Proposition.top [Inhabited Atom] : Proposition Atom := impl (.atom default) (.atom default)
+abbrev Proposition.top [Inhabited Atom] : Proposition Atom := imp (.atom default) (.atom default)
 
 instance instTopProposition [Inhabited Atom] : Top (Proposition Atom) := ⟨.top⟩
 
-example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.impl ⊥ ⊥ := rfl
+example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.imp ⊥ ⊥ := rfl
 
-@[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
-@[inherit_doc] scoped infix:35 " ∨ " => Proposition.or
-@[inherit_doc] scoped infix:30 " → " => Proposition.impl
-@[inherit_doc] scoped prefix:40 " ¬ " => Proposition.neg
+instance : HasAnd (Proposition Atom) := ⟨.and⟩
+instance : HasOr (Proposition Atom) := ⟨.or⟩
+instance : HasImp (Proposition Atom) := ⟨.imp⟩
+instance [Bot Atom] : HasNot (Proposition Atom) := ⟨.neg⟩
+
+omit [DecidableEq Atom] in
+@[grind =]
+lemma not_eq [Bot Atom] (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
 
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/
@@ -79,7 +86,7 @@ def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
   | atom x => f x
   | and A B => (A.subst f) ∧ (B.subst f)
   | or A B => (A.subst f) ∨ (B.subst f)
-  | impl A B => (A.subst f) → (B.subst f)
+  | imp A B => (A.subst f) → (B.subst f)
 
 -- This is probably a lawful monad, but that doesn't seem to be important.
 instance : Monad Proposition where
@@ -99,56 +106,43 @@ instance : Functor Theory where
   map f := Set.image (f <$> ·)
 
 /-- The empty theory corresponds to minimal propositional logic. -/
-abbrev MPL : Theory (Atom) := ∅
+abbrev MPL (Atom : Type u) : Theory (Atom) := ∅
 
 /-- Intuitionistic propositional logic adds the principle of explosion (ex falso quodlibet). -/
-abbrev IPL [Bot Atom] : Theory Atom :=
-  Set.range (⊥ → ·)
-
-/-- Classical logic further adds double negation elimination. -/
-abbrev CPL [Bot Atom] : Theory Atom :=
-  Set.range (fun (A : Proposition Atom) ↦ ¬¬A → A)
-
-/-- A theory is intuitionistic if it validates ex falso quodlibet. -/
-@[scoped grind]
-class IsIntuitionistic [Bot Atom] (T : Theory Atom) where
-  efq (A : Proposition Atom) : (⊥ → A) ∈ T
+abbrev IPL (Atom : Type u) [Bot Atom] : Theory Atom := {⊥ → A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
-@[scoped grind =]
-theorem isIntuitionisticIff [Bot Atom] (T : Theory Atom) : IsIntuitionistic T ↔ IPL ⊆ T := by grind
-
-/-- A theory is classical if it validates double-negation elimination. -/
-@[scoped grind]
-class IsClassical [Bot Atom] (T : Theory Atom) where
-  dne (A : Proposition Atom) : (¬¬A → A) ∈ T
-
-omit [DecidableEq Atom] in
-@[scoped grind =]
-theorem isClassicalIff [Bot Atom] (T : Theory Atom) : IsClassical T ↔ CPL ⊆ T := by grind
-
-instance instIsIntuitionisticIPL [Bot Atom] : IsIntuitionistic (Atom := Atom) IPL where
-  efq A := Set.mem_range.mpr ⟨A, rfl⟩
-
-instance instIsClassicalCPL [Bot Atom] : IsClassical (Atom := Atom) CPL where
-  dne A := Set.mem_range.mpr ⟨A, rfl⟩
-
-omit [DecidableEq Atom] in
-@[scoped grind →]
-theorem instIsIntuitionisticExtention [Bot Atom] {T T' : Theory Atom} [IsIntuitionistic T]
-    (h : T ⊆ T') : IsIntuitionistic T' := by grind
-
-omit [DecidableEq Atom] in
-@[scoped grind →]
-theorem instIsClassicalExtention [Bot Atom] {T T' : Theory Atom} [IsClassical T] (h : T ⊆ T') :
-    IsClassical T' := by grind
+lemma efq_mem_ipl [Bot Atom] (A : Proposition Atom) : (⊥ → A) ∈ IPL Atom := ⟨A, rfl⟩
 
 /-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
 @[reducible]
 def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
-  (WithBot.some <$> T) ∪ IPL
+  (WithBot.some <$> T) ∪ IPL (WithBot Atom)
 
-instance instIsIntuitionisticIntuitionisticCompletion (T : Theory Atom) :
-    IsIntuitionistic T.intuitionisticCompletion := by grind
+/-- Classical logic further adds double negation elimination. -/
+abbrev CPL (Atom : Type u) [Bot Atom] : Theory Atom := {¬¬A → A | A : Proposition Atom}
+
+omit [DecidableEq Atom] in
+lemma dne_mem_cpl [Bot Atom] (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
+
+open InferenceSystem
+
+/-- An inference system is intuitionistic if it derives ex falso quodlibet. TODO: this should be
+generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
+implication connective. -/
+@[scoped grind]
+class IsIntuitionistic (Atom : Type u) [Bot Atom] (S : Type*)
+    [InferenceSystem S (Proposition Atom)] where
+  /-- The principle of explosion (ex falso quolibet). -/
+  efq (A : Proposition Atom) : S⇓(⊥ → A)
+
+/-- An inference system is classical if it validates double-negation elimination. TODO: this should
+be generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
+implication connective. -/
+@[scoped grind]
+class IsClassical (Atom : Type u) [Bot Atom] (S : Type*)
+    [InferenceSystem S (Proposition Atom)] where
+  /-- Double-negation elimination. -/
+  dne (A : Proposition Atom) : S⇓(¬¬A → A)
 
 end Cslib.Logic.PL.Theory

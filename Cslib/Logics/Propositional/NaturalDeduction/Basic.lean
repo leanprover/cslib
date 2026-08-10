@@ -156,7 +156,7 @@ theorem Theory.equiv_iff {A B : Proposition Atom} :
     exact ⟨D, E⟩
 
 /-- Minimally equivalent propositions. -/
-abbrev Equiv : Proposition Atom → Proposition Atom → Prop := MPL.Equiv
+abbrev Equiv : Proposition Atom → Proposition Atom → Prop := (MPL Atom).Equiv
 
 @[inherit_doc]
 scoped infix:29 " ≡ " => Equiv

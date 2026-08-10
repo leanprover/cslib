@@ -38,13 +38,13 @@ will not collide.
 
 @[expose] public section
 
-namespace Turing
+namespace Cslib.Turing
 
 /--
 A structure for bidirectionally-infinite Turing machine tapes
 that eventually take on blank `none` values
 -/
-structure BiTape (Symbol : Type) where
+structure BiTape (Symbol : Type*) where
   /-- The symbol currently under the tape head -/
   head : Option Symbol
   /-- The contents to the left of the head -/
@@ -54,7 +54,7 @@ structure BiTape (Symbol : Type) where
 
 namespace BiTape
 
-variable {Symbol : Type}
+variable {Symbol : Type*}
 
 /-- The empty `BiTape` -/
 def nil : BiTape Symbol := ⟨none, ∅, ∅⟩
@@ -92,6 +92,8 @@ Move the head right by shifting the right StackTape under the head.
 def moveRight (t : BiTape Symbol) : BiTape Symbol :=
   ⟨t.right.head, StackTape.cons t.head t.left, t.right.tail⟩
 
+open _root_.Turing
+
 /--
 Move the head to the left or right, shifting the tape underneath it.
 -/
@@ -102,7 +104,7 @@ def move (t : BiTape Symbol) : Dir → BiTape Symbol
 /--
 Optionally perform a `move`, or do nothing if `none`.
 -/
-def optionMove : BiTape Symbol → Option Dir → BiTape Symbol
+def optionMove : BiTape Symbol → Option Turing.Dir → BiTape Symbol
   | t, none => t
   | t, some d => t.move d
 
@@ -125,10 +127,9 @@ def write (t : BiTape Symbol) (a : Option Symbol) : BiTape Symbol := { t with he
 The space used by a `BiTape` is the number of symbols
 between and including the head, and leftmost and rightmost non-blank symbols on the `BiTape`.
 -/
-@[scoped grind]
 def spaceUsed (t : BiTape Symbol) : ℕ := 1 + t.left.length + t.right.length
 
-@[simp, grind =]
+@[simp]
 lemma spaceUsed_write (t : BiTape Symbol) (a : Option Symbol) :
     (t.write a).spaceUsed = t.spaceUsed := by rfl
 
@@ -138,11 +139,11 @@ lemma spaceUsed_mk₁ (l : List Symbol) :
   | nil => simp [mk₁, spaceUsed, nil, StackTape.length_nil]
   | cons h t => simp [mk₁, spaceUsed, StackTape.length_nil, StackTape.length_mapSome]; omega
 
-lemma spaceUsed_move (t : BiTape Symbol) (d : Dir) :
+lemma spaceUsed_move (t : BiTape Symbol) (d : Turing.Dir) :
     (t.move d).spaceUsed ≤ t.spaceUsed + 1 := by
   cases d <;> grind [moveLeft, moveRight, move,
     spaceUsed, StackTape.length_tail_le, StackTape.length_cons_le]
 
 end BiTape
 
-end Turing
+end Cslib.Turing

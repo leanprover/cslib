@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Relation.Attr
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
 
 /-! # λ-calculus

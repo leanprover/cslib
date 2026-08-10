@@ -29,12 +29,10 @@ open Function Set
 theorem infinite_pigeonhole_principle {X Y : Type*} [Finite Y] (f : X → Y) {s : Set X}
     (h_inf : s.Infinite) : ∃ y, ∃ t, t.Infinite ∧ t ⊆ s ∧ ∀ x ∈ t, f x = y := by
   have := h_inf.to_subtype
-  obtain ⟨y, h_inf'⟩ := Finite.exists_infinite_fiber (s.restrict f)
+  obtain ⟨y, h_inf'⟩ := Finite.exists_infinite_fiber (s.domRestrict f)
   have h_inf_iff := Equiv.infinite_iff <|
     Equiv.subtypeSubtypeEquivSubtypeInter (· ∈ s) (fun x ↦ f x = y)
-  simp only [coe_eq_subtype, mem_preimage, restrict_apply, mem_singleton_iff, h_inf_iff] at h_inf'
-  have h_inf'' := (infinite_coe_iff (s := { x | x ∈ s ∧ f x = y })).mp h_inf'
-  use y, {x | x ∈ s ∧ f x = y}
+  use y, {x | x ∈ s ∧ f x = y}, infinite_coe_iff.mp <| h_inf_iff.mp h_inf'
   grind
 
 /-- An `InfVSet` consists of a set of vertices and a proof that the set is infinite. -/
@@ -69,8 +67,8 @@ private lemma goodSelection_exists (ivs : InfVSet Vertex) :
   obtain ⟨v, h_v⟩ := Set.Infinite.nonempty ivs.inf
   let f u := color {v, u}
   obtain ⟨c, vs, h_inf, h_vs, h_col⟩ := infinite_pigeonhole_principle f <|
-    Set.Infinite.diff ivs.inf (finite_singleton v)
-  simp only [subset_diff] at h_vs
+    Set.Infinite.sdiff ivs.inf (finite_singleton v)
+  simp only [subset_sdiff] at h_vs
   let ivs' := InfVSet.mk vs h_inf
   use {vs := ivs', v := v, c := c}
   grind [GoodSelection]

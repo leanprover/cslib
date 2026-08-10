@@ -449,7 +449,7 @@ instance instMonadWithReaderOf : MonadWithReaderOf σ (FreeReader σ) where
   | pure a => rfl
   | liftBind op cont ih =>
     cases op
-    simpa [withTheReader, instMonadWithReaderOf, run] using (ih (f s) s)
+    simpa [withTheReader, instMonadWithReaderOf, run] using! (ih (f s) s)
 
 end FreeReader
 

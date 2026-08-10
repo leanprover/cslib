@@ -18,14 +18,14 @@ A denotational semantics for modal logic, inspired by the one for Hennessy-Milne
 
 namespace Cslib.Logic.Modal
 
-open scoped Proposition InferenceSystem
+open scoped Proposition InferenceSystem Satisfies
 
 /-- Denotation of a proposition. -/
 @[simp, scoped grind =]
 def Proposition.denotation (m : Model World Atom) :
     Proposition Atom → Set World
   | .atom p => {w | m.v w p}
-  | .neg φ => (φ.denotation m)ᶜ
+  | .not φ => (φ.denotation m)ᶜ
   | .and φ₁ φ₂ => φ₁.denotation m ∩ φ₂.denotation m
   | .diamond φ => {w | ∃ w', m.r w w' ∧ w' ∈ φ.denotation m}
 
@@ -38,7 +38,7 @@ theorem satisfies_mem_denotation {m : Model World Atom} {φ : Proposition Atom} 
 /-- A world is in the denotation of a proposition iff it is not in the denotation of the negation
 of the proposition. -/
 @[scoped grind =]
-theorem neg_denotation {m : Model World Atom} (φ : Proposition Atom) :
+theorem not_denotation {m : Model World Atom} (φ : Proposition Atom) :
     w ∉ (¬φ).denotation m ↔ w ∈ φ.denotation m := by
   grind [_=_ satisfies_mem_denotation]
 

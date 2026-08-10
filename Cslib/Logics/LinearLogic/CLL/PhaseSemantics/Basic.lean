@@ -152,7 +152,7 @@ structure Fact (P : Type*) [PhaseSpace P] where
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (Fact P) P where
   coe := Fact.carrier
-  coe_injective' _ _ _ := by grind only [cases Fact]
+  coe_injective _ _ _ := by grind only [cases Fact]
 
 instance : PartialOrder (Fact P) := PartialOrder.ofSetLike (Fact P) P
 
@@ -196,14 +196,8 @@ lemma coe_mk {X : Set P} {h : isFact X} : ((⟨X, h⟩ : Fact P) : Set P) = X :=
 @[simp] lemma closed (F : Fact P) : isFact (F : Set P) := F.property
 
 /-- In any phase space, `{1}⫠ = ⊥`. -/
-lemma orth_one_eq_bot :
-    ({(1 : P)} : Set P)⫠ = (PhaseSpace.bot : Set P) := by
-  ext m; constructor
-  · intro hm
-    simpa [orthogonal, mem_setOf, mul_one] using hm 1 (by simp)
-  · intro hm x hx
-    rcases hx with rfl
-    simpa [orthogonal, mem_setOf, mul_one] using hm
+lemma orth_one_eq_bot : ({(1 : P)} : Set P)⫠ = (PhaseSpace.bot : Set P) := by
+  simp_all
 
 /-- The fact given by the dual of G. -/
 @[simps!] def dualFact (G : Set P) : Fact P := Fact.mkDual (G⫠) G rfl
@@ -264,7 +258,7 @@ lemma biorth_least_fact (G : Set P) :
       symm at hF ⊢
       apply ClosureOperator.IsClosed.closure_eq (congrArg orthogonal (congrArg orthogonal hF))
     have hF_closed : c.IsClosed F := (c.isClosed_iff).2 this.symm
-    simpa [c] using ClosureOperator.closure_min hGF hF_closed
+    simpa [c] using! ClosureOperator.closure_min hGF hF_closed
   apply h_min
 
 /-- `0` is the least fact (w.r.t. inclusion). -/
@@ -304,7 +298,7 @@ lemma inter_isFact_of_isFact {A B : Set P}
   let FB : Fact P := ⟨B, hB⟩
   have h := sInf_isFact (S := ({FA, FB} : Set (Fact P)))
   simpa [carriersInf, Set.image_pair, sInf_insert, sInf_singleton, inf_eq_inter]
-    using h
+    using! h
 
 instance : InfSet (Fact P) where
   sInf S := ⟨carriersInf S, sInf_isFact (S := S)⟩
@@ -638,14 +632,9 @@ lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H �
 
 @[simp] lemma top_par : (⊤ ⅋ G : Fact P) = ⊤ := by
   refine SetLike.coe_injective ?_
-  rw [coe_top]
-  rw [Set.eq_univ_iff_forall]
-  intro x
-  simp only [parr, dualFact, mkDual, mkSubset, coe_mk, coe_top]
-  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq]
-  intro w hw
+  rw [coe_top, Set.eq_univ_iff_forall]
+  intro x w hw
   rcases Set.mem_mul.mp hw with ⟨y, hy, z, hz, rfl⟩
-  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq] at hy
   rw [mul_left_comm]
   exact hy (x * z) (Set.mem_univ _)
 
@@ -679,7 +668,7 @@ lemma valid_with {G H : Fact P} : (G & H).IsValid ↔ G.IsValid ∧ H.IsValid :=
 
 end Fact
 
-open Fact
+open PhaseSpace.Fact
 
 /-! ## Interpretation of propositions -/
 

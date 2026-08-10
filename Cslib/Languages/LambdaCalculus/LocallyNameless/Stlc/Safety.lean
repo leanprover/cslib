@@ -8,6 +8,7 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+public import Cslib.Foundations.Relation.Confluence
 
 /-! # λ-calculus
 

@@ -8,7 +8,7 @@ module
 
 public import Cslib.Algorithms.Lean.TimeM
 public import Mathlib.Data.Nat.Cast.Order.Ring
-public import Mathlib.Data.Nat.Lattice
+public import Mathlib.Order.Lattice.Nat
 public import Mathlib.Data.Nat.Log
 
 /-!

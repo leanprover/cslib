@@ -6,7 +6,8 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Relation.Attr
+public import Cslib.Foundations.Relation.Defs
 public meta import Mathlib.Tactic.ToDual
 
 /-!
