@@ -33,7 +33,7 @@ namespace Cslib.FLP.ZeroFaultAlg
 open Set Sum Option Multiset ωSequence
 
 /-- The payload of a message is of type `Bool ⊕ Bool`, where `inl b` denotes an input value `b`
-ane `inr b` denotes a value `b` sent by process 0 to all processes (including itself). -/
+and `inr b` denotes a value `b` sent by process 0 to all processes (including itself). -/
 abbrev M := Bool
 
 /-- The local state of a process is trivial. -/

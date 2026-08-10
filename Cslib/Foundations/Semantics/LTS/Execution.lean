@@ -84,6 +84,11 @@ theorem Execution.to_mTr (hexec : lts.Execution s1 μs s2 ss) :
         apply this
       · grind
 
+/-- The states visited by an execution form a chain in the underlying unlabelled relation. -/
+theorem Execution.isChain (hexec : lts.Execution s1 μs s2 ss) :
+    ss.IsChain lts.UnlabelledTr := by
+  grind [Execution, List.isChain_iff_getElem, UnlabelledTr]
+
 open scoped Execution
 /-- Correspondence of multistep transitions and executions. -/
 @[scoped grind =]

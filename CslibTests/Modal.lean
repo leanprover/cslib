@@ -17,62 +17,62 @@ variable {World Atom : Type*} {φ : Proposition Atom}
 
 example : ((◇◇φ → ◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈ K45 World Atom := by
   intro m h w
-  letI : IsTrans World m.r := h.1
-  letI : Relation.RightEuclidean m.r := h.2
+  let : IsTrans World m.r := h.1
+  let : Relation.RightEuclidean m.r := h.2
   exact ⟨Satisfies.four φ, Satisfies.five φ⟩
 
 example : ((□φ → ◇φ) ∧ (◇◇φ → ◇φ) : Proposition Atom) ∈ D4 World Atom := by
   intro m h w
-  letI : Relation.Serial m.r := h.1
-  letI : IsTrans World m.r := h.2
+  let : Relation.Serial m.r := h.1
+  let : IsTrans World m.r := h.2
   exact ⟨Satisfies.d φ, Satisfies.four φ⟩
 
 example : ((□φ → ◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈ D5 World Atom := by
   intro m h w
-  letI : Relation.Serial m.r := h.1
-  letI : Relation.RightEuclidean m.r := h.2
+  let : Relation.Serial m.r := h.1
+  let : Relation.RightEuclidean m.r := h.2
   exact ⟨Satisfies.d φ, Satisfies.five φ⟩
 
 example :
     Proposition.and (□φ → ◇φ) (Proposition.and (◇◇φ → ◇φ) (◇φ → □◇φ)) ∈
       D45 World Atom := by
   intro m h w
-  letI : Relation.Serial m.r := h.1
-  letI : IsTrans World m.r := h.2.1
-  letI : Relation.RightEuclidean m.r := h.2.2
+  let : Relation.Serial m.r := h.1
+  let : IsTrans World m.r := h.2.1
+  let : Relation.RightEuclidean m.r := h.2.2
   exact ⟨Satisfies.d φ, Satisfies.four φ, Satisfies.five φ⟩
 
 example : ((□φ → ◇φ) ∧ (φ → □◇φ) : Proposition Atom) ∈ DB World Atom := by
   intro m h w
-  letI : Relation.Serial m.r := h.1
-  letI : Std.Symm m.r := h.2
+  let : Relation.Serial m.r := h.1
+  let : Std.Symm m.r := h.2
   exact ⟨Satisfies.d φ, Satisfies.b φ⟩
 
 example : ((φ → ◇φ) ∧ (φ → □◇φ) : Proposition Atom) ∈ TB World Atom := by
   intro m h w
-  letI : Std.Refl m.r := h.1
-  letI : Std.Symm m.r := h.2
+  let : Std.Refl m.r := h.1
+  let : Std.Symm m.r := h.2
   exact ⟨Satisfies.t φ, Satisfies.b φ⟩
 
 example : ((φ → □◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈ KB5 World Atom := by
   intro m h w
-  letI : Std.Symm m.r := h.1
-  letI : Relation.RightEuclidean m.r := h.2
+  let : Std.Symm m.r := h.1
+  let : Relation.RightEuclidean m.r := h.2
   exact ⟨Satisfies.b φ, Satisfies.five φ⟩
 
 example : ((φ → ◇φ) ∧ (◇◇φ → ◇φ) : Proposition Atom) ∈ S4 World Atom := by
   intro m h w
-  letI : Std.Refl m.r := h.1
-  letI : IsTrans World m.r := h.2
+  let : Std.Refl m.r := h.1
+  let : IsTrans World m.r := h.2
   exact ⟨Satisfies.t φ, Satisfies.four φ⟩
 
 example :
     Proposition.and (φ → ◇φ) (Proposition.and (◇◇φ → ◇φ) (◇φ → □◇φ)) ∈
       S5 World Atom := by
   intro m h w
-  letI : Std.Refl m.r := h.1
-  letI : IsTrans World m.r := h.2.1
-  letI : Relation.RightEuclidean m.r := h.2.2
+  let : Std.Refl m.r := h.1
+  let : IsTrans World m.r := h.2.1
+  let : Relation.RightEuclidean m.r := h.2.2
   exact ⟨Satisfies.t φ, Satisfies.four φ, Satisfies.five φ⟩
 
 end Cslib.Logic.Modal

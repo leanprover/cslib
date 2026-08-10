@@ -82,7 +82,7 @@ theorem versionSpace_empty_sample (C : ConceptClass α β)
     (S : LabeledSample α β 0) :
     VersionSpace C S = C := by
   ext h
-  refine ⟨fun hh => hh.1, fun hh => ⟨hh, fun i => i.elim0⟩⟩
+  exact ⟨fun hh => hh.1, fun hh => ⟨hh, fun i => i.elim0⟩⟩
 
 /-- *Version space reindexing.* For any reindexing `f : Fin m → Fin n`, the
 version space on `S` is contained in the version space on the reindexed sample
@@ -153,7 +153,7 @@ theorem mem_versionSpace_iff_empiricalError_zero
   unfold empiricalError empiricalMeasure error
   rcases Nat.eq_zero_or_pos m with hm | hm
   · subst hm
-    simp_all
+    simp
   · simp_all [Nat.pos_iff_ne_zero]
 
 /-- The empirical 0-1 error equals the empirical miscount divided by the
@@ -252,7 +252,7 @@ private lemma pi_map_graph_eq_one
     (Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x))))
       (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1})) = 1 := by
   have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
-  haveI : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
+  have : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
     Measure.isProbabilityMeasure_map hφ.aemeasurable
   rw [Measure.pi_pi]
   simp [map_graph_eq_one hcm P hG]
@@ -269,7 +269,7 @@ theorem ae_mem_versionSpace_of_realizable
       ∂(Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x)))),
       c ∈ VersionSpace C S := by
   have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
-  haveI : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
+  have : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
     Measure.isProbabilityMeasure_map hφ.aemeasurable
   rw [ae_iff]
   have hsub : {S : Fin m → α × β | ¬ c ∈ VersionSpace C S} ⊆

@@ -126,7 +126,7 @@ theorem reconstruct_eq_constantCoeff_of_eval_eq
       (s := Finset.univ)
       (v := x)
       hx.injOn
-      (by simpa using hdeg)
+      (by simp [hdeg])
   simpa [reconstruct] using congrArg _root_.Polynomial.constantCoeff hp.symm
 
 /-- Reconstruction succeeds on the values of a Shamir sharing polynomial once
