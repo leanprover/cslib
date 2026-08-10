@@ -12,5 +12,7 @@ import CslibTests.ImportWithMathlib
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.LambdaCalculusLocallyNameless
+import CslibTests.LambdaNWays.Basic
+import CslibTests.LambdaNWays.Corpus
 import CslibTests.MLL
 import CslibTests.Reduction

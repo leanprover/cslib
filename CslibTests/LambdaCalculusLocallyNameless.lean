@@ -6,14 +6,16 @@ Authors: Alex Korbonits
 
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
-/-! # Tests for locally nameless capture-avoiding substitution
+/-! # Unit tests for locally nameless opening, closing and substitution
 
-Concrete tests for the definitions of variable opening, closing, and substitution on
-locally nameless λ-terms. The metatheory in
-`Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties` establishes the
-expected laws, but consistent mistakes in the definitions could still satisfy them;
-these tests pin the definitions down on concrete terms with known results, in the
-spirit of <https://github.com/sweirich/lambda-n-ways>.
+Small terms with human-checkable results, pinning down the definitions of variable opening,
+closing and substitution on locally nameless λ-terms. The metatheory in
+`Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties` establishes the expected
+laws, but consistent mistakes in the definitions could still satisfy them.
+
+`CslibTests.LambdaNWays` complements these with the normalization corpus of
+<https://github.com/sweirich/lambda-n-ways>, which exercises the same definitions on several
+thousand generated terms.
 -/
 
 namespace CslibTests.LambdaCalculusLocallyNameless
@@ -108,58 +110,5 @@ example : ((sample ^* y) ^ fvar y) = sample := rfl
 -- `subst_intro`: opening to a fresh variable followed by substitution is opening
 example : (sampleBody ^ fvar w)[w := app (fvar y) (fvar z)] =
     sampleBody ^ app (fvar y) (fvar z) := rfl
-
-/-! ## Normalization of Church numerals
-
-A fuel-bounded normal-order normalizer, defined here for testing only. Normalizing
-Church arithmetic exercises substitution under many nested binders; Church
-predecessor in particular is a classic detector of capture bugs. -/
-
-/-- Fuel-bounded normal-order normalization. -/
-def nf (fuel : ℕ) (t : T) : T :=
-  match fuel, t with
-  | 0, t => t
-  | _ + 1, bvar i => bvar i
-  | _ + 1, fvar x => fvar x
-  | fuel + 1, Term.abs m =>
-    let x := HasFresh.fresh m.fv
-    abs ((nf fuel (m ^ fvar x)) ^* x)
-  | fuel + 1, app m n =>
-    match nf fuel m with
-    | Term.abs m' => nf fuel (m' ^ n)
-    | m' => app m' (nf fuel n)
-
-/-- Church numeral `λf. λx. f (f (... x))`. -/
-def church (n : ℕ) : T := abs (abs (go n))
-where go : ℕ → T
-  | 0 => bvar 0
-  | n + 1 => app (bvar 1) (go n)
-
-/-- Church addition `λm n f x. m f (n f x)`. -/
-def cadd : T :=
-  abs (abs (abs (abs (app (app (bvar 3) (bvar 1)) (app (app (bvar 2) (bvar 1)) (bvar 0))))))
-
-/-- Church multiplication `λm n f. m (n f)`. -/
-def cmul : T := abs (abs (abs (app (bvar 2) (app (bvar 1) (bvar 0)))))
-
-/-- Church predecessor `λn f x. n (λg h. h (g f)) (λu. x) (λu. u)`. -/
-def cpred : T :=
-  abs (abs (abs (app
-    (app (app (bvar 2) (abs (abs (app (bvar 0) (app (bvar 1) (bvar 3))))))
-      (abs (bvar 1)))
-    (abs (bvar 0)))))
-
-section
-set_option maxRecDepth 10000
-
-example : nf 20 (app (app cadd (church 2)) (church 2)) = church 4 := by rfl
-
-example : nf 20 (app (app cmul (church 2)) (church 3)) = church 6 := by rfl
-
-example : nf 20 (app cpred (church 3)) = church 2 := by rfl
-
-example : nf 20 (app cpred (church 0)) = church 0 := by rfl
-
-end
 
 end CslibTests.LambdaCalculusLocallyNameless

@@ -1,0 +1,100 @@
+-- numSubsts:  1
+-- bind depth: 2
+-- depth:      3
+-- substs:     1,1,1,False
+\x0.(\x1.x1) x0
+-- numSubsts:  1
+-- bind depth: 3
+-- depth:      5
+-- substs:     2,4,3,False
+\x0.(\x1.x1 (\x2.x1)) (x0 x0)
+-- numSubsts:  1
+-- bind depth: 4
+-- depth:      7
+-- substs:     3,7,5,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1))) (x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 5
+-- depth:      9
+-- substs:     4,10,7,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1)))) (x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 6
+-- depth:      11
+-- substs:     5,13,9,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1))))) (x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 7
+-- depth:      13
+-- substs:     6,16,11,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1)))))) (x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 8
+-- depth:      15
+-- substs:     7,19,13,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1))))))) (x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 9
+-- depth:      17
+-- substs:     8,22,15,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1)))))))) (x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 10
+-- depth:      19
+-- substs:     9,25,17,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 11
+-- depth:      21
+-- substs:     10,28,19,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1)))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 12
+-- depth:      23
+-- substs:     11,31,21,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 13
+-- depth:      25
+-- substs:     12,34,23,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1)))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 14
+-- depth:      27
+-- substs:     13,37,25,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1 (\x13.x1))))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 15
+-- depth:      29
+-- substs:     14,40,27,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1 (\x13.x1 (\x14.x1)))))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 16
+-- depth:      31
+-- substs:     15,43,29,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1 (\x13.x1 (\x14.x1 (\x15.x1))))))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 17
+-- depth:      33
+-- substs:     16,46,31,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1 (\x13.x1 (\x14.x1 (\x15.x1 (\x16.x1)))))))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 18
+-- depth:      35
+-- substs:     17,49,33,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1 (\x13.x1 (\x14.x1 (\x15.x1 (\x16.x1 (\x17.x1))))))))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 19
+-- depth:      37
+-- substs:     18,52,35,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1 (\x13.x1 (\x14.x1 (\x15.x1 (\x16.x1 (\x17.x1 (\x18.x1)))))))))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 20
+-- depth:      39
+-- substs:     19,55,37,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1 (\x13.x1 (\x14.x1 (\x15.x1 (\x16.x1 (\x17.x1 (\x18.x1 (\x19.x1))))))))))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
+-- numSubsts:  1
+-- bind depth: 21
+-- depth:      41
+-- substs:     20,58,39,False
+\x0.(\x1.x1 (\x2.x1 (\x3.x1 (\x4.x1 (\x5.x1 (\x6.x1 (\x7.x1 (\x8.x1 (\x9.x1 (\x10.x1 (\x11.x1 (\x12.x1 (\x13.x1 (\x14.x1 (\x15.x1 (\x16.x1 (\x17.x1 (\x18.x1 (\x19.x1 (\x20.x1)))))))))))))))))))) (x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0 x0)
