@@ -177,9 +177,9 @@ lemma StandardSeq.app_l_cong (h : StandardSeq n L L') :
     have ⟨c, hc, hc_le⟩ := ih
     by_cases hQ : IsAbs Q
     · have hL' := step.isAbs_r hQ
-      have hseq := hc.tail (step.appAbsL hQ) (by simp only [if_pos hQ] at hc_le; omega)
-      exact ⟨_, hseq, by rw [if_pos hL']⟩
-    · have hseq := hc.tail (step.appNoAbsL hQ) (by simp only [if_neg hQ] at hc_le; omega)
+      have hseq := hc.tail (step.appAbsL hQ) (by simp only [ite_eq_left hQ] at hc_le; omega)
+      exact ⟨_, hseq, by rw [ite_eq_left hL']⟩
+    · have hseq := hc.tail (step.appNoAbsL hQ) (by simp only [ite_eq_right hQ] at hc_le; omega)
       exact ⟨_, hseq, by split <;> omega⟩
 
 /-- A nonempty operator reduction lifts to the application, bounded by the operator's redex

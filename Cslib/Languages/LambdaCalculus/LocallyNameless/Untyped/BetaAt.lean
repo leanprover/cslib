@@ -58,22 +58,22 @@ variable {L L' M M' N N' P : Term Var} {a b i m n : Nat}
 /-- Reducing a non-abstraction operator keeps the position. -/
 lemma BetaAt.appNoAbsL (h : BetaAt i M M') (hna : ¬IsAbs M) :
     BetaAt i (app M N) (app M' N) := by
-  simpa [if_neg hna] using h.appL
+  simpa [ite_eq_right hna] using h.appL
 
 /-- Reducing an abstraction operator advances the position by one. -/
 lemma BetaAt.appAbsL (h : BetaAt i M M') (ha : IsAbs M) :
     BetaAt (i + 1) (app M N) (app M' N) := by
-  simpa [if_pos ha] using h.appL
+  simpa [ite_eq_left ha] using h.appL
 
 /-- Reducing the operand adds the redex count of a non-abstraction operator. -/
 lemma BetaAt.appNoAbsR (h : BetaAt i M M') (hna : ¬IsAbs N) :
     BetaAt (i + countRedexes N) (app N M) (app N M') := by
-  simpa [if_neg hna] using h.appR (N := N)
+  simpa [ite_eq_right hna] using h.appR (N := N)
 
 /-- Reducing the operand adds the redex count of an abstraction operator, plus one. -/
 lemma BetaAt.appAbsR (h : BetaAt i M M') (ha : IsAbs N) :
     BetaAt (i + countRedexes N + 1) (app N M) (app N M') := by
-  simpa [if_pos ha] using h.appR (N := N)
+  simpa [ite_eq_left ha] using h.appR (N := N)
 
 /-- Opening with a free variable preserves the number of redexes. -/
 lemma countRedexes_openRec_fvar (M : Term Var) (k : Nat) (x : Var) :
