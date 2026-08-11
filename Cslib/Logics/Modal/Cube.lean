@@ -45,7 +45,8 @@ def Five World Atom := logic {m : Model World Atom | Relation.RightEuclidean m.r
 
 /-- The modal logic K45. -/
 @[scoped grind =]
-def K45 World Atom := (K World Atom) ∪ (Four World Atom) ∪ (Five World Atom)
+def K45 World Atom :=
+  logic {m : Model World Atom | IsTrans World m.r ∧ Relation.RightEuclidean m.r}
 
 /-- The modal logic D. -/
 @[scoped grind =]
@@ -53,60 +54,68 @@ def D World Atom := logic {m : Model World Atom | Relation.Serial m.r}
 
 /-- The modal logic D4. -/
 @[scoped grind =]
-def D4 World Atom := (K World Atom) ∪ (D World Atom) ∪ (Four World Atom)
+def D4 World Atom :=
+  logic {m : Model World Atom | Relation.Serial m.r ∧ IsTrans World m.r}
 
 /-- The modal logic D5. -/
 @[scoped grind =]
-def D5 World Atom := (K World Atom) ∪ (D World Atom) ∪ (Five World Atom)
+def D5 World Atom :=
+  logic {m : Model World Atom | Relation.Serial m.r ∧ Relation.RightEuclidean m.r}
 
 /-- The modal logic D45. -/
 @[scoped grind =]
-def D45 World Atom := (K World Atom) ∪ (D World Atom) ∪ (Four World Atom) ∪ (Five World Atom)
+def D45 World Atom :=
+  logic {m : Model World Atom |
+    Relation.Serial m.r ∧ IsTrans World m.r ∧ Relation.RightEuclidean m.r}
 
 /-- The modal logic DB. -/
 @[scoped grind =]
-def DB World Atom := (K World Atom) ∪ (D World Atom) ∪ (B World Atom)
+def DB World Atom :=
+  logic {m : Model World Atom | Relation.Serial m.r ∧ Std.Symm m.r}
 
 /-- The modal logic TB. -/
 @[scoped grind =]
-def TB World Atom := (K World Atom) ∪ (T World Atom) ∪ (B World Atom)
+def TB World Atom :=
+  logic {m : Model World Atom | Std.Refl m.r ∧ Std.Symm m.r}
 
 /-- The modal logic KB5. -/
 @[scoped grind =]
-def KB5 World Atom := (K World Atom) ∪ (B World Atom) ∪ (Five World Atom)
+def KB5 World Atom :=
+  logic {m : Model World Atom | Std.Symm m.r ∧ Relation.RightEuclidean m.r}
 
 /-- The modal logic S4. -/
 @[scoped grind =]
-def S4 World Atom := (K World Atom) ∪ (T World Atom) ∪ (Four World Atom)
+def S4 World Atom :=
+  logic {m : Model World Atom | Std.Refl m.r ∧ IsTrans World m.r}
 
 /-- The modal logic S5. -/
 @[scoped grind =]
-def S5 World Atom := (K World Atom) ∪ (T World Atom) ∪ (Four World Atom) ∪ (Five World Atom)
+def S5 World Atom :=
+  logic {m : Model World Atom |
+    Std.Refl m.r ∧ IsTrans World m.r ∧ Relation.RightEuclidean m.r}
 
 section Order
 
 /-! ## Ordering of Modal Logics
 
-This section proves the essential inclusions of modal logics.
-
-The other inclusions in the Modal Cube can be derived from the properties of `⊆` and `∪`, as shown
-in `k_subset_t`.
+This section proves the essential inclusions of modal logics. Inclusions among compound logics
+follow by forgetting frame conditions in their defining model classes.
 -/
 
 open scoped Proposition
 open Set
 
 theorem k_subset_d : K World Atom ⊆ D World Atom := by
-  grind only [subset_def, D, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
+  grind only [subset_def, D, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 theorem k_subset_b : K World Atom ⊆ B World Atom := by
-  grind only [subset_def, B, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
+  grind only [subset_def, B, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 theorem k_subset_four : K World Atom ⊆ Four World Atom := by
-  grind only [subset_def, Four, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
+  grind only [subset_def, Four, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 theorem k_subset_five : K World Atom ⊆ Five World Atom := by
-  grind only [subset_def, Five, K, = setOf_true, = logic, mem_setOf_eq, = Proposition.valid]
+  grind only [subset_def, Five, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 open scoped Relation in
 theorem d_subset_t : D World Atom ⊆ T World Atom := by

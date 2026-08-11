@@ -23,7 +23,7 @@ The Myhill-Nerode theorem has three parts [WikipediaMyhillNerode2026]:
 
 (3) The minimal DFA is unique up to unique isomorphism. That is, for any
     minimal DFA accepting `l`, there exists exactly an isomorphism from it to the
-    canonical DFA whose states are the equivalence classses of `c_l`, whose
+    canonical DFA whose states are the equivalence classes of `c_l`, whose
     state transitions are of the form `⟦ x ⟧ → ⟦ x ++ [a] ⟧` (where `a : α`
     and `x : List α`), whose initial state is `⟦ [] ⟧`, and whose accepting states
     are `{ ⟦ x ⟧ | x ∈ l }`.
