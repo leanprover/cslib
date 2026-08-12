@@ -86,8 +86,11 @@ lemma RelatesInSteps.zero {a b : α} (h : RelatesInSteps r a b 0) : a = b := by
   rfl
 
 @[simp]
-lemma RelatesInSteps.zero_iff {a b : α} : RelatesInSteps r a b 0 ↔ a = b :=
-  ⟨RelatesInSteps.zero, fun h => h ▸ .refl a⟩
+lemma RelatesInSteps.zero_iff {a b : α} : RelatesInSteps r a b 0 ↔ a = b := by
+  constructor
+  · exact RelatesInSteps.zero
+  · intro rfl
+    exact RelatesInSteps.refl a
 
 lemma RelatesInSteps.trans {a b c : α} {n m : ℕ}
     (h₁ : RelatesInSteps r a b n) (h₂ : RelatesInSteps r b c m) :
@@ -104,8 +107,11 @@ lemma RelatesInSteps.succ {n : ℕ} (h : RelatesInSteps r a b (n + 1)) :
   | tail t' _ _ hsteps hstep => exact ⟨t', hsteps, hstep⟩
 
 lemma RelatesInSteps.succ_iff {a b : α} {n : ℕ} :
-    RelatesInSteps r a b (n + 1) ↔ ∃ t', RelatesInSteps r a t' n ∧ r t' b :=
-  ⟨RelatesInSteps.succ, fun ⟨t', h_steps, h_red⟩ => .tail _ t' b n h_steps h_red⟩
+    RelatesInSteps r a b (n + 1) ↔ ∃ t', RelatesInSteps r a t' n ∧ r t' b := by
+  constructor
+  · exact RelatesInSteps.succ
+  · rintro ⟨t', h_steps, h_red⟩
+    exact .tail _ t' b n h_steps h_red
 
 lemma RelatesInSteps.succ' {a b : α} {n : ℕ} (h : RelatesInSteps r a b (n + 1)) :
     ∃ t', r a t' ∧ RelatesInSteps r t' b n := by
@@ -119,9 +125,11 @@ lemma RelatesInSteps.succ' {a b : α} {n : ℕ} (h : RelatesInSteps r a b (n + 1
     exact ⟨t'', h_red, .tail _ t' b k h_steps hstep⟩
 
 lemma RelatesInSteps.succ'_iff {a b : α} {n : ℕ} :
-    RelatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ RelatesInSteps r t' b n :=
-  ⟨succ', fun ⟨t', h_red, h_steps⟩ => h_steps.head a t' b n h_red⟩
-
+    RelatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ RelatesInSteps r t' b n := by
+  constructor
+  · exact succ'
+  · rintro ⟨t', h_red, h_steps⟩
+    exact h_steps.head a t' b n h_red
 /--
 If `h : α → ℕ` increases by at most 1 on each step of `r`,
 then the value of `h` at the output is at most `h` at the input plus the number of steps.
