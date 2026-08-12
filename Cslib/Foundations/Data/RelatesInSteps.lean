@@ -115,14 +115,15 @@ lemma RelatesInSteps.succ_iff {a b : α} {n : ℕ} :
 
 lemma RelatesInSteps.succ' {a b : α} {n : ℕ} (h : RelatesInSteps r a b (n + 1)) :
     ∃ t', r a t' ∧ RelatesInSteps r t' b n := by
-  induction n generalizing b with
+  obtain ⟨t', hsteps, hstep⟩ := succ h
+  cases n with
   | zero =>
-    obtain ⟨t', hsteps, hstep⟩ := succ h
-    exact ⟨b, hsteps.zero ▸ hstep, .refl _⟩
-  | succ k ih =>
-    obtain ⟨t', hsteps, hstep⟩ := succ h
-    obtain ⟨t'', h_red, h_steps⟩ := ih hsteps
-    exact ⟨t'', h_red, .tail _ t' b k h_steps hstep⟩
+    rw [zero_iff] at hsteps
+    subst hsteps
+    exact ⟨b, hstep, .refl _⟩
+  | succ k' =>
+    obtain ⟨t''', h_red''', h_steps'''⟩ := succ' hsteps
+    exact ⟨t''', h_red''', .tail _ _ b k' h_steps''' hstep⟩
 
 lemma RelatesInSteps.succ'_iff {a b : α} {n : ℕ} :
     RelatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ RelatesInSteps r t' b n := by
@@ -130,6 +131,7 @@ lemma RelatesInSteps.succ'_iff {a b : α} {n : ℕ} :
   · exact succ'
   · rintro ⟨t', h_red, h_steps⟩
     exact h_steps.head a t' b n h_red
+
 /--
 If `h : α → ℕ` increases by at most 1 on each step of `r`,
 then the value of `h` at the output is at most `h` at the input plus the number of steps.
@@ -240,8 +242,12 @@ lemma RelatesWithinSteps.zero {a b : α} (h : RelatesWithinSteps r a b 0) : a = 
   simp_all
 
 @[simp]
-lemma RelatesWithinSteps.zero_iff {a b : α} : RelatesWithinSteps r a b 0 ↔ a = b :=
-  ⟨RelatesWithinSteps.zero, fun h => h ▸ .refl a⟩
+lemma RelatesWithinSteps.zero_iff {a b : α} : RelatesWithinSteps r a b 0 ↔ a = b := by
+  constructor
+  · exact RelatesWithinSteps.zero
+  · intro h
+    subst h
+    exact RelatesWithinSteps.refl a
 
 /-- Transitivity of `RelatesWithinSteps` in the sum of the step bounds. -/
 @[trans]
@@ -265,8 +271,8 @@ lemma RelatesWithinSteps.apply_le_apply_add {a b : α} {m : ℕ}
     (h : α → ℕ)
     (h_step : ∀ a b, r a b → h b ≤ h a + 1) :
     h b ≤ h a + m := by
-  obtain ⟨_, hm, hevals_m⟩ := hevals
-  have := hevals_m.apply_le_apply_add h h_step
+  obtain ⟨m, hm, hevals_m⟩ := hevals
+  have := RelatesInSteps.apply_le_apply_add hevals_m h h_step
   lia
 
 /--
