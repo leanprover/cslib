@@ -13,20 +13,19 @@ public import Mathlib.Logic.Relation
 /-! # Relations Across Steps
 
 This file defines `Relation.RelatesInSteps` (and `Relation.RelatesWithinSteps`).
-These are inductively defines propositions that communicate whether a relation forms a
+These are inductively defined propositions that communicate whether a relation forms a
 chain of length `n` (or at most `n`) between two elements.
 
-The theorem `RelatesInSteps.exists_isPath` allows to obtain a path along the relation of
-transitively related elements and `IsPath.relatesInSteps` is the converse direction.
+The theorem `RelatesInSteps.exists_isChain` allows to obtain a chain (`List.IsChain`) along the
+relation of transitively related elements and `RelatesInSteps.of_isChain` is the converse direction.
 
-Another result is `Relation.reflTransGen_iff_relatesWithinSteps_of_finite`, which states that if
-only `n` elements are reachable from `a`, then any element reachable from `a` is reachable in at
-most `n - 1` steps.
+Another result is `Relation.ReflTransGen.relatesInSteps_lt_encard`, which states that any element
+reachable from `a` is reachable in fewer steps than there are elements reachable from `a`.
 -/
 
 @[expose] public section
 
-variable {α : Type*} {r : α → α → Prop} {a b c : α}
+variable {α : Type*} {r : α → α → Prop} {a b c : α} {n m : ℕ}
 
 namespace Relation
 
@@ -45,6 +44,9 @@ theorem RelatesInSteps.reflTransGen (h : RelatesInSteps r a b n) : ReflTransGen 
   | refl => rfl
   | tail _ _ _ _ h ih => exact .tail ih h
 
+/-- If `b` is reachable from `a` via `r`, then they relate to each other for some number
+of steps.
+See `ReflTransGen.relatesInSteps_lt_encard` for a bound on the number of steps. -/
 theorem ReflTransGen.relatesInSteps (h : ReflTransGen r a b) : ∃ n, RelatesInSteps r a b n := by
   induction h with
   | refl => exact ⟨0, .refl a⟩
@@ -81,11 +83,8 @@ lemma RelatesInSteps.zero {a b : α} (h : RelatesInSteps r a b 0) : a = b := by
   rfl
 
 @[simp]
-lemma RelatesInSteps.zero_iff {a b : α} : RelatesInSteps r a b 0 ↔ a = b := by
-  constructor
-  · exact RelatesInSteps.zero
-  · intro rfl
-    exact RelatesInSteps.refl a
+lemma RelatesInSteps.zero_iff {a b : α} : RelatesInSteps r a b 0 ↔ a = b :=
+  ⟨RelatesInSteps.zero, fun h => h ▸ .refl a⟩
 
 lemma RelatesInSteps.trans {a b c : α} {n m : ℕ}
     (h₁ : RelatesInSteps r a b n) (h₂ : RelatesInSteps r b c m) :
@@ -102,31 +101,23 @@ lemma RelatesInSteps.succ {n : ℕ} (h : RelatesInSteps r a b (n + 1)) :
   | tail t' _ _ hsteps hstep => exact ⟨t', hsteps, hstep⟩
 
 lemma RelatesInSteps.succ_iff {a b : α} {n : ℕ} :
-    RelatesInSteps r a b (n + 1) ↔ ∃ t', RelatesInSteps r a t' n ∧ r t' b := by
-  constructor
-  · exact RelatesInSteps.succ
-  · rintro ⟨t', h_steps, h_red⟩
-    exact .tail _ t' b n h_steps h_red
+    RelatesInSteps r a b (n + 1) ↔ ∃ t', RelatesInSteps r a t' n ∧ r t' b :=
+  ⟨RelatesInSteps.succ, fun ⟨t', h_steps, h_red⟩ => .tail _ t' b n h_steps h_red⟩
 
-lemma RelatesInSteps.succ' {a b : α} : ∀ {n : ℕ}, RelatesInSteps r a b (n + 1) →
+lemma RelatesInSteps.succ' {a b : α} {n : ℕ} (h : RelatesInSteps r a b (n + 1)) :
     ∃ t', r a t' ∧ RelatesInSteps r t' b n := by
-  intro n h
-  obtain ⟨t', hsteps, hstep⟩ := succ h
-  cases n with
+  induction n generalizing b with
   | zero =>
-    rw [zero_iff] at hsteps
-    subst hsteps
-    exact ⟨b, hstep, .refl _⟩
-  | succ k' =>
-    obtain ⟨t''', h_red''', h_steps'''⟩ := succ' hsteps
-    exact ⟨t''', h_red''', .tail _ _ b k' h_steps''' hstep⟩
+    obtain ⟨t', hsteps, hstep⟩ := succ h
+    exact ⟨b, hsteps.zero ▸ hstep, .refl _⟩
+  | succ k ih =>
+    obtain ⟨t', hsteps, hstep⟩ := succ h
+    obtain ⟨t'', h_red, h_steps⟩ := ih hsteps
+    exact ⟨t'', h_red, .tail _ t' b k h_steps hstep⟩
 
 lemma RelatesInSteps.succ'_iff {a b : α} {n : ℕ} :
-    RelatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ RelatesInSteps r t' b n := by
-  constructor
-  · exact succ'
-  · rintro ⟨t', h_red, h_steps⟩
-    exact h_steps.head a t' b n h_red
+    RelatesInSteps r a b (n + 1) ↔ ∃ t', r a t' ∧ RelatesInSteps r t' b n :=
+  ⟨succ', fun ⟨t', h_red, h_steps⟩ => h_steps.head a t' b n h_red⟩
 
 /--
 If `h : α → ℕ` increases by at most 1 on each step of `r`,
@@ -155,78 +146,49 @@ lemma RelatesInSteps.map {α α' : Type*}
   | tail t' t'' m _ hstep ih =>
     exact .tail (g _) (g t') (g t'') m ih (hg t' t'' hstep)
 
-/-! ## Definition of and results about paths along a relation -/
+/-! ## Lemmas to translate between RelatesInSteps and the existence of a chain (`List.IsChain`) -/
 
-/--
-`IsPath r f n` means that the first `n` steps of the sequence `f : ℕ → α` form a path along `r`,
-i.e. `r (f i) (f (i + 1))` holds for every `i < n`. The values of `f` beyond index `n` are
-irrelevant.
--/
-def IsPath (r : α → α → Prop) (f : ℕ → α) (n : ℕ) : Prop := ∀ i < n, r (f i) (f (i + 1))
-
-/-- A path of length `n` is in particular a path of any smaller length. -/
-lemma IsPath.mono {f : ℕ → α} : Antitone (IsPath r f) := by
-  intro m n hle h_path i hi
-  exact h_path i (by omega)
-
-/-- If `a` and `b` are related in `n` steps, then there is a path of length `n` from `a` to `b`. -/
-theorem RelatesInSteps.exists_isPath {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
-    ∃ f : ℕ → α, f 0 = a ∧ f n = b ∧ IsPath r f n := by
+/-- If `a` and `b` are related in `n` steps, then there is an `r`-chain of `n + 1` elements
+starting at `a` and ending at `b`.
+This is similar to `List.exists_isChain_ne_nil_of_relationReflTransGen`, but also provides
+a length guarantee. -/
+lemma RelatesInSteps.exists_isChain {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
+    ∃ chain : List α,
+      chain.IsChain r ∧ ∃ h_len : chain.length = n + 1, chain[0] = a ∧ chain[n] = b := by
   induction h with
-  | refl => exact ⟨fun _ => a, rfl, rfl, by simp [IsPath]⟩
+  | refl => use [a]; simp
   | tail t' t'' m _ hstep ih =>
-    obtain ⟨f, hf0, hfm, hfstep⟩ := ih
-    refine ⟨fun i => if i ≤ m then f i else t'', by simpa using hf0, by simp, fun i hi => ?_⟩
-    rcases Nat.lt_or_ge i m with h' | h'
-    · simpa [h'.le, h'] using hfstep i h'
-    · have : i = m := by lia
-      subst this
-      simpa [hfm] using hstep
+    obtain ⟨l, hchain, _, _, _⟩ := ih
+    use l ++ [t'']
+    constructor
+    · apply hchain.append (by simp) (by grind)
+    · grind
 
-/-- Any two positions along a path are related in as many steps as their distance. -/
-theorem IsPath.relatesInSteps {f : ℕ → α} {n : ℕ} (hf : IsPath r f n) (p k : ℕ) (hpk : p + k ≤ n) :
-    RelatesInSteps r (f p) (f (p + k)) k := by
+/-- Any two elements along an `r`-chain are related in as many steps as their distance in the
+chain. -/
+lemma RelatesInSteps.of_isChain {chain : List α}
+    (hc : chain.IsChain r)
+    (p k : ℕ)
+    (hpk : p + k < chain.length) :
+    RelatesInSteps r chain[p] chain[p + k] k := by
   induction k with
   | zero => exact .refl _
   | succ k ih =>
-    refine .tail _ (f (p + k)) _ k (ih (by lia)) ?_
-    have := hf (p + k) (by lia)
-    rwa [← Nat.add_assoc]
+    refine .tail _ (chain[p + k]) _ k (ih (by lia)) ?_
+    apply List.IsChain.getElem hc
 
-/-- A path that visits the same element at two different positions can be shortened by splicing
-out the loop in between. -/
-theorem IsPath.relatesInSteps_of_eq {f : ℕ → α} {n i j : ℕ}
-    (hf : IsPath r f n)
+/-- A chain that visits the same element at two different positions can be shortened by splicing
+out the loop in between, i.e. the first and last elements are also related to each other
+by fewer steps. -/
+lemma RelatesInSteps.of_isChain_eq {chain : List α} {i j : ℕ}
+    (hc : chain.IsChain r)
     (hij : i < j)
-    (hjn : j ≤ n)
-    (heq : f i = f j) :
-    RelatesInSteps r (f 0) (f n) (i + (n - j)) := by
-  have h₁ : RelatesInSteps r (f 0) (f j) i := by grind [hf.relatesInSteps 0 i (by lia)]
-  have h₂ : RelatesInSteps r (f j) (f n) (n - j) := by grind [hf.relatesInSteps j (n - j) (by lia)]
-  exact h₁.trans h₂
-
-/-- Every element visited by a path is reachable from its starting point. -/
-theorem IsPath.reflTransGen {f : ℕ → α} {n : ℕ} (hf : IsPath r f n) {i : ℕ} (hi : i ≤ n) :
-    ReflTransGen r (f 0) (f i) := by
-  have := (hf.relatesInSteps 0 i (by lia)).reflTransGen
-  rwa [Nat.zero_add] at this
-
-/-- A path visiting more positions than there are elements reachable from its starting point must
-visit some element twice. -/
-theorem IsPath.exists_eq_of_ncard_le {f : ℕ → α} {n : ℕ}
-    (hf : IsPath r f n)
-    (hfin : Set.Finite (ReflTransGen r (f 0)))
-    (hn : Set.ncard (ReflTransGen r (f 0)) ≤ n) :
-    ∃ i j, i < j ∧ j ≤ n ∧ f i = f j := by
-  have hmaps : ∀ i ∈ Finset.range (n + 1), f i ∈ hfin.toFinset := fun i hi =>
-    hfin.mem_toFinset.mpr (hf.reflTransGen (by simpa [Nat.lt_succ_iff] using hi))
-  have hcard : hfin.toFinset.card < (Finset.range (n + 1)).card := by
-    grind [Set.ncard_eq_toFinset_card _ hfin]
-  obtain ⟨i, hi, j, hj, hij, hfij⟩ := Finset.exists_ne_map_eq_of_card_lt_of_maps_to hcard hmaps
-  simp only [Finset.mem_range, Nat.lt_succ_iff] at hi hj
-  rcases Nat.lt_or_ge i j with hlt | hge
-  · exact ⟨i, j, hlt, hj, hfij⟩
-  · exact ⟨j, i, by lia, hi, hfij.symm⟩
+    (hjn : j < chain.length)
+    (heq : chain[i] = chain[j]) :
+    RelatesInSteps r chain[0] chain[chain.length - 1] (i + (chain.length - 1 - j)) := by
+  have h₁ := RelatesInSteps.of_isChain hc 0 i (by omega)
+  have h₂ := RelatesInSteps.of_isChain hc j (chain.length - 1 - j) (by omega)
+  grind [RelatesInSteps.trans]
 
 /-! ## RelatesWithinSteps - only requires an upper bound on the number of steps -/
 
@@ -249,18 +211,12 @@ lemma RelatesWithinSteps.single {a b : α} (h : r a b) : RelatesWithinSteps r a 
   RelatesWithinSteps.of_relatesInSteps (RelatesInSteps.single h)
 
 lemma RelatesWithinSteps.zero {a b : α} (h : RelatesWithinSteps r a b 0) : a = b := by
-  obtain ⟨m, hm, hevals⟩ := h
-  have : m = 0 := Nat.le_zero.mp hm
-  subst this
-  exact RelatesInSteps.zero hevals
+  obtain ⟨_, hm, hevals⟩ := h
+  simp_all
 
 @[simp]
-lemma RelatesWithinSteps.zero_iff {a b : α} : RelatesWithinSteps r a b 0 ↔ a = b := by
-  constructor
-  · exact RelatesWithinSteps.zero
-  · intro h
-    subst h
-    exact RelatesWithinSteps.refl a
+lemma RelatesWithinSteps.zero_iff {a b : α} : RelatesWithinSteps r a b 0 ↔ a = b :=
+  ⟨RelatesWithinSteps.zero, fun h => h ▸ .refl a⟩
 
 /-- Transitivity of `RelatesWithinSteps` in the sum of the step bounds. -/
 @[trans]
@@ -269,10 +225,7 @@ lemma RelatesWithinSteps.trans {a b c : α} {n₁ n₂ : ℕ}
     RelatesWithinSteps r a c (n₁ + n₂) := by
   obtain ⟨m₁, hm₁, hevals₁⟩ := h₁
   obtain ⟨m₂, hm₂, hevals₂⟩ := h₂
-  use m₁ + m₂
-  constructor
-  · lia
-  · exact RelatesInSteps.trans hevals₁ hevals₂
+  exact ⟨m₁ + m₂, by lia, hevals₁.trans hevals₂⟩
 
 /-- If two elements `a` and `b` are related in at most `n₁` steps in the relation `r` and
 `n₁ ≤ n₂`, then they are also related in at most `n₂` steps. -/
@@ -287,8 +240,8 @@ lemma RelatesWithinSteps.apply_le_apply_add {a b : α} {m : ℕ}
     (h : α → ℕ)
     (h_step : ∀ a b, r a b → h b ≤ h a + 1) :
     h b ≤ h a + m := by
-  obtain ⟨m, hm, hevals_m⟩ := hevals
-  have := RelatesInSteps.apply_le_apply_add hevals_m h h_step
+  obtain ⟨_, hm, hevals_m⟩ := hevals
+  have := hevals_m.apply_le_apply_add h h_step
   lia
 
 /--
@@ -304,30 +257,39 @@ lemma RelatesWithinSteps.map {α α' : Type*} {r : α → α → Prop} {r' : α'
 
 /-! ### Reachability under a bound on the number of reachable elements -/
 
-/-- An `r`-chain from `a` to `b` visiting at least as many positions as there are elements
-(transitively) related to `a` must visit some element twice, and can therefore be shortened. -/
-theorem RelatesInSteps.exists_lt_of_ncard_le {b : α} {n : ℕ}
-    (hfin : Set.Finite (ReflTransGen r a))
-    (h : RelatesInSteps r a b n)
-    (hn : Set.ncard (ReflTransGen r a) ≤ n) :
-    ∃ m < n, RelatesInSteps r a b m := by
-  obtain ⟨f, rfl, rfl, hpath⟩ := h.exists_isPath
-  obtain ⟨i, j, hij, hjn, heq⟩ := hpath.exists_eq_of_ncard_le hfin hn
-  exact ⟨i + (n - j), by lia, hpath.relatesInSteps_of_eq hij hjn heq⟩
-
-/-- If only a finite number of elements are (transitively) related to `a`, then any such element
-is related to `a` in at most `k - 1` steps, where `k` is the cardinality of that set. -/
-theorem reflTransGen_iff_relatesWithinSteps_of_finite {b : α}
-    (hfin : Set.Finite (ReflTransGen r a)) :
-    ReflTransGen r a b ↔ RelatesWithinSteps r a b (Set.ncard (ReflTransGen r a) - 1) := by
+/-- A more precise version of `ReflTransGen.relatesInSteps`: if `b` is reachable from `a`, then it
+is related to `a` in fewer steps than there are elements reachable from `a`.
+Note that this cardinality is an `ℕ∞`, and if it is infinite, no bound on the number of steps
+is stated. -/
+theorem ReflTransGen.relatesInSteps_lt_encard {b : α} (h : ReflTransGen r a b) :
+    ∃ n, RelatesInSteps r a b n ∧ (n : ℕ∞) < {x | ReflTransGen r a x}.encard := by
   classical
-  simp only [RelatesWithinSteps]
-  constructor
-  · intro h_reach
-    have hex : ∃ n, RelatesInSteps r a b n := ReflTransGen.relatesInSteps h_reach
-    -- A chain of minimal length cannot be shortened, so it is short enough.
-    have hmin : ∀ m < Nat.find hex, ¬ RelatesInSteps r a b m := fun m hm => Nat.find_min hex hm
-    grind [RelatesInSteps.exists_lt_of_ncard_le]
-  · grind [RelatesInSteps.reflTransGen]
+  -- Let us use the shortest chain from `a` to `b`.
+  have hex : ∃ n, RelatesInSteps r a b n := h.relatesInSteps
+  refine ⟨Nat.find hex, Nat.find_spec hex, ?_⟩
+  obtain ⟨chain, hc, hlen, h0, hb⟩ := (Nat.find_spec hex).exists_isChain
+  -- All elements in the chain are reachable from `a`.
+  have hsub : {x | x ∈ chain} ⊆ {x | ReflTransGen r a x} := by
+    simp only [Set.subset_def, Set.mem_ofPred_eq]
+    intro y hy
+    obtain ⟨i, hi, rfl⟩ := List.getElem_of_mem hy
+    simpa [h0] using (RelatesInSteps.of_isChain hc 0 i (by omega)).reflTransGen
+  -- Now assume, for the sake of contradiction, that the minimal chain has at least as many
+  -- elements as there are reachable elements.
+  by_contra hcard
+  push Not at hcard
+  -- Then there is at least one duplicate element.
+  have h_dup : ¬chain.Nodup := by
+    intro h_nodup
+    have hle := (Set.encard_le_encard hsub).trans hcard
+    rw [← List.coe_toFinset, Set.encard_coe_eq_coe_finsetCard] at hle
+    grind [List.toFinset_card_of_nodup, Nat.cast_le]
+  -- But then we can shorten the chain which contradicts the fact that it is minimal.
+  rw [List.nodup_iff_getElem?_ne_getElem?] at h_dup
+  push Not at h_dup
+  obtain ⟨i, j, hij, hjn, heq⟩ := h_dup
+  have heq' : chain[i] = chain[j] := by grind [List.getElem?_eq_getElem]
+  have hshort := RelatesInSteps.of_isChain_eq hc hij hjn heq'
+  exact Nat.find_min hex (m := i + (chain.length - 1 - j)) (by omega) (by grind)
 
 end Relation
