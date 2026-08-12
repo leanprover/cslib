@@ -218,15 +218,15 @@ private theorem symm_equivalents : [RightEuclidean r, LeftEuclidean r, IsTrans �
 
 /-- For a symmetric relation, `LeftEuclidean` and `RightEuclidean` are equivalent. -/
 theorem symm_leftEuclidean_iff_rightEuclidean : LeftEuclidean r ↔ RightEuclidean r :=
-  List.TFAE.out symm_equivalents 1 0
+  List.TFAE.out symm_equivalents 2 1
 
 /-- For a symmetric relation, `LeftEuclidean` and transitivity are equivalent. -/
 theorem symm_leftEuclidean_iff_trans : LeftEuclidean r ↔  IsTrans α r :=
-  List.TFAE.out symm_equivalents 1 2
+  List.TFAE.out symm_equivalents 2 3
 
 /-- For a symmetric relation, `RightEuclidean` and transitivity are equivalent. -/
 theorem symm_rightEuclidean_iff_trans : RightEuclidean r ↔ IsTrans α r :=
-  List.TFAE.out symm_equivalents 0 2
+  List.TFAE.out symm_equivalents 1 3
 
 end euclidean_symm
 
