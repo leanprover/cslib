@@ -16,8 +16,11 @@ This file defines `Relation.RelatesInSteps` (and `Relation.RelatesWithinSteps`).
 These are inductively defined propositions that communicate whether a relation forms a
 chain of length `n` (or at most `n`) between two elements.
 
-The theorem `RelatesInSteps.exists_isChain` allows to obtain a chain (`List.IsChain`) along the
+The lemma `RelatesInSteps.exists_isChain` allows to obtain a chain (`List.IsChain`) along the
 relation of transitively related elements and `RelatesInSteps.of_isChain` is the converse direction.
+
+If a chain has duplicates, the lemmas `RelatesInSteps.of_isChain_eq` and `RelatesInSteps.of_dup`
+show that the start and end point are reachable in fewer steps by removing the "loop".
 
 Another result is `Relation.ReflTransGen.relatesInSteps_lt_encard`, which states that any element
 reachable from `a` is reachable in fewer steps than there are elements reachable from `a`.
@@ -185,10 +188,24 @@ lemma RelatesInSteps.of_isChain_eq {chain : List α} {i j : ℕ}
     (hij : i < j)
     (hjn : j < chain.length)
     (heq : chain[i] = chain[j]) :
-    RelatesInSteps r chain[0] chain[chain.length - 1] (i + (chain.length - 1 - j)) := by
+    RelatesInSteps r (chain.head (by grind)) (chain.getLast (by grind))
+      (i + (chain.length - 1 - j)) := by
+  rw [List.head_eq_getElem, List.getLast_eq_getElem]
   have h₁ := RelatesInSteps.of_isChain hc 0 i (by omega)
   have h₂ := RelatesInSteps.of_isChain hc j (chain.length - 1 - j) (by omega)
   grind [RelatesInSteps.trans]
+
+/-- If a chain has duplicates, there is a shorter version with the same start and end point.
+This is a less explicit version of `RelatesInSteps.of_isChain_eq`. -/
+lemma RelatesInSteps.of_isChain_neg_nodup {chain : List α}
+    (hc : chain.IsChain r)
+    (hne : chain ≠ [])
+    (hdup : ¬ chain.Nodup) :
+    ∃ n < chain.length - 1, RelatesInSteps r (chain.head hne) (chain.getLast hne) n := by
+  rw [List.nodup_iff_getElem?_ne_getElem?] at hdup
+  push Not at hdup
+  obtain ⟨i, j, hij, hjn, heq⟩ := hdup
+  exact ⟨_, by omega, RelatesInSteps.of_isChain_eq hc hij hjn (by grind)⟩
 
 /-! ## RelatesWithinSteps - only requires an upper bound on the number of steps -/
 
@@ -255,7 +272,7 @@ lemma RelatesWithinSteps.map {α α' : Type*} {r : α → α → Prop} {r' : α'
   obtain ⟨m, hm, hevals⟩ := h
   exact ⟨m, hm, RelatesInSteps.map g hg hevals⟩
 
-/-! ### Reachability under a bound on the number of reachable elements -/
+/-! ## Reachability under a bound on the number of reachable elements -/
 
 /-- A more precise version of `ReflTransGen.relatesInSteps`: if `b` is reachable from `a`, then it
 is related to `a` in fewer steps than there are elements reachable from `a`.
@@ -285,11 +302,7 @@ theorem ReflTransGen.relatesInSteps_lt_encard {b : α} (h : ReflTransGen r a b) 
     rw [← List.coe_toFinset, Set.encard_coe_eq_coe_finsetCard] at hle
     grind [List.toFinset_card_of_nodup, Nat.cast_le]
   -- But then we can shorten the chain which contradicts the fact that it is minimal.
-  rw [List.nodup_iff_getElem?_ne_getElem?] at h_dup
-  push Not at h_dup
-  obtain ⟨i, j, hij, hjn, heq⟩ := h_dup
-  have heq' : chain[i] = chain[j] := by grind [List.getElem?_eq_getElem]
-  have hshort := RelatesInSteps.of_isChain_eq hc hij hjn heq'
-  exact Nat.find_min hex (m := i + (chain.length - 1 - j)) (by omega) (by grind)
+  obtain ⟨n, hn, hshort⟩ := RelatesInSteps.of_isChain_neg_nodup hc (by grind) h_dup
+  exact Nat.find_min hex (m := n) (by omega) (by grind)
 
 end Relation
