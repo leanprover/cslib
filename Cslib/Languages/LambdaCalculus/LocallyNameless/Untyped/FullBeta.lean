@@ -77,10 +77,7 @@ variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
-  induction step
-  case abs => constructor; assumption
-  all_goals grind
+lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := Xi.step_lc_r (by grind) step
 
 lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M') ∨ M = M' := by
   grind
@@ -149,7 +146,7 @@ lemma invert_steps_abs {s t : Term Var} (step : s.abs ↠βᶠ t) :
 
 /- `λ s ↠βᶠ λ s'` implies `s ^ t ↠βᶠ s' ^ t'` -/
 lemma steps_open_cong_l_abs
-  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_s : LC s.abs) (lc_t : LC t) :
+  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_t : LC t) :
     (s ^ t) ↠βᶠ (s' ^ t) := by
   generalize eq : s.abs = s_abs at steps
   generalize eq' : s'.abs = s'_abs at steps

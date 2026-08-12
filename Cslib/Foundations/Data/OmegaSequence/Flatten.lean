@@ -88,7 +88,7 @@ theorem cumLen_segment_one_add {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k)
   symm
   apply Set.BijOn.finsetCard_eq (fun n ↦ n + (ls 0).length)
   refine ⟨?_, by grind [injOn_of_injective, Injective], ?_⟩ <;>
-  ( intro k; simp only [Set.mem_range, Finset.coe_filter, Finset.mem_range, Set.mem_setOf_eq,
+  ( intro k; simp only [Set.mem_range, Finset.coe_filter, Finset.mem_range, Set.mem_ofPred_eq,
       le_add_iff_nonneg_left, _root_.zero_le, and_true] )
   · rintro ⟨h_k, i, rfl⟩
     refine ⟨?_, 1 + i, ?_⟩ <;> grind [cumLen_one_add_drop]
@@ -123,10 +123,10 @@ theorem append_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k,
     (n : ℕ) : (ls.take n).flatten ++ω (ls.drop n).flatten = ls.flatten := by
   induction n generalizing ls <;> grind [tail_eq_drop, take_succ]
 
-/-- The length of `(ls.take n).flatten` is `ls.cumLen n`. -/
-@[simp, nolint simpNF, scoped grind =]
-theorem length_flatten_take {ls : ωSequence (List α)} (n : ℕ) :
-    (ls.take n).flatten.length = ls.cumLen n := by
+/-- The sum of `List.map List.length (take n ls)` is `ls.cumLen n`. -/
+@[simp, scoped grind =]
+theorem map_length_take_sum {ls : ωSequence (List α)} (n : ℕ) :
+    (List.map List.length (take n ls)).sum = ls.cumLen n := by
   induction n <;> grind [take_succ']
 
 /-- `In fact, (ls.take n).flatten` is `ls.flatten.take (ls.cumLen n)`
@@ -137,7 +137,7 @@ theorem flatten_take_drop [Inhabited α]
     (ls.drop n).flatten = ls.flatten.drop (ls.cumLen n) := by
   apply append_left_right_injective
   · rw [append_flatten h_ls n, append_take_drop (ls.cumLen n) ls.flatten]
-  · rw [length_flatten_take, length_take]
+  · simp
 
 theorem flatten_take [Inhabited α]
     {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0) (n : ℕ) :

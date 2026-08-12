@@ -6,6 +6,7 @@ Authors: Thomas Waring
 
 module
 
+public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.FunLike.Basic
 public import Mathlib.Data.Set.Image
@@ -30,8 +31,10 @@ theory.
 
 ## Notation
 
-We introduce notation for the logical connectives: `⊥ ⊤ ∧ ∨ → ¬` for, respectively, falsum, verum,
-conjunction, disjunction, implication and negation.
+We instantiate the notation classes `HasAnd`, `HasOr`, `HasImpl` and `HasNot` for `Proposition Atom`
+to give access to, respectively, the notations `∧, ∨, →` and `¬` for propositional connectives.
+In the case that `Atom` has a bottom element (respectively, is inhabited) we give instances
+`HasBot (Proposition Atom)` and (respectively, `HasTop (Proposition Atom)`).
 -/
 
 @[expose] public section
@@ -51,26 +54,30 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- Disjunction -/
   | or (a b : Proposition Atom)
   /-- Implication -/
-  | impl (a b : Proposition Atom)
+  | imp (a b : Proposition Atom)
 deriving DecidableEq, BEq
 
 instance instBotProposition [Bot Atom] : Bot (Proposition Atom) := ⟨.atom ⊥⟩
 instance instInhabitedOfBot [Bot Atom] : Inhabited Atom := ⟨⊥⟩
 
 /-- We view negation as a defined connective ~A := A → ⊥ -/
-abbrev Proposition.neg [Bot Atom] : Proposition Atom → Proposition Atom := (Proposition.impl · ⊥)
+abbrev Proposition.neg [Bot Atom] : Proposition Atom → Proposition Atom := (Proposition.imp · ⊥)
 
 /-- A fixed choice of a derivable proposition (of course any two are equivalent). -/
-abbrev Proposition.top [Inhabited Atom] : Proposition Atom := impl (.atom default) (.atom default)
+abbrev Proposition.top [Inhabited Atom] : Proposition Atom := imp (.atom default) (.atom default)
 
 instance instTopProposition [Inhabited Atom] : Top (Proposition Atom) := ⟨.top⟩
 
-example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.impl ⊥ ⊥ := rfl
+example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.imp ⊥ ⊥ := rfl
 
-@[inherit_doc] scoped infix:36 " ∧ " => Proposition.and
-@[inherit_doc] scoped infix:35 " ∨ " => Proposition.or
-@[inherit_doc] scoped infix:30 " → " => Proposition.impl
-@[inherit_doc] scoped prefix:40 " ¬ " => Proposition.neg
+instance : HasAnd (Proposition Atom) := ⟨.and⟩
+instance : HasOr (Proposition Atom) := ⟨.or⟩
+instance : HasImp (Proposition Atom) := ⟨.imp⟩
+instance [Bot Atom] : HasNot (Proposition Atom) := ⟨.neg⟩
+
+omit [DecidableEq Atom] in
+@[grind =]
+lemma not_eq [Bot Atom] (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
 
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/
@@ -79,7 +86,7 @@ def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
   | atom x => f x
   | and A B => (A.subst f) ∧ (B.subst f)
   | or A B => (A.subst f) ∨ (B.subst f)
-  | impl A B => (A.subst f) → (B.subst f)
+  | imp A B => (A.subst f) → (B.subst f)
 
 -- This is probably a lawful monad, but that doesn't seem to be important.
 instance : Monad Proposition where

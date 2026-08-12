@@ -25,8 +25,6 @@ distributed consensus is impossible in the presence of even a single crash fault
 4. `CanReachVia.lean` defines the notion of reachability via a subset of processes and proves some of
    its properties.
 
-*The following files will appear in future PRs:*
-
 5. `PseudoConsensus.lean` defines the notion of a fault-tolerant "pseudo-consensus" algorithm, which
    is central to Völzer's proof, and proves that every `f`-tolerant consensus algorithm is also a
    `f`-tolerant pseudo-consensus algorithm.
@@ -34,7 +32,7 @@ distributed consensus is impossible in the presence of even a single crash fault
 6. `OnePseudoConsensus.lean` focuses on 1-tolerant pseudo-consensus algorithms, defines the key notion
    of "nonuniformity", and proves a number of their properties.
 
-7. `Impossibility.lean` proves that every 1-tolerant pseudo-consensus algorithms has a fair execution
+7. `Impossibility.lean` proves that every 1-tolerant pseudo-consensus algorithm has a fair execution
    which doesn't contain any fault but never reaches a consensus, which then implies that there cannot
    be a consensus algorithm that can tolerate even a single fault.
 
