@@ -45,6 +45,7 @@ lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
   grind
 
 /-- The left side of an η-reduction is locally closed. -/
+@[scoped grind →]
 lemma step_lc_l [HasFresh Var] (step : M ⭢ηᶠ M') : LC M := by
   induction step with
   | base h_e => cases h_e with | eta => apply LC.abs ∅; grind
@@ -97,64 +98,61 @@ lemma steps_subst_cong_l {x : Var} (s s' N : Term Var) (steps : s ↠ηᶠ s') (
   | tail _ step ih => grind [step_subst_cong_l]
 
 /-- Abstracting then closing preserves a single η-reduction step. -/
-lemma step_abs_close {x} (step : M ⭢ηᶠ M') (lc_M : LC M) : (M ^* x).abs ⭢ηᶠ (M' ^* x).abs := by
+lemma step_abs_close {x} (step : M ⭢ηᶠ M') : (M ^* x).abs ⭢ηᶠ (M' ^* x).abs := by
   apply Xi.abs ∅
   grind [step_subst_cong_l]
 
 /-- Abstracting then closing preserves multiple reductions. -/
-lemma redex_abs_close {x} (steps : M ↠ηᶠ M') (lc_M : LC M) : (M ^* x).abs ↠ηᶠ (M' ^* x).abs := by
+lemma redex_abs_close {x} (steps : M ↠ηᶠ M') : (M ^* x).abs ↠ηᶠ (M' ^* x).abs := by
   induction steps using Relation.ReflTransGen.head_induction_on
   case refl => exact .refl
-  case head b c st_bc _ ih => exact .head (step_abs_close st_bc lc_M) (ih (step_lc_r st_bc))
+  case head b c st_bc _ ih => exact .head (step_abs_close st_bc) ih
 
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
 theorem redex_abs_cong {M M' : Term Var} (xs : Finset Var)
-    (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠ηᶠ M' ^ fvar x) (lc_M : LC M.abs) :
+    (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠ηᶠ M' ^ fvar x) :
     M.abs ↠ηᶠ M'.abs := by
-  cases lc_M
-  case abs L hL =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     rw [open_close x M 0, open_close x M' 0]
-    all_goals grind [redex_abs_close (x := x) (cofin x ?_) (hL x ?_)]
+    all_goals grind [redex_abs_close (x := x) (cofin x ?_)]
 
 /- `t ⭢ηᶠ t'` implies `s[x := t] ↠ηᶠ s[x := t']`. -/
-lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
+lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s : LC s) :
     s[x := t] ↠ηᶠ s[x := t'] := by
   induction lc_s generalizing t t' with
   | fvar => grind
   | app hl hr ih_l ih_r =>
     trans
-    · exact redex_app_l_cong (ih_l t t' st lc_t) (subst_lc hr lc_t)
-    · exact redex_app_r_cong (ih_r t t' st lc_t) (subst_lc hl (step_lc_r st))
+    · exact redex_app_l_cong (ih_l t t' st) (subst_lc hr (by grind))
+    · exact redex_app_r_cong (ih_r t t' st) (subst_lc hl (step_lc_r st))
   | abs L body h_lc_body ih =>
     apply redex_abs_cong (L ∪ {x})
     · intro z
       grind =>
         have : (body ^ fvar z)[x := t] ↠ηᶠ (body ^ fvar z)[x := t']
         finish
-    · exact subst_lc (LC.abs L body h_lc_body) lc_t
 
 /- `steps_subst_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
-lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ↠ηᶠ t') (lc_s : LC s) (lc_t : LC t) :
+lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ↠ηᶠ t') (lc_s : LC s) :
     s[x := t] ↠ηᶠ s[x := t'] := by
   induction st using Relation.ReflTransGen.head_induction_on
   case refl => rfl
-  case head _ _ st _ ih => exact .trans (step_subst_cong_r s _ _ st lc_s lc_t) (ih (step_lc_r st))
+  case head _ _ st _ ih => exact .trans (step_subst_cong_r s _ _ st lc_s) ih
 
 /- `t ⭢ηᶠ t'` implies `s ^ t ↠ηᶠ s ^ t'`. -/
-lemma step_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (step : t ⭢ηᶠ t') :
+lemma step_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (step : t ⭢ηᶠ t') :
     (s ^ t) ↠ηᶠ s ^ t' := by
   cases lc_s
   case abs L hL =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
-    grind [step_subst_cong_r (x := x) (s ^ fvar x) t t' step (hL x ?_) lc_t]
+    grind [step_subst_cong_r (x := x) (s ^ fvar x) t t' step (hL x ?_)]
 
 /- `steps_open_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
-lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (lc_t : LC t) (steps : t ↠ηᶠ t') :
+lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (steps : t ↠ηᶠ t') :
     (s ^ t) ↠ηᶠ s ^ t' := by
   induction steps using Relation.ReflTransGen.head_induction_on
   case refl => rfl
-  case head _ _ st _ ih => exact .trans (step_open_cong_r lc_s lc_t st) (ih (step_lc_r st))
+  case head _ _ st _ ih => exact .trans (step_open_cong_r lc_s st) ih
 
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
