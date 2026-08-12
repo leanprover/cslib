@@ -26,7 +26,7 @@ example (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
     PFunctor.{max uA₁ uA₂, uB} := P + Q
 
 private def isPure {P : PFunctor.{uA₁, uB}} {α : Type v} : P.FreeM α → Bool :=
-  FreeM.rec (motive := fun _ => Bool) (fun _ => true) (fun _ _ _ => false)
+  FreeM.elim (motive := fun _ => Bool) (fun _ => true) (fun _ _ _ => false)
 
 /-- The `cases` tactic picks up the registered case eliminator. -/
 example (x : P.FreeM α) : isPure x = true ∨ isPure x = false := by
@@ -39,6 +39,14 @@ example (x : P.FreeM α) : x.bind FreeM.pure = x := by
   induction x with
   | pure a => rfl
   | lift_bind a cont ih => simp only [FreeM.liftBind_bind, ih]
+
+/-- The `toW`/`ofW` round-trips hold definitionally (eta for structures). -/
+example (x : P.FreeM α) : FreeM.ofW x.toW = x := rfl
+example (w : PFunctor.W (P.add (.const α))) : (FreeM.ofW w).toW = w := rfl
+
+/-- Distinct node shapes are provably distinct, via the simp set. -/
+example (a : α) (b : P.A) (cont : P.B b → P.FreeM α) :
+    FreeM.liftBind b cont ≠ FreeM.pure a := by simp
 
 private def coin : PFunctor.{0, 0} := ⟨Bool, fun b => if b then Bool else Nat⟩
 
