@@ -38,7 +38,7 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 namespace Relation
 
-attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
+attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
 
 theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
   induction h <;> grind
@@ -111,13 +111,13 @@ private theorem confluent_equivalents : [ChurchRosser r, SemiConfluent r, Conflu
   grind [List.tfae_cons_cons, List.tfae_singleton]
 
 theorem SemiConfluent_iff_ChurchRosser : SemiConfluent r ↔ ChurchRosser r :=
-  List.TFAE.out confluent_equivalents 1 0
+  List.TFAE.out confluent_equivalents 2 1
 
 theorem Confluent_iff_ChurchRosser : Confluent r ↔ ChurchRosser r :=
-  List.TFAE.out confluent_equivalents 2 0
+  List.TFAE.out confluent_equivalents 3 1
 
 theorem Confluent_iff_SemiConfluent : Confluent r ↔ SemiConfluent r :=
-  List.TFAE.out confluent_equivalents 2 1
+  List.TFAE.out confluent_equivalents 3 2
 
 theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : Confluent r := by
   intro a b c hab hac
@@ -368,13 +368,13 @@ theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTra
   ext a b
   exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
 
-lemma ReflGen.compRel_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
+lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
 | .refl => .refl
 | .single (.inl h) => .single (.inr h)
 | .single (.inr h) => .single (.inl h)
 
 @[simp, grind =]
-theorem reflTransGen_compRel : ReflTransGen (SymmGen r) = EqvGen r := by
+theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := by
   ext a b
   constructor
   · intro h
