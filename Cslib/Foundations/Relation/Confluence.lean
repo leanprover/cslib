@@ -38,7 +38,7 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 namespace Relation
 
-attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
+attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
 
 theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
   induction h <;> grind
@@ -368,13 +368,13 @@ theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTra
   ext a b
   exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
 
-lemma ReflGen.compRel_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
+lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
 | .refl => .refl
 | .single (.inl h) => .single (.inr h)
 | .single (.inr h) => .single (.inl h)
 
 @[simp, grind =]
-theorem reflTransGen_compRel : ReflTransGen (SymmGen r) = EqvGen r := by
+theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := by
   ext a b
   constructor
   · intro h
