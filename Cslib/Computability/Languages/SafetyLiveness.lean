@@ -48,7 +48,7 @@ abbrev IsLiveness (p : ωLanguage α) : Prop := Dense p.toSet
 any finite sequence can be extended to an infinite sequence satisfying a liveness property. -/
 theorem isLiveness_iff (p : ωLanguage α) :
     p.IsLiveness ↔ ∀ (xs : ωSequence α) (n : ℕ), ∃ ys, (xs.take n) ++ω ys ∈ p := by
-  exact Dense_iff p.toSet
+  exact dense_iff p.toSet
 
 /-- `p.closure` is always a safety property for any ω-language `p`. -/
 theorem isSafety_closure (p : ωLanguage α) :

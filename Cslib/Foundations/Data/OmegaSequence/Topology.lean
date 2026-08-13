@@ -111,7 +111,7 @@ theorem isOpen_iff (s : Set (ωSequence α)) :
     use xs, n, ⟨xs.drop n, ?_⟩ <;> grind
 
 /-- A set is dense iff any finite sequence can be extended to an infinite sequence in the set. -/
-theorem Dense_iff (s : Set (ωSequence α)) :
+theorem dense_iff (s : Set (ωSequence α)) :
     Dense s ↔ ∀ (xs : ωSequence α) (n : ℕ), ∃ ys, (xs.take n) ++ω ys ∈ s := by
   simp only [IsTopologicalBasis.dense_iff isTopologicalBasis_cylinders, cylinder_eq_prepend_range,
     mem_ofPred_eq, forall_exists_index]
