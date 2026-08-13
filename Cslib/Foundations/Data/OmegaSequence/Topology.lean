@@ -72,30 +72,25 @@ theorem cylinder_eq_prepend_range (xs : ωSequence α) (n : ℕ) :
     apply List.ext_get <;> grind
   · grind [get_append_left]
 
+/-- The cylinders form a topological basis. -/
+theorem isTopologicalBasis_cylinders :
+    IsTopologicalBasis { s | ∃ (xs : ωSequence α) (n : ℕ), s = xs.cylinder n } := by
+  convert (PiNat.isTopologicalBasis_cylinders _).isInducing homeomorph.isInducing
+  ext
+  constructor
+  · grind [cylinder]
+  · rintro ⟨_, ⟨xs, n, rfl⟩, rfl⟩
+    use (discharger := rfl) homeomorph.symm xs, n
+
 /-- All cylinders are open sets. -/
 theorem isOpen_cylinder (xs : ωSequence α) (n : ℕ) :
-    IsOpen (xs.cylinder n) := by
-  simp [cylinder, PiNat.isOpen_cylinder]
+    IsOpen (xs.cylinder n) := homeomorph.continuous.isOpen_preimage _ (PiNat.isOpen_cylinder ..)
 
 /-- Every ω-sequence in an open set belongs to a cylinder which is contained in the set. -/
 theorem nhds_cylinders {xs : ωSequence α} {s : Set (ωSequence α)} (hx : xs ∈ s) (hs : IsOpen s) :
     ∃ (ys : ωSequence α) (n : ℕ), xs ∈ ys.cylinder n ∧ ys.cylinder n ⊆ s := by
-  let xs' := homeomorph xs
-  have hx' : xs' ∈ homeomorph '' s := by grind
-  have hs' := (isOpen_image homeomorph).mpr hs
-  have hb := PiNat.isTopologicalBasis_cylinders (fun _ : ℕ ↦ WithDiscreteTopology α)
-  obtain ⟨_, ⟨ys', n, rfl⟩, hmm, hss⟩ := IsTopologicalBasis.exists_subset_of_mem_open hb hx' hs'
-  use homeomorph.symm ys', n
-  split_ands
-  · exact mem_preimage.mp hmm
-  · exact preimage_subset hss <| injOn_of_injective <| Homeomorph.injective homeomorph
-
-/-- The cylinders form a topological basis. -/
-theorem isTopologicalBasis_cylinders :
-    IsTopologicalBasis { s | ∃ (xs : ωSequence α) (n : ℕ), s = xs.cylinder n } := by
-  apply isTopologicalBasis_of_isOpen_of_nhds
-  · grind [isOpen_cylinder]
-  · grind [nhds_cylinders]
+  obtain ⟨_, ⟨ys, n, rfl⟩, hx', hy⟩:= isTopologicalBasis_cylinders.exists_subset_of_mem_open hx hs
+  use ys, n
 
 /-- A set is open iff any ω-sequence in the set has a finite prefix all of whose infinite
 extensions are also in the set. -/
