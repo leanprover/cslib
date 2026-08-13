@@ -1,4 +1,4 @@
-import Cslib.Foundations.Data.Relation
+import Cslib.Foundations.Relation.Attr
 
 namespace CslibTests
 

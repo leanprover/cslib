@@ -53,7 +53,7 @@ scoped notation f:25 "↾₀" support:51 => FinFun.fromFun f support
 
 instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
   coe f := f.fn
-  coe_injective' := by
+  coe_injective := by
     rintro ⟨_, _⟩ ⟨_, _⟩
     simp_all [Finset.ext_iff]
 

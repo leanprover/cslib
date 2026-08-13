@@ -84,6 +84,11 @@ theorem Execution.to_mTr (hexec : lts.Execution s1 μs s2 ss) :
         apply this
       · grind
 
+/-- The states visited by an execution form a chain in the underlying unlabelled relation. -/
+theorem Execution.isChain (hexec : lts.Execution s1 μs s2 ss) :
+    ss.IsChain lts.UnlabelledTr := by
+  grind [Execution, List.isChain_iff_getElem, UnlabelledTr]
+
 open scoped Execution
 /-- Correspondence of multistep transitions and executions. -/
 @[scoped grind =]
@@ -129,13 +134,6 @@ theorem Execution.split
     lts.Execution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := by
   have : n + (ss.length - n - 1) = ss.length - 1 := by grind
   simp [Execution]
-  grind
-
-/-- A multistep transition over a concatenation can be split into two multistep transitions. -/
-theorem MTr.split {lts : LTS State Label} {s0 : State} {μs1 μs2 : List Label} {s2 : State}
-    (h : lts.MTr s0 (μs1 ++ μs2) s2) : ∃ s1, lts.MTr s0 μs1 s1 ∧ lts.MTr s1 μs2 s2 := by
-  obtain ⟨ss, h_ss⟩ := Execution.of_mTr h
-  have := Execution.split h_ss μs1.length
   grind
 
 end Cslib.LTS

@@ -174,7 +174,7 @@ private theorem privacyCorrectionPolynomial_degree_lt
       (r := fun i : s => (secret₀ - secret₁) / params.point i)
       (points_injOn_subtype (F := F) params s))
     ?_
-  simpa using hcard
+  simp [hcard]
 
 private noncomputable def privacyCorrection
     (params : Params F Party) (s : Finset Party)
@@ -270,11 +270,10 @@ noncomputable def schemeWith (params : Params F Party) (sampler : TailSampler pa
           (Polynomial.sharingPolynomial secretValue
               (Polynomial.tailPolynomial params.threshold coeffs)).degree <
             Fintype.card s := by
-        simpa using
-          (lt_of_lt_of_le hdeg₀ (by exact_mod_cast hs) :
-            (Polynomial.sharingPolynomial secretValue
-                (Polynomial.tailPolynomial params.threshold coeffs)).degree <
-              s.card)
+        simp [(lt_of_lt_of_le hdeg₀ (by exact_mod_cast hs) :
+          (Polynomial.sharingPolynomial secretValue
+            (Polynomial.tailPolynomial params.threshold coeffs)).degree <
+              s.card)]
       have hx : Function.Injective (fun i : s => params.point i) := by
         intro i j hij
         exact Subtype.ext (params.point_injective hij)

@@ -23,7 +23,7 @@ The maintainer team is responsible for the quality of the codebase, establishing
 
 ### Lead maintainer
 
-The lead maintainer coordinates the overall work of the maintainer team and oversees the project's repositories.
+The lead maintainer coordinates the maintainer team's overall work and oversees the project's repositories.
 
 - Fabrizio Montesi (@fmontesi), FORM, University of Southern Denmark and Danish Institute for Advanced Study.
 
@@ -31,7 +31,7 @@ The lead maintainer coordinates the overall work of the maintainer team and over
 
 Technical leads guide long-term developments that may span multiple areas of the codebase, offering specialised expertise.
 
-- Alexandre Rademaker (@arademaker), Atlas Computing and Getulio Vargas Foundation.
+- Alexandre Rademaker (@arademaker), Renaissance Philanthropy and Getulio Vargas Foundation.
 - Sorrachai Yingchareonthawornchai (@sorrachai), ETH Zurich.
 
 ### Area maintainers
@@ -40,6 +40,8 @@ Area maintainers are trusted contributors who take ownership of specific areas o
 
 - Chris Henson (@chenson2018), Drexel University. Areas: Lambda calculus, metaprogramming.
 - Kim Morrison (@kim-em), Lean FRO. Areas: Continuous Integration and Deployment (CI/CD) with upstream (Lean, mathlib).
+- Alexandre Rademaker (@arademaker), Atlas Computing and Getulio Vargas Foundation. Areas: logic.
+- Sorrachai Yingchareonthawornchai (@sorrachai), ETH Zurich. Areas: algorithms and data structures.
 
 ### Reviewers
 

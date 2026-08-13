@@ -62,11 +62,12 @@ We also provide ways of constructing polynomial-runtime TMs
 
 @[expose] public section
 
-open Cslib Relation
+open Relation
 
-namespace Turing
+namespace Cslib.Turing
 
 open BiTape StackTape
+open _root_.Turing
 
 variable {Symbol : Type}
 
@@ -317,8 +318,7 @@ private theorem map_toCompCfg_right_step :
   cases cfg2 with
   | mk state BiTape =>
     cases state with
-    | none =>
-      simp only [step, toCompCfg_right, Option.map_none, compComputer]
+    | none => rfl
     | some q =>
       generalize hM : tm2.tr q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
@@ -503,4 +503,4 @@ end PolyTimeComputable
 
 end SingleTapeTM
 
-end Turing
+end Cslib.Turing

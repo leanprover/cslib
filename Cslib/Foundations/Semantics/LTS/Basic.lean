@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Relation.Defs
 public import Mathlib.Data.Set.Finite.Basic
 public import Mathlib.Order.SetNotation
 
@@ -25,8 +25,12 @@ relation `Tr` between states. We follow the style and conventions in [Sangiorgi2
 - `LTS.MTr` extends the transition relation of any LTS to a multistep transition relation,
 formalising the inference system and admissible rules for such relations in [Montesi2023].
 
+- `LTS.BoundedUpTo` records an explicit global execution-length bound. `LTS.Bounded`,
+`LTS.Terminating`, and `LTS.Acyclic` distinguish globally bounded execution length, absence of
+infinite executions, and absence of nonempty cycles.
+
 - Definitions for all the common classes of LTSs: image-finite, finitely branching, finite-state,
-finite, and deterministic.
+and deterministic.
 
 ## Main statements
 
@@ -56,11 +60,16 @@ universe u v
 A Labelled Transition System (LTS) for a type of states (`State`) and a type of transition
 labels (`Label`) consists of a labelled transition relation (`Tr`).
 -/
+@[ext]
 structure LTS (State : Type u) (Label : Type v) where
   /-- The transition relation. -/
   Tr : State → Label → State → Prop
 
 namespace LTS
+
+/-- The unlabelled transition relation underlying an LTS. -/
+def UnlabelledTr (lts : LTS State Label) : State → State → Prop :=
+  fun s1 s2 => ∃ μ, lts.Tr s1 μ s2
 
 section MultiStep
 
@@ -78,12 +87,21 @@ Definition of a multistep transition.
 rule. This makes working with lists of labels more convenient, because we follow the same
 construction. It is also similar to what is done in the `SimpleGraph` library in mathlib.)
 -/
-@[scoped grind]
+@[scoped grind, mk_iff]
 inductive MTr (lts : LTS State Label) : State → List Label → State → Prop where
   | refl {s : State} : lts.MTr s [] s
   | stepL {s1 : State} {μ : Label} {s2 : State} {μs : List Label} {s3 : State} :
     lts.Tr s1 μ s2 → lts.MTr s2 μs s3 →
     lts.MTr s1 (μ :: μs) s3
+
+/-- In any zero-steps multistep transition, the origin and the derivative are the same. -/
+@[scoped grind .]
+theorem MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
+  cases h
+  rfl
+
+@[simp] theorem MTr.nil_iff (s1 s2 : State) : lts.MTr s1 [] s2 ↔ s1 = s2 :=
+  ⟨nil_eq lts, fun h => h ▸ MTr.refl⟩
 
 /-- Any transition is also a multistep transition. -/
 @[scoped grind →]
@@ -93,6 +111,16 @@ theorem MTr.single {s1 : State} {μ : Label} {s2 : State} :
   apply MTr.stepL
   · exact h
   · apply MTr.refl
+
+/-- A multistep transition along `μ :: μs` is a transition labelled by `μ` plus a multistep
+transition labelled by `μs`. -/
+theorem MTr.cons_iff {lts : LTS State Label} :
+    lts.MTr s1 (μ :: μs) s2 ↔ ∃ s, lts.Tr s1 μ s ∧ lts.MTr s μs s2 := by
+  constructor
+  · rintro (_ | ⟨htr, hmtr⟩)
+    exact ⟨_, htr, hmtr⟩
+  · intro ⟨s, htr, hmtr⟩
+    exact .stepL htr hmtr
 
 /-- Any multistep transition can be extended by adding a transition. -/
 theorem MTr.stepR {s1 : State} {μs : List Label} {s2 : State} {μ : Label} {s3 : State} :
@@ -128,11 +156,44 @@ theorem MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     cases hmtr
     exact htr
 
-/-- In any zero-steps multistep transition, the origin and the derivative are the same. -/
-@[scoped grind .]
-theorem MTr.nil_eq (h : lts.MTr s1 [] s2) : s1 = s2 := by
-  cases h
-  rfl
+/-- A 1-sized multistep transition is exactly a single transition with the given label. -/
+@[simp] theorem MTr.singleton_iff (s1 : State) (μ : Label) (s2 : State) :
+  lts.MTr s1 [μ] s2 ↔ lts.Tr s1 μ s2 := ⟨MTr.single_invert lts s1 μ s2, MTr.single lts⟩
+
+/-- A multistep transition over a concatenation can be split into two multistep transitions. -/
+theorem MTr.split {lts : LTS State Label} (h : lts.MTr s1 (μs ++ μs') s2) :
+    ∃ s, lts.MTr s1 μs s ∧ lts.MTr s μs' s2 := by
+  induction μs generalizing s1 s2 with
+  | nil => use s1, .refl, h
+  | cons μ μs ih =>
+    rw [List.cons_append] at h
+    cases h
+    case stepL s htr hmtr =>
+      obtain ⟨s', hmtr', hmtr''⟩ := ih hmtr
+      use s', .stepL htr hmtr', hmtr''
+
+/-- Multistep-transitions over `μs ++ μs'` are exactly multistep transitions over `μs` and `μs'`
+with a common end & start state (respectively). -/
+theorem MTr.append_iff : lts.MTr s1 (μs ++ μs') s2 ↔ ∃ s, lts.MTr s1 μs s ∧ lts.MTr s μs' s2 := by
+  refine ⟨MTr.split, ?_⟩
+  intro ⟨_, h, h'⟩
+  exact h.comp lts h'
+
+/-- Single-step invariant. -/
+@[scoped grind =]
+def TrInv (p : State → Prop) : Prop :=
+  ∀ s1 μ s2, lts.Tr s1 μ s2 → p s1 → p s2
+
+/-- Multistep invariant. -/
+@[scoped grind =]
+def MTrInv (p : State → Prop) : Prop :=
+  ∀ s1 μs s2, lts.MTr s1 μs s2 → p s1 → p s2
+
+/-- Any single-step invariant is also a multistep invariant. -/
+theorem mtrInv_of_trInv {lts : LTS State Label} {p : State → Prop}
+    (htr : lts.TrInv p) : lts.MTrInv p := by
+  intro s1 μs s2 h
+  induction h <;> grind
 
 /-- A state `s1` can reach a state `s2` if there exists a multistep transition from
 `s1` to `s2`. -/
@@ -166,6 +227,21 @@ label. -/
 class Deterministic (lts : LTS State Label) where
   deterministic (s1 : State) (μ : Label) (s2 s3 : State) :
     lts.Tr s1 μ s2 → lts.Tr s1 μ s3 → s2 = s3
+
+theorem Deterministic.eq_of_tr {lts : LTS State Label} [lts.Deterministic]
+    (htr : lts.Tr s1 μ s2) (htr' : lts.Tr s1 μ s2') : s2 = s2' :=
+  Deterministic.deterministic s1 μ s2 s2' htr htr'
+
+/-- In a deterministic lts, multistep transitions with a given start state and trace reach a unique
+end state. -/
+theorem Deterministic.eq_of_mTr {lts : LTS State Label} [lts.Deterministic]
+    (hmtr : lts.MTr s1 μs s2) (hmtr' : lts.MTr s1 μs s2') : s2 = s2' := by
+  induction μs generalizing s1 s2 s2' with
+  | nil => grind
+  | cons μ μs ih =>
+    rcases hmtr with (_ | ⟨htr, hmtr⟩); rcases hmtr' with (_ | ⟨htr', hmtr'⟩)
+    rw [eq_of_tr htr htr'] at hmtr
+    exact ih hmtr hmtr'
 
 /-- The `μ`-image of a state `s` is the set of all `μ`-derivatives of `s`. -/
 @[scoped grind =]
@@ -288,15 +364,25 @@ attribute [instance] FinitelyBranching.image_finite FinitelyBranching.finite_sta
 /-- Every LTS with finite types for states and labels is also finitely branching. -/
 instance FinitelyBranching.of_finite [Finite State] [Finite Label] : lts.FinitelyBranching where
 
-/-- An LTS is acyclic if there are no infinite multistep transitions. -/
+/-- An LTS is bounded up to `n` if every finite execution has length strictly less than `n`. -/
+def BoundedUpTo (lts : LTS State Label) (n : ℕ) : Prop :=
+  ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
+
+/-- An LTS is bounded if there is a global bound on the length of all of its finite executions. -/
+class Bounded (lts : LTS State Label) where
+  bounded : ∃ n, lts.BoundedUpTo n
+
+/-- An LTS is terminating if its underlying unlabelled transition relation is terminating,
+equivalently if it admits no infinite execution. -/
+class Terminating (lts : LTS State Label) where
+  terminating : Relation.Terminating lts.UnlabelledTr
+
+/-- An LTS is acyclic if its underlying unlabelled transition relation contains no nonempty
+cycle. -/
 class Acyclic (lts : LTS State Label) where
-  acyclic : ∃ n, ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
+  [acyclic : Relation.Acyclic lts.UnlabelledTr]
 
-/-- An LTS is finite if it is finite-state and acyclic.
-
-We call this `FiniteLTS` instead of just `Finite` to avoid confusion with the standard `Finite`
-class. -/
-class FiniteLTS [Finite State] (lts : LTS State Label) extends lts.Acyclic
+attribute [instance] Acyclic.acyclic
 
 end Classes
 

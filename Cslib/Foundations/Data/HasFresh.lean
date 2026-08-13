@@ -62,7 +62,7 @@ def HasFresh.ofSucc {α : Type u} [Inhabited α] [SemilatticeSup α] (f : α →
     HasFresh α where
   fresh s := if hs : s.Nonempty then f (s.sup' hs id) else default
   fresh_notMem s h := if hs : s.Nonempty
-    then not_le_of_gt (hf (s.sup' hs id)) <| by rw [dif_pos hs] at h; exact s.le_sup' id h
+    then not_le_of_gt (hf (s.sup' hs id)) <| by rw [dite_eq_left hs] at h; exact s.le_sup' id h
     else hs ⟨_, h⟩
 
 /-- `ℕ` has a computable fresh function. -/
@@ -126,13 +126,13 @@ declare_term_config_elab elabFreeUnionConfig FreeUnionConfig
   #check free_union [f, g] ℕ
 
   info: ∅ ∪ xs : Finset ℕ
-  #check free_union (singleton := false) ℕ
+  #check free_union -singleton ℕ
 
   -- info: ∅ ∪ {x} : Finset ℕ
-  #check free_union (finset := false) ℕ
+  #check free_union -finset ℕ
 
   -- info: ∅ : Finset ℕ
-  #check free_union (singleton := false) (finset := false) ℕ
+  #check free_union -singleton -finset ℕ
   ```
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term

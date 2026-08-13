@@ -39,6 +39,8 @@ This unique interpreter is `FreeM.liftM f`
 - `FreeM.liftM_unique`: Proof of the universal property
 
 For elimination and interpretation theory, see `Free/Fold.lean`.
+For polynomial effect signatures with explicit operation shapes and positions, see
+`Cslib.Foundations.Data.PFunctor.Free`.
 
 See the Haskell [freer-simple](https://hackage.haskell.org/package/freer-simple) library for the
 Haskell implementation that inspired this approach.
@@ -184,11 +186,11 @@ theorem map_bind (f : β → γ) (x : FreeM F α) (c : α → FreeM F β) :
 @[simp]
 theorem id_map : ∀ x : FreeM F α, map id x = x
   | .pure a => rfl
-  | .liftBind op cont => by simp_all [map, id_map]
+  | .liftBind op cont => by simp [map, id_map]
 
 theorem comp_map (h : β → γ) (g : α → β) : ∀ x : FreeM F α, map (h ∘ g) x = map h (map g x)
   | .pure a => rfl
-  | .liftBind op cont => by simp_all [map, comp_map]
+  | .liftBind op cont => by simp [map, comp_map]
 
 instance : LawfulFunctor (FreeM F) where
   map_const := rfl
