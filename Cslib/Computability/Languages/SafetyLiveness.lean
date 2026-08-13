@@ -7,7 +7,7 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Languages.OmegaLanguage
-public import Cslib.Foundations.Data.Topology.ClosedDenseDecomposition
+public import Mathlib.Topology.Closure
 
 /-!
 # Safety and Liveness properties of ω-sequences
@@ -50,19 +50,26 @@ theorem isLiveness_iff (p : ωLanguage α) :
     p.IsLiveness ↔ ∀ (xs : ωSequence α) (n : ℕ), ∃ ys, (xs.take n) ++ω ys ∈ p := by
   exact Dense_iff p.toSet
 
-/-- `SafetyLivenessDecomposition p ps pl` means that `ps` is a safety property,
-`pl` is a liveness property, and `ps ⊓ pl = p`. -/
-def SafetyLivenessDecomposition (p ps pl : ωLanguage α) : Prop :=
-  IsSafety ps ∧ IsLiveness pl ∧ ps ⊓ pl = p
+/-- `p.closure` is always a safety property for any ω-language `p`. -/
+theorem isSafety_closure (p : ωLanguage α) :
+    p.closure.IsSafety := by
+  exact isClosed_closure
 
-/-- Every property `p` is the intersection of the safety property `p.closure` and
-the liveness property `p ⊔ p.closureᶜ`. -/
-theorem SafetyLivenessDecomposition_exists (p : ωLanguage α) :
-    SafetyLivenessDecomposition p p.closure (p ⊔ p.closureᶜ) := by
-  obtain ⟨_, _, _⟩ := ClosedDenseDecomposition_exists p.toSet
+/-- `p ⊔ p.closureᶜ` is always a liveness property for any ω-language `p`. -/
+theorem isLiveness_sup_compl_closure (p : ωLanguage α) :
+    (p ⊔ p.closureᶜ).IsLiveness := by
+  simp only [sup_def, closure, compl_def, dense_iff_closure_eq, closure_union,
+    ← compl_subset_iff_union, subset_closure]
+
+/-- Every property `p` is the intersection of a safety property (namely, `p.closure`) and
+a liveness property (namely, `p ⊔ p.closureᶜ`). -/
+theorem exists_safetyLivenessDecomposition (p : ωLanguage α) :
+    ∃ q r : ωLanguage α, q.IsSafety ∧ r.IsLiveness ∧ p = q ⊓ r := by
+  use p.closure, p ⊔ p.closureᶜ
   split_ands
-  · simpa
-  · simpa [sup_def, closure, compl_def]
-  · simpa [ωLanguage.ext_iff, sup_def, closure, compl_def]
+  · exact isSafety_closure p
+  · exact isLiveness_sup_compl_closure p
+  · simp [ωLanguage.ext_iff, sup_def, closure, compl_def, inf_def,
+      inter_union_distrib_left, subset_closure]
 
 end Cslib.ωLanguage
