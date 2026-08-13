@@ -28,7 +28,7 @@ namespace PFunctor
 section monomial
 
 /-- The monomial `PFunctor` with head type `A` and constant `B` for any `a : A`. -/
-@[reducible] def monomial (A : Type uA) (B : Type uB) : PFunctor := ⟨A, fun _ => B⟩
+abbrev monomial (A : Type uA) (B : Type uB) : PFunctor := ⟨A, fun _ => B⟩
 
 lemma monomial_A (A : Type uA) (B : Type uB) : (monomial A B).A = A := rfl
 
@@ -41,9 +41,7 @@ section zero
 
 /-- The zero polynomial functor, defined as `A = PEmpty` and `B _ = PEmpty`, is the identity with
   respect to sum (up to equivalence) -/
-@[reducible] protected def zero : PFunctor := monomial PEmpty PEmpty
-
-instance instZeroPFunctor : Zero PFunctor where zero := PFunctor.zero
+instance instZeroPFunctor : Zero PFunctor where zero := monomial PEmpty PEmpty
 
 @[simp] lemma zero_A : (0 : PFunctor).A = PEmpty := rfl
 
@@ -55,9 +53,7 @@ section one
 
 /-- The unit polynomial functor, defined as `A = PUnit` and `B _ = PEmpty`, is the identity with
   respect to product (up to equivalence) -/
-@[reducible] protected def one : PFunctor := monomial PUnit PEmpty
-
-instance instOnePFunctor : One PFunctor where one := PFunctor.one
+instance instOnePFunctor : One PFunctor where one := monomial PUnit PEmpty
 
 @[simp] lemma one_A : (1 : PFunctor).A = PUnit := rfl
 
