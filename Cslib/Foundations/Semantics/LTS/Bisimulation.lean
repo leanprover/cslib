@@ -127,11 +127,10 @@ theorem IsBisimulation.match_deterministic
 bisimulation, then the derivatives are still in the bisimulation. -/
 theorem IsBisimulation.match_deterministic_flip
     (hb : IsBisimulation lts₁ lts₂ r)
-    (hr : (flip r) s₂ s₁)
+    (hr : r s₁ s₂)
     (hdet : lts₂.DeterministicStateLabel s₂ μ)
-    (htr₁ : lts₂.Tr s₂ μ s₂')
-    (htr₂ : lts₁.Tr s₁ μ s₁') : r s₁' s₂' := by
-  have hr' : r s₁ s₂ := by grind [flip]
+    (htr₁ : lts₁.Tr s₁ μ s₁')
+    (htr₂ : lts₂.Tr s₂ μ s₂') : r s₁' s₂' := by
   apply IsSimulation.match_deterministic hb.isSimulation hr' hdet htr₂ htr₁
 
 /-- If a state is deterministic for `μ`, then any transition made by a related state in a
