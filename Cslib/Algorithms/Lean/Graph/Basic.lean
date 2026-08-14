@@ -61,8 +61,8 @@ lemma SimpleGraph.incidence {G : SimpleGraph α} ⦃x y : α⦄ (h : G.Adj x y) 
     x ∈ G.vertexSet ∧ y ∈ G.vertexSet :=
   ⟨G.incidence_left h, G.incidence_left h.symm⟩
 
-/-- A directed graph on vertex type `α` with edge labels in `β`, built from `Cslib.LTS`.
-Parallel edges (distinguished by label) and loops are permitted. -/
+/-- A directed graph on vertex type `α`  whose edges are identified by labels `β`
+  built from `Cslib.LTS`. Parallel edges (distinguished by label) and loops are permitted. -/
 structure DiGraph (α β : Type*) extends Cslib.LTS α β where
   /-- The set of vertices. -/
   vertexSet : Set α
