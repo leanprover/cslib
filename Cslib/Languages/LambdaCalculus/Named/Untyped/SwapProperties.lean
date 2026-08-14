@@ -294,14 +294,6 @@ lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
 
 variable [HasFresh Var]
 
-lemma AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} :
-    m =α m' → (Term.abs x m) =α (Term.abs x m') := by
-  intro h
-  obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ {x})
-  apply AlphaEquiv.abs (y := y)
-  · grind
-  · apply AlphaEquiv.rename_preserve <;> grind
-
 /-- Lemma 6.1 [Crole2012]: Swap (transposition) preserves α-equivalence. -/
 lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
     m =α m' → (m.swap u v) =α (m'.swap u v) := by

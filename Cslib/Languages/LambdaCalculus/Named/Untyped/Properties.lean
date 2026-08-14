@@ -176,6 +176,14 @@ theorem AlphaEquiv.rename_preserve (m n : Term Var) (x y : Var) :
           grind
       all_goals grind
 
+lemma AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} :
+    m =α m' → (Term.abs x m) =α (Term.abs x m') := by
+  intro h
+  obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ {x})
+  apply AlphaEquiv.abs (y := y)
+  · grind
+  · apply AlphaEquiv.rename_preserve <;> grind
+
 /-- Elimination rule for α-equivalence of abstractions.
     It states that if two abstractions are α-equivalent,
     then their bodies can be renamed to ``any'' fresh variable y and remain α-equivalent.
