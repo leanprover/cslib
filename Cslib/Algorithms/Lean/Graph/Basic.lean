@@ -39,7 +39,6 @@ transition relation and adds the same vertex-subset layer.
 
 namespace Cslib.Algorithms.Lean
 
-
 /-- An undirected multigraph on vertex type `α` with edge labels in `β` -/
 abbrev Graph (α β : Type*) :=  _root_.Graph α β
 
