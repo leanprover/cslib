@@ -8,7 +8,6 @@ module
 
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 
-
 /-! # λ-calculus
 
 The untyped λ-calculus, with a named representation of variables. This file contains properties of
