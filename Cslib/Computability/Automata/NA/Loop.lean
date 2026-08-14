@@ -189,7 +189,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
   ext xl; constructor
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
     by_cases h_xl : xl = []
-    · grind [mem_add, mem_one]
+    · grind [Language.mem_add, Language.mem_one]
     · have : Nonempty na.start := by
         obtain ⟨_, s0, _, _⟩ := nonempty_iff_ne_empty.mpr h
         use s0
