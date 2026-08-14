@@ -83,13 +83,8 @@ Lean modal model induced by `ofPredicates r`. -/
 theorem Proposition.equivOfPredicates_denotation_eq {r : α → α → Prop}
     {φ₁ φ₂ : Proposition (α → Prop)} :
     (φ₁ ≡[Equiv.OfPredicates r] φ₂) ↔
-      φ₁.denotation (ofPredicates r) = φ₂.denotation (ofPredicates r) := by
-  apply Iff.intro <;> intro h
-  case mp =>
-    apply denotation_eq_of_equiv h
-  case mpr =>
-    apply equiv_iff_denotation_eq.2
-    grind
+      φ₁.denotation (ofPredicates r) = φ₂.denotation (ofPredicates r) :=
+  equiv_iff_denotation_eq  
 
 /-- Logically equivalent propositions under `Equiv.OfContainers r` have the same denotation in the
 Lean modal model induced by `ofContainers r`. -/
