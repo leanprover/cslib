@@ -327,7 +327,7 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           -- representative example 4 case of: a = u; b = u; z = v
-          · subst ha; subst hb; subst hz
+          · subst ha hb hz
             exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih h2
           -- example 1 reuse
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
@@ -339,9 +339,10 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           -- example 3 reuse
-          · subst ha; subst hz
+          · subst ha hz
             apply AlphaEquiv.symm
-            exact (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) (AlphaEquiv.symm ih) hbu hbv h2)
+            exact
+              (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) (AlphaEquiv.symm ih) hbu hbv h2)
           -- example 1 reuse
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
       · rcases h4 with hb | hb | ⟨hbu, hbv⟩
@@ -352,7 +353,7 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           -- example 4 reuse
-          · subst ha; subst hb; subst hz
+          · subst ha hb hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
             symm at z_h2
@@ -364,7 +365,7 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           -- example 3 reuse
-          · subst ha; subst hz
+          · subst ha hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
             apply AlphaEquiv.symm
@@ -387,7 +388,7 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           -- example 3 reuse
-          · subst hb; subst hz
+          · subst hb hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
             symm at h2

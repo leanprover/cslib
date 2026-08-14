@@ -9,7 +9,7 @@ module
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.RenameProperties
 
-/-! # λ-calculus
+/-! # Properties of α-equivalence
 
 The untyped λ-calculus, with a named representation of variables. This file contains properties of
 α-equivalence and capture-avoiding substitution.

@@ -8,20 +8,10 @@ module
 
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 
-/-! # λ-calculus
+/-! # Properties of rename
 
 The untyped λ-calculus, with a named representation of variables. This file contains properties of
 α-equivalence and capture-avoiding substitution.
-
-## Main results
-
-- `AlphaEquiv.refl`: reflexivity of α-equivalence
-- `AlphaEquiv.symm`: symmetry of α-equivalence
-- `AlphaEquiv.trans`: transitivity of α-equivalence
-- `Subst.relation_iff_function`: the relational and functional definition of capture-avoiding
-  substitution are equivalent, modulo alpha-equivalence
-- `subst.commutativity`: commutativity of substitution, more commonly known as the
-  "substitution lemma" (e.g. in [Barendregt1984])
 -/
 
 public section
