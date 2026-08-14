@@ -125,13 +125,13 @@ theorem IsBisimulation.match_deterministic
 
 /-- If the unique transition of a state is matched by a related state in the inverse of a
 bisimulation, then the derivatives are still in the bisimulation. -/
-theorem IsBisimulation.match_deterministic_flip
+theorem IsBisimulation.match_deterministic₂
     (hb : IsBisimulation lts₁ lts₂ r)
     (hr : r s₁ s₂)
     (hdet : lts₂.DeterministicStateLabel s₂ μ)
     (htr₁ : lts₁.Tr s₁ μ s₁')
     (htr₂ : lts₂.Tr s₂ μ s₂') : r s₁' s₂' := by
-  apply IsSimulation.match_deterministic hb.isSimulation hr' hdet htr₂ htr₁
+  apply IsSimulation.match_deterministic hb.isSimulation hr hdet htr₁ htr₂
 
 /-- If a state is deterministic for `μ`, then any transition made by a related state in a
 bisimulation is matched by a unique transition (left variant). -/
