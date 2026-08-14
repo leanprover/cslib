@@ -342,13 +342,8 @@ open Relation in
 /-- Axiom .2, valid for all frames with the diamond property. -/
 theorem Satisfies.pointTwo (r : World → World → Prop) (h : Diamond r)
     (φ : Proposition Atom) : IsAxiom r <| ◇□φ → □◇φ := by
-  intro v w
-  rw [Satisfies.imp_iff_imp]
-  intro h₁
-  rw [Satisfies.diamond_iff_exists] at h₁
-  rcases h₁ with ⟨_, hww₁, _⟩
-  rw [Satisfies.box_iff_forall]
-  intro _ hww₂
+  simp_rw [IsAxiom, Satisfies.imp_iff_imp, Satisfies.diamond_iff_exists, Satisfies.box_iff_forall]
+  rintro v w ⟨_, hww₁, _⟩ _ hww₂
   obtain ⟨w₃, hww₃⟩ := h hww₁ hww₂
   grind
 
