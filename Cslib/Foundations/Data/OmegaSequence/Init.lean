@@ -9,15 +9,15 @@ module
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Algebra.Order.Sub.Basic
-public import Mathlib.Data.Nat.Lattice
-
-@[expose] public section
+public import Mathlib.Order.Lattice.Nat
 
 /-!
 # ω-sequences a.k.a. infinite sequences
 
 Most code below is adapted from Mathlib.Data.Stream.Init.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -31,6 +31,9 @@ variable (m n : ℕ) (x y : List α) (a b : ωSequence α)
 
 instance [Inhabited α] : Inhabited (ωSequence α) :=
   ⟨ωSequence.const default⟩
+
+instance [h : IsEmpty α] : IsEmpty (ωSequence α) where
+  false xs := IsEmpty.false (xs 0)
 
 @[simp, scoped grind =]
 protected theorem eta (s : ωSequence α) : head s ::ω tail s = s := by
@@ -516,8 +519,10 @@ theorem take_extract {xs : ωSequence α} {m n k : ℕ} (h : k ≤ n - m) :
 @[simp, scoped grind =]
 theorem drop_extract {xs : ωSequence α} {m n k : ℕ} (h : k ≤ n - m) :
     (xs.extract m n).drop k = xs.extract (m + k) n := by
-  have := extract_lu_extract_lu (xs := xs) (m := m) (n := n) (i := k) (j := n - m)
-  grind [length_extract, List.take_length]
+  by_cases m ≤ n
+  · grind only [extract_lu_extract_lu, length_extract, List.length_drop, List.take_length]
+  · have : k = 0 := by grind only
+    grind only [List.drop_zero]
 
 end ωSequence
 

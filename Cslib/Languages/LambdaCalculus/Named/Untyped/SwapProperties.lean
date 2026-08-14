@@ -309,7 +309,7 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
     · simp_all
     · change u ≠ v at h2
       induction h1 with
-      | var => simp_all [AlphaEquiv.refl]
+      | var => apply AlphaEquiv.refl
       | abs hm1 hm2 ih =>
         rename_i z a b E E'
         have z_h1 : z ≠ a := by simp_all
@@ -465,7 +465,7 @@ lemma permute_alphaEquiv_of_fv_subset_agreementSet (m : Term Var) (π π' : Equi
         := by
           apply ih
           intro x hx
-          simp only [agreementSet, Set.mem_setOf_eq, Equiv.trans_apply]
+          simp only [agreementSet, Set.mem_ofPred_eq, Equiv.trans_apply]
           by_cases hxa : x = a
           · simp_all
           · have hagree : π x = π' x := h (by simp [fv, hx, hxa])
@@ -495,7 +495,7 @@ lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
     have h : (m.fv : Set Var) ⊆ agreementSet π π' := by
       intro x hx
       unfold agreementSet
-      rw [Set.mem_setOf_eq]
+      rw [Set.mem_ofPred_eq]
       grind
     have h' := permute_alphaEquiv_of_fv_subset_agreementSet m π π' h
     rw [← permute_trans, permute_swap, permute_swap, permute_swap] at h'

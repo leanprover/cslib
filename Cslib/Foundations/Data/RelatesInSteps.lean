@@ -9,16 +9,16 @@ module
 public import Cslib.Init
 public import Mathlib.Logic.Relation
 
-@[expose] public section
-
-variable {α : Type*} {r : α → α → Prop} {a b c : α}
-
 /-! # Relations Across Steps
 
 This file defines `Relation.RelatesInSteps` (and `Relation.RelatesWithinSteps`).
 These are inductively defines propositions that communicate whether a relation forms a
 chain of length `n` (or at most `n`) between two elements.
 -/
+
+@[expose] public section
+
+variable {α : Type*} {r : α → α → Prop} {a b c : α}
 
 namespace Relation
 

@@ -10,12 +10,6 @@ public import Mathlib.CategoryTheory.Category.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
 public import Mathlib.Control.Basic
 
-@[expose] public section
-
-namespace Cslib
-
-variable {State Label : Type*}
-
 /-! # Category of Labelled Transition Systems
 
 This file contains the definition of the category of labelled transition systems
@@ -26,6 +20,12 @@ as defined in Winskel and Nielsen's handbook chapter [WinskelNielsen1995].
 * [N. Winskel and M. Nielsen, *Models for concurrency*][WinskelNielsen1995]
 -/
 
+@[expose] public section
+
+namespace Cslib
+
+variable {State Label : Type*}
+
 /--
 We first define what is denoted Tran* in [WinskelNielsen1995]: the extension of
 a transition relation with idle transitions.
@@ -35,11 +35,11 @@ def LTS.withIdle (lts : LTS State Label) : LTS State (Option Label) :=
 
 /-! ## LTSs and LTS morphisms form a category -/
 
+set_option linter.checkUnivs false in
 /--
 The definition of labelled transition system (with the type of states and the
 type of labels as part of the structure).
 -/
-@[nolint checkUnivs]
 structure LTSCat : Type (max u v + 1) where
   /-- Type of states of an LTS -/
   State : Type u

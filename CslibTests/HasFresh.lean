@@ -40,17 +40,21 @@ def g (_ : String) : Finset ℕ := {4, 5, 6}
 #guard_msgs in
 #check free_union [f, g] ℕ
 
+/-- info: ∅ ∪ {x} ∪ xs ∪ f var ∪ g var : Finset ℕ -/
+#guard_msgs in
+#check free_union +singleton +finset [f, g] ℕ
+
 /-- info: ∅ ∪ xs : Finset ℕ -/
 #guard_msgs in
-#check free_union (singleton := false) ℕ
+#check free_union -singleton ℕ
 
 /-- info: ∅ ∪ {x} : Finset ℕ -/
 #guard_msgs in
-#check free_union (finset := false) ℕ
+#check free_union -finset ℕ
 
 /-- info: ∅ : Finset ℕ -/
 #guard_msgs in
-#check free_union (singleton := false) (finset := false) ℕ
+#check free_union -singleton -finset ℕ
 
 end
 

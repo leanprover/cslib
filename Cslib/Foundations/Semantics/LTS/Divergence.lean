@@ -9,11 +9,11 @@ module
 public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 
-@[expose] public section
-
 /-!
 # Divergence of LTS
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 

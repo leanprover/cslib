@@ -9,8 +9,6 @@ module
 public import Cslib.Init
 public import Mathlib.Computability.Language
 
-@[expose] public section
-
 /-!
 # Right Congruence
 
@@ -19,6 +17,8 @@ This file contains basic definitions about right congruences on finite sequences
 NOTE: Left congruences and two-sided congruences can be similarly defined.
 But they are left to future work because they are not needed for now.
 -/
+
+@[expose] public section
 
 namespace Cslib
 

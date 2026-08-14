@@ -8,9 +8,9 @@ module
 
 public import Cslib.Foundations.Semantics.FLTS.Basic
 
-@[expose] public section
-
 /-! # Product of functional labelled transition systems -/
+
+@[expose] public section
 
 namespace Cslib.FLTS
 

@@ -12,18 +12,20 @@ weak.linter.flexible = true
 weak.linter.pythonStyle = false
 weak.linter.checkInitImports = false
 weak.linter.allScriptsDocumented = false
+# this is currently not extensible for unicode not used in Mathlib
+weak.linter.unicodeLinter = false
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
+rev = "77cbcbc65f9e26f6ede0a01b24c2cb909e11cc0d"
 
 [[lean_lib]]
 name = "Cslib"
-globs = ["Cslib.*"]
 
 [[lean_lib]]
 name = "CslibTests"
-globs = ["CslibTests.+"]
+leanOptions = {weak.linter.style.header = false}
 
 [[lean_exe]]
 name = "checkInitImports"

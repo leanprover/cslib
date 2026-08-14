@@ -8,14 +8,14 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
 
-@[expose] public section
-
 /-!
 # Union of LTSs
 
 Note: there is a nontrivial balance between ergonomics and generality here. These definitions might
 change in the future.
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 

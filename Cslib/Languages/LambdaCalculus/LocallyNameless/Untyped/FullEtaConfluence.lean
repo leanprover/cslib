@@ -7,10 +7,7 @@ Authors: Maximiliano Onofre Martínez
 module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullEta
-
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
+public import Cslib.Foundations.Relation.Confluence
 
 /-! # η-confluence for the λ-calculus
 
@@ -19,6 +16,10 @@ set_option linter.unusedDecidableInType false
 * [T. Nipkow, *More Church-Rosser Proofs (in Isabelle/HOL)*][Nipkow2001]
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 
@@ -33,6 +34,7 @@ open Relation
 variable [HasFresh Var] [DecidableEq Var]
 
 open FullEta in
+@[wikidata Q1308502]
 lemma stronglyConfluent_eta : StronglyConfluent (@FullEta Var) := by
   intro _ y z h₁ h₂
   suffices ∃ w, ReflGen FullEta y w ∧ ReflGen FullEta z w by grind

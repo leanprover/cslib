@@ -18,7 +18,7 @@ open_scoped_all Cslib
   (This documentation and test is adapted from Mathlib.)
 
   Exceptions may be specified here using `#grind_lint skip`. This should be kept minimal, and some
-  of these were added upon the inital commit of this test. PRs removing exceptions are welcome.
+  of these were added upon the initial commit of this test. PRs removing exceptions are welcome.
 
   If this test fails, please modify newly introduced `grind` annotations to use the
   `grind_pattern ... where ...` syntax to add side conditions that will prevent the run-away.
@@ -33,30 +33,23 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.FinFun.fromFun_eq
 #grind_lint skip Cslib.FinFun.fromFun_idem
 #grind_lint skip Cslib.FinFun.fromFun_inter
-#grind_lint skip Cslib.LTS.deterministic_not_lto
-#grind_lint skip Cslib.LTS.deterministic_tr_image_singleton
+#grind_lint skip Cslib.LTS.DeterministicStateLabel.not_tr_of_ne
+#grind_lint skip Cslib.LTS.DeterministicStateLabel.image_singleton_iff_tr
 #grind_lint skip Cslib.LTS.Execution.refl
 #grind_lint skip Cslib.LTS.mem_saturate_image_τ
 #grind_lint skip Cslib.ωSequence.drop_const
 #grind_lint skip Cslib.ωSequence.get_cons_append_zero
 #grind_lint skip Cslib.ωSequence.map_id
 #grind_lint skip Cslib.Automata.DA.buchi_eq_finAcc_omegaLim
+#grind_lint skip Cslib.LTS.mapLabel_tr
 #grind_lint skip Cslib.LTS.MTr.stepL
 #grind_lint skip Cslib.LTS.STr.trans_τ
 #grind_lint skip Cslib.Automata.DA.FinAcc.toNAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.NA.Buchi.reindex_language_eq
 #grind_lint skip Cslib.Automata.NA.FinAcc.toDAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.εNA.FinAcc.toNAFinAcc_language_eq
-#grind_lint skip Cslib.CLL.Proof.parr_inversion.eq_1
-#grind_lint skip Cslib.CLL.Proof.with_inversion₁.eq_1
-#grind_lint skip Cslib.CLL.Proof.with_inversion₂.eq_1
-#grind_lint skip Cslib.CLL.Proposition.Equiv.trans
-#grind_lint skip Cslib.CLL.Proposition.bang_top_eqv_one.eq_1
-#grind_lint skip Cslib.CLL.Proposition.expand.eq_10
-#grind_lint skip Cslib.CLL.Proposition.parr_top_eqv_top.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_assoc.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_distrib_oplus.eq_1
-#grind_lint skip Cslib.CLL.Proposition.tensor_symm.eq_1
+#grind_lint skip Cslib.Automata.εNA.FinAcc.toSingleAccept_tr_tr
+#grind_lint skip Cslib.Automata.εNA.FinAcc.toSingleAccept_not_tr_none
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.arrow
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.sum
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.trans_tvar
@@ -77,20 +70,19 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.sub
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.ty
 #grind_lint skip Cslib.Logic.HML.bisimulation_satisfies
-#grind_lint skip Cslib.Logic.HML.Satisfies.diamond
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.step_multiApp_l
 #adaptation_note
 /-- (changes from lean#13166) -/
 #grind_lint skip Cslib.ωLanguage.map_id
 #grind_lint skip Cslib.LTS.Bisimilarity.gfp
-#grind_lint skip Cslib.LTS.Bisimilarity.is_bisimulation
-#grind_lint skip Cslib.LTS.Bisimilarity.largest_bisimulation
+#grind_lint skip Cslib.LTS.Bisimilarity.isBisimulation
+#grind_lint skip Cslib.LTS.IsBisimulation.le_bisimilarity
 #grind_lint skip Cslib.LTS.IsBisimulation.bot
 #grind_lint skip Cslib.LTS.IsBisimulation.comp
 #grind_lint skip Cslib.LTS.IsBisimulation.inv
 #grind_lint skip Cslib.LTS.IsBisimulation.sup
 #grind_lint skip Cslib.LTS.IsBisimulation.traceEq
-#grind_lint skip Cslib.LTS.IsBisimulationUpTo.is_bisimulation
+#grind_lint skip Cslib.LTS.IsBisimulationUpTo.isBisimulation
 #grind_lint skip Cslib.Logic.HML.theoryEq_isBisimulation
 
 #guard_msgs in

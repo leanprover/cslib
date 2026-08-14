@@ -6,13 +6,9 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Relation.Attr
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
-
-public section
-
-set_option linter.unusedDecidableInType false
 
 /-! # β-reduction for the λ-calculus
 
@@ -23,6 +19,10 @@ set_option linter.unusedDecidableInType false
   this is partially adapted
 
 -/
+
+public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 
@@ -63,6 +63,7 @@ theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠β�
 theorem redex_app_r_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app N M ↠βᶠ app N M' := by
   induction redex <;> grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /- Single reduction `app M (fvar x) ⭢βᶠ N` implies reduction on `M` or a root beta step. -/
 @[scoped grind →]
 lemma invert_step_app_fvar (step : app M (fvar x) ⭢βᶠ N) :
@@ -70,41 +71,38 @@ lemma invert_step_app_fvar (step : app M (fvar x) ⭢βᶠ N) :
   cases step
   case base h => cases h with | beta => exact .inr ⟨_, rfl, rfl⟩
   case appR step_M _ => exact .inl ⟨_, rfl, step_M⟩
-  all_goals grind [cases Xi]
+  all_goals grind only [cases Xi]
 
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
-  induction step
-  case abs => constructor; assumption
-  all_goals grind
+lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := Xi.step_lc_r (by grind) step
 
 lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M') ∨ M = M' := by
   grind
 
 /-- Substitution of a locally closed term respects a single reduction step. -/
 lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (h_lc : LC t) :
-    s [ x := t ] ⭢βᶠ s' [ x := t ] := by
+    s[x := t] ⭢βᶠ s'[x := t] := by
   induction step with
-  | base => grind [subst_open]
+  | base beta => cases beta; grind [subst_open]
   | abs  => grind [Xi.abs <| free_union Var]
   | _ => grind
 
 /-- Substitution respects a single reduction step of a free variable. -/
 lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
-    s [ x := fvar y ] ⭢βᶠ s' [ x := fvar y ] :=
+    s[x := fvar y] ⭢βᶠ s'[x := fvar y] :=
   redex_subst_cong_lc _ _ _ _ step (.fvar y)
 
 /-- An β-reduction step does not introduce new free variables. -/
-lemma step_not_fv (step : M ⭢βᶠ N) (hw : w ∉ M.fv) : w ∉ N.fv := by
+lemma step_not_fv (step : M ⭢βᶠ N) : N.fv ⊆ M.fv := by
   induction step with
   | base h => cases h with | beta => grind [open_preserve_not_fvar]
-  | abs =>
+  | @abs M N =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     have := open_close x
-    grind [close_preserve_not_fvar, open_fresh_preserve_not_fvar]
+    grind [open_preserve_not_fvar 0 M N]
   | _ => grind
 
 /-- Abstracting then closing preserves a single reduction. -/
@@ -148,7 +146,7 @@ lemma invert_steps_abs {s t : Term Var} (step : s.abs ↠βᶠ t) :
 
 /- `λ s ↠βᶠ λ s'` implies `s ^ t ↠βᶠ s' ^ t'` -/
 lemma steps_open_cong_l_abs
-  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_s : LC s.abs) (lc_t : LC t) :
+  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_t : LC t) :
     (s ^ t) ↠βᶠ (s' ^ t) := by
   generalize eq : s.abs = s_abs at steps
   generalize eq' : s'.abs = s'_abs at steps
@@ -158,25 +156,25 @@ lemma steps_open_cong_l_abs
     specialize ih s
     cases step with grind [invert_steps_abs, step_open_cong_l (L := free_union Var)]
 
-/- `t ↠βᶠ t'` implies `s [ x := t ] ↠βᶠ s [ x := t' ]`.
+/- `t ↠βᶠ t'` implies `s[x := t] ↠βᶠ s[x := t']`.
    There is no single step lemma in this case because x
    may be substituted for n times, so a single step t ↠βᶠ t
-   in general requires n steps in `s [ x := t ] ↠βᶠ (s [ x := t' ])` -/
+   in general requires n steps in `s[x := t] ↠βᶠ (s[x := t'])` -/
 lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_lc : LC s) :
-    (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
+    (s[x := t]) ↠βᶠ (s[x := t']) := by
   induction h_lc with
   | fvar y => grind
   | abs => grind [redex_abs_cong (free_union Var)]
   | @app l r =>
      calc
-       (l.app r)[x:=t] ↠βᶠ l[x := t].app (r[x:=t']) := by grind
-       _               ↠βᶠ (l.app r)[x:=t'] := by grind
+       (l.app r)[x := t] ↠βᶠ l[x := t].app (r[x := t']) := by grind
+       _                 ↠βᶠ (l.app r)[x := t'] := by grind
 
 /- `step_subst_cong_r` can be generalized to multiple reductions `t ↠βᶠ t'`.
    This requires s to be locally closed, locally closedness of t and t'
-   can be infered by the fact t reduces to t' -/
+   can be inferred by the fact t reduces to t' -/
 lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ↠βᶠ t') (h_lc : LC s) :
-    (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
+    (s[x := t]) ↠βᶠ (s[x := t']) := by
   induction step with
   | refl => rfl
   | tail steps step ih => grind [Relation.ReflTransGen.trans, step_subst_cong_r]
@@ -189,7 +187,7 @@ lemma steps_open_cong_abs (s s' t t' : Term Var)
   | abs L =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     rw [subst_intro x t s, subst_intro x t' s']
-    · trans (s ^ fvar x)[x:=t']
+    · trans (s ^ fvar x)[x := t']
       · grind [steps_subst_cong_r]
       · grind [=_ subst_intro, steps_open_cong_l_abs]
     all_goals grind

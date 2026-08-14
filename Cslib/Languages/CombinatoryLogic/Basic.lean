@@ -8,8 +8,6 @@ module
 
 public import Cslib.Languages.CombinatoryLogic.Defs
 
-@[expose] public section
-
 /-!
 # Basic results for the SKI calculus
 
@@ -33,6 +31,8 @@ $Γ(x_0, ..., x_{n-1})$ into a term such that (`Polynomial.toSKI_correct`)
 For a presentation of the bracket abstraction algorithm see:
 <https://web.archive.org/web/19970727171324/http://www.cs.oberlin.edu/classes/cs280/labs/lab4/lab43.html#@l13>
 -/
+
+@[expose] public section
 
 namespace Cslib
 

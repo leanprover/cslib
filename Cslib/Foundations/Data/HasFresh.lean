@@ -8,13 +8,16 @@ module -- shake: keep-downstream
 
 public import Cslib.Init
 public import Mathlib.Analysis.Normed.Field.Lemmas
+meta import Lean.Elab.ConfigEval
 import Qq
+
+/-! Computable chacterization of infinite types. -/
+
+namespace Cslib
 
 @[expose] public section
 
 universe u
-
-namespace Cslib
 
 /-- A type `α` has a computable `fresh` function if it is always possible, for any finite set
 of `α`, to compute a fresh element not in the set. -/
@@ -31,6 +34,63 @@ in proofs. -/
 theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
   ⟨fresh s, fresh_notMem s⟩
 
+export HasFresh (fresh fresh_notMem fresh_exists)
+
+/-- `HasFresh α` implies a computably infinite type. -/
+instance HasFresh.to_infinite (α : Type u) [HasFresh α] : Infinite α := by
+  apply Infinite.of_not_fintype
+  rintro ⟨elems, _⟩
+  grind [fresh_notMem elems]
+
+/-- All infinite types have an associated (at least noncomputable) fresh function.
+This, in conjunction with `HasFresh.to_infinite`, characterizes `HasFresh`. -/
+noncomputable instance (α : Type u) [Infinite α] : HasFresh α where
+  fresh s := Infinite.exists_notMem_finset s |>.choose
+  fresh_notMem s := by grind
+
+open Finset in
+/-- Construct a fresh element from an embedding of `ℕ` using `Nat.find`. -/
+@[implicit_reducible]
+def HasFresh.ofNatEmbed {α : Type u} [DecidableEq α] (e : ℕ ↪ α) : HasFresh α where
+  fresh s := e (Nat.find (p := fun n ↦ e n ∉ s) ⟨(s.preimage e e.2.injOn).max.succ,
+    fun h ↦ not_lt_of_ge (le_max <| mem_preimage.2 h) (WithBot.lt_succ _)⟩)
+  fresh_notMem s := Nat.find_spec (p := fun n ↦ e n ∉ s) _
+
+/-- Construct a fresh element given a function `f` with `x < f x`. -/
+@[implicit_reducible]
+def HasFresh.ofSucc {α : Type u} [Inhabited α] [SemilatticeSup α] (f : α → α) (hf : ∀ x, x < f x) :
+    HasFresh α where
+  fresh s := if hs : s.Nonempty then f (s.sup' hs id) else default
+  fresh_notMem s h := if hs : s.Nonempty
+    then not_le_of_gt (hf (s.sup' hs id)) <| by rw [dite_eq_left hs] at h; exact s.le_sup' id h
+    else hs ⟨_, h⟩
+
+/-- `ℕ` has a computable fresh function. -/
+instance : HasFresh ℕ :=
+  .ofSucc (· + 1) Nat.lt_add_one
+
+/-- `ℤ` has a computable fresh function. -/
+instance : HasFresh ℤ :=
+  .ofSucc (· + 1) Int.lt_succ
+
+/-- `ℚ` has a computable fresh function. -/
+instance : HasFresh ℚ :=
+  .ofSucc (· + 1) fun x ↦ lt_add_of_pos_right x one_pos
+
+/-- If `α` has a computable fresh function, then so does `Finset α`. -/
+instance {α : Type u} [DecidableEq α] [HasFresh α] : HasFresh (Finset α) :=
+  .ofSucc (fun s ↦ insert (fresh s) s) fun s ↦ Finset.ssubset_insert <| fresh_notMem s
+
+/-- If `α` is inhabited, then `Multiset α` has a computable fresh function. -/
+instance {α : Type u} [DecidableEq α] [Inhabited α] : HasFresh (Multiset α) :=
+  .ofSucc (fun s ↦ default ::ₘ s) fun _ ↦ Multiset.lt_cons_self _ _
+
+/-- `ℕ → ℕ` has a computable fresh function. -/
+instance : HasFresh (ℕ → ℕ) :=
+  .ofSucc (fun f x ↦ f x + 1) fun _ ↦ Pi.lt_def.2 ⟨fun _ ↦ Nat.le_succ _, 0, Nat.lt_succ_self _⟩
+
+end
+
 public meta section
 
 open Lean Elab Term Meta Parser Tactic
@@ -43,7 +103,7 @@ structure FreeUnionConfig where
   finset : Bool := true
 
 /-- Elaborate a FreeUnionConfig. -/
-declare_config_elab elabFreeUnionConfig FreeUnionConfig
+declare_term_config_elab elabFreeUnionConfig FreeUnionConfig
 
 /--
   Given a `DecidableEq Var` instance, this elaborator automatically constructs
@@ -66,13 +126,13 @@ declare_config_elab elabFreeUnionConfig FreeUnionConfig
   #check free_union [f, g] ℕ
 
   info: ∅ ∪ xs : Finset ℕ
-  #check free_union (singleton := false) ℕ
+  #check free_union -singleton ℕ
 
   -- info: ∅ ∪ {x} : Finset ℕ
-  #check free_union (finset := false) ℕ
+  #check free_union -finset ℕ
 
   -- info: ∅ : Finset ℕ
-  #check free_union (singleton := false) (finset := false) ℕ
+  #check free_union -singleton -finset ℕ
   ```
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
@@ -85,7 +145,7 @@ set_option linter.style.emptyLine false in
 def HasFresh.freeUnion : TermElab := fun stx _ => do
   match stx with
   | `(free_union $cfg $[[$maps,*]]? $var:term) =>
-    let cfg ← elabFreeUnionConfig cfg |>.run { elaborator := .anonymous } |>.run' { goals := [] }
+    let cfg ← elabFreeUnionConfig cfg
 
     -- the type of our variables
     let var ← elabType var
@@ -121,60 +181,5 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
   | _ => throwUnsupportedSyntax
 
 end
-
-export HasFresh (fresh fresh_notMem fresh_exists)
-
-/-- `HasFresh α` implies a computably infinite type. -/
-instance HasFresh.to_infinite (α : Type u) [HasFresh α] : Infinite α := by
-  apply Infinite.of_not_fintype
-  rintro ⟨elems, _⟩
-  grind [fresh_notMem elems]
-
-/-- All infinite types have an associated (at least noncomputable) fresh function.
-This, in conjunction with `HasFresh.to_infinite`, characterizes `HasFresh`. -/
-noncomputable instance HasFresh.of_infinite (α : Type u) [Infinite α] : HasFresh α where
-  fresh s := Infinite.exists_notMem_finset s |>.choose
-  fresh_notMem s := by grind
-
-open Finset in
-/-- Construct a fresh element from an embedding of `ℕ` using `Nat.find`. -/
-@[implicit_reducible]
-def HasFresh.ofNatEmbed {α : Type u} [DecidableEq α] (e : ℕ ↪ α) : HasFresh α where
-  fresh s := e (Nat.find (p := fun n ↦ e n ∉ s) ⟨(s.preimage e e.2.injOn).max.succ,
-    fun h ↦ not_lt_of_ge (le_max <| mem_preimage.2 h) (WithBot.lt_succ _)⟩)
-  fresh_notMem s := Nat.find_spec (p := fun n ↦ e n ∉ s) _
-
-/-- Construct a fresh element given a function `f` with `x < f x`. -/
-@[implicit_reducible]
-def HasFresh.ofSucc {α : Type u} [Inhabited α] [SemilatticeSup α] (f : α → α) (hf : ∀ x, x < f x) :
-    HasFresh α where
-  fresh s := if hs : s.Nonempty then f (s.sup' hs id) else default
-  fresh_notMem s h := if hs : s.Nonempty
-    then not_le_of_gt (hf (s.sup' hs id)) <| by rw [dif_pos hs] at h; exact s.le_sup' id h
-    else hs ⟨_, h⟩
-
-/-- `ℕ` has a computable fresh function. -/
-instance : HasFresh ℕ :=
-  .ofSucc (· + 1) Nat.lt_add_one
-
-/-- `ℤ` has a computable fresh function. -/
-instance : HasFresh ℤ :=
-  .ofSucc (· + 1) Int.lt_succ
-
-/-- `ℚ` has a computable fresh function. -/
-instance : HasFresh ℚ :=
-  .ofSucc (· + 1) fun x ↦ lt_add_of_pos_right x one_pos
-
-/-- If `α` has a computable fresh function, then so does `Finset α`. -/
-instance {α : Type u} [DecidableEq α] [HasFresh α] : HasFresh (Finset α) :=
-  .ofSucc (fun s ↦ insert (fresh s) s) fun s ↦ Finset.ssubset_insert <| fresh_notMem s
-
-/-- If `α` is inhabited, then `Multiset α` has a computable fresh function. -/
-instance {α : Type u} [DecidableEq α] [Inhabited α] : HasFresh (Multiset α) :=
-  .ofSucc (fun s ↦ default ::ₘ s) fun _ ↦ Multiset.lt_cons_self _ _
-
-/-- `ℕ → ℕ` has a computable fresh function. -/
-instance : HasFresh (ℕ → ℕ) :=
-  .ofSucc (fun f x ↦ f x + 1) fun _ ↦ Pi.lt_def.2 ⟨fun _ ↦ Nat.le_succ _, 0, Nat.lt_succ_self _⟩
 
 end Cslib
