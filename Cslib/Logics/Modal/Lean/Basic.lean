@@ -92,13 +92,8 @@ Lean modal model induced by `ofContainers r`. -/
 theorem Proposition.equivOfContainers_denotation_eq {α} [Membership α β] {r : α → α → Prop}
     {φ₁ φ₂ : Proposition β} :
     (φ₁ ≡[Equiv.OfContainers (β := β) r] φ₂) ↔
-      φ₁.denotation (ofContainers r) = φ₂.denotation (ofContainers r) := by
-  apply Iff.intro <;> intro h
-  case mp =>
-    apply denotation_eq_of_equiv h
-  case mpr =>
-    apply equiv_iff_denotation_eq.2
-    grind
+      φ₁.denotation (ofContainers r) = φ₂.denotation (ofContainers r) := 
+  equiv_iff_denotation_eq
 
 /-- Pointwise conjunction of Lean predicates is logically equivalent to their modal conjunction in
 the Lean modal model induced by `r`. -/
