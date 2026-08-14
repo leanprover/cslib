@@ -34,7 +34,7 @@ def Proposition.denotation (m : Model World Atom) :
 @[scoped grind =]
 theorem satisfies_mem_denotation {m : Model World Atom} {φ : Proposition Atom} :
     w ∈ φ.denotation m ↔ ⇓Modal[m,w ⊨ φ] := by
-  induction φ generalizing w <;> grind
+  induction φ generalizing w <;> grind [=_ derivation_def]
 
 /-- A world is in the denotation of a proposition iff it is not in the denotation of the negation
 of the proposition. -/

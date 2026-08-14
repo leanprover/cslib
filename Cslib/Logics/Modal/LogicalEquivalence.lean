@@ -222,8 +222,8 @@ instance : LogicalEquivalence
     grind [=_ Satisfies.Context.fill_def]
 
 /-- Correspondence of equivalence and axiom validity. -/
-theorem Proposition.isAxiom_iff_forall_equiv (r : α → α → Prop) (φ₁ φ₂ : Proposition Atom) :
-    (IsAxiom r (φ₁ ↔ φ₂)) ↔ ∀ v, φ₁ ≡[Equiv ⟨r, v⟩] φ₂ := by
+theorem Proposition.axiom_iff_forall_equiv (r : α → α → Prop) (φ₁ φ₂ : Proposition Atom) :
+    (Axiom r⇓(φ₁ ↔ φ₂)) ↔ ∀ v, φ₁ ≡[Equiv ⟨r, v⟩] φ₂ := by
   apply Iff.intro <;> intro h
   case mp =>
     intro v w
