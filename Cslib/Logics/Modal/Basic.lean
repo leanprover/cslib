@@ -378,7 +378,7 @@ abbrev modelsOfRelation (r : World → World → Prop) : Set (Model World Atom) 
 that frame. -/
 theorem isAxiom_iff_mem_logic_modelsOfRelation (r : World → World → Prop) (φ : Proposition Atom) :
     IsAxiom r φ ↔ φ ∈ logic (modelsOfRelation r) := by
-  apply Iff.intro
+  constructor
   case mp =>
     intro h m hm w
     subst hm
