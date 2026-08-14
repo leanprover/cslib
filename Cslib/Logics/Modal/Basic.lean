@@ -327,21 +327,16 @@ theorem Satisfies.l (r : World → World → Prop) [IsTrans World r]
     (hwf : WellFounded (flip r)) (φ : Proposition Atom) : IsAxiom r <| □(□φ → φ) → □φ := by
   intro v w
   let m := Model.mk r v
-  rw [Satisfies.imp_iff_imp]
+  simp_rw [Satisfies.imp_iff_imp, Satisfies.box_iff_forall]
   intro h
-  rw [Satisfies.box_iff_forall] at h ⊢
-  intro w' hw'
-  have h' : ∀ w', r w w' → ⇓Modal[m, w' ⊨ φ] := by
-    intro w'
-    refine (WellFounded.induction (C := fun w' => m.r w w' → ⇓Modal[m,w' ⊨ φ]) hwf w' ?_)
-    intro w' ih hww'
-    have hImp : ⇓Modal[m, w' ⊨ □φ → φ] := h _ hww'
-    rw [Satisfies.imp_iff_imp, Satisfies.box_iff_forall] at hImp
-    apply hImp
-    intro w'' hw'w''
-    apply ih _ hw'w''
-    exact IsTrans.trans _ _ _ hww' hw'w''
-  exact h' w' hw'
+  refine (hwf.induction (C := fun w' => m.r w w' → ⇓Modal[m,w' ⊨ φ]) · ?_)
+  intro w' ih hww'
+  have hImp : ⇓Modal[m, w' ⊨ □φ → φ] := h _ hww'
+  rw [Satisfies.imp_iff_imp, Satisfies.box_iff_forall] at hImp
+  apply hImp
+  intro w'' hw'w''
+  apply ih _ hw'w''
+  exact IsTrans.trans _ _ _ hww' hw'w''
 
 open Relation in
 /-- Axiom .2, valid for all frames with the diamond property. -/
