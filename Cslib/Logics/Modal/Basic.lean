@@ -352,9 +352,7 @@ open Relation in
 theorem Satisfies.pointTwo_diamond (r : World → World → Prop) [Nonempty Atom]
     (h : ∀ φ : Proposition Atom, IsAxiom r <| ◇□φ → □◇φ) : Diamond r := by
   intro w w₁ w₂ hww₁ hww₂
-  have a := Classical.arbitrary Atom
-  let v := fun (w' : World) (a : Atom) => r w₁ w'
-  have h' := h a v w
+  specialize h (Classical.arbitrary Atom) (fun w' _ => r w₁ w') w
   grind [Join]
 
 /-- A proposition is valid in a class of models `S` (modelled as a set) if it is satisfied under
