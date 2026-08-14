@@ -83,29 +83,71 @@ def IsBisimulation (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
     (∀ s₂', lts₂.Tr s₂ μ s₂' → ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂')
   )
 
-/-- Helper for following a transition by the first state in a pair of a `Bisimulation`. -/
-theorem IsBisimulation.follow_fst
-    (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂) (htr : lts₁.Tr s₁ μ s₁') :
-    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂' :=
-  (hb hr μ).1 _ htr
-
-/-- Helper for following a transition by the second state in a pair of a `Bisimulation`. -/
-theorem IsBisimulation.follow_snd
-    (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂) (htr : lts₂.Tr s₂ μ s₂') :
-    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂' :=
-  (hb hr μ).2 _ htr
-
 /-! ## Relation to simulation -/
 
 /-- Any bisimulation is also a simulation. -/
 theorem IsBisimulation.isSimulation : IsBisimulation lts₁ lts₂ r → IsSimulation lts₁ lts₂ r := by
   grind [IsBisimulation, IsSimulation]
 
+/-- The inverse of a bisimulation is a simulation. -/
+theorem IsBisimulation.flip_isSimulation :
+    IsBisimulation lts₁ lts₂ r → IsSimulation lts₂ lts₁ (flip r) := by
+  grind [IsBisimulation, IsSimulation, flip]
+
 /-- A relation is a bisimulation iff both it and its inverse are simulations. -/
 theorem IsBisimulation.isSimulation_iff :
     IsBisimulation lts₁ lts₂ r ↔ (IsSimulation lts₁ lts₂ r ∧ IsSimulation lts₂ lts₁ (flip r)) := by
   have _ (s₁ s₂) : r s₁ s₂ → flip r s₂ s₁ := id
   grind [IsBisimulation, IsSimulation, flip]
+
+/-- Helper for following a transition by the first state in a pair of a `Bisimulation`. -/
+theorem IsBisimulation.follow_fst
+    (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂) (htr : lts₁.Tr s₁ μ s₁') :
+    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂' :=
+  IsSimulation.follow hb.isSimulation hr htr
+
+/-- Helper for following a transition by the second state in a pair of a `Bisimulation`. -/
+theorem IsBisimulation.follow_snd
+    (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂) (htr : lts₂.Tr s₂ μ s₂') :
+    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂' :=
+  IsSimulation.follow hb.flip_isSimulation hr htr
+
+/-- If the unique transition of a state is matched by a related state in a bisimulation,
+then the derivatives are still in the bisimulation. -/
+theorem IsBisimulation.match_deterministic
+    (hb : IsBisimulation lts₁ lts₂ r)
+    (hr : r s₁ s₂)
+    (hdet : lts₁.DeterministicStateLabel s₁ μ)
+    (htr₁ : lts₁.Tr s₁ μ s₁')
+    (htr₂ : lts₂.Tr s₂ μ s₂') : r s₁' s₂' := by
+  have hr' : (flip r) s₂ s₁ := by grind [flip]
+  apply IsSimulation.match_deterministic hb.flip_isSimulation hr' hdet htr₂ htr₁
+
+/-- If the unique transition of a state is matched by a related state in the inverse of a
+bisimulation, then the derivatives are still in the bisimulation. -/
+theorem IsBisimulation.match_deterministic₂
+    (hb : IsBisimulation lts₁ lts₂ r)
+    (hr : r s₁ s₂)
+    (hdet : lts₂.DeterministicStateLabel s₂ μ)
+    (htr₁ : lts₁.Tr s₁ μ s₁')
+    (htr₂ : lts₂.Tr s₂ μ s₂') : r s₁' s₂' := by
+  apply IsSimulation.match_deterministic hb.isSimulation hr hdet htr₁ htr₂
+
+/-- If a state is deterministic for `μ`, then any transition made by a related state in a
+bisimulation is matched by a unique transition (left variant). -/
+theorem IsBisimulation.follow_fst_deterministic (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂)
+    (hdet : lts₂.DeterministicStateLabel s₂ μ) (htr : lts₁.Tr s₁ μ s₁') :
+    ∃! s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂' :=
+  IsSimulation.follow_deterministic hb.isSimulation hr hdet htr
+
+/-- If a state is deterministic for `μ`, then any transition made by a related state in a
+bisimulation is matched by a unique transition (right variant). -/
+theorem IsBisimulation.follow_snd_deterministic
+    (hb : IsBisimulation lts₁ lts₂ r)
+    (hr : r s₁ s₂)
+    (hdet : lts₁.DeterministicStateLabel s₁ μ)
+    (htr : lts₂.Tr s₂ μ s₂') : ∃! s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂' :=
+  IsSimulation.follow_deterministic hb.flip_isSimulation hr hdet htr
 
 /-- A homogeneous bisimulation is a bisimulation where the underlying LTSs are the same. -/
 abbrev IsHomBisimulation (lts : LTS State Label) := IsBisimulation lts lts
@@ -498,7 +540,7 @@ theorem IsSWBisimulation.iff_isSimulation [HasTau Label] :
       IsSimulation lts₁ lts₂.saturate r ∧ IsSimulation lts₂ lts₁.saturate (flip r) := by
   refine ⟨fun h => ⟨h.isSimulation, h.isSimulation_flip⟩, ?_⟩
   intro ⟨h, hflip⟩ s₁ s₂ hr μ
-  exact ⟨h s₁ s₂ hr μ, hflip s₂ s₁ hr μ⟩
+  exact ⟨h hr μ, hflip hr μ⟩
 
 /-- We can now prove that any relation is a `WeakBisimulation` iff it is an `SWBisimulation`.
 This formalises lemma 4.2.10 in [Sangiorgi2011]. -/
