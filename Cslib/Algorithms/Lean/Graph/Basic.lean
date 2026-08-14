@@ -5,6 +5,7 @@ Authors: Basil Rohner, Sorrachai Yingchareonthawornchai
 -/
 import Mathlib.Data.Sym.Sym2
 import Cslib.Foundations.Semantics.LTS.Basic
+import Mathlib.Combinatorics.SimpleGraph.Basic
 
 @[expose] public section
 
@@ -39,15 +40,9 @@ namespace Cslib.Algorithms.Lean.Graph
 
 /-- An undirected graph on `α` with adjacency relation `Adj`, containing no loops or
 multi-edges. Both endpoints of every adjacent pair lie in `vertexSet`. -/
-structure SimpleGraph (α : Type*) where
+structure SimpleGraph (α : Type*) extends _root_.SimpleGraph α where
   /-- The set of vertices. -/
   vertexSet : Set α
-  /-- The adjacency relation. `Adj x y` means `x` and `y` are joined by an edge. -/
-  Adj : α → α → Prop
-  /-- Adjacency is symmetric: if `x` is adjacent to `y`, then `y` is adjacent to `x`. -/
-  symm : Std.Symm Adj := by grind
-  /-- No vertex is adjacent to itself. -/
-  loopless : Std.Irrefl Adj := by grind
   /-- The left endpoint of every adjacent pair is a vertex. -/
   incidence_left : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet := by grind
 
