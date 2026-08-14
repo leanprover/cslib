@@ -6,7 +6,6 @@ Authors: Chris Anto Fröschl
 
 module
 
-public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivDefs
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 
 /-! # Properties of the swap (transposition) operation on lambda terms
