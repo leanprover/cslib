@@ -14,7 +14,7 @@ import Cslib.Foundations.Semantics.LTS.Basic
 This file introduces graph-like combinatorial structures on a vertex
 type `α`. We follow `Graph` definition in Mathlib: The main principle is to define a vertex set
 as a `Set α` (see https://leanprover-community.github.io/mathlib4_docs/Mathlib/Combinatorics/Graph/Basic.html#Graph for the rationale behind the design).
-Since Mathlib already defined a simple multi graph, ww define the other three combinations here:
+Since Mathlib already defined a simple multi graph, we define the other three combinations here:
 `SimpleGraph`, `SimpleDiGraph` and `DiGraph`. `SimpleGraph` and `SimpleDiGraph` carry
 their adjacency relation directly and disallow loops and multi-edges. `DiGraph` reuses `Cslib.LTS`
 to additionally support edge labels, and hence parallel edges.
