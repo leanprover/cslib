@@ -17,7 +17,7 @@ This file follows the `Set`-based vertex/edge design of `Mathlib.Combinatorics.G
 vertex set of type `Set α`, with any relation on `α` or `β` constrained by an incidence
 relation. `Graph` is Mathlib's `Graph` directly. `SimpleGraph` extends Mathlib's
 `SimpleGraph`, adding a vertex subset in the same style. `SimpleDiGraph` has no Mathlib
-counterpart to extend and is built by hand. `DiGraph` reuses `Cslib.LTS` for its
+counterpart to extend and is built from scratch. `DiGraph` reuses `Cslib.LTS` for its
 transition relation and adds the same vertex-subset layer.
 
 ## Main definitions
