@@ -34,8 +34,6 @@ the `Graph` definitions in Mathlib.
 
 namespace Cslib.Algorithms.Lean.Graph
 
-variable {α β : Type*}
-
 /-- An undirected graph on `α` with adjacency relation `Adj`, containing no loops or
 multi-edges. Both endpoints of every adjacent pair lie in `vertexSet`. -/
 structure SimpleGraph (α : Type*) where
@@ -51,7 +49,7 @@ structure SimpleGraph (α : Type*) where
   incidence_left : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet := by grind
 
 /-- The edge set of a `SimpleGraph`, as unordered pairs of adjacent vertices. -/
-def SimpleGraph.edgeSet (G : SimpleGraph α) : Set (Sym2 α) :=
+def SimpleGraph.edgeSet {α} (G : SimpleGraph α) : Set (Sym2 α) :=
   Sym2.fromRel (G.symm)
 
 /-- A directed graph on `α` with adjacency relation `Adj`, containing no loops or
@@ -67,7 +65,7 @@ structure SimpleDiGraph (α : Type*) where
   incidence : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
 
 /-- The edge set of a `SimpleDiGraph`, as ordered pairs of adjacent vertices. -/
-def SimpleDiGraph.edgeSet (G : SimpleDiGraph α) : Set (α × α) :=
+def SimpleDiGraph.edgeSet {α} (G : SimpleDiGraph α) : Set (α × α) :=
   { (x,y) | G.Adj x y}
 
 /-- A directed graph on vertex type `α` with edge labels in `β`, built from `Cslib.LTS`.
@@ -80,7 +78,7 @@ structure DiGraph (α β : Type*) extends Cslib.LTS α β where
   incidence : ∀ ⦃x l y⦄, Tr x l y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
 
 /-- The edge set of a `DiGraph`, as labelled ordered triples `(source, label, target)`. -/
-def DiGraph.edgeSet (G : DiGraph α β) : Set (α × β × α) :=
+def DiGraph.edgeSet {α β} (G : DiGraph α β) : Set (α × β × α) :=
   {(x, l, y) | G.Tr x l y}
 
 end Cslib.Algorithms.Lean.Graph
