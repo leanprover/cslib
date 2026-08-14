@@ -14,7 +14,7 @@ import Cslib.Foundations.Semantics.LTS.Basic
 This file introduces graph-like combinatorial structures on a vertex
 type `α`. We follow `Graph` definition in Mathlib: The main principle is to define a vertex set
 as a `Set α` (see https://leanprover-community.github.io/mathlib4_docs/Mathlib/Combinatorics/Graph/Basic.html#Graph for the rationale behind the design).
-Since Mathlib already defined a simple multi graph, ww define other three combinations here:
+Since Mathlib already defined a simple multi graph, ww define the other three combinations here:
 `SimpleGraph`, `SimpleDiGraph` and `DiGraph`. `SimpleGraph` and `SimpleDiGraph` carry
 their adjacency relation directly and disallow loops and multi-edges. `DiGraph` reuses `Cslib.LTS`
 to additionally support edge labels, and hence parallel edges.
@@ -54,6 +54,13 @@ structure SimpleGraph (α : Type*) where
 /-- The edge set of a `SimpleGraph`, as unordered pairs of adjacent vertices. -/
 def SimpleGraph.edgeSet {α} (G : SimpleGraph α) : Set (Sym2 α) :=
   Sym2.fromRel (G.symm)
+
+lemma SimpleGraph.Adj.symm {G : SimpleGraph α} {x y : α} (h : G.Adj x y) : G.Adj y x :=
+  G.symm.symm x y h
+
+lemma SimpleGraph.incidence {G : SimpleGraph α} ⦃x y : α⦄ (h : G.Adj x y) :
+    x ∈ G.vertexSet ∧ y ∈ G.vertexSet :=
+  ⟨G.incidence_left h, G.incidence_left h.symm⟩
 
 /-- A directed graph on `α` with adjacency relation `Adj`, containing no loops or
 multi-edges. Both endpoints of every adjacent pair lie in `vertexSet`. -/
