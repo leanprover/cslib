@@ -41,7 +41,9 @@ variable {Var : Type u} [DecidableEq Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
+/-- The set of variables on which two functions agree. -/
 def agreementSet (f g : Var → Var) : Set Var := { x | f x = g x }
+/-- The set of variables on which two functions disagree. -/
 def disagreementSet (f g : Var → Var) : Set Var := { x | f x ≠ g x }
 
 @[simp]
