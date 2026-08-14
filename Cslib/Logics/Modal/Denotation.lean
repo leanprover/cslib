@@ -52,7 +52,7 @@ theorem theoryEq_denotation_eq {m : Model World Atom} {w₁ w₂ : World} :
 /-- Logically equivalent propositions under a model have the same denotation. -/
 theorem Proposition.equiv_iff_denotation_eq :
     (φ₁ ≡[Equiv m] φ₂) ↔ φ₁.denotation m = φ₂.denotation m := by
-  apply Iff.intro <;> intro h
+  constructor <;> intro h
   case mp =>
     ext w
     grind [h w]
