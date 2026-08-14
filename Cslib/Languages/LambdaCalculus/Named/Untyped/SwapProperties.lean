@@ -6,7 +6,8 @@ Authors: Chris Anto Fröschl
 
 module
 
-public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivProperties
 
 /-! # Properties of the swap (transposition) operation on lambda terms
 
@@ -104,7 +105,9 @@ lemma swap_vars {m : Term Var} {x y z : Var} (hzm : z ∉ m.vars) :
     (m.swap x y).vars = m.vars.image fun z => if z = x then y else if z = y then x else z := by
   induction m with
   | var w => aesop
-  | abs w m ih => simp_all [Term.swap, Term.vars, permute]; grind
+  | abs w m ih =>
+    simp_all [Term.swap, Term.vars, permute]
+    grind
   | app m n ih1 ih2 =>
     simp_all only [Term.swap, Term.vars, Finset.image_union, permute]
     grind
@@ -131,18 +134,20 @@ lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
 lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
     (m.swap u v).rename (Equiv.swap u v x) z = (m.rename x z).swap u v := by
   rw [← @swap_rename_comm _ _ m u v x z]
-  simp_all
-  grind
+  congr 1
+  exact Eq.symm (Equiv.swap_apply_of_ne_of_ne hzu hzv)
 
 lemma swap_comp_eq_of_not_mem_vars {m : Term Var} {a u z : Var}
     (hu : u ∉ m.vars) (hz : z ∉ m.vars) :
     (m.swap u a).swap z u = m.swap z a := by
-  induction m
-  · simp_all [Term.swap, Term.vars, permute]
+  induction m with
+  | var x =>
+    simp_all [Term.swap, Term.vars, permute]
     grind
-  · simp_all [Term.swap, Term.vars, permute]
+  | abs x m ih =>
+    simp_all [Term.swap, Term.vars, permute]
     grind
-  · simp_all [Term.swap, Term.vars, permute]
+  | app m n m_ih n_ih => simp_all [Term.swap, Term.vars, permute]
 
 /-- Term-level conjugation identity: `(m.swap u v).swap v a = (m.swap u a).swap u v`
 when `a ∉ {u, v}`.
@@ -159,7 +164,13 @@ lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a �
 (the only way `v` could show up is as the image of `u`). -/
 lemma not_mem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ (m.swap u v).vars := by
   rw [swap_vars hu]
-  grind
+  intro h
+  apply Finset.mem_image.mp at h
+  obtain ⟨a, ham, hau⟩ := h
+  have hau_ne : a ≠ u := by grind
+  by_cases h : a = v
+  · grind
+  · grind
 
 /-- Permuting a term transports its free variables pointwise. -/
 lemma permute_fv (m : Term Var) (π : Equiv.Perm Var) :
@@ -330,7 +341,7 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
           -- example 3 reuse
           · subst ha; subst hz
             apply AlphaEquiv.symm
-            exact (alphaEquiv_swap_preserve_abs_b_eq_u (by grind) (AlphaEquiv.symm ih) hbu hbv h2)
+            exact (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) (AlphaEquiv.symm ih) hbu hbv h2)
           -- example 1 reuse
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
       · rcases h4 with hb | hb | ⟨hbu, hbv⟩

@@ -159,8 +159,9 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StandardRed
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivDefs
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivEquiv
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivProperties
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
-public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.RenameProperties
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.SwapProperties
 public import Cslib.Languages.Mech.Choreography.Basic
 public import Cslib.Languages.Mech.LocalComputation

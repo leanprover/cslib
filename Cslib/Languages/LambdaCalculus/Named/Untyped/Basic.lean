@@ -92,12 +92,6 @@ def rename (m : Term Var) (x y : Var) : Term Var :=
   | abs z m' => abs (if z = x then y else z) (m'.rename x y)
   | app n1 n2 => app (n1.rename x y) (n2.rename x y)
 
-omit [HasFresh Var] in
-/-- Renaming preserves size. -/
-@[simp, scoped grind =]
-theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = sizeOf m := by
-  induction m <;> aesop (add simp [Term.rename])
-
 /-- **Definition 3.1** [Crole2012]: `∼p` - α-equivalence via permutation (swapping) with
 non-occurrence side condition.
 
@@ -128,6 +122,12 @@ inductive Subst : Term Var → Var → Term Var → Term Var → Prop where
   | absIn {x y m r m'} : y ∉ r.fv ∪ {x} → m.Subst x r m' → (abs y m).Subst x r (abs y m')
   | app {m n x r m' n'} : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
   | alpha {m m' r r' n n' x} : m =α m' → r =α r' → n =α n' → Subst m x r n → m'.Subst x r' n'
+
+omit [HasFresh Var] in
+/-- Renaming preserves size. -/
+@[simp, scoped grind =]
+theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = sizeOf m := by
+  induction m <;> aesop (add simp [Term.rename])
 
 /-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x`
 in `m` with `r`. -/
