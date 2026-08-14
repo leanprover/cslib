@@ -69,6 +69,8 @@ structure DiGraph (α β : Type*) extends Cslib.LTS α β where
   vertexSet : Set α
   /-- Both endpoints of every transition are vertices. -/
   incidence : ∀ ⦃x l y⦄, Tr x l y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
+  /-- Each edge label is used at most once. -/
+  tr_inj : ∀ ⦃x y x' y' : α⦄ ⦃l : β⦄, Tr x l y → Tr x' l y' → x = x' ∧ y = y'
 
 /-- The edge set of a `DiGraph`, as labelled ordered triples `(source, label, target)`. -/
 def DiGraph.edgeSet {α β} (G : DiGraph α β) : Set (α × β × α) :=
