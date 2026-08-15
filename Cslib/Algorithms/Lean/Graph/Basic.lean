@@ -14,27 +14,23 @@ import Mathlib.Combinatorics.Graph.Basic
 # Graph structures
 
 This file follows the `Set`-based vertex/edge design of `Mathlib.Combinatorics.Graph`: a
-vertex set of type `Set α`, with any relation on `α` or `β` constrained by an incidence
-relation. `Graph` is Mathlib's `Graph` directly. `SimpleGraph` extends Mathlib's
+vertex set of type `Set α`. `SimpleGraph` extends Mathlib's
 `SimpleGraph`, adding a vertex subset in the same style. `SimpleDiGraph` has no Mathlib
-counterpart to extend and is built from scratch. `DiGraph` reuses `Cslib.LTS` for its
-transition relation and adds the same vertex-subset layer.
+counterpart to extend and is built from scratch. We proritize computability., and thus
+`DiGraph, Graph` require storing `Arc, Edge` structure.
 
 ## Main definitions
 
-* `Graph α β`: an undirected multi-graph as a Mathlib's graph.
-* `SimpleGraph α`: an undirected graph with adjacency `Adj : α → α → Prop`, no loops or
-  multi-edges.
-* `DiGraph α β`: a directed graph built from `Cslib.LTS α β`, with edge labels in `β`.
-  Parallel edges and loops are permitted.
+* `Graph α β`: an undirected multi-graph.
+* `DiGraph α β`: a directed graph.
+* `SimpleGraph α`: an undirected graph build on top of Mathlib's SimpleGraph.
 * `SimpleDiGraph α`: a directed graph with adjacency `Adj : α → α → Prop`, no loops or
   multi-edges.
 
-
 ## Main API
 
-* `SimpleGraph.edgeSet`, `SimpleDiGraph.edgeSet`, `DiGraph.edgeSet`: the edge set of a
-  graph, derived from its adjacency/transition relation.
+* `SimpleGraph.edgeSet`, `SimpleDiGraph.edgeSet`: the edge set of a
+  graph, derived from its adjacency relation.
 -/
 
 namespace Cslib.Algorithms.Lean
