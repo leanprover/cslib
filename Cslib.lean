@@ -22,6 +22,7 @@ public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.Pair
 public import Cslib.Computability.Automata.NA.Prod
+public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
@@ -109,6 +110,7 @@ public import Cslib.Foundations.Semantics.LTS.MapLabel
 public import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 public import Cslib.Foundations.Semantics.LTS.Relation
+public import Cslib.Foundations.Semantics.LTS.Reverse
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.Termination
 public import Cslib.Foundations.Semantics.LTS.Total
