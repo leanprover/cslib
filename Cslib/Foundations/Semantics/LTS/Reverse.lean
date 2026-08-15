@@ -9,7 +9,16 @@ module
 public import Cslib.Foundations.Semantics.LTS.Execution
 
 /-!
-# Reverse operation for LTS.
+# Reverse operation for LTS
+
+This file defines `Cslib.LTS.reverse`, which reverses every transition of an LTS.
+`reverse_canReach`, `reverse_unlabelledTr`, `reverse_image`, `reverse_imageMultistep`,
+`reverse_hasOutLabel` and `reverse_boundedUpTo` each state a property about `lts.reverse` in
+terms of `lts`.
+
+`reverse_mTr` states that the multistep transitions of `lts.reverse` are the reversed
+multistep transitions of `lts`. `reverse_execution` is the same statement for
+executions, and is derived from `Execution.reverse`.
 -/
 
 @[expose] public section

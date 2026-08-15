@@ -9,7 +9,19 @@ module
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.LTS.Reverse
 
-/-! # Reversal of nondeterministic automata. -/
+/-!
+# Reversal of nondeterministic automata
+
+This file defines `Cslib.Automata.NA.FinAcc.reverse`, which reverses every transition of a
+nondeterministic automaton and swaps its start and accept states. Its underlying transition system
+is `Cslib.LTS.reverse`, so the transition results are inherited from
+`Cslib/Foundations/Semantics/LTS/Reverse.lean`.
+
+The main result is `FinAcc.reverse_language_eq`: the language accepted by `na.reverse` is the
+`Language.reverse` of the language accepted by `na`. It follows from `FinAcc.accepts_reverse`,
+the statement that `na.reverse` accepts `xs` iff `na` accepts `xs.reverse`.
+-/
+
 
 @[expose] public section
 
