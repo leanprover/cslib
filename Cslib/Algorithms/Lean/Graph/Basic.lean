@@ -39,8 +39,44 @@ transition relation and adds the same vertex-subset layer.
 
 namespace Cslib.Algorithms.Lean
 
-/-- An undirected multigraph on vertex type `α` with edge labels in `β` -/
-abbrev Graph (α β : Type*) :=  _root_.Graph α β
+/-- An undirected edge with a label of type `β` and an unordered pair of endpoints. -/
+structure Edge (α β : Type*) where
+  /-- The edge label, used to distinguish parallel edges. -/
+  endpointsLabel : β
+  /-- The unordered pair of endpoints. -/
+  endpoints : Sym2 α
+deriving DecidableEq
+
+/-- A directed edge with a label of type `β` and an ordered pair of endpoints. -/
+structure Arc (α β : Type*) where
+  /-- The edge label, used to distinguish parallel edges. -/
+  endpointsLabel : β
+  /-- The ordered pair `(source, target)` of endpoints. -/
+  endpoints : α × α
+deriving DecidableEq
+
+/-- A general graph on vertex type `α` with edge labels in `β`. Each edge bundles a label
+and an unordered pair of endpoints. Parallel edges and loops are permitted, and both the
+vertex and edge sets may be infinite. -/
+structure Graph (α β : Type*) where
+  /-- The set of vertices. -/
+  vertexSet : Set α
+  /-- The set of edges. -/
+  edgeSet : Set (Edge α β)
+  /-- Every endpoint of an edge is a vertex. Prefer `Graph.incidence`. -/
+  incidence' : ∀ e ∈ edgeSet, ∀ v ∈ e.endpoints, v ∈ vertexSet
+
+/-- A directed graph on vertex type `α` with edge labels in `β`. Each edge bundles a label
+and an ordered pair of endpoints. Parallel edges and loops are permitted, and both the
+vertex and edge sets may be infinite. -/
+structure DiGraph (α β : Type*) where
+  /-- The set of vertices. -/
+  vertexSet : Set α
+  /-- The set of edges. -/
+  edgeSet : Set (Arc α β)
+  /-- Both endpoints of every edge are vertices. Prefer `DiGraph.incidence`. -/
+  incidence' : ∀ e ∈ edgeSet, e.endpoints.1 ∈ vertexSet ∧ e.endpoints.2 ∈ vertexSet
+
 
 /-- An undirected graph on `α` with adjacency relation `Adj`, containing no loops or
 multi-edges. Both endpoints of every adjacent pair lie in `vertexSet`. -/
@@ -61,19 +97,6 @@ lemma SimpleGraph.incidence {G : SimpleGraph α} ⦃x y : α⦄ (h : G.Adj x y) 
     x ∈ G.vertexSet ∧ y ∈ G.vertexSet :=
   ⟨G.incidence_left h, G.incidence_left h.symm⟩
 
-/-- A directed graph on vertex type `α`  whose edges are identified by labels `β`
-  built from `Cslib.LTS`. Parallel edges (distinguished by label) and loops are permitted. -/
-structure DiGraph (α β : Type*) extends Cslib.LTS α β where
-  /-- The set of vertices. -/
-  vertexSet : Set α
-  /-- Both endpoints of every transition are vertices. -/
-  incidence : ∀ ⦃x l y⦄, Tr x l y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
-  /-- Each label is used at most once. -/
-  tr_inj : ∀ ⦃x y x' y' : α⦄ ⦃l : β⦄, Tr x l y → Tr x' l y' → x = x' ∧ y = y'
-
-/-- The edge set of a `DiGraph`, as labelled ordered triples `(source, label, target)`. -/
-def DiGraph.edgeSet {α β} (G : DiGraph α β) : Set (α × β × α) :=
-  {(x, l, y) | G.Tr x l y}
 
 /-- A directed graph on `α` with adjacency relation `Adj`, containing no loops or
 multi-edges. Both endpoints of every adjacent pair lie in `vertexSet`. -/
@@ -90,5 +113,6 @@ structure SimpleDiGraph (α : Type*) where
 /-- The edge set of a `SimpleDiGraph`, as ordered pairs of adjacent vertices. -/
 def SimpleDiGraph.edgeSet {α} (G : SimpleDiGraph α) : Set (α × α) :=
   { (x,y) | G.Adj x y}
+
 
 end Cslib.Algorithms.Lean
