@@ -142,6 +142,7 @@ lemma cons_head_tail (l : StackTape Symbol) :
 section MapSome
 
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
+@[scoped grind]
 def mapSome (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
 
 @[simp, scoped grind =]
