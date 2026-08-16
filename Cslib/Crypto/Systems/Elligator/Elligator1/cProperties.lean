@@ -29,30 +29,33 @@ variable {F : Type*} [Field F] [Fintype F]
 variable {s : F}
 variable {q : ℕ}
 
-lemma c_ne_zero (hs_ne_zero : s ≠ 0) (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3)
-  : c s ≠ 0 := by
-    unfold c
-    exact div_ne_zero (two_ne_zero hq_card hq_mod) (pow_ne_zero 2 hs_ne_zero)
+lemma c_ne_zero (hs_ne_zero : s ≠ 0) (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) :
+    c s ≠ 0 := by
+  unfold c
+  exact div_ne_zero (two_ne_zero hq_card hq_mod) (pow_ne_zero 2 hs_ne_zero)
 
 omit [Fintype F] in
-lemma c_ne_one (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0) : c s ≠ 1 := by
+lemma c_ne_one (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0) :
+    c s ≠ 1 := by
   unfold c
   exact div_ne_one_of_ne (s_pow_two_ne_two sq_ne_pm_two).symm
 
 omit [Fintype F] in
-lemma c_sub_one_ne_zero (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0) : c s - 1 ≠ 0 :=
+lemma c_sub_one_ne_zero (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0) :
+    c s - 1 ≠ 0 :=
   sub_ne_zero.2 (c_ne_one sq_ne_pm_two)
 
 omit [Fintype F] in
 lemma c_ne_neg_one (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0) : (c s) ≠ -1 := by
   unfold c
   intro h
-  have heq : s^2 = -2 := by grind
+  have heq : s ^ 2 = -2 := by grind
   have hne := s_pow_two_ne_neg_two sq_ne_pm_two
   contradiction
 
 omit [Fintype F] in
-lemma c_add_one_ne_zero (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0) : (c s) + 1 ≠ 0 := by
+lemma c_add_one_ne_zero (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0) :
+    (c s) + 1 ≠ 0 := by
   intro hceq
   have hc_ne_neg_one  := c_ne_neg_one sq_ne_pm_two
   rw [← add_left_inj (-1)] at hceq
@@ -60,22 +63,20 @@ lemma c_add_one_ne_zero (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0) : (c s)
   contradiction
 
 lemma c_mul_sub_one_mul_add_one_ne_zero
-  (hs_ne_zero : s ≠ 0)
-  (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
-  (hq_card : Fintype.card F = q)
-  (hq_mod : q % 4 = 3)
-  :
-  let c := c s
-  c * (c - 1) * (c + 1) ≠ 0 := by
-    unfold c
-    apply mul_ne_zero
-    · apply mul_ne_zero
-      · exact c_ne_zero hs_ne_zero hq_card hq_mod
-      · exact c_sub_one_ne_zero sq_ne_pm_two
-    · exact c_add_one_ne_zero sq_ne_pm_two
+    (hs_ne_zero : s ≠ 0) (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
+    (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) :
+    let c := c s
+    c * (c - 1) * (c + 1) ≠ 0 := by
+  unfold c
+  apply mul_ne_zero
+  · apply mul_ne_zero
+    · exact c_ne_zero hs_ne_zero hq_card hq_mod
+    · exact c_sub_one_ne_zero sq_ne_pm_two
+  · exact c_add_one_ne_zero sq_ne_pm_two
 
 lemma s_pow_two_eq_two_div_c
-  (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) : s^2 = 2 / (c s) := by
+    (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) :
+    s ^ 2 = 2 / (c s) := by
   unfold c
   have h := two_ne_zero hq_card hq_mod
   field_simp

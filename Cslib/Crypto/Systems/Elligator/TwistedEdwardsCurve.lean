@@ -43,7 +43,8 @@ namespace TwistedEdwardsCurve
 variable {R : Type*} [CommRing R]
 
 /-- The proposition that `(x, y)` is an affine point of a twisted Edwards curve. -/
-def Equation (E : TwistedEdwardsCurve R) (x y : R) : Prop := E.a * x^2 + y^2 = 1 + E.d * x^2 * y^2
+def Equation (E : TwistedEdwardsCurve R) (x y : R) : Prop :=
+    E.a * x ^ 2 + y ^ 2 = 1 + E.d * x ^ 2 * y ^ 2
 
 /-- The set of affine coordinate pairs on a twisted Edwards curve. -/
 def affinePoints (E : TwistedEdwardsCurve R) : Set (R × R) := {p | E.Equation p.1 p.2}
@@ -56,7 +57,7 @@ def zero : R × R := (0, 1)
 
 @[simp]
 theorem zero_mem_affinePoints (E : TwistedEdwardsCurve R) : zero ∈ E.affinePoints := by
-  change E.a * 0^2 + 1^2 = 1 + E.d * 0^2 * 1^2
+  change E.a * 0 ^ 2 + 1 ^ 2 = 1 + E.d * 0 ^ 2 * 1 ^ 2
   simp
 
 /-- The neutral point, bundled as an affine point of `E`. -/
@@ -67,10 +68,10 @@ def neg (p : R × R) : R × R := (-p.1, p.2)
 
 @[simp]
 theorem neg_mem_affinePoints (E : TwistedEdwardsCurve R) (p : R × R) :
-  neg p ∈ E.affinePoints ↔ p ∈ E.affinePoints := by
-    change E.a * (-p.1)^2 + p.2^2 = 1 + E.d * (-p.1)^2 * p.2^2 ↔
-      E.a * p.1^2 + p.2^2 = 1 + E.d * p.1^2 * p.2^2
-    rw [neg_sq]
+    neg p ∈ E.affinePoints ↔ p ∈ E.affinePoints := by
+  change E.a * (-p.1) ^ 2 + p.2 ^ 2 = 1 + E.d * (-p.1) ^ 2 * p.2 ^ 2 ↔
+    E.a * p.1 ^ 2 + p.2 ^ 2 = 1 + E.d * p.1 ^ 2 * p.2 ^ 2
+  rw [neg_sq]
 
 /-- The usual coefficient conditions for a nonsingular twisted Edwards model over a field.
 Keeping this predicate separate from `TwistedEdwardsCurve` permits the equation and its points to
@@ -84,7 +85,8 @@ def ofD (d : R) : TwistedEdwardsCurve R where
   d := d
 
 @[simp]
-theorem ofD_equation (d x y : R) : (ofD d).Equation x y ↔ x^2 + y^2 = 1 + d * x^2 * y^2 := by
+theorem ofD_equation (d x y : R) :
+    (ofD d).Equation x y ↔ x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2 := by
   simp [Equation, ofD]
 
 @[simp]

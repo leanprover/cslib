@@ -33,12 +33,9 @@ variable {s : F}
 variable {q : ℕ}
 
 /-- The decoding function for the complete Edwards curve -/
-def DecodingFunction
-  (t : F)
-  (hs_ne_zero : s ≠ 0)
-  (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
-  (hq_card : Fintype.card F = q)
-  (hq_mod : q % 4 = 3)
-  : F × F := ϕ t hs_ne_zero sq_ne_pm_two hq_card hq_mod
+def DecodingFunction (t : F)
+  (hs_ne_zero : s ≠ 0) (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
+  (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) : F × F :=
+  ϕ t hs_ne_zero sq_ne_pm_two hq_card hq_mod
 
 end Cslib.Crypto.Systems.Elligator.Elligator1
