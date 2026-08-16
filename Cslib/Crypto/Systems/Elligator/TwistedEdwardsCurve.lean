@@ -5,6 +5,7 @@ Authors: Chris Anto Fröschl
 -/
 
 module
+public import Cslib.Crypto.Systems.Elligator.Basic
 public import Mathlib.Algebra.Ring.Commute
 public import Mathlib.Data.Set.Defs
 
