@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
+public import Cslib.Foundations.Data.OmegaSequence.Topology
 public import Mathlib.Computability.Language
 public import Mathlib.Order.CompleteBooleanAlgebra
 public import Mathlib.Order.Filter.AtTopBot.Defs
@@ -28,6 +29,8 @@ denote languages (namely, sets of finite sequences of type `List α`).
   universe sets), and the subset relation are denoted using lattice-theoretic
   notations (`p ∪ q`, `p ∩ q`, `pᶜ`, `⊥`, `⊤`, and `≤`) and terminologies in
   definition and theorem names ("inf", "sup", "compl", "bot", "top", "le").
+* `p.closure`: the topological closure of `p`, where `ωLanguage α` inherits the
+  product topology of `TopologicalSpace (ωSequence α)`
 * `l * p`: ω-language of `x ++ω y` where `x ∈ l` and `y ∈ p`; referred to as
   "hmul" in definition and theorem names.
 * `l^ω`: ω-language of infinite sequences each of which is the concatenation of
@@ -136,6 +139,10 @@ lemma iSup_def {ι : Sort v} {p : ι → ωLanguage α} : ⨆ i, p i = ⟨⋃ i,
 lemma iInf_def {ι : Sort v} {p : ι → ωLanguage α} : ⨅ i, p i = ⟨⋂ i, (p i).toSet⟩ := by
   ext
   simp [iInf, sInf_def]
+
+/-- The topological closure of an ω-language. -/
+def closure (p : ωLanguage α) : ωLanguage α :=
+  _root_.closure p.toSet
 
 /-- The concatenation of a language l and an ω-language `p` is the ω-language made of
 infinite sequences `x ++ω y` where `x ∈ l` and `y ∈ p`. -/
