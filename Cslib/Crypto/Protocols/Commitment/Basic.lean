@@ -25,9 +25,9 @@ computational version of the other.
 - `Scheme.subsingleton_of_statisticallyHiding_of_perfectlyBinding`: a scheme
   cannot be both statistically hiding with error below one and perfectly
   binding unless any two messages are equal
-- `Scheme.PerfectlyBinding.statisticalDistance_commitmentDist_eq_one`: perfect
-  binding forces distinct messages' commitment distributions to the maximum
-  statistical distance
+- `Scheme.PerfectlyBinding.dist_commitmentDist_eq_one`: perfect binding forces
+  distinct messages' commitment distributions to the maximum statistical
+  distance
 - `Scheme.subsingleton_of_perfectlyHiding_of_perfectlyBinding`: the perfect
   hiding case, with no finiteness assumption on commitments
 - `Scheme.perfectlyHiding_iff_statisticallyHiding_zero`: perfect hiding is
@@ -51,10 +51,10 @@ theorem perfectlyHiding_iff_statisticallyHiding_zero
 
 /-- Enlarging the permitted error preserves statistical hiding. -/
 theorem StatisticallyHiding.mono [Fintype Commitment]
-    {scheme : Scheme Message Commitment Opening} {ε δ : ℝ≥0}
-    (h : scheme.StatisticallyHiding ε) (hεδ : ε ≤ δ) :
-    scheme.StatisticallyHiding δ :=
-  fun message₀ message₁ => (h message₀ message₁).mono hεδ
+    {scheme : Scheme Message Commitment Opening} :
+    Monotone scheme.StatisticallyHiding :=
+  fun _ _ hεδ h message₀ message₁ =>
+    StatisticallyClose.mono hεδ (h message₀ message₁)
 
 /-- Distinct messages of a perfectly binding scheme have disjoint sets of
 possible commitments. -/
@@ -73,13 +73,13 @@ theorem PerfectlyBinding.disjoint_support_commitmentDist
 /-- In a perfectly binding scheme, the commitment distributions of distinct
 messages are at the maximum statistical distance: an unbounded observer can
 read the message off the commitment. -/
-theorem PerfectlyBinding.statisticalDistance_commitmentDist_eq_one
+theorem PerfectlyBinding.dist_commitmentDist_eq_one
     [Fintype Commitment] {scheme : Scheme Message Commitment Opening}
     (hbind : scheme.PerfectlyBinding) {message₀ message₁ : Message}
     (hne : message₀ ≠ message₁) :
-    statisticalDistance (scheme.commitmentDist message₀)
+    dist (scheme.commitmentDist message₀)
       (scheme.commitmentDist message₁) = 1 :=
-  statisticalDistance_eq_one_of_disjoint_support (hbind.disjoint_support_commitmentDist hne)
+  dist_eq_one_of_disjoint_support (hbind.disjoint_support_commitmentDist hne)
 
 /-- **The hiding–binding trade-off.** A scheme cannot be both statistically
 hiding with error below one and perfectly binding unless any two messages are
@@ -91,10 +91,9 @@ theorem subsingleton_of_statisticallyHiding_of_perfectlyBinding
     (hbind : scheme.PerfectlyBinding) : Subsingleton Message := by
   refine ⟨fun message₀ message₁ => ?_⟩
   by_contra hne
-  have hone := hbind.statisticalDistance_commitmentDist_eq_one hne
-  have hle : statisticalDistance (scheme.commitmentDist message₀)
+  have hle : dist (scheme.commitmentDist message₀)
       (scheme.commitmentDist message₁) ≤ (ε : ℝ) := hhide message₀ message₁
-  rw [hone] at hle
+  rw [hbind.dist_commitmentDist_eq_one hne] at hle
   exact absurd hle (by exact_mod_cast hε.not_ge)
 
 /-- A scheme cannot be both perfectly hiding and perfectly binding unless any
