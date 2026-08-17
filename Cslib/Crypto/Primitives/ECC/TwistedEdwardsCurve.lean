@@ -98,5 +98,10 @@ theorem ofD_isValid_iff [Nontrivial R] (d : R) : (ofD d).IsValid ↔ d ≠ 0 ∧
   · rintro ⟨hd, hd1⟩
     exact ⟨one_ne_zero, hd, fun h ↦ hd1 h.symm⟩
 
+/-- The general Edwards curve with coefficient `d`.
+This is an alias for the `a = 1` specialization of a twisted Edwards curve. -/
+def edwardsCurve (d : R) : TwistedEdwardsCurve R := TwistedEdwardsCurve.ofD d
+
 end TwistedEdwardsCurve
+
 end Cslib.Crypto.Primitives.ECC
