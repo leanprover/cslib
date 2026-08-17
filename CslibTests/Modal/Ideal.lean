@@ -35,8 +35,7 @@ def posPowAction [Monoid α] : MulAction ℕ+ α where
   smul n x := x ^ (n : ℕ)
   one_smul x := pow_one x
   mul_smul m n x := by
-    dsimp [HSMul.hSMul]
-    grind [pow_mul, mul_comm]
+    simp [HSMul.hSMul, ←pow_mul, mul_comm]
 
 local instance [Monoid α] : MulAction ℕ+ α := posPowAction
 
