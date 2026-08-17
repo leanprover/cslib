@@ -28,11 +28,6 @@ open_scoped_all Cslib
 
 #grind_lint skip Cslib.LTS.Bisimilarity.trans
 #grind_lint skip Cslib.FLTS.toLTS_tr
-#grind_lint skip Cslib.FinFun.coe_fromFun_id
-#grind_lint skip Cslib.FinFun.fromFun_comm
-#grind_lint skip Cslib.FinFun.fromFun_eq
-#grind_lint skip Cslib.FinFun.fromFun_idem
-#grind_lint skip Cslib.FinFun.fromFun_inter
 #grind_lint skip Cslib.LTS.DeterministicStateLabel.not_tr_of_ne
 #grind_lint skip Cslib.LTS.DeterministicStateLabel.image_singleton_iff_tr
 #grind_lint skip Cslib.LTS.Execution.refl
