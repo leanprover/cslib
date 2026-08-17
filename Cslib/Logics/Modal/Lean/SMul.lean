@@ -73,8 +73,7 @@ theorem ofSMul_preserves_iff [SMul M α] {P : α → Prop} :
     intro h m x hx
     exact h ⟨m, rfl⟩ hx
   case mpr =>
-    intro h x y hxy hx
-    rcases hxy with ⟨m, rfl⟩
+    rintro h x y ⟨m, rfl⟩ hx
     exact h m x hx
 
 /-- Membership in a type closed under a scalar action is preserved by the relation induced by the
