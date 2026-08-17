@@ -107,9 +107,8 @@ equivalent to `◇I ∧ ◇J`. -/
 theorem Ideal.radical_inf [CommSemiring R] (I J : Ideal R) :
     (I ⊓ J).radical = I.radical ⊓ J.radical := by
   apply SetLike.ext'
-  rw [Submodule.coe_inf]
-  simp only [Ideal.radical_eq_modal_denotation]
-  rw [Proposition.denotation_eq_of_equiv (Ideal.inf_modelEquiv I J)]
+  simp_rw [Submodule.coe_inf, Ideal.radical_eq_modal_denotation,
+    Proposition.denotation_eq_of_equiv (Ideal.inf_modelEquiv I J)]
   rfl
 
 end CslibTests
