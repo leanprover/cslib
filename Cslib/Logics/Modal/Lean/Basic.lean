@@ -63,9 +63,9 @@ theorem Satisfies.ofPredicates_atom_iff {P : α → Prop} (r : α → α → Pro
 @[scoped grind ⇒]
 theorem Satisfies.ofPredicates_preserves_iff {P : α → Prop} (r : α → α → Prop) :
     (∀ a, ⇓Modal[ofPredicates r, a ⊨ P → □P]) ↔ Preserves r P := by
-  apply Iff.intro <;> intro h
+  constructor
   case mp =>
-    intro a₁ a₂ hr hPa₁
+    intro h a₁ a₂ hr hPa₁
     grind [h a₁]
   case mpr =>
     grind [Preserves]
