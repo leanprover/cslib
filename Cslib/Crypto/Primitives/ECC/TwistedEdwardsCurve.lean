@@ -13,6 +13,7 @@ public import Mathlib.Data.Set.Defs
 /-!
 # Twisted Edwards curves
 
+This file contains the curve-level definitions that are independent of any specific Elligator.
 A twisted Edwards curve with coefficients `a` and `d` has affine equation
 `a * x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2`.
 
@@ -22,7 +23,7 @@ of a curve or its affine points.
 
 Mathlib's elliptic-curve API is currently centred on Weierstrass models. A twisted Edwards model
 is not itself a Weierstrass equation, so using `WeierstrassCurve.Affine.Equation` here would require
-a birational coordinate conversion and extra invertibility hypotheses. The API below follows the
+a birational coordinate conversion and extra invertibility hypotheses.  The API below follows the
 same useful separation as that API: coefficients, an affine equation, a set of affine points, and
 a bundled point type.
 -/
@@ -98,10 +99,5 @@ theorem ofD_isValid_iff [Nontrivial R] (d : R) : (ofD d).IsValid ↔ d ≠ 0 ∧
   · rintro ⟨hd, hd1⟩
     exact ⟨one_ne_zero, hd, fun h ↦ hd1 h.symm⟩
 
-/-- The general Edwards curve with coefficient `d`.
-This is an alias for the `a = 1` specialization of a twisted Edwards curve. -/
-def edwardsCurve (d : R) : TwistedEdwardsCurve R := TwistedEdwardsCurve.ofD d
-
 end TwistedEdwardsCurve
-
 end Cslib.Crypto.Primitives.ECC
