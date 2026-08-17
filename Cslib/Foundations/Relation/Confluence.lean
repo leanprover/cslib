@@ -111,13 +111,13 @@ private theorem confluent_equivalents : [ChurchRosser r, SemiConfluent r, Conflu
   grind [List.tfae_cons_cons, List.tfae_singleton]
 
 theorem SemiConfluent_iff_ChurchRosser : SemiConfluent r ↔ ChurchRosser r :=
-  List.TFAE.out confluent_equivalents 1 0
+  List.TFAE.out confluent_equivalents 2 1
 
 theorem Confluent_iff_ChurchRosser : Confluent r ↔ ChurchRosser r :=
-  List.TFAE.out confluent_equivalents 2 0
+  List.TFAE.out confluent_equivalents 3 1
 
 theorem Confluent_iff_SemiConfluent : Confluent r ↔ SemiConfluent r :=
-  List.TFAE.out confluent_equivalents 2 1
+  List.TFAE.out confluent_equivalents 3 2
 
 theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : Confluent r := by
   intro a b c hab hac
