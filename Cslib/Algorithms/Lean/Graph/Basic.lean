@@ -81,7 +81,7 @@ structure Digraph (α β : Type*) where
   IsArc : β → α → α → Prop
   /-- Both ends of every arc are vertices. `IsArc` is not symmetric, so neither direction
   follows from the other. -/
-  incidence  : ∀ ⦃e x y⦄, IsArc e x y → (x ∈ vertexSet ∧ y ∈ vertexSet)
+  incidence  : ∀ ⦃e x y⦄, IsArc e x y → (x ∈ vertexSet ∧ y ∈ vertexSet) := by grind
   /-- The ends of the arc labelled `e`, or `none` if `e` is not an arc of the graph. -/
   endpoints : β → Option (α × α)
   /-- `endpoints` computes `IsArc`. This forces `endpoints e = none` for every
@@ -117,7 +117,7 @@ structure SimpleDigraph (α : Type*) extends _root_.Digraph α where
   /-- The set of vertices. -/
   vertexSet : Set α
   /-- No vertex is adjacent to itself. -/
-  loopless : Std.Irrefl Adj := by grind
+  loopless : Std.Irrefl Adj
   /-- Both ends of every adjacent pair are vertices. Unlike `SimpleGraph`, `Adj` is not
   symmetric, so neither direction follows from the other. -/
   incidence : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
