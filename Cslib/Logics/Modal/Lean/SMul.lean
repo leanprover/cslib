@@ -69,7 +69,7 @@ theorem ofSMul_diamond [SMul M α] [SMulCommClass M M α] : Diamond (ofSMul M α
 @[scoped grind =]
 theorem ofSMul_preserves_iff [SMul M α] {P : α → Prop} :
     Preserves (ofSMul M α) P ↔ ∀ m : M, ∀ x, P x → P (m • x) := by
-  apply Iff.intro
+  constructor
   case mp =>
     intro h m x hx
     exact h ⟨m, rfl⟩ hx
