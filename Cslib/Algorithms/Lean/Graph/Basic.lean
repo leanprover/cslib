@@ -11,9 +11,6 @@ public import Mathlib.Combinatorics.Digraph.Basic
 public import Mathlib.Combinatorics.Graph.Basic
 public import Mathlib.Combinatorics.SimpleGraph.Basic
 
-
-@[expose] public section
-
 /-!
 # Graph structures
 
@@ -55,6 +52,8 @@ with `endpoints_spec`. That specification pins the value of `endpoints` at *ever
 `s(x, y)`.
 
 -/
+
+@[expose] public section
 
 namespace Cslib.Algorithms.Lean
 
