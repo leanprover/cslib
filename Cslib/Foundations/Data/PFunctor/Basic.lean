@@ -17,7 +17,7 @@ Definitions of common `PFunctor` constructions:
 - `P * Q`: shapes are pairs of underlying shapes, directions are a disjoint sum over both shapes.
 
 Special cases `const`, `linear`, `selfMonomial`, `purePower`, the indeterminate `X`,
-and canonical choices of `0` and `1` are defined as `abbrev` over `monomial`.
+and canonical choices of `0` and `1` are defined as `abbrev` or instances over `monomial`.
 -/
 
 @[expose] public section
