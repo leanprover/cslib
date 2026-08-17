@@ -17,11 +17,9 @@ This file defines `Relation.RelatesInSteps` (and `Relation.RelatesWithinSteps`).
 These are inductively defined propositions that communicate whether a relation forms a
 chain of length `n` (or at most `n`) between two elements.
 
-The lemma `RelatesInSteps.exists_isChain` allows to obtain a chain (`List.IsChain`) along the
-relation of transitively related elements and `RelatesInSteps.of_isChain` is the converse direction.
-
-If a chain has duplicates, the lemmas `RelatesInSteps.of_isChain_eq` and `RelatesInSteps.of_dup`
-show that the start and end point are reachable in fewer steps by removing the "loop".
+The lemma `RelatesInSteps.exists_isChainFromTo` allows to obtain a chain
+(`List.IsChainFromTo`) of related elements that witness the reachability, and
+`RelatesInSteps.of_isChainFromTo` is the converse direction.
 
 Another result is `Relation.ReflTransGen.relatesInSteps_lt_encard`, which states that any element
 reachable from `a` is reachable in fewer steps than there are elements reachable from `a`.
@@ -190,7 +188,6 @@ lemma RelatesInSteps.of_isChain {chain : List α}
     refine .tail _ (chain[p + k]) _ k (ih (by lia)) ?_
     apply List.IsChain.getElem hc
 
-
 /-- If there is an `r`-chain from `a` to `b`, then `a` and `b` are related to each other with
 a number of steps equal to the length of the chain minus one. -/
 lemma RelatesInSteps.of_isChainFromTo {chain : List α} (hc : chain.IsChainFromTo r a b) :
@@ -200,7 +197,6 @@ lemma RelatesInSteps.of_isChainFromTo {chain : List α} (hc : chain.IsChainFromT
   have h0 : chain[0] = a := by grind
   have hl : chain[chain.length - 1] = b := by grind
   simpa [h0, hl] using hrel
-
 
 /-! ## RelatesWithinSteps - only requires an upper bound on the number of steps -/
 

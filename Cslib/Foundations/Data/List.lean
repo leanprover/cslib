@@ -10,7 +10,7 @@ public import Cslib.Init
 public import Mathlib.Data.List.Chain
 public import Mathlib.Data.List.Nodup
 
-/-! # Results related to List.IsChain
+/-! # Chains with a designated start and end
 
 This file defines `List.IsChainFromTo`, a variant of `List.IsChain` that also fixes the first and
 last element of the chain.
@@ -21,7 +21,7 @@ always be shortened.
 
 @[expose] public section
 
-variable {α : Type*} {r : α → α → Prop} {a b : α}
+variable {α : Type*} {r : α → α → Prop} {chain : List α} {a b : α}
 
 /-- A "chain from to" is a list of elements where adjacent elements relate to each other
 (cf. `List.IsChain`) and start and end with specific elements. -/
@@ -31,25 +31,27 @@ structure List.IsChainFromTo {α : Type*} (r : α → α → Prop) (chain : List
   head_eq : chain.head ne_nil = a
   getLast_eq : chain.getLast ne_nil = b
 
+/-- Restatement of `head_eq`, but tagged with simp and grind. -/
 @[simp, grind →]
-lemma List.IsChainFromTo_head_eq {chain : List α} (hc : chain.IsChainFromTo r a b) :
+lemma List.IsChainFromTo_head_eq (hc : chain.IsChainFromTo r a b) :
     chain.head hc.ne_nil = a :=
   hc.head_eq
 
+/-- Restatement of `getLast_eq`, but tagged with simp and grind. -/
 @[simp, grind →]
-lemma List.IsChainFromTo_getLast_eq {chain : List α} (hc : chain.IsChainFromTo r a b) :
+lemma List.IsChainFromTo_getLast_eq (hc : chain.IsChainFromTo r a b) :
     chain.getLast hc.ne_nil = b :=
   hc.getLast_eq
 
 @[simp, grind ←]
-lemma List.IsChainFromTo_singleton {a : α} : List.IsChainFromTo r [a] a a :=
+lemma List.IsChainFromTo.singleton {a : α} : List.IsChainFromTo r [a] a a :=
   ⟨List.IsChain.singleton a, by simp, rfl, rfl⟩
 
 /-- If there is an `r`-chain from `a` to `b` with duplicates, then there is a shorter `r`-chain
 from `a` to `b` (the one that skips the part between the duplicates).
 Note that applying this method iteratively does not necessarily lead to the shortest `r`-chain
 from `a` to `b`, since we always keep the initial and final segment. -/
-lemma List.IsChainFromTo.exists_length_lt_of_not_nodup {chain : List α}
+lemma List.IsChainFromTo.exists_length_lt_of_not_nodup
     (hc : chain.IsChainFromTo r a b)
     (h_dup : ¬ chain.Nodup) :
     ∃ chain' : List α, chain'.IsChainFromTo r a b ∧ chain'.length < chain.length := by
