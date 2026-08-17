@@ -20,14 +20,12 @@ public import Cslib.Languages.CCS.Basic
 
 @[expose] public section
 
-namespace Cslib
+namespace Cslib.CCS
 
 variable
   {Name : Type u}
   {Constant : Type v}
-  {defs : Constant → (CCS.Process Name Constant) → Prop}
-
-namespace CCS
+  {defs : Constant → Option (Process Name Constant)}
 
 open Process
 
@@ -43,7 +41,7 @@ inductive Tr : Process Name Constant → Act Name → Process Name Constant → 
   | choiceL : Tr p μ p' → Tr (choice p q) μ p'
   | choiceR : Tr q μ q' → Tr (choice p q) μ q'
   | res : μ ≠ Act.name a → μ ≠ Act.coname a → Tr p μ p' → Tr (res a p) μ (res a p')
-  | const : defs k p → Tr p μ p' → Tr (const k) μ p'
+  | const : defs k = some p → Tr p μ p' → Tr (const k) μ p'
 
 instance : HasTau (Act Name) where
   τ := Act.τ
@@ -55,6 +53,59 @@ inductive Terminated : Process Name Constant → Prop where
   | choice : Terminated p → Terminated q → Terminated (choice p q)
   | res : Terminated p → Terminated (res a p)
 
-end CCS
+open LTS
 
-end Cslib
+/-- A terminated process has no outgoing transitions. -/
+@[scoped grind ⇒]
+theorem not_tr_of_terminated (h : Terminated p) : ¬(lts (defs := defs)).Tr p μ p' := by
+  intro htr
+  induction htr <;> grind [Terminated]
+
+/-- Inversion lemma for prefix transitions. -/
+@[scoped grind →]
+theorem pre_tr (h : (lts (defs := defs)).Tr (pre μ p) μ' p') : μ = μ' ∧ p = p' := by
+  cases h
+  simp
+
+/-- Inversion lemma for constant transitions. -/
+@[scoped grind →]
+theorem const_tr (h : (lts (defs := defs)).Tr (const k) μ p') :
+    ∃ p, defs k = some p ∧ (lts (defs := defs)).Tr p μ p' := by
+  cases h
+  case const p hdef htr =>
+    exists p
+
+/-- Prefixes are deterministic. -/
+@[scoped grind .]
+theorem pre_deterministicState : DeterministicState (lts (defs := defs)) (pre μ p) := by
+  grind
+
+/-- Constants are deterministic if their definition is deterministic. -/
+@[scoped grind .]
+theorem const_deterministicStateLabel (hdef : defs k = some p)
+    (h : DeterministicStateLabel (lts (defs := defs)) p μ) :
+    DeterministicStateLabel (lts (defs := defs)) (const k) μ := by
+  intro p₁ p₂ h₁ h₂
+  cases h₁
+  cases h₂
+  case const.const q₁ hdef₁ htr₁ q₂ hdef₂ htr₂ =>
+    have hq₁ : q₁ = p := by grind only
+    have hq₂ : q₂ = p := by grind only
+    rw [hq₁] at htr₁
+    rw [hq₂] at htr₂
+    apply h p₁ p₂ htr₁ htr₂
+
+/-- Restriction is deterministic if its subterm is deterministic. -/
+@[scoped grind .]
+theorem res_deterministicStateLabel
+    (h : DeterministicStateLabel (lts (defs := defs)) p μ) :
+    DeterministicStateLabel (lts (defs := defs)) (res μ' p) μ := by
+  intro p₁ p₂ h₁ h₂
+  cases h₁
+  cases h₂
+  case res.res q₁ h₁ h₂ htr₁ q₂ h₃ h₄ htr₂ =>
+    have hq₁q₂ : q₁ = q₂ := by
+      apply h _ _ htr₁ htr₂
+    rw [hq₁q₂]
+
+end Cslib.CCS

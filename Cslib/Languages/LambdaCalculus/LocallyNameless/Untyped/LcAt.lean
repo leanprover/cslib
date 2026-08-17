@@ -86,6 +86,16 @@ attribute [scoped grind .] LC.fvar LC.app
 inductive Value : Term Var → Prop
 | abs (e : Term Var) : e.abs.LC → e.abs.Value
 
+/-- `IsAbs m` holds when `m` is an abstraction. -/
+@[scoped grind]
+inductive IsAbs : Term Var → Prop
+| abs (m : Term Var) : IsAbs (abs m)
+
+instance (m : Term Var) : Decidable (IsAbs m) := by
+  cases m
+  case abs => exact isTrue (.abs _)
+  all_goals exact isFalse (by intro _; contradiction)
+
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- `M` is `LcAt 0` if and only if `M` is locally closed. -/
 theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
