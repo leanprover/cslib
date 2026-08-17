@@ -107,7 +107,6 @@ membership in both containers, then atomic infimum is logically equivalent to mo
 theorem Proposition.ofContainers_inf_equiv [Membership α β] [Min β] (r : α → α → Prop) (p q : β)
     (h : ∀ x, x ∈ p ⊓ q ↔ x ∈ p ∧ x ∈ q) :
     (↑(p ⊓ q) : Proposition β) ≡[Equiv.OfContainers r] (p ∧ q) := by
-  intro
   grind [=_ derivation_def]
 
 end Cslib.Logic.Modal
