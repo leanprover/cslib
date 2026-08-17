@@ -238,12 +238,8 @@ theorem Proposition.diamond_and_equiv_of_preserves {m : Model World Atom} [IsTra
   apply Iff.intro
   case mp => grind
   case mpr =>
-    intro h
-    rw [Satisfies.and_iff_and] at h
-    rcases h with ⟨hφ₁, hφ₂⟩
-    rw [Satisfies.diamond_iff_exists] at hφ₁ hφ₂ ⊢
-    rcases hφ₁ with ⟨b, hab, hb⟩
-    rcases hφ₂ with ⟨c, hac, hc⟩
+    rw [Satisfies.and_iff_and, Satisfies.diamond_iff_exists]
+    rintro ⟨⟨b, hab, hb⟩, ⟨c, hac, hc⟩⟩
     rcases hd hab hac with ⟨d, hbd, hcd⟩
     use d, IsTrans.trans _ _ _ hab hbd
     exact ⟨h₁ hbd hb, h₂ hcd hc⟩
