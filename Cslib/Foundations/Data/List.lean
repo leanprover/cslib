@@ -31,14 +31,14 @@ structure List.IsChainFromTo {α : Type*} (r : α → α → Prop) (chain : List
   head_eq : chain.head ne_nil = a
   getLast_eq : chain.getLast ne_nil = b
 
-/-- Restatement of `head_eq`, but tagged with simp and grind. -/
-@[simp, grind →]
+/-- Restatement of `head_eq`, but tagged with grind. -/
+@[grind →]
 lemma List.IsChainFromTo_head_eq (hc : chain.IsChainFromTo r a b) :
     chain.head hc.ne_nil = a :=
   hc.head_eq
 
-/-- Restatement of `getLast_eq`, but tagged with simp and grind. -/
-@[simp, grind →]
+/-- Restatement of `getLast_eq`, but tagged with grind. -/
+@[grind →]
 lemma List.IsChainFromTo_getLast_eq (hc : chain.IsChainFromTo r a b) :
     chain.getLast hc.ne_nil = b :=
   hc.getLast_eq
