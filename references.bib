@@ -551,3 +551,34 @@ keywords = {Keywords: Abstract syntax; Alpha-conversion; Permutation actions; Se
   publisher={Addison-Wesley},
   address={Reading, Massachusetts}
 }
+
+@inproceedings{Bernstein2008a,
+  author={Daniel J. Bernstein and Peter Birkner and Marc Joye and Tanja Lange and Christiane Peters},
+  title={Twisted Edwards Curves},
+  booktitle={Progress in Cryptology - {AFRICACRYPT} 2008, First International Conference
+               on Progress in Cryptology, Casablanca, Morocco, June 11-14, 2008.
+               Proceedings},
+  series={Lecture Notes in Computer Science},
+  volume={5023},
+  isbn="978-35-40-68159-5",
+  pages= {389--405},
+  publisher={Springer Verlag, Berlin},
+  year={2008},
+  doi={10.1007/978-3-540-68164-9\_26}
+}
+
+@inproceedings{Bernstein2007a,
+  author={Bernstein, Daniel J. and Lange, Tanja},
+  title={Faster addition and doubling on elliptic curves},
+  year={2007},
+  isbn={3540768998},
+  publisher={Springer-Verlag},
+  address={Berlin, Heidelberg},
+  abstract={Edwards recently introduced a new normal form for elliptic curves. Every elliptic curve over a non-binary field is birationally equivalent to a curve in Edwards form over an extension of the field, and in many cases over the original field.This paper presents fast explicit formulas (and register allocations) for group operations on an Edwards curve. The algorithm for doubling uses only 3M + 4S, i.e., 3 field multiplications and 4 field squarings. If curve parameters are chosen to be small then the algorithm for mixed addition uses only 9M + 1S and the algorithm for non-mixed addition uses only 10M + 1S. Arbitrary Edwards curves can be handled at the cost of just one extra multiplication by a curve parameter.For comparison, the fastest algorithms known for the popular "a4=-3 Jacobian" form use 3M + 5S for doubling; use 7M + 4S for mixed addition; use 11M + 5S for non-mixed addition; and use 10M + 4S for non-mixed addition when one input has been added before.The explicit formulas for non-mixed addition on an Edwards curve can be used for doublings at no extra cost, simplifying protection against side-channel attacks. Even better, many elliptic curves (approximately 1/4 of all isomorphism classes of elliptic curves over a non-binary finite field) are birationally equivalent--over the original field--to Edwards curves where this addition algorithm works for all pairs of curve points, including inverses, the neutral element, etc.This paper contains an extensive comparison of different forms of elliptic curves and different coordinate systems for the basic group operations (doubling, mixed addition, non-mixed addition, and unified addition) as well as higher-level operations such as multi-scalar multiplication.},
+  booktitle={Proceedings of the Advances in Crypotology 13th International Conference on Theory and Application of Cryptology and Information Security},
+  pages={29–50},
+  numpages={22},
+  keywords={unified addition formulas, sidechannel countermeasures, scalar multiplication, register allocation, performance evaluation, multi-scalar multiplication, explicit formulas, elliptic curves, efficient implementation, doubling, complete addition formulas, addition},
+  location={Kuching, Malaysia},
+  series={ASIACRYPT'07}
+}
