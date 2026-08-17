@@ -38,9 +38,8 @@ instance [Monoid M] [MulAction M α] : Std.Refl (ofSMul M α) where
 
 /-- The relation induced by a semigroup action is transitive. -/
 instance [Semigroup M] [SemigroupAction M α] : IsTrans α (ofSMul M α) where
-  trans x y z hxy hyz := by
-    rcases hxy with ⟨m, rfl⟩
-    rcases hyz with ⟨n, rfl⟩
+  trans := by
+    rintro x _ _ ⟨m, rfl⟩ ⟨n, rfl⟩
     use n * m
     rw [mul_smul]
 /-- The relation induced by a group action is symmetric. -/
