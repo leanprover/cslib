@@ -66,7 +66,7 @@ theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [None
   ext c
   rw [PMF.map_apply, tsum_eq_single (e.symm c)]
   · simp [Fintype.card_congr e]
-  · exact fun a ha => if_neg fun h => ha (by simp [h])
+  · exact fun a ha => ite_eq_right fun h => ha (by simp [h])
 
 /-- The posterior distribution `Pr[A = a | B = b]` as a `PMF`,
 given `a ← p`, `b ← f a`, and that `b` has positive marginal probability:
