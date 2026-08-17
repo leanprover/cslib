@@ -7,6 +7,7 @@ Authors: Bolton Bailey
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Data.List
 public import Mathlib.Data.Set.Card
 public import Mathlib.Logic.Relation
 
@@ -161,20 +162,19 @@ lemma RelatesInSteps.map {α α' : Type*}
 
 /-! ## Lemmas to translate between RelatesInSteps and the existence of a chain (`List.IsChain`) -/
 
-/-- If `a` and `b` are related in `n` steps, then there is an `r`-chain of `n + 1` elements
+/-- If `b` is related to `a` via `r` in `n` steps, then there is an `r`-chain of `n + 1` elements
 starting at `a` and ending at `b`.
 This is similar to `List.exists_isChain_ne_nil_of_relationReflTransGen`, but also provides
 a length guarantee. -/
-lemma RelatesInSteps.exists_isChain {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
-    ∃ chain : List α,
-      chain.IsChain r ∧ ∃ h_len : chain.length = n + 1, chain[0] = a ∧ chain[n] = b := by
+lemma RelatesInSteps.exists_isChainFromTo {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
+    ∃ chain : List α, chain.IsChainFromTo r a b ∧ chain.length = n + 1 := by
   induction h with
-  | refl => use [a]; simp
+  | refl => exact ⟨[a], by simp, rfl⟩
   | tail t' t'' m _ hstep ih =>
-    obtain ⟨l, hchain, _, _, _⟩ := ih
+    obtain ⟨l, hchain, hlen⟩ := ih
     use l ++ [t'']
-    constructor
-    · apply hchain.append (by simp) (by grind)
+    refine ⟨⟨?_, by simp, ?_, by simp⟩, by grind⟩
+    · exact hchain.isChain.append (by simp) (by grind)
     · grind
 
 /-- Any two elements along an `r`-chain are related in as many steps as their distance in the
@@ -190,32 +190,17 @@ lemma RelatesInSteps.of_isChain {chain : List α}
     refine .tail _ (chain[p + k]) _ k (ih (by lia)) ?_
     apply List.IsChain.getElem hc
 
-/-- A chain that visits the same element at two different positions can be shortened by splicing
-out the loop in between, i.e. the first and last elements are also related to each other
-by fewer steps. -/
-lemma RelatesInSteps.of_isChain_eq {chain : List α} {i j : ℕ}
-    (hc : chain.IsChain r)
-    (hij : i < j)
-    (hjn : j < chain.length)
-    (heq : chain[i] = chain[j]) :
-    RelatesInSteps r (chain.head (by grind)) (chain.getLast (by grind))
-      (i + (chain.length - 1 - j)) := by
-  rw [List.head_eq_getElem, List.getLast_eq_getElem]
-  have h₁ := RelatesInSteps.of_isChain hc 0 i (by omega)
-  have h₂ := RelatesInSteps.of_isChain hc j (chain.length - 1 - j) (by omega)
-  grind [RelatesInSteps.trans]
 
-/-- If a chain has duplicates, there is a shorter version with the same start and end point.
-This is a less explicit version of `RelatesInSteps.of_isChain_eq`. -/
-lemma RelatesInSteps.of_isChain_neg_nodup {chain : List α}
-    (hc : chain.IsChain r)
-    (hne : chain ≠ [])
-    (hdup : ¬ chain.Nodup) :
-    ∃ n < chain.length - 1, RelatesInSteps r (chain.head hne) (chain.getLast hne) n := by
-  rw [List.nodup_iff_getElem?_ne_getElem?] at hdup
-  push Not at hdup
-  obtain ⟨i, j, hij, hjn, heq⟩ := hdup
-  exact ⟨_, by omega, RelatesInSteps.of_isChain_eq hc hij hjn (by grind)⟩
+/-- If there is an `r`-chain from `a` to `b`, then `a` and `b` are related to each other with
+a number of steps equal to the length of the chain minus one. -/
+lemma RelatesInSteps.of_isChainFromTo {chain : List α} (hc : chain.IsChainFromTo r a b) :
+    RelatesInSteps r a b (chain.length - 1) := by
+  have h_ne : chain.length > 0 := by grind
+  have hrel := RelatesInSteps.of_isChain hc.isChain 0 (chain.length - 1) (by omega)
+  have h0 : chain[0] = a := by grind
+  have hl : chain[chain.length - 1] = b := by grind
+  simpa [h0, hl] using hrel
+
 
 /-! ## RelatesWithinSteps - only requires an upper bound on the number of steps -/
 
@@ -298,13 +283,14 @@ theorem ReflTransGen.relatesInSteps_lt_encard {b : α} (h : ReflTransGen r a b) 
   -- Let us use the shortest chain from `a` to `b`.
   have hex : ∃ n, RelatesInSteps r a b n := h.relatesInSteps
   refine ⟨Nat.find hex, Nat.find_spec hex, ?_⟩
-  obtain ⟨chain, hc, hlen, h0, hb⟩ := (Nat.find_spec hex).exists_isChain
+  obtain ⟨chain, hc, hlen⟩ := (Nat.find_spec hex).exists_isChainFromTo
   -- All elements in the chain are reachable from `a`.
   have hsub : {x | x ∈ chain} ⊆ {x | ReflTransGen r a x} := by
     simp only [Set.subset_def, Set.mem_ofPred_eq]
     intro y hy
     obtain ⟨i, hi, rfl⟩ := List.getElem_of_mem hy
-    simpa [h0] using (RelatesInSteps.of_isChain hc 0 i (by omega)).reflTransGen
+    have := RelatesInSteps.of_isChain hc.isChain 0 i (by omega)
+    grind [RelatesInSteps.reflTransGen]
   -- Now assume, for the sake of contradiction, that the minimal chain has at least as many
   -- elements as there are reachable elements.
   by_contra hcard
@@ -316,7 +302,8 @@ theorem ReflTransGen.relatesInSteps_lt_encard {b : α} (h : ReflTransGen r a b) 
     rw [← List.coe_toFinset, Set.encard_coe_eq_coe_finsetCard] at hle
     grind [List.toFinset_card_of_nodup, Nat.cast_le]
   -- But then we can shorten the chain which contradicts the fact that it is minimal.
-  obtain ⟨n, hn, hshort⟩ := RelatesInSteps.of_isChain_neg_nodup hc (by grind) h_dup
-  exact Nat.find_min hex (m := n) (by omega) (by grind)
+  obtain ⟨chain', hc', hlt⟩ := hc.exists_length_lt_of_not_nodup h_dup
+  have := List.length_pos_iff.mpr hc'.ne_nil
+  exact Nat.find_min hex (m := chain'.length - 1) (by omega) (RelatesInSteps.of_isChainFromTo hc')
 
 end Relation
