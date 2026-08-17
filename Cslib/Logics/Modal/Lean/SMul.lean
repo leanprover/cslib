@@ -42,6 +42,7 @@ instance [Semigroup M] [SemigroupAction M α] : IsTrans α (ofSMul M α) where
     rintro x _ _ ⟨m, rfl⟩ ⟨n, rfl⟩
     use n * m
     rw [mul_smul]
+
 /-- The relation induced by a group action is symmetric. -/
 instance [Group G] [MulAction G α] : Std.Symm (ofSMul G α) where
   symm := by
