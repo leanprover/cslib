@@ -15,11 +15,11 @@ public import Mathlib.Combinatorics.SimpleGraph.Basic
 # Graph structures
 
 Vertex and edge sets are `Set`-valued, following the design of
-`Mathlib.Combinatorics.Graph`: a subgraph of `G : Graph α β` is another term of
-`Graph α β` rather than a separate type, so no coercion maps are needed.
+`Mathlib.Combinatorics.Graph`: a subgraph of `G : Graph V E` is another term of
+`Graph V E` rather than a separate type, so no coercion maps are needed.
 
 Four structures are provided, in two pairs. `Graph` and `Digraph` are multigraphs whose
-edges carry labels in `β`, so parallel edges and loops are permitted. `SimpleGraph` and
+edges carry labels in `E`, so parallel edges and loops are permitted. `SimpleGraph` and
 `SimpleDigraph` have `Prop`-valued adjacency and therefore disallowing parallel edges.
 
 ## Main definitions
@@ -29,12 +29,11 @@ A multigraph is a triple (V,E,f) where V is a vertex set, E is an edge set,
 and f is a function from an edge to an (ordered/unordered) pair of vertices.
 In particular, f is a computable function. We reuse the definitions from Mathlib as much as we can.
 
-* `Graph α β`: an undirected multigraph (abbrev for Mathlib's `Graph α β`).
-* `Digraph α β`: a directed multigraph; the directed counterpart of Mathlib's `Graph α β`.
-* `SimpleGraph α`: a simple graph with a vertex set, extending Mathlib's `SimpleGraph α`.
-* `SimpleDigraph α`: a loopless directed graph with adjacency `Adj : α → α → Prop` and a
-  vertex set, extending Mathlib's `Digraph α`.
-
+* `MultiGraph V E`: an undirected multigraph (abbrev for Mathlib's `Graph V E`).
+* `MultiDigraph V E`: a directed multigraph; the directed counterpart of Mathlib's `Graph V E`.
+* `SimpleGraph V`: a simple graph with a vertex set, extending Mathlib's `SimpleGraph V`.
+* `SimpleDigraph V`: a loopless directed graph with adjacency `Adj : V → V → Prop` and a
+  vertex set, extending Mathlib's `Digraph V`.
 
 ## Main API
 
@@ -46,107 +45,84 @@ In particular, f is a computable function. We reuse the definitions from Mathlib
 ## Implementation notes
 
 `IsLink` and `IsArc` are `Prop`-valued, so nothing about them is executable. To recover
-computation, `Graph` and `Digraph` each carry an `endpoints : β → Option _` field together
+computation, `Graph` and `Digraph` each carry an `endpoints : E → Option _` field together
 with `endpoints_spec`. That specification pins the value of `endpoints` at *every* label —
-`some` on the edge set, and `none` off it, since every `s : Sym2 α` is of the form
+`some` on the edge set, and `none` off it, since every `s : Sym2 V` is of the form
 `s(x, y)`.
-
 -/
 
 @[expose] public section
 
 namespace Cslib.Algorithms.Lean
 
+/-- An undirected multigraph on vertex type `V` with edge labels in `E`.
 
-/-- An undirected multigraph on vertex type `α` with edge labels in `β`, bundled with a
-computable map from an edge label to its ends.
-
-This is Mathlib's `Graph α β` — so parallel edges and loops are permitted, and both the
+This is Mathlib's `Graph V E` — so parallel edges and loops are permitted, and both the
 vertex and edge sets may be infinite. -/
-abbrev Graph (α β : Type*) :=  _root_.Graph α β
+abbrev MultiGraph (V E : Type*) :=  _root_.Graph V E
 
 /-- A computable map from an edge label of `G` to its ends. -/
-class Graph.HasEndpoints {α β : Type*} (G : Graph α β) where
+class MultiGraph.HasEndpoints {V E : Type*} (G : MultiGraph V E) where
   /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
-  endpoints : β → Option (Sym2 α)
+  endpoints : E → Option (Sym2 V)
   /-- `endpoints` computes `Graph.IsLink`. -/
-  endpoints_spec : ∀ e x y, G.IsLink e x y ↔ endpoints e = some s(x, y)
+  endpoints_spec : ∀ e x y, G.IsLink e x y ↔ s(x, y) ∈ endpoints e
 
 /-- The ends of `e` in `G`, or `none` if `e ∉ E(G)`. -/
-def Graph.endpoints? (G : Graph α β) [inst : G.HasEndpoints] (e : β) : Option (Sym2 α) :=
+def MultiGraph.endpoints? (G : MultiGraph V E) [inst : G.HasEndpoints] (e : E) : Option (Sym2 V) :=
   inst.endpoints e
 
-theorem isLink_iff_endpoints (G : Graph α β) [G.HasEndpoints] :
-  G.IsLink e x y ↔ G.endpoints? e = some s(x, y) :=
-  Graph.HasEndpoints.endpoints_spec e x y
+theorem isLink_iff_endpoints (G : MultiGraph V E) [G.HasEndpoints] :
+  G.IsLink e x y ↔ s(x, y) ∈ G.endpoints? e :=
+  MultiGraph.HasEndpoints.endpoints_spec e x y
 
-/-- A directed multigraph on vertex type `α` with arc labels in `β`, bundled with a
+/-- A directed multigraph on vertex type `V` with arc labels in `E`, bundled with a
 computable map from an arc label to its endpoints.
 
-The directed counterpart of Mathlib's `Graph α β`, which has no Mathlib counterpart to
+The directed counterpart of Mathlib's `Graph V E`, which has no Mathlib counterpart to
 extend; the field layout mirrors it, with symmetry dropped. -/
-structure Digraph (α β : Type*) where
+structure MultiDigraph (V E : Type*) where
   /-- The set of vertices. -/
-  vertexSet : Set α
+  vertexSet : Set V
   /-- The incidence predicate: `IsArc e x y` states that the arc labelled `e` runs from
   `x` to `y`. -/
-  IsArc : β → α → α → Prop
-  /-- An arc is mapped at most once. -/
-  eq_or_eq_of_isArc_of_isArc ⦃e : β⦄ ⦃x y v w : α⦄ : IsArc e x y → IsArc e v w → x = v ∧ y = w
+  IsArc : E → V → V → Prop
+  /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
+  endpoints : E → Option (V × V)
+  /-- `endpoints` computes `Graph.IsLink`. -/
+  endpoints_spec : ∀ e x y, IsArc e x y ↔ (x, y) ∈ endpoints e
   /-- Both ends of every arc are vertices. `IsArc` is not symmetric, so neither direction
   follows from the other. -/
   incidence  : ∀ ⦃e x y⦄, IsArc e x y → (x ∈ vertexSet ∧ y ∈ vertexSet) := by grind
   /-- The set of arc labels. -/
-  arcSet : Set β := { e | ∃ x y, IsArc e x y}
+  arcSet : Set E := { e | ∃ x y, IsArc e x y}
   /-- A label lies in `arcSet` exactly when it is used by some arc. -/
   arc_mem_iff_exists_isArc (e) : e ∈ arcSet ↔ ∃ x y, IsArc e x y := by exact fun _ ↦ Iff.rfl
 
-/-- A computable map from an edge label of `G` to its ends. -/
-class Digraph.HasEndpoints {α β : Type*} (G : Digraph α β) where
-  /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
-  endpoints : β → Option (α × α)
-  /-- `endpoints` computes `Graph.IsLink`. -/
-  endpoints_spec : ∀ e x y, G.IsArc e x y ↔ endpoints e = some (x, y)
-
-/-- The ends of the arc `e` in `G`, or `none` if `e ∉ G.arcSet`. -/
-def Digraph.endpoints? (G : Digraph α β) [inst : G.HasEndpoints] (e : β) : Option (α × α) :=
-  inst.endpoints e
-
-/-- The tail (source) of `e`. -/
-def tail? (G : Digraph α β) [G.HasEndpoints] (e : β) : Option α :=
-  (G.endpoints? e).map Prod.fst
-
-/-- The head (target) of `e`. -/
-def head? (G : Digraph α β) [G.HasEndpoints] (e : β) : Option α :=
-  (G.endpoints? e).map Prod.snd
-
-theorem isArc_iff_endpoints? (G : Digraph α β) [G.HasEndpoints] :
-  G.IsArc e x y ↔ G.endpoints? e = some (x, y) := Digraph.HasEndpoints.endpoints_spec e x y
-
-/-- A simple graph on `α` — irreflexive and symmetric adjacency, hence no loops and no
+/-- A simple graph on `V` — irreflexive and symmetric adjacency, hence no loops and no
 parallel edges — together with a vertex set containing every end of an adjacent pair.
 
-Extends Mathlib's `SimpleGraph α`, so its API is available through `toSimpleGraph`; in
+Extends Mathlib's `SimpleGraph V`, so its API is available through `toSimpleGraph`; in
 particular `edgeSet`, the unordered pairs of adjacent vertices, is inherited rather than
-redefined. Note that `Adj` is a relation on all of `α`, so `vertexSet` may be any superset
+redefined. Note that `Adj` is a relation on all of `V`, so `vertexSet` may be any superset
 of the vertices actually incident to an edge. -/
-structure SimpleGraph (α : Type*) extends _root_.SimpleGraph α where
+structure SimpleGraph (V : Type*) extends _root_.SimpleGraph V where
   /-- The set of vertices. -/
-  vertexSet : Set α
+  vertexSet : Set V
   /-- The left end of every adjacent pair is a vertex. The right end then follows by
   symmetry of `Adj`. -/
   left_incidence : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet := by grind
 
-/-- A simple directed graph on `α` — adjacency `Adj : α → α → Prop`, hence no parallel
+/-- A simple directed graph on `V` — adjacency `Adj : V → V → Prop`, hence no parallel
 arcs — with loops explicitly excluded, together with a vertex set containing every end of
 an adjacent pair.
 
-Extends Mathlib's `Digraph α`, which is a bare adjacency relation and does permit loops;
+Extends Mathlib's `Digraph V`, which is a bare adjacency relation and does permit loops;
 `loopless` is what rules them out here. Antiparallel arcs are permitted: `Adj x y` and
 `Adj y x` may both hold. -/
-structure SimpleDigraph (α : Type*) extends _root_.Digraph α where
+structure SimpleDigraph (V : Type*) extends _root_.Digraph V where
   /-- The set of vertices. -/
-  vertexSet : Set α
+  vertexSet : Set V
   /-- No vertex is adjacent to itself. -/
   loopless : Std.Irrefl Adj
   /-- Both ends of every adjacent pair are vertices. Unlike `SimpleGraph`, `Adj` is not
@@ -154,7 +130,7 @@ structure SimpleDigraph (α : Type*) extends _root_.Digraph α where
   incidence : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
 
 /-- The arc set of a `SimpleDigraph`, as ordered pairs of adjacent vertices. -/
-def SimpleDigraph.arcSet (G : SimpleDigraph α) : Set (α × α) :=
+def SimpleDigraph.arcSet (G : SimpleDigraph V) : Set (V × V) :=
   {p | G.Adj p.1 p.2}
 
 
