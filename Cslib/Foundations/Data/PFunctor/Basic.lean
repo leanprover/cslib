@@ -54,7 +54,8 @@ section zero
   respect to sum (up to equivalence) -/
 @[simps] instance instZeroPFunctor : Zero PFunctor where zero := monomial PEmpty PEmpty
 
-instance : IsEmpty (0 : PFunctor.{uA, uB}).A := inferInstanceAs (IsEmpty PEmpty)
+instance instIsEmptyZeroPFunctor : IsEmpty (0 : PFunctor.{uA, uB}).A :=
+  inferInstanceAs (IsEmpty PEmpty)
 
 end zero
 
@@ -64,9 +65,9 @@ section one
   respect to product (up to equivalence) -/
 @[simps] instance instOnePFunctor : One PFunctor where one := monomial PUnit PEmpty
 
-instance : Unique (1 : PFunctor.{uA, uB}).A := inferInstanceAs (Unique PUnit)
+instance instUniqueOneA : Unique (1 : PFunctor.{uA, uB}).A := inferInstanceAs (Unique PUnit)
 
-instance (a : (1 : PFunctor.{uA, uB}).A) : IsEmpty ((1 : PFunctor.{uA, uB}).B a) :=
+instance instIsEmptyOneB (a : (1 : PFunctor.{uA, uB}).A) : IsEmpty ((1 : PFunctor.{uA, uB}).B a) :=
   inferInstanceAs (IsEmpty PEmpty)
 
 end one
