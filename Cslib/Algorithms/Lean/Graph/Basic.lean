@@ -23,16 +23,21 @@ Vertex and edge sets are `Set`-valued, following the design of
 
 Four structures are provided, in two pairs. `Graph` and `Digraph` are multigraphs whose
 edges carry labels in `β`, so parallel edges and loops are permitted. `SimpleGraph` and
-`SimpleDigraph` have `Prop`-valued adjacency and therefore admit neither loops nor
-parallel edges.
+`SimpleDigraph` have `Prop`-valued adjacency and therefore disallowing parallel edges.
 
 ## Main definitions
+
+We use the following definition of a multigraph.
+A multigraph is a triple (V,E,f) where V is a vertex set, E is an edge set,
+and f is a function from an edge to an (ordered/unordered) pair of vertices.
+In particular, f is a computable function. We reuse the definitions from Mathlib as much as we can.
 
 * `Graph α β`: an undirected multigraph, extending Mathlib's `Graph α β`.
 * `Digraph α β`: a directed multigraph; the directed counterpart of Mathlib's `Graph α β`.
 * `SimpleGraph α`: a simple graph with a vertex set, extending Mathlib's `SimpleGraph α`.
 * `SimpleDigraph α`: a loopless directed graph with adjacency `Adj : α → α → Prop` and a
   vertex set, extending Mathlib's `Digraph α`.
+
 
 ## Main API
 
