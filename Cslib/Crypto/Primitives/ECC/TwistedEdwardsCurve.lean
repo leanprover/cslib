@@ -26,6 +26,10 @@ is not itself a Weierstrass equation, so using `WeierstrassCurve.Affine.Equation
 a birational coordinate conversion and extra invertibility hypotheses.  The API below follows the
 same useful separation as that API: coefficients, an affine equation, a set of affine points, and
 a bundled point type.
+
+## References
+
+See [Bernstein2008a], Section 2, Definition 2.1 .
 -/
 
 @[expose] public section

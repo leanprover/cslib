@@ -29,6 +29,10 @@ No finite field, and no cardinality assumption.
 * `edwardsCurve_equation_iff`, `edwardsCurveEquation_iff`: unfolding lemmas for the equation.
 * `edwardsCurve_isValid_iff`: `edwardsCurve d` is a valid model iff `d ≠ 0` and `d ≠ 1`.
 * `edwardsCurveEquation_zero_one`: the neutral point `(0, 1)` lies on every Edwards curve.
+
+## References
+
+See [Bernstein2007a], Section 2.
 -/
 
 @[expose] public section
