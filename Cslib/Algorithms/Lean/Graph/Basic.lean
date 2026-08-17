@@ -29,7 +29,7 @@ A multigraph is a triple (V,E,f) where V is a vertex set, E is an edge set,
 and f is a function from an edge to an (ordered/unordered) pair of vertices.
 In particular, f is a computable function. We reuse the definitions from Mathlib as much as we can.
 
-* `Graph α β`: an undirected multigraph, extending Mathlib's `Graph α β`.
+* `Graph α β`: an undirected multigraph (abbrev for Mathlib's `Graph α β`).
 * `Digraph α β`: a directed multigraph; the directed counterpart of Mathlib's `Graph α β`.
 * `SimpleGraph α`: a simple graph with a vertex set, extending Mathlib's `SimpleGraph α`.
 * `SimpleDigraph α`: a loopless directed graph with adjacency `Adj : α → α → Prop` and a
@@ -62,15 +62,23 @@ namespace Cslib.Algorithms.Lean
 computable map from an edge label to its ends.
 
 This is Mathlib's `Graph α β` — so parallel edges and loops are permitted, and both the
-vertex and edge sets may be infinite — together with the `endpoints` field. That field is
-uniquely determined by `toGraph`, so it carries no mathematical content; it exists so that
-incidence can be evaluated rather than only reasoned about. -/
-structure Graph (α β : Type*) extends _root_.Graph α β where
-  /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of the graph. -/
+vertex and edge sets may be infinite. -/
+abbrev Graph (α β : Type*) :=  _root_.Graph α β
+
+/-- A computable map from an edge label of `G` to its ends. -/
+class Graph.HasEndpoints {α β : Type*} (G : Graph α β) where
+  /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
   endpoints : β → Option (Sym2 α)
-  /-- `endpoints` computes `Graph.IsLink`. This forces `endpoints e = none` for every
-  `e ∉ edgeSet`, since every `s : Sym2 α` is of the form `s(x, y)`. -/
-  endpoints_spec : ∀ e x y, toGraph.IsLink e x y ↔ endpoints e = some s(x, y)
+  /-- `endpoints` computes `Graph.IsLink`. -/
+  endpoints_spec : ∀ e x y, G.IsLink e x y ↔ endpoints e = some s(x, y)
+
+/-- The ends of `e` in `G`, or `none` if `e ∉ E(G)`. -/
+def Graph.endpoints? (G : Graph α β) [inst : G.HasEndpoints] (e : β) : Option (Sym2 α) :=
+  inst.endpoints e
+
+theorem isLink_iff_endpoints (G : Graph α β) [G.HasEndpoints] :
+  G.IsLink e x y ↔ G.endpoints? e = some s(x, y) :=
+  Graph.HasEndpoints.endpoints_spec e x y
 
 /-- A directed multigraph on vertex type `α` with arc labels in `β`, bundled with a
 computable map from an arc label to its endpoints.
@@ -83,18 +91,37 @@ structure Digraph (α β : Type*) where
   /-- The incidence predicate: `IsArc e x y` states that the arc labelled `e` runs from
   `x` to `y`. -/
   IsArc : β → α → α → Prop
+  /-- An arc is mapped at most once. -/
+  eq_or_eq_of_isArc_of_isArc ⦃e : β⦄ ⦃x y v w : α⦄ : IsArc e x y → IsArc e v w → x = v ∧ y = w
   /-- Both ends of every arc are vertices. `IsArc` is not symmetric, so neither direction
   follows from the other. -/
   incidence  : ∀ ⦃e x y⦄, IsArc e x y → (x ∈ vertexSet ∧ y ∈ vertexSet) := by grind
-  /-- The ends of the arc labelled `e`, or `none` if `e` is not an arc of the graph. -/
-  endpoints : β → Option (α × α)
-  /-- `endpoints` computes `IsArc`. This forces `endpoints e = none` for every
-  `e ∉ arcSet`. -/
-  endpoints_spec : ∀ e x y, IsArc e x y ↔ endpoints e = some (x, y)
   /-- The set of arc labels. -/
   arcSet : Set β := { e | ∃ x y, IsArc e x y}
   /-- A label lies in `arcSet` exactly when it is used by some arc. -/
   arc_mem_iff_exists_isArc (e) : e ∈ arcSet ↔ ∃ x y, IsArc e x y := by exact fun _ ↦ Iff.rfl
+
+/-- A computable map from an edge label of `G` to its ends. -/
+class Digraph.HasEndpoints {α β : Type*} (G : Digraph α β) where
+  /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
+  endpoints : β → Option (α × α)
+  /-- `endpoints` computes `Graph.IsLink`. -/
+  endpoints_spec : ∀ e x y, G.IsArc e x y ↔ endpoints e = some (x, y)
+
+/-- The ends of the arc `e` in `G`, or `none` if `e ∉ G.arcSet`. -/
+def Digraph.endpoints? (G : Digraph α β) [inst : G.HasEndpoints] (e : β) : Option (α × α) :=
+  inst.endpoints e
+
+/-- The tail (source) of `e`. -/
+def tail? (G : Digraph α β) [G.HasEndpoints] (e : β) : Option α :=
+  (G.endpoints? e).map Prod.fst
+
+/-- The head (target) of `e`. -/
+def head? (G : Digraph α β) [G.HasEndpoints] (e : β) : Option α :=
+  (G.endpoints? e).map Prod.snd
+
+theorem isArc_iff_endpoints? (G : Digraph α β) [G.HasEndpoints] :
+  G.IsArc e x y ↔ G.endpoints? e = some (x, y) := Digraph.HasEndpoints.endpoints_spec e x y
 
 /-- A simple graph on `α` — irreflexive and symmetric adjacency, hence no loops and no
 parallel edges — together with a vertex set containing every end of an adjacent pair.
