@@ -223,14 +223,7 @@ instance : LogicalEquivalence
 
 /-- Correspondence of equivalence and axiom validity. -/
 theorem Proposition.axiom_iff_forall_equiv (r : α → α → Prop) (φ₁ φ₂ : Proposition Atom) :
-    (Axiom r⇓(φ₁ ↔ φ₂)) ↔ ∀ v, φ₁ ≡[Equiv ⟨r, v⟩] φ₂ := by
-  apply Iff.intro <;> intro h
-  case mp =>
-    intro v w
-    exact h v w
-  case mpr =>
-    intro v w
-    exact h v w
+    (Axiom r⇓(φ₁ ↔ φ₂)) ↔ ∀ v, φ₁ ≡[Equiv ⟨r, v⟩] φ₂ := Iff.rfl
 
 open Relation in
 /-- In a transitive diamond model, possibility distributes over conjunction for propositions
