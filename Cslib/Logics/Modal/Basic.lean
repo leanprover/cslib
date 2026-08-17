@@ -390,8 +390,7 @@ theorem axiom_iff_mem_logic_modelsOfRelation (r : World → World → Prop) (φ 
     Axiom r⇓φ ↔ φ ∈ logic (modelsOfRelation r) := by
   constructor
   case mp =>
-    intro h m hm w
-    subst hm
+    rintro h m rfl w
     exact h m.v w
   case mpr => grind [Satisfies.axiom_def]
 
