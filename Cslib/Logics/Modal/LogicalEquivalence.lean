@@ -35,21 +35,12 @@ theorem Proposition.equiv_def (m : Model World Atom) (φ₁ φ₂ : Proposition 
     (φ₁.Equiv m φ₂) ↔ φ₁ ≡[Equiv m] φ₂ := by rfl
 
 @[scoped grind ⇒]
-theorem Proposition.equiv_forall_der (m : Model World Atom) (φ₁ φ₂ : Proposition Atom)
-    (h : φ₁ ≡[Equiv m] φ₂) : ∀ (w : World), ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] := by
-  intro s
-  specialize h s
-  assumption
-
-theorem Proposition.forall_der_equiv (m : Model World Atom) (φ₁ φ₂ : Proposition Atom)
-    (h : ∀ (w : World), ⇓Modal[m,w ⊨ φ₁ ↔ φ₂]) : φ₁ ≡[Equiv m] φ₂ := by
-  intro s
-  specialize h s
-  assumption
+theorem Proposition.equiv_iff_forall_der (m : Model World Atom) (φ₁ φ₂ : Proposition Atom)
+    : (φ₁ ≡[Equiv m] φ₂) ↔ ∀ (w : World), ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] := by rfl
 
 @[scoped grind ⇒]
-theorem Proposition.equiv_iff {m : Model World Atom} {φ₁ φ₂ : Proposition Atom}
-    (h : φ₁ ≡[Equiv m] φ₂) (w : World) : ⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂] := by
+theorem Proposition.equiv_iff_forall_iff {m : Model World Atom} {φ₁ φ₂ : Proposition Atom} :
+    (φ₁ ≡[Equiv m] φ₂) ↔ ∀ (w : World), ⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂] := by
   grind [=_ Satisfies.iff_iff_iff]
 
 /-- A class of models, defined as a set. -/
@@ -233,12 +224,11 @@ theorem Proposition.diamond_and_equiv_of_preserves {m : Model World Atom} [IsTra
     {φ₁ φ₂ : Proposition Atom} (hd : Diamond m.r) (h₁ : Preserves m.r (⇓Modal[m,· ⊨ φ₁]))
     (h₂ : Preserves m.r (⇓Modal[m,· ⊨ φ₂])) :
     ◇(φ₁ ∧ φ₂) ≡[Equiv m] (◇φ₁ ∧ ◇φ₂) := by
+  rw [equiv_iff_forall_iff]
   intro a
-  rw [Satisfies.iff_iff_iff]
-  apply Iff.intro
+  constructor
   case mp => grind
   case mpr =>
-    rw [Satisfies.and_iff_and, Satisfies.diamond_iff_exists]
     rintro ⟨⟨b, hab, hb⟩, ⟨c, hac, hc⟩⟩
     rcases hd hab hac with ⟨d, hbd, hcd⟩
     use d, IsTrans.trans _ _ _ hab hbd
@@ -247,9 +237,9 @@ theorem Proposition.diamond_and_equiv_of_preserves {m : Model World Atom} [IsTra
 /-- In a reflexive and transitive model, diamond absorbs itself (idempotency). -/
 theorem Proposition.diamond_diamond_equiv {m : Model World Atom} [Std.Refl m.r] [IsTrans World m.r]
     (φ : Proposition Atom) : ◇◇φ ≡[Equiv m] ◇φ := by
+  rw [equiv_iff_forall_iff]
   intro w
-  rw [Satisfies.iff_iff_iff]
-  apply Iff.intro <;> rw [← Satisfies.imp_iff_imp]
+  constructor <;> rw [← Satisfies.imp_iff_imp]
   · grind [Satisfies.four]
   · grind [Satisfies.t]
 
