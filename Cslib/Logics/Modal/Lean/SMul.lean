@@ -54,17 +54,16 @@ instance [Group G] [MulAction G α] : Std.Symm (ofSMul G α) where
 instance [SMul M α] [Nonempty M] : Serial (ofSMul M α) where
   serial x := ⟨Classical.arbitrary M • x, Classical.arbitrary M, rfl⟩
 
-/-- The relation induced by a semigroup action of a commutative semigroup has the diamond property.
--/
+/-- TODO: upstream this generalisation of Mathlib's `smulCommClass_self`, which applies only to
+monoids `M`. -/
+instance {M α} [CommSemigroup M] [SemigroupAction M α] : SMulCommClass M M α where
+  smul_comm m n a := by rw [←mul_smul, mul_comm, mul_smul]
+
+/-- The relation induced by an action commuting with itself has the diamond property. -/
 @[scoped grind .]
-theorem ofSMul_diamond [CommSemigroup M] [SemigroupAction M α] : Diamond (ofSMul M α) := by
-  intro x y z hxy hxz
-  rcases hxy with ⟨m, rfl⟩
-  rcases hxz with ⟨n, rfl⟩
-  refine ⟨n • (m • x), ?_, ?_⟩
-  · use n
-  · use m
-    grind only [=_ mul_smul]
+theorem ofSMul_diamond [SMul M α] [SMulCommClass M M α] : Diamond (ofSMul M α) := by
+  rintro x _ _ ⟨m, rfl⟩ ⟨n, rfl⟩
+  use! n • m • x, n, m, smul_comm ..
 
 /-- Preservation by an action-induced relation is exactly closure under the action. -/
 @[scoped grind =]
