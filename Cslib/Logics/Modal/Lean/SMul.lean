@@ -43,6 +43,16 @@ instance [Semigroup M] [SemigroupAction M α] : IsTrans α (ofSMul M α) where
     rcases hyz with ⟨n, rfl⟩
     use n * m
     rw [mul_smul]
+/-- The relation induced by a group action is symmetric. -/
+instance [Group G] [MulAction G α] : Std.Symm (ofSMul G α) where
+  symm := by
+    rintro x _ ⟨g, rfl⟩
+    use g⁻¹
+    simp
+
+/-- The relation induced by an action of a nonempty type is serial. -/
+instance [SMul M α] [Nonempty M] : Serial (ofSMul M α) where
+  serial x := ⟨Classical.arbitrary M • x, Classical.arbitrary M, rfl⟩
 
 /-- The relation induced by a semigroup action of a commutative semigroup has the diamond property.
 -/
