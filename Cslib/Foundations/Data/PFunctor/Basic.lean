@@ -11,15 +11,13 @@ public import Mathlib.Data.PFunctor.Univariate.Basic
 /-!
 # Polynomial Functors
 
-This file defines additional constructions on `PFunctor` that don't belong in core mathlib.
-The main definition is `monomial A B` for the `PFunctor` with constant family `B` over `A`,
-with special cases `const`, `linear`, `selfMonomial`, `purePower`, the indeterminate `X`,
-and canonical choices of `0` and `1`.
+Definitions of common `PFunctor` constructions:
+- `monomial A B`: constant direction `B` for any shape `a : A`
+- `P + Q`: shapes are a disjoint sum, directions are define by sum elimination on `a : P.A ⊕ Q.A`
+- `P * Q`: shapes are pairs of underlying shapes, directions are a disjoint sum over both shapes.
 
-We also define the sum `P + Q`, whose shapes are a sum of the shapes of `P` and `Q`,
-with a type family defined by sum elimination into the individual child types,
-and the product `P * Q`, whose shapes are pairs of shapes,
-with a type family defined by sums of the individual child types.
+Special cases `const`, `linear`, `selfMonomial`, `purePower`, the indeterminate `X`,
+and canonical choices of `0` and `1` are defined as `abbrev` over `monomial`.
 -/
 
 @[expose] public section
@@ -121,6 +119,7 @@ instance instHAddPFunctor :
     HAdd PFunctor.{uA₁, uB} PFunctor.{uA₂, uB} PFunctor.{max uA₁ uA₂, uB} where
   hAdd := add
 
+/-- Normalize addition of `PFunctor`s to avoid `simp` mismatches between the notations. -/
 @[simp] lemma add_def (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
     P + Q = P.add Q := rfl
 
@@ -141,6 +140,7 @@ instance instHMulPFunctor :
     HMul PFunctor.{uA₁, uB₁} PFunctor.{uA₂, uB₂} PFunctor.{max uA₁ uA₂, max uB₁ uB₂} where
   hMul := prod
 
+/-- Normalize multiplication of `PFunctor`s to avoid `simp` mismatches between the notations. -/
 @[simp] lemma mul_def (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) :
     P * Q = P.prod Q := rfl
 
