@@ -127,7 +127,8 @@ structure SimpleDigraph (V : Type*) extends _root_.Digraph V where
   irrefl_adj : Std.Irrefl Adj
   /-- Both ends of every adjacent pair are vertices. Unlike `SimpleGraph`, `Adj` is not
   symmetric, so neither direction follows from the other. -/
-  incidence : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
+  adj_imp_left_mem_vertexSet : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet := by grind
+  adj_imp_right_mem_vertexSet : ∀ ⦃x y⦄, Adj x y → y ∈ vertexSet := by grind
 
 /-- The edge set of a `SimpleDigraph`, as ordered pairs of adjacent vertices. -/
 def SimpleDigraph.edgeSet (G : SimpleDigraph V) : Set (V × V) :=
