@@ -46,7 +46,7 @@ In particular, f is a computable function. We reuse the definitions from Mathlib
 
 ## Implementation notes
 
-`IsLink` and `IsArc` are `Prop`-valued, so nothing about them is executable. To recover
+`IsLink` and `IsLink` are `Prop`-valued, so nothing about them is executable. To recover
 computation, `Graph` and `Digraph` each carry an `endpoints : E → Option _` field together
 with `endpoints_spec`. That specification pins the value of `endpoints` at *every* label —
 `some` on the edge set, and `none` off it, since every `s : Sym2 V` is of the form
@@ -86,20 +86,21 @@ extend; the field layout mirrors it, with symmetry dropped. -/
 structure MultiDigraph (V E : Type*) where
   /-- The set of vertices. -/
   vertexSet : Set V
-  /-- The incidence predicate: `IsArc e x y` states that the arc labelled `e` runs from
+  /-- The incidence predicate: `IsLink e x y` states that the arc labelled `e` runs from
   `x` to `y`. -/
   IsLink : E → V → V → Prop
   /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
-  endpoints : E → Option (V × V)
+  endpoints : E →. (V × V)
   /-- `endpoints` computes `Graph.IsLink`. -/
   endpoints_spec : ∀ e x y, IsLink e x y ↔ (x, y) ∈ endpoints e
-  /-- Both ends of every arc are vertices. `IsArc` is not symmetric, so neither direction
+  /-- Both ends of every arc are vertices. `IsLink` is not symmetric, so neither direction
   follows from the other. -/
-  incidence : ∀ ⦃e x y⦄, IsLink e x y → (x ∈ vertexSet ∧ y ∈ vertexSet) := by grind
+  isLink_imp_left_mem_vertexSet : ∀ ⦃e x y⦄, IsLink e x y → x ∈ vertexSet := by grind
+  isLink_imp_right_mem_vertexSet : ∀ ⦃e x y⦄, IsLink e x y → y ∈ vertexSet := by grind
   /-- The set of edge labels. -/
   edgeSet : Set E := { e | ∃ x y, IsLink e x y}
   /-- A label lies in `edgeSet` exactly when it is used by some arc. -/
-  arc_mem_iff_exists_isArc (e) : e ∈ edgeSet ↔ ∃ x y, IsLink e x y := by exact fun _ ↦ Iff.rfl
+  arc_mem_iff_exists_IsLink (e) : e ∈ edgeSet ↔ ∃ x y, IsLink e x y := by exact fun _ ↦ Iff.rfl
 
 /-- A simple graph on `V` — irreflexive and symmetric adjacency, hence no loops and no
 parallel edges — together with a vertex set containing every end of an adjacent pair.
