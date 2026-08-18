@@ -75,7 +75,7 @@ private theorem bind_apply_toReal [Fintype α] (p : PMF α)
   rw [PMF.bind_apply, tsum_fintype,
     ENNReal.toReal_sum fun a _ =>
       ENNReal.mul_ne_top (p.apply_ne_top a) ((kernel a).apply_ne_top b)]
-  simp only [ENNReal.toReal_mul]
+  simp
 
 /-- Statistical distance makes the PMFs on a finite type a metric space
 ([BonehShoup2023], Definition 3.5). -/

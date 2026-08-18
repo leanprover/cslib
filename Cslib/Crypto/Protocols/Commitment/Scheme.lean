@@ -79,14 +79,14 @@ def Accepts (scheme : Scheme Message Commitment Opening) (message : Message)
     (commitment : Commitment) (opening : Opening) : Prop :=
   scheme.verify message commitment opening = true
 
-/-- Every pair in the support of honest commitment is accepted. -/
+/-- Every pair in the support of an honest commitment is accepted. -/
 theorem accepts_of_mem_support (scheme : Scheme Message Commitment Opening)
     {message : Message} {commitment : Commitment} {opening : Opening}
     (h : (commitment, opening) ∈ (scheme.commit message).support) :
     scheme.Accepts message commitment opening :=
   scheme.correct message commitment opening h
 
-/-- Build a commitment scheme from deterministic commitment generation. -/
+/-- Build a commitment scheme from a deterministic commitment generation. -/
 noncomputable def ofPure (commit : Message → Commitment × Opening)
     (verify : Message → Commitment → Opening → Bool)
     (correct : ∀ message, verify message (commit message).1 (commit message).2 = true) :
