@@ -20,7 +20,7 @@ Vertex and edge sets are `Set`-valued, following the design of
 `Mathlib.Combinatorics.Graph`: a subgraph of `G : Graph V E` is another term of
 `Graph V E` rather than a separate type, so no coercion maps are needed.
 
-Four structures are provided, in two pairs. `Graph` and `Digraph` are multigraphs whose
+Four structures are provided, in two pairs. `MultiGraph` and `MultiDigraph` are multigraphs whose
 edges carry labels in `E`, so parallel edges and loops are permitted. `SimpleGraph` and
 `SimpleDigraph` have `Prop`-valued adjacency and therefore disallowing parallel edges.
 
@@ -39,18 +39,18 @@ In particular, f is a computable function. We reuse the definitions from Mathlib
 
 ## Main API
 
-* `Graph.endpoints`, `Digraph.endpoints`: the ends of an edge.
+* `MultiGraph.endpoints`, `MultiDigraph.endpoints`: the ends of an edge.
 * `SimpleDigraph.edgeSet`: the edge set of a `SimpleDigraph`, derived from its adjacency
   relation. The corresponding `SimpleGraph.edgeSet` is inherited from Mathlib rather than
   redefined here.
 
 ## Implementation notes
 
-`IsLink` and `IsLink` are `Prop`-valued, so nothing about them is executable. To recover
-computation, `Graph` and `Digraph` each carry an `endpoints : E → Option _` field together
+`IsLink` are `Prop`-valued, so nothing about them is executable. To recover
+computation, `MultiGraph` and `Digraph` each carry an `endpoints : E →. _` field together
 with `endpoints_spec`. That specification pins the value of `endpoints` at *every* label —
-`some` on the edge set, and `none` off it, since every `s : Sym2 V` is of the form
-`s(x, y)`.
+`some` on the edge set, and `none` otherwise.
+
 -/
 
 @[expose] public section
@@ -91,7 +91,7 @@ structure MultiDigraph (V E : Type*) where
   IsLink : E → V → V → Prop
   /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
   endpoints : E →. (V × V)
-  /-- `endpoints` computes `Graph.IsLink`. -/
+  /-- `endpoints` computes `IsLink`. -/
   endpoints_spec : ∀ e x y, IsLink e x y ↔ (x, y) ∈ endpoints e
   /-- Both ends of every edge are vertices. `IsLink` is not symmetric, so neither direction
   follows from the other. -/
