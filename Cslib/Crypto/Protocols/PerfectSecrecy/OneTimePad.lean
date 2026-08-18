@@ -48,17 +48,15 @@ noncomputable def otp (l : ℕ) :
 message: masking with a uniform key is the permutation `Equiv.xor` of the
 uniform distribution. -/
 theorem otp_ciphertextDist_eq_uniform (l : ℕ) (m : BitVec l) :
-    (PMF.uniformOfFintype (BitVec l)).bind (fun k => PMF.pure (k ^^^ m)) =
-      PMF.uniformOfFintype (BitVec l) := by
+    (otp l).ciphertextDist m = PMF.uniformOfFintype (BitVec l) := by
   have h : (fun k : BitVec l => PMF.pure (k ^^^ m)) = (PMF.pure ∘ ⇑(Equiv.xor m)) :=
     congrArg (PMF.pure ∘ ·) xor_right_eq
+  change (PMF.uniformOfFintype (BitVec l)).bind (fun k => PMF.pure (k ^^^ m)) = _
   rw [h, PMF.bind_pure_comp, uniformOfFintype_map_equiv]
 
 /-- The one-time pad is perfectly secret ([KatzLindell2020], Theorem 2.10). -/
 theorem otp_perfectlySecret (l : ℕ) : (otp l).PerfectlySecret :=
-  (EncScheme.perfectlySecret_iff_ciphertextIndist _).mpr fun m₀ m₁ => by
-    simp only [EncScheme.ciphertextDist, otp]
-    exact (otp_ciphertextDist_eq_uniform l m₀).trans
-      (otp_ciphertextDist_eq_uniform l m₁).symm
+  (EncScheme.perfectlySecret_iff_ciphertextIndist _).mpr fun m₀ m₁ =>
+    (otp_ciphertextDist_eq_uniform l m₀).trans (otp_ciphertextDist_eq_uniform l m₁).symm
 
 end Cslib.Crypto.Protocols.PerfectSecrecy

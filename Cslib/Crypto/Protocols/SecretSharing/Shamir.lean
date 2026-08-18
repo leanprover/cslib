@@ -111,13 +111,7 @@ noncomputable def reconstruct (params : Params F Party)
 
 /-- A sampler on Shamir tail coefficients is privacy-compatible when its
 distribution is invariant under translation by any coefficient vector. This is
-the exact symmetry needed in the privacy proof.
-
-The requirement is strong: translation invariance forces the distribution. On
-a finite field the uniform sampler is the only inhabitant; over an infinite
-field no sampler exists once `params.threshold ≥ 1`, and for threshold `0` the
-randomness type is a singleton. The structure isolates the symmetry the
-privacy proof consumes rather than describing a genuine design space. -/
+the exact symmetry needed in the privacy proof. -/
 structure TailSampler (params : Params F Party) where
   /-- The underlying coefficient distribution. -/
   gen : PMF (Randomness params)

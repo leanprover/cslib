@@ -73,16 +73,13 @@ theorem perfectlySecret_iff_indep (scheme : EncScheme M K C) :
     rw [h msgDist m c, ENNReal.mul_div_cancel_right
       ((PMF.mem_support_iff _ _).mp hc) (PMF.apply_ne_top _ c)]
 
-private theorem perfectlySecret_of_ciphertextIndist (scheme : EncScheme M K C)
-    (h : scheme.CiphertextIndist) :
-    scheme.PerfectlySecret :=
-  fun msgDist c hc =>
-    posteriorDist_eq_prior_of_outputIndist msgDist scheme.ciphertextDist h c hc
-
-private theorem ciphertextIndist_of_perfectlySecret (scheme : EncScheme M K C)
-    (h : scheme.PerfectlySecret) :
-    scheme.CiphertextIndist := by
+/-- A scheme is perfectly secret iff the ciphertext distribution is
+independent of the plaintext ([KatzLindell2020], Lemma 2.5). -/
+theorem perfectlySecret_iff_ciphertextIndist (scheme : EncScheme M K C) :
+    scheme.PerfectlySecret ↔ scheme.CiphertextIndist := by
   classical
+  refine ⟨fun h => ?_, fun h msgDist c hc =>
+    posteriorDist_eq_prior_of_outputIndist msgDist scheme.ciphertextDist h c hc⟩
   rw [perfectlySecret_iff_indep] at h
   intro m₀ m₁; ext c
   have hs : ({m₀, m₁} : Finset M).Nonempty := ⟨m₀, Finset.mem_insert_self ..⟩
@@ -94,13 +91,6 @@ private theorem ciphertextIndist_of_perfectlySecret (scheme : EncScheme M K C)
   have hne := (PMF.mem_support_uniformOfFinset_iff hs m).mpr hm
   have hne_top := PMF.apply_ne_top μ m
   exact (ENNReal.mul_right_inj hne hne_top).mp (by rw [← jointDist_eq]; exact h μ m c)
-
-/-- A scheme is perfectly secret iff the ciphertext distribution is
-independent of the plaintext ([KatzLindell2020], Lemma 2.5). -/
-theorem perfectlySecret_iff_ciphertextIndist (scheme : EncScheme M K C) :
-    scheme.PerfectlySecret ↔ scheme.CiphertextIndist :=
-  ⟨ciphertextIndist_of_perfectlySecret scheme,
-   perfectlySecret_of_ciphertextIndist scheme⟩
 
 /-- Ciphertext indistinguishability implies message-ciphertext independence. -/
 theorem indep_of_ciphertextIndist (scheme : EncScheme M K C)
