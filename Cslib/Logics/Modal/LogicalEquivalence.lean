@@ -133,7 +133,6 @@ instance (m : Model World Atom) : IsEquiv (Proposition Atom) (Proposition.Equiv 
   case symm =>
     grind
   case trans =>
-    intro φ₁ φ₂ φ₃ h₁ h₂ w
     grind
 
 /-- Logical equivalence within a class is an equivalence relation. -/
