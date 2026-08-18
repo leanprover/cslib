@@ -142,14 +142,11 @@ instance {World Atom} (S : ModelClass World Atom) :
   unfold Proposition.EquivWithin
   constructor
   case refl =>
-    intro φ m hm w
     grind [Proposition.Equiv]
   case symm =>
-    intro φ₁ φ₂ h m hm w
-    grind [h m hm w]
+    grind
   case trans =>
-    intro φ₁ φ₂ φ₃ h₁ h₂ m hm w
-    grind [h₁ m hm w, h₂ m hm w]
+    grind
 
 /-- Logical equivalence is a congruence. -/
 instance (m : Model World Atom) : LawfulCongruence (Proposition.Equiv m) where
