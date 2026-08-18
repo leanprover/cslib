@@ -114,7 +114,7 @@ Lemma for `var_sub` -/
           Nat.add_le_add_iff_right, Nat.add_one_sub_one]
       | inr h =>
           have : ¬(l + 1 ≤ k) := by omega
-          simp only [if_neg h, if_neg this]
+          simp only [ite_eq_right h, ite_eq_right this]
   | abs t ih => simp_all only [incre, decre]
   | app t u iht ihu => simp_all only [incre, decre]
 
@@ -148,7 +148,7 @@ his idea of generalizing proper variable. -/
           simp_all only [incre, ↓reduceIte,
             le_trans h (Nat.le_add_right k j), var.injEq]
           simp_all only [Nat.add_comm, Nat.add_left_comm]
-      | inr h => simp_all only [not_le, incre, if_neg h]
+      | inr h => simp_all only [not_le, incre, ite_eq_right h]
   | abs t' ih => simp_all only [incre]
   | app t₁ t₂ ih₁ ih₂ => simp_all only [incre]
 
@@ -166,7 +166,7 @@ theorem incre_comm {i j k l t} :
             le_trans this (Nat.le_add_right _ _), var.injEq]
           simp only [Nat.add_comm, Nat.add_left_comm]
       | inr h =>
-          simp only [incre, if_neg h]
+          simp only [incre, ite_eq_right h]
           cases em (l ≤ n) with
           | inl h' =>
               simp_all only [not_le, ↓reduceIte, incre,
@@ -175,7 +175,7 @@ theorem incre_comm {i j k l t} :
               have : n < n := Nat.lt_of_lt_of_le h hk
               exact (Nat.lt_irrefl n this).elim
           | inr h' =>
-              simp_all only [not_le, if_neg h', incre,
+              simp_all only [not_le, ite_eq_right h', incre,
                 ite_eq_right_iff, var.injEq, Nat.add_eq_left]
               intro hk
               have hl : l ≤ n := by omega
@@ -201,7 +201,7 @@ private lemma incre_sub_var {i l n k s} :
   cases em (k = n) with
   | inl h =>
       have : ¬ (l + n + 1 ≤ n) := by omega
-      simp_all only [not_le, sub, incre, if_neg this, subst,
+      simp_all only [not_le, sub, incre, ite_eq_right this, subst,
         ↓reduceIte, decre_incre_elim]
   | inr h =>
       cases em (l + n + 1 ≤ k) with
@@ -214,7 +214,7 @@ private lemma incre_sub_var {i l n k s} :
           simp_all only [sub, incre, ↓reduceIte,
             subst, decre]
       | inr h' =>
-          simp_all only [not_le, sub, incre, if_neg h',
+          simp_all only [not_le, sub, incre, ite_eq_right h',
             subst, ↓reduceIte, decre]
           cases em (n < k) with
           | inl h'' =>
@@ -226,7 +226,7 @@ private lemma incre_sub_var {i l n k s} :
               exact (this h).elim
           | inr h'' =>
               have : ¬(n + 1 ≤ k) := by omega
-              simp_all only [not_lt, not_le, if_neg, incre,
+              simp_all only [not_lt, not_le, ite_eq_right, incre,
                 right_eq_ite_iff, var.injEq, Nat.left_eq_add]
               intro h
               have : ¬(l + n ≤ k) := by omega
@@ -254,7 +254,7 @@ private lemma subst_zero_incre {n t u} :
           simp_all only [incre, ↓reduceIte, subst, ite_eq_right_iff]
           intro; omega
       | inr h =>
-          simp_all only [not_le, incre, if_neg h,
+          simp_all only [not_le, incre, ite_eq_right h,
             subst, ite_eq_right_iff]
           intro; omega
   | abs t ih => simp_all only [incre, subst]
@@ -285,11 +285,11 @@ private lemma sub_incre_same {u r m} :
                     not_le, ↓reduceIte, subst,
                     Nat.add_right_cancel_iff, decre,
                     Nat.add_le_add_iff_right,
-                    Nat.add_one_sub_one, if_neg, incre]
+                    Nat.add_one_sub_one, ite_eq_right, incre]
               | inr hlt' =>
                   have h' : ¬(k = n + i + 1) := by omega
                   simp_all only [Nat.add_lt_add_iff_right,
-                    not_le, if_neg, subst, ↓reduceIte,
+                    not_le, ite_eq_right, subst, ↓reduceIte,
                     decre, incre, ite_eq_right_iff,
                     var.injEq]
                   intro h
@@ -341,7 +341,7 @@ private lemma sub_comm_var {k n m u s} :
               cases em (m + 1 ≤ k) with
               | inl hlt =>
                   simp_all only [not_le, sub, subst,
-                    ↓reduceIte, decre, if_neg,
+                    ↓reduceIte, decre, ite_eq_right,
                     right_eq_ite_iff, var.injEq]
                   intro h
                   have nh : ¬(n + m < k - 1) := by omega
