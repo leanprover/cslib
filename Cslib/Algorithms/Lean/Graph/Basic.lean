@@ -39,8 +39,8 @@ In particular, f is a computable function. We reuse the definitions from Mathlib
 
 ## Main API
 
-* `Graph.endpoints`, `Digraph.endpoints`: the ends of an edge or arc.
-* `SimpleDigraph.arcSet`: the arc set of a `SimpleDigraph`, derived from its adjacency
+* `Graph.endpoints`, `Digraph.endpoints`: the ends of an edge.
+* `SimpleDigraph.edgeSet`: the edge set of a `SimpleDigraph`, derived from its adjacency
   relation. The corresponding `SimpleGraph.edgeSet` is inherited from Mathlib rather than
   redefined here.
 
@@ -78,29 +78,29 @@ theorem isLink_iff_endpoints (G : MultiGraph V E) [G.HasEndpoints] :
   G.IsLink e x y ↔ s(x, y) ∈ G.endpoints e :=
   MultiGraph.HasEndpoints.endpoints_spec e x y
 
-/-- A directed multigraph on vertex type `V` with arc labels in `E`, bundled with a
-computable map from an arc label to its endpoints.
+/-- A directed multigraph on vertex type `V` with edge labels in `E`, bundled with a
+computable map from an edge label to its endpoints.
 
 The directed counterpart of Mathlib's `Graph V E`, which has no Mathlib counterpart to
 extend; the field layout mirrors it, with symmetry dropped. -/
 structure MultiDigraph (V E : Type*) where
   /-- The set of vertices. -/
   vertexSet : Set V
-  /-- The incidence predicate: `IsLink e x y` states that the arc labelled `e` runs from
+  /-- The incidence predicate: `IsLink e x y` states that the edge labelled `e` runs from
   `x` to `y`. -/
   IsLink : E → V → V → Prop
   /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
   endpoints : E →. (V × V)
   /-- `endpoints` computes `Graph.IsLink`. -/
   endpoints_spec : ∀ e x y, IsLink e x y ↔ (x, y) ∈ endpoints e
-  /-- Both ends of every arc are vertices. `IsLink` is not symmetric, so neither direction
+  /-- Both ends of every edge are vertices. `IsLink` is not symmetric, so neither direction
   follows from the other. -/
   isLink_imp_left_mem_vertexSet : ∀ ⦃e x y⦄, IsLink e x y → x ∈ vertexSet := by grind
   isLink_imp_right_mem_vertexSet : ∀ ⦃e x y⦄, IsLink e x y → y ∈ vertexSet := by grind
   /-- The set of edge labels. -/
   edgeSet : Set E := { e | ∃ x y, IsLink e x y}
-  /-- A label lies in `edgeSet` exactly when it is used by some arc. -/
-  arc_mem_iff_exists_IsLink (e) : e ∈ edgeSet ↔ ∃ x y, IsLink e x y := by exact fun _ ↦ Iff.rfl
+  /-- A label lies in `edgeSet` exactly when it is used by some edge. -/
+  edge_mem_iff_exists_IsLink (e) : e ∈ edgeSet ↔ ∃ x y, IsLink e x y := by exact fun _ ↦ Iff.rfl
 
 /-- A simple graph on `V` — irreflexive and symmetric adjacency, hence no loops and no
 parallel edges — together with a vertex set containing every end of an adjacent pair.
@@ -117,11 +117,11 @@ structure SimpleGraph (V : Type*) extends _root_.SimpleGraph V where
   adj_imp_left_mem_vertexSet : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet := by grind
 
 /-- A simple directed graph on `V` — adjacency `Adj : V → V → Prop`, hence no parallel
-arcs — with loops explicitly excluded, together with a vertex set containing every end of
+edges — with loops explicitly excluded, together with a vertex set containing every end of
 an adjacent pair.
 
 Extends Mathlib's `Digraph V`, which is a bare adjacency relation and does permit loops;
-`loopless` is what rules them out here. Antiparallel arcs are permitted: `Adj x y` and
+`loopless` is what rules them out here. Antiparallel edges are permitted: `Adj x y` and
 `Adj y x` may both hold. -/
 structure SimpleDigraph (V : Type*) extends _root_.Digraph V where
   /-- The set of vertices. -/
