@@ -111,7 +111,7 @@ structure SimpleGraph (V : Type*) extends _root_.SimpleGraph V where
   vertexSet : Set V
   /-- The left end of every adjacent pair is a vertex. The right end then follows by
   symmetry of `Adj`. -/
-  left_incidence : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet := by grind
+  adj_imp_left_mem_vertexSet : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet := by grind
 
 /-- A simple directed graph on `V` — adjacency `Adj : V → V → Prop`, hence no parallel
 arcs — with loops explicitly excluded, together with a vertex set containing every end of
