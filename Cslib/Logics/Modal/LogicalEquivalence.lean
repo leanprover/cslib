@@ -131,7 +131,6 @@ instance (m : Model World Atom) : IsEquiv (Proposition Atom) (Proposition.Equiv 
   constructor
   case refl => grind [Proposition.Equiv]
   case symm =>
-    intro φ₁ φ₂ h w
     grind
   case trans =>
     intro φ₁ φ₂ φ₃ h₁ h₂ w
