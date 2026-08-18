@@ -93,7 +93,7 @@ structure MultiDigraph (V E : Type*) where
   endpoints_spec : ∀ e x y, IsArc e x y ↔ (x, y) ∈ endpoints e
   /-- Both ends of every arc are vertices. `IsArc` is not symmetric, so neither direction
   follows from the other. -/
-  incidence  : ∀ ⦃e x y⦄, IsArc e x y → (x ∈ vertexSet ∧ y ∈ vertexSet) := by grind
+  incidence : ∀ ⦃e x y⦄, IsArc e x y → (x ∈ vertexSet ∧ y ∈ vertexSet) := by grind
   /-- The set of arc labels. -/
   arcSet : Set E := { e | ∃ x y, IsArc e x y}
   /-- A label lies in `arcSet` exactly when it is used by some arc. -/
