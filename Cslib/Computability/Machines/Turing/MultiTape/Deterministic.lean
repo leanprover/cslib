@@ -289,6 +289,26 @@ lemma configs_of_halts (cfg : Cfg k Symbol State input) (h : cfg.state = none) {
   | succ d ih =>
     rw [configs_succ_eq_step', ih, step_of_halt h]
 
+/-- Every padded halting computation has a least halting time, and the configuration there is the
+same as at the padded time. -/
+lemma exists_minimal_halting_config (tm : MultiTapeTM k Symbol State)
+    {input : List Symbol} (start : Cfg k Symbol State input) (t : ℕ)
+    (hhalt : (tm.configs start t).state = none) :
+    ∃ u ≤ t, (tm.configs start u).state = none ∧
+      (∀ m < u, (tm.configs start m).state ≠ none) ∧
+      tm.configs start u = tm.configs start t := by
+  let hex : ∃ n, (tm.configs start n).state.isNone := ⟨t, by simp [hhalt]⟩
+  let u := Nat.find hex
+  have huBool : (tm.configs start u).state.isNone := Nat.find_spec hex
+  have huHalt : (tm.configs start u).state = none := by simpa using huBool
+  have hut : u ≤ t := Nat.find_min' hex (by simp [hhalt])
+  refine ⟨u, hut, huHalt, ?_, ?_⟩
+  · intro m hm hnone
+    exact Nat.find_min hex hm (by simp [hnone])
+  · obtain ⟨d, ht⟩ := Nat.exists_eq_add_of_le hut
+    rw [ht, configs_add]
+    exact (tm.configs_of_halts _ huHalt).symm
+
 @[simp]
 lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
     tm.outputSymbol cfg = none := by
@@ -401,6 +421,20 @@ lemma outputString_eq_of_halt
   rw [outputString_add_eq_append, outputString_halt _ _ hhalt]
   simp
 
+/-- The output produced in `t` steps has length at most `t`. -/
+lemma outputString_length_le
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.outputString cfg t).length ≤ t := by
+  induction t with
+  | zero => simp [outputString]
+  | succ t ih =>
+      rw [outputString_succ]
+      have hone : (tm.outputSymbol (tm.configs cfg t)).toList.length ≤ 1 := by
+        cases tm.outputSymbol (tm.configs cfg t) <;> simp
+      simp only [List.length_append]
+      omega
+
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
 Note that this does not require the alphabet or state set to be finite. -/
@@ -411,6 +445,15 @@ def ComputesInTimeAndSpace
   (tm.configs (tm.initCfg input) t).state = none ∧
   tm.outputString (tm.initCfg input) t = output ∧
   tm.spaceUsed (tm.initCfg input) t = s
+
+/-- The output of a computation is no longer than its running time. -/
+lemma output_length_le_time
+    {tm : MultiTapeTM k Symbol State} {input output : List Symbol} {t s : ℕ}
+    (h : ComputesInTimeAndSpace tm input output t s) :
+    output.length ≤ t := by
+  obtain ⟨-, hout, -⟩ := h
+  rw [← hout]
+  exact outputString_length_le tm (tm.initCfg input) t
 
 /-- A proof that the Turing machine `tm` computes the function `f` such that on all inputs of
 length `n` it uses at most `t n` steps and `s n` space. It assumes an embedding function
