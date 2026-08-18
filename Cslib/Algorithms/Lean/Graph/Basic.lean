@@ -129,8 +129,8 @@ structure SimpleDigraph (V : Type*) extends _root_.Digraph V where
   symmetric, so neither direction follows from the other. -/
   incidence : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
 
-/-- The arc set of a `SimpleDigraph`, as ordered pairs of adjacent vertices. -/
-def SimpleDigraph.arcSet (G : SimpleDigraph V) : Set (V × V) :=
+/-- The edge set of a `SimpleDigraph`, as ordered pairs of adjacent vertices. -/
+def SimpleDigraph.edgeSet (G : SimpleDigraph V) : Set (V × V) :=
   {p | G.Adj p.1 p.2}
 
 
