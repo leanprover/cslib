@@ -86,9 +86,9 @@ structure MultiDigraph (V E : Type*) where
   /-- The ends of the edge labelled `e`; undefined when `e` is not an edge of `G`. -/
   endpoints : E →. (V × V)
   /-- The tail of every edge is a vertex. -/
-  left_mem_of_mem_endpoints ⦃e x y⦄ : (x, y) ∈ endpoints e → x ∈ vertexSet := by grind
+  endpoints_left_mem_vertexSet ⦃e x y⦄ : (x, y) ∈ endpoints e → x ∈ vertexSet := by grind
   /-- The head of every edge is a vertex. -/
-  right_mem_of_mem_endpoints ⦃e x y⦄ : (x, y) ∈ endpoints e → y ∈ vertexSet := by grind
+  endpoints_right_mem_vertexSet ⦃e x y⦄ : (x, y) ∈ endpoints e → y ∈ vertexSet := by grind
 
 namespace MultiDigraph
 variable {V E : Type*} {G : MultiDigraph V E} {e : E} {x y x' y' : V}
