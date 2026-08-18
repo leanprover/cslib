@@ -86,9 +86,9 @@ structure MultiDigraph (V E : Type*) where
   /-- The ends of the edge labelled `e`; undefined when `e` is not an edge of `G`. -/
   endpoints : E →. (V × V)
   /-- The tail of every edge is a vertex. -/
-  endpoints_left_mem_vertexSet ⦃e x y⦄ : (x, y) ∈ endpoints e → x ∈ vertexSet := by grind
+  left_endpoint_mem_vertexSet ⦃e x y⦄ : (x, y) ∈ endpoints e → x ∈ vertexSet := by grind
   /-- The head of every edge is a vertex. -/
-  endpoints_right_mem_vertexSet ⦃e x y⦄ : (x, y) ∈ endpoints e → y ∈ vertexSet := by grind
+  right_endpoint_mem_vertexSet ⦃e x y⦄ : (x, y) ∈ endpoints e → y ∈ vertexSet := by grind
 
 namespace MultiDigraph
 variable {V E : Type*} {G : MultiDigraph V E} {e : E} {x y x' y' : V}
@@ -114,6 +114,11 @@ lemma eq_and_eq_of_isLink_of_isLink (h : G.IsLink e x y) (h' : G.IsLink e x' y')
     x = x' ∧ y = y' :=
   have hp : (x, y) = (x', y') := Part.mem_unique h h'
   ⟨congrArg Prod.fst hp, congrArg Prod.snd hp⟩
+
+lemma isLink_imp_left_mem_vertexSet : ∀ ⦃e x y⦄, G.IsLink e x y → x ∈ G.vertexSet :=
+  fun _ _ _ a => G.left_endpoint_mem_vertexSet a
+lemma isLink_imp_right_mem_vertexSet : ∀ ⦃e x y⦄, G.IsLink e x y → y ∈ G.vertexSet :=
+  fun _ _ _ a => G.right_endpoint_mem_vertexSet a
 
 end MultiDigraph
 
