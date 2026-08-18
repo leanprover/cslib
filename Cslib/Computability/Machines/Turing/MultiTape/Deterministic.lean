@@ -289,6 +289,15 @@ lemma configs_of_halts (cfg : Cfg k Symbol State input) (h : cfg.state = none) {
   | succ d ih =>
     rw [configs_succ_eq_step', ih, step_of_halt h]
 
+/-- A property of configurations that is preserved by `step` holds throughout the computation.
+This is the general induction principle for invariants of a Turing machine run. -/
+lemma configs_invariant {p : Cfg k Symbol State input → Prop}
+    (h_step : ∀ c, p c → p (tm.step c)) {cfg : Cfg k Symbol State input} (h : p cfg) (t : ℕ) :
+    p (tm.configs cfg t) := by
+  induction t with
+  | zero => simpa using h
+  | succ t ih => simp [configs_succ_eq_step', h_step _ ih]
+
 @[simp]
 lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
     tm.outputSymbol cfg = none := by
@@ -334,6 +343,18 @@ lemma spaceUsed_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h
   unfold spaceUsed
   subst h_zero
   simp
+
+/-- Two machines whose work tape heads are at the same positions at all times up to step `t` use
+the same space. This is what makes space bounds transfer along a simulation. -/
+lemma spaceUsed_congr {State' : Type*} {tm' : MultiTapeTM k Symbol State'}
+    {cfg : Cfg k Symbol State input} {cfg' : Cfg k Symbol State' input} {t : ℕ}
+    (h : ∀ t' ≤ t, (tm'.configs cfg' t').workTapePos = (tm.configs cfg t').workTapePos) :
+    tm'.spaceUsed cfg' t = tm.spaceUsed cfg t := by
+  unfold spaceUsed spaceUsedByTape visitedByTapeHead
+  refine Finset.sum_congr rfl fun i _ => ?_
+  congr 1
+  refine Finset.image_congr fun t' ht' => ?_
+  rw [h t' (by have := Finset.mem_range.mp (Finset.mem_coe.mp ht'); omega)]
 
 /-- Each tape's space usage is bounded by the total space used. -/
 lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
@@ -390,6 +411,15 @@ lemma outputString_add_eq_append
   | succ t ih =>
     rw [show (t₁ + (t + 1)) = (t₁ + t) + 1 by omega]
     simp [outputString_succ, ih, configs, ← Function.iterate_add_apply, Nat.add_comm]
+
+/-- The output only grows over time. -/
+lemma outputString_length_mono
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) {t₁ t₂ : ℕ} (h : t₁ ≤ t₂) :
+    (tm.outputString cfg t₁).length ≤ (tm.outputString cfg t₂).length := by
+  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
+  rw [outputString_add_eq_append]
+  simp
 
 /-- The output does not change after the machine has halted. -/
 lemma outputString_eq_of_halt
