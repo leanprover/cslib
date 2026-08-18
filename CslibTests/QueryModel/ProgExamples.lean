@@ -7,7 +7,7 @@ Authors: Shreyas Srinivas
 module
 
 public import Cslib.AlgorithmsTheory.QueryModel
-public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Algebra.Ring.Defs
 
 @[expose] public section
 

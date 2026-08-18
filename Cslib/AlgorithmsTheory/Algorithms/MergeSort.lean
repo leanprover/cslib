@@ -24,7 +24,8 @@ the `SortOps` model.
 
 ## Main results
 
-- `mergeSort_eval`: `mergeSort` evaluates identically to the priva.
+- `mergeSort_eval`: `mergeSort` evaluates identically to the private reference
+  implementation `mergeSortNaive`.
 - `mergeSort_sorted` :  `mergeSort` outputs a sorted list.
 - `mergeSort_perm` : The output of `mergeSort` is a permutation of the input list
 - `mergeSort_complexity` : `mergeSort` takes at most n * ⌈log n⌉ comparisons.
@@ -100,8 +101,8 @@ private def mergeSortNaive (xs : List α) (le : α → α → Bool) : List α :=
     List.merge sortedLeft sortedRight (le · ·)
 
 private proof_wanted mergeSortNaive_eq_mergeSort
-    [LinearOrder α] (xs : List α) (le : α → α → Bool) :
-    mergeSortNaive xs le = xs.mergeSort
+    (xs : List α) (le : α → α → Bool) :
+    mergeSortNaive xs le = xs.mergeSort le
 
 private lemma mergeSortNaive_Perm (xs : List α) (le : α → α → Bool) :
   (mergeSortNaive xs le).Perm xs := by

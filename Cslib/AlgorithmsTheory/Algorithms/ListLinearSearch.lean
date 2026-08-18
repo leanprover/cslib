@@ -26,9 +26,9 @@ the `ListSearch` model.
 ## Main results
 
 - `listLinearSearch_eval`: `listLinearSearch` evaluates identically to `List.contains`.
-- `listLinearSearchM_time_complexity_upper_bound` : `linearSearch` takes at most `n`
+- `listLinearSearch_time_complexity_upper_bound` : `linearSearch` takes at most `n`
   comparison operations
-- `listLinearSearchM_time_complexity_lower_bound` : There exist lists on which `linearSearch` needs
+- `listLinearSearch_time_complexity_lower_bound` : There exist lists on which `linearSearch` needs
   `n` comparisons
 -/
 
@@ -57,15 +57,15 @@ lemma listLinearSearch_eval [BEq α] (l : List α) (x : α) :
     (listLinearSearch l x).eval ListSearch.natCost = l.contains x := by
   fun_induction l.elem x with simp_all [listLinearSearch]
 
-lemma listLinearSearchM_correct_true [BEq α] [LawfulBEq α] (l : List α)
+lemma listLinearSearch_correct_true [BEq α] [LawfulBEq α] (l : List α)
     {x : α} (x_mem_l : x ∈ l) : (listLinearSearch l x).eval ListSearch.natCost = true := by
   simp [x_mem_l]
 
-lemma listLinearSearchM_correct_false [BEq α] [LawfulBEq α] (l : List α)
+lemma listLinearSearch_correct_false [BEq α] [LawfulBEq α] (l : List α)
     {x : α} (x_mem_l : x ∉ l) : (listLinearSearch l x).eval ListSearch.natCost = false := by
   simp [x_mem_l]
 
-lemma listLinearSearchM_time_complexity_upper_bound [BEq α] (l : List α) (x : α) :
+lemma listLinearSearch_time_complexity_upper_bound [BEq α] (l : List α) (x : α) :
     (listLinearSearch l x).time ListSearch.natCost ≤ l.length := by
   fun_induction l.elem x with
   | case1 => simp [listLinearSearch]
@@ -74,7 +74,7 @@ lemma listLinearSearchM_time_complexity_upper_bound [BEq α] (l : List α) (x : 
     simp [listLinearSearch]
     lia
 
-lemma listLinearSearchM_time_complexity_lower_bound [DecidableEq α] [Nontrivial α] (n : ℕ) :
+lemma listLinearSearch_time_complexity_lower_bound [DecidableEq α] [Nontrivial α] (n : ℕ) :
     ∃ (l : List α) (x : α), l.length = n
       ∧ (listLinearSearch l x).time ListSearch.natCost = l.length := by
   obtain ⟨x, y, hneq⟩ := exists_pair_ne α
