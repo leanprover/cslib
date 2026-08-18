@@ -124,7 +124,7 @@ structure SimpleDigraph (V : Type*) extends _root_.Digraph V where
   /-- The set of vertices. -/
   vertexSet : Set V
   /-- No vertex is adjacent to itself. -/
-  loopless : Std.Irrefl Adj
+  irrefl_adj : Std.Irrefl Adj
   /-- Both ends of every adjacent pair are vertices. Unlike `SimpleGraph`, `Adj` is not
   symmetric, so neither direction follows from the other. -/
   incidence : ∀ ⦃x y⦄, Adj x y → x ∈ vertexSet ∧ y ∈ vertexSet := by grind
