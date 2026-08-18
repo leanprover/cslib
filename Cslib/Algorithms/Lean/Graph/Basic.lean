@@ -10,6 +10,8 @@ public import Cslib.Foundations.Semantics.LTS.Basic
 public import Mathlib.Combinatorics.Digraph.Basic
 public import Mathlib.Combinatorics.Graph.Basic
 public import Mathlib.Combinatorics.SimpleGraph.Basic
+public import Mathlib.Data.PFun
+
 
 /-!
 # Graph structures
@@ -61,19 +63,19 @@ This is Mathlib's `Graph V E` — so parallel edges and loops are permitted, and
 vertex and edge sets may be infinite. -/
 abbrev MultiGraph (V E : Type*) :=  _root_.Graph V E
 
-/-- A computable map from an edge label of `G` to its ends. -/
+/-- A map from an edge label of `G` to its ends. -/
 class MultiGraph.HasEndpoints {V E : Type*} (G : MultiGraph V E) where
   /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
-  endpoints : E → Option (Sym2 V)
+  endpoints : E →. (Sym2 V)
   /-- `endpoints` computes `Graph.IsLink`. -/
   endpoints_spec : ∀ e x y, G.IsLink e x y ↔ s(x, y) ∈ endpoints e
 
-/-- The ends of `e` in `G`, or `none` if `e ∉ E(G)`. -/
-def MultiGraph.endpoints? (G : MultiGraph V E) [inst : G.HasEndpoints] (e : E) : Option (Sym2 V) :=
-  inst.endpoints e
+/-- The ends of `e` in `G`; undefined when `e ∉ E(G)`. -/
+def MultiGraph.endpoints (G : MultiGraph α β) [inst : G.HasEndpoints] : β →. Sym2 α :=
+  inst.endpoints
 
 theorem isLink_iff_endpoints (G : MultiGraph V E) [G.HasEndpoints] :
-  G.IsLink e x y ↔ s(x, y) ∈ G.endpoints? e :=
+  G.IsLink e x y ↔ s(x, y) ∈ G.endpoints e :=
   MultiGraph.HasEndpoints.endpoints_spec e x y
 
 /-- A directed multigraph on vertex type `V` with arc labels in `E`, bundled with a
@@ -86,18 +88,18 @@ structure MultiDigraph (V E : Type*) where
   vertexSet : Set V
   /-- The incidence predicate: `IsArc e x y` states that the arc labelled `e` runs from
   `x` to `y`. -/
-  IsArc : E → V → V → Prop
+  IsLink : E → V → V → Prop
   /-- The ends of the edge labelled `e`, or `none` if `e` is not an edge of `G`. -/
   endpoints : E → Option (V × V)
   /-- `endpoints` computes `Graph.IsLink`. -/
-  endpoints_spec : ∀ e x y, IsArc e x y ↔ (x, y) ∈ endpoints e
+  endpoints_spec : ∀ e x y, IsLink e x y ↔ (x, y) ∈ endpoints e
   /-- Both ends of every arc are vertices. `IsArc` is not symmetric, so neither direction
   follows from the other. -/
-  incidence : ∀ ⦃e x y⦄, IsArc e x y → (x ∈ vertexSet ∧ y ∈ vertexSet) := by grind
+  incidence : ∀ ⦃e x y⦄, IsLink e x y → (x ∈ vertexSet ∧ y ∈ vertexSet) := by grind
   /-- The set of edge labels. -/
-  edgeSet : Set E := { e | ∃ x y, IsArc e x y}
-  /-- A label lies in `arcSet` exactly when it is used by some arc. -/
-  arc_mem_iff_exists_isArc (e) : e ∈ arcSet ↔ ∃ x y, IsArc e x y := by exact fun _ ↦ Iff.rfl
+  edgeSet : Set E := { e | ∃ x y, IsLink e x y}
+  /-- A label lies in `edgeSet` exactly when it is used by some arc. -/
+  arc_mem_iff_exists_isArc (e) : e ∈ edgeSet ↔ ∃ x y, IsLink e x y := by exact fun _ ↦ Iff.rfl
 
 /-- A simple graph on `V` — irreflexive and symmetric adjacency, hence no loops and no
 parallel edges — together with a vertex set containing every end of an adjacent pair.
