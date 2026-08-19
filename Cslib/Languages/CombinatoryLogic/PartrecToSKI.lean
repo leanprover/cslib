@@ -126,19 +126,14 @@ private theorem right_computes : Computes NatUnpairRight (Code.eval .right) :=
 /-- Helper: `Rec` correctly implements primitive recursion from `Code.prec`. -/
 private theorem prec_rec_correct (f g : Code) (tf tg : SKI)
     (ihf : Computes tf f.eval) (ihg : Computes tg g.eval)
-    (a₀ : ℕ) (ca : SKI) (hca : IsChurch a₀ ca) :
-    ∀ b₀ : ℕ, ∀ m : ℕ,
-    m ∈ Code.eval (f.prec g) (Nat.pair a₀ b₀) →
-    ∀ cb : SKI, IsChurch b₀ cb →
+    (a₀ : ℕ) (ca : SKI) (hca : IsChurch a₀ ca) (b₀ m : ℕ)
+    (hm : m ∈ Code.eval (f.prec g) (Nat.pair a₀ b₀)) (cb : SKI) (hcb : IsChurch b₀ cb) :
     IsChurch m (Rec ⬝ (tf ⬝ ca) ⬝ (PrecStep tg ⬝ ca) ⬝ cb) := by
-  intro b₀
-  induction b₀ with
+  induction b₀ generalizing m cb with
   | zero =>
-    intro m hm cb hcb
     rw [Code.eval_prec_zero] at hm
     exact isChurch_trans _ (rec_zero _ _ cb hcb) (ihf a₀ ca hca m hm)
   | succ k ih =>
-    intro m hm cb hcb
     rw [Code.eval_prec_succ] at hm
     obtain ⟨ih_val, hih_eq, hm_eq⟩ := Part.mem_bind_iff.mp hm
     -- By IH, Rec computes the intermediate value on Pred ⬝ cb
