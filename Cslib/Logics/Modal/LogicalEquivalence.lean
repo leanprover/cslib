@@ -46,24 +46,6 @@ theorem Proposition.equiv_iff_forall_iff {m : Model World Atom} {φ₁ φ₂ : P
 /-- A class of models, defined as a set. -/
 abbrev ModelClass World Atom := Set (Model World Atom)
 
-/-- Every class of models induces an inference system tag for reasoning within that class. -/
-inductive Within (S : ModelClass World Atom)
-
-instance (S : ModelClass World Atom) : InferenceSystem (Within S) (Judgement World Atom) where
-  derivation j := j.m ∈ S → ⇓j
-
-@[scoped grind =_]
-theorem derivation_within_def {S : ModelClass World Atom} {m : Model World Atom} :
-    (m ∈ S → ⇓Modal[m, w ⊨ φ]) = Within S⇓Modal[m,w ⊨ φ] := rfl
-
-@[scoped grind .]
-theorem Satisfies.within_subset {S₁ S₂ : ModelClass World Atom} {m : Model World Atom}
-    (hs : S₂ ⊆ S₁) (h : Within S₁⇓Modal[m,w ⊨ φ]) : Within S₂⇓Modal[m, w ⊨ φ] := by grind
-
-@[scoped grind =]
-theorem Satisfies.within_univ {m : Model World Atom} :
-    Within (Set.univ (α := Model World Atom))⇓Modal[m,w ⊨ φ] = ⇓Modal[m, w ⊨ φ] := by grind
-
 /-- The modal propositions `φ₁` and `φ₂` are equivalent in the model class `S`. -/
 def Proposition.EquivWithin (S : ModelClass World Atom) (φ₁ φ₂ : Proposition Atom) :=
   ∀ m ∈ S, φ₁ ≡[Equiv m] φ₂
@@ -77,21 +59,6 @@ theorem Proposition.equivWithin_def (S : ModelClass World Atom) (φ₁ φ₂ : P
 @[scoped grind ⇒]
 theorem Proposition.equiv_of_EquivWithin {S : ModelClass World Atom} (h : φ₁ ≡[EquivWithin S] φ₂)
     (m : Model World Atom) (hm : m ∈ S) : φ₁ ≡[Equiv m] φ₂ := h m hm
-
-theorem Proposition.equivWithin_forall_der (S : ModelClass World Atom) (φ₁ φ₂ : Proposition Atom)
-    (h : φ₁ ≡[EquivWithin S] φ₂) : ∀ m ∈ S, ∀ (w : World), Within S⇓Modal[m,w ⊨ φ₁ ↔ φ₂] := by
-  intro m
-  grind [h m]
-
-theorem Proposition.forall_der_equivWithin (S : ModelClass World Atom) (φ₁ φ₂ : Proposition Atom)
-    (h : ∀ m ∈ S, ∀ (w : World), Within S⇓Modal[m,w ⊨ φ₁ ↔ φ₂]) : φ₁ ≡[EquivWithin S] φ₂ := by
-  intro m hm w
-  grind [h m hm]
-
-theorem Proposition.equivWithin_iff (S : ModelClass World Atom) (φ₁ φ₂ : Proposition Atom)
-    (h : φ₁ ≡[EquivWithin S] φ₂) (m : Model World Atom) (hm : m ∈ S) (w : World) :
-    Within S⇓Modal[m,w ⊨ φ₁] ↔ Within S⇓Modal[m,w ⊨ φ₂] := by
-  grind [h _ hm w]
 
 /-- Logical equivalence preserves validity. -/
 theorem Proposition.equivWithin_valid (S : ModelClass World Atom)
@@ -188,15 +155,6 @@ lemma Satisfies.Context.fill_def {c : Satisfies.Context World Atom} :
     Modal[c.m,c.w ⊨ φ] = c<[φ] := rfl
 
 open scoped Satisfies.Context
-
-/-- Logical equivalence for Modal Logic within a class of models `S`. -/
-instance (S : ModelClass World Atom) : LogicalEquivalence
-    (α := Proposition Atom)
-    (Judgement := Judgement World Atom) (Within S)
-    (Proposition.EquivWithin S) where
-  eqvFillValid heqv c h := by
-    specialize heqv c.m
-    grind [=_ Satisfies.Context.fill_def]
 
 /-- Logical equivalence for Modal Logic K. That is, no assumptions on models are made. -/
 instance : LogicalEquivalence

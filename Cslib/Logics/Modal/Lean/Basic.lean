@@ -57,7 +57,7 @@ open scoped InferenceSystem Satisfies
 /-- Under `Model.ofPredicates r`, an atomic proposition `P` holds at `a` iff `P a`. -/
 @[scoped grind =]
 theorem Satisfies.ofPredicates_atom_iff {P : α → Prop} (r : α → α → Prop) :
-    ⇓Modal[ofPredicates r, a ⊨ P] ↔ P a := by grind [=_ derivation_def]
+    ⇓Modal[ofPredicates r, a ⊨ P] ↔ P a := by grind
 
 /-- Under `Model.ofPredicates r`, `P → □P` is an axiom iff `r` preserves `P`. -/
 @[scoped grind ⇒]
@@ -107,6 +107,6 @@ membership in both containers, then atomic infimum is logically equivalent to mo
 theorem Proposition.ofContainers_inf_equiv [Membership α β] [Min β] (r : α → α → Prop) (p q : β)
     (h : ∀ x, x ∈ p ⊓ q ↔ x ∈ p ∧ x ∈ q) :
     (↑(p ⊓ q) : Proposition β) ≡[Equiv.OfContainers r] (p ∧ q) := by
-  grind [=_ derivation_def]
+  grind
 
 end Cslib.Logic.Modal

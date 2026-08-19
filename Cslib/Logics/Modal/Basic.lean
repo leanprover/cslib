@@ -130,6 +130,9 @@ open scoped InferenceSystem Proposition
 theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom} :
   Satisfies m w φ = ⇓Modal[m,w ⊨ φ] := rfl
 
+@[simp, scoped grind =]
+theorem Satisfies.atom_iff {a : Atom} : ⇓Modal[m,w ⊨ a] ↔ m.v w a := by rfl
+
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =]
 theorem Satisfies.not_iff_not : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by rfl
@@ -257,7 +260,7 @@ theorem Satisfies.t_refl (r : World → World → Prop) [Nonempty Atom]
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w
     let h' := h (v := v) (w := w) (φ := a)
-    grind [=_ derivation_def]
+    grind
 
 /-- In any reflexive model, `□φ → φ` is equivalent to `φ → ◇φ`. -/
 theorem Satisfies.t_box_diamond [Std.Refl m.r] : ⇓Modal[m,w ⊨ □φ → φ] ↔ ⇓Modal[m,w ⊨ φ → ◇φ] := by
@@ -269,7 +272,7 @@ theorem Satisfies.b (r : World → World → Prop) [Std.Symm r] (φ : Propositio
     Axiom r⇓(φ → □◇φ) := by
   intro _ w
   have := Std.Symm.symm (r := r) w
-  grind [=_ derivation_def]
+  grind
 
 /-- Any model that admits the axiom B is symmetric. -/
 theorem Satisfies.b_symm (r : World → World → Prop) [Nonempty Atom]
@@ -279,7 +282,7 @@ theorem Satisfies.b_symm (r : World → World → Prop) [Nonempty Atom]
     let v₁ := fun (w' : World) (a : Atom) => w' = w₁
     let h₁ := h (v := v₁) (w := w₁) (φ := a)
     simp [imp_iff_imp] at h₁
-    grind [=_ derivation_def]
+    grind
 
 /-- The 4 axiom, valid for all transitive models. -/
 theorem Satisfies.four (r : World → World → Prop) [IsTrans World r]
@@ -297,7 +300,7 @@ theorem Satisfies.four_trans (r : World → World → Prop) [Nonempty Atom]
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w₃
     let h' := h (v := v) (w := w₁) (φ := a)
-    grind [=_ derivation_def]
+    grind
 
 /-- The 5 axiom, valid for all Euclidean models. -/
 theorem Satisfies.five (r : World → World → Prop) [Relation.RightEuclidean r]
@@ -313,7 +316,7 @@ theorem Satisfies.five_rightEuclidean (r : World → World → Prop) [Nonempty A
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (a : Atom) => w' = w₃
     let h' := h (v := v) (w := w₁) (φ := a)
-    grind [=_ derivation_def]
+    grind
 
 /-- The D axiom, valid for all serial models. -/
 theorem Satisfies.d (r : World → World → Prop) [Relation.Serial r] (φ : Proposition Atom) :
@@ -363,7 +366,7 @@ theorem Satisfies.pointTwo_diamond (r : World → World → Prop) [Nonempty Atom
     (h : ∀ φ : Proposition Atom, Axiom r⇓(◇□φ → □◇φ)) : Diamond r := by
   intro w w₁ w₂ hww₁ hww₂
   specialize h (Classical.arbitrary Atom) (fun w' _ => r w₁ w') w
-  grind [Join, =_ derivation_def]
+  grind [Join]
 
 /-- A proposition is valid in a class of models `S` (modelled as a set) if it is satisfied under
 all models in `S` for all worlds. -/
