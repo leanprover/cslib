@@ -29,7 +29,8 @@ The multi-tape Turing machine uses a read-only input tape, `k` work tapes and a 
 tape.
 The input head can move freely on the input, but any move attempt beyond one cell outside the input
 results in no movement.
-The transition function can optionally output one symbol, which models the write-only output tape.
+The transition function can optionally output one symbol, which is appended to the output tape held
+in the configuration, so the output of a run can be read off its final configuration.
 Because of these restrictions, we ignore the input and output tapes for space usage of the machine.
 The space usage is defined as the total number of cells the work tape heads visited during
 execution.
@@ -67,7 +68,8 @@ the sub-linear space modifications from chapter 2.5 with the following changes:
 We define a number of structures and concepts related to multi-tape Turing machine computation:
 
 * `MultiTapeTM`: the TM itself
-* `Cfg`: the configuration of a TM: the internal state, the work tape contents and head positions
+* `Cfg`: the configuration of a TM: the internal state, the work tape contents and head positions,
+    and the output tape
 * `spaceUsed`: the number of work tape cells touched by the heads until a certain step
 * `TransitionRelation`: the transition relation from one configuration to the next
 * `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
@@ -158,6 +160,8 @@ structure Cfg (k : ℕ) (Symbol State : Type*) (input : List Symbol) where
   workTapes : Fin k → ℤ → Option Symbol
   /-- the positions of the heads on the work tapes -/
   workTapePos : Fin k → ℤ
+  /-- the contents of the write-only output tape -/
+  output : List Symbol
 deriving Inhabited
 
 /-- Attempt to move the input tape head.
@@ -230,7 +234,7 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   -- in the halting state, we stay at the configuration
   | none => cfg
   | some q =>
-    let {inputMove, workActions, q', ..} := tm.tr q cfg.inputSymbol cfg.workTapeSymbols
+    let {inputMove, workActions, q', outS, ..} := tm.tr q cfg.inputSymbol cfg.workTapeSymbols
     {
       state := q',
       inputPos := moveInputPos cfg.inputPos inputMove,
@@ -238,6 +242,7 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
         | none => cfg.workTapes i
         | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s
       workTapePos i := (cfg.workTapePos i) + (workActions i).2
+      output := cfg.output ++ outS.toList
     }
 
 /-- The symbol (optionally) output when executing one step starting from configuration `cfg`. -/
@@ -249,7 +254,7 @@ def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
 def initCfg (input : List Symbol) : Cfg k Symbol State input :=
-  ⟨some tm.q₀, 1, fun _ _ => none, fun _ => 0⟩
+  ⟨some tm.q₀, 1, fun _ _ => none, fun _ => 0, []⟩
 
 @[simp]
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
@@ -352,54 +357,21 @@ which maps a configuration to its next configuration.
 @[scoped grind =]
 def TransitionRelation (c₁ c₂ : Cfg k Symbol State input) : Prop := tm.step c₁ = c₂
 
-/-- The string output by the Turing machine `tm` starting in configuration `cfg₀`, executing for
-`t` steps. It is the concatenation of the symbols (optionally) emitted at each of the first `t`
-steps. -/
-def outputString
-    (tm : MultiTapeTM k Symbol State)
-    (cfg₀ : Cfg k Symbol State input) (t : ℕ) : List Symbol :=
-  (List.range t).flatMap fun t' => (tm.outputSymbol (tm.configs cfg₀ t')).toList
-
-/-- The output produced in `t + 1` steps is the output produced in `t` steps followed by the symbol
-(optionally) emitted at step `t`. -/
-lemma outputString_succ
-    (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.outputString cfg (t + 1) =
-      tm.outputString cfg t ++ (tm.outputSymbol (tm.configs cfg t)).toList := by
-  simp [outputString, List.range_succ, List.flatMap_append]
-
-/-- From a halting configuration, a TM does not output anything. -/
-lemma outputString_halt
-    (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input)
-    (h_halt : cfg.state = none)
-    (t : ℕ) :
-    tm.outputString cfg t = [] := by
-  induction t with
-  | zero => simp [outputString]
-  | succ t ih => simp [outputString_succ, ih, h_halt]
-
-lemma outputString_add_eq_append
-    (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input) (t₁ t₂ : ℕ) :
-    tm.outputString cfg (t₁ + t₂) =
-      tm.outputString cfg t₁ ++ tm.outputString (tm.configs cfg t₁) t₂ := by
-  induction t₂ with
-  | zero => simp [outputString]
-  | succ t ih =>
-    rw [show (t₁ + (t + 1)) = (t₁ + t) + 1 by omega]
-    simp [outputString_succ, ih, configs, ← Function.iterate_add_apply, Nat.add_comm]
+/-- One step appends the symbol (optionally) emitted by that step to the output tape. -/
+@[simp]
+lemma step_output (cfg : Cfg k Symbol State input) :
+    (tm.step cfg).output = cfg.output ++ (tm.outputSymbol cfg).toList := by
+  unfold step outputSymbol
+  cases cfg.state <;> simp
 
 /-- The output does not change after the machine has halted. -/
-lemma outputString_eq_of_halt
+lemma output_configs_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.configs cfg τ).state = none) :
-    tm.outputString cfg t = tm.outputString cfg τ := by
+    (tm.configs cfg t).output = (tm.configs cfg τ).output := by
   conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
-  rw [outputString_add_eq_append, outputString_halt _ _ hhalt]
-  simp
+  rw [configs_add, configs_of_halts _ hhalt]
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
@@ -409,7 +381,7 @@ def ComputesInTimeAndSpace
     (input output : List Symbol)
     (t s : ℕ) : Prop :=
   (tm.configs (tm.initCfg input) t).state = none ∧
-  tm.outputString (tm.initCfg input) t = output ∧
+  (tm.configs (tm.initCfg input) t).output = output ∧
   tm.spaceUsed (tm.initCfg input) t = s
 
 /-- A proof that the Turing machine `tm` computes the function `f` such that on all inputs of
