@@ -18,11 +18,11 @@ sense of `SKI.Computes` (from `Cslib.Languages.CombinatoryLogic.Computable`).
 
 ## Main definitions
 
-- `codeToSKINat`: translates `Nat.Partrec.Code` constructors to SKI terms.
+- `Nat.Partrec.Code.toSKI`: translates `Nat.Partrec.Code` constructors to SKI terms.
 
 ## Main results
 
-- `codeToSKINat_correct`: each translated code computes the corresponding `Code.eval`.
+- `Nat.Partrec.Code.toSKI_correct`: each translated code computes the corresponding `Code.eval`.
 - `natPartrec_skiComputable`: every `Nat.Partrec` function is SKI-computable.
 
 -/
@@ -215,21 +215,21 @@ private theorem rfind_computes {f : Code} {tf : SKI}
   rw [Nat.add_comm] at hind
   exact isChurch_trans _ (rfindTrans_def tf cn) hind
 
-/-- Main correctness theorem: `codeToSKINat` correctly computes `Code.eval`. -/
-theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
+/-- Main correctness theorem: `Code.toSKI` correctly computes `Code.eval`. -/
+theorem _root_.Nat.Partrec.Code.toSKI_correct (c : Code) : Computes c.toSKI c.eval := by
   induction c with
   | zero => exact zero_computes
   | succ => exact succ_computes
   | left => exact left_computes
   | right => exact right_computes
   | pair f g ihf ihg =>
-    simp only [codeToSKINat, Code.eval]; exact pair_computes ihf ihg
+    simp only [Code.toSKI, Code.eval]; exact pair_computes ihf ihg
   | comp f g ihf ihg =>
-    simp only [codeToSKINat, Code.eval]; exact comp_computes ihf ihg
+    simp only [Code.toSKI, Code.eval]; exact comp_computes ihf ihg
   | prec f g ihf ihg =>
-    simp only [codeToSKINat]; exact prec_computes ihf ihg
+    simp only [Code.toSKI]; exact prec_computes ihf ihg
   | rfind' f ihf =>
-    simp only [codeToSKINat]; exact rfind_computes ihf
+    simp only [Code.toSKI]; exact rfind_computes ihf
 
 /-! ### Main result -/
 
@@ -237,7 +237,7 @@ theorem codeToSKINat_correct (c : Code) : Computes (codeToSKINat c) c.eval := by
 theorem natPartrec_skiComputable (f : ℕ →. ℕ) (hf : Nat.Partrec f) :
     SKI.Computable f := by
   obtain ⟨c, hc⟩ := Code.exists_code.mp hf
-  exact ⟨codeToSKINat c, hc ▸ codeToSKINat_correct c⟩
+  exact ⟨c.toSKI, hc ▸ c.toSKI_correct⟩
 
 end SKI
 
