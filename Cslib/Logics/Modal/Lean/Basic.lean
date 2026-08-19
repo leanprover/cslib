@@ -98,15 +98,12 @@ theorem Proposition.equivOfContainers_denotation_eq {α} [Membership α β] {r :
 /-- Pointwise conjunction of Lean predicates is logically equivalent to their modal conjunction in
 the Lean modal model induced by `r`. -/
 theorem Proposition.equivOfPredicates_and {r : α → α → Prop} {P Q : α → Prop} :
-    (fun a => P a ∧ Q a) ≡[Equiv.OfPredicates r] (P ∧ Q) := by
-  simp only [← Proposition.equiv_def]
-  grind [Proposition.Equiv]
+    (fun a => P a ∧ Q a) ≡[Equiv.OfPredicates r] (P ∧ Q) := by grind
 
 /-- Under `Equiv.OfContainers r`, if membership in the infimum of two containers is equivalent to
 membership in both containers, then atomic infimum is logically equivalent to modal conjunction. -/
 theorem Proposition.ofContainers_inf_equiv [Membership α β] [Min β] (r : α → α → Prop) (p q : β)
     (h : ∀ x, x ∈ p ⊓ q ↔ x ∈ p ∧ x ∈ q) :
-    (↑(p ⊓ q) : Proposition β) ≡[Equiv.OfContainers r] (p ∧ q) := by
-  grind
+    (↑(p ⊓ q) : Proposition β) ≡[Equiv.OfContainers r] (p ∧ q) := by grind
 
 end Cslib.Logic.Modal
