@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Logics.Modal.Basic
 public import Cslib.Logics.Modal.LogicalEquivalence
 
 /-! # Denotational semantics for Modal Logic
