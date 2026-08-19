@@ -29,8 +29,7 @@ The multi-tape Turing machine uses a read-only input tape, `k` work tapes and a 
 tape.
 The input head can move freely on the input, but any move attempt beyond one cell outside the input
 results in no movement.
-The transition function can optionally output one symbol, which is appended to the output tape held
-in the configuration, so the output of a run can be read off its final configuration.
+The transition function can optionally output one symbol, which models the write-only output tape.
 Because of these restrictions, we ignore the input and output tapes for space usage of the machine.
 The space usage is defined as the total number of cells the work tape heads visited during
 execution.
@@ -116,7 +115,7 @@ structure TransitionOut (k : ℕ) (Symbol State : Type*) where
 
 /--
 A multi-tape Turing machine with `k` work tapes over the alphabet of `Option Symbol` (where `none`
-is the blank `BiTape` symbol). Note that it is not required that `Symbol` or `State` are finite
+is the blank tape symbol). Note that it is not required that `Symbol` or `State` are finite
 to keep the definition more general. The restriction will be introduced once we start talking about
 computability by Turing machines in general.
 -/
@@ -148,7 +147,8 @@ The configurations of a Turing machine is relative to the input of the machine a
 - an `Option`al state (or none for the halting state),
 - the position of the input head (shifted by one),
 - the contents of the work tape,
-- the positions of the work tape heads.
+- the positions of the work tape heads,
+- the contents of the write-only output tape
 -/
 @[ext]
 structure Cfg (k : ℕ) (Symbol State : Type*) (input : List Symbol) where
