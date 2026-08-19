@@ -74,7 +74,7 @@ abbrev Point (E : TwistedEdwardsCurve R) := {p : R × R // p ∈ E.affinePoints}
 /-- The neutral affine coordinate pair `(0, 1)`.  It lies on every twisted Edwards equation. -/
 def zero : R × R := (0, 1)
 
-theorem zero_mem_affinePoints (E : TwistedEdwardsCurve R) : zero ∈ E.affinePoints := by
+lemma zero_mem_affinePoints (E : TwistedEdwardsCurve R) : zero ∈ E.affinePoints := by
   change E.a * 0 ^ 2 + 1 ^ 2 = 1 + E.d * 0 ^ 2 * 1 ^ 2
   simp
 
@@ -84,7 +84,7 @@ def zeroPoint (E : TwistedEdwardsCurve R) : E.Point := ⟨zero, E.zero_mem_affin
 /-- Negation of affine coordinates on a twisted Edwards curve. -/
 def neg (p : R × R) : R × R := (-p.1, p.2)
 
-theorem neg_mem_affinePoints (E : TwistedEdwardsCurve R) (p : R × R) :
+lemma neg_mem_affinePoints (E : TwistedEdwardsCurve R) (p : R × R) :
     neg p ∈ E.affinePoints ↔ p ∈ E.affinePoints := by
   change E.a * (-p.1) ^ 2 + p.2 ^ 2 = 1 + E.d * (-p.1) ^ 2 * p.2 ^ 2 ↔
     E.a * p.1 ^ 2 + p.2 ^ 2 = 1 + E.d * p.1 ^ 2 * p.2 ^ 2
@@ -104,12 +104,12 @@ def edwardsCurve (d : R) : TwistedEdwardsCurve R where
   d := d
 
 /-- The equation of `edwardsCurve d`, written out. -/
-theorem edwardsCurve_equation_iff (d x y : R) :
+lemma edwardsCurve_equation_iff (d x y : R) :
     (edwardsCurve d).Equation x y ↔ x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2 := by
   simp [TwistedEdwardsCurve.Equation, edwardsCurve]
 
 /-- `edwardsCurve d` is a valid (nonsingular) model exactly when `d ≠ 0` and `d ≠ 1`. -/
-theorem edwardsCurve_isValid_iff [Nontrivial R] (d : R) :
+lemma edwardsCurve_isValid_iff [Nontrivial R] (d : R) :
     (edwardsCurve d).IsValid ↔ d ≠ 0 ∧ d ≠ 1 := by
   constructor
   · rintro ⟨_, hd, had⟩
