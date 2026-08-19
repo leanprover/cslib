@@ -27,9 +27,22 @@ a birational coordinate conversion and extra invertibility hypotheses.  The API 
 same useful separation as that API: coefficients, an affine equation, a set of affine points, and
 a bundled point type.
 
+## Main definitions
+
+* `TwistedEdwardsCurve`: the coefficients `a`, `d` of a twisted Edwards model, with its equation
+  `TwistedEdwardsCurve.Equation`, its affine points `TwistedEdwardsCurve.affinePoints` and the
+  nonsingularity condition `TwistedEdwardsCurve.IsValid`.
+* `edwardsCurve d`: the untwisted Edwards curve `x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2`.
+
+## TODO
+
+- Move into mathlib next to Mathlib.AlgebraicGeometry.EllipticCurve.Weierstrass
+
 ## References
 
-See [Bernstein2008a], Section 2, Definition 2.1 .
+* [Bernstein2007a], Section 2.
+* [Bernstein2008a], Section 2, Definition 2.1.
+
 -/
 
 @[expose] public section
