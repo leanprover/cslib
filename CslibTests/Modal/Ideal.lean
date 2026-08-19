@@ -4,13 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fabrizio Montesi
 -/
 
-import Cslib.Logics.Modal.Denotation
-import Cslib.Logics.Modal.Lean.Basic
 import Cslib.Logics.Modal.Lean.SMul
-import Cslib.Foundations.Relation.Defs
-import Mathlib.Algebra.Group.Defs
-import Mathlib.Algebra.Ring.Defs
-import Mathlib.RingTheory.Ideal.Defs
 import Mathlib.RingTheory.Ideal.Operations
 
 /-! # Example: radicals of ideals with modal logic
