@@ -57,7 +57,7 @@ open scoped InferenceSystem Satisfies
 /-- Under `Model.ofPredicates r`, an atomic proposition `P` holds at `a` iff `P a`. -/
 @[scoped grind =]
 theorem Satisfies.ofPredicates_atom_iff {P : α → Prop} (r : α → α → Prop) :
-    ⇓Modal[ofPredicates r, a ⊨ P] ↔ P a := by grind
+    ⇓Modal[ofPredicates r, a ⊨ P] ↔ P a := Iff.rfl
 
 /-- Under `Model.ofPredicates r`, `P → □P` is an axiom iff `r` preserves `P`. -/
 @[scoped grind ⇒]
