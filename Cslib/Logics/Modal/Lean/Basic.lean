@@ -6,8 +6,6 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Logics.Modal.Basic
-public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Modal.Denotation
 
 /-! # Modal Logic for Lean
