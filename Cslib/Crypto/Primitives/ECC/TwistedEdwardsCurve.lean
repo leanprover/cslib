@@ -44,9 +44,9 @@ structure TwistedEdwardsCurve (R : Type*) where
   /-- right hand side coefficient -/
   d : R
 
-namespace TwistedEdwardsCurve
-
 variable {R : Type*} [CommRing R]
+
+namespace TwistedEdwardsCurve
 
 /-- The proposition that `(x, y)` is an affine point of a twisted Edwards curve. -/
 def Equation (E : TwistedEdwardsCurve R) (x y : R) : Prop :=
@@ -85,23 +85,25 @@ be used over more general rings and also permits partially specified curves duri
 -/
 def IsValid (E : TwistedEdwardsCurve R) : Prop := E.a ≠ 0 ∧ E.d ≠ 0 ∧ E.a ≠ E.d
 
-/-- The (untwisted) Edwards curve with parameter `d`, obtained by setting `a = 1`. -/
-def ofD (d : R) : TwistedEdwardsCurve R where
+end TwistedEdwardsCurve
+
+/-- The (untwisted) Edwards curve with coefficient `d`, obtained by setting `a = 1`. -/
+def edwardsCurve (d : R) : TwistedEdwardsCurve R where
   a := 1
   d := d
 
-@[simp]
-theorem ofD_equation (d x y : R) :
-    (ofD d).Equation x y ↔ x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2 := by
-  simp [Equation, ofD]
+/-- The equation of `edwardsCurve d`, written out. -/
+theorem edwardsCurve_equation_iff (d x y : R) :
+    (edwardsCurve d).Equation x y ↔ x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2 := by
+  simp [TwistedEdwardsCurve.Equation, edwardsCurve]
 
-@[simp]
-theorem ofD_isValid_iff [Nontrivial R] (d : R) : (ofD d).IsValid ↔ d ≠ 0 ∧ d ≠ 1 := by
+/-- `edwardsCurve d` is a valid (nonsingular) model exactly when `d ≠ 0` and `d ≠ 1`. -/
+theorem edwardsCurve_isValid_iff [Nontrivial R] (d : R) :
+    (edwardsCurve d).IsValid ↔ d ≠ 0 ∧ d ≠ 1 := by
   constructor
   · rintro ⟨_, hd, had⟩
     exact ⟨hd, fun h ↦ had h.symm⟩
   · rintro ⟨hd, hd1⟩
     exact ⟨one_ne_zero, hd, fun h ↦ hd1 h.symm⟩
 
-end TwistedEdwardsCurve
 end Cslib.Crypto.Primitives.ECC
