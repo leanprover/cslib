@@ -40,9 +40,7 @@ open Red MRed
 for every Church numeral input, `t` applied to the input is a Church numeral
 for the output whenever `f` is defined. -/
 def Computes (t : SKI) (f : ℕ →. ℕ) : Prop :=
-  ∀ n : ℕ, ∀ cn : SKI, IsChurch n cn →
-    ∀ m : ℕ, m ∈ f n →
-      IsChurch m (t ⬝ cn)
+  ∀ n : ℕ, ∀ cn : SKI, IsChurch n cn → ∀ m : ℕ, m ∈ f n → IsChurch m (t ⬝ cn)
 
 /-- A partial function `f : ℕ →. ℕ` is SKI-computable if there exists an SKI term that
 computes it. -/
