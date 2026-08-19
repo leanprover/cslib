@@ -352,8 +352,8 @@ theorem RFindAbove_correct' (f x : SKI) (n m : Nat) (hx : IsChurch m x)
 
 theorem RFindAbove_correct (fNat : Nat → Nat) (f x : SKI)
     (hf : ∀ i : Nat, ∀ y : SKI, IsChurch i y → IsChurch (fNat i) (f ⬝ y))
-    (n m : Nat) (hx : IsChurch m x) (hroot : fNat (m+n) = 0) (hpos : ∀ i < n, fNat (m+i) ≠ 0) :
-    IsChurch (m+n) (RFindAbove ⬝ x ⬝ f) := by
+    (n m : Nat) (hx : IsChurch m x) (hroot : fNat (m + n) = 0) (hpos : ∀ i < n, fNat (m + i) ≠ 0) :
+    IsChurch (m + n) (RFindAbove ⬝ x ⬝ f) := by
   apply RFindAbove_correct' f x n m hx
   · intro y hy; exact hroot ▸ hf (m + n) y hy
   · exact fun i hi y hy => ⟨fNat (m + i) - 1,
