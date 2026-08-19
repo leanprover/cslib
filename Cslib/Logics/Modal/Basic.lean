@@ -101,7 +101,6 @@ lemma Proposition.box_def (φ : Proposition Atom) : φ.box = (□φ) := rfl
 
 /-- Satisfaction relation. `Satisfies m w φ` means that, in the model `m`, the world `w` satisfies
 the proposition `φ`. -/
-@[scoped grind]
 def Satisfies (m : Model World Atom) (w : World) : Proposition Atom → Prop
   | .atom p => m.v w p
   | .not φ => ¬Satisfies m w φ
@@ -122,7 +121,6 @@ structure Judgement World Atom where
 @[inherit_doc] scoped notation "Modal[" m "," w " ⊨ " φ "]" => Judgement.mk m w φ
 
 /-- Satisfaction for judgements. This just refers to the unbundled `Satisfies`. -/
-@[simp, scoped grind =]
 def Satisfies.Bundled (j : Judgement World Atom) : Prop := Satisfies j.m j.w j.φ
 
 instance : HasInferenceSystem (Judgement World Atom) := ⟨Satisfies.Bundled⟩
