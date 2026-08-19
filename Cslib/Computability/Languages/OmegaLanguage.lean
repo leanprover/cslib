@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
+public import Cslib.Foundations.Data.OmegaSequence.Topology
 public import Mathlib.Computability.Language
 public import Mathlib.Order.CompleteBooleanAlgebra
 public import Mathlib.Order.Filter.AtTopBot.Defs
@@ -28,6 +29,8 @@ denote languages (namely, sets of finite sequences of type `List α`).
   universe sets), and the subset relation are denoted using lattice-theoretic
   notations (`p ∪ q`, `p ∩ q`, `pᶜ`, `⊥`, `⊤`, and `≤`) and terminologies in
   definition and theorem names ("inf", "sup", "compl", "bot", "top", "le").
+* `p.closure`: the topological closure of `p`, where `ωLanguage α` inherits the
+  product topology of `TopologicalSpace (ωSequence α)`
 * `l * p`: ω-language of `x ++ω y` where `x ∈ l` and `y ∈ p`; referred to as
   "hmul" in definition and theorem names.
 * `l^ω`: ω-language of infinite sequences each of which is the concatenation of
@@ -98,6 +101,12 @@ def equiv : ωLanguage α ≃ Set (ωSequence α) where
 instance : CompleteAtomicBooleanAlgebra (ωLanguage α) :=
   equiv.completeAtomicBooleanAlgebra
 
+/-- `⊥` is the only possible ω-language over an empty type. -/
+theorem eq_bot_ofIsEmpty [IsEmpty α] (p : ωLanguage α) : p = ⊥ := by
+  ext xs
+  exfalso
+  exact IsEmpty.false xs
+
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (ωLanguage α) (ωSequence α) where
   coe := ωLanguage.toSet
@@ -130,6 +139,10 @@ lemma iSup_def {ι : Sort v} {p : ι → ωLanguage α} : ⨆ i, p i = ⟨⋃ i,
 lemma iInf_def {ι : Sort v} {p : ι → ωLanguage α} : ⨅ i, p i = ⟨⋂ i, (p i).toSet⟩ := by
   ext
   simp [iInf, sInf_def]
+
+/-- The topological closure of an ω-language. -/
+def closure (p : ωLanguage α) : ωLanguage α :=
+  _root_.closure p.toSet
 
 /-- The concatenation of a language l and an ω-language `p` is the ω-language made of
 infinite sequences `x ++ω y` where `x ∈ l` and `y ∈ p`. -/
@@ -278,7 +291,8 @@ theorem hmul_bot : l * (⊥ : ωLanguage α) = ⊥ := by
 
 @[simp, scoped grind =]
 theorem one_hmul : (1 : Language α) * p = p := by
-  simp [hmul_def, Language.one_def, Language.toSet]
+  simp [hmul_def]
+  simp [Language.one_def, Language.toSet]
 
 theorem hmul_sup : l * (p ⊔ q) = l * p ⊔ l * q := by
   ext : 1
@@ -304,7 +318,7 @@ theorem le_hmul_congr {l1 l2 : Language α} {p1 p2 : ωLanguage α} (hl : l1 ≤
     l1 * p1 ≤ l2 * p2 := by
   simp only [le_def]
   intros _
-  simp_all only [hmul_def, mem_image2]
+  simp only [hmul_def, mem_image2]
   tauto
 
 theorem le_omegaPow_congr [Inhabited α] {l1 l2 : Language α} (h : l1 ≤ l2) : l1^ω ≤ l2^ω := by
@@ -458,8 +472,10 @@ theorem omegaLim_zero : (0 : Language α)↗ω = ⊥ := by
   simp [omegaLim_def, bot_def]
 
 @[simp, scoped grind =]
-theorem map_id (p : ωLanguage α) : map id p = p :=
-  by simp [map]
+theorem map_id (p : ωLanguage α) : map id p = p := by
+  unfold map
+  change { toSet := id '' p.toSet } = p
+  simp
 
 @[scoped grind =]
 theorem map_map (g : β → γ) (f : α → β) (p : ωLanguage α) : map g (map f p) = map (g ∘ f) p := by

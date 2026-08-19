@@ -189,7 +189,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
   ext xl; constructor
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
     by_cases h_xl : xl = []
-    · grind [mem_add, mem_one]
+    · grind [Language.mem_add, Language.mem_one]
     · have : Nonempty na.start := by
         obtain ⟨_, s0, _, _⟩ := nonempty_iff_ne_empty.mpr h
         use s0
@@ -215,10 +215,10 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
     · obtain ⟨xl1, ⟨h_xl1, _⟩, xl2, h_xl2, rfl⟩ := h
       rw [← totalize_language_eq] at h_xl1
       have := loop_fin_run_mtr h_xl1
-      obtain ⟨s1, _, s2, _, _⟩ := h_xl2
+      obtain ⟨s1, hs, s2, sa, sb⟩ := h_xl2
       obtain ⟨rfl⟩ : s1 = inl () := by grind [finLoop, loop]
       obtain ⟨rfl⟩ : s2 = inl () := by grind [finLoop, loop]
-      refine ⟨inl (), ?_, inl (), ?_, LTS.MTr.comp _ this ?_⟩ <;> assumption
+      exact ⟨inl (), sa, inl (), hs, LTS.MTr.comp _ this sb⟩
     · obtain ⟨rfl⟩ := (Language.mem_one xl).mp h
       refine ⟨inl (), ?_, inl (), ?_, ?_⟩ <;> grind [finLoop, loop]
 
