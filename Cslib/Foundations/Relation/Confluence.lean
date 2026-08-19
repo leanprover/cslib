@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 module
 
 public import Cslib.Foundations.Relation.Defs
-public import Mathlib.Data.List.TFAE
+public import Mathlib.Data.List.Pairwise
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 
