@@ -88,21 +88,15 @@ theorem rfindTrans_def (tf cn : SKI) :
 /-! ### Translation from Nat.Partrec.Code to SKI -/
 
 /-- Translate `Nat.Partrec.Code` to SKI terms operating on Church numerals. -/
-def codeToSKINat : Code → SKI
+def _root_.Nat.Partrec.Code.toSKI : Code → SKI
   | .zero => K ⬝ SKI.Zero
   | .succ => SKI.Succ
   | .left => NatUnpairLeft
   | .right => NatUnpairRight
-  | .pair f g =>
-    let tf := codeToSKINat f
-    let tg := codeToSKINat g
-    S ⬝ (B ⬝ NatPair ⬝ tf) ⬝ tg
-  | .comp f g =>
-    B ⬝ (codeToSKINat f) ⬝ (codeToSKINat g)
-  | .prec f g =>
-    PrecTrans (codeToSKINat f) (codeToSKINat g)
-  | .rfind' f =>
-    RFindTrans (codeToSKINat f)
+  | .pair f g => S ⬝ (B ⬝ NatPair ⬝ f.toSKI) ⬝ g.toSKI
+  | .comp f g => B ⬝ f.toSKI ⬝ g.toSKI
+  | .prec f g => PrecTrans f.toSKI g.toSKI
+  | .rfind' f => RFindTrans f.toSKI
 
 /-! ### Correctness proofs -/
 
