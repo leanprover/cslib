@@ -11,7 +11,10 @@ public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Defs.Unbundled
 public import Cslib.Foundations.Relation.Euclidean
-public import Mathlib.Logic.Nonempty
+public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.Operators
+public import Cslib.Foundations.Relation.Defs
+public import Mathlib.Order.BooleanAlgebra.Set
 
 /-! # Modal Logic
 
