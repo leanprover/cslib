@@ -64,7 +64,7 @@ theorem Proposition.equiv_of_EquivWithin {S : ModelClass World Atom} (h : φ₁ 
 theorem Proposition.equivWithin_valid (S : ModelClass World Atom)
     (φ₁ φ₂ : Proposition Atom) (h : φ₁ ≡[EquivWithin S] φ₂) :
     (φ₁.valid S ↔ φ₂.valid S) := by
-  apply Iff.intro <;> intro h' m hm w <;> grind [h m hm w]
+  grind
 
 /-- Propositional contexts. -/
 inductive Proposition.Context (Atom : Type u) : Type u where
