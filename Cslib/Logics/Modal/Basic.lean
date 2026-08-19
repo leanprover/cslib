@@ -6,8 +6,6 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
-public import Cslib.Foundations.Logic.Operators
-public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.Defs.Unbundled
 public import Cslib.Foundations.Relation.Euclidean
