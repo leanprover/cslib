@@ -55,7 +55,6 @@ public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
 public import Cslib.Crypto.Primitives.ECC.Basic
-public import Cslib.Crypto.Primitives.ECC.EdwardsCurve
 public import Cslib.Crypto.Primitives.ECC.TwistedEdwardsCurve
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
