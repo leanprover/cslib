@@ -334,8 +334,7 @@ theorem RFindAbove_unfold (x g : SKI) :
     function. At the root `m + n`, `f` yields Church 0; below, a nonzero Church numeral. -/
 theorem RFindAbove_correct' (f x : SKI) (n m : Nat) (hx : IsChurch m x)
     (hf_root : ∀ y, IsChurch (m + n) y → IsChurch 0 (f ⬝ y))
-    (hf_below : ∀ i < n, ∀ y, IsChurch (m + i) y →
-      ∃ k, IsChurch (k + 1) (f ⬝ y)) :
+    (hf_below : ∀ i < n, ∀ y, IsChurch (m + i) y → ∃ k, IsChurch (k + 1) (f ⬝ y)) :
     IsChurch (m + n) (RFindAbove ⬝ x ⬝ f) := by
   induction n generalizing m x
   all_goals apply isChurch_trans _ (RFindAbove_unfold x f)
