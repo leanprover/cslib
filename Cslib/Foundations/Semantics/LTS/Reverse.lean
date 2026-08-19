@@ -105,11 +105,8 @@ theorem reverse_boundedUpTo {lts : LTS State Label} {n : ℕ} :
 and endpoints reversed. -/
 theorem Execution.reverse {lts : LTS State Label} (h : lts.Execution s μs s' ss) :
     lts.reverse.Execution s' μs.reverse s ss.reverse := by
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · grind
-  · grind
-  · grind
-  · grind only [reverse_tr, = List.getElem_reverse, = List.length_reverse]
+  apply Execution.mk .. <;>
+    simp only [reverse_tr, List.getElem_reverse, List.length_reverse] <;> grind only
 
 /-- An execution of `lts.reverse` is an execution of `lts` with the labels, states
 and endpoints reversed. -/
