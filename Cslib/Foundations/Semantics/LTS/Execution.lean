@@ -25,7 +25,7 @@ structure Execution (lts : LTS State Label)
   length : ss.length = μs.length + 1
   start : ss[0] = s1
   last : ss[ss.length - 1] = s2
-  trans k (hk : k < μs.length) : lts.Tr ss[k] μs[k] ss[k + 1]
+  trans (k : ℕ) (hk : k < μs.length) : lts.Tr ss[k] μs[k] ss[k + 1]
 
 /-- Every execution has at least one intermediate state. -/
 @[scoped grind →]
@@ -44,13 +44,11 @@ theorem Execution.stepL {lts : LTS State Label} (htr : lts.Tr s1 μ s2)
 /-- Deconstruction of executions with `List.cons`. -/
 theorem Execution.cons_invert (h : lts.Execution s1 (μ :: μs) s2 (s1 :: ss)) :
     lts.Execution (ss[0]'(by grind)) μs s2 ss := by
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · grind
-  · grind
-  · grind
-  · intro k hk
+  have : ss.length = μs.length + 1 := by grind
+  have (k : ℕ) (_ : k < μs.length) : lts.Tr ss[k] μs[k] ss[k + 1] := by
     have := h.trans k
     grind
+  grind
 
 /-- A multistep transition implies the existence of an execution. -/
 @[scoped grind →]
@@ -116,7 +114,7 @@ theorem Execution.comp
     (h1 : lts.Execution s μs1 r ss1) (h2 : lts.Execution r μs2 t ss2) :
     lts.Execution s (μs1 ++ μs2) t (ss1 ++ ss2.tail) := by
   have h0 : (ss1 ++ ss2.tail).length = (μs1 ++ μs2).length + 1 := by grind
-  refine ⟨?_, ?_, ?_, ?_⟩
+  apply Execution.mk ..
   · exact h0
   · grind
   · have := Execution.comp_helper h1 h2 μs2.length
@@ -137,11 +135,7 @@ theorem Execution.split
   have : n + (ss.length - n - 1) = ss.length - 1 := by grind
   split_ands
   · grind
-  · refine ⟨?_, ?_, ?_, ?_⟩
-    · grind
-    · grind
-    · simp only [List.length_drop, List.getElem_drop]
-      grind
-    · grind
+  · apply Execution.mk .. <;>
+      simp only [List.length_drop, List.getElem_drop] <;> grind
 
 end Cslib.LTS
