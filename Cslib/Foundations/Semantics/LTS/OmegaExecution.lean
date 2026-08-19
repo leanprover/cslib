@@ -31,8 +31,8 @@ variable {State Label : Type*} {lts : LTS State Label}
 /-- Any finite execution extracted from an infinite execution is valid. -/
 theorem OmegaExecution.extract_execution
     (h : lts.OmegaExecution ss μs) {n m : ℕ} (hnm : n ≤ m) :
-    lts.Execution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) :=
-  ⟨by grind, by grind⟩
+    lts.Execution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) := by
+  grind
 
 /-- Any multistep transition extracted from an infinite execution is valid. -/
 theorem OmegaExecution.extract_mTr
@@ -84,7 +84,6 @@ theorem OmegaExecution.flatten_execution [Inhabited Label]
   split_ands
   · intro n
     simp only [h_len, flatten_def]
-    simp only [Execution] at hexec
     have := segment_lower_bound h_mono h_zero n
     by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
     · have := segment_range_val h_mono (by grind) h_n
