@@ -61,7 +61,6 @@ abbrev Point (E : TwistedEdwardsCurve R) := {p : R × R // p ∈ E.affinePoints}
 /-- The neutral affine coordinate pair `(0, 1)`.  It lies on every twisted Edwards equation. -/
 def zero : R × R := (0, 1)
 
-@[simp]
 theorem zero_mem_affinePoints (E : TwistedEdwardsCurve R) : zero ∈ E.affinePoints := by
   change E.a * 0 ^ 2 + 1 ^ 2 = 1 + E.d * 0 ^ 2 * 1 ^ 2
   simp
@@ -72,7 +71,6 @@ def zeroPoint (E : TwistedEdwardsCurve R) : E.Point := ⟨zero, E.zero_mem_affin
 /-- Negation of affine coordinates on a twisted Edwards curve. -/
 def neg (p : R × R) : R × R := (-p.1, p.2)
 
-@[simp]
 theorem neg_mem_affinePoints (E : TwistedEdwardsCurve R) (p : R × R) :
     neg p ∈ E.affinePoints ↔ p ∈ E.affinePoints := by
   change E.a * (-p.1) ^ 2 + p.2 ^ 2 = 1 + E.d * (-p.1) ^ 2 * p.2 ^ 2 ↔
