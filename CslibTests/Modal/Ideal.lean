@@ -35,8 +35,7 @@ local instance [Monoid α] : MulAction ℕ+ α := posPowAction
 
 /-- Ideals are invariant under positive exponentiation. -/
 theorem Ideal.posPowSMulMemClass [Semiring R] : SMulMemClass (Ideal R) ℕ+ R where
-  smul_mem n x hx := by
-    exact Ideal.pow_mem_of_mem _ hx n n.prop
+  smul_mem n _ hx := Ideal.pow_mem_of_mem _ hx n n.prop
 
 local instance [Semiring R] : SMulMemClass (Ideal R) ℕ+ R := Ideal.posPowSMulMemClass
 
