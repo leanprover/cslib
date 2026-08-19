@@ -61,7 +61,7 @@ theorem computes_of_total {t : SKI} {f : ℕ →. ℕ} (g : ℕ → ℕ)
 /-- Composition of computable functions is computable. -/
 theorem comp_computes {f g : ℕ →. ℕ} {tf tg : SKI}
     (hf : Computes tf f) (hg : Computes tg g) :
-    Computes (B ⬝ tf ⬝ tg) (fun n => g n >>= f) := by
+    Computes (B ⬝ tf ⬝ tg) (f.comp g) := by
   intro n cn hcn m hm
   obtain ⟨intermediate, hint_mem, hm_mem⟩ := Part.mem_bind_iff.mp hm
   exact isChurch_trans _ (B_def tf tg cn)
