@@ -6,10 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Mathlib.Algebra.Group.Defs
 public import Mathlib.GroupTheory.GroupAction.SubMulAction
-public import Cslib.Foundations.Relation.Defs
-public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Modal.Lean.Basic
 
 /-! # Modal Logic for scalar multiplication (SMul)
