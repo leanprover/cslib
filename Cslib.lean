@@ -175,6 +175,8 @@ public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Modal.Basic
 public import Cslib.Logics.Modal.Cube
 public import Cslib.Logics.Modal.Denotation
+public import Cslib.Logics.Modal.Lean.Basic
+public import Cslib.Logics.Modal.Lean.SMul
 public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
