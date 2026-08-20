@@ -67,6 +67,9 @@ abbrev SemiConfluent (r : α → α → Prop) :=
 /-- A relation has the Church Rosser property when equivalence implies multi-joinability. -/
 abbrev ChurchRosser (r : α → α → Prop) := ∀ {x y}, EqvGen r x y → Join (ReflTransGen r) x y
 
+/-- Relation `r` preserves predicate `P`. -/
+def Preserves (r : α → α → Prop) (P : α → Prop) : Prop := ∀ ⦃a b⦄, r a b → P a → P b
+
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
 abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
 
