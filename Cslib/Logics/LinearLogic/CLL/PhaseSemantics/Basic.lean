@@ -315,10 +315,7 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
   constructor
   · simp only [orthogonal_def, mem_union]
     grind
-  · intro _
-    have : m ∈ ((G : Set P)⫠⫠) := by grind
-    have : m ∈ ((H : Set P)⫠⫠) := by grind
-    grind [Fact.eq]
+  · grind [Fact.eq]
 
 instance : Min (Fact P) where
   min G H := Fact.mkDual (G ∩ H) (G⫠ ∪ H⫠) <| by simp

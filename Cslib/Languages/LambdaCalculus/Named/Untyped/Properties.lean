@@ -421,7 +421,6 @@ private lemma subst.abs_fresh_helper {m r : Term Var} {x y z : Var} :
               Finset.union_singleton, AlphaEquiv_def]
           let s := (insert x (insert y (m.vars ∪ r.vars)))
           have hw := fresh_notMem s
-          set w := fresh s
           grind [AlphaEquiv.refl, AlphaEquiv.trans, vars_either_fv_or_bv]
         · grind
     grind
