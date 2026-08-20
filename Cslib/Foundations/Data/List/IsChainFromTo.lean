@@ -28,20 +28,26 @@ variable {α : Type*} {r : α → α → Prop} {chain : List α} {a b : α}
 structure List.IsChainFromTo {α : Type*} (r : α → α → Prop) (chain : List α) (a b : α) : Prop where
   isChain : chain.IsChain r
   ne_nil : chain ≠ []
-  head_eq : chain.head ne_nil = a
-  getLast_eq : chain.getLast ne_nil = b
+  head : chain.head ne_nil = a
+  last : chain.getLast ne_nil = b
+
+/-- Create a `List.IsChainFromTo` from a non-empty `List.IsChain`. -/
+theorem List.IsChainFromTo.of_isChain_ne_nil
+    (chain : List α) (hc : chain.IsChain r) (h_ne_nil : chain ≠ []) :
+    List.IsChainFromTo r chain (chain.head h_ne_nil) (chain.getLast h_ne_nil) :=
+  ⟨hc, h_ne_nil, rfl, rfl⟩
 
 /-- Restatement of `head_eq`, but tagged with grind. -/
 @[grind →]
-lemma List.IsChainFromTo_head_eq (hc : chain.IsChainFromTo r a b) :
+lemma List.IsChainFromTo.head_eq (hc : chain.IsChainFromTo r a b) :
     chain.head hc.ne_nil = a :=
-  hc.head_eq
+  hc.head
 
 /-- Restatement of `getLast_eq`, but tagged with grind. -/
 @[grind →]
-lemma List.IsChainFromTo_getLast_eq (hc : chain.IsChainFromTo r a b) :
+lemma List.IsChainFromTo.last_eq (hc : chain.IsChainFromTo r a b) :
     chain.getLast hc.ne_nil = b :=
-  hc.getLast_eq
+  hc.last
 
 @[simp, grind ←]
 lemma List.IsChainFromTo.singleton {a : α} : List.IsChainFromTo r [a] a a :=
@@ -59,9 +65,11 @@ lemma List.IsChainFromTo.exists_length_lt_of_not_nodup
   push Not at h_dup
   obtain ⟨i, j, h_ij, h_lt, h_eq⟩ := h_dup
   use chain.take i ++ chain.drop j
-  refine ⟨⟨?_, by simp; omega, by grind, by grind⟩, by grind⟩
-  · refine (hc.isChain.take _).append (hc.isChain.drop _) ?_
+  constructor
+  · apply IsChainFromTo.mk ((hc.isChain.take _).append (hc.isChain.drop _) ?_)
+      (by simp; omega) (by grind) (by grind)
     intro x hx y hy
     rw [List.head?_drop] at hy
-    have := hc.isChain.getElem (i := i - 1) (by omega)
+    have := hc.isChain.getElem (i := i - 1)
     grind
+  · grind
