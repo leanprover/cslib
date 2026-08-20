@@ -115,7 +115,7 @@ def biorthogonalClosure : ClosureOperator (Set P) where
 /-! # Basic theory of phase spaces -/
 
 /--
-Given a phase space (P, ⊥) and a set of subsets (Gᵢ)_{i ∈ I} of P, we have that
+Given a phase space (P, ⊥) and a family of subsets (Gᵢ) of P indexed by i ∈ I, we have that
 (⋃ᵢ Gᵢ)⫠ = ⋂ᵢ Gᵢ⫠.
 -/
 lemma orth_iUnion {ι : Sort*} (G : ι → Set P) :
@@ -131,7 +131,7 @@ lemma orth_iUnion {ι : Sort*} (G : ι → Set P) :
     grind
 
 /--
-Given a phase space (P, ⊥) and a set of subsets (Gᵢ)_{i ∈ I} of P, we have that
+Given a phase space (P, ⊥) and a family of subsets (Gᵢ) of P indexed by i ∈ I, we have that
 ∩ᵢ Gᵢ⫠⫠ = (∪ᵢ Gᵢ⫠)⫠.
 -/
 lemma iInter_biorth_eq_orth_iUnion_orth {ι : Sort*} (G : ι → Set P) :
