@@ -436,7 +436,6 @@ theorem Bisimilarity.bisimilarity_neq_traceEq :
     ∃ (State : Type) (Label : Type) (lts : LTS State Label),
       HomBisimilarity lts ≠ HomTraceEq lts := by
   obtain ⟨State, Label, lts, h⟩ := IsBisimulation.traceEq_not_bisim
-  use State, Label, lts
   grind [Bisimilarity.isBisimulation lts lts]
 
 /-- In any deterministic LTS, trace equivalence is a bisimulation. -/

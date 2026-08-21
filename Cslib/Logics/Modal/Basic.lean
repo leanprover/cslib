@@ -280,7 +280,6 @@ theorem Satisfies.b_symm (r : World → World → Prop) [Nonempty Atom]
     have a := Classical.arbitrary Atom
     let v₁ := fun (w' : World) (a : Atom) => w' = w₁
     let h₁ := h (v := v₁) (w := w₁) (φ := a)
-    simp [imp_iff_imp] at h₁
     grind
 
 /-- The 4 axiom, valid for all transitive models. -/

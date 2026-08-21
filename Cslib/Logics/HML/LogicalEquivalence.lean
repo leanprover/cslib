@@ -94,7 +94,6 @@ instance (lts : LTS State Label) :
       grind [=_ Proposition.Context.fill_def]
     case not c ih | andL c ih | andR c ih =>
       intro s
-      specialize ih s
       grind [=_ Proposition.Context.fill_def]
     case diamond c ih =>
       intro s
