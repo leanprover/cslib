@@ -23,7 +23,7 @@ public import Cslib.Languages.CombinatoryLogic.Defs
 ## Main results
 
 - Bracket abstraction: an algorithm `Polynomial.toSKI` to convert a polynomial
-$Γ(x_0, ..., x_{n-1})$ into a term such that (`Polynomial.toSKI_correct`)
+$Γ(x_0, ..., x_\{n-1\})$ into a term such that (`Polynomial.toSKI_correct`)
 `Γ.toSKI ⬝ t₁ ⬝ ... ⬝ tₙ` reduces to `Γ(t₁, ..., tₙ)`.
 
 ## References

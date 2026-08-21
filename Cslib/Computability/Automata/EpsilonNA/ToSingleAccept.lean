@@ -206,9 +206,7 @@ theorem toSingleAccept_sTr_none_none {a : εNA.FinAcc State Symbol}
     (h : a.toSingleAccept.STr none x os) : x = none ∧ os = none := by
   cases h
   case refl => trivial
-  case tr osb₁ osb₂ h₁ h₂ h₃ =>
-  have : osb₁ = none := toSingleAccept_τSTr_antiDerivative_none h₁
-  grind
+  case tr osb₁ osb₂ h₁ h₂ h₃ => grind
 
 @[scoped grind →]
 theorem toSingleAccept_sMTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
