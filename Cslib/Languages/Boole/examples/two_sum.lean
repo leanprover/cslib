@@ -124,6 +124,8 @@ Result: ✅ pass-/
 #guard_msgs in
 #eval Strata.Boole.verify "cvc5" twoSumPgm (options := .quiet)
 
+-- `smt`/`smt +mono` trigger a kernel application type mismatch here (not just a tactic
+-- failure), so they're deliberately excluded from the fallback chain.
 set_option maxHeartbeats 1000000 in
 theorem twoSumPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole twoSumPgm := by
   gen_smt_vcs_boole

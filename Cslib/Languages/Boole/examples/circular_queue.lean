@@ -1,4 +1,5 @@
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
+import Smt
 
 ------------------------------------------------------------
 namespace Strata
@@ -19,17 +20,9 @@ type Array := Map int int;
 // `NextIndex(i, n)` is the usual circular-buffer successor:
 // `if i + 1 == n then 0 else i + 1`.
 //
-// It is axiomatized here because both obvious executable encodings currently
-// get in the way of this small example: `mod` is not yet convenient in these
-// VCs, and the direct Boole if/else form triggers an integer-valued `ite`
-// elaboration issue in the generated VCs.
-function NextIndex(i : int, n : int) : int;
-
-axiom (∀ i : int, n : int ::
-  n > 0 && 0 <= i && i < n ==> 0 <= NextIndex(i, n) && NextIndex(i, n) < n);
-axiom (∀ n : int :: n > 0 ==> NextIndex(n - 1, n) == 0);
-axiom (∀ i : int, n : int ::
-  n > 0 && 0 <= i && i + 1 < n ==> NextIndex(i, n) == i + 1);
+function NextIndex(i : int, n : int) : int {
+  if i + 1 == n then 0 else i + 1
+}
 
 var Q     : Array;
 var n     : int;
@@ -140,8 +133,9 @@ spec
 
 #end
 
-example : Strata.smtVCsCorrect circularQueuePgm := by
-  gen_smt_vcs
-  all_goals grind
+theorem circularQueuePgm_smtVCsCorrect :
+    Strata.smtVCsCorrectBoole circularQueuePgm := by
+  gen_smt_vcs_boole
+  all_goals (first | smt +mono | omega | trivial | grind)
 
 end Strata
