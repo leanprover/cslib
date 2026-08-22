@@ -121,7 +121,7 @@ private theorem buildCountedFrom_count (key start fuel : ℕ) (xs : List ℕ) :
       · have htail : start + 1 ≤ key ∧ key < start + 1 + fuel := by omega
         simp [htotal, htail]
       · have htail : ¬(start + 1 ≤ key ∧ key < start + 1 + fuel) := by omega
-        rw [if_neg htail, if_neg htotal]
+        rw [ite_eq_right htail, ite_eq_right htotal]
 
 /-- In-range keys are counted exactly as in the input. -/
 theorem countingSort_count_of_le_bound {bound key : ℕ} (xs : List ℕ) (hkey : key ≤ bound) :
