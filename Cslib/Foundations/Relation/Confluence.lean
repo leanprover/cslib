@@ -192,7 +192,7 @@ theorem SN.normalizable (hx : SN r x) : Normalizable r x := by
   by_cases hy: (∃ y, r x y)
   · obtain ⟨y, hy⟩ := hy
     obtain ⟨z, hz, hnormal⟩ := ih y hy
-    exact ⟨z, .trans (.single hy) hz, hnormal⟩
+    exact ⟨z, .head hy hz, hnormal⟩
   · exists x
 
 lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
@@ -304,7 +304,7 @@ theorem StronglyCommute.extend (h : StronglyCommute r₁ r₂) (xy : ReflTransGe
   | @tail b c _ bc ih =>
     obtain ⟨w, bw, zw⟩ := ih
     cases bw with
-    | refl => exact ⟨c, .refl, zw.trans (.single bc)⟩
+    | refl => exact ⟨c, .refl, zw.tail bc⟩
     | single bw => cases h bc bw; grind [ReflTransGen.trans]
 
 theorem StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂ := by
