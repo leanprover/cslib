@@ -102,15 +102,15 @@ namespace Turing
 variable {k : ℕ} {State Symbol : Type*}
 
 /-- The output of the transition function. -/
-structure TransitionOut (k : ℕ) (Symbol State : Type*) where
+structure Action (k : ℕ) (Symbol State : Type*) where
   /-- The movement (attempt) of the input head. -/
-  inputMove : SignType
+  inputTape : SignType
   /-- Actions on the work tapes: optionally a symbol to write and the head movement. -/
-  workActions : Fin k → (Option (Option Symbol)) × SignType
+  workTapes : Fin k → (Option (Option Symbol)) × SignType
   /-- An optional symbol to output. -/
-  outS : Option Symbol
+  output : Option Symbol
   /-- The successor state or none to halt. -/
-  q' : Option State
+  state : Option State
 
 /--
 A multi-tape Turing machine with `k` work tapes over the alphabet of `Option Symbol` (where `none`
@@ -125,7 +125,7 @@ structure MultiTapeTM (k : ℕ) (Symbol State : Type*) where
   symbols to a movement for the input head, actions on the work tape, optionally a symbol to output
   and the successor state -/
   tr (q : State) (input : Option Symbol) (work : Fin k → Option Symbol) :
-    TransitionOut k Symbol State
+    Action k Symbol State
 
 namespace MultiTapeTM
 
@@ -230,21 +230,21 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   -- in the halting state, we stay at the configuration
   | none => cfg
   | some q =>
-    let {inputMove, workActions, q', ..} := tm.tr q cfg.inputSymbol cfg.workTapeSymbols
+    let action := tm.tr q cfg.inputSymbol cfg.workTapeSymbols
     {
-      state := q',
-      inputPos := moveInputPos cfg.inputPos inputMove,
-      workTapes i := match (workActions i).1 with
+      state := action.state,
+      inputPos := moveInputPos cfg.inputPos action.inputTape,
+      workTapes i := match (action.workTapes i).1 with
         | none => cfg.workTapes i
         | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s
-      workTapePos i := (cfg.workTapePos i) + (workActions i).2
+      workTapePos i := (cfg.workTapePos i) + (action.workTapes i).2
     }
 
 /-- The symbol (optionally) output when executing one step starting from configuration `cfg`. -/
 def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   match cfg.state with
   | none => none
-  | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).outS
+  | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).output
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
