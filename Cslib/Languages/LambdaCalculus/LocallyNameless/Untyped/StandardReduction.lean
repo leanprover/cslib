@@ -322,7 +322,7 @@ lemma Standard.trans_step (h1 : M ⭢ₛ P) (h2 : P ⭢βᶠ N) : M ⭢ₛ N := 
       have std_subst := std_abs.abs_subst std_M std_M.lc_l std_M.lc_r
       have s1 : L'.app M ↠ₙ L.abs.app M := CBN.steps_app_l_cong cbn_L1 std_M.lc_l
       have s2 : L.abs.app M ⭢ₙ L ^ M := .base (.beta (CBN.steps_lc_r std_L.lc_l cbn_L1) std_M.lc_l)
-      exact Standard.cbn_trans (.trans s1 (.single s2)) std_subst
+      exact Standard.cbn_trans (.tail s1 s2) std_subst
 
 /-- A standard reduction followed by a full β-reduction is a standard reduction. -/
 lemma Standard.trans_redex (h1 : M ⭢ₛ P) (h2 : P ↠βᶠ N) : M ⭢ₛ N := by
