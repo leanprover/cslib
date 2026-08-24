@@ -193,7 +193,8 @@ open Bisimilarity in
 /-- P + Q ~ Q + P -/
 theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q p) := by
   exists @ChoiceComm Name Constant defs
-  repeat constructor
+  constructor
+  · exact ChoiceComm.choiceComm
   intro s1 s2 hr μ
   cases hr
   case choiceComm p q =>
@@ -313,7 +314,7 @@ theorem bisimilarity_congr_choice :
   intro h
   exists @ChoiceBisim _ _ defs
   constructor
-  · constructor; assumption
+  · exact ChoiceBisim.choice h
   intro s1 s2 r μ
   constructor
   case left =>

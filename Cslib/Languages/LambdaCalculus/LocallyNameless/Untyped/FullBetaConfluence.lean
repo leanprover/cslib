@@ -91,7 +91,7 @@ lemma Parallel.le_reflTransGen_fullBeta :
     ((· ⭢ₚ ·) : Term Var → Term Var → Prop) ≤ (· ↠βᶠ ·) := by
   intro M N para
   induction para
-  case fvar => constructor
+  case fvar => exact .refl
   case app L L' R R' l_para m_para redex_l redex_m =>
     have : L.app R ↠βᶠ L'.app R := by grind
     grind [ReflTransGen.trans]
