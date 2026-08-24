@@ -63,7 +63,7 @@ def helloLts : LTS HelloCfg (Cfg.TrLabel String String String) := Cfg.lts string
 -- This is begging for more automation.
 example : helloLts.Tr helloCfg (.com "p" "q" "Hello")
     (Cfg.mk 0 (helloCfg.store[("q", "x") := "Hello"])) := by
-  apply Cfg.Tr.com (heval := by constructor) (hstore := rfl)
+  apply Cfg.Tr.com (heval := FunCallEval.EvalExpr.val) (hstore := rfl)
   apply Network.Tr.com (by constructor) (by constructor)
   ext p
   simp only [Pi.zero_apply, helloCfg, HasSubstitution.subst]
