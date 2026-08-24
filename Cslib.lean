@@ -21,6 +21,7 @@ public import Cslib.Computability.Automata.NA.EpsilonTransducer
 public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.Pair
+public import Cslib.Computability.Automata.NA.Preimage
 public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.Sum
@@ -39,6 +40,7 @@ public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.RightCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
 public import Cslib.Computability.Languages.Language
+public import Cslib.Computability.Languages.LanguageHom
 public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
@@ -106,7 +108,7 @@ public import Cslib.Foundations.Semantics.LTS.ExampleTermination
 public import Cslib.Foundations.Semantics.LTS.Execution
 public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.LTSCat.Basic
-public import Cslib.Foundations.Semantics.LTS.MapLabel
+public import Cslib.Foundations.Semantics.LTS.MapHom
 public import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 public import Cslib.Foundations.Semantics.LTS.Relation
