@@ -60,3 +60,12 @@ lemma List.IsChainFromTo.exists_length_lt_of_not_nodup
     · grind
     · grind
   · grind
+
+lemma List.IsChainFromTo.exists_noDup (hc : chain.IsChainFromTo r a b) :
+    ∃ chain' : List α, chain'.IsChainFromTo r a b ∧ chain'.Nodup := by
+  induction hn : chain.length using Nat.strong_induction_on generalizing chain with
+  | h n ih =>
+    by_cases h_dup : chain.Nodup
+    · use chain, hc, h_dup
+    · obtain ⟨chain', hc', hlen⟩ := hc.exists_length_lt_of_not_nodup h_dup
+      exact ih chain'.length (hn ▸ hlen) hc' rfl
