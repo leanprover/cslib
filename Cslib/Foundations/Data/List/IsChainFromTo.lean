@@ -14,11 +14,22 @@ public import Mathlib.Logic.Relation
 /-! # Chains with a designated start and end
 
 This file defines `List.IsChainFromTo`, a variant of `List.IsChain` that also fixes the first and
-last element of the chain.
+last element of the chain. Such a chain is an explicit witness for the fact that its end point is
+reachable from its start point, and its length bounds the number of steps that are needed.
 
-The lemma `List.IsChainFromTo.exists_length_lt_of_not_nodup` shows that a chain with duplicates can
-always be shortened, and `List.IsChainFromTo.exists_nodup` iterates this to obtain a chain
-without duplicates.
+## Main definitions
+
+* `List.IsChainFromTo r chain a b`: `chain` is a non-empty list whose adjacent elements are related
+  by `r`, whose first element is `a` and whose last element is `b`.
+
+## Main results
+
+* `List.IsChainFromTo.reflTransGen`: the start and the end of a chain are related by
+  `Relation.ReflTransGen`.
+* `List.IsChainFromTo.head_induction_on`: induction on a chain, peeling off elements at the start.
+* `List.IsChainFromTo.exists_length_lt_of_not_nodup`: a chain with duplicates can always be
+  shortened.
+* `List.IsChainFromTo.exists_nodup`: iterating the above yields a chain without duplicates.
 -/
 
 @[expose] public section
@@ -34,6 +45,25 @@ structure List.IsChainFromTo {α : Type*} (r : α → α → Prop) (chain : List
   getLast_eq : chain.getLast ne_nil = b
 
 attribute [grind →] List.IsChainFromTo.head_eq List.IsChainFromTo.getLast_eq
+
+/-- A chain has at least one element. -/
+@[grind →]
+lemma List.IsChainFromTo.length_pos (hc : chain.IsChainFromTo r a b) : 0 < chain.length :=
+  List.length_pos_iff.mpr hc.ne_nil
+
+/-- The first element of an `r`-chain from `a` to `b` is `a`. -/
+@[grind →]
+lemma List.IsChainFromTo.getElem_zero (hc : chain.IsChainFromTo r a b) :
+    chain[0]'hc.length_pos = a := by
+  rw [List.getElem_zero]
+  exact hc.head_eq
+
+/-- The last element of an `r`-chain from `a` to `b` is `b`. -/
+@[grind →]
+lemma List.IsChainFromTo.getElem_length_sub_one (hc : chain.IsChainFromTo r a b) :
+    chain[chain.length - 1]'(by have := hc.length_pos; lia) = b := by
+  rw [List.getElem_length_sub_one_eq_getLast]
+  exact hc.getLast_eq
 
 /-- The start and the end of an `r`-chain are reflexively-transitively related by `r`. -/
 theorem List.IsChainFromTo.reflTransGen (hc : chain.IsChainFromTo r a b) :
@@ -111,6 +141,7 @@ lemma List.IsChainFromTo.drop (hc : chain.IsChainFromTo r a b) {i : ℕ} (hi : i
   have : chain.drop i ≠ [] := ne_nil_iff_length_pos.mpr <| chain.lt_length_drop hi
   refine ⟨hc.isChain.drop _, this, chain.head_drop this, hc.getLast_eq ▸ chain.getLast_drop this⟩
 
+@[elab_as_elim]
 lemma List.IsChainFromTo.head_induction_on
     {motive : ∀ {chain : List α} {a b : α}, chain.IsChainFromTo r a b → Prop}
     (h_refl : ∀ {a : α}, motive (isChainFromTo_singleton (r := r) (a := a)))

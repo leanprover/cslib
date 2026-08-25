@@ -191,9 +191,8 @@ lemma _root_.List.IsChainFromTo.relatesInSteps {chain : List α} {n : ℕ}
     RelatesInSteps r a b n := by
   have hrel := _root_.List.IsChain.relatesInSteps_getElem hc.isChain 0 n (by lia)
   simp only [Nat.zero_add] at hrel
-  have h0 : chain[0]'(by lia) = a := by grind
-  have hl : chain[n]'(by lia) = b := by grind
-  rwa [h0, hl] at hrel
+  have hlast : chain[n]'(by lia) = b := by simpa [hlen] using hc.getElem_length_sub_one
+  rwa [hc.getElem_zero, hlast] at hrel
 
 /-- `a` and `b` are related in `n` steps exactly when there is an `r`-chain of `n + 1` elements
 from `a` to `b`. -/
@@ -283,8 +282,7 @@ theorem ReflTransGen.relatesInSteps_lt_encard {b : α} (h : ReflTransGen r a b) 
   obtain ⟨n₀, hn₀⟩ := h.relatesInSteps
   obtain ⟨chain₀, hc₀, -⟩ := hn₀.exists_isChainFromTo
   obtain ⟨chain, hc, h_nodup⟩ := hc₀.exists_nodup
-  obtain ⟨n, hlen⟩ : ∃ n, chain.length = n + 1 :=
-    ⟨chain.length - 1, by grind [List.length_pos_iff]⟩
+  obtain ⟨n, hlen⟩ : ∃ n, chain.length = n + 1 := ⟨chain.length - 1, by have := hc.length_pos; lia⟩
   refine ⟨n, hc.relatesInSteps hlen, ?_⟩
   -- All elements of the chain are reachable from `a`, and they are pairwise distinct,
   -- so the chain has at most as many elements as there are reachable elements.
