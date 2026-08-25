@@ -28,8 +28,10 @@ variable {α : Type*} {r : α → α → Prop} {chain : List α} {a b : α}
 structure List.IsChainFromTo {α : Type*} (r : α → α → Prop) (chain : List α) (a b : α) : Prop where
   isChain : chain.IsChain r
   ne_nil : chain ≠ []
-  head : chain.head ne_nil = a
-  last : chain.getLast ne_nil = b
+  head_eq : chain.head ne_nil = a
+  getLast_eq : chain.getLast ne_nil = b
+  
+attribute [grind →] List.IsChainFromTo.head_eq List.IsChainFromTo.getLast_eq
 
 /-- Create a `List.IsChainFromTo` from a non-empty `List.IsChain`. -/
 theorem List.IsChainFromTo.of_isChain_ne_nil
