@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Marianna Girlando
 module
 
 public import Cslib.Logics.Modal.Basic
+public import Cslib.Foundations.Relation.Euclidean
 
 /-! # Modal Logic Cube
 
@@ -135,6 +136,10 @@ section Validity
 This section showcases how to prove the expected validities in the different modal logics.
 -/
 
+open InferenceSystem
+
+open scoped Satisfies
+
 /-- The axiom K is valid in the logic K. -/
 theorem K.k_valid : (□(φ₁ → φ₂) → (□φ₁ → □φ₂) : Proposition Atom) ∈ K World Atom := by
   open scoped Proposition in grind [Satisfies.k]
@@ -142,7 +147,7 @@ theorem K.k_valid : (□(φ₁ → φ₂) → (□φ₁ → □φ₂) : Proposit
 /-- The axiom T is valid in the logic T. -/
 theorem T.t_valid : (φ → ◇φ : Proposition Atom) ∈ T World Atom := by
   intro _ h
-  grind [Satisfies.t (instRefl := (by assumption))]
+  grind [Satisfies.t (instRefl := h)]
 
 end Validity
 

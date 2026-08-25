@@ -118,11 +118,11 @@ theorem toSingleAccept_τSTr_τSTr {a : εNA.FinAcc State Symbol}
     | tail hτstr htr ih =>
       subst hos'
       obtain ⟨_, rfl⟩ := Option.isSome_iff_exists.mp <| toSingleAccept_tr_antiDerivative_isSome htr
-      exact .trans (ih rfl) (.single htr)
+      exact .tail (ih rfl) htr
   · intro h
     cases h with
     | refl => exact LTS.τSTr.refl
-    | tail hτstr htr => exact .trans (.lift some (by rfl) _ _ hτstr) (.single htr)
+    | tail hτstr htr => exact .tail (.lift some (by rfl) _ _ hτstr) htr
 
 @[scoped grind →]
 theorem toSingleAccept_τSTr_none_accept {a : εNA.FinAcc State Symbol}
@@ -206,9 +206,7 @@ theorem toSingleAccept_sTr_none_none {a : εNA.FinAcc State Symbol}
     (h : a.toSingleAccept.STr none x os) : x = none ∧ os = none := by
   cases h
   case refl => trivial
-  case tr osb₁ osb₂ h₁ h₂ h₃ =>
-  have : osb₁ = none := toSingleAccept_τSTr_antiDerivative_none h₁
-  grind
+  case tr osb₁ osb₂ h₁ h₂ h₃ => grind
 
 @[scoped grind →]
 theorem toSingleAccept_sMTr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
