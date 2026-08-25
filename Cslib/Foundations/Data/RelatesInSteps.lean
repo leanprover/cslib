@@ -19,7 +19,8 @@ chain of length `n` (or at most `n`) between two elements.
 
 The lemma `RelatesInSteps.exists_isChainFromTo` allows to obtain a chain
 (`List.IsChainFromTo`) of related elements that witness the reachability, and
-`RelatesInSteps.of_isChainFromTo` is the converse direction.
+`List.IsChainFromTo.relatesInSteps` is the converse direction.
+`Relation.relatesInSteps_iff_exists_isChainFromTo` combines both.
 
 Another result is `Relation.ReflTransGen.relatesInSteps_lt_encard`, which states that any element
 reachable from `a` is reachable in fewer steps than there are elements reachable from `a`.
@@ -157,7 +158,7 @@ lemma RelatesInSteps.map {α α' : Type*}
   | tail t' t'' m _ hstep ih =>
     exact .tail (g _) (g t') (g t'') m ih (hg t' t'' hstep)
 
-/-! ## Lemmas to translate between RelatesInSteps and the existence of a chain (`List.IsChain`) -/
+/-! ## Translating between `RelatesInSteps` and chains (`List.IsChainFromTo`) -/
 
 /-- If `b` is related to `a` via `r` in `n` steps, then there is an `r`-chain of `n + 1` elements
 starting at `a` and ending at `b`.
@@ -166,7 +167,7 @@ a length guarantee. -/
 lemma RelatesInSteps.exists_isChainFromTo {a b : α} {n : ℕ} (h : RelatesInSteps r a b n) :
     ∃ chain : List α, chain.IsChainFromTo r a b ∧ chain.length = n + 1 := by
   induction h using RelatesInSteps.head_induction_on with
-  | hrefl => exact ⟨[b], List.IsChainFromTo.singleton, rfl⟩
+  | hrefl => exact ⟨[b], List.isChainFromTo_singleton, rfl⟩
   | @hhead a c n h' h ih =>
     obtain ⟨l, hchain, hlen⟩ := ih
     use a :: l, hchain.cons h'
@@ -175,23 +176,30 @@ lemma RelatesInSteps.exists_isChainFromTo {a b : α} {n : ℕ} (h : RelatesInSte
 /-- Any two elements along an `r`-chain are related in as many steps as their distance in the
 chain. -/
 lemma _root_.List.IsChain.relatesInSteps_getElem {chain : List α} (hc : chain.IsChain r)
-    (p k : ℕ) (hpk : p + k < chain.length) :
-    RelatesInSteps r chain[p] chain[p + k] k := by
+    (i k : ℕ) (hik : i + k < chain.length) :
+    RelatesInSteps r chain[i] chain[i + k] k := by
   induction k with
   | zero => exact .refl _
   | succ k ih =>
-    apply RelatesInSteps.tail _ (chain[p + k]) _ k (ih (by lia))
+    apply RelatesInSteps.tail _ (chain[i + k]) _ k (ih (by lia))
     apply List.IsChain.getElem hc
 
-/-- If there is an `r`-chain from `a` to `b`, then `a` and `b` are related to each other with
-a number of steps equal to the length of the chain minus one. -/
-lemma _root_.IsChainFromTo.relatesInSteps {chain : List α} (hc : chain.IsChainFromTo r a b) :
-    RelatesInSteps r a b (chain.length - 1) := by
-  have h_ne : chain.length > 0 := by grind
-  have hrel := _root_.List.IsChain.relatesInSteps_getElem hc.isChain 0 (chain.length - 1) (by omega)
-  have h0 : chain[0] = a := by grind
-  have hl : chain[chain.length - 1] = b := by grind
-  simpa [h0, hl] using hrel
+/-- If there is an `r`-chain of `n + 1` elements from `a` to `b`, then `a` and `b` are related
+to each other in `n` steps. -/
+lemma _root_.List.IsChainFromTo.relatesInSteps {chain : List α} {n : ℕ}
+    (hc : chain.IsChainFromTo r a b) (hlen : chain.length = n + 1) :
+    RelatesInSteps r a b n := by
+  have hrel := _root_.List.IsChain.relatesInSteps_getElem hc.isChain 0 n (by lia)
+  simp only [Nat.zero_add] at hrel
+  have h0 : chain[0]'(by lia) = a := by grind
+  have hl : chain[n]'(by lia) = b := by grind
+  rwa [h0, hl] at hrel
+
+/-- `a` and `b` are related in `n` steps exactly when there is an `r`-chain of `n + 1` elements
+from `a` to `b`. -/
+lemma relatesInSteps_iff_exists_isChainFromTo :
+    RelatesInSteps r a b n ↔ ∃ chain : List α, chain.IsChainFromTo r a b ∧ chain.length = n + 1 :=
+  ⟨RelatesInSteps.exists_isChainFromTo, fun ⟨_, hc, hlen⟩ => hc.relatesInSteps hlen⟩
 
 /-! ## RelatesWithinSteps - only requires an upper bound on the number of steps -/
 
@@ -272,19 +280,20 @@ theorem ReflTransGen.relatesInSteps_lt_encard {b : α} (h : ReflTransGen r a b) 
     ∃ n, RelatesInSteps r a b n ∧ (n : ℕ∞) < {x | ReflTransGen r a x}.encard := by
   classical
   -- Take any chain from `a` to `b` and remove its duplicates.
-  obtain ⟨n, hn⟩ := h.relatesInSteps
-  obtain ⟨chain, hc, -⟩ := hn.exists_isChainFromTo
-  obtain ⟨chain, hc, h_nodup⟩ := hc.exists_noDup
-  refine ⟨chain.length - 1, _root_.IsChainFromTo.relatesInSteps hc, ?_⟩
+  obtain ⟨n₀, hn₀⟩ := h.relatesInSteps
+  obtain ⟨chain₀, hc₀, -⟩ := hn₀.exists_isChainFromTo
+  obtain ⟨chain, hc, h_nodup⟩ := hc₀.exists_nodup
+  obtain ⟨n, hlen⟩ : ∃ n, chain.length = n + 1 :=
+    ⟨chain.length - 1, by grind [List.length_pos_iff]⟩
+  refine ⟨n, hc.relatesInSteps hlen, ?_⟩
   -- All elements of the chain are reachable from `a`, and they are pairwise distinct,
   -- so the chain has at most as many elements as there are reachable elements.
-  have hsub : {x | x ∈ chain} ⊆ {x | ReflTransGen r a x} :=
-    fun _ hx => relationReflTransGen_of_isChainFromTo_mem hc hx
+  have hsub : {x | x ∈ chain} ⊆ {x | ReflTransGen r a x} := fun _ hx => hc.reflTransGen_of_mem hx
   have h_le : (chain.length : ℕ∞) ≤ {x | ReflTransGen r a x}.encard := by
     rw [← List.coe_toFinset] at hsub
     have := Set.encard_le_encard hsub
     rwa [Set.encard_coe_eq_coe_finsetCard, List.toFinset_card_of_nodup h_nodup] at this
-  -- The number of steps is one less than the number of elements of the chain.
-  exact lt_of_lt_of_le (by grind [List.length_pos_iff, Nat.cast_lt]) h_le
+  -- The chain has one more element than the number of steps.
+  exact lt_of_lt_of_le (by rw [hlen]; exact_mod_cast Nat.lt_succ_self n) h_le
 
 end Relation
