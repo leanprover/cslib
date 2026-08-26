@@ -190,9 +190,8 @@ lemma _root_.List.IsChainFromTo.relatesInSteps {chain : List α} {n : ℕ}
     (hc : chain.IsChainFromTo r a b) (hlen : chain.length = n + 1) :
     RelatesInSteps r a b n := by
   have hrel := _root_.List.IsChain.relatesInSteps_getElem hc.isChain 0 n (by lia)
-  simp only [Nat.zero_add] at hrel
   have hlast : chain[n]'(by lia) = b := by simpa [hlen] using hc.getElem_length_sub_one
-  rwa [hc.getElem_zero, hlast] at hrel
+  simpa [hc.getElem_zero, hlast] using hrel
 
 /-- `a` and `b` are related in `n` steps exactly when there is an `r`-chain of `n + 1` elements
 from `a` to `b`. -/
@@ -228,8 +227,7 @@ lemma RelatesWithinSteps.zero {a b : α} (h : RelatesWithinSteps r a b 0) : a = 
 lemma RelatesWithinSteps.zero_iff {a b : α} : RelatesWithinSteps r a b 0 ↔ a = b := by
   constructor
   · exact RelatesWithinSteps.zero
-  · intro h
-    subst h
+  · rintro rfl
     exact RelatesWithinSteps.refl a
 
 /-- Transitivity of `RelatesWithinSteps` in the sum of the step bounds. -/
