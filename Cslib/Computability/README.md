@@ -25,6 +25,10 @@ This approach enables:
 2. Applying CSLib's [logics](../Logics) to reason about computational models.
 3. Developing connections between computability models and other areas (like the constructions of automata based on transition systems).
 
+The circuit development follows this principle: signatures describe gate bases independently of
+their interpretations, while topologically ordered programs and designated output wires provide a
+generic model for Boolean, arithmetic, and other finite-arity circuits.
+
 ### Separation from languages
 
 Some of the developments here are close to [Languages](../Languages), but are placed here instead because the emphasis is on formal languages over words and models typically linked to computability studies.
