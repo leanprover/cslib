@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Logics.Modal.Basic
+public import Cslib.Logics.Modal.LogicalEquivalence
 
 /-! # Denotational semantics for Modal Logic
 
@@ -18,7 +18,7 @@ A denotational semantics for modal logic, inspired by the one for Hennessy-Milne
 
 namespace Cslib.Logic.Modal
 
-open scoped Proposition InferenceSystem
+open scoped Proposition InferenceSystem Satisfies
 
 /-- Denotation of a proposition. -/
 @[simp, scoped grind =]
@@ -47,5 +47,21 @@ theorem theoryEq_denotation_eq {m : Model World Atom} {w₁ w₂ : World} :
     (TheoryEq m w₁ w₂) ↔
     (∀ (φ : Proposition Atom), w₁ ∈ (φ.denotation m) ↔ w₂ ∈ (φ.denotation m)) := by
   apply Iff.intro <;> grind [_=_ satisfies_mem_denotation]
+
+/-- Logically equivalent propositions under a model have the same denotation. -/
+theorem Proposition.equiv_iff_denotation_eq :
+    (φ₁ ≡[Equiv m] φ₂) ↔ φ₁.denotation m = φ₂.denotation m := by
+  constructor <;> intro h
+  case mp =>
+    grind
+  case mpr =>
+    intro w
+    rw [Set.ext_iff] at h
+    grind [h w]
+
+/-- `grind`-friendly first part of `Proposition.equiv_iff_denotation_eq`. -/
+@[scoped grind ⇒]
+theorem Proposition.denotation_eq_of_equiv (h : φ₁ ≡[Equiv m] φ₂) :
+    φ₁.denotation m = φ₂.denotation m := equiv_iff_denotation_eq.1 h
 
 end Cslib.Logic.Modal

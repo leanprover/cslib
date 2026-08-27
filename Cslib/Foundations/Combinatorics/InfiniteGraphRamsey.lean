@@ -10,7 +10,7 @@ public import Cslib.Init
 public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Data.Fintype.Pigeonhole
 public import Mathlib.Data.Set.Finite.Basic
-public import Mathlib.Data.Set.Lattice
+import Mathlib.Data.Set.Lattice.Bounded
 
 /-! # Ramsey theorem for infinite graphs
 
