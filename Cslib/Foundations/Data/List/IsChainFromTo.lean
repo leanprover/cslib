@@ -137,7 +137,7 @@ lemma IsChainFromTo.append_dropLast (hc : chain.IsChainFromTo r a b) {chain' : L
 `chain[i]`. -/
 lemma IsChainFromTo.take (hc : chain.IsChainFromTo r a b) {i : ℕ} (hi : i < chain.length) :
     (chain.take (i + 1)).IsChainFromTo r a chain[i] := by
-  have : chain.take (i + 1) ≠ [] := by grind [ne_nil_iff_length_pos, length_take]
+  have : chain.take (i + 1) ≠ [] := by grind only [length_nil, min_def, length_take]
   exact ⟨hc.isChain.take _, this, by grind, by grind [chain.getLast_take this]⟩
 
 /-- Dropping the first `i` elements of a chain yields a chain from `chain[i]` to the same end
