@@ -18,6 +18,9 @@ without unfolding the underlying Lean semantics of satisfaction for modalities.
 
 namespace Cslib.Logic.Modal
 
+/-- Attempts to resolve the goal by deriving judgements in modal logic, without unfolding the
+underlying Lean semantics of satisfaction for modalities. Use this in combination with modal axioms
+for more powerful proof search. -/
 register_grind_attr modal
 
 end Cslib.Logic.Modal
