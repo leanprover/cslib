@@ -117,7 +117,7 @@ private lemma mergeSort_eval (xs : List α) (le : α → α → Bool) :
   | case1 xs h =>
     simp [h, mergeSortNaive, Prog.eval]
   | case2 xs h n left right ihl ihr =>
-    rw [mergeSortNaive, if_neg h]
+    rw [mergeSortNaive, ite_eq_right h]
     simp [ihl, ihr, merge_eval]
     rfl
 
