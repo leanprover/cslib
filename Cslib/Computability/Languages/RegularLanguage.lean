@@ -6,13 +6,14 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Automata.DA.Congr
-public import Cslib.Computability.Automata.DA.Prod
-public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.Preimage
+public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
+public import Cslib.Computability.Automata.DA.ToNA
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
 public import Mathlib.Data.Finite.Sum
@@ -29,7 +30,7 @@ namespace Cslib.Language
 open Set List Prod Automata Acceptor RightCongruence
 open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
-variable {Symbol : Type*}
+variable {Symbol Symbol' : Type*}
 
 /-- A characterization of `Language.IsRegular` in terms of `DA`. This is the only theorem in Cslib
 in which Mathlib's definition of `Language.IsRegular` is used. -/
@@ -196,7 +197,7 @@ open NA in
 theorem IsRegular.reverse {l : Language Symbol} (h : l.IsRegular) : l.reverse.IsRegular := by
   rw [IsRegular.iff_nfa] at h ⊢
   obtain ⟨State, h_fin, nfa, rfl⟩ := h
-  use State, inferInstance, nfa.reverse, FinAcc.reverse_language_eq nfa
+  use State, inferInstance, nfa.reverse, nfa.reverse_language_eq
 
 /-- A language is regular iff its reversal is regular. -/
 @[simp]
@@ -205,6 +206,14 @@ theorem IsRegular.reverse_iff {l : Language Symbol} : l.reverse.IsRegular ↔ l.
   · intro h
     simpa using IsRegular.reverse h
   · exact IsRegular.reverse
+
+open NA _root_.Language in
+/-- The preimage of a regular languge under a language homomorphism is regular. -/
+theorem IsRegular.preimage (f : Hom Symbol' Symbol) {l : Language Symbol} (h : l.IsRegular) :
+    (l.preimage f).IsRegular := by
+  rw [IsRegular.iff_nfa] at h ⊢
+  obtain ⟨State, h_fin, nfa, rfl⟩ := h
+  use State, inferInstance, nfa.preimage f, nfa.preimage_language_eq f
 
 /-- The language containing only the one character string `a` is regular. -/
 @[simp]
