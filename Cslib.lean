@@ -92,6 +92,8 @@ public import Cslib.Foundations.Relation.Confluence
 public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Relation.Euclidean
+public import Cslib.Foundations.Relation.Normal
+public import Cslib.Foundations.Relation.Preserves
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
@@ -170,6 +172,7 @@ public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
 public import Cslib.Logics.LinearLogic.CLL.MLL
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
+public import Cslib.Logics.Modal.Attr
 public import Cslib.Logics.Modal.Basic
 public import Cslib.Logics.Modal.Cube
 public import Cslib.Logics.Modal.Denotation
