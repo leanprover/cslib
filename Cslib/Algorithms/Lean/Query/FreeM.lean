@@ -79,55 +79,94 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
 -- Simp lemmas for eval
 
 @[simp] theorem eval_pure (oracle : {ι : Type} → F ι → ι) (a : α) :
-    eval oracle (.pure a : FreeM F α) = a := rfl
+    eval oracle (pure a : FreeM F α) = a := rfl
 
 @[simp] theorem eval_liftBind (oracle : {ι : Type} → F ι → ι)
     {ι : Type} (op : F ι) (cont : ι → FreeM F α) :
-    eval oracle (.liftBind op cont) = eval oracle (cont (oracle op)) := rfl
+    eval oracle (FreeM.lift op >>= cont) = eval oracle (cont (oracle op)) := rfl
+
+@[simp] theorem eval_lift (oracle : {ι : Type} → F ι → ι) {ι : Type} (op : F ι) :
+    eval oracle (FreeM.lift op) = oracle op := rfl
 
 @[simp] theorem eval_bind (oracle : {ι : Type} → F ι → ι)
     (t : FreeM F α) (f : α → FreeM F β) :
-    eval oracle (t.bind f) = eval oracle (f (eval oracle t)) := by
+    eval oracle (t >>= f) = eval oracle (f (eval oracle t)) := by
   induction t with
   | pure a => rfl
-  | liftBind op cont ih => exact ih (oracle op)
+  | lift_bind op cont ih => exact ih (oracle op)
+
+@[simp] theorem eval_map (oracle : {ι : Type} → F ι → ι)
+    (t : FreeM F α) (f : α → β) :
+    eval oracle (f <$> t) = f (eval oracle t) := by
+  rw [← FreeM.map_eq_map, ← FreeM.bind_pure_comp, FreeM.bind_eq_bind, eval_bind]
+  simp
 
 -- Simp lemmas for cost
 
 @[simp] theorem cost_pure {T : Type} [AddMonoid T] (oracle : {ι : Type} → F ι → ι)
     (weight : {ι : Type} → F ι → T) (a : α) :
-    cost oracle weight (.pure a : FreeM F α) = 0 := rfl
+    cost oracle weight (pure a : FreeM F α) = 0 := rfl
 
 @[simp] theorem cost_liftBind {T : Type} [AddMonoid T]
     (oracle : {ι : Type} → F ι → ι) (weight : {ι : Type} → F ι → T)
     {ι : Type} (op : F ι) (cont : ι → FreeM F α) :
-    cost oracle weight (.liftBind op cont) =
+    cost oracle weight (FreeM.lift op >>= cont) =
       weight op + cost oracle weight (cont (oracle op)) := rfl
+
+@[simp] theorem cost_lift {T : Type} [AddMonoid T]
+    (oracle : {ι : Type} → F ι → ι) (weight : {ι : Type} → F ι → T)
+    {ι : Type} (op : F ι) :
+    cost oracle weight (FreeM.lift op) = weight op := by
+  change weight op + 0 = weight op
+  exact add_zero _
 
 @[simp] theorem cost_bind {T : Type} [AddMonoid T] (oracle : {ι : Type} → F ι → ι)
     (weight : {ι : Type} → F ι → T) (t : FreeM F α) (f : α → FreeM F β) :
-    cost oracle weight (t.bind f) =
+    cost oracle weight (t >>= f) =
       cost oracle weight t + cost oracle weight (f (eval oracle t)) := by
   induction t with
-  | pure a => simp [FreeM.bind]
-  | liftBind op cont ih =>
-    simp only [FreeM.bind, cost_liftBind, eval_liftBind, ih (oracle op)]
-    simp only [add_assoc]
+  | pure a =>
+    change cost oracle weight (f a) = 0 + cost oracle weight (f a)
+    simp
+  | lift_bind op cont ih =>
+    change weight op + cost oracle weight (cont (oracle op) >>= f) =
+      (weight op + cost oracle weight (cont (oracle op))) +
+        cost oracle weight (f (eval oracle (cont (oracle op))))
+    simp only [ih, add_assoc]
+
+@[simp] theorem cost_map {T : Type} [AddMonoid T]
+    (oracle : {ι : Type} → F ι → ι) (weight : {ι : Type} → F ι → T)
+    (t : FreeM F α) (f : α → β) :
+    cost oracle weight (f <$> t) = cost oracle weight t := by
+  rw [← FreeM.map_eq_map, ← FreeM.bind_pure_comp, FreeM.bind_eq_bind, cost_bind]
+  simp
 
 -- Simp lemmas for countQueries
 
 @[simp] theorem countQueries_pure (oracle : {ι : Type} → F ι → ι) (a : α) :
-    countQueries oracle (.pure a : FreeM F α) = 0 := rfl
+    countQueries oracle (pure a : FreeM F α) = 0 := rfl
 
 @[simp] theorem countQueries_liftBind (oracle : {ι : Type} → F ι → ι)
     {ι : Type} (op : F ι) (cont : ι → FreeM F α) :
-    countQueries oracle (.liftBind op cont) = 1 + countQueries oracle (cont (oracle op)) := rfl
+    countQueries oracle (FreeM.lift op >>= cont) =
+      1 + countQueries oracle (cont (oracle op)) := rfl
+
+@[simp] theorem countQueries_lift (oracle : {ι : Type} → F ι → ι)
+    {ι : Type} (op : F ι) :
+    countQueries oracle (FreeM.lift op) = 1 := by
+  change 1 + 0 = 1
+  rfl
 
 @[simp] theorem countQueries_bind (oracle : {ι : Type} → F ι → ι)
     (t : FreeM F α) (f : α → FreeM F β) :
-    countQueries oracle (t.bind f) =
+    countQueries oracle (t >>= f) =
       countQueries oracle t + countQueries oracle (f (eval oracle t)) :=
   cost_bind oracle (fun _ => 1) t f
+
+@[simp] theorem countQueries_map (oracle : {ι : Type} → F ι → ι)
+    (t : FreeM F α) (f : α → β) :
+    countQueries oracle (f <$> t) = countQueries oracle t :=
+  cost_map oracle (fun _ => 1) t f
 
 theorem countQueries_eq_cost_one (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) :
     countQueries oracle p = cost oracle (fun _ => 1) p := rfl
@@ -153,7 +192,7 @@ private theorem exists_mem_countQueries_ge_clog (r : Nat)
     have hS1 : S.card ≤ 1 :=
       Finset.card_le_one.mpr fun _ ha _ hb => h_inj ha hb rfl
     simp [countQueries, Nat.clog_of_right_le_one hS1]
-  | @liftBind ρ op cont ih =>
+  | @lift_bind ρ op cont ih =>
     by_cases hle : S.card ≤ 1
     · obtain ⟨i, hi⟩ := hS
       exact ⟨i, hi, by simp [Nat.clog_of_right_le_one hle]⟩
@@ -163,7 +202,7 @@ private theorem exists_mem_countQueries_ge_clog (r : Nat)
       exact ⟨i, hi, by simp [Nat.clog_of_left_le_one hr]⟩
     push Not at hr
     -- 2 ≤ r, 2 ≤ S.card
-    letI : Fintype ρ := h_fin op
+    let _ : Fintype ρ := h_fin op
     have hk : Fintype.card ρ ≤ r := h_card op
     -- Fintype.card ρ ≥ 1: any oracle produces an answer
     obtain ⟨i₀, _hi₀⟩ := hS
@@ -188,11 +227,12 @@ private theorem exists_mem_countQueries_ge_clog (r : Nat)
       have him := Finset.mem_coe.mp hi |> Finset.mem_filter.mp
       have hjm := Finset.mem_coe.mp hj |> Finset.mem_filter.mp
       exact h_inj (Finset.mem_coe.mpr him.1) (Finset.mem_coe.mpr hjm.1)
-        (by simp [him.2, hjm.2, heq])
+        (by simpa [FreeM.liftBind_eq, him.2, hjm.2] using heq)
     obtain ⟨i, hi, hiq⟩ := ih b S' hS' oracles h_inj'
     have him := Finset.mem_filter.mp hi
     refine ⟨i, him.1, ?_⟩
-    simp only [countQueries_liftBind, him.2]
+    change countQueries (oracles i) (FreeM.lift op >>= cont) ≥ Nat.clog r S.card
+    rw [countQueries_liftBind, him.2]
     -- Need: Nat.clog r S.card ≤ 1 + (cont b).countQueries (oracles i)
     have hS'_lb : (S.card + r - 1) / r ≤ S'.card := by
       have h1 : (S.card - 1) / r ≤ (S.card - 1) / Fintype.card ρ :=

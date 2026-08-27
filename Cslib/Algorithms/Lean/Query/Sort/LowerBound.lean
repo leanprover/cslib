@@ -58,7 +58,7 @@ private theorem infinitePermOrder.choose_eq [Infinite α] {i : Fin n}
 private instance [Infinite α] :
     IsTrans α (infinitePermOrder (α := α) n σ) where
   trans a b c hab hbc := by
-    letI : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
+    let _ : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
     unfold infinitePermOrder at *
     by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a <;>
     by_cases hb : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b <;>
@@ -68,19 +68,19 @@ private instance [Infinite α] :
 private instance [Infinite α] :
     Std.Total (infinitePermOrder (α := α) n σ) where
   total a b := by
-    letI : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
+    let _ : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
     unfold infinitePermOrder
     by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a
-    · simp only [dite_else_true]
+    · simp only [dite_true_right]
       grind
-    · simp_all only [reduceDIte, dite_eq_ite, if_true_left]
+    · simp_all only [reduceDIte, dite_eq_ite, ite_true_left]
       grind
 
 attribute [local grind inj] Equiv.injective in
 private instance [Infinite α] :
     Std.Antisymm (infinitePermOrder (α := α) n σ) where
   antisymm a b hab hba := by
-    letI : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
+    let _ : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
     simp only [infinitePermOrder] at hab hba
     by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a <;>
     by_cases hb : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b <;>

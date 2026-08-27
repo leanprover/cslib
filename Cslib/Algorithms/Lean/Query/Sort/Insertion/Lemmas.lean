@@ -91,9 +91,10 @@ theorem orderedInsert_countQueries_le (oracle : {ι : Type} → LEQuery α ι �
   | cons y ys ih =>
     unfold orderedInsert
     simp
-    split
-    · simp_all
-    · simp_all; omega
+    by_cases h : oracle (.le x y) = true
+    · simp [h]
+    · simp [h]
+      omega
 
 theorem insertionSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
     (xs : List α) :
