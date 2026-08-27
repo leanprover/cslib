@@ -1,5 +1,6 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
+public import Cslib.Algorithms.CCS.VendingMachine
 public import Cslib.AlgorithmsTheory.Algorithms.ListInsertionSort
 public import Cslib.AlgorithmsTheory.Algorithms.ListLinearSearch
 public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
@@ -10,9 +11,6 @@ public import Cslib.AlgorithmsTheory.LowerBounds.ComparisonSort
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSearch
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
 public import Cslib.AlgorithmsTheory.QueryModel
-public import Cslib.Algorithms.CCS.VendingMachine
-public import Cslib.Algorithms.Lean.MergeSort.MergeSort
-public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Computability.Automata.DA.Basic
