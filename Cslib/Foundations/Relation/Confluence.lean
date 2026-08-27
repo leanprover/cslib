@@ -150,7 +150,7 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
   grind
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
-lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind only [Acc]
+lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind only [Acc, flip]
 
 lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
 
@@ -166,7 +166,9 @@ lemma SN.transGen (hx : SN r x) : SN (TransGen r) x := by
   have eq : TransGen (Function.swap r) = (fun a b => TransGen r b a) := by
     ext
     exact transGen_swap
-  simpa [eq] using Acc.transGen hx
+  change Acc (fun a b => TransGen r b a) x
+  rw [← eq]
+  exact Acc.transGen hx
 
 lemma SN.of_le {r' : α → α → Prop} (hx : SN r x) (h : r' ≤ r) : SN r' x := by
   refine Subrelation.accessible ?_ hx
@@ -284,8 +286,8 @@ theorem LocallyConfluent.Terminating_toConfluent (hlc : LocallyConfluent r) (ht 
       | inr h =>
         obtain ⟨z₁, x_z₁, z₁_z⟩ := h
         have ⟨u, z₁_u, y₁_u⟩ := hlc x_z₁ x_y₁
-        have ⟨v, uv, yv⟩ : Join (ReflTransGen r) u y := by grind
-        have ⟨w, vw, zw⟩ : Join (ReflTransGen r) v z := by grind [ReflTransGen.trans]
+        have ⟨v, uv, yv⟩ : Join (ReflTransGen r) u y := by grind [flip]
+        have ⟨w, vw, zw⟩ : Join (ReflTransGen r) v z := by grind [flip, ReflTransGen.trans]
         exact ⟨w, .trans yv vw, zw⟩
 
 instance : Std.Symm (@Commute α) where
