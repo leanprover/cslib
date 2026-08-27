@@ -177,9 +177,9 @@ lemma StandardSeq.app_l_cong (h : StandardSeq n L L') :
     have ⟨c, hc, hc_le⟩ := ih
     by_cases hQ : IsAbs Q
     · have hL' := step.isAbs_r hQ
-      have hseq := hc.tail (step.appAbsL hQ) (by simp only [if_pos hQ] at hc_le; omega)
-      exact ⟨_, hseq, by rw [if_pos hL']⟩
-    · have hseq := hc.tail (step.appNoAbsL hQ) (by simp only [if_neg hQ] at hc_le; omega)
+      have hseq := hc.tail (step.appAbsL hQ) (by simp only [ite_eq_left hQ] at hc_le; omega)
+      exact ⟨_, hseq, by rw [ite_eq_left hL']⟩
+    · have hseq := hc.tail (step.appNoAbsL hQ) (by simp only [ite_eq_right hQ] at hc_le; omega)
       exact ⟨_, hseq, by split <;> omega⟩
 
 /-- A nonempty operator reduction lifts to the application, bounded by the operator's redex
@@ -322,7 +322,7 @@ lemma Standard.trans_step (h1 : M ⭢ₛ P) (h2 : P ⭢βᶠ N) : M ⭢ₛ N := 
       have std_subst := std_abs.abs_subst std_M std_M.lc_l std_M.lc_r
       have s1 : L'.app M ↠ₙ L.abs.app M := CBN.steps_app_l_cong cbn_L1 std_M.lc_l
       have s2 : L.abs.app M ⭢ₙ L ^ M := .base (.beta (CBN.steps_lc_r std_L.lc_l cbn_L1) std_M.lc_l)
-      exact Standard.cbn_trans (.trans s1 (.single s2)) std_subst
+      exact Standard.cbn_trans (.tail s1 s2) std_subst
 
 /-- A standard reduction followed by a full β-reduction is a standard reduction. -/
 lemma Standard.trans_redex (h1 : M ⭢ₛ P) (h2 : P ↠βᶠ N) : M ⭢ₛ N := by

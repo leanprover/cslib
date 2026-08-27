@@ -42,11 +42,11 @@ lemma step_workTapes_eq_of_ne
     rcases hw : ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workActions j).1 <;> simp_all
 
 lemma mem_visitedByTapeHead {t : ℕ} {i : Fin k} {z : ℤ} :
-    z ∈ tm.visitedByTapeHead cfg t i ↔ ∃ t' < t + 1, (tm.configs cfg t').workTapePos i = z := by
+    z ∈ tm.visitedByTapeHead cfg t i ↔ ∃ t' < t + 1, (tm.runFrom cfg t').workTapePos i = z := by
   simp [visitedByTapeHead]
 
 lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    (tm.configs cfg t).workTapePos i ∈ tm.visitedByTapeHead cfg t i :=
+    (tm.runFrom cfg t).workTapePos i ∈ tm.visitedByTapeHead cfg t i :=
   tm.mem_visitedByTapeHead.mpr ⟨t, by omega, rfl⟩
 
 /-- The set of positions visited by a tape head is monotone in the number of steps. -/
@@ -59,14 +59,14 @@ lemma visitedByTapeHead_mono (cfg : Cfg k Symbol State input) (i : Fin k) {t t' 
 `i` and the one after `t` steps is part of the "visited set" at step `t`. -/
 lemma uIcc_workTapePos_subset_visitedByTapeHead
     (cfg : Cfg k Symbol State input) (i : Fin k) (t : ℕ) :
-    Finset.uIcc (cfg.workTapePos i) ((tm.configs cfg t).workTapePos i)
+    Finset.uIcc (cfg.workTapePos i) ((tm.runFrom cfg t).workTapePos i)
       ⊆ tm.visitedByTapeHead cfg t i := by
   induction t with
-  | zero => simpa [configs] using tm.mem_visitedByTapeHead_self cfg 0 i
+  | zero => simpa [runFrom] using tm.mem_visitedByTapeHead_self cfg 0 i
   | succ t ih =>
     intro z hz
-    have hstep : |(tm.configs cfg (t + 1)).workTapePos i - (tm.configs cfg t).workTapePos i| ≤ 1 :=
-      configs_succ_eq_step' (tm := tm) ▸ tm.workTapePos_step_le _ i
+    have hstep : |(tm.runFrom cfg (t + 1)).workTapePos i - (tm.runFrom cfg t).workTapePos i| ≤ 1 :=
+      runFrom_succ_eq_step' (tm := tm) ▸ tm.workTapePos_step_le _ i
     have hmono := tm.visitedByTapeHead_mono cfg i (Nat.le_succ t)
     have hself := tm.mem_visitedByTapeHead_self cfg (t + 1) i
     grind [Finset.mem_uIcc]
@@ -76,13 +76,13 @@ lemma mem_visitedByTapeHead_of_workTapes_ne
     (j : Fin k)
     (t : ℕ)
     (z : ℤ)
-    (h : (tm.configs cfg t).workTapes j z ≠ cfg.workTapes j z) :
+    (h : (tm.runFrom cfg t).workTapes j z ≠ cfg.workTapes j z) :
     z ∈ tm.visitedByTapeHead cfg t j := by
   induction t with
-  | zero => exact absurd (by simp [configs]) h
+  | zero => exact absurd (by simp [runFrom]) h
   | succ t ih =>
-    rw [configs_succ_eq_step'] at h
-    by_cases hz : z = (tm.configs cfg t).workTapePos j
+    rw [runFrom_succ_eq_step'] at h
+    by_cases hz : z = (tm.runFrom cfg t).workTapePos j
     · exact hz ▸ tm.visitedByTapeHead_mono cfg j (Nat.le_succ t)
         (tm.mem_visitedByTapeHead_self cfg t j)
     · rw [tm.step_workTapes_eq_of_ne _ j z hz] at h
@@ -109,7 +109,7 @@ lemma content_natAbs_le_spaceUsedByTape
     {i : Fin k}
     (t : ℕ)
     (z : ℤ)
-    (h : (tm.configs (tm.initCfg input) t).workTapes i z ≠ none) :
+    (h : (tm.runFrom (tm.initCfg input) t).workTapes i z ≠ none) :
     z.natAbs ≤ tm.spaceUsedByTape (tm.initCfg input) t i := by
   -- The work tapes start out blank, so any non-blank cell has been visited by the head; the
   -- initial head position is `0`, so the displacement bound is a bound on the position itself.

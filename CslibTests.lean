@@ -1,5 +1,6 @@
 import CslibTests.Bisimulation
 import CslibTests.CCS
+import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
 import CslibTests.Congruence
 import CslibTests.DFA

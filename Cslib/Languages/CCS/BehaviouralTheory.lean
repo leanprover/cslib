@@ -30,7 +30,7 @@ section CCS.BehaviouralTheory
 
 open LTS
 
-variable {Name : Type u} {Constant : Type v} {defs : Constant → CCS.Process Name Constant → Prop}
+variable {Name : Type u} {Constant : Type v} {defs : Constant → Option (CCS.Process Name Constant)}
 
 namespace CCS
 

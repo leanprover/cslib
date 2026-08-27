@@ -1,5 +1,6 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
+public import Cslib.Algorithms.CCS.VendingMachine
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
@@ -21,6 +22,7 @@ public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.Pair
 public import Cslib.Computability.Automata.NA.Prod
+public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
@@ -41,6 +43,7 @@ public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
+public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
@@ -55,8 +58,6 @@ public import Cslib.Computability.URM.StraightLine
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
-public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.OneTimePad
-public import Cslib.Crypto.Protocols.PerfectSecrecy.Internal.PerfectSecrecy
 public import Cslib.Crypto.Protocols.PerfectSecrecy.OneTimePad
 public import Cslib.Crypto.Protocols.SecretSharing.Defs
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
@@ -77,6 +78,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Cslib.Foundations.Data.OmegaSequence.Init
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
+public import Cslib.Foundations.Data.OmegaSequence.Topology
 public import Cslib.Foundations.Data.PFunctor.Free
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Set.Saturation
@@ -106,6 +108,7 @@ public import Cslib.Foundations.Semantics.LTS.MapLabel
 public import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 public import Cslib.Foundations.Semantics.LTS.Relation
+public import Cslib.Foundations.Semantics.LTS.Reverse
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.Termination
 public import Cslib.Foundations.Semantics.LTS.Total
@@ -155,6 +158,7 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StandardReduction
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 public import Cslib.Languages.Mech.Choreography.Basic
 public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Languages.StatefulProcesses.Basic
