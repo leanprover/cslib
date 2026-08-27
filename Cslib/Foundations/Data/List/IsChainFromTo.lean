@@ -155,9 +155,7 @@ lemma IsChainFromTo.head_induction_on
       motive hc → motive (hc.cons hab))
     {chain : List α} {a b : α} (hc : chain.IsChainFromTo r a b) : motive hc := by
   induction htail : chain.tail generalizing chain a with
-  | nil =>
-    obtain rfl : chain = [a] := by grind
-    grind
+  | nil => grind => have : chain = [a]; finish
   | cons a' tail ih =>
     obtain rfl : chain = a :: a' :: tail := by grind
     obtain ⟨hrel, hchain⟩ := isChain_cons_cons.mp hc.isChain
