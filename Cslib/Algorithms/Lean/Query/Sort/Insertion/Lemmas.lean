@@ -8,7 +8,7 @@ module
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
-import Mathlib.Data.List.Sort
+public import Mathlib.Data.List.Sort
 import Mathlib.Tactic.Ring
 public import Mathlib.Algebra.Group.Defs
 

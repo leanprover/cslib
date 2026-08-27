@@ -28,8 +28,8 @@ runtime. However, pure code cannot inspect oracle responses: those enter only th
 `FreeM.lift`.
 
 This provides an alternative to the `TimeM`-based cost analysis in
-`Cslib.Algorithms.Lean.MergeSort`: here query counting is structural (derived from the
-`FreeM` tree) rather than annotation-based.
+`Cslib.Algorithms.Lean.MergeSort.MergeSort`: here query counting is structural (derived from
+the `FreeM` tree) rather than annotation-based.
 
 The combinatorial lower-bound lemma `FreeM.exists_countQueries_ge_clog` says: if `n` distinct
 oracles produce `n` distinct evaluation results from a program whose every response type has

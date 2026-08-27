@@ -39,10 +39,6 @@ theorem split_perm : ∀ (xs : List α),
     -- goal: ((split zs).1 ++ y :: (split zs).2).Perm (y :: zs)
     exact (List.perm_middle).trans (List.Perm.cons _ (split_perm zs))
 
-theorem split_lengths_add (xs : List α) :
-    (split xs).1.length + (split xs).2.length = xs.length := by
-  simp [split_fst_length_eq, split_snd_length_eq]; omega
-
 -- ## Evaluation simp lemmas for merge
 
 @[simp] theorem eval_merge_nil_left (oracle : {ι : Type} → LEQuery α ι → ι) (ys : List α) :

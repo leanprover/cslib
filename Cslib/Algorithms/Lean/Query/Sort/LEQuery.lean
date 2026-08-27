@@ -28,12 +28,12 @@ abbrev LEQuery.ask (a b : α) : FreeM (LEQuery α) Bool :=
 @[simp] theorem LEQuery.eval_ask (oracle : {ι : Type} → LEQuery α ι → ι) (a b : α) :
     (LEQuery.ask a b).eval oracle = oracle (.le a b) := rfl
 
-/-- Build an oracle for `LEQuery α` from a binary predicate `α × α → Bool`. -/
-@[expose] def LEQuery.oracleOf (f : α × α → Bool) : {ι : Type} → LEQuery α ι → ι
-  | _, .le a b => f (a, b)
+/-- Build an oracle for `LEQuery α` from a binary predicate `α → α → Bool`. -/
+@[expose] def LEQuery.oracleOf (f : α → α → Bool) : {ι : Type} → LEQuery α ι → ι
+  | _, .le a b => f a b
 
-@[simp] theorem LEQuery.oracleOf_le (f : α × α → Bool) (a b : α) :
-    LEQuery.oracleOf f (.le a b) = f (a, b) := rfl
+@[simp] theorem LEQuery.oracleOf_le (f : α → α → Bool) (a b : α) :
+    LEQuery.oracleOf f (.le a b) = f a b := rfl
 
 /-- Every `LEQuery α ι` has response type `ι = Bool`, hence a `Fintype` with cardinality 2. -/
 @[reducible] def LEQuery.fintypeResponse : ∀ {ι : Type}, LEQuery α ι → Fintype ι

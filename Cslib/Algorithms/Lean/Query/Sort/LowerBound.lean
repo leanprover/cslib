@@ -137,7 +137,7 @@ theorem IsSort.lowerBound_infinite [Infinite α]
     rw [Fintype.card_perm, Fintype.card_fin]
   let e := Fintype.equivFinOfCardEq hcard
   let progOracles : Fin (Nat.factorial n) → ({ι : Type} → LEQuery α ι → ι) :=
-    fun i => LEQuery.oracleOf (fun p => decide (infinitePermOrder n (e.symm i) p.1 p.2))
+    fun i => LEQuery.oracleOf fun a b => decide (infinitePermOrder n (e.symm i) a b)
   -- Each oracle produces a unique sorted output
   have eval_eq_map (i) : (sort xs).eval (progOracles i) =
       (List.finRange n).map (fun k => ι ((e.symm i) k).val) := by

@@ -30,7 +30,7 @@ variable {α : Type}
 
 -- ## Correctness
 
-theorem complexMulNaive_eval_honest [Ring α] (a b c d : α) :
+theorem complexMulNaive_eval_honest [Add α] [Sub α] [Mul α] (a b c d : α) :
     (complexMulNaive a b c d).eval ArithQuery.honest = (a * c - b * d, a * d + b * c) := by
   simp [complexMulNaive, ArithQuery.doMul, ArithQuery.doSub, ArithQuery.doAdd, ArithQuery.honest]
 
@@ -57,11 +57,20 @@ theorem complexMulGauss_cost (oracle : {ι : Type} → ArithQuery α ι → ι)
 
 -- ## Crossover: Gauss beats naive when multiplication costs at least 3× addition
 
-theorem gauss_le_naive (c_add c_mul : Nat) (h : 3 * c_add ≤ c_mul) :
-    3 * c_mul + 5 * c_add ≤ 4 * c_mul + 2 * c_add := by omega
+theorem gauss_le_naive (oracle : {ι : Type} → ArithQuery α ι → ι)
+    (c_add c_mul : Nat) (a b c d : α) (h : 3 * c_add ≤ c_mul) :
+    (complexMulGauss a b c d).cost oracle (ArithQuery.weight c_add c_mul) ≤
+      (complexMulNaive a b c d).cost oracle (ArithQuery.weight c_add c_mul) := by
+  rw [complexMulGauss_cost, complexMulNaive_cost]
+  omega
 
-theorem gauss_le_naive_iff (c_add c_mul : Nat) :
-    3 * c_mul + 5 * c_add ≤ 4 * c_mul + 2 * c_add ↔ 3 * c_add ≤ c_mul := by omega
+theorem gauss_le_naive_iff (oracle : {ι : Type} → ArithQuery α ι → ι)
+    (c_add c_mul : Nat) (a b c d : α) :
+    (complexMulGauss a b c d).cost oracle (ArithQuery.weight c_add c_mul) ≤
+      (complexMulNaive a b c d).cost oracle (ArithQuery.weight c_add c_mul) ↔
+        3 * c_add ≤ c_mul := by
+  rw [complexMulGauss_cost, complexMulNaive_cost]
+  omega
 
 end Cslib.Query
 
