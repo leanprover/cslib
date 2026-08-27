@@ -165,8 +165,7 @@ lemma IsChainFromTo.head_induction_on
     exact h_head hrel this (ih this rfl)
 
 /-- Any element of an `r`-chain from `a` to `b` is reflexively-transitively related from `a`. -/
-lemma IsChainFromTo.reflTransGen_of_mem (hc : chain.IsChainFromTo r a b) {x : α}
-    (mem : x ∈ chain) :
+lemma IsChainFromTo.reflTransGen_of_mem (hc : chain.IsChainFromTo r a b) {x : α} (mem : x ∈ chain) :
     Relation.ReflTransGen r a x := by
   obtain ⟨i, hi, rfl⟩ := List.getElem_of_mem mem
   exact (hc.take hi).reflTransGen
