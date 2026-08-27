@@ -22,9 +22,10 @@ The key operations are:
 - `FreeM.countQueries oracle p`: count queries along the oracle-determined path
 - `FreeM.cost oracle weight p`: weighted query cost in any additive monoid
 
-Because the oracle is supplied *after* the program produces its query plan (the `FreeM` tree),
-a sound implementation has no way to "guess" what the oracle would respond. This is the
-foundation of the anti-cheating guarantee for both upper and lower bounds.
+The program `p` must be fixed independently of `oracle`. Arbitrary pure computation embedded
+in `p` is uncharged, so `countQueries` and `cost` measure query complexity rather than total
+runtime. However, pure code cannot inspect oracle responses: those enter only through
+`FreeM.lift`.
 
 This provides an alternative to the `TimeM`-based cost analysis in
 `Cslib.Algorithms.Lean.MergeSort`: here query counting is structural (derived from the

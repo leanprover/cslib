@@ -139,20 +139,19 @@ theorem IsSort.lowerBound_infinite [Infinite α]
   let progOracles : Fin (Nat.factorial n) → ({ι : Type} → LEQuery α ι → ι) :=
     fun i => LEQuery.oracleOf (fun p => decide (infinitePermOrder n (e.symm i) p.1 p.2))
   -- Each oracle produces a unique sorted output
-  have h_inj : Function.Injective (fun i => (sort xs).eval (progOracles i)) := by
-    intro i j h_eval
-    suffices key : ∀ i, (sort xs).eval (progOracles i) =
-        (List.finRange n).map (fun k => ι ((e.symm i) k).val) by
-      dsimp only at h_eval
-      rw [key, key] at h_eval
-      exact e.symm.injective (map_infinite_embedding_injective h_eval)
-    intro i
+  have eval_eq_map (i) : (sort xs).eval (progOracles i) =
+      (List.finRange n).map (fun k => ι ((e.symm i) k).val) := by
     have h_perm := h.perm xs (progOracles i)
     have h_sorted := h.sorted xs (progOracles i)
       (infinitePermOrder (α := α) n (e.symm i))
       (fun a b => by simp [progOracles])
     exact h_perm.trans (map_perm_of_infinite_embedding (e.symm i)).symm |>.eq_of_pairwise'
       h_sorted (pairwise_map_infinitePermOrder (e.symm i))
+  have h_inj : Function.Injective (fun i => (sort xs).eval (progOracles i)) := by
+    intro i j h_eval
+    dsimp only at h_eval
+    rw [eval_eq_map, eval_eq_map] at h_eval
+    exact e.symm.injective (map_infinite_embedding_injective h_eval)
   -- Apply the FreeM lower-bound lemma directly
   obtain ⟨i, hi⟩ := FreeM.exists_countQueries_ge_clog 2
     LEQuery.fintypeResponse LEQuery.cardResponse_le_two

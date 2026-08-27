@@ -84,8 +84,9 @@ termination_by xs.length + ys.length
   | [] => return []
   | [x] => return [x]
   | x :: y :: zs => do
-    let sl ← mergeSort (split (x :: y :: zs)).1
-    let sr ← mergeSort (split (x :: y :: zs)).2
+    let halves := split (x :: y :: zs)
+    let sl ← mergeSort halves.1
+    let sr ← mergeSort halves.2
     merge sl sr
 termination_by xs.length
 decreasing_by

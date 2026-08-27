@@ -8,7 +8,6 @@ module
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
-import Mathlib.Data.List.Sort
 public import Mathlib.Algebra.Group.Defs
 public import Mathlib.Data.Nat.Log
 
@@ -101,7 +100,7 @@ theorem mergeSort_perm (oracle : {ι : Type} → LEQuery α ι → ι) (xs : Lis
   induction xs using mergeSort.induct (α := α) with
   | case1 => simp
   | case2 x => simp
-  | case3 x y zs ih_l ih_r =>
+  | case3 x y zs halves ih_l ih_r =>
     simp only [eval_mergeSort_cons_cons]
     exact (merge_perm oracle _ _).trans ((ih_l.append ih_r).trans (split_perm _))
 
@@ -161,7 +160,7 @@ theorem mergeSort_sorted
   induction xs using mergeSort.induct (α := α) with
   | case1 => simp
   | case2 x => simp
-  | case3 x y zs ih_l ih_r =>
+  | case3 x y zs halves ih_l ih_r =>
     simp only [eval_mergeSort_cons_cons]
     exact merge_sorted r oracle horacle _ _ ih_l ih_r
 
@@ -239,7 +238,7 @@ theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι
   induction xs using mergeSort.induct (α := α) with
   | case1 => simp [mergeSort]
   | case2 x => simp [mergeSort]
-  | case3 x y zs ih_l ih_r =>
+  | case3 x y zs halves ih_l ih_r =>
     simp only [countQueries_mergeSort_cons_cons]
     have hml := merge_countQueries_le oracle
       ((mergeSort (split (x :: y :: zs)).1).eval oracle)

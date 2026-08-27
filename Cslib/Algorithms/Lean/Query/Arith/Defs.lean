@@ -64,7 +64,7 @@ end ArithQuery
 
 /-- Gauss's trick for complex multiplication: computes `(a+b)(c+d)` to save one
     multiplication, at the cost of extra additions and subtractions.
-    Uses 3 multiplications, 2 subtractions, 2 additions. -/
+    Uses 3 multiplications, 2 subtractions, 3 additions. -/
 @[expose] def complexMulGauss (a b c d : α) : FreeM (ArithQuery α) (α × α) := do
   let ac ← ArithQuery.doMul a c
   let bd ← ArithQuery.doMul b d

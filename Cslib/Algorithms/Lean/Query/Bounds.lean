@@ -23,7 +23,7 @@ namespace Cslib.Query
   ∀ (oracle : {ι : Type} → Q ι → ι) (n : Nat) (x : α),
     size x ≤ n → (prog x).countQueries oracle ≤ bound n
 
-/-- Lower bound: for every size n, there exists an input and oracle
+/-- Lower bound: for every size n, there exists an input of size at most n and an oracle
     making the program perform ≥ `bound n` queries. -/
 @[expose] def LowerBound (prog : α → FreeM Q β)
     (size : α → Nat) (bound : Nat → Nat) : Prop :=
