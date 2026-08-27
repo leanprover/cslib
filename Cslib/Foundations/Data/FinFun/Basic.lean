@@ -10,14 +10,14 @@ public import Cslib.Init
 public import Mathlib.Data.Finset.Filter
 public import Mathlib.Data.Finset.Lattice.Basic
 
-@[expose] public section
-
 /-! # Finite functions
 
 Given types `α` and `β`, and assuming that `β` has a `Zero` element,
 a `FinFun α β` is a function from `α` to `β` where only a finite number of elements
 in `α` are mapped to non-zero elements.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -53,7 +53,7 @@ scoped notation f:25 "↾₀" support:51 => FinFun.fromFun f support
 
 instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
   coe f := f.fn
-  coe_injective' := by
+  coe_injective := by
     rintro ⟨_, _⟩ ⟨_, _⟩
     simp_all [Finset.ext_iff]
 

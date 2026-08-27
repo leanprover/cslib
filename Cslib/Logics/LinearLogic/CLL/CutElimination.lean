@@ -8,29 +8,13 @@ module
 
 public import Cslib.Logics.LinearLogic.CLL.Basic
 
+/-! -/
+
 @[expose] public section
 
 namespace Cslib.Logic.CLL
 
 open Cslib.Logic.InferenceSystem
-
-/-- A proof is cut-free if it does not contain any applications of rule cut. -/
-def Proof.cutFree {Γ : Sequent Atom} (p : ⇓Γ) : Bool :=
-  match p with
-  | ax => true
-  | one => true
-  | bot p => p.cutFree
-  | parr p => p.cutFree
-  | tensor p q => p.cutFree && q.cutFree
-  | oplus₁ p => p.cutFree
-  | oplus₂ p => p.cutFree
-  | .with p q => p.cutFree && q.cutFree
-  | top => true
-  | quest p => p.cutFree
-  | weaken p => p.cutFree
-  | contract p => p.cutFree
-  | bang _ p => p.cutFree
-  | cut _ _ => false
 
 /-- A `CutFreeProof` is a `Proof` without cuts (applications of `Proof.cut`). -/
 abbrev CutFreeProof (Γ : Sequent Atom) := { q : ⇓Γ // q.cutFree }

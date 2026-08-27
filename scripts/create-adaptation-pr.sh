@@ -203,13 +203,13 @@ if git diff --name-only bump/"$BUMPVERSION" bump/nightly-"$NIGHTLYDATE" | grep -
   zulip_title="cslib#$pr_number adaptations for nightly-$NIGHTLYDATE"
   zulip_body=$(printf "> %s\n\nPlease review this PR. At the end of the month this diff will land in 'main'." "$pr_title cslib#$pr_number")
 
-  echo "Posting the link to the PR in a new thread on the #nightly-testing channel on Zulip"
+  echo "Posting the link to the PR in a new thread on the #nightly-testing-cslib channel on Zulip"
   echo "Here is the message:"
   echo "Title: $zulip_title"
   echo " Body: $zulip_body"
 
   if command -v zulip-send >/dev/null 2>&1; then
-    zulip_command="zulip-send --stream nightly-testing --subject \"$zulip_title\" --message \"$zulip_body\""
+    zulip_command="zulip-send --stream nightly-testing-cslib --subject \"$zulip_title\" --message \"$zulip_body\""
     echo "Running the following 'zulip-send' command to do this:"
     echo "> $zulip_command"
     eval "$zulip_command"

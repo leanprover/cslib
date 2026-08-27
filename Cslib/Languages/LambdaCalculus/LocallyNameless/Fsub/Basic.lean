@@ -9,8 +9,6 @@ module
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 
-@[expose] public section
-
 /-! # λ-calculus
 
 The λ-calculus with polymorphism and subtyping, with a locally nameless representation of syntax.
@@ -22,6 +20,8 @@ The λ-calculus with polymorphism and subtyping, with a locally nameless represe
   this is adapted
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -90,21 +90,21 @@ def Binding.fv : Binding Var → Finset Var
 
 /-- Free type variables of a term. -/
 @[scoped grind =]
-def Term.fv_ty : Term Var → Finset Var
+def Term.fvTy : Term Var → Finset Var
 | bvar _ | fvar _ => {}
-| abs σ t₁ | tabs σ t₁ | tapp t₁ σ => σ.fv ∪ t₁.fv_ty
-| inl t₁ | inr t₁ => t₁.fv_ty
-| app t₁ t₂ | let' t₁ t₂ => t₁.fv_ty ∪ t₂.fv_ty
-| case t₁ t₂ t₃ => t₁.fv_ty ∪ t₂.fv_ty ∪ t₃.fv_ty
+| abs σ t₁ | tabs σ t₁ | tapp t₁ σ => σ.fv ∪ t₁.fvTy
+| inl t₁ | inr t₁ => t₁.fvTy
+| app t₁ t₂ | let' t₁ t₂ => t₁.fvTy ∪ t₂.fvTy
+| case t₁ t₂ t₃ => t₁.fvTy ∪ t₂.fvTy ∪ t₃.fvTy
 
 /-- Free term variables of a term. -/
 @[scoped grind =]
-def Term.fv_tm : Term Var → Finset Var
+def Term.fvTm : Term Var → Finset Var
 | bvar _ => {}
 | fvar x => {x}
-| abs _ t₁ | tabs _ t₁ | tapp t₁ _ | inl t₁ | inr t₁ => t₁.fv_tm
-| app t₁ t₂ | let' t₁ t₂ => t₁.fv_tm ∪ t₂.fv_tm
-| case t₁ t₂ t₃ => t₁.fv_tm ∪ t₂.fv_tm ∪ t₃.fv_tm
+| abs _ t₁ | tabs _ t₁ | tapp t₁ _ | inl t₁ | inr t₁ => t₁.fvTm
+| app t₁ t₂ | let' t₁ t₂ => t₁.fvTm ∪ t₂.fvTm
+| case t₁ t₂ t₃ => t₁.fvTm ∪ t₂.fvTm ∪ t₃.fvTm
 
 /-- A context of bindings. -/
 abbrev Env (Var : Type*) := Context Var (Binding Var)

@@ -9,10 +9,6 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # λ-calculus
 
 The simply typed λ-calculus, with a locally nameless representation of syntax.
@@ -24,6 +20,10 @@ The simply typed λ-calculus, with a locally nameless representation of syntax.
   this is partially adapted
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 
@@ -110,14 +110,14 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
     case cons =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x'
-    case neg => grind
-    case pos => grind [(weaken der ?_).perm perm]
+    · have := (weaken der ?_).perm perm <;> grind
+    · grind
   case abs =>
     grind [Typing.abs <| free_union Var, subst_open_var _ _ _ _ ?_ der.lc]
 
 /-- Substitution for a context weakened by a single type. -/
 lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) :
-    Γ ⊢ (t [x := s]) ∶ τ := by
+    Γ ⊢ (t[x := s]) ∶ τ := by
   grind [subst_aux]
 
 /-- Typing preservation for opening. -/
@@ -125,7 +125,7 @@ theorem preservation_open {xs : Finset Var}
     (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) :
     Γ ⊢ m ^ n ∶ τ := by
   have ⟨fresh, _⟩ := fresh_exists <| free_union [Term.fv] Var
-  grind [subst_intro fresh _ _ ?_ der.lc, typing_subst_head]
+  grind [subst_intro fresh _ _ ?_, typing_subst_head]
 
 end LambdaCalculus.LocallyNameless.Stlc.Typing
 

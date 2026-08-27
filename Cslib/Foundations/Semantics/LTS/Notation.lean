@@ -77,10 +77,10 @@ macro_rules
      )
 
 /-- This attribute calls the `lts_transition_notation` command for the annotated declaration. -/
-syntax (name := lts_attr) "lts" ident (ppSpace str)? : attr
+syntax (name := ltsAttr) "lts" ident (ppSpace str)? : attr
 
 initialize Lean.registerBuiltinAttribute {
-  name := `lts_attr
+  name := `ltsAttr
   descr := "Register notation for an LTS"
   add := fun decl stx _ => MetaM.run' do
     let currNamespace ← getCurrNamespace

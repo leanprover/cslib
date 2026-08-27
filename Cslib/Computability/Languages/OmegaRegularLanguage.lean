@@ -12,17 +12,17 @@ public import Cslib.Computability.Automata.NA.BuchiInter
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
-public import Mathlib.Data.Finite.Card
+public import Mathlib.SetTheory.Cardinal.NatCard
 public import Mathlib.Data.Finite.Sigma
 public import Mathlib.Logic.Equiv.Fin.Basic
-
-@[expose] public section
 
 /-!
 # ω-Regular languages
 
 This file defines ω-regular languages and proves some properties of them.
 -/
+
+@[expose] public section
 
 namespace Cslib.ωLanguage
 
@@ -61,11 +61,11 @@ where the automaton is not even required to be finite-state. -/
 theorem IsRegular.not_da_buchi :
   ∃ (Symbol : Type) (p : ωLanguage Symbol), p.IsRegular ∧
     ¬ ∃ (State : Type) (da : DA.Buchi State Symbol), language da = p := by
-  refine ⟨Fin 2, Example.eventually_zero, ?_, ?_⟩
-  · use Fin 2, inferInstance, Example.eventually_zero_na,
-      Example.eventually_zero_accepted_by_na_buchi
+  refine ⟨Fin 2, Example.eventuallyZero, ?_, ?_⟩
+  · use Fin 2, inferInstance, Example.eventuallyZeroNa,
+      Example.eventuallyZero_accepted_by_na_buchi
   · rintro ⟨State, ⟨da, acc⟩, _⟩
-    have := Example.eventually_zero_not_omegaLim
+    have := Example.eventuallyZero_not_omegaLim
     grind [DA.buchi_eq_finAcc_omegaLim]
 
 /-- The ω-limit of a regular language is ω-regular. -/
@@ -190,8 +190,6 @@ theorem IsRegular.omegaPow [Inhabited Symbol] {l : Language Symbol}
   use Unit ⊕ State, inferInstance, ⟨na.loop, {inl ()}⟩
   exact NA.Buchi.loop_language_eq
 
--- TODO: fix proof to work with backward.isDefEq.respectTransparency
-set_option backward.isDefEq.respectTransparency false in
 /-- An ω-language is regular iff it is the finite union of ω-languages of the form `L * M^ω`,
 where all `L`s and `M`s are regular languages. -/
 theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage Symbol) :
@@ -214,8 +212,8 @@ theorem IsRegular.eq_fin_iSup_hmul_omegaPow [Inhabited Symbol] (p : ωLanguage S
     refine ⟨?_, by grind⟩
     rintro ⟨s, h_s, t, h_t, h_mem⟩
     use eq.invFun (⟨s, h_s⟩, ⟨t, h_t⟩)
-    -- The following `simp` is where the `set_option` above is needed.
-    simpa [mem_def]
+    have := Equiv.apply_symm_apply eq
+    simp_all
   · rintro ⟨n, l, m, _, rfl⟩
     rw [← iSup_univ]
     apply IsRegular.iSup

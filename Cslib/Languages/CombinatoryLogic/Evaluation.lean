@@ -9,8 +9,6 @@ module
 public import Cslib.Languages.CombinatoryLogic.Confluence
 public import Cslib.Languages.CombinatoryLogic.Recursion
 
-@[expose] public section
-
 /-!
 # Evaluation results
 
@@ -34,6 +32,8 @@ form, then they are equal.
 
 This file draws heavily from <https://gist.github.com/b-mehta/e412c837818223b8f16ca0b4aa19b166>.
 -/
+
+@[expose] public section
 
 namespace Cslib
 

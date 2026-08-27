@@ -10,11 +10,11 @@ public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 
-@[expose] public section
-
 /-! # Translation of Deterministic Automata into Nonodeterministic Automata.
 
 This is the general version of the standard translation of DFAs into NFAs. -/
+
+@[expose] public section
 
 namespace Cslib.Automata.DA
 
@@ -30,6 +30,7 @@ def toNA (a : DA State Symbol) : NA State Symbol :=
 instance : Coe (DA State Symbol) (NA State Symbol) where
   coe := toNA
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 open scoped FLTS NA NA.Run LTS in
 @[simp, scoped grind =]
 theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State} :
@@ -37,7 +38,9 @@ theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence
   constructor
   · rintro _
     ext n
-    induction n <;> grind [NA.Run]
+    induction n
+    · grind only [NA.Run, toNA, = run_zero, = Set.mem_singleton_iff]
+    · grind only [NA.Run, toNA, = run_succ, = LTS.OmegaExecution, = FLTS.toLTS_tr]
   · grind [NA.Run]
 
 namespace FinAcc
@@ -57,7 +60,7 @@ theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   constructor
-  · simp_all [mem_language a xs, Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
+  · simp [mem_language a xs, Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
   · intro _
     use a.start
     simp_all [Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
@@ -79,7 +82,7 @@ theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :
   ext xs; constructor
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  · simp_all [Accepts, language, toNABuchi]
+  · simp [Accepts, language, toNABuchi]
   · intro h
     use (a.run xs)
     split_ands

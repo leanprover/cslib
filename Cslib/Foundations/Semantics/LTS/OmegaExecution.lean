@@ -9,11 +9,11 @@ module
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Semantics.LTS.Execution
 
-@[expose] public section
-
 /-!
 # Infinite executions of LTS
 -/
+
+@[expose] public section
 
 namespace Cslib.LTS
 
@@ -84,12 +84,9 @@ theorem OmegaExecution.flatten_execution [Inhabited Label]
   split_ands
   · intro n
     simp only [h_len, flatten_def]
-    simp only [Execution] at hexec
     have := segment_lower_bound h_mono h_zero n
     by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
     · have := segment_range_val h_mono (by grind) h_n
-      have : n + 1 - segs.cumLen (segment segs.cumLen n) < (μls (segment segs.cumLen n)).length :=
-        by grind
       grind
     · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
         grind [segment_upper_bound h_mono h_zero n]
@@ -113,7 +110,9 @@ theorem OmegaExecution.flatten_mTr [Inhabited Label]
   obtain ⟨ss, h_ss, h_seg⟩ := OmegaExecution.flatten_execution h_sls hpos
   use ss, h_ss
   intro k
-  have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length := by grind
+  have : ss.extract (μls.cumLen k) (μls.cumLen (k + 1)) ≠ [] := by grind
+  have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length :=
+    List.length_pos_iff.mpr this
   grind [List.getElem_of_eq (h_seg k) h1]
 
 end Cslib.LTS
