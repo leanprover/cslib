@@ -1,5 +1,6 @@
 import CslibTests.Bisimulation
 import CslibTests.CCS
+import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
 import CslibTests.Congruence
 import CslibTests.DFA
@@ -17,5 +18,6 @@ import CslibTests.MLL
 import CslibTests.QueryModel.ProgExamples
 import CslibTests.QueryModel.QueryExamples
 import CslibTests.Modal
+import CslibTests.Modal.Ideal
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses

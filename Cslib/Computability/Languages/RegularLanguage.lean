@@ -11,6 +11,7 @@ public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
@@ -189,6 +190,21 @@ theorem IsRegular.congr_fin_index {Symbol : Type}
   rw [IsRegular.iff_dfa]
   use Quotient c.eq, inferInstance, ⟨c.toDA, {a}⟩
   exact DA.FinAcc.congr_language_eq
+
+open NA in
+/-- The reversal of a regular language is regular. -/
+theorem IsRegular.reverse {l : Language Symbol} (h : l.IsRegular) : l.reverse.IsRegular := by
+  rw [IsRegular.iff_nfa] at h ⊢
+  obtain ⟨State, h_fin, nfa, rfl⟩ := h
+  use State, inferInstance, nfa.reverse, FinAcc.reverse_language_eq nfa
+
+/-- A language is regular iff its reversal is regular. -/
+@[simp]
+theorem IsRegular.reverse_iff {l : Language Symbol} : l.reverse.IsRegular ↔ l.IsRegular := by
+  constructor
+  · intro h
+    simpa using IsRegular.reverse h
+  · exact IsRegular.reverse
 
 /-- The language containing only the one character string `a` is regular. -/
 @[simp]

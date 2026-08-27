@@ -86,7 +86,7 @@ lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M
 lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (h_lc : LC t) :
     s[x := t] ⭢βᶠ s'[x := t] := by
   induction step with
-  | base beta => cases beta; grind [subst_open]
+  | base beta => grind [subst_open]
   | abs  => grind [Xi.abs <| free_union Var]
   | _ => grind
 
@@ -146,7 +146,7 @@ lemma invert_steps_abs {s t : Term Var} (step : s.abs ↠βᶠ t) :
 
 /- `λ s ↠βᶠ λ s'` implies `s ^ t ↠βᶠ s' ^ t'` -/
 lemma steps_open_cong_l_abs
-  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_s : LC s.abs) (lc_t : LC t) :
+  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_t : LC t) :
     (s ^ t) ↠βᶠ (s' ^ t) := by
   generalize eq : s.abs = s_abs at steps
   generalize eq' : s'.abs = s'_abs at steps
