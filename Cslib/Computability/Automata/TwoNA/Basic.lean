@@ -6,9 +6,11 @@ Authors: Christian Reitwiessner
 
 module
 
+public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Mathlib.Data.List.Chain
 public import Mathlib.Data.Sign.Basic
+public import Cslib.Foundations.Data.List.IsChainFromTo
 
 /-! # Nondeterministic Two-Way Automaton
 
@@ -22,13 +24,10 @@ if it ends in an accepting state with the head just past the end of the input.
 
 ## Main definitions
 
-* `TwoNA`, the automaton itself: The transition relation and the sets of initial and accepting
-  states.
+* `TwoNA`, the automaton itself
 * `TwoNACfg`, a configuration of a `TwoNA` running on a fixed input: a state together with a head
   position.
 * `TwoNA.Step`, The single-step relation between configurations.
-* `TwoNA.Run`, a run of a `TwoNA` on a fixed input: a nonempty chain of configurations linked by
-  steps that starts in an initial configuration.
 
 ## Implementation notes
 
@@ -36,8 +35,6 @@ The definition of `TwoNA` is kept close to [Vardi][Vardi1989]'s, because the mai
 prove equivalence to `NA.FinAcc`. This means we do not allow the head to move off the input to the
 left, but also do not provide an end marker. Once the head moves off to the right, it cannot move
 back into the word.
-
-Runs are `List.IsChain` chains of configurations, anchored at an initial configuration.
 
 ## References
 
@@ -51,16 +48,9 @@ namespace Cslib.Automata
 
 variable {State Symbol : Type*}
 
-/-- A nondeterministic two-way automaton: a transition relation that reads an input symbol and
-moves the input head, together with a set of initial and a set of accepting states. -/
-structure TwoNA (State Symbol : Type*) where
-  /-- The transition relation. `Tr q x m q'` means that, while reading the symbol `x`, the
-  automaton can move from state `q` to state `q'` and move its head according to `m`. -/
-  Tr (q : State) (x : Symbol) (m : SignType) (q' : State) : Prop
-  /-- The set of initial states of the automaton. -/
-  start : Set State
-  /-- The set of accepting states of the automaton. -/
-  accept : Set State
+/-- A nondeterministic two-way automaton is a nondeterministic automaton whose labels
+consist of an input symbol and an input head movement. -/
+def TwoNA (State Symbol : Type*) := NA State (Symbol × SignType)
 
 /-- The configuration of a two-way nondeterministic automaton. -/
 @[ext]
@@ -71,63 +61,30 @@ structure TwoNACfg (State Symbol : Type*) (input : List Symbol) where
   position one step to the right of the input. -/
   pos : Fin (input.length + 1)
 
-namespace TwoNA
+def TwoNACfg.IsInitial (a : TwoNA State Symbol) {input : List Symbol}
+    (c : TwoNACfg State Symbol input) : Prop :=
+  c.state ∈ a.start ∧ c.pos = 0
 
-variable {a : TwoNA State Symbol} {input : List Symbol} {c c' : TwoNACfg State Symbol input}
-
-/-- A single step of `a` on `input`. It is possible only while the head is on an actual input
-symbol, and it is performed by a transition of `a` that reads the symbol under the head: such a
-transition determines the new state and a head movement `m`, by which the head position changes.
-A leftward move at position `0` would take the head off the input, so no such step exists. -/
-def Step (a : TwoNA State Symbol) (input : List Symbol)
+def TwoNA.Step (a : TwoNA State Symbol) (input : List Symbol)
     (c c' : TwoNACfg State Symbol input) : Prop :=
   ∃ m, ∃ _ : (c.pos : ℕ) < input.length,
-    a.Tr c.state input[c.pos] m c'.state ∧ (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
+    a.Tr c.state (input[c.pos], m) c'.state ∧ (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
 
-/-- A run of `a` on `input`: a nonempty chain of configurations, each obtained from the previous
-one by a step, that starts in an initial state with the head on the first symbol of the input. -/
-structure Run (a : TwoNA State Symbol) (input : List Symbol) where
-  /-- The chain of configurations. -/
-  chain : List (TwoNACfg State Symbol input)
-  /-- Consecutive configurations are linked by a step. -/
-  isChain : chain.IsChain (a.Step input)
-  /-- There is at least one configuration. -/
-  ne : chain ≠ []
-  /-- The head starts on the first symbol of the input. -/
-  head_pos : (chain.head ne).pos = 0
-  /-- The run starts in an initial state. -/
-  head_mem_start : (chain.head ne).state ∈ a.start
+/-- A nondeterministic two-way automaton that accepts finite strings (lists of symbols). -/
+structure TwoNAFinAcc (State Symbol : Type*) extends TwoNA State Symbol where
+  /-- The set of accepting states. -/
+  accept : Set State
 
-/-- The configuration a run starts in. -/
-def Run.head (r : a.Run input) : TwoNACfg State Symbol input := r.chain.head r.ne
+def TwoNACfg.IsAccepting (a : TwoNAFinAcc State Symbol) {input : List Symbol}
+    (c : TwoNACfg State Symbol input) : Prop :=
+  c.state ∈ a.accept ∧ c.pos = Fin.last _
 
-/-- The configuration a run ends in. -/
-def Run.last (r : a.Run input) : TwoNACfg State Symbol input := (r.chain).getLast r.ne
-
-/-- A run is accepting if it ends in an accepting state with the head just past the end of the
-input. -/
-def Run.IsAccepting (r : a.Run input) : Prop := r.last.state ∈ a.accept ∧ r.last.pos = Fin.last _
-
-/-- Extend a run by one more step. -/
-def Run.snoc (r : a.Run input) (c : TwoNACfg State Symbol input) (h : a.Step input r.last c) :
-    a.Run input where
-  chain := r.chain ++ [c]
-  isChain := r.isChain.append (List.isChain_singleton c)
-    (by simp_all [Run.last, List.getLast?_eq_some_getLast r.ne])
-  ne := by simp
-  head_pos := by simpa [List.head_append_of_ne_nil r.ne] using r.head_pos
-  head_mem_start := by simpa [List.head_append_of_ne_nil r.ne] using r.head_mem_start
-
-@[simp]
-theorem Run.last_snoc (r : a.Run input) (c : TwoNACfg State Symbol input)
-    (h : a.Step input r.last c) : (r.snoc c h).last = c := by
-  simp [Run.snoc, Run.last]
-
-end TwoNA
-
-/-- A `TwoNA` accepts an input if it has an accepting run on it. -/
 @[simp, scoped grind =]
-instance : Acceptor (TwoNA State Symbol) Symbol where
-  Accepts (a : TwoNA State Symbol) (xs : List Symbol) := ∃ r : a.Run xs, r.IsAccepting
+instance : Acceptor (TwoNAFinAcc State Symbol) Symbol where
+  Accepts (a : TwoNAFinAcc State Symbol) (xs : List Symbol) :=
+    ∃ (chain : List (TwoNACfg State Symbol xs)) (s s' : TwoNACfg State Symbol xs),
+      chain.IsChainFromTo (TwoNA.Step a.toNA xs) s s' ∧
+      s.IsInitial a.toNA ∧ s'.IsAccepting a
+
 
 end Cslib.Automata
