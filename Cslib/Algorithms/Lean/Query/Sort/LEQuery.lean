@@ -22,7 +22,7 @@ inductive LEQuery (α : Type) : Type → Type where
   | le (a b : α) : LEQuery α Bool
 
 /-- Lift `LEQuery.le a b` into a `FreeM` that returns the comparison result. -/
-@[expose] def LEQuery.ask (a b : α) : FreeM (LEQuery α) Bool :=
+abbrev LEQuery.ask (a b : α) : FreeM (LEQuery α) Bool :=
   FreeM.lift (.le a b)
 
 @[simp] theorem LEQuery.eval_ask (oracle : {ι : Type} → LEQuery α ι → ι) (a b : α) :

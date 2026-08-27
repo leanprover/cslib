@@ -30,11 +30,11 @@ inductive ArithQuery (α : Type) : Type → Type where
 namespace ArithQuery
 
 /-- Lift `ArithQuery.add a b` into a `FreeM` that returns the sum. -/
-@[expose] def doAdd (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.add a b)
+abbrev doAdd (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.add a b)
 /-- Lift `ArithQuery.sub a b` into a `FreeM` that returns the difference. -/
-@[expose] def doSub (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.sub a b)
+abbrev doSub (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.sub a b)
 /-- Lift `ArithQuery.mul a b` into a `FreeM` that returns the product. -/
-@[expose] def doMul (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.mul a b)
+abbrev doMul (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.mul a b)
 
 /-- An honest oracle interprets arithmetic queries using the actual ring operations. -/
 @[expose] def honest [Add α] [Sub α] [Mul α] {ι : Type} : ArithQuery α ι → ι
@@ -60,7 +60,7 @@ end ArithQuery
   let bc ← ArithQuery.doMul b c
   let real ← ArithQuery.doSub ac bd
   let imag ← ArithQuery.doAdd ad bc
-  pure (real, imag)
+  return (real, imag)
 
 /-- Gauss's trick for complex multiplication: computes `(a+b)(c+d)` to save one
     multiplication, at the cost of extra additions and subtractions.
@@ -73,7 +73,7 @@ end ArithQuery
   let abcd ← ArithQuery.doMul apb cpd
   let real ← ArithQuery.doSub ac bd
   let imag ← ArithQuery.doSub abcd (← ArithQuery.doAdd ac bd)
-  pure (real, imag)
+  return (real, imag)
 
 end Cslib.Query
 

@@ -20,18 +20,18 @@ namespace Cslib.Query
 
 /-- Insert `x` into a sorted list using comparison queries. -/
 @[expose] def orderedInsert (x : α) : List α → FreeM (LEQuery α) (List α)
-  | [] => pure [x]
+  | [] => return [x]
   | y :: ys => do
     let le ← LEQuery.ask x y
     if le then
-      pure (x :: y :: ys)
+      return (x :: y :: ys)
     else do
       let rest ← orderedInsert x ys
-      pure (y :: rest)
+      return (y :: rest)
 
 /-- Sort a list using insertion sort with comparison queries. -/
 @[expose] def insertionSort : List α → FreeM (LEQuery α) (List α)
-  | [] => pure []
+  | [] => return []
   | x :: xs => do
     let sorted ← insertionSort xs
     orderedInsert x sorted

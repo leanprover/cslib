@@ -10,8 +10,11 @@ public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
 /-! # Merge Sort as a Query Program
 
 Merge sort implemented as a `FreeM (LEQuery α)`, making all comparison queries explicit.
-Uses an alternating split (odds/evens) to avoid needing `List.length` in the termination
-argument.
+The alternating split (odds/evens) is structurally recursive: each recursive call consumes
+two constructors and operates directly on the remaining tail, so `split` needs no
+well-founded recursion argument based on `List.length`. The recursive calls of `mergeSort`
+itself are not structural, since the two halves are not syntactic subterms, and are justified
+separately using their lengths.
 -/
 
 open Cslib Cslib.Query
@@ -63,23 +66,23 @@ theorem split_snd_length_lt (x y : α) (zs : List α) :
 /-- Merge two sorted lists using comparison queries. -/
 @[expose] def merge (xs ys : List α) : FreeM (LEQuery α) (List α) :=
   match xs, ys with
-  | [], ys => pure ys
-  | xs, [] => pure xs
+  | [], ys => return ys
+  | xs, [] => return xs
   | x :: xs', y :: ys' => do
     let le ← LEQuery.ask x y
     if le then do
       let rest ← merge xs' (y :: ys')
-      pure (x :: rest)
+      return (x :: rest)
     else do
       let rest ← merge (x :: xs') ys'
-      pure (y :: rest)
+      return (y :: rest)
 termination_by xs.length + ys.length
 
 /-- Sort a list using merge sort with comparison queries. -/
 @[expose] def mergeSort (xs : List α) : FreeM (LEQuery α) (List α) :=
   match xs with
-  | [] => pure []
-  | [x] => pure [x]
+  | [] => return []
+  | [x] => return [x]
   | x :: y :: zs => do
     let sl ← mergeSort (split (x :: y :: zs)).1
     let sr ← mergeSort (split (x :: y :: zs)).2

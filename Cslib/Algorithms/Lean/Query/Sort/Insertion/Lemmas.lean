@@ -15,7 +15,7 @@ public import Mathlib.Algebra.Group.Defs
 /-! # Insertion Sort: Correctness and Upper Bound
 
 Proofs that `insertionSort` is a correct comparison sort and uses at most `n²` queries.
-All proofs are by plain equational reasoning on `FreeM.eval` and `FreeM.queriesOn`.
+All proofs are by plain equational reasoning on `FreeM.eval` and `FreeM.countQueries`.
 -/
 
 open Cslib Cslib.Query
@@ -26,51 +26,40 @@ namespace Cslib.Query
 
 variable {α : Type}
 
--- ## Evaluation simp lemmas for orderedInsert
+-- ## Evaluation
 
-@[simp] theorem eval_orderedInsert_nil (oracle : {ι : Type} → LEQuery α ι → ι) (x : α) :
-    (orderedInsert x ([] : List α)).eval oracle = [x] := by
-  simp [orderedInsert]
-
-@[simp] theorem eval_orderedInsert_cons (oracle : {ι : Type} → LEQuery α ι → ι) (x y : α)
-    (ys : List α) :
-    (orderedInsert x (y :: ys)).eval oracle =
-      if oracle (.le x y) then x :: y :: ys
-      else y :: (orderedInsert x ys).eval oracle := by
-  simp [orderedInsert, LEQuery.ask]
-  split <;> simp_all
-
--- ## Evaluation simp lemmas for insertionSort
-
-@[simp] theorem eval_insertionSort_nil (oracle : {ι : Type} → LEQuery α ι → ι) :
-    (insertionSort (α := α) []).eval oracle = [] := by
-  simp [insertionSort]
-
-@[simp] theorem eval_insertionSort_cons (oracle : {ι : Type} → LEQuery α ι → ι)
+/-- Evaluating query-based insertion agrees with `List.orderedInsert` using the relation
+supplied by the oracle. -/
+@[simp] theorem eval_orderedInsert (oracle : {ι : Type} → LEQuery α ι → ι)
     (x : α) (xs : List α) :
-    (insertionSort (x :: xs)).eval oracle =
-      (orderedInsert x ((insertionSort xs).eval oracle)).eval oracle := by
-  simp [insertionSort]
+    (orderedInsert x xs).eval oracle =
+      xs.orderedInsert (fun x y => oracle (.le x y)) x := by
+  induction xs with
+  | nil => simp [orderedInsert]
+  | cons y ys ih =>
+    simp [orderedInsert]
+    split <;> simp_all
+
+/-- Evaluating query-based insertion sort agrees with `List.insertionSort` using the relation
+supplied by the oracle. -/
+@[simp] theorem eval_insertionSort (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
+    (insertionSort xs).eval oracle =
+      xs.insertionSort (fun x y => oracle (.le x y)) := by
+  induction xs with
+  | nil => simp [insertionSort]
+  | cons x xs ih => simp [insertionSort, ih]
 
 -- ## Permutation proofs
 
 theorem orderedInsert_perm (oracle : {ι : Type} → LEQuery α ι → ι) (x : α) (xs : List α) :
     ((orderedInsert x xs).eval oracle).Perm (x :: xs) := by
-  induction xs with
-  | nil => simp
-  | cons y ys ih =>
-    simp only [eval_orderedInsert_cons]
-    split
-    · exact List.Perm.refl _
-    · exact (List.Perm.cons _ ih).trans (List.Perm.swap _ _ _)
+  rw [eval_orderedInsert]
+  exact List.perm_orderedInsert _ _ _
 
 theorem insertionSort_perm (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
     ((insertionSort xs).eval oracle).Perm xs := by
-  induction xs with
-  | nil => simp
-  | cons x xs ih =>
-    simp only [eval_insertionSort_cons]
-    exact (orderedInsert_perm oracle x _).trans (List.Perm.cons _ ih)
+  rw [eval_insertionSort]
+  exact List.perm_insertionSort _ _
 
 -- ## Sortedness proofs
 
@@ -80,26 +69,8 @@ theorem orderedInsert_sorted
     (horacle : ∀ a b, oracle (.le a b) = decide (r a b))
     (x : α) (xs : List α) (hxs : xs.Pairwise r) :
     ((orderedInsert x xs).eval oracle).Pairwise r := by
-  induction xs with
-  | nil => simp
-  | cons y ys ih =>
-    simp only [eval_orderedInsert_cons, horacle]
-    split
-    next h =>
-      have hle : r x y := by simpa [decide_eq_true_eq] using h
-      exact List.pairwise_cons.mpr ⟨fun z hz =>
-        match List.mem_cons.mp hz with
-        | .inl h => h ▸ hle
-        | .inr h => _root_.trans hle (List.rel_of_pairwise_cons hxs h), hxs⟩
-    next h =>
-      have hle : ¬ r x y := by simpa [decide_eq_true_eq] using h
-      have hyx : r y x := (Std.Total.total y x).resolve_right hle
-      have ih' := ih hxs.of_cons
-      have hperm := orderedInsert_perm oracle x ys
-      exact List.pairwise_cons.mpr ⟨fun z hz =>
-        match List.mem_cons.mp (hperm.mem_iff.mp hz) with
-        | .inl h => h ▸ hyx
-        | .inr h => List.rel_of_pairwise_cons hxs h, ih'⟩
+  rw [eval_orderedInsert]
+  simpa only [horacle, decide_eq_true_eq] using hxs.orderedInsert x xs
 
 theorem insertionSort_sorted
     (r : α → α → Prop) [DecidableRel r] [Std.Total r] [IsTrans α r]
@@ -107,40 +78,37 @@ theorem insertionSort_sorted
     (horacle : ∀ a b, oracle (.le a b) = decide (r a b))
     (xs : List α) :
     ((insertionSort xs).eval oracle).Pairwise r := by
-  induction xs with
-  | nil => simp
-  | cons x xs ih =>
-    simp only [eval_insertionSort_cons]
-    exact orderedInsert_sorted r oracle horacle x _ ih
+  rw [eval_insertionSort]
+  simpa only [horacle, decide_eq_true_eq] using List.pairwise_insertionSort r xs
 
 -- ## Query count proofs
 
-theorem orderedInsert_queriesOn_le (oracle : {ι : Type} → LEQuery α ι → ι)
+theorem orderedInsert_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
     (x : α) (xs : List α) :
-    (orderedInsert x xs).queriesOn oracle ≤ xs.length := by
+    (orderedInsert x xs).countQueries oracle ≤ xs.length := by
   induction xs with
   | nil => simp [orderedInsert]
   | cons y ys ih =>
-    unfold orderedInsert LEQuery.ask
+    unfold orderedInsert
     simp
     split
     · simp_all
     · simp_all; omega
 
-theorem insertionSort_queriesOn_le (oracle : {ι : Type} → LEQuery α ι → ι)
+theorem insertionSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
     (xs : List α) :
-    (insertionSort xs).queriesOn oracle ≤ xs.length ^ 2 := by
+    (insertionSort xs).countQueries oracle ≤ xs.length ^ 2 := by
   induction xs with
   | nil => simp [insertionSort]
   | cons x xs ih =>
-    have hq : (insertionSort (x :: xs)).queriesOn oracle =
-        (insertionSort xs).queriesOn oracle +
-        (orderedInsert x ((insertionSort xs).eval oracle)).queriesOn oracle := by
+    have hq : (insertionSort (x :: xs)).countQueries oracle =
+        (insertionSort xs).countQueries oracle +
+        (orderedInsert x ((insertionSort xs).eval oracle)).countQueries oracle := by
       simp [insertionSort]
     rw [hq]
     have hlen : ((insertionSort xs).eval oracle).length = xs.length :=
       (insertionSort_perm oracle xs).length_eq
-    have hord := orderedInsert_queriesOn_le oracle x ((insertionSort xs).eval oracle)
+    have hord := orderedInsert_countQueries_le oracle x ((insertionSort xs).eval oracle)
     rw [hlen] at hord
     have h1 := Nat.add_le_add ih hord
     have hpow : xs.length ^ 2 + xs.length ≤ (xs.length + 1) ^ 2 := by
@@ -154,7 +122,7 @@ theorem insertionSort_queriesOn_le (oracle : {ι : Type} → LEQuery α ι → �
 public theorem insertionSort_upperBound :
     UpperBound (insertionSort (α := α)) List.length (· ^ 2) := by
   intro oracle n x hle
-  exact Nat.le_trans (insertionSort_queriesOn_le oracle x)
+  exact Nat.le_trans (insertionSort_countQueries_le oracle x)
     (Nat.pow_le_pow_left hle 2)
 
 public theorem insertionSort_isSort : IsSort (insertionSort (α := α)) where

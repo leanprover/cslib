@@ -21,14 +21,14 @@ namespace Cslib.Query
 @[expose] def UpperBound (prog : α → FreeM Q β)
     (size : α → Nat) (bound : Nat → Nat) : Prop :=
   ∀ (oracle : {ι : Type} → Q ι → ι) (n : Nat) (x : α),
-    size x ≤ n → (prog x).queriesOn oracle ≤ bound n
+    size x ≤ n → (prog x).countQueries oracle ≤ bound n
 
 /-- Lower bound: for every size n, there exists an input and oracle
     making the program perform ≥ `bound n` queries. -/
 @[expose] def LowerBound (prog : α → FreeM Q β)
     (size : α → Nat) (bound : Nat → Nat) : Prop :=
   ∀ (n : Nat), ∃ (x : α), size x ≤ n ∧
-    ∃ (oracle : {ι : Type} → Q ι → ι), bound n ≤ (prog x).queriesOn oracle
+    ∃ (oracle : {ι : Type} → Q ι → ι), bound n ≤ (prog x).countQueries oracle
 
 end Cslib.Query
 
