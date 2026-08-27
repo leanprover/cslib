@@ -56,7 +56,7 @@ than direct pattern-match on `FreeM`'s constructors:
   an arbitrary additive monoid).
 - `countQueries` is `cost` with unit weight.
 
-The constructor-form simp lemmas (`eval_pure`, `eval_liftBind`, `cost_pure`,
+The pure and lift-then-bind simp lemmas (`eval_pure`, `eval_liftBind`, `cost_pure`,
 `cost_liftBind`, `countQueries_pure`, `countQueries_liftBind`) all reduce by `rfl`, giving the
 same proof ergonomics as direct pattern-match definitions while honouring the universal
 property as the primary abstraction. -/
