@@ -64,7 +64,9 @@ structure TwoNA (State Symbol : Type*) where
 
 /-- The configuration of a two-way nondeterministic automaton. -/
 @[ext]
-structure TwoNACfg (State Symbol : Type*) (input : List Symbol) where
+structure TwoNACfg (State Symbol : Type*) where
+  /-- The original input to the automaton. -/
+  input : List Symbol
   /-- The state of the automaton. -/
   state : State
   /-- The input head position of the automaton: it can be on any symbol of the input or on the
@@ -72,27 +74,27 @@ structure TwoNACfg (State Symbol : Type*) (input : List Symbol) where
   pos : Fin (input.length + 1)
 
 
-def TwoNACfg.IsInitial (a : TwoNA State Symbol) {input : List Symbol}
-    (c : TwoNACfg State Symbol input) : Prop :=
-  c.state ∈ a.start ∧ c.pos = 0
+def TwoNACfg.IsInitialForInput (a : TwoNA State Symbol) (c : TwoNACfg State Symbol)
+    (input : List Symbol) : Prop :=
+  c.state ∈ a.start ∧ c.pos = 0 ∧ c.input = input
 
-def TwoNACfg.IsAccepting (a : TwoNA State Symbol) {input : List Symbol}
-    (c : TwoNACfg State Symbol input) : Prop :=
+def TwoNACfg.IsAccepting (a : TwoNA State Symbol) (c : TwoNACfg State Symbol) : Prop :=
   c.state ∈ a.accept ∧ c.pos = Fin.last _
 
 ------------------- via LTS -------------------------
 
-def TwoNATr.toCfgTr {State Symbol : Type*} (tr : TwoNATr State Symbol) (input : List Symbol) :
-    TwoNACfg State Symbol input → Symbol × SignType → TwoNACfg State Symbol input → Prop
+def TwoNATr.toCfgTr {State Symbol : Type*} (tr : TwoNATr State Symbol) :
+    TwoNACfg State Symbol → Symbol × SignType → TwoNACfg State Symbol → Prop
   | c, (x, m), c' =>
-    some x = input[c.pos]? ∧
+    c.input = c'.input ∧
+    some x = c.input[c.pos]? ∧
     tr c.state x m c'.state ∧
     (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
 
 def TwoNA.toCfgLTS {State Symbol : Type*} (a : TwoNA State Symbol) (input : List Symbol) :
-    NA.FinAcc (TwoNACfg State Symbol input) (Symbol × SignType) where
-  Tr := a.Tr.toCfgTr input
-  start := { c | c.IsInitial a }
+    NA.FinAcc (TwoNACfg State Symbol) (Symbol × SignType) where
+  Tr := a.Tr.toCfgTr
+  start := { c | c.IsInitialForInput a input }
   accept := { c | c.IsAccepting a }
 
 @[simp, scoped grind =]
@@ -102,19 +104,19 @@ instance : Acceptor (TwoNA State Symbol) Symbol where
 
 ------------------ alternative ---------------------------
 
-def TwoNA.Step {State Symbol : Type*} (a : TwoNA State Symbol) {input : List Symbol}
-    (c c' : TwoNACfg State Symbol input) : Prop :=
+def TwoNA.Step {State Symbol : Type*} (a : TwoNA State Symbol) (c c' : TwoNACfg State Symbol) :=
   ∃ x m,
+    c.input = c'.input ∧
+    some x = c.input[c.pos]? ∧
     a.Tr c.state x m c'.state ∧
-    some x = input[c.pos]? ∧
     (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
 
 @[simp, scoped grind =]
 instance : Acceptor (TwoNA State Symbol) Symbol where
   Accepts (a : TwoNA State Symbol) (input : List Symbol) :=
-    ∃ (init final : TwoNACfg State Symbol input),
-    ∃ cfgs : List (TwoNACfg State Symbol input),
-    init.IsInitial a ∧ final.IsAccepting a ∧
+    ∃ init final, ∃ cfgs : List (TwoNACfg State Symbol),
+    init.IsInitialForInput a input ∧
+    final.IsAccepting a ∧
     cfgs.IsChainFromTo a.Step init final
 
 end Cslib.Automata
