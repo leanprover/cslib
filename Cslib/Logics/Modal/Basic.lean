@@ -12,7 +12,6 @@ public import Cslib.Foundations.Relation.Euclidean
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.Relation.Defs
-public import Cslib.Logics.Modal.Attr
 public import Mathlib.Order.BooleanAlgebra.Set
 
 /-! # Modal Logic
@@ -231,7 +230,7 @@ theorem Satisfies.of_axiom (m : Model World Atom) (φ : Proposition Atom) (h : A
     (w : World) : ⇓Modal[m,w ⊨ φ] := h m.v w
 
 /-- The K axiom, valid for all models. -/
-@[modal .]
+@[scoped grind ., modal .]
 theorem Satisfies.k (r : World → World → Prop) (φ₁ φ₂ : Proposition Atom) :
     Axiom r⇓(□(φ₁ → φ₂) → (□φ₁ → □φ₂)) := by grind
 
