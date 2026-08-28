@@ -19,11 +19,13 @@ namespace Cslib.LTS
 variable {State Label : Type*} {lts : LTS State Label}
 
 /-- `Execution` extends `MTr` by providing the intermediate states of a multistep transition. -/
-@[scoped grind =]
-def Execution (lts : LTS State Label) (s1 : State) (μs : List Label) (s2 : State)
-    (ss : List State) : Prop :=
-  ∃ _ : ss.length = μs.length + 1, ss[0] = s1 ∧ ss[ss.length - 1] = s2 ∧
-  ∀ k, {_ : k < μs.length} → lts.Tr ss[k] μs[k] ss[k + 1]
+@[scoped grind]
+structure Execution (lts : LTS State Label)
+    (s1 : State) (μs : List Label) (s2 : State) (ss : List State) where
+  length : ss.length = μs.length + 1
+  start : ss[0] = s1
+  last : ss[ss.length - 1] = s2
+  trans (k : ℕ) (hk : k < μs.length) : lts.Tr ss[k] μs[k] ss[k + 1]
 
 /-- Every execution has at least one intermediate state. -/
 @[scoped grind →]
@@ -42,13 +44,11 @@ theorem Execution.stepL {lts : LTS State Label} (htr : lts.Tr s1 μ s2)
 /-- Deconstruction of executions with `List.cons`. -/
 theorem Execution.cons_invert (h : lts.Execution s1 (μ :: μs) s2 (s1 :: ss)) :
     lts.Execution (ss[0]'(by grind)) μs s2 ss := by
-  obtain ⟨_, _, _, h4⟩ := h
-  exists (by grind)
-  constructorm* _∧_
-  · rfl
-  · grind
-  · intro k valid
-    specialize h4 k <;> grind
+  have : ss.length = μs.length + 1 := by grind
+  have (k : ℕ) (_ : k < μs.length) : lts.Tr ss[k] μs[k] ss[k + 1] := by
+    have := h.trans k
+    grind
+  grind
 
 /-- A multistep transition implies the existence of an execution. -/
 @[scoped grind →]
@@ -84,6 +84,11 @@ theorem Execution.to_mTr (hexec : lts.Execution s1 μs s2 ss) :
         apply this
       · grind
 
+/-- The states visited by an execution form a chain in the underlying unlabelled relation. -/
+theorem Execution.isChain (hexec : lts.Execution s1 μs s2 ss) :
+    ss.IsChain lts.UnlabelledTr := by
+  grind [Execution, List.isChain_iff_getElem, UnlabelledTr]
+
 open scoped Execution
 /-- Correspondence of multistep transitions and executions. -/
 @[scoped grind =]
@@ -109,8 +114,8 @@ theorem Execution.comp
     (h1 : lts.Execution s μs1 r ss1) (h2 : lts.Execution r μs2 t ss2) :
     lts.Execution s (μs1 ++ μs2) t (ss1 ++ ss2.tail) := by
   have h0 : (ss1 ++ ss2.tail).length = (μs1 ++ μs2).length + 1 := by grind
-  use h0
-  split_ands
+  apply Execution.mk ..
+  · exact h0
   · grind
   · have := Execution.comp_helper h1 h2 μs2.length
     grind only [Execution, = List.length_append]
@@ -128,7 +133,9 @@ theorem Execution.split
     lts.Execution s (μs.take n) (ss[n]'(by grind)) (ss.take (n + 1)) ∧
     lts.Execution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := by
   have : n + (ss.length - n - 1) = ss.length - 1 := by grind
-  simp [Execution]
-  grind
+  split_ands
+  · grind
+  · apply Execution.mk .. <;>
+      simp only [List.length_drop, List.getElem_drop] <;> grind
 
 end Cslib.LTS

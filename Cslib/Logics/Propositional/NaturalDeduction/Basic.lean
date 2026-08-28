@@ -76,14 +76,14 @@ abbrev Ctx (Atom) := Finset (Proposition Atom)
 def Ctx.subst {Atom Atom' : Type u} [DecidableEq Atom'] (f : Atom → Proposition Atom') :
     Ctx Atom → Ctx Atom' := Finset.image (· >>= f)
 
-/-- Sequents {A₁, ..., Aₙ} ⊢ B. -/
+/-- Sequents \{A₁, ..., Aₙ\} ⊢ B. -/
 abbrev Sequent {Atom} := Ctx Atom × Proposition Atom
 
 @[inherit_doc Sequent]
 scoped notation Γ:60 " ⊢ " A => (⟨Γ, A⟩ : Sequent)
 
-/-- A `T`-derivation of {A₁, ..., Aₙ} ⊢ B demonstrates B using (undischarged) assumptions among Aᵢ,
-possibly appealing to axioms from `T`. -/
+/-- A `T`-derivation of \{A₁, ..., Aₙ\} ⊢ B demonstrates B using (undischarged) assumptions
+among Aᵢ, possibly appealing to axioms from `T`. -/
 inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom → Type u where
   /-- Axiom -/
   | ax {Γ : Ctx Atom} {A : Proposition Atom} (_ : A ∈ T) : Derivation Γ A

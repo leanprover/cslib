@@ -67,6 +67,9 @@ abbrev SemiConfluent (r : α → α → Prop) :=
 /-- A relation has the Church Rosser property when equivalence implies multi-joinability. -/
 abbrev ChurchRosser (r : α → α → Prop) := ∀ {x y}, EqvGen r x y → Join (ReflTransGen r) x y
 
+/-- Relation `r` preserves predicate `P`. -/
+def Preserves (r : α → α → Prop) (P : α → Prop) : Prop := ∀ ⦃a b⦄, r a b → P a → P b
+
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
 abbrev Reducible (r : α → α → Prop) (x : α) : Prop := ∃ y, r x y
 
@@ -85,9 +88,13 @@ abbrev Normalizable (r : α → α → Prop) (x : α) : Prop :=
 abbrev Normalizing (r : α → α → Prop) : Prop :=
   ∀ x, Normalizable r x
 
-/-- An element `x` is `SN` (for strongly-normalising) for a relation `r` if it is accesible under
+/-- An element `x` is `SN` (for strongly-normalising) for a relation `r` if it is accessible under
 the inverse of `r`. -/
 abbrev SN (r : α → α → Prop) := Acc (fun a b => r b a)
+
+/-- A relation is acyclic if its transitive closure is irreflexive, equivalently if it admits no
+nonempty cycle. -/
+abbrev Acyclic (r : α → α → Prop) := Std.Irrefl (TransGen r)
 
 /-- A relation is terminating when the inverse of its transitive closure is well-founded.
   Note that this is also called Noetherian or strongly normalizing in the literature. -/

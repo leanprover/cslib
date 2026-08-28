@@ -18,24 +18,49 @@ This module defines logical equivalence for HML propositions and instantiates `L
 
 namespace Cslib.Logic.HML
 
-/-- Logical equivalence for HML propositions. -/
-def Proposition.Equiv {State : Type u} {Label : Type v} (a b : Proposition Label) : Prop :=
-  ∀ lts : LTS State Label, a.denotation lts = b.denotation lts
+open scoped InferenceSystem Satisfies
+
+section Theory
+
+/-! ## Theory of logical equivalence -/
+
+/-- The HML propositions `φ₁` and `φ₂` are logically equivalent under the LTS `lts`. -/
+def Proposition.Equiv (lts : LTS State Label) (φ₁ φ₂ : Proposition Label) : Prop :=
+  ∀ (s : State), ⇓HML[lts,s ⊨ φ₁ ↔ φ₂]
+
+instance : Congruence (Proposition.Equiv lts) := ⟨⟩
 
 @[scoped grind =]
-theorem Proposition.equiv_def {State : Type u} {Label : Type v} (a b : Proposition Label) :
-    Equiv (State := State) a b ↔
-    (∀ lts : LTS State Label, a.denotation lts = b.denotation lts) := by rfl
+theorem Proposition.equiv_def (lts : LTS State Label) (φ₁ φ₂ : Proposition Label) :
+    (φ₁.Equiv lts φ₂) ↔ φ₁ ≡[Equiv lts] φ₂ := by rfl
+
+@[scoped grind ⇒]
+theorem Proposition.equiv_forall_der (lts : LTS State Label) (φ₁ φ₂ : Proposition Label)
+    (h : φ₁ ≡[Equiv lts] φ₂) : ∀ (s : State), ⇓HML[lts,s ⊨ φ₁ ↔ φ₂] := by
+  intro s
+  specialize h s
+  assumption
+
+theorem Proposition.forall_der_equiv (lts : LTS State Label) (φ₁ φ₂ : Proposition Label)
+    (h : ∀ (s : State), ⇓HML[lts,s ⊨ φ₁ ↔ φ₂]) :
+    φ₁ ≡[Equiv lts] φ₂ := by
+  intro s
+  specialize h s
+  assumption
+
+@[scoped grind ⇒]
+theorem Proposition.equiv_iff {lts : LTS State Label} {φ₁ φ₂ : Proposition Label}
+    (h : φ₁ ≡[Equiv lts] φ₂) (s : State) :
+    ⇓HML[lts,s ⊨ φ₁] ↔ ⇓HML[lts,s ⊨ φ₂] := by
+  grind [=_ Satisfies.iff_iff_iff]
 
 /-- Propositional contexts. -/
 inductive Proposition.Context (Label : Type u) : Type u where
   | hole
   | andL (c : Context Label) (φ : Proposition Label)
   | andR (φ : Proposition Label) (c : Context Label)
-  | orL (c : Context Label) (φ : Proposition Label)
-  | orR (φ : Proposition Label) (c : Context Label)
+  | not (c : Context Label)
   | diamond (μ : Label) (c : Context Label)
-  | box (μ : Label) (c : Context Label)
 
 /-- Replaces a hole in a propositional context with a proposition. -/
 @[scoped grind =]
@@ -44,72 +69,124 @@ def Proposition.Context.fill (c : Context Label) (φ : Proposition Label) :=
   | hole => φ
   | andL c φ' => (c.fill φ).and φ'
   | andR φ' c => φ'.and (c.fill φ)
-  | orL c φ' => (c.fill φ).or φ'
-  | orR φ' c => φ'.or (c.fill φ)
+  | not c => .not (c.fill φ)
   | diamond μ c => .diamond μ (c.fill φ)
-  | box μ c => .box μ (c.fill φ)
 
-instance : HasContext (Proposition Label) := ⟨Proposition.Context Label, Proposition.Context.fill⟩
+instance : HasContext (Proposition Label) := ⟨Proposition.Context.fill⟩
+
+@[scoped grind =]
+lemma Proposition.Context.fill_def {c : HasContext.Context (Proposition Atom)} :
+    c.fill φ = c<[φ] := rfl
 
 open scoped Proposition Proposition.Context
 
-instance : IsEquiv (Proposition Label) (Proposition.Equiv (State := State) (Label := Label)) where
-  refl := by grind
-  symm := by grind
-  trans := by grind
+/-- Logical equivalence is an equivalence relation. -/
+instance : IsEquiv (Proposition Label) (Proposition.Equiv lts) := by
+  rw [← equivalence_iff_isEquiv]
+  grind [Equivalence, Proposition.Equiv]
 
-instance {State : Type u} {Label : Type v} :
-    Congruence (Proposition Label) (Proposition.Equiv (State := State) (Label := Label)) where
-  elim :
-      Covariant (Proposition.Context Label) (Proposition Label) (Proposition.Context.fill)
-      Proposition.Equiv := by
-    intro ctx a b hab lts
-    specialize hab lts
+/-- Logical equivalence is a lawful congruence. -/
+instance (lts : LTS State Label) :
+    LawfulCongruence (Proposition.Equiv lts) where
+  elim ctx φ₁ φ₂ heqv := by
     induction ctx
-      <;> simp only [Proposition.Context.fill, Proposition.denotation]
-      <;> grind
-
-/-- Bundled version of a judgement for `Satisfy`. -/
-structure Satisfies.Judgement (State : Type u) (Label : Type v) where
-  /-- The state transition system to consider. -/
-  lts : LTS State Label
-  /-- The state to check the proposition against. -/
-  state : State
-  /-- The proposition to check. -/
-  φ : Proposition Label
-
-/-- `Satisfies` variant using bundled judgements. -/
-def Satisfies.Bundled (j : Satisfies.Judgement State Label) := Satisfies j.lts j.state j.φ
-
-@[scoped grind =]
-theorem Satisfies.bundled_char : Satisfies.Bundled j ↔ Satisfies j.lts j.state j.φ := by rfl
+    case hole =>
+      grind [=_ Proposition.Context.fill_def]
+    case not c ih | andL c ih | andR c ih =>
+      intro s
+      grind [=_ Proposition.Context.fill_def]
+    case diamond c ih =>
+      intro s
+      rw [Satisfies.iff_iff_iff]
+      apply Iff.intro
+      all_goals
+        rintro ⟨w', h⟩
+        specialize ih w'
+        grind [=_ Proposition.Context.fill_def]
 
 /-- Judgemental contexts. -/
-structure Satisfies.Context (State : Type u) (Label : Type v) where
-  /-- The state transition system to consider. -/
+structure Judgement.Context State Label where
+  /-- The labelled transition system to consider. -/
   lts : LTS State Label
   /-- The state to check propositions against. -/
   state : State
 
 /-- Fills a judgemental context with a proposition. -/
-def Satisfies.Context.fill (c : Satisfies.Context State Label) (φ : Proposition Label) :
-    Satisfies.Judgement State Label where
+def Judgement.Context.fill (c : Judgement.Context State Label) (φ : Proposition Label) :
+    Judgement State Label where
   lts := c.lts
   state := c.state
   φ := φ
 
-instance judgementalContext :
-    HasHContext (Satisfies.Judgement State Label) (Proposition Label) :=
-  ⟨Satisfies.Context State Label, Satisfies.Context.fill⟩
+instance : HasHContext (Judgement State Label) (Proposition Label) :=
+  ⟨Judgement.Context.fill⟩
 
-instance : LogicalEquivalence
-    (Proposition Label) (Satisfies.Judgement State Label) (Satisfies.Bundled) where
-  eqv := Proposition.Equiv
-  eqvFillValid {a b : Proposition Label} (heqv : a.Equiv (State := State) b)
-      (c : HasHContext.Context (Satisfies.Judgement State Label) (Proposition Label))
-      (h : Satisfies.Bundled c<[a]) : Satisfies.Bundled c<[b] := by
-    simp only [Satisfies.bundled_char, HasHContext.fill, Satisfies.Context.fill]
-    simp only [Satisfies.bundled_char, HasHContext.fill, Satisfies.Context.fill] at h
+@[scoped grind =]
+lemma Judgement.Context.fill_def {c : Judgement.Context World Atom} {φ : Proposition Atom} :
+    HML[c.lts,c.state ⊨ φ] = c<[φ] := rfl
+
+/-- Universal logical equivalence: logical equivalence under all LTSs. -/
+def Proposition.UEquiv.{u, v} {Label : Type v} (φ₁ φ₂ : Proposition Label) : Prop :=
+  ∀ ⦃State : Type u⦄ (lts : LTS State Label), φ₁ ≡[Equiv lts] φ₂
+
+instance : DefaultCongruence (Proposition Label) (Proposition.UEquiv (Label := Label)) := ⟨⟩
+
+@[scoped grind =]
+theorem Proposition.uEquiv_def.{u, v} : UEquiv.{u, v} φ₁ φ₂ ↔ φ₁ ≡[UEquiv.{u, v}] φ₂ := by
+  simp [Congruence.r]
+
+@[scoped grind =]
+theorem Proposition.uEquiv_iff_forall_equiv.{u, v} {Label : Type v} (φ₁ φ₂ : Proposition Label) :
+    (φ₁ ≡[UEquiv.{u, v}] φ₂) ↔ ∀ {State : Type u} (lts : LTS State Label), φ₁ ≡[Equiv lts] φ₂ := by
+  rfl
+
+/-- Universal logical equivalence is an equivalence relation. -/
+instance : IsEquiv (Proposition Label) Proposition.UEquiv := by
+  rw [← equivalence_iff_isEquiv]
+  constructor
+  · intro φ State lts s
     grind
+  · intro φ₁ φ₂ h State lts s
+    grind [h lts]
+  · intro φ₁ φ₂ φ₃ h₁ h₂ State lts
+    grind [h₁ lts, h₂ lts, Proposition.forall_der_equiv lts]
+
+/-- Universal logical equivalence is a lawful congruence. -/
+instance {Label} : LawfulCongruence (Proposition.UEquiv (Label := Label)) where
+  elim :
+      Covariant (Proposition.Context Label) (Proposition Label) Proposition.Context.fill
+      Proposition.UEquiv := by
+    intro ctx φ₁ φ₂ h State lts
+    induction ctx <;> grind [h lts, Proposition.forall_der_equiv lts]
+
+instance : LogicalEquivalence (Judgement := Judgement State Label) InferenceSystem.Default
+    (Proposition.UEquiv (Label := Label)) where
+  eqvFillValid heqv c h := by
+    specialize heqv c.lts c.state
+    grind [=_ Judgement.Context.fill_def, HasHContext.fill, Judgement.Context.fill]
+
+end Theory
+
+section Equivalences
+
+/-! ## Database of logical equivalences -/
+
+namespace Proposition
+
+theorem false_and_false_eqv_false :
+    (⊥ ∧ ⊥ : Proposition Label) ≡ (⊥ : Proposition Label) := by
+  intro State lts
+  have := forall_der_equiv lts
+  grind
+
+/-- The dual axiom (reformulated for HML from modal logic). -/
+theorem dual (μ : Label) (φ : Proposition Label) :
+    (d⟨μ⟩φ) ≡ (¬d[μ]¬φ) := by
+  intro State lts s
+  grind
+
+end Proposition
+
+end Equivalences
 
 end Cslib.Logic.HML

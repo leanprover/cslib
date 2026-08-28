@@ -28,7 +28,6 @@ the Mathlib module instead.
 - `Cslib.Probability.PMF.bind_pair_tsum_fst`: marginalizing over the first component
 - `Cslib.Probability.PMF.uniformOfFintype_map_equiv`:
   a uniform distribution is invariant under equivalence
-- `Cslib.Probability.PMF.posterior_hasSum`: posterior probabilities sum to 1
 - `Cslib.Probability.PMF.posteriorDist`: the posterior as a `PMF`
 - `Cslib.Probability.PMF.posteriorDist_eq_prior_of_outputIndist`:
   if the output distribution does not depend on the input, conditioning does
@@ -64,52 +63,28 @@ theorem bind_pair_tsum_fst (p : PMF α) (f : α → PMF β) (b : β) :
 theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [Nonempty α] [Nonempty γ]
     (e : α ≃ γ) :
     (PMF.uniformOfFintype α).map e = PMF.uniformOfFintype γ := by
-  classical
-  have hcard : Fintype.card α = Fintype.card γ := Fintype.card_congr e
   ext c
-  rw [PMF.map_apply, PMF.uniformOfFintype_apply, tsum_eq_single (e.symm c)]
-  · simp_rw [PMF.uniformOfFintype_apply]
-    simp [hcard]
-  · intro a ha
-    simp_rw [PMF.uniformOfFintype_apply]
-    split_ifs with h
-    · exfalso
-      apply ha
-      simpa using congrArg e.symm h.symm
-    · simp
-
-/-- Posterior probabilities `joint(a, b) / marginal(b)` sum to 1
-when `b` is in the support of the marginal. -/
-theorem posterior_hasSum (p : PMF α) (f : α → PMF β) (b : β)
-    (hb : b ∈ (p.bind f).support) :
-    HasSum (fun a =>
-      (p.bind fun a' => (f a').bind fun b' => PMF.pure (a', b')) (a, b) /
-        (p.bind f) b) 1 := by
-  have hne := (PMF.mem_support_iff _ _).mp hb
-  have hne_top := ne_top_of_le_ne_top one_ne_top (PMF.coe_le_one (p.bind f) b)
-  have : ∑' a, (p.bind fun a' => (f a').bind fun b' => PMF.pure (a', b')) (a, b) /
-      (p.bind f) b = 1 := by
-    simp only [div_eq_mul_inv]
-    rw [ENNReal.tsum_mul_right, bind_pair_tsum_fst]
-    exact ENNReal.mul_inv_cancel hne hne_top
-  exact this ▸ ENNReal.summable.hasSum
+  rw [PMF.map_apply, tsum_eq_single (e.symm c)]
+  · simp [Fintype.card_congr e]
+  · exact fun a ha => ite_eq_right fun h => ha (by simp [h])
 
 /-- The posterior distribution `Pr[A = a | B = b]` as a `PMF`,
-given `a ← p`, `b ← f a`, and that `b` has positive marginal probability. -/
+given `a ← p`, `b ← f a`, and that `b` has positive marginal probability:
+the joint distribution's slice at `b`, normalized. -/
 noncomputable def posteriorDist (p : PMF α) (f : α → PMF β) (b : β)
     (hb : b ∈ (p.bind f).support) : PMF α :=
-  ⟨fun a =>
-    (p.bind fun a' => (f a').bind fun b' => PMF.pure (a', b')) (a, b) /
-      (p.bind f) b,
-   posterior_hasSum p f b hb⟩
+  PMF.normalize
+    (fun a => (p.bind fun a' => (f a').bind fun b' => PMF.pure (a', b')) (a, b))
+    (by rw [bind_pair_tsum_fst]; exact (PMF.mem_support_iff _ _).mp hb)
+    (by rw [bind_pair_tsum_fst]; exact PMF.apply_ne_top _ _)
 
 @[simp]
 theorem posteriorDist_apply (p : PMF α) (f : α → PMF β) (b : β)
     (hb : b ∈ (p.bind f).support) (a : α) :
     posteriorDist p f b hb a =
       (p.bind fun a' => (f a').bind fun b' => PMF.pure (a', b')) (a, b) /
-        (p.bind f) b :=
-  rfl
+        (p.bind f) b := by
+  rw [posteriorDist, PMF.normalize_apply, bind_pair_tsum_fst, div_eq_mul_inv]
 
 /-- If the output distribution of a channel does not depend on the input, then
 conditioning on any output with positive probability leaves the prior unchanged. -/
@@ -118,16 +93,10 @@ theorem posteriorDist_eq_prior_of_outputIndist (p : PMF α) (f : α → PMF β)
     (b : β) (hb : b ∈ (p.bind f).support) :
     posteriorDist p f b hb = p := by
   ext a
-  rw [posteriorDist_apply, bind_pair_apply, PMF.bind_apply]
-  have hf : ∀ a', f a' b = f a b := fun a' => by rw [h a' a]
-  simp_rw [hf]
-  rw [ENNReal.tsum_mul_right, PMF.tsum_coe, one_mul]
-  have hb' : (p.bind f) b ≠ 0 := (PMF.mem_support_iff _ _).mp hb
-  have hmarg : (p.bind f) b = f a b := by
-    rw [PMF.bind_apply]
-    simp_rw [hf]
-    rw [ENNReal.tsum_mul_right, PMF.tsum_coe, one_mul]
-  exact ENNReal.mul_div_cancel_right (hmarg ▸ hb')
-    (ne_top_of_le_ne_top ENNReal.one_ne_top (PMF.coe_le_one _ _))
+  have hbind : p.bind f = f a :=
+    (congrArg p.bind (funext fun a' => h a' a)).trans (PMF.bind_const p (f a))
+  rw [posteriorDist_apply, bind_pair_apply, hbind]
+  exact ENNReal.mul_div_cancel_right ((PMF.mem_support_iff _ _).mp (hbind ▸ hb))
+    (PMF.apply_ne_top _ _)
 
 end Cslib.Probability.PMF

@@ -123,6 +123,16 @@ theorem IsBisimulation.match_deterministic
   have hr' : (flip r) s₂ s₁ := by grind [flip]
   apply IsSimulation.match_deterministic hb.flip_isSimulation hr' hdet htr₂ htr₁
 
+/-- If the unique transition of a state is matched by a related state in the inverse of a
+bisimulation, then the derivatives are still in the bisimulation. -/
+theorem IsBisimulation.match_deterministic₂
+    (hb : IsBisimulation lts₁ lts₂ r)
+    (hr : r s₁ s₂)
+    (hdet : lts₂.DeterministicStateLabel s₂ μ)
+    (htr₁ : lts₁.Tr s₁ μ s₁')
+    (htr₂ : lts₂.Tr s₂ μ s₂') : r s₁' s₂' := by
+  apply IsSimulation.match_deterministic hb.isSimulation hr hdet htr₁ htr₂
+
 /-- If a state is deterministic for `μ`, then any transition made by a related state in a
 bisimulation is matched by a unique transition (left variant). -/
 theorem IsBisimulation.follow_fst_deterministic (hb : IsBisimulation lts₁ lts₂ r) (hr : r s₁ s₂)
@@ -426,7 +436,6 @@ theorem Bisimilarity.bisimilarity_neq_traceEq :
     ∃ (State : Type) (Label : Type) (lts : LTS State Label),
       HomBisimilarity lts ≠ HomTraceEq lts := by
   obtain ⟨State, Label, lts, h⟩ := IsBisimulation.traceEq_not_bisim
-  use State, Label, lts
   grind [Bisimilarity.isBisimulation lts lts]
 
 /-- In any deterministic LTS, trace equivalence is a bisimulation. -/
@@ -458,7 +467,7 @@ theorem Bisimilarity.deterministic_bisim_eq_traceEq
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     [lts₁.Deterministic] [lts₂.Deterministic] : Bisimilarity lts₁ lts₂ = TraceEq lts₁ lts₂ := by
   ext s₁ s₂
-  exact (Deterministic.bisim_tfae s₁ s₂).out 0 1
+  exact (Deterministic.bisim_tfae s₁ s₂).out 1 2
 
 /-- Homogeneous bisimilarity can also be characterized through symmetric simulations. -/
 theorem HomBisimilarity.symm_simulation :
