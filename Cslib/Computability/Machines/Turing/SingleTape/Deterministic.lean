@@ -465,6 +465,10 @@ def TimeComputable.withMonotoneBound {f : List Symbol → List Symbol}
   outputsFunInTime a :=
     RelatesWithinSteps.mono (le_partialSups hf.timeBound _) (hf.outputsFunInTime a)
 
+lemma TimeComputable.withMonotoneBound_timeBound_monotone {f : List Symbol → List Symbol}
+    (hf : TimeComputable f) : Monotone hf.withMonotoneBound.timeBound :=
+  (partialSups hf.timeBound).monotone
+
 end TimeComputable
 
 /-!
@@ -517,14 +521,14 @@ noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
     PolyTimeComputable (g ∘ f) where
   toTimeComputable :=
     TimeComputable.comp hf.toTimeComputable hg.withMonotoneBound.toTimeComputable
-      (partialSups hg.timeBound).monotone
+      hg.toTimeComputable.withMonotoneBound_timeBound_monotone
   poly := hf.poly + hg.poly.comp (1 + X + hf.poly)
   bounds n := by
     simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
     apply add_le_add
     · exact hf.bounds n
-    · exact ((partialSups hg.timeBound).monotone (add_le_add (by omega) (hf.bounds n))).trans
-        (hg.withMonotoneBound.bounds _)
+    · exact (hg.toTimeComputable.withMonotoneBound_timeBound_monotone
+        (add_le_add (by omega) (hf.bounds n))).trans (hg.withMonotoneBound.bounds _)
 
 end PolyTimeComputable
 
