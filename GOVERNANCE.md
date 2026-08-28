@@ -19,11 +19,13 @@ New members may be invited based on project needs and individual merit (e.g., co
 
 ## Maintainers
 
-The maintainer team is responsible for the quality of the codebase, establishing technical standards and ensuring coherence across contributions.
+The maintainer team is responsible for fostering the growth of the project, maintaining the quality of the codebase, establishing technical standards, and ensuring coherence across contributions. They form the technical decision-making authority for determining what code is included in CSLib.
+
+Maintainers also act as technical architects within their areas of responsibility. They are expected to guide the long-term development of those areas, promote reuse and coherence with the rest of CSLib, and help ensure that local design decisions contribute to a consistent overall architecture.
 
 ### Lead maintainer
 
-The lead maintainer coordinates the maintainer team's overall work and oversees the project's repositories.
+The Lead Maintainer is CSLib's chief architect, coordinates the maintainer team's overall work, oversees the project's repositories, ensures the overall architectural coherence of the library, and guides its long-term technical direction.
 
 - Fabrizio Montesi (@fmontesi), FORM, University of Southern Denmark and Danish Institute for Advanced Study.
 

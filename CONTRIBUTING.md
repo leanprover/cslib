@@ -56,6 +56,8 @@ If you are adding something new to CSLib and are in doubt about it, you are very
 
 If you are unfamiliar with CSLib as a whole and want to understand how to get started, please see [Getting started](#getting-started).
 
+For a more detailed explanation of CSLib's decision-making processes, see [decision making](/DECISION_MAKING.md).
+
 # The role of AI
 
 CSLib in general follows the Mathlib policy on [use of AI](https://leanprover-community.github.io/contribute/index.html#use-of-ai). In particular, take note of:
