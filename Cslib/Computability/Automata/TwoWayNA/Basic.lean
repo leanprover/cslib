@@ -14,24 +14,24 @@ public import Cslib.Foundations.Data.List.IsChainFromTo
 
 /-! # Nondeterministic Two-Way Automaton
 
-A Nondeterministic Two-Way Automaton (TwoNA) reads a finite input word on a tape and may move its
-input head in either direction. A transition reads the symbol under the head and, besides changing
-the state, moves the head one cell to the left, keeps it in place, or moves it one cell to the
-right.
+A Nondeterministic Two-Way Automaton (`TwoWayNA`) reads a finite input word on a tape and may move
+its input head in either direction. A transition reads the symbol under the head and, besides
+changing the state, moves the head one cell to the left, keeps it in place, or moves it one cell to
+the right.
 
-Once it leaves the word to the right, the automaton cannot move back to the word. A run is accepting
-if it ends in an accepting state with the head just past the end of the input.
+The input head cannot leave the input word to the left and once it leaves the word to the right,
+it stops. A run is accepting if and only if it ends in an accepting state with the head just past
+the end of the input.
 
 ## Main definitions
 
-* `TwoNA`, the automaton itself
-* `TwoNACfg`, a configuration of a `TwoNA` running on a fixed input: a state together with a head
-  position.
-* `TwoNA.Step`, The single-step relation between configurations.
+* `TwoWayNA`, the automaton itself
+* `TwoWayNACfg`, a configuration of a `TwoWayNA`: Its input plus a state and the head position.
+* `TwoWayNA.Step`, The single-step relation between configurations.
 
 ## Implementation notes
 
-The definition of `TwoNA` is kept close to [Vardi][Vardi1989]'s, because the main point is to
+The definition of `TwoWayNA` is kept close to [Vardi][Vardi1989]'s, because the main point is to
 prove equivalence to `NA.FinAcc`. This means we do not allow the head to move off the input to the
 left, but also do not provide an end marker. Once the head moves off to the right, it cannot move
 back into the word.
@@ -48,15 +48,13 @@ namespace Cslib.Automata
 
 variable {State Symbol : Type*}
 
-/-- The type of the transition relation of a two-way automaton. -/
-def TwoNATr (State Symbol : Type*) := State → Symbol → SignType → State → Prop
-
 /-- A nondeterministic two-way automaton: a transition relation that reads an input symbol and
 moves the input head, together with a set of initial and a set of accepting states. -/
-structure TwoNA (State Symbol : Type*) where
+structure TwoWayNA (State Symbol : Type*) where
   /-- The transition relation. `Tr q x m q'` means that, while reading the symbol `x`, the
-  automaton can move from state `q` to state `q'` and move its head according to `m`. -/
-  Tr : TwoNATr State Symbol
+  automaton attempts to transition from state `q` to state `q'` and move its head according to
+  `m`. -/
+  Tr (q : State) (x : Symbol) (m : SignType) (q' : State) : Prop
   /-- The set of initial states of the automaton. -/
   start : Set State
   /-- The set of accepting states of the automaton. -/
@@ -64,7 +62,7 @@ structure TwoNA (State Symbol : Type*) where
 
 /-- The configuration of a two-way nondeterministic automaton. -/
 @[ext]
-structure TwoNACfg (State Symbol : Type*) where
+structure TwoWayNACfg (State Symbol : Type*) where
   /-- The original input to the automaton. -/
   input : List Symbol
   /-- The state of the automaton. -/
@@ -73,50 +71,32 @@ structure TwoNACfg (State Symbol : Type*) where
   position one step to the right of the input. -/
   pos : Fin (input.length + 1)
 
-
-def TwoNACfg.IsInitialForInput (a : TwoNA State Symbol) (c : TwoNACfg State Symbol)
+/-- This defines the set of initial configurations on a specific input. -/
+def TwoWayNACfg.IsInitialForInput (a : TwoWayNA State Symbol) (c : TwoWayNACfg State Symbol)
     (input : List Symbol) : Prop :=
   c.state ∈ a.start ∧ c.pos = 0 ∧ c.input = input
 
-def TwoNACfg.IsAccepting (a : TwoNA State Symbol) (c : TwoNACfg State Symbol) : Prop :=
+/-- If a configuration is a accepting. -/
+def TwoWayNACfg.IsAccepting (a : TwoWayNA State Symbol) (c : TwoWayNACfg State Symbol) : Prop :=
   c.state ∈ a.accept ∧ c.pos = Fin.last _
 
-------------------- via LTS -------------------------
-
-def TwoNATr.toCfgTr {State Symbol : Type*} (tr : TwoNATr State Symbol) :
-    TwoNACfg State Symbol → Symbol × SignType → TwoNACfg State Symbol → Prop
-  | c, (x, m), c' =>
-    c.input = c'.input ∧
-    some x = c.input[c.pos]? ∧
-    tr c.state x m c'.state ∧
-    (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
-
-def TwoNA.toCfgLTS {State Symbol : Type*} (a : TwoNA State Symbol) (input : List Symbol) :
-    NA.FinAcc (TwoNACfg State Symbol) (Symbol × SignType) where
-  Tr := a.Tr.toCfgTr
+/-- Returns a nondeterministic finite acceptor on the configurations as states, accepting exactly
+the runs of the two-way automaton on `input` that end in an accepting configuration. -/
+def TwoWayNA.toCfgNAFinAcc {State Symbol : Type*} (a : TwoWayNA State Symbol)
+    (input : List Symbol) :
+    NA.FinAcc (TwoWayNACfg State Symbol) (Symbol × SignType) where
+  Tr
+    | c, (x, m), c' =>
+      c.input = c'.input ∧
+      some x = c.input[c.pos]? ∧
+      a.Tr c.state x m c'.state ∧
+      (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
   start := { c | c.IsInitialForInput a input }
   accept := { c | c.IsAccepting a }
 
 @[simp, scoped grind =]
-instance : Acceptor (TwoNA State Symbol) Symbol where
-  Accepts (a : TwoNA State Symbol) (input : List Symbol) :=
-    ∃ μs, Acceptor.Accepts (a.toCfgLTS input) μs
-
------------------- alternative ---------------------------
-
-def TwoNA.Step {State Symbol : Type*} (a : TwoNA State Symbol) (c c' : TwoNACfg State Symbol) :=
-  ∃ x m,
-    c.input = c'.input ∧
-    some x = c.input[c.pos]? ∧
-    a.Tr c.state x m c'.state ∧
-    (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
-
-@[simp, scoped grind =]
-instance : Acceptor (TwoNA State Symbol) Symbol where
-  Accepts (a : TwoNA State Symbol) (input : List Symbol) :=
-    ∃ init final, ∃ cfgs : List (TwoNACfg State Symbol),
-    init.IsInitialForInput a input ∧
-    final.IsAccepting a ∧
-    cfgs.IsChainFromTo a.Step init final
+instance : Acceptor (TwoWayNA State Symbol) Symbol where
+  Accepts (a : TwoWayNA State Symbol) (input : List Symbol) :=
+    ∃ μs, Acceptor.Accepts (a.toCfgNAFinAcc input) μs
 
 end Cslib.Automata
