@@ -124,11 +124,11 @@ abbrev UnboundedStorage (Symbol State : Type*) (k : ℕ) := Storage Symbol State
 def window (s : ℕ) : Finset ℤ := Finset.Icc (-(s : ℤ)) s
 
 @[scoped grind =]
-lemma Storage.mem_window {s : ℕ} {z : ℤ} : z ∈ window s ↔ z.natAbs ≤ s := by
+lemma mem_window {s : ℕ} {z : ℤ} : z ∈ window s ↔ z.natAbs ≤ s := by
   grind
 
 @[simp]
-lemma Storage.card_window (s : ℕ) : (window s).card = 2 * s + 1 := by
+lemma card_window (s : ℕ) : (window s).card = 2 * s + 1 := by
   grind [Int.card_Icc]
 
 /-- A bounded storage: a `Storage` whose tape `i` is restricted to the finite window
@@ -149,9 +149,9 @@ lemma Storage.FitsIn_mono {x : UnboundedStorage Symbol State k} : Monotone x.Fit
   intro w₁ w₂ h_le h_fits
   refine ⟨?_, ?_⟩
   · intro j
-    grind [h_fits.pos_le j, h_le j]
+    exact (h_fits.pos_le j).trans (h_le j)
   · intro j z h_ne
-    grind [h_fits.cell_le j z h_ne, h_le j]
+    exact (h_fits.cell_le j z h_ne).trans (h_le j)
 
 /-- Restriction of a storage over `ℤ` to the finite windows `w` (with heads outside their window
 clamped to `0`). -/
@@ -161,7 +161,7 @@ def Storage.toBounded (x : UnboundedStorage Symbol State k) (w : Fin k → ℕ) 
   workTapes j z := x.workTapes j z.1
   workTapePos j :=
     if h : x.workTapePos j ∈ window (w j) then ⟨x.workTapePos j, h⟩
-    else ⟨0, Storage.mem_window.mpr (Nat.zero_le _)⟩
+    else ⟨0, mem_window.mpr (Nat.zero_le _)⟩
 
 /-- The restriction is injective on storages that fit in the windows. -/
 lemma Storage.toBounded_injOn (w : Fin k → ℕ) :
@@ -169,7 +169,7 @@ lemma Storage.toBounded_injOn (w : Fin k → ℕ) :
   rintro x ⟨hxp, hxc⟩ y ⟨hyp, hyc⟩ hxy
   simp only [Storage.toBounded, Storage.mk.injEq] at hxy
   obtain ⟨hstate, htapes, hpos⟩ := hxy
-  refine Storage.ext hstate (funext₂ fun j z => ?_) (funext fun j => ?_)
+  apply Storage.ext hstate (funext₂ fun j z => ?_) (funext fun j => ?_)
   · by_cases hz : z ∈ window (w j)
     · exact congrFun (congrFun htapes j) ⟨z, hz⟩
     · grind
@@ -207,7 +207,7 @@ lemma card_boundedStorage_le [Fintype Symbol] [Fintype State]
     Fintype.card (BoundedStorage Symbol State w) ≤ storageBound Symbol State k s := by
   have hle : ∀ i, w i ≤ s := fun i =>
     (Finset.single_le_sum (fun i _ => Nat.zero_le (w i)) (Finset.mem_univ i)).trans hsum
-  simp only [card_storage, storageBound, Fintype.card_coe, Storage.card_window]
+  simp only [card_storage, storageBound, Fintype.card_coe, card_window]
   rw [Finset.prod_mul_distrib, Finset.prod_pow_eq_pow_sum]
   have hsc : ∑ i : Fin k, (2 * w i + 1) = 2 * (∑ i, w i) + k := by
     simp [two_mul, Finset.sum_add_distrib]
@@ -262,8 +262,7 @@ lemma storageBound_le_base_mul_pow [Fintype Symbol] [Fintype State] (s : ℕ) :
   have h2s1 : 2 * s + 1 ≤ 2 ^ (s + 1) := by grind [pow_succ, Nat.lt_two_pow_self]
   calc storageBound Symbol State k s
       = states * ((2 * s + 1) ^ k * syms ^ (2 * s + k)) := rfl
-    _ ≤ states * ((2 ^ (s + 1)) ^ k * (2 ^ syms) ^ (2 * s + k)) := by
-        gcongr <;> exact Nat.zero_le _
+    _ ≤ states * ((2 ^ (s + 1)) ^ k * (2 ^ syms) ^ (2 * s + k)) := by gcongr <;> omega
     _ = states * 2 ^ ((s + 1) * k + syms * (2 * s + k)) := by ring
     _ = states * 2 ^ ((syms * k + k) + (2 * syms + k) * s) := by ring_nf
     _ = states * 2 ^ (syms * k + k) * 2 ^ ((2 * syms + k) * s) := by ring
@@ -313,7 +312,7 @@ reachable in bounded space.
 to step `t`. -/
 lemma storage_fitsIn (t : ℕ) :
     (tm.runFrom (tm.initCfg input) t).storage.FitsIn (tm.spaceUsedByTape (tm.initCfg input) t) := by
-  refine ⟨?_, ?_⟩
+  constructor
   · intro j
     simpa [Cfg.storage] using tm.natAbs_le_spaceUsedByTape_of_mem_visited
       (tm.mem_visitedByTapeHead_self (tm.initCfg input) t j)
@@ -341,7 +340,7 @@ theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ}
   calc (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
       ≤ ((Set.univ : Set (Fin (input.length + 2)))
           ×ˢ (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage)).encard := by
-        refine Set.encard_le_encard ?_
+        apply Set.encard_le_encard
         rintro _ ⟨t, rfl⟩
         exact ⟨Set.mem_univ _, t, rfl⟩
     _ = (Set.univ : Set (Fin (input.length + 2))).encard

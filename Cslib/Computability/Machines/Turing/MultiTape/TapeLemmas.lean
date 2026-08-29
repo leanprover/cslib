@@ -158,19 +158,16 @@ bound for the whole run. -/
 lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
     (hs : ∀ t, tm.spaceUsed cfg t ≤ s) :
     ∃ T, ∀ t i, tm.spaceUsedByTape cfg t i ≤ tm.spaceUsedByTape cfg T i := by
-  -- The total space usage is bounded, so it attains its supremum at some step `T`.
-  have hbdd : BddAbove (Set.range (tm.spaceUsed cfg ·)) := ⟨s, by rintro _ ⟨t, rfl⟩; exact hs t⟩
-  obtain ⟨T, hT⟩ := Nat.sSup_mem (Set.range_nonempty (tm.spaceUsed cfg ·)) hbdd
-  refine ⟨T, fun t i => ?_⟩
-  -- After `max t T` steps the total space usage is the same as after `T` steps, and since it is
-  -- tape-wise monotone, every single tape uses the same space as after `T` steps.
-  have hmono : ∀ j, tm.spaceUsedByTape cfg T j ≤ tm.spaceUsedByTape cfg (max t T) j :=
-    fun j => tm.spaceUsedByTape_mono cfg j (le_max_right t T)
-  have hsup : tm.spaceUsed cfg (max t T) ≤ tm.spaceUsed cfg T :=
-    (le_csSup hbdd ⟨max t T, rfl⟩).trans hT.ge
-  have hsum : ∑ j, tm.spaceUsedByTape cfg T j = ∑ j, tm.spaceUsedByTape cfg (max t T) j :=
-    le_antisymm (Finset.sum_le_sum fun j _ => hmono j) hsup
-  have heq := (Finset.sum_eq_sum_iff_of_le fun j _ => hmono j).mp hsum i (Finset.mem_univ i)
-  exact heq ▸ tm.spaceUsedByTape_mono cfg i (le_max_left t T)
+  -- The space usage of a single tape is bounded, so it attains its supremum at some step `T i`.
+  have h : ∀ i, ∃ Ti, ∀ t, tm.spaceUsedByTape cfg t i ≤ tm.spaceUsedByTape cfg Ti i := by
+    intro i
+    have hbdd : BddAbove (Set.range (tm.spaceUsedByTape cfg · i)) :=
+      ⟨s, by rintro _ ⟨t, rfl⟩; exact (tm.spaceUsedByTape_le_spaceUsed cfg t i).trans (hs t)⟩
+    obtain ⟨Ti, hTi⟩ := Nat.sSup_mem (Set.range_nonempty (tm.spaceUsedByTape cfg · i)) hbdd
+    exact ⟨Ti, fun t => (le_csSup hbdd ⟨t, rfl⟩).trans hTi.ge⟩
+  choose T hT using h
+  -- Monotonicity lets us use a single step that is late enough for every tape.
+  exact ⟨Finset.univ.sup T, fun t i =>
+    (hT i t).trans (tm.spaceUsedByTape_mono cfg i (Finset.le_sup (Finset.mem_univ i)))⟩
 
 end Turing.MultiTapeTM
