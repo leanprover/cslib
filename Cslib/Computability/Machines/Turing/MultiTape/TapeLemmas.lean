@@ -57,7 +57,7 @@ lemma uIcc_workTapePos_subset_visitedByTapeHead
   | succ t ih =>
     intro z hz
     have hstep : |(tm.runFrom cfg (t + 1)).workTapePos i - (tm.runFrom cfg t).workTapePos i| ≤ 1 :=
-      runFrom_succ_eq_step' (tm := tm) ▸ MultiTapeNTM.workTapePos_step_le (tm.step_step _) i
+      runFrom_succ_eq_step' (tm := tm) ▸ MultiTapeNTM.workTapePos_step_le (step_iff.mpr rfl) i
     have hmono := tm.visitedByTapeHead_mono cfg i (Nat.le_succ t)
     have hself := tm.mem_visitedByTapeHead_self cfg (t + 1) i
     grind [Finset.mem_uIcc]
@@ -76,7 +76,7 @@ lemma mem_visitedByTapeHead_of_workTapes_ne
     by_cases hz : z = (tm.runFrom cfg t).workTapePos j
     · exact hz ▸ tm.visitedByTapeHead_mono cfg j (Nat.le_succ t)
         (tm.mem_visitedByTapeHead_self cfg t j)
-    · rw [MultiTapeNTM.workTapes_step_eq_of_ne (tm.step_step _) j z hz] at h
+    · rw [MultiTapeNTM.workTapes_step_eq_of_ne (step_iff.mpr rfl) j z hz] at h
       exact tm.visitedByTapeHead_mono cfg j (Nat.le_succ t) (ih h)
 
 /-- Every position visited by the head of tape `i` lies within `spaceUsedByTape … i` of the

@@ -155,34 +155,24 @@ Everything below about a deterministic machine rests on this. -/
 theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c :=
   Cfg.stepWith_iff (by simp)
 
-/-- A machine's own step is one of its steps. Applying a result about `MultiTapeNTM.Step` to
-this is how the deterministic machine inherits it. -/
-@[simp]
-lemma step_step (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) :
-    tm.Step c (tm.step c) := step_iff.mpr rfl
-
 /-- A halted configuration steps to itself, inherited from `MultiTapeNTM`. -/
 @[simp]
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
-  (MultiTapeNTM.step_of_halt h).mp (tm.step_step cfg)
+  (MultiTapeNTM.step_of_halt h).mp (step_iff.mpr rfl)
 
 /-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
-def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input := tm.step^[t] cfg
+def runFrom (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
+    ℕ → Cfg k Symbol State input
+  | 0 => cfg
+  | t + 1 => tm.step (tm.runFrom cfg t)
 
 @[simp]
-lemma runFrom_zero {cfg : Cfg k Symbol State input} :
-    tm.runFrom cfg 0 = cfg := by
-  simp [runFrom]
-
-lemma runFrom_succ_eq_step {cfg : Cfg k Symbol State input} {t : ℕ} :
-    tm.runFrom cfg (t + 1) = tm.runFrom (tm.step cfg) t := by
-  simp [runFrom, Function.iterate_succ_apply]
+lemma runFrom_zero {cfg : Cfg k Symbol State input} : tm.runFrom cfg 0 = cfg := rfl
 
 lemma runFrom_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
-    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := by
-  simp [runFrom, Function.iterate_succ_apply']
+    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := rfl
 
 @[simp]
 lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
@@ -366,15 +356,14 @@ lemma relatesInSteps_iff_runFrom_eq
     (cfg₁ cfg₂ : Cfg k Symbol State input)
     (t : ℕ) :
     RelatesInSteps tm.Step cfg₁ cfg₂ t ↔ tm.runFrom cfg₁ t = cfg₂ := by
-  unfold runFrom
   induction t generalizing cfg₁ cfg₂ with
   | zero => simp
   | succ t ih =>
-    rw [RelatesInSteps.succ_iff, Function.iterate_succ_apply']
+    rw [RelatesInSteps.succ_iff, runFrom_succ_eq_step']
     constructor
     · grind [step_iff]
     · intro h_runFrom
-      use tm.step^[t] cfg₁
+      use tm.runFrom cfg₁ t
       grind [step_iff]
 
 
