@@ -147,22 +147,11 @@ defined in `Cslib.Computability.Machines.Turing.MultiTape.Configuration`.
 
 /-- The step function corresponding to a `MultiTapeTM`. -/
 def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
-  match cfg.state with
-  -- in the halting state, we stay at the configuration
-  | none => cfg
-  | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg
+  cfg.stepWith fun q => tm.tr q cfg.inputSymbol cfg.workTapeSymbols
 
-/-- The symbol (optionally) output when executing one step starting from configuration `cfg`. -/
-def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
-  match cfg.state with
-  | none => none
-  | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).outS
-
-@[simp]
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg := by
-  unfold step
-  rw [h]
+  simp [step, Cfg.stepWith, h]
 
 /-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
@@ -190,7 +179,7 @@ lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n
 
 lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
     |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 := by
-  unfold step
+  unfold step Cfg.stepWith
   cases hstate : c.state with
   | none => simp
   | some q => exact workTapePos_apply_le _ c i
@@ -237,8 +226,8 @@ follow `runFrom`, and `runPath` shows there is one of every length.
 
 /-- `Step` is the relation `step` induces: from each configuration there is exactly one step. -/
 @[simp]
-theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c := by
-  cases hq : c.state <;> simp [MultiTapeNTM.Step, step, hq]
+theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c :=
+  Cfg.stepWith_iff (by simp)
 
 /-- The configurations the machine passes through form a chain of steps. -/
 lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :

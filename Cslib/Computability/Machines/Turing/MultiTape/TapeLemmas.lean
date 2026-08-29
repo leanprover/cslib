@@ -35,7 +35,7 @@ lemma step_workTapes_eq_of_ne
     (z : ℤ)
     (hz : z ≠ cfg.workTapePos j) :
     (tm.step cfg).workTapes j z = cfg.workTapes j z := by
-  unfold step
+  unfold step Cfg.stepWith
   cases hst : cfg.state with
   | none => simp_all
   | some q =>

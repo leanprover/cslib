@@ -38,6 +38,8 @@ the configuration the run ends in.
     output tape
 * `Action`: what a machine does in one step
 * `Action.apply`: the effect of one action on a configuration
+* `Cfg.stepWith`, `Cfg.StepWith`: one step, choosing an action by a function or by a relation,
+    agreeing via `Cfg.stepWith_iff` when the relation is the function's graph
 * `Cfg.Halted`, `Cfg.init`: halting, and the configuration a machine starts in
 * `spaceUsedOfCfgs`: work tape cells touched along a list of configurations, with the bounds
     `spaceUsedOfCfgs_le` and `spaceUsedOfCfgs_mono`
@@ -169,6 +171,27 @@ def Action.apply (out : Action k Symbol State) (cfg : Cfg k Symbol State input) 
     | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s
   workTapePos i := cfg.workTapePos i + (out.workActions i).2
   output := cfg.output ++ out.outS.toList
+
+/-- One step from `cfg`, choosing an action with `f`. A halted configuration idles. -/
+def Cfg.stepWith (cfg : Cfg k Symbol State input) (f : State → Action k Symbol State) :
+    Cfg k Symbol State input :=
+  match cfg.state with
+  | none => cfg
+  | some q => (f q).apply cfg
+
+/-- One step from `cfg`, choosing any action permitted by `R`. A halted configuration idles. -/
+def Cfg.StepWith (cfg cfg' : Cfg k Symbol State input)
+    (R : State → Action k Symbol State → Prop) : Prop :=
+  match cfg.state with
+  | none => cfg' = cfg
+  | some q => ∃ a, R q a ∧ cfg' = a.apply cfg
+
+/-- Choosing from the graph of a function is choosing that function's value: there is exactly one
+step. This is what makes a machine deterministic, said without mentioning one. -/
+theorem Cfg.stepWith_iff {cfg cfg' : Cfg k Symbol State input} {f : State → Action k Symbol State}
+    {R : State → Action k Symbol State → Prop} (h : ∀ q a, R q a ↔ a = f q) :
+    cfg.StepWith cfg' R ↔ cfg' = cfg.stepWith f := by
+  cases hq : cfg.state <;> simp [Cfg.StepWith, Cfg.stepWith, hq, h]
 
 /-- A work tape head moves by at most one cell when an action is applied. -/
 lemma workTapePos_apply_le (out : Action k Symbol State)

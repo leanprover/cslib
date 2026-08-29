@@ -75,15 +75,12 @@ variable {ntm : MultiTapeNTM k Symbol State}
 steps by any permitted transition. -/
 @[scoped grind =]
 def Step (ntm : MultiTapeNTM k Symbol State) (c₁ c₂ : Cfg k Symbol State input) : Prop :=
-  match c₁.state with
-  | none => c₂ = c₁
-  | some q =>
-    ∃ action, ntm.Tr q c₁.inputSymbol c₁.workTapeSymbols action ∧ c₂ = action.apply c₁
+  c₁.StepWith c₂ fun q action => ntm.Tr q c₁.inputSymbol c₁.workTapeSymbols action
 
 /-- A halted configuration steps only to itself. -/
 lemma step_of_halt {c c' : Cfg k Symbol State input} (h : c.Halted) :
     ntm.Step c c' ↔ c' = c := by
-  simp [Step, h]
+  simp [Step, Cfg.StepWith, h]
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
