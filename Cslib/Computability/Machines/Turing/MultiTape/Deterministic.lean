@@ -177,12 +177,6 @@ lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n
   | succ d ih =>
     rw [runFrom_succ_eq_step', ih, step_of_halt h]
 
-lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
-    |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 := by
-  cases hstate : c.state with
-  | none => simp [step, hstate]
-  | some q => simpa [step, hstate] using workTapePos_apply_le _ c i
-
 end Cfg
 
 
@@ -201,6 +195,17 @@ follow `runFrom`, and `runPath` shows there is one of every length.
 @[simp]
 theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c :=
   Cfg.stepWith_iff (by simp)
+
+/-- A work tape head moves by at most one cell in a step. Inherited from `MultiTapeNTM`, since
+`step` is one of its steps. -/
+lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
+    |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 :=
+  MultiTapeNTM.workTapePos_step_le (step_iff.mpr rfl) i
+
+/-- A step changes no work tape cell but the one its head is on. Inherited likewise. -/
+lemma step_workTapes_eq_of_ne (cfg : Cfg k Symbol State input) (j : Fin k) (z : ℤ)
+    (hz : z ≠ cfg.workTapePos j) : (tm.step cfg).workTapes j z = cfg.workTapes j z :=
+  MultiTapeNTM.workTapes_step_eq_of_ne (step_iff.mpr rfl) j z hz
 
 /-- The configurations the machine passes through form a chain of steps. -/
 lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :

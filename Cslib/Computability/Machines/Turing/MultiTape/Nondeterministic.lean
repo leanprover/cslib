@@ -32,7 +32,9 @@ witness.
 ## Important Declarations
 
 * `MultiTapeNTM`: the machine, an initial state and a transition relation
-* `Step`: the one-step relation on configurations
+* `Step`: the one-step relation on configurations, moving a head by at most one cell
+    (`workTapePos_step_le`) and changing no cell but the one under it
+    (`workTapes_step_eq_of_ne`)
 * `ComputationPath`: a run of the machine: a non-empty list of configurations, each reached from
     the previous by a step, with `start` and `last` read off it
 * `ComputationPath.space_le`: a machine touches at most `k` cells per step
@@ -80,6 +82,26 @@ def Step (ntm : MultiTapeNTM k Symbol State) (c₁ c₂ : Cfg k Symbol State inp
 lemma step_of_halt {c c' : Cfg k Symbol State input} (h : c.Halted) :
     ntm.Step c c' ↔ c' = c := by
   simp [Step, Cfg.StepWith, h]
+
+/-- A work tape head moves by at most one cell in a step. -/
+lemma workTapePos_step_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') (i : Fin k) :
+    |c'.workTapePos i - c.workTapePos i| ≤ 1 := by
+  cases hq : c.state with
+  | none => simp_all [Step, Cfg.StepWith]
+  | some q =>
+    simp only [Step, Cfg.StepWith, hq] at h
+    obtain ⟨a, -, rfl⟩ := h
+    exact workTapePos_apply_le a c i
+
+/-- A step changes no work tape cell but the one its head is on. -/
+lemma workTapes_step_eq_of_ne {c c' : Cfg k Symbol State input} (h : ntm.Step c c') (j : Fin k)
+    (z : ℤ) (hz : z ≠ c.workTapePos j) : c'.workTapes j z = c.workTapes j z := by
+  cases hq : c.state with
+  | none => simp_all [Step, Cfg.StepWith]
+  | some q =>
+    simp only [Step, Cfg.StepWith, hq] at h
+    obtain ⟨a, -, rfl⟩ := h
+    exact workTapes_apply_eq_of_ne a c j z hz
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]

@@ -37,7 +37,9 @@ the configuration the run ends in.
 * `Cfg`: the configuration: the internal state, the tape contents and head positions, and the
     output tape
 * `Action`: what a machine does in one step
-* `Action.apply`: the effect of one action on a configuration
+* `Action.apply`: the effect of one action on a configuration, moving a head by at most one
+    cell (`workTapePos_apply_le`) and changing no cell but the one under it
+    (`workTapes_apply_eq_of_ne`)
 * `Cfg.stepWith`, `Cfg.StepWith`: one step, choosing an action by a function or by a relation,
     agreeing via `Cfg.stepWith_iff` when the relation is the function's graph
 * `Cfg.Halted`, `Cfg.init`: halting, and the configuration a machine starts in
@@ -200,6 +202,12 @@ lemma workTapePos_apply_le (out : Action k Symbol State)
     |(out.apply cfg).workTapePos i - cfg.workTapePos i| ≤ 1 := by
   simp only [Action.apply, add_sub_cancel_left, abs_le, SignType.cast]
   grind
+
+/-- An action only changes the cell its head is on, so a cell elsewhere is left alone. -/
+lemma workTapes_apply_eq_of_ne (a : Action k Symbol State) (cfg : Cfg k Symbol State input)
+    (j : Fin k) (z : ℤ) (hz : z ≠ cfg.workTapePos j) :
+    (a.apply cfg).workTapes j z = cfg.workTapes j z := by
+  rcases hw : (a.workActions j).1 <;> simp_all
 
 /-- The work tape cells visited by the head of tape `i` along a list of configurations. -/
 def visitedOfCfgs (cfgs : List (Cfg k Symbol State input)) (i : Fin k) : Finset ℤ :=
