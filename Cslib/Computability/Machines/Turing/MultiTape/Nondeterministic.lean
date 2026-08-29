@@ -134,7 +134,7 @@ def ComputesInExactSpace (ntm : MultiTapeNTM k Symbol State) (input output : Lis
   ntm.ComputesSuchThat input output fun p => p.space = s
 
 /-- `ntm` computes `output` from `input` in `t` steps and `s` work tape cells, by a single
-computation. Nondeterministic analogue of `MultiTapeTM.ComputesInTimeAndSpace`. -/
+computation. -/
 def ComputesInExactTimeAndSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
     (t s : ℕ) : Prop :=
   ntm.ComputesSuchThat input output fun p => p.time = t ∧ p.space = s

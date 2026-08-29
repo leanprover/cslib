@@ -9,7 +9,7 @@ module
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Computability.Language
 public import Cslib.Foundations.Data.RelatesInSteps
-public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
+public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 
 /-!
 # Deterministic Multi-Tape Turing Machines
@@ -58,16 +58,23 @@ the sub-linear space modifications from chapter 2.5 with the following changes:
   and not by a restriction on the transition function. The two definitions are equivalent, but
   not restricting the transition function makes it easier to define a universal machine.
 
+`MultiTapeTM` extends `MultiTapeNTM` with a transition function and the requirement that the
+permitted transitions are exactly the ones it prescribes. `Step`, `ComputationPath` and the
+`Computes` notions of the nondeterministic machine therefore apply unchanged, and what this file
+adds is what follows from there being no choice to make.
+
 ## Important Declarations
 
 We define a number of structures and concepts related to multi-tape Turing machine computation:
 
-* `MultiTapeTM`: the TM itself
-* `spaceUsed`: the number of work tape cells touched by the heads until a certain step
-* `TransitionRelation`: the transition relation from one configuration to the next
+* `MultiTapeTM`: the TM itself, a `MultiTapeNTM` whose transition relation is a function
+* `ofTr`: the machine with a given initial state and transition function
 * `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
-* `ComputesInTimeAndSpace`: a proof that a specific TM computes an output from an input in a certain
-    number of steps and using a certain number of tape cells
+* `TransitionRelation`: the transition relation from one configuration to the next
+* `step_iff`: the inherited `Step` is the graph of `step`
+* `runPath`: the machine's own run, as a computation path
+* `computesInExactTimeAndSpace_iff_runFrom`: the inherited `ComputesInExactTimeAndSpace`, stated
+    by step index rather than by computation path
 * `ComputableInTimeAndSpace`: a proof that there is a multi-tape TM that computes a function
     (on strings) respecting a time and space bound in the input length.
 * `DecidableInTimeAndSpace`: a proof that a TM decides a language within a certain time
@@ -102,14 +109,25 @@ is the blank tape symbol). Note that it is not required that `Symbol` or `State`
 to keep the definition more general. The restriction will be introduced once we start talking about
 computability by Turing machines in general.
 -/
-structure MultiTapeTM (k : ℕ) (Symbol State : Type*) where
-  /-- initial state -/
-  q₀ : State
+structure MultiTapeTM (k : ℕ) (Symbol State : Type*)
+    extends MultiTapeNTM k Symbol State where
   /-- transition function, mapping a state, the current input symbol and a tuple of work head
   symbols to a movement for the input head, actions on the work tape, optionally a symbol to output
   and the successor state -/
   tr (q : State) (input : Option Symbol) (work : Fin k → Option Symbol) :
     Action k Symbol State
+  /-- the permitted transitions are exactly the one `tr` prescribes -/
+  Tr_iff (q : State) (i : Option Symbol) (w : Fin k → Option Symbol)
+    (action : Action k Symbol State) : Tr q i w action ↔ action = tr q i w
+
+/-- The deterministic machine with initial state `q₀` and transition function `tr`. -/
+def MultiTapeTM.ofTr (q₀ : State)
+    (tr : State → Option Symbol → (Fin k → Option Symbol) → Action k Symbol State) :
+    MultiTapeTM k Symbol State where
+  q₀ := q₀
+  Tr q i w action := action = tr q i w
+  tr := tr
+  Tr_iff _ _ _ _ := Iff.rfl
 
 namespace MultiTapeTM
 
@@ -137,10 +155,6 @@ def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   match cfg.state with
   | none => none
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).outS
-
-/-- The initial configuration corresponding to an input string. -/
-@[simp]
-def initCfg (input : List Symbol) : Cfg k Symbol State input := Cfg.init tm.q₀ input
 
 @[simp]
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
@@ -265,16 +279,102 @@ lemma runFrom_output_eq_of_halt
   conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
   rw [runFrom_add, runFrom_of_halt _ hhalt]
 
-/-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
-and uses exactly `s` space.
-Note that this does not require the alphabet or state set to be finite. -/
-def ComputesInTimeAndSpace
-    (tm : MultiTapeTM k Symbol State)
-    (input output : List Symbol)
-    (t s : ℕ) : Prop :=
-  (tm.runFrom (tm.initCfg input) t).state = none ∧
-  (tm.runFrom (tm.initCfg input) t).output = output ∧
-  tm.spaceUsed (tm.initCfg input) t = s
+/-! ## Determinism
+
+`MultiTapeTM` extends `MultiTapeNTM`, so `Step`, `ComputationPath` and the `Computes` notions
+already apply to it; only the facts below are specific to having a transition function. They say
+that there is no choice to make: `Step` is the graph of `step`, so a computation path can only
+follow `runFrom`, and `runPath` shows there is one of every length.
+-/
+
+/-- `Step` is the relation `step` induces: from each configuration there is exactly one step. -/
+@[simp]
+theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c := by
+  cases hq : c.state <;> simp [MultiTapeNTM.Step, step, tm.Tr_iff, hq]
+
+/-- The configurations the machine passes through form a chain of steps. -/
+lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :
+    ((List.range (t + 1)).map (tm.runFrom cfg)).IsChain tm.Step := by
+  rw [List.isChain_iff_getElem]
+  intro i hi
+  simp only [List.getElem_map, List.getElem_range]
+  rw [runFrom_succ_eq_step']
+  exact step_iff.mpr rfl
+
+/-- The machine's own run for `t` steps, as a computation path. -/
+def runPath (tm : MultiTapeTM k Symbol State) (input : List Symbol) (t : ℕ) :
+    tm.ComputationPath input where
+  cfgs := (List.range (t + 1)).map (tm.runFrom (tm.initCfg input))
+  last := tm.runFrom (tm.initCfg input) t
+  isChainFromTo :=
+    { isChain := isChain_map_range _ t
+      ne_nil := by simp
+      head_eq := by rw [List.head_map]; simp
+      getLast_eq := by
+        rw [← Option.some_inj, ← List.getLast?_eq_some_getLast, List.range_succ, List.map_append]
+        simp }
+
+@[simp]
+lemma runPath_time (input : List Symbol) (t : ℕ) : (tm.runPath input t).time = t := by
+  simp [MultiTapeNTM.ComputationPath.time, runPath]
+
+@[simp]
+lemma runPath_last (input : List Symbol) (t : ℕ) :
+    (tm.runPath input t).last = tm.runFrom (tm.initCfg input) t := rfl
+
+@[simp]
+lemma runPath_space (input : List Symbol) (t : ℕ) :
+    (tm.runPath input t).space = tm.spaceUsed (tm.initCfg input) t := by
+  simp [MultiTapeNTM.ComputationPath.space, runPath, spaceUsed_eq_spaceUsedOfCfgs]
+
+/-- A computation path of `tm` has no choice but to follow `runFrom`. -/
+lemma path_getElem {p : tm.ComputationPath input} (i : ℕ) (h : i < p.cfgs.length) :
+    p.cfgs[i] = tm.runFrom (tm.initCfg input) i := by
+  induction i with
+  | zero => simpa using p.isChainFromTo.getElem_zero
+  | succ n ih =>
+    have hstep := List.isChain_iff_getElem.mp p.isChainFromTo.isChain n h
+    rw [step_iff.mp hstep, ih (by omega), ← runFrom_succ_eq_step']
+
+/-- A path visiting `t + 1` configurations takes `t` steps. -/
+lemma path_length {p : tm.ComputationPath input} : p.cfgs.length = p.time + 1 := by
+  have := p.isChainFromTo.length_pos
+  simp only [MultiTapeNTM.ComputationPath.time]
+  omega
+
+lemma path_cfgs {p : tm.ComputationPath input} :
+    p.cfgs = (List.range (p.time + 1)).map (tm.runFrom (tm.initCfg input)) := by
+  refine List.ext_getElem (by simp [path_length]) fun i h₁ h₂ => ?_
+  simpa using path_getElem i h₁
+
+/-- It ends where `tm` is after that many steps. -/
+lemma path_last {p : tm.ComputationPath input} :
+    p.last = tm.runFrom (tm.initCfg input) p.time := by
+  have h := p.isChainFromTo.getElem_length_sub_one
+  rw [path_getElem _ (by have := p.isChainFromTo.length_pos; omega)] at h
+  exact h.symm
+
+/-- Its space is the space `tm` uses over the same number of steps. -/
+lemma path_space {p : tm.ComputationPath input} :
+    p.space = tm.spaceUsed (tm.initCfg input) p.time := by
+  rw [MultiTapeNTM.ComputationPath.space, path_cfgs, ← spaceUsed_eq_spaceUsedOfCfgs]
+
+/-- `tm` has exactly one computation path of each length, so `ComputesInExactTimeAndSpace`,
+inherited from `MultiTapeNTM`, is the direct statement about `runFrom` and `spaceUsed` at step
+`t`. -/
+theorem computesInExactTimeAndSpace_iff_runFrom {input output : List Symbol} {t s : ℕ} :
+    tm.ComputesInExactTimeAndSpace input output t s ↔
+      (tm.runFrom (tm.initCfg input) t).state = none ∧
+      (tm.runFrom (tm.initCfg input) t).output = output ∧
+      tm.spaceUsed (tm.initCfg input) t = s := by
+  constructor
+  · rintro ⟨p, hhalt, hout, rfl, hspace⟩
+    rw [path_last] at hhalt hout
+    rw [path_space] at hspace
+    exact ⟨hhalt, hout, hspace⟩
+  · rintro ⟨hhalt, hout, hspace⟩
+    exact ⟨tm.runPath input t, by simpa using hhalt, by simpa using hout, by simp,
+      by simpa using hspace⟩
 
 /-- A proof that the Turing machine `tm` computes the function `f` such that on all inputs of
 length `n` it uses at most `t n` steps and `s n` space. It assumes an embedding function
@@ -287,7 +387,7 @@ def ComputesFunInTimeAndSpace
     (toMachineSymbol : IOSymbol ↪ Symbol)
     (t s : ℕ → ℕ) : Prop :=
   ∀ input, ∃ t' ≤ t input.length, ∃ s' ≤ s input.length,
-  ComputesInTimeAndSpace tm (input.map toMachineSymbol) ((f input).map toMachineSymbol) t' s'
+  tm.ComputesInExactTimeAndSpace (input.map toMachineSymbol) ((f input).map toMachineSymbol) t' s'
 
 /-- The main definition of complexity of multi-tape Turing machines:
 A proof that the function `f` is computable by some multi-tape Turing machine `tm` (with finite
