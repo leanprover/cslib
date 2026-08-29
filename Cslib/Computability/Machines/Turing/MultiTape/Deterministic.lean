@@ -120,6 +120,8 @@ structure MultiTapeTM (k : ℕ) (Symbol State : Type*)
   Tr_iff (q : State) (i : Option Symbol) (w : Fin k → Option Symbol)
     (action : Action k Symbol State) : Tr q i w action ↔ action = tr q i w
 
+attribute [simp] MultiTapeTM.Tr_iff
+
 /-- The deterministic machine with initial state `q₀` and transition function `tr`. -/
 def MultiTapeTM.ofTr (q₀ : State)
     (tr : State → Option Symbol → (Fin k → Option Symbol) → Action k Symbol State) :
@@ -290,7 +292,7 @@ follow `runFrom`, and `runPath` shows there is one of every length.
 /-- `Step` is the relation `step` induces: from each configuration there is exactly one step. -/
 @[simp]
 theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c := by
-  cases hq : c.state <;> simp [MultiTapeNTM.Step, step, tm.Tr_iff, hq]
+  cases hq : c.state <;> simp [MultiTapeNTM.Step, step, hq]
 
 /-- The configurations the machine passes through form a chain of steps. -/
 lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :
