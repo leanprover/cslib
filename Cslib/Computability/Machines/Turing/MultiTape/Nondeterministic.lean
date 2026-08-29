@@ -36,6 +36,7 @@ witness.
 * `Step`: the one-step relation on configurations
 * `ComputationPath`: a run of the machine: a series of configurations from the initial one, each
     reached from the previous by a step
+* `ComputationPath.space_le`: a machine touches at most `k` cells per step
 * `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
 * `Computes`, `ComputesInExactTime`, `ComputesInExactSpace`, `ComputesInExactTimeAndSpace`:
     its instances, whose
@@ -109,6 +110,17 @@ def time (p : ntm.ComputationPath input) : ℕ := p.cfgs.length - 1
 
 /-- The number of work tape cells touched. -/
 def space (p : ntm.ComputationPath input) : ℕ := spaceUsedOfCfgs p.cfgs
+
+/-- A path visiting `t + 1` configurations takes `t` steps. -/
+lemma length_cfgs (p : ntm.ComputationPath input) : p.cfgs.length = p.time + 1 := by
+  have := p.isChainFromTo.length_pos
+  simp only [time]
+  omega
+
+/-- A machine touches at most `k` cells per step, whether or not it is deterministic. -/
+theorem space_le (p : ntm.ComputationPath input) : p.space ≤ k * p.time + k := by
+  calc p.space ≤ k * p.cfgs.length := spaceUsedOfCfgs_le _
+    _ = k * p.time + k := by rw [p.length_cfgs, Nat.mul_succ]
 
 end ComputationPath
 

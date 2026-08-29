@@ -43,7 +43,7 @@ lemma step_workTapes_eq_of_ne
 
 lemma mem_visitedByTapeHead {t : ℕ} {i : Fin k} {z : ℤ} :
     z ∈ tm.visitedByTapeHead cfg t i ↔ ∃ t' < t + 1, (tm.runFrom cfg t').workTapePos i = z := by
-  simp [visitedByTapeHead]
+  simp [visitedByTapeHead, visitedOfCfgs]
 
 lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     (tm.runFrom cfg t).workTapePos i ∈ tm.visitedByTapeHead cfg t i :=
@@ -52,7 +52,8 @@ lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i :
 /-- The set of positions visited by a tape head is monotone in the number of steps. -/
 lemma visitedByTapeHead_mono (cfg : Cfg k Symbol State input) (i : Fin k) {t t' : ℕ} (h : t ≤ t') :
     tm.visitedByTapeHead cfg t i ⊆ tm.visitedByTapeHead cfg t' i := by
-  apply Finset.image_subset_image
+  intro z hz
+  rw [mem_visitedByTapeHead] at hz ⊢
   grind
 
 /-- Starting from configuration `cfg`, every position between the initial head position of tape
@@ -119,18 +120,15 @@ lemma content_natAbs_le_spaceUsedByTape
 /-- The number of cells touched by a single work tape grows by at most one each step. -/
 lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     tm.spaceUsedByTape cfg t i ≤ t + 1 := by
-  calc
-    tm.spaceUsedByTape cfg t i
-    _ ≤ (Finset.range (t + 1)).card := Finset.card_image_le
-    _ = t + 1 := Finset.card_range _
+  unfold spaceUsedByTape visitedByTapeHead visitedOfCfgs
+  exact (List.toFinset_card_le _).trans (by simp)
 
-/-- The space used by a computation is bounded linearly by the number of steps. -/
+/-- The space used by a computation is bounded linearly by the number of steps. This is the
+machine-free `spaceUsedOfCfgs_le` read at a step index. -/
 lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
     tm.spaceUsed cfg t ≤ k * t + k := by
-  calc tm.spaceUsed cfg t
-      = ∑ i, (tm.spaceUsedByTape cfg t i) := by rfl
-    _ ≤ ∑ i, (t + 1) := Finset.sum_le_sum (fun i _ => tm.spaceUsedByTape_le cfg t i)
-    _ = k * t + k := by simp [Nat.mul_succ]
+  rw [spaceUsed_eq_spaceUsedOfCfgs]
+  exact (spaceUsedOfCfgs_le _).trans (by simp [Nat.mul_succ])
 
 /-- The space used by a single tape is monotone in the number of steps. -/
 lemma spaceUsedByTape_mono

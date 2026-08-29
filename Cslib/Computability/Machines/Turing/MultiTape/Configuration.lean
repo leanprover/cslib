@@ -39,7 +39,8 @@ the configuration the run ends in.
 * `Action`: what a machine does in one step
 * `Action.apply`: the effect of one action on a configuration
 * `Cfg.Halted`, `Cfg.init`: halting, and the configuration a machine starts in
-* `spaceUsedOfCfgs`: work tape cells touched along a list of configurations
+* `spaceUsedOfCfgs`: work tape cells touched along a list of configurations, with the bounds
+    `spaceUsedOfCfgs_le` and `spaceUsedOfCfgs_mono`
 -/
 
 @[expose] public section
@@ -183,5 +184,21 @@ def visitedOfCfgs (cfgs : List (Cfg k Symbol State input)) (i : Fin k) : Finset 
 /-- The number of work tape cells touched by the heads along a list of configurations. -/
 def spaceUsedOfCfgs (cfgs : List (Cfg k Symbol State input)) : ℕ :=
   ∑ i, (visitedOfCfgs cfgs i).card
+
+/-- Each configuration contributes at most one cell per tape, so space is bounded by length. -/
+theorem spaceUsedOfCfgs_le (cfgs : List (Cfg k Symbol State input)) :
+    spaceUsedOfCfgs cfgs ≤ k * cfgs.length := by
+  calc spaceUsedOfCfgs cfgs
+      ≤ ∑ _i : Fin k, cfgs.length :=
+        Finset.sum_le_sum fun i _ => (List.toFinset_card_le _).trans (by simp)
+    _ = k * cfgs.length := by simp
+
+/-- Passing through more configurations touches more cells. -/
+theorem spaceUsedOfCfgs_mono {c d : List (Cfg k Symbol State input)} (h : c.Sublist d) :
+    spaceUsedOfCfgs c ≤ spaceUsedOfCfgs d :=
+  Finset.sum_le_sum fun i _ => Finset.card_le_card <| by
+    intro z hz
+    simp only [visitedOfCfgs, List.mem_toFinset] at hz ⊢
+    exact (h.map _).subset hz
 
 end Turing
