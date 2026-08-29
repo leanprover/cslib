@@ -82,42 +82,25 @@ variable {tm : MultiTapeTM k Symbol State}
 ## Storage
 
 Defines the core data structure for this file, `Storage`, which contains the state and the work
-tapes of a multi-tape Turing machine, where the work tape cells are indexed over a generic index
-type.
+tapes of a multi-tape Turing machine, with the work tape cells indexed over all of `ℤ`. It is
+thus equivalent to a projection of `Cfg`.
 
-Then `UnboundedStorage` uses `ℤ` as index type and thus is equivalent to a projection of `Cfg`.
-
-Finally, `BoundedStorage` is introduced which uses `[-s, s]` as index type (with different `s`
-for each tape) and it is proven that there is an injective mapping from `UnboundedStorage`
-to `BoundedStorage` if the non-blank cells and head positions of the `UnboundedStorage` all lie
-inside the `[-s, s]` windows for all tapes.
+Then `BoundedStorage` is introduced, which restricts the cells and the head position of each tape
+to a window `[-s, s]` (with a different `s` for each tape) and is therefore a finite type. It is
+proven that the restriction map is injective on those `Storage`s whose non-blank cells and head
+positions all lie inside the `[-s, s]` windows, so that counting `BoundedStorage` bounds the
+number of such `Storage`s.
 -/
 
-/-- The state and work-tape data of a machine, with the cells and head position of tape `i` indexed
-by an arbitrary type `ι i`. -/
+/-- The state and work-tape data of a machine. -/
 @[ext]
-structure Storage (Symbol State : Type*) {k : ℕ} (ι : Fin k → Type*) where
+structure Storage (Symbol State : Type*) (k : ℕ) where
   /-- the state of the TM (cf. `Cfg.state`) -/
   state : Option State
   /-- the contents of work tape `i` (cf. `Cfg.workTapes`) -/
-  workTapes (i : Fin k) : ι i → Option Symbol
+  workTapes (i : Fin k) : ℤ → Option Symbol
   /-- the position of the head on work tape `i` (cf. `Cfg.workTapePos`) -/
-  workTapePos (i : Fin k) : ι i
-
-/-- A `Storage` is just a product of its fields. -/
-def Storage.equivProd (Symbol State : Type*) (ι : Fin k → Type*) :
-    Storage Symbol State ι ≃
-      Option State × ((i : Fin k) → ι i → Option Symbol) × ((i : Fin k) → ι i) where
-  toFun x := (x.state, x.workTapes, x.workTapePos)
-  invFun := fun ⟨state, workTapes, workTapePos⟩ => ⟨state, workTapes, workTapePos⟩
-
-instance (Symbol State : Type*) [Fintype Symbol] [Fintype State]
-    (ι : Fin k → Type*) [∀ i, Fintype (ι i)] [∀ i, DecidableEq (ι i)] :
-    Fintype (Storage Symbol State ι) :=
-  Fintype.ofEquiv _ (Storage.equivProd Symbol State ι).symm
-
-/-- A `Storage` using the tape index type `ℤ`. -/
-abbrev UnboundedStorage (Symbol State : Type*) (k : ℕ) := Storage Symbol State (fun _ : Fin k => ℤ)
+  workTapePos (i : Fin k) : ℤ
 
 /-- The window `[-s, s]` of tape positions allotted to a tape that uses `s` cells. -/
 @[scoped grind =]
@@ -131,21 +114,21 @@ lemma mem_window {s : ℕ} {z : ℤ} : z ∈ window s ↔ z.natAbs ≤ s := by
 lemma card_window (s : ℕ) : (window s).card = 2 * s + 1 := by
   grind [Int.card_Icc]
 
-/-- A bounded storage: a `Storage` whose tape `i` is restricted to the finite window
-`[-(w i), w i]`. -/
+/-- A bounded storage: the state and work-tape data of a machine, but with the cells and the head
+position of tape `i` restricted to the finite window `[-(w i), w i]`. -/
 abbrev BoundedStorage (Symbol State : Type*) {k : ℕ} (w : Fin k → ℕ) :=
-  Storage Symbol State (fun i => window (w i))
+  Option State × ((i : Fin k) → window (w i) → Option Symbol) × ((i : Fin k) → window (w i))
 
 /-- A storage fits in the per-tape windows `w`: on each tape `j`, the head position and every
 non-blank cell have absolute value `≤ w j`. -/
-structure Storage.FitsIn (x : UnboundedStorage Symbol State k) (w : Fin k → ℕ) : Prop where
+structure Storage.FitsIn (x : Storage Symbol State k) (w : Fin k → ℕ) : Prop where
   /-- the head position on every tape lies within its window -/
   pos_le : ∀ j, (x.workTapePos j).natAbs ≤ w j
   /-- every non-blank cell on every tape lies within its window -/
   cell_le : ∀ j z, x.workTapes j z ≠ none → z.natAbs ≤ w j
 
-/-- If an `UnboundedStorage` fits in a smaller window, it also fits in the larger window. -/
-lemma Storage.FitsIn_mono {x : UnboundedStorage Symbol State k} : Monotone x.FitsIn := by
+/-- If a `Storage` fits in a smaller window, it also fits in the larger window. -/
+lemma Storage.FitsIn_mono {x : Storage Symbol State k} : Monotone x.FitsIn := by
   intro w₁ w₂ h_le h_fits
   refine ⟨?_, ?_⟩
   · intro j
@@ -153,21 +136,19 @@ lemma Storage.FitsIn_mono {x : UnboundedStorage Symbol State k} : Monotone x.Fit
   · intro j z h_ne
     exact (h_fits.cell_le j z h_ne).trans (h_le j)
 
-/-- Restriction of a storage over `ℤ` to the finite windows `w` (with heads outside their window
+/-- Restriction of a storage to the finite windows `w` (with heads outside their window
 clamped to `0`). -/
-def Storage.toBounded (x : UnboundedStorage Symbol State k) (w : Fin k → ℕ) :
-    BoundedStorage Symbol State w where
-  state := x.state
-  workTapes j z := x.workTapes j z.1
-  workTapePos j :=
-    if h : x.workTapePos j ∈ window (w j) then ⟨x.workTapePos j, h⟩
-    else ⟨0, mem_window.mpr (Nat.zero_le _)⟩
+def Storage.toBounded (x : Storage Symbol State k) (w : Fin k → ℕ) :
+    BoundedStorage Symbol State w :=
+  (x.state, fun j z => x.workTapes j z.1,
+    fun j => if h : x.workTapePos j ∈ window (w j) then ⟨x.workTapePos j, h⟩
+      else ⟨0, mem_window.mpr (Nat.zero_le _)⟩)
 
 /-- The restriction is injective on storages that fit in the windows. -/
 lemma Storage.toBounded_injOn (w : Fin k → ℕ) :
     Set.InjOn (Storage.toBounded (Symbol := Symbol) (State := State) · w) {x | x.FitsIn w} := by
   rintro x ⟨hxp, hxc⟩ y ⟨hyp, hyc⟩ hxy
-  simp only [Storage.toBounded, Storage.mk.injEq] at hxy
+  simp only [Storage.toBounded, Prod.mk.injEq] at hxy
   obtain ⟨hstate, htapes, hpos⟩ := hxy
   apply Storage.ext hstate (funext₂ fun j z => ?_) (funext fun j => ?_)
   · by_cases hz : z ∈ window (w j)
@@ -181,18 +162,6 @@ This section is purely combinatorial: it counts how many values a `Storage` rest
 windows can take, without reference to a machine or a run.
 -/
 
-/-- The number of storages over finite position types is the per-tape product of
-"cell contents × head position" counts. -/
-lemma card_storage [Fintype Symbol] [Fintype State]
-    (ι : Fin k → Type*) [∀ i, Fintype (ι i)] [∀ i, DecidableEq (ι i)] :
-    Fintype.card (Storage Symbol State ι)
-      = (Fintype.card State + 1)
-        * ∏ i, Fintype.card (ι i) * (Fintype.card Symbol + 1) ^ Fintype.card (ι i) := by
-  rw [Fintype.card_congr (Storage.equivProd Symbol State ι)]
-  simp only [Fintype.card_prod, Fintype.card_option, Fintype.card_pi, Finset.prod_const,
-    Finset.card_univ, Finset.prod_mul_distrib]
-  ring
-
 /-- An upper bound on the number of storages a `k`-tape machine can be in while using
 at most `s` cells of total work-tape space, over the given alphabet and state set. The `(2s + 1)^k`
 factor counts the possible head positions; the dominant factor `(|Symbol| + 1)^(2s + k)` uses the
@@ -200,15 +169,18 @@ factor counts the possible head positions; the dominant factor `(|Symbol| + 1)^(
 def storageBound (Symbol State : Type*) [Fintype Symbol] [Fintype State] (k s : ℕ) : ℕ :=
   (Fintype.card State + 1) * ((2 * s + 1) ^ k * (Fintype.card Symbol + 1) ^ (2 * s + k))
 
-/-- The per-tape product is bounded by `storageBound`: each tape uses at most the total space `s`,
-and the tapes together use at most `s`, which collapses the alphabet exponent to `2s + k`. -/
+/-- The number of bounded storages is at most `storageBound`. Counting the tapes separately gives
+the per-tape product `∏ᵢ (2 wᵢ + 1) · (|Symbol| + 1) ^ (2 wᵢ + 1)`; each tape uses at most the
+total space `s`, and the tapes together use at most `s`, which collapses the alphabet exponent
+to `2s + k`. -/
 lemma card_boundedStorage_le [Fintype Symbol] [Fintype State]
     {w : Fin k → ℕ} {s : ℕ} (hsum : ∑ i, w i ≤ s) :
     Fintype.card (BoundedStorage Symbol State w) ≤ storageBound Symbol State k s := by
   have hle : ∀ i, w i ≤ s := fun i =>
     (Finset.single_le_sum (fun i _ => Nat.zero_le (w i)) (Finset.mem_univ i)).trans hsum
-  simp only [card_storage, storageBound, Fintype.card_coe, card_window]
-  rw [Finset.prod_mul_distrib, Finset.prod_pow_eq_pow_sum]
+  simp only [BoundedStorage, storageBound, Fintype.card_prod, Fintype.card_option,
+    Fintype.card_pi, Finset.prod_const, Finset.card_univ, Fintype.card_coe, card_window]
+  rw [mul_comm (∏ i, (Fintype.card Symbol + 1) ^ (2 * w i + 1)), Finset.prod_pow_eq_pow_sum]
   have hsc : ∑ i : Fin k, (2 * w i + 1) = 2 * (∑ i, w i) + k := by
     simp [two_mul, Finset.sum_add_distrib]
   gcongr
@@ -222,9 +194,9 @@ positions stay within per-tape windows of total size at most `s` can take at mos
 `storageBound Symbol State k s` different values. -/
 theorem encard_fitsIn_le [Fintype Symbol] [Fintype State]
     {w : Fin k → ℕ} {s : ℕ} (hsum : ∑ i, w i ≤ s) :
-    {x : UnboundedStorage Symbol State k | x.FitsIn w}.encard
+    {x : Storage Symbol State k | x.FitsIn w}.encard
       ≤ storageBound Symbol State k s := by
-  calc {x : UnboundedStorage Symbol State k | x.FitsIn w}.encard
+  calc {x : Storage Symbol State k | x.FitsIn w}.encard
       = ((Storage.toBounded · w) '' {x | x.FitsIn w}).encard :=
         ((Storage.toBounded_injOn w).encard_image).symm
     _ ≤ (Set.univ : Set (BoundedStorage Symbol State w)).encard :=
@@ -279,14 +251,15 @@ lemma storageBound_le_pow [Fintype Symbol] [Fintype State] :
 Now we relate `Cfg` and `Storage` by givin the projection.
 -/
 
-/-- This function maps a `Cfg` to `Storage`, using `ℤ` as the index type for the tapes. -/
-def Cfg.storage (c : Cfg k Symbol State input) : UnboundedStorage Symbol State k :=
+/-- This function maps a `Cfg` to `Storage`, forgetting the input head position and the
+write-only output tape. -/
+def Cfg.storage (c : Cfg k Symbol State input) : Storage Symbol State k :=
   ⟨c.state, c.workTapes, c.workTapePos⟩
 
 /-- The part of a configuration that the machine can still read: the input head position together
 with the `Storage`, i.e. the configuration without the write-only output tape. -/
 def Cfg.core (c : Cfg k Symbol State input) :
-    Fin (input.length + 2) × UnboundedStorage Symbol State k :=
+    Fin (input.length + 2) × Storage Symbol State k :=
   (c.inputPos, c.storage)
 
 /-- `step` never reads the output tape, so the core of the next configuration is determined by the
