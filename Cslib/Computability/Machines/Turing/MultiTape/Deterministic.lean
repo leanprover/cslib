@@ -155,11 +155,17 @@ Everything below about a deterministic machine rests on this. -/
 theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c :=
   Cfg.stepWith_iff (by simp)
 
+/-- A machine's own step is one of its steps. Applying a result about `MultiTapeNTM.Step` to
+this is how the deterministic machine inherits it. -/
+@[simp]
+lemma step_step (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) :
+    tm.Step c (tm.step c) := step_iff.mpr rfl
+
 /-- A halted configuration steps to itself, inherited from `MultiTapeNTM`. -/
 @[simp]
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
-  (MultiTapeNTM.step_of_halt h).mp (step_iff.mpr rfl)
+  (MultiTapeNTM.step_of_halt h).mp (tm.step_step cfg)
 
 /-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
@@ -199,17 +205,6 @@ already apply to it; only the facts below are specific to having a transition fu
 that there is no choice to make: `Step` is the graph of `step`, so a computation path can only
 follow `runFrom`, and `runPath` shows there is one of every length.
 -/
-
-/-- A work tape head moves by at most one cell in a step. Inherited from `MultiTapeNTM`, since
-`step` is one of its steps. -/
-lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
-    |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 :=
-  MultiTapeNTM.workTapePos_step_le (step_iff.mpr rfl) i
-
-/-- A step changes no work tape cell but the one its head is on. Inherited likewise. -/
-lemma step_workTapes_eq_of_ne (cfg : Cfg k Symbol State input) (j : Fin k) (z : ℤ)
-    (hz : z ≠ cfg.workTapePos j) : (tm.step cfg).workTapes j z = cfg.workTapes j z :=
-  MultiTapeNTM.workTapes_step_eq_of_ne (step_iff.mpr rfl) j z hz
 
 /-- The configurations the machine passes through form a chain of steps. -/
 lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :
@@ -291,13 +286,9 @@ lemma path_getElem {p : tm.ComputationPath input}
     have hstep := List.isChain_iff_getElem.mp p.isChain n h
     rw [step_iff.mp hstep, ih (by omega), ← runFrom_succ_eq_step']
 
-/-- A path visiting `t + 1` configurations takes `t` steps. -/
-lemma path_length {p : tm.ComputationPath input} : p.cfgs.length = p.time + 1 :=
-  p.length_cfgs
-
 lemma path_cfgs {p : tm.ComputationPath input} :
     p.cfgs = (List.range (p.time + 1)).map (tm.runFrom p.start) := by
-  refine List.ext_getElem (by simp [path_length]) fun i h₁ h₂ => ?_
+  refine List.ext_getElem (by simp [p.length_cfgs]) fun i h₁ h₂ => ?_
   simpa using path_getElem i h₁
 
 /-- It ends where `tm` is after that many steps. -/
