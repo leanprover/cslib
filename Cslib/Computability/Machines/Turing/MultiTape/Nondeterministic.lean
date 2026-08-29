@@ -7,7 +7,6 @@ Authors: Aviv Bar Natan
 module
 
 public import Mathlib.Data.List.Chain
-public import Cslib.Foundations.Data.List.IsChainFromTo
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
 /-!
@@ -34,8 +33,8 @@ witness.
 
 * `MultiTapeNTM`: the machine, an initial state and a transition relation
 * `Step`: the one-step relation on configurations
-* `ComputationPath`: a run of the machine from a given configuration: a series of configurations,
-    each reached from the previous by a step
+* `ComputationPath`: a run of the machine: a non-empty list of configurations, each reached from
+    the previous by a step, with `start` and `last` read off it
 * `ComputationPath.space_le`: a machine touches at most `k` cells per step
 * `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
 * `Computes`, `ComputesInExactTime`, `ComputesInExactSpace`, `ComputesInExactTimeAndSpace`:
@@ -88,36 +87,44 @@ def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
     Cfg k Symbol State input :=
   Cfg.init ntm.q₀ input
 
-/-- A computation path of `ntm` on `input`: the configurations it passes through, forming a chain
-of steps from the initial configuration to the one it ends at. -/
-structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol)
-    (start : Cfg k Symbol State input) where
-  /-- the configurations passed through, starting with `start` -/
+/-- A computation path of `ntm` on `input`: the configurations it passes through, forming a
+non-empty chain of steps. Neither end is designated; `start` and `last` are read off it. -/
+structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) where
+  /-- the configurations passed through -/
   cfgs : List (Cfg k Symbol State input)
-  /-- the configuration the path ends at -/
-  last : Cfg k Symbol State input
-  /-- consecutive configurations are joined by a step, from `start` to `last` -/
-  isChainFromTo : cfgs.IsChainFromTo ntm.Step start last
+  /-- a run passes through at least one configuration -/
+  ne_nil : cfgs ≠ []
+  /-- consecutive configurations are joined by a step -/
+  isChain : cfgs.IsChain ntm.Step
 
 namespace ComputationPath
 
 variable {ntm : MultiTapeNTM k Symbol State} {input : List Symbol}
-  {start : Cfg k Symbol State input}
+
+/-- A run passes through at least one configuration. -/
+lemma length_pos (p : ntm.ComputationPath input) : 0 < p.cfgs.length :=
+  List.length_pos_iff.mpr p.ne_nil
+
+/-- The configuration the run starts from. -/
+def start (p : ntm.ComputationPath input) : Cfg k Symbol State input := p.cfgs.head p.ne_nil
+
+/-- The configuration the run ends at. -/
+def last (p : ntm.ComputationPath input) : Cfg k Symbol State input := p.cfgs.getLast p.ne_nil
 
 /-- The number of steps taken, the time the computation takes. -/
-def time (p : ntm.ComputationPath input start) : ℕ := p.cfgs.length - 1
+def time (p : ntm.ComputationPath input) : ℕ := p.cfgs.length - 1
 
 /-- The number of work tape cells touched. -/
-def space (p : ntm.ComputationPath input start) : ℕ := spaceUsedOfCfgs p.cfgs
+def space (p : ntm.ComputationPath input) : ℕ := spaceUsedOfCfgs p.cfgs
 
 /-- A path visiting `t + 1` configurations takes `t` steps. -/
-lemma length_cfgs (p : ntm.ComputationPath input start) : p.cfgs.length = p.time + 1 := by
-  have := p.isChainFromTo.length_pos
+lemma length_cfgs (p : ntm.ComputationPath input) : p.cfgs.length = p.time + 1 := by
+  have := p.length_pos
   simp only [time]
   omega
 
 /-- A machine touches at most `k` cells per step, whether or not it is deterministic. -/
-theorem space_le (p : ntm.ComputationPath input start) : p.space ≤ k * p.time + k := by
+theorem space_le (p : ntm.ComputationPath input) : p.space ≤ k * p.time + k := by
   calc p.space ≤ k * p.cfgs.length := spaceUsedOfCfgs_le _
     _ = k * p.time + k := by rw [p.length_cfgs, Nat.mul_succ]
 
@@ -127,8 +134,9 @@ end ComputationPath
 `output` and satisfies `P`. The notions below are its instances, so their constraints all refer to
 a single computation. -/
 def ComputesSuchThat (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
-    (P : ntm.ComputationPath input (ntm.initCfg input) → Prop) : Prop :=
-  ∃ p : ntm.ComputationPath input (ntm.initCfg input), p.last.Halted ∧ p.last.output = output ∧ P p
+    (P : ntm.ComputationPath input → Prop) : Prop :=
+  ∃ p : ntm.ComputationPath input, p.start = ntm.initCfg input ∧ p.last.Halted ∧
+    p.last.output = output ∧ P p
 
 /-- `ntm` computes `output` from `input`, with no bound on resources. -/
 def Computes (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) : Prop :=

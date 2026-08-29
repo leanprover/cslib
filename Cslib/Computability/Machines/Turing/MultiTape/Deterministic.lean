@@ -213,24 +213,25 @@ lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :
 
 /-- The machine's own run from `cfg` for `t` steps, as a computation path. -/
 def runPath (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.ComputationPath input cfg where
+    tm.ComputationPath input where
   cfgs := (List.range (t + 1)).map (tm.runFrom cfg)
-  last := tm.runFrom cfg t
-  isChainFromTo :=
-    { isChain := isChain_map_range _ t
-      ne_nil := by simp
-      head_eq := by rw [List.head_map]; simp
-      getLast_eq := by
-        rw [← Option.some_inj, ← List.getLast?_eq_some_getLast, List.range_succ, List.map_append]
-        simp }
+  ne_nil := by simp
+  isChain := isChain_map_range _ t
 
 @[simp]
 lemma runPath_cfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
     (tm.runPath cfg t).cfgs = (List.range (t + 1)).map (tm.runFrom cfg) := rfl
 
 @[simp]
+lemma runPath_start (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runPath cfg t).start = cfg := by
+  simp [MultiTapeNTM.ComputationPath.start, List.head_map]
+
+@[simp]
 lemma runPath_last (cfg : Cfg k Symbol State input) (t : ℕ) :
-    (tm.runPath cfg t).last = tm.runFrom cfg t := rfl
+    (tm.runPath cfg t).last = tm.runFrom cfg t := by
+  rw [MultiTapeNTM.ComputationPath.last, ← Option.some_inj, ← List.getLast?_eq_some_getLast]
+  simp [List.range_succ]
 
 @[simp]
 lemma runPath_time (cfg : Cfg k Symbol State input) (t : ℕ) : (tm.runPath cfg t).time = t := by
@@ -273,36 +274,33 @@ lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
 end Space
 
 /-- A computation path of `tm` has no choice but to follow `runFrom`. -/
-lemma path_getElem {start : Cfg k Symbol State input} {p : tm.ComputationPath input start}
-    (i : ℕ) (h : i < p.cfgs.length) : p.cfgs[i] = tm.runFrom start i := by
+lemma path_getElem {p : tm.ComputationPath input}
+    (i : ℕ) (h : i < p.cfgs.length) : p.cfgs[i] = tm.runFrom p.start i := by
   induction i with
-  | zero => simpa using p.isChainFromTo.getElem_zero
+  | zero => simp [MultiTapeNTM.ComputationPath.start, List.getElem_zero]
   | succ n ih =>
-    have hstep := List.isChain_iff_getElem.mp p.isChainFromTo.isChain n h
+    have hstep := List.isChain_iff_getElem.mp p.isChain n h
     rw [step_iff.mp hstep, ih (by omega), ← runFrom_succ_eq_step']
 
 /-- A path visiting `t + 1` configurations takes `t` steps. -/
-lemma path_length {start : Cfg k Symbol State input} {p : tm.ComputationPath input start} :
-    p.cfgs.length = p.time + 1 := by
-  have := p.isChainFromTo.length_pos
-  simp only [MultiTapeNTM.ComputationPath.time]
-  omega
+lemma path_length {p : tm.ComputationPath input} : p.cfgs.length = p.time + 1 :=
+  p.length_cfgs
 
-lemma path_cfgs {start : Cfg k Symbol State input} {p : tm.ComputationPath input start} :
-    p.cfgs = (List.range (p.time + 1)).map (tm.runFrom start) := by
+lemma path_cfgs {p : tm.ComputationPath input} :
+    p.cfgs = (List.range (p.time + 1)).map (tm.runFrom p.start) := by
   refine List.ext_getElem (by simp [path_length]) fun i h₁ h₂ => ?_
   simpa using path_getElem i h₁
 
 /-- It ends where `tm` is after that many steps. -/
-lemma path_last {start : Cfg k Symbol State input} {p : tm.ComputationPath input start} :
-    p.last = tm.runFrom start p.time := by
-  have h := p.isChainFromTo.getElem_length_sub_one
-  rw [path_getElem _ (by have := p.isChainFromTo.length_pos; omega)] at h
-  exact h.symm
+lemma path_last {p : tm.ComputationPath input} :
+    p.last = tm.runFrom p.start p.time := by
+  rw [MultiTapeNTM.ComputationPath.last, List.getLast_eq_getElem,
+    path_getElem _ (by have := p.length_pos; omega)]
+  rfl
 
 /-- Its space is the space `tm` uses over the same number of steps. -/
-lemma path_space {start : Cfg k Symbol State input} {p : tm.ComputationPath input start} :
-    p.space = tm.spaceUsed start p.time := by
+lemma path_space {p : tm.ComputationPath input} :
+    p.space = tm.spaceUsed p.start p.time := by
   rw [MultiTapeNTM.ComputationPath.space, path_cfgs, ← spaceUsed_eq_spaceUsedOfCfgs]
 
 /-- `tm` has exactly one computation path of each length, so `ComputesInExactTimeAndSpace`,
@@ -314,13 +312,13 @@ theorem computesInExactTimeAndSpace_iff_runFrom {input output : List Symbol} {t 
       (tm.runFrom (tm.initCfg input) t).output = output ∧
       tm.spaceUsed (tm.initCfg input) t = s := by
   constructor
-  · rintro ⟨p, hhalt, hout, rfl, hspace⟩
-    rw [path_last] at hhalt hout
-    rw [path_space] at hspace
+  · rintro ⟨p, hstart, hhalt, hout, rfl, hspace⟩
+    rw [path_last, hstart] at hhalt hout
+    rw [path_space, hstart] at hspace
     exact ⟨hhalt, hout, hspace⟩
   · rintro ⟨hhalt, hout, hspace⟩
-    exact ⟨tm.runPath (tm.initCfg input) t, by simpa using hhalt, by simpa using hout, by simp,
-      by simpa using hspace⟩
+    exact ⟨tm.runPath (tm.initCfg input) t, by simp, by simpa using hhalt, by simpa using hout,
+      by simp, by simpa using hspace⟩
 
 /-- A proof that the Turing machine `tm` computes the function `f` such that on all inputs of
 length `n` it uses at most `t n` steps and `s n` space. It assumes an embedding function
