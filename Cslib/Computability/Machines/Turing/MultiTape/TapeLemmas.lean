@@ -16,6 +16,9 @@ This file collects lemmas about the set of positions visited by a work-tape head
 (`MultiTapeTM.spaceUsedByTape`, `MultiTapeTM.spaceUsed`) and how the tape head positions
 influence the cells that are modified on a tape.
 
+Those measures are read off the machine's own run, so results that hold of any run come from
+`MultiTapeNTM.ComputationPath` rather than being proved again here.
+
 -/
 
 @[expose] public section
@@ -123,12 +126,11 @@ lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) 
   unfold spaceUsedByTape visitedByTapeHead visitedOfCfgs
   exact (List.toFinset_card_le _).trans (by simp)
 
-/-- The space used by a computation is bounded linearly by the number of steps. This is the
-machine-free `spaceUsedOfCfgs_le` read at a step index. -/
+/-- The space used by a computation is bounded linearly by the number of steps. This is
+`ComputationPath.space_le` read off the machine's own run. -/
 lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
     tm.spaceUsed cfg t ≤ k * t + k := by
-  rw [spaceUsed_eq_spaceUsedOfCfgs]
-  exact (spaceUsedOfCfgs_le _).trans (by simp [Nat.mul_succ])
+  simpa using (tm.runPath cfg t).space_le
 
 /-- The space used by a single tape is monotone in the number of steps. -/
 lemma spaceUsedByTape_mono
@@ -143,6 +145,7 @@ lemma spaceUsedByTape_mono
 lemma spaceUsed_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
     Monotone (tm.spaceUsed cfg ·) := by
   intro t t' h
-  exact Finset.sum_le_sum (fun i _ => spaceUsedByTape_mono tm cfg i h)
+  simp only [spaceUsed_eq_spaceUsedOfCfgs]
+  exact spaceUsedOfCfgs_mono ((List.range_sublist.mpr (by omega)).map _)
 
 end Turing.MultiTapeTM

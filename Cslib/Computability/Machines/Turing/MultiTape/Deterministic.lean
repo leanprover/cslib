@@ -69,10 +69,10 @@ We define a number of structures and concepts related to multi-tape Turing machi
 
 * `MultiTapeTM`: the TM itself, a `MultiTapeNTM` whose transition relation is a function
 * `ofTr`: the machine with a given initial state and transition function
+* `runPath`: the machine's own run from a configuration, as a `ComputationPath`
 * `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure;
-    the shared `spaceUsedOfCfgs` read at a step index
+    the space of that run
 * `step_iff`: the inherited `Step` is the graph of `step`
-* `runPath`: the machine's own run, as a computation path
 * `computesInExactTimeAndSpace_iff_runFrom`: the inherited `ComputesInExactTimeAndSpace`, stated
     by step index rather than by computation path
 * `ComputableInTimeAndSpace`: a proof that there is a multi-tape TM that computes a function
@@ -185,32 +185,6 @@ lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
 
 end Cfg
 
-section Space
-/-! Now we define space usage and add some helper lemmas. -/
-
-/-- The set of positions visited by the head of work tape `i` in the computation starting from
-configuration `cfg` up to step `t`. -/
-def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : Finset ℤ :=
-  visitedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) i
-
-/--
-The number of work tape cells touched by the head of tape `i` in the computation starting from
-configuration `cfg` up to step `t`.
--/
-def spaceUsedByTape (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : ℕ :=
-  (tm.visitedByTapeHead cfg t i).card
-
-/--
-The number of work tape cells touched by a computation starting from configuration
-`cfg` up to step `t`.
--/
-def spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ := ∑ i, tm.spaceUsedByTape cfg t i
-
-/-- The space used up to step `t` is the space touched by the configurations up to step `t`. -/
-lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t = spaceUsedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) := rfl
-
-end Space
 
 open Cfg
 
@@ -237,11 +211,11 @@ lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :
   rw [runFrom_succ_eq_step']
   exact step_iff.mpr rfl
 
-/-- The machine's own run for `t` steps, as a computation path. -/
-def runPath (tm : MultiTapeTM k Symbol State) (input : List Symbol) (t : ℕ) :
-    tm.ComputationPath input where
-  cfgs := (List.range (t + 1)).map (tm.runFrom (tm.initCfg input))
-  last := tm.runFrom (tm.initCfg input) t
+/-- The machine's own run from `cfg` for `t` steps, as a computation path. -/
+def runPath (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.ComputationPath input cfg where
+  cfgs := (List.range (t + 1)).map (tm.runFrom cfg)
+  last := tm.runFrom cfg t
   isChainFromTo :=
     { isChain := isChain_map_range _ t
       ne_nil := by simp
@@ -251,21 +225,56 @@ def runPath (tm : MultiTapeTM k Symbol State) (input : List Symbol) (t : ℕ) :
         simp }
 
 @[simp]
-lemma runPath_time (input : List Symbol) (t : ℕ) : (tm.runPath input t).time = t := by
-  simp [MultiTapeNTM.ComputationPath.time, runPath]
+lemma runPath_cfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runPath cfg t).cfgs = (List.range (t + 1)).map (tm.runFrom cfg) := rfl
 
 @[simp]
-lemma runPath_last (input : List Symbol) (t : ℕ) :
-    (tm.runPath input t).last = tm.runFrom (tm.initCfg input) t := rfl
+lemma runPath_last (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runPath cfg t).last = tm.runFrom cfg t := rfl
 
 @[simp]
-lemma runPath_space (input : List Symbol) (t : ℕ) :
-    (tm.runPath input t).space = tm.spaceUsed (tm.initCfg input) t := by
-  simp [MultiTapeNTM.ComputationPath.space, runPath, spaceUsed_eq_spaceUsedOfCfgs]
+lemma runPath_time (cfg : Cfg k Symbol State input) (t : ℕ) : (tm.runPath cfg t).time = t := by
+  simp [MultiTapeNTM.ComputationPath.time]
+
+section Space
+/-! Space is read off the machine's own run, so it is the space of a `ComputationPath`. -/
+
+/-- The set of positions visited by the head of work tape `i` in the computation starting from
+configuration `cfg` up to step `t`. -/
+def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : Finset ℤ :=
+  visitedOfCfgs (tm.runPath cfg t).cfgs i
+
+/--
+The number of work tape cells touched by the head of tape `i` in the computation starting from
+configuration `cfg` up to step `t`.
+-/
+def spaceUsedByTape (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : ℕ :=
+  (tm.visitedByTapeHead cfg t i).card
+
+/--
+The number of work tape cells touched by a computation starting from configuration
+`cfg` up to step `t`: the space of the machine's own run.
+-/
+def spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ := (tm.runPath cfg t).space
+
+/-- The space used up to step `t` is the space of the run up to step `t`. -/
+@[simp]
+lemma runPath_space (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runPath cfg t).space = tm.spaceUsed cfg t := rfl
+
+/-- Space is the sum over the tapes of the cells each head touched. -/
+lemma spaceUsed_eq_sum (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.spaceUsed cfg t = ∑ i, tm.spaceUsedByTape cfg t i := rfl
+
+/-- The space used up to step `t` is the space touched by the configurations up to step `t`. -/
+lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.spaceUsed cfg t = spaceUsedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) := rfl
+
+end Space
 
 /-- A computation path of `tm` has no choice but to follow `runFrom`. -/
-lemma path_getElem {p : tm.ComputationPath input} (i : ℕ) (h : i < p.cfgs.length) :
-    p.cfgs[i] = tm.runFrom (tm.initCfg input) i := by
+lemma path_getElem {start : Cfg k Symbol State input} {p : tm.ComputationPath input start}
+    (i : ℕ) (h : i < p.cfgs.length) : p.cfgs[i] = tm.runFrom start i := by
   induction i with
   | zero => simpa using p.isChainFromTo.getElem_zero
   | succ n ih =>
@@ -273,26 +282,27 @@ lemma path_getElem {p : tm.ComputationPath input} (i : ℕ) (h : i < p.cfgs.leng
     rw [step_iff.mp hstep, ih (by omega), ← runFrom_succ_eq_step']
 
 /-- A path visiting `t + 1` configurations takes `t` steps. -/
-lemma path_length {p : tm.ComputationPath input} : p.cfgs.length = p.time + 1 := by
+lemma path_length {start : Cfg k Symbol State input} {p : tm.ComputationPath input start} :
+    p.cfgs.length = p.time + 1 := by
   have := p.isChainFromTo.length_pos
   simp only [MultiTapeNTM.ComputationPath.time]
   omega
 
-lemma path_cfgs {p : tm.ComputationPath input} :
-    p.cfgs = (List.range (p.time + 1)).map (tm.runFrom (tm.initCfg input)) := by
+lemma path_cfgs {start : Cfg k Symbol State input} {p : tm.ComputationPath input start} :
+    p.cfgs = (List.range (p.time + 1)).map (tm.runFrom start) := by
   refine List.ext_getElem (by simp [path_length]) fun i h₁ h₂ => ?_
   simpa using path_getElem i h₁
 
 /-- It ends where `tm` is after that many steps. -/
-lemma path_last {p : tm.ComputationPath input} :
-    p.last = tm.runFrom (tm.initCfg input) p.time := by
+lemma path_last {start : Cfg k Symbol State input} {p : tm.ComputationPath input start} :
+    p.last = tm.runFrom start p.time := by
   have h := p.isChainFromTo.getElem_length_sub_one
   rw [path_getElem _ (by have := p.isChainFromTo.length_pos; omega)] at h
   exact h.symm
 
 /-- Its space is the space `tm` uses over the same number of steps. -/
-lemma path_space {p : tm.ComputationPath input} :
-    p.space = tm.spaceUsed (tm.initCfg input) p.time := by
+lemma path_space {start : Cfg k Symbol State input} {p : tm.ComputationPath input start} :
+    p.space = tm.spaceUsed start p.time := by
   rw [MultiTapeNTM.ComputationPath.space, path_cfgs, ← spaceUsed_eq_spaceUsedOfCfgs]
 
 /-- `tm` has exactly one computation path of each length, so `ComputesInExactTimeAndSpace`,
@@ -309,7 +319,7 @@ theorem computesInExactTimeAndSpace_iff_runFrom {input output : List Symbol} {t 
     rw [path_space] at hspace
     exact ⟨hhalt, hout, hspace⟩
   · rintro ⟨hhalt, hout, hspace⟩
-    exact ⟨tm.runPath input t, by simpa using hhalt, by simpa using hout, by simp,
+    exact ⟨tm.runPath (tm.initCfg input) t, by simpa using hhalt, by simpa using hout, by simp,
       by simpa using hspace⟩
 
 /-- A proof that the Turing machine `tm` computes the function `f` such that on all inputs of
