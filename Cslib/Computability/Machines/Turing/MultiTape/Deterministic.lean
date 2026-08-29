@@ -149,9 +149,17 @@ defined in `Cslib.Computability.Machines.Turing.MultiTape.Configuration`.
 def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   cfg.stepWith fun q => tm.tr q cfg.inputSymbol cfg.workTapeSymbols
 
+/-- `Step` is the relation `step` induces: from each configuration there is exactly one step.
+Everything below about a deterministic machine rests on this. -/
+@[simp]
+theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c :=
+  Cfg.stepWith_iff (by simp)
+
+/-- A halted configuration steps to itself, inherited from `MultiTapeNTM`. -/
+@[simp]
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
-    tm.step cfg = cfg := by
-  simp [step, h]
+    tm.step cfg = cfg :=
+  (MultiTapeNTM.step_of_halt h).mp (step_iff.mpr rfl)
 
 /-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
@@ -170,6 +178,7 @@ lemma runFrom_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
     tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := by
   simp [runFrom, Function.iterate_succ_apply']
 
+@[simp]
 lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
     tm.runFrom cfg n = cfg := by
   induction n with
@@ -190,11 +199,6 @@ already apply to it; only the facts below are specific to having a transition fu
 that there is no choice to make: `Step` is the graph of `step`, so a computation path can only
 follow `runFrom`, and `runPath` shows there is one of every length.
 -/
-
-/-- `Step` is the relation `step` induces: from each configuration there is exactly one step. -/
-@[simp]
-theorem step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ c' = tm.step c :=
-  Cfg.stepWith_iff (by simp)
 
 /-- A work tape head moves by at most one cell in a step. Inherited from `MultiTapeNTM`, since
 `step` is one of its steps. -/
