@@ -1,0 +1,8 @@
+-- numSubsts:  1
+-- bind depth: 4
+-- depth:      5
+\x2.\x0.(\x1.\x2.x1) x2
+-- numSubsts:  1
+-- bind depth: 8
+-- depth:      9
+\x0.\x1.\x1.\x3.\x2.(\x1.\x1.\x3.x1) (x2 x3)

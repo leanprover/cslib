@@ -1,0 +1,3 @@
+-- Church encoding of false
+\x0.\x1.x1
+
