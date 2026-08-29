@@ -151,7 +151,7 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
 
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg := by
-  simp [step, Cfg.stepWith, h]
+  simp [step, h]
 
 /-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
@@ -179,10 +179,9 @@ lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n
 
 lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
     |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 := by
-  unfold step Cfg.stepWith
   cases hstate : c.state with
-  | none => simp
-  | some q => exact workTapePos_apply_le _ c i
+  | none => simp [step, hstate]
+  | some q => simpa [step, hstate] using workTapePos_apply_le _ c i
 
 end Cfg
 

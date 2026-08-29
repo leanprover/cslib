@@ -173,6 +173,7 @@ def Action.apply (out : Action k Symbol State) (cfg : Cfg k Symbol State input) 
   output := cfg.output ++ out.outS.toList
 
 /-- One step from `cfg`, choosing an action with `f`. A halted configuration idles. -/
+@[simp]
 def Cfg.stepWith (cfg : Cfg k Symbol State input) (f : State → Action k Symbol State) :
     Cfg k Symbol State input :=
   match cfg.state with
