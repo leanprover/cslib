@@ -73,12 +73,14 @@ variable [HasFresh Var] [DecidableEq Var]
 /-- An η-reduction step does not introduce new free variables. -/
 lemma step_not_fv (step : M ⭢ηᶠ M') : M.fv = M'.fv := by
   induction step with
-  | base => grind
   | abs =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     have := open_close x
     grind [open_preserve_not_fvar]
   | _ => grind
+
+lemma steps_fv (steps : M ↠ηᶠ M') : M.fv = M'.fv := by
+  induction steps with grind [step_not_fv]
 
 /- `s ⭢ηᶠ s'` implies `s[x := N] ⭢ηᶠ s'[x := N]`. -/
 lemma step_subst_cong_l {x : Var} (s s' N : Term Var) (step : s ⭢ηᶠ s') (lc_N : LC N) :
