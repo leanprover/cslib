@@ -364,7 +364,7 @@ theorem Satisfies.l_induction (m : Model World Atom) [IsTrans World m.r]
     (hwf : Relation.Terminating m.r) (hstep : ∀ w, ⇓Modal[m,w ⊨ □φ → φ]) (w : World) :
     ⇓Modal[m, w ⊨ φ] := by
   have hl := Satisfies.of_axiom m _ (Satisfies.l m.r hwf φ) w
-  /- We use grind only here as a memo and test that the `modal` grind set should be able to derive
+  /- We use `grind only` here as a memo and test that the `modal` grind set should be able to derive
     (the modal part of) this proof. -/
   grind only [modal, = box_iff_forall]
 
