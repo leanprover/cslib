@@ -161,17 +161,27 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   (MultiTapeNTM.step_of_halt h).mp (step_iff.mpr rfl)
 
-/-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
-If the Turing machine halts, it will stay at the halting configuration. -/
-def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input := tm.step^[t] cfg
+/-- The machine's own run from `cfg` for `t` steps: it does nothing, or takes one more step. -/
+def runPath (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
+    ℕ → tm.ComputationPath input
+  | 0 => .single cfg
+  | t + 1 => (tm.runPath cfg t).concat (tm.step (tm.runPath cfg t).last) (step_iff.mpr rfl)
+
+/-- The configuration reached by running the Turing machine for `t` steps from `cfg`: the one its
+run ends in. If the Turing machine halts, it will stay at the halting configuration. -/
+def runFrom (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) (t : ℕ) :
+    Cfg k Symbol State input := (tm.runPath cfg t).last
 
 @[simp]
-lemma runFrom_zero {cfg : Cfg k Symbol State input} : tm.runFrom cfg 0 = cfg := by
-  simp [runFrom]
+lemma runPath_last (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runPath cfg t).last = tm.runFrom cfg t := rfl
+
+@[simp]
+lemma runFrom_zero {cfg : Cfg k Symbol State input} : tm.runFrom cfg 0 = cfg := rfl
 
 lemma runFrom_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
     tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := by
-  simp [runFrom, Function.iterate_succ_apply']
+  simp only [runFrom, runPath, MultiTapeNTM.ComputationPath.concat_last]
 
 @[simp]
 lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
@@ -195,40 +205,29 @@ that there is no choice to make: `Step` is the graph of `step`, so a computation
 follow `runFrom`, and `runPath` shows there is one of every length.
 -/
 
-/-- The configurations the machine passes through form a chain of steps. -/
-lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :
-    ((List.range (t + 1)).map (tm.runFrom cfg)).IsChain tm.Step := by
-  rw [List.isChain_iff_getElem]
-  intro i hi
-  simp only [List.getElem_map, List.getElem_range]
-  rw [runFrom_succ_eq_step']
-  exact step_iff.mpr rfl
-
-/-- The machine's own run from `cfg` for `t` steps, as a computation path. -/
-def runPath (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.ComputationPath input where
-  cfgs := (List.range (t + 1)).map (tm.runFrom cfg)
-  ne_nil := by simp
-  isChain := isChain_map_range _ t
-
+/-- Its run takes `t` steps. -/
 @[simp]
-lemma runPath_cfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
-    (tm.runPath cfg t).cfgs = (List.range (t + 1)).map (tm.runFrom cfg) := rfl
+lemma runPath_time (cfg : Cfg k Symbol State input) (t : ℕ) : (tm.runPath cfg t).time = t := by
+  induction t with
+  | zero => rfl
+  | succ n ih => simp [runPath, ih]
 
+/-- Its run starts where it was asked to. -/
 @[simp]
 lemma runPath_start (cfg : Cfg k Symbol State input) (t : ℕ) :
     (tm.runPath cfg t).start = cfg := by
-  simp [MultiTapeNTM.ComputationPath.start, List.head_map]
+  induction t with
+  | zero => rfl
+  | succ n ih => simp [runPath, ih]
 
-@[simp]
-lemma runPath_last (cfg : Cfg k Symbol State input) (t : ℕ) :
-    (tm.runPath cfg t).last = tm.runFrom cfg t := by
-  rw [MultiTapeNTM.ComputationPath.last, ← Option.some_inj, ← List.getLast?_eq_some_getLast]
-  simp [List.range_succ]
-
-@[simp]
-lemma runPath_time (cfg : Cfg k Symbol State input) (t : ℕ) : (tm.runPath cfg t).time = t := by
-  simp [MultiTapeNTM.ComputationPath.time]
+/-- Its run passes through the configurations reached after each step. -/
+lemma runPath_cfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runPath cfg t).cfgs = (List.range (t + 1)).map (tm.runFrom cfg) := by
+  induction t with
+  | zero => rfl
+  | succ n ih =>
+    rw [runPath, MultiTapeNTM.ComputationPath.concat_cfgs, ih]
+    simp [List.range_succ, runFrom_succ_eq_step']
 
 section Space
 /-! Space is read off the machine's own run, so it is the space of a `ComputationPath`. -/
@@ -262,7 +261,8 @@ lemma spaceUsed_eq_sum (cfg : Cfg k Symbol State input) (t : ℕ) :
 
 /-- The space used up to step `t` is the space touched by the configurations up to step `t`. -/
 lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t = spaceUsedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) := rfl
+    tm.spaceUsed cfg t = spaceUsedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) := by
+  rw [spaceUsed, MultiTapeNTM.ComputationPath.space, runPath_cfgs]
 
 end Space
 
@@ -276,17 +276,12 @@ theorem computesInExactTimeAndSpace_iff_runFrom {input output : List Symbol} {t 
       tm.spaceUsed (tm.initCfg input) t = s := by
   constructor
   · rintro ⟨p, hstart, hhalt, hout, rfl, hspace⟩
-    have h : p.cfgs = (tm.runPath (tm.initCfg input) p.time).cfgs :=
-      MultiTapeNTM.ComputationPath.cfgs_eq
+    have hp : p = tm.runPath (tm.initCfg input) p.time :=
+      MultiTapeNTM.ComputationPath.eq_of_start_of_time
         (fun h₁ h₂ => (step_iff.mp h₁).trans (step_iff.mp h₂).symm)
         (by simpa using hstart) (by simp)
-    have hlast : p.last = tm.runFrom (tm.initCfg input) p.time := by
-      rw [MultiTapeNTM.ComputationPath.last]; simp [h]
-    have hsp : p.space = tm.spaceUsed (tm.initCfg input) p.time := by
-      rw [MultiTapeNTM.ComputationPath.space, h]; rfl
-    rw [hlast] at hhalt hout
-    rw [hsp] at hspace
-    exact ⟨hhalt, hout, hspace⟩
+    rw [hp] at hhalt hout hspace
+    exact ⟨by simpa using hhalt, by simpa using hout, by simpa using hspace⟩
   · rintro ⟨hhalt, hout, hspace⟩
     exact ⟨tm.runPath (tm.initCfg input) t, by simp, by simpa using hhalt, by simpa using hout,
       by simp, by simpa using hspace⟩
@@ -337,15 +332,14 @@ lemma relatesInSteps_iff_runFrom_eq
     (cfg₁ cfg₂ : Cfg k Symbol State input)
     (t : ℕ) :
     RelatesInSteps tm.Step cfg₁ cfg₂ t ↔ tm.runFrom cfg₁ t = cfg₂ := by
-  unfold runFrom
   induction t generalizing cfg₁ cfg₂ with
   | zero => simp
   | succ t ih =>
-    rw [RelatesInSteps.succ_iff, Function.iterate_succ_apply']
+    rw [RelatesInSteps.succ_iff, runFrom_succ_eq_step']
     constructor
     · grind [step_iff]
     · intro h_runFrom
-      use tm.step^[t] cfg₁
+      use tm.runFrom cfg₁ t
       grind [step_iff]
 
 

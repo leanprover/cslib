@@ -38,7 +38,9 @@ witness.
 * `ComputationPath`: a run of the machine: a non-empty list of configurations, each reached from
     the previous by a step, with `start` and `last` read off it
 * `ComputationPath.space_le`: a machine touches at most `k` cells per step
-* `ComputationPath.cfgs_eq`: a machine whose steps are unique has one run of each length
+* `ComputationPath.single`, `ComputationPath.concat`: the runs of no steps and of one more
+* `ComputationPath.eq_of_start_of_time`: a machine whose steps are unique has exactly one run of
+    each length from each configuration
 * `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
 * `Computes`, `ComputesInExactTime`, `ComputesInExactSpace`, `ComputesInExactTimeAndSpace`:
     its instances, whose
@@ -153,6 +155,53 @@ theorem space_le (p : ntm.ComputationPath input) : p.space ≤ k * p.time + k :=
 
 end ComputationPath
 
+/-- The run that does nothing. -/
+def ComputationPath.single {ntm : MultiTapeNTM k Symbol State} (c : Cfg k Symbol State input) :
+    ntm.ComputationPath input where
+  cfgs := [c]
+  ne_nil := by simp
+  isChain := by simp
+
+/-- Extend a run by one step at its end. -/
+def ComputationPath.concat (p : ntm.ComputationPath input) (c : Cfg k Symbol State input)
+    (h : ntm.Step p.last c) : ntm.ComputationPath input where
+  cfgs := p.cfgs ++ [c]
+  ne_nil := by simp
+  isChain := List.isChain_append.mpr ⟨p.isChain, by simp, by
+    intro x hx y hy
+    rw [List.getLast?_eq_some_getLast p.ne_nil] at hx
+    simp only [List.head?_cons, Option.mem_def, Option.some.injEq] at hx hy
+    subst hx; subst hy
+    exact h⟩
+
+@[simp] lemma ComputationPath.single_cfgs (c : Cfg k Symbol State input) :
+    (single (ntm := ntm) c).cfgs = [c] := rfl
+
+@[simp] lemma ComputationPath.single_start (c : Cfg k Symbol State input) :
+    (single (ntm := ntm) c).start = c := rfl
+
+@[simp] lemma ComputationPath.single_last (c : Cfg k Symbol State input) :
+    (single (ntm := ntm) c).last = c := rfl
+
+@[simp] lemma ComputationPath.single_time (c : Cfg k Symbol State input) :
+    (single (ntm := ntm) c).time = 0 := rfl
+
+@[simp] lemma ComputationPath.concat_cfgs (p : ntm.ComputationPath input) (c) (h) :
+    (p.concat c h).cfgs = p.cfgs ++ [c] := rfl
+
+@[simp] lemma ComputationPath.concat_last (p : ntm.ComputationPath input) (c) (h) :
+    (p.concat c h).last = c := by simp [concat, last]
+
+@[simp] lemma ComputationPath.concat_start (p : ntm.ComputationPath input) (c) (h) :
+    (p.concat c h).start = p.start := by
+  simp [concat, start, List.head_append_of_ne_nil p.ne_nil]
+
+@[simp] lemma ComputationPath.concat_time (p : ntm.ComputationPath input) (c) (h) :
+    (p.concat c h).time = p.time + 1 := by
+  have := p.length_pos
+  simp only [concat, time, List.length_append, List.length_cons, List.length_nil]
+  omega
+
 /-- A machine whose steps are unique has at most one run of a given length from a given
 configuration: the two agree configuration by configuration. -/
 theorem ComputationPath.getElem_eq
@@ -174,6 +223,13 @@ theorem ComputationPath.cfgs_eq
     p.cfgs = q.cfgs :=
   List.ext_getElem (by rw [p.length_cfgs, q.length_cfgs, ht])
     fun i h₁ h₂ => ComputationPath.getElem_eq hdet hs i h₁ h₂
+
+/-- Such a machine has exactly one run of a given length from a given configuration. -/
+theorem ComputationPath.eq_of_start_of_time
+    (hdet : ∀ {c c' c'' : Cfg k Symbol State input}, ntm.Step c c' → ntm.Step c c'' → c' = c'')
+    {p q : ntm.ComputationPath input} (hs : p.start = q.start) (ht : p.time = q.time) : p = q := by
+  cases p; cases q; simp_all only [ComputationPath.mk.injEq]
+  exact cfgs_eq hdet hs ht
 
 /-- `ntm` has a computation on `input` that starts at the initial configuration, halts, emits
 `output` and satisfies `P`. The notions below are its instances, so their constraints all refer to

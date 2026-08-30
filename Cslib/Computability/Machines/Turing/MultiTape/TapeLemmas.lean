@@ -33,7 +33,7 @@ variable {cfg : Cfg k Symbol State input}
 
 lemma mem_visitedByTapeHead {t : ℕ} {i : Fin k} {z : ℤ} :
     z ∈ tm.visitedByTapeHead cfg t i ↔ ∃ t' < t + 1, (tm.runFrom cfg t').workTapePos i = z := by
-  simp [visitedByTapeHead, visitedOfCfgs]
+  simp [visitedByTapeHead, visitedOfCfgs, runPath_cfgs]
 
 lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     (tm.runFrom cfg t).workTapePos i ∈ tm.visitedByTapeHead cfg t i :=
@@ -53,7 +53,7 @@ lemma uIcc_workTapePos_subset_visitedByTapeHead
     Finset.uIcc (cfg.workTapePos i) ((tm.runFrom cfg t).workTapePos i)
       ⊆ tm.visitedByTapeHead cfg t i := by
   induction t with
-  | zero => simpa [runFrom] using tm.mem_visitedByTapeHead_self cfg 0 i
+  | zero => simpa using tm.mem_visitedByTapeHead_self cfg 0 i
   | succ t ih =>
     intro z hz
     have hstep : |(tm.runFrom cfg (t + 1)).workTapePos i - (tm.runFrom cfg t).workTapePos i| ≤ 1 :=
@@ -70,7 +70,7 @@ lemma mem_visitedByTapeHead_of_workTapes_ne
     (h : (tm.runFrom cfg t).workTapes j z ≠ cfg.workTapes j z) :
     z ∈ tm.visitedByTapeHead cfg t j := by
   induction t with
-  | zero => exact absurd (by simp [runFrom]) h
+  | zero => exact absurd (by simp) h
   | succ t ih =>
     rw [runFrom_succ_eq_step'] at h
     by_cases hz : z = (tm.runFrom cfg t).workTapePos j
@@ -111,7 +111,7 @@ lemma content_natAbs_le_spaceUsedByTape
 lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     tm.spaceUsedByTape cfg t i ≤ t + 1 := by
   unfold spaceUsedByTape visitedByTapeHead visitedOfCfgs
-  exact (List.toFinset_card_le _).trans (by simp)
+  exact (List.toFinset_card_le _).trans (by simp [MultiTapeNTM.ComputationPath.length_cfgs])
 
 /-- The space used by a computation is bounded linearly by the number of steps. This is
 `ComputationPath.space_le` read off the machine's own run. -/
