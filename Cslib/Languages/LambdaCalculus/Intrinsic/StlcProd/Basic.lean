@@ -193,15 +193,15 @@ theorem betaEta_map {G : Type} {Γ Δ : Ctx G} {A B : Ty G} (F : (Γ ⊢ A) → 
 
 theorem betaEta_lam {N N' : A :: Γ ⊢ B} (h : N =βη N') :
     Tm.lam N =βη Tm.lam N' :=
-  betaEta_map Tm.lam (fun h => .lam h) h
+  betaEta_map Tm.lam .lam h
 
 theorem betaEta_app_left {f f' : Γ ⊢ A ⇒ B} (h : f =βη f') (a : Γ ⊢ A) :
     Tm.app f a =βη Tm.app f' a :=
-  betaEta_map (fun f => .app f a) (fun h => .app₁ h) h
+  betaEta_map (flip .app a) .app₁ h
 
 theorem betaEta_app_right (f : Γ ⊢ A ⇒ B) {a a' : Γ ⊢ A} (h : a =βη a') :
     Tm.app f a =βη Tm.app f a' :=
-  betaEta_map (Tm.app f) (fun h => .app₂ h) h
+  betaEta_map (Tm.app f) .app₂ h
 
 theorem betaEta_app {f f' : Γ ⊢ A ⇒ B} {a a' : Γ ⊢ A}
     (hf : f =βη f') (ha : a =βη a') : Tm.app f a =βη Tm.app f' a' :=
@@ -210,16 +210,16 @@ theorem betaEta_app {f f' : Γ ⊢ A ⇒ B} {a a' : Γ ⊢ A}
 theorem betaEta_pair {l l' : Γ ⊢ A} {r r' : Γ ⊢ B}
     (hl : l =βη l') (hr : r =βη r') : Tm.pair l r =βη Tm.pair l' r' :=
   .trans _ _ _
-    (betaEta_map (fun l => .pair l r) (fun h => .pair₁ h) hl)
-    (betaEta_map (Tm.pair l') (fun h => .pair₂ h) hr)
+    (betaEta_map (flip .pair r) .pair₁ hl)
+    (betaEta_map (Tm.pair l') .pair₂ hr)
 
 theorem betaEta_fst {p p' : Γ ⊢ A × B} (h : p =βη p') :
     Tm.fst p =βη Tm.fst p' :=
-  betaEta_map Tm.fst (fun h => .fst h) h
+  betaEta_map Tm.fst .fst h
 
 theorem betaEta_snd {p p' : Γ ⊢ A × B} (h : p =βη p') :
     Tm.snd p =βη Tm.snd p' :=
-  betaEta_map Tm.snd (fun h => .snd h) h
+  betaEta_map Tm.snd .snd h
 
 end LambdaCalculus.Intrinsic.StlcProd
 
