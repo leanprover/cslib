@@ -38,6 +38,7 @@ witness.
 * `ComputationPath`: a run of the machine: a non-empty list of configurations, each reached from
     the previous by a step, with `start` and `last` read off it
 * `ComputationPath.space_le`: a machine touches at most `k` cells per step
+* `ComputationPath.cfgs_eq`: a machine whose steps are unique has one run of each length
 * `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
 * `Computes`, `ComputesInExactTime`, `ComputesInExactSpace`, `ComputesInExactTimeAndSpace`:
     its instances, whose
@@ -151,6 +152,28 @@ theorem space_le (p : ntm.ComputationPath input) : p.space ≤ k * p.time + k :=
     _ = k * p.time + k := by rw [p.length_cfgs, Nat.mul_succ]
 
 end ComputationPath
+
+/-- A machine whose steps are unique has at most one run of a given length from a given
+configuration: the two agree configuration by configuration. -/
+theorem ComputationPath.getElem_eq
+    (hdet : ∀ {c c' c'' : Cfg k Symbol State input}, ntm.Step c c' → ntm.Step c c'' → c' = c'')
+    {p q : ntm.ComputationPath input} (hs : p.start = q.start) (i : ℕ)
+    (h₁ : i < p.cfgs.length) (h₂ : i < q.cfgs.length) : p.cfgs[i] = q.cfgs[i] := by
+  induction i with
+  | zero => simpa [ComputationPath.start, List.getElem_zero] using hs
+  | succ n ih =>
+    have hp := List.isChain_iff_getElem.mp p.isChain n h₁
+    have hq := List.isChain_iff_getElem.mp q.isChain n h₂
+    rw [ih (by omega) (by omega)] at hp
+    exact hdet hp hq
+
+/-- Such a machine has at most one run of a given length from a given configuration. -/
+theorem ComputationPath.cfgs_eq
+    (hdet : ∀ {c c' c'' : Cfg k Symbol State input}, ntm.Step c c' → ntm.Step c c'' → c' = c'')
+    {p q : ntm.ComputationPath input} (hs : p.start = q.start) (ht : p.time = q.time) :
+    p.cfgs = q.cfgs :=
+  List.ext_getElem (by rw [p.length_cfgs, q.length_cfgs, ht])
+    fun i h₁ h₂ => ComputationPath.getElem_eq hdet hs i h₁ h₂
 
 /-- `ntm` has a computation on `input` that starts at the initial configuration, halts, emits
 `output` and satisfies `P`. The notions below are its instances, so their constraints all refer to

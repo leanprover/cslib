@@ -74,7 +74,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
     the space of that run
 * `step_iff`: the inherited `Step` is the graph of `step`
 * `computesInExactTimeAndSpace_iff_runFrom`: the inherited `ComputesInExactTimeAndSpace`, stated
-    by step index rather than by computation path
+    by step index rather than by computation path, via `ComputationPath.cfgs_eq`
 * `ComputableInTimeAndSpace`: a proof that there is a multi-tape TM that computes a function
     (on strings) respecting a time and space bound in the input length.
 * `DecidableInTimeAndSpace`: a proof that a TM decides a language within a certain time
@@ -163,16 +163,15 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
 
 /-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
-def runFrom (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
-    ℕ → Cfg k Symbol State input
-  | 0 => cfg
-  | t + 1 => tm.step (tm.runFrom cfg t)
+def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input := tm.step^[t] cfg
 
 @[simp]
-lemma runFrom_zero {cfg : Cfg k Symbol State input} : tm.runFrom cfg 0 = cfg := rfl
+lemma runFrom_zero {cfg : Cfg k Symbol State input} : tm.runFrom cfg 0 = cfg := by
+  simp [runFrom]
 
 lemma runFrom_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
-    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := rfl
+    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := by
+  simp [runFrom, Function.iterate_succ_apply']
 
 @[simp]
 lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
@@ -267,32 +266,6 @@ lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
 
 end Space
 
-/-- A computation path of `tm` has no choice but to follow `runFrom`. -/
-lemma path_getElem {p : tm.ComputationPath input}
-    (i : ℕ) (h : i < p.cfgs.length) : p.cfgs[i] = tm.runFrom p.start i := by
-  induction i with
-  | zero => simp [MultiTapeNTM.ComputationPath.start, List.getElem_zero]
-  | succ n ih =>
-    have hstep := List.isChain_iff_getElem.mp p.isChain n h
-    rw [step_iff.mp hstep, ih (by omega), ← runFrom_succ_eq_step']
-
-lemma path_cfgs {p : tm.ComputationPath input} :
-    p.cfgs = (List.range (p.time + 1)).map (tm.runFrom p.start) := by
-  refine List.ext_getElem (by simp [p.length_cfgs]) fun i h₁ h₂ => ?_
-  simpa using path_getElem i h₁
-
-/-- It ends where `tm` is after that many steps. -/
-lemma path_last {p : tm.ComputationPath input} :
-    p.last = tm.runFrom p.start p.time := by
-  rw [MultiTapeNTM.ComputationPath.last, List.getLast_eq_getElem,
-    path_getElem _ (by have := p.length_pos; omega)]
-  rfl
-
-/-- Its space is the space `tm` uses over the same number of steps. -/
-lemma path_space {p : tm.ComputationPath input} :
-    p.space = tm.spaceUsed p.start p.time := by
-  rw [MultiTapeNTM.ComputationPath.space, path_cfgs, ← spaceUsed_eq_spaceUsedOfCfgs]
-
 /-- `tm` has exactly one computation path of each length, so `ComputesInExactTimeAndSpace`,
 inherited from `MultiTapeNTM`, is the direct statement about `runFrom` and `spaceUsed` at step
 `t`. -/
@@ -303,8 +276,16 @@ theorem computesInExactTimeAndSpace_iff_runFrom {input output : List Symbol} {t 
       tm.spaceUsed (tm.initCfg input) t = s := by
   constructor
   · rintro ⟨p, hstart, hhalt, hout, rfl, hspace⟩
-    rw [path_last, hstart] at hhalt hout
-    rw [path_space, hstart] at hspace
+    have h : p.cfgs = (tm.runPath (tm.initCfg input) p.time).cfgs :=
+      MultiTapeNTM.ComputationPath.cfgs_eq
+        (fun h₁ h₂ => (step_iff.mp h₁).trans (step_iff.mp h₂).symm)
+        (by simpa using hstart) (by simp)
+    have hlast : p.last = tm.runFrom (tm.initCfg input) p.time := by
+      rw [MultiTapeNTM.ComputationPath.last]; simp [h]
+    have hsp : p.space = tm.spaceUsed (tm.initCfg input) p.time := by
+      rw [MultiTapeNTM.ComputationPath.space, h]; rfl
+    rw [hlast] at hhalt hout
+    rw [hsp] at hspace
     exact ⟨hhalt, hout, hspace⟩
   · rintro ⟨hhalt, hout, hspace⟩
     exact ⟨tm.runPath (tm.initCfg input) t, by simp, by simpa using hhalt, by simpa using hout,
@@ -356,14 +337,15 @@ lemma relatesInSteps_iff_runFrom_eq
     (cfg₁ cfg₂ : Cfg k Symbol State input)
     (t : ℕ) :
     RelatesInSteps tm.Step cfg₁ cfg₂ t ↔ tm.runFrom cfg₁ t = cfg₂ := by
+  unfold runFrom
   induction t generalizing cfg₁ cfg₂ with
   | zero => simp
   | succ t ih =>
-    rw [RelatesInSteps.succ_iff, runFrom_succ_eq_step']
+    rw [RelatesInSteps.succ_iff, Function.iterate_succ_apply']
     constructor
     · grind [step_iff]
     · intro h_runFrom
-      use tm.runFrom cfg₁ t
+      use tm.step^[t] cfg₁
       grind [step_iff]
 
 
