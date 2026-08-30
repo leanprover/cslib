@@ -133,6 +133,8 @@ public import Cslib.Languages.CombinatoryLogic.Defs
 public import Cslib.Languages.CombinatoryLogic.Evaluation
 public import Cslib.Languages.CombinatoryLogic.List
 public import Cslib.Languages.CombinatoryLogic.Recursion
+public import Cslib.Languages.LambdaCalculus.Intrinsic.StlcProd.Basic
+public import Cslib.Languages.LambdaCalculus.Intrinsic.StlcProd.CategoricalSemantics
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
