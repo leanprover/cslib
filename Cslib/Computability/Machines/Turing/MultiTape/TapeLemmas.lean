@@ -16,11 +16,43 @@ This file collects lemmas about the set of positions visited by a work-tape head
 (`MultiTapeTM.spaceUsedByTape`, `MultiTapeTM.spaceUsed`) and how the tape head positions
 influence the cells that are modified on a tape.
 
+Those measures are read off the machine's own run, so results that hold of any run come from
+`MultiTapeNTM.ComputationPath` rather than being proved again here.
+
 -/
 
 @[expose] public section
 
-namespace Turing.MultiTapeTM
+namespace Turing
+
+namespace MultiTapeNTM
+
+variable {k : ℕ} {State Symbol : Type*} {input : List Symbol}
+  {ntm : MultiTapeNTM k Symbol State}
+
+/-- A work tape head moves by at most one cell in a step. -/
+lemma workTapePos_step_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') (i : Fin k) :
+    |c'.workTapePos i - c.workTapePos i| ≤ 1 := by
+  cases hq : c.state with
+  | none => simp_all [Step, Cfg.StepWith]
+  | some q =>
+    simp only [Step, Cfg.StepWith, hq] at h
+    obtain ⟨a, -, rfl⟩ := h
+    exact workTapePos_apply_le a c i
+
+/-- A step changes no work tape cell but the one its head is on. -/
+lemma workTapes_step_eq_of_ne {c c' : Cfg k Symbol State input} (h : ntm.Step c c') (j : Fin k)
+    (z : ℤ) (hz : z ≠ c.workTapePos j) : c'.workTapes j z = c.workTapes j z := by
+  cases hq : c.state with
+  | none => simp_all [Step, Cfg.StepWith]
+  | some q =>
+    simp only [Step, Cfg.StepWith, hq] at h
+    obtain ⟨a, -, rfl⟩ := h
+    exact workTapes_apply_eq_of_ne a c j z hz
+
+end MultiTapeNTM
+
+namespace MultiTapeTM
 
 variable {k : ℕ}
 variable {State Symbol : Type*}
@@ -28,22 +60,9 @@ variable {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 variable {cfg : Cfg k Symbol State input}
 
-/-- If the work tape head is not at position `z`, then the tape does not change there. -/
-lemma step_workTapes_eq_of_ne
-    (cfg : Cfg k Symbol State input)
-    (j : Fin k)
-    (z : ℤ)
-    (hz : z ≠ cfg.workTapePos j) :
-    (tm.step cfg).workTapes j z = cfg.workTapes j z := by
-  unfold step
-  cases hst : cfg.state with
-  | none => simp_all
-  | some q =>
-    rcases hw : ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workActions j).1 <;> simp_all
-
 lemma mem_visitedByTapeHead {t : ℕ} {i : Fin k} {z : ℤ} :
     z ∈ tm.visitedByTapeHead cfg t i ↔ ∃ t' < t + 1, (tm.runFrom cfg t').workTapePos i = z := by
-  simp [visitedByTapeHead]
+  simp [visitedByTapeHead, visitedOfCfgs, runPath_cfgs]
 
 lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     (tm.runFrom cfg t).workTapePos i ∈ tm.visitedByTapeHead cfg t i :=
@@ -52,7 +71,8 @@ lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i :
 /-- The set of positions visited by a tape head is monotone in the number of steps. -/
 lemma visitedByTapeHead_mono (cfg : Cfg k Symbol State input) (i : Fin k) {t t' : ℕ} (h : t ≤ t') :
     tm.visitedByTapeHead cfg t i ⊆ tm.visitedByTapeHead cfg t' i := by
-  apply Finset.image_subset_image
+  intro z hz
+  rw [mem_visitedByTapeHead] at hz ⊢
   grind
 
 /-- Starting from configuration `cfg`, every position between the initial head position of tape
@@ -62,11 +82,11 @@ lemma uIcc_workTapePos_subset_visitedByTapeHead
     Finset.uIcc (cfg.workTapePos i) ((tm.runFrom cfg t).workTapePos i)
       ⊆ tm.visitedByTapeHead cfg t i := by
   induction t with
-  | zero => simpa [runFrom] using tm.mem_visitedByTapeHead_self cfg 0 i
+  | zero => simpa using tm.mem_visitedByTapeHead_self cfg 0 i
   | succ t ih =>
     intro z hz
     have hstep : |(tm.runFrom cfg (t + 1)).workTapePos i - (tm.runFrom cfg t).workTapePos i| ≤ 1 :=
-      runFrom_succ_eq_step' (tm := tm) ▸ tm.workTapePos_step_le _ i
+      runFrom_succ_eq_step' (tm := tm) ▸ MultiTapeNTM.workTapePos_step_le (step_iff.mpr rfl) i
     have hmono := tm.visitedByTapeHead_mono cfg i (Nat.le_succ t)
     have hself := tm.mem_visitedByTapeHead_self cfg (t + 1) i
     grind [Finset.mem_uIcc]
@@ -79,13 +99,13 @@ lemma mem_visitedByTapeHead_of_workTapes_ne
     (h : (tm.runFrom cfg t).workTapes j z ≠ cfg.workTapes j z) :
     z ∈ tm.visitedByTapeHead cfg t j := by
   induction t with
-  | zero => exact absurd (by simp [runFrom]) h
+  | zero => exact absurd (by simp) h
   | succ t ih =>
     rw [runFrom_succ_eq_step'] at h
     by_cases hz : z = (tm.runFrom cfg t).workTapePos j
     · exact hz ▸ tm.visitedByTapeHead_mono cfg j (Nat.le_succ t)
         (tm.mem_visitedByTapeHead_self cfg t j)
-    · rw [tm.step_workTapes_eq_of_ne _ j z hz] at h
+    · rw [MultiTapeNTM.workTapes_step_eq_of_ne (step_iff.mpr rfl) j z hz] at h
       exact tm.visitedByTapeHead_mono cfg j (Nat.le_succ t) (ih h)
 
 /-- Every position visited by the head of tape `i` lies within `spaceUsedByTape … i` of the
@@ -119,18 +139,14 @@ lemma content_natAbs_le_spaceUsedByTape
 /-- The number of cells touched by a single work tape grows by at most one each step. -/
 lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     tm.spaceUsedByTape cfg t i ≤ t + 1 := by
-  calc
-    tm.spaceUsedByTape cfg t i
-    _ ≤ (Finset.range (t + 1)).card := Finset.card_image_le
-    _ = t + 1 := Finset.card_range _
+  unfold spaceUsedByTape visitedByTapeHead visitedOfCfgs
+  exact (List.toFinset_card_le _).trans (by simp [MultiTapeNTM.ComputationPath.length_cfgs])
 
-/-- The space used by a computation is bounded linearly by the number of steps. -/
+/-- The space used by a computation is bounded linearly by the number of steps. This is
+`ComputationPath.space_le_linear` read off the machine's own run. -/
 lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
     tm.spaceUsed cfg t ≤ k * t + k := by
-  calc tm.spaceUsed cfg t
-      = ∑ i, (tm.spaceUsedByTape cfg t i) := by rfl
-    _ ≤ ∑ i, (t + 1) := Finset.sum_le_sum (fun i _ => tm.spaceUsedByTape_le cfg t i)
-    _ = k * t + k := by simp [Nat.mul_succ]
+  simpa using (tm.runPath cfg t).space_le_linear
 
 /-- The space used by a single tape is monotone in the number of steps. -/
 lemma spaceUsedByTape_mono
@@ -145,6 +161,9 @@ lemma spaceUsedByTape_mono
 lemma spaceUsed_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
     Monotone (tm.spaceUsed cfg ·) := by
   intro t t' h
-  exact Finset.sum_le_sum (fun i _ => spaceUsedByTape_mono tm cfg i h)
+  simp only [spaceUsed_eq_spaceUsedOfCfgs]
+  exact spaceUsedOfCfgs_mono ((List.range_sublist.mpr (by omega)).map _)
 
-end Turing.MultiTapeTM
+end MultiTapeTM
+
+end Turing
