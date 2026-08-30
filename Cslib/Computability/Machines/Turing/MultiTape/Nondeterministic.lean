@@ -167,12 +167,9 @@ def ComputationPath.concat (p : ntm.ComputationPath input) (c : Cfg k Symbol Sta
     (h : ntm.Step p.last c) : ntm.ComputationPath input where
   cfgs := p.cfgs ++ [c]
   ne_nil := by simp
-  isChain := List.isChain_append.mpr ⟨p.isChain, by simp, by
-    intro x hx y hy
-    rw [List.getLast?_eq_some_getLast p.ne_nil] at hx
-    simp only [List.head?_cons, Option.mem_def, Option.some.injEq] at hx hy
-    subst hx; subst hy
-    exact h⟩
+  isChain := by
+    simpa [List.isChain_append, List.getLast?_eq_some_getLast p.ne_nil,
+      ComputationPath.last] using ⟨p.isChain, h⟩
 
 @[simp] lemma ComputationPath.single_cfgs (c : Cfg k Symbol State input) :
     (single (ntm := ntm) c).cfgs = [c] := rfl
