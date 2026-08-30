@@ -20,9 +20,11 @@ Members of the CSLib reviewer team are trusted contributors whose technical judg
 
 We expect all review comments to be constructive, technically motivated, and aimed at improving the contribution. Whenever possible, comments should be grounded in concrete examples or plausible use cases. When suggesting an alternative, concrete examples are highly welcome.
 
-CSLib strongly encourages reuse of existing infrastructure whenever appropriate: within CSLib, from Mathlib, and their dependencies. Reviewers and contributors should therefore consider whether a contribution can build on existing definitions, abstractions, APIs, or results rather than introducing parallel ones. Avoiding unnecessary duplication and fragmentation is an important consideration when evaluating a contribution.
+CSLib strongly encourages reuse of existing infrastructure whenever appropriate, from within CSLib and its dependencies. Reviewers and contributors should therefore consider whether a contribution can build on existing definitions, abstractions, APIs, or results rather than introducing parallel ones. Avoiding unnecessary duplication and fragmentation is an important consideration when evaluating a contribution.
 
 This principle is not absolute. Alternative abstractions or implementations can be valuable when they address limitations of existing infrastructure, support different use cases, or otherwise provide a clear technical benefit. In such cases, contributors should explain the motivation for introducing the alternative and, where relevant, its relationship to existing approaches.
+
+Adding or removing dependencies is managed carefully, taking into account the required CI/CD infrastructure, maintenance implications, and alignment with the broader Lean ecosystem.
 
 Review and acceptance are distinct: a review provides technical scrutiny of a contribution; acceptance authorises its inclusion in CSLib. A maintainer may both review and accept the same PR.
 
