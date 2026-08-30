@@ -38,7 +38,9 @@ witness.
 * `ComputationPath`: a run of the machine: a non-empty list of configurations, each reached from
     the previous by a step, with `start` and `last` read off it
 * `ComputationPath.space_le`: a machine touches at most `k` cells per step
-* `ComputationPath.single`, `ComputationPath.concat`: the runs of no steps and of one more
+* `ComputationPath.single`, `ComputationPath.concat`: the runs of no steps and of one more,
+    with `ComputationPath.induction` to reason by cases on the two
+* `ComputationPath.reflTransGen`: a run reaches its last configuration from its first
 * `ComputationPath.eq_of_start_of_time`: a machine whose steps are unique has exactly one run of
     each length from each configuration
 * `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
@@ -198,6 +200,31 @@ def ComputationPath.concat (p : ntm.ComputationPath input) (c : Cfg k Symbol Sta
   have := p.length_pos
   simp only [concat, time, List.length_append, List.length_cons, List.length_nil]
   omega
+
+/-- Every run is either the run of no steps, or one more step on a shorter run. This gives runs
+the induction of an inductive definition while they stay lists. -/
+@[elab_as_elim]
+theorem ComputationPath.induction {motive : ntm.ComputationPath input → Prop}
+    (single : ∀ c, motive (ComputationPath.single c))
+    (concat : ∀ (p : ntm.ComputationPath input) c h, motive p → motive (p.concat c h))
+    (p : ntm.ComputationPath input) : motive p := by
+  obtain ⟨cfgs, ne_nil, isChain⟩ := p
+  induction cfgs using List.reverseRecOn with
+  | nil => exact absurd rfl ne_nil
+  | append_singleton l a ih =>
+    rcases eq_or_ne l [] with rfl | hl
+    · exact single a
+    · have h : l.IsChain ntm.Step ∧ ntm.Step (l.getLast hl) a := by
+        simpa [List.isChain_append, List.getLast?_eq_some_getLast hl] using isChain
+      exact concat ⟨l, hl, h.1⟩ a h.2 (ih hl h.1)
+
+/-- A run witnesses that its last configuration is reachable from the one it starts at. -/
+theorem ComputationPath.reflTransGen (p : ntm.ComputationPath input) :
+    Relation.ReflTransGen ntm.Step p.start p.last := by
+  induction p using ComputationPath.induction with
+  | single c => simp only [ComputationPath.single_start, ComputationPath.single_last]
+                exact .refl
+  | concat p c h ih => simpa using ih.tail (by simpa using h)
 
 /-- A machine whose steps are unique has at most one run of a given length from a given
 configuration: the two agree configuration by configuration. -/
