@@ -142,7 +142,7 @@ open scoped Satisfies
 
 /-- The axiom K is valid in the logic K. -/
 theorem K.k_valid : (□(φ₁ → φ₂) → (□φ₁ → □φ₂) : Proposition Atom) ∈ K World Atom := by
-  open scoped Proposition in grind [Satisfies.k]
+  open scoped Proposition in grind
 
 /-- The axiom T is valid in the logic T. -/
 theorem T.t_valid : (φ → ◇φ : Proposition Atom) ∈ T World Atom := by

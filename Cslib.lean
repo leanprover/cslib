@@ -95,6 +95,7 @@ public import Cslib.Foundations.Relation.Confluence
 public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Relation.Euclidean
+public import Cslib.Foundations.Relation.Preserves
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
@@ -187,3 +188,4 @@ public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
 public import Cslib.MachineLearning.PACLearning.VersionSpaceLattice
 public import Cslib.Probability.PMF
+public import Cslib.Tactic.GrindAttrs
