@@ -112,7 +112,7 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN FullB
     constructor
     intro _ h_step
     cases h_step with
-    | abs _ H => grind [flip, step_open_cong_l _ _ _ _ H]
+    | abs _ H => grind [step_open_cong_l _ _ _ _ H]
     | base _ => contradiction
 
 /-- A term of the form λ M N P_1 … P_n is strongly normalizing if

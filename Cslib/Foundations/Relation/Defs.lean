@@ -98,7 +98,7 @@ abbrev Acyclic (r : α → α → Prop) := Std.Irrefl (TransGen r)
 
 /-- A relation is terminating when the inverse of its transitive closure is well-founded.
   Note that this is also called Noetherian or strongly normalizing in the literature. -/
-abbrev Terminating (r : α → α → Prop) := WellFounded (flip r)
+abbrev Terminating (r : α → α → Prop) := WellFounded (fun a b => r b a)
 
 /-- A relation is convergent when it is both confluent and terminating. -/
 abbrev Convergent (r : α → α → Prop) := Confluent r ∧ Terminating r
