@@ -165,9 +165,7 @@ lemma SN.transGen (hx : SN r x) : SN (TransGen r) x := by
   have eq : TransGen (Function.swap r) = (fun a b => TransGen r b a) := by
     ext
     exact transGen_swap
-  change Acc (fun a b => TransGen r b a) x
-  rw [← eq]
-  exact Acc.transGen hx
+  simpa [eq] using Acc.transGen hx
 
 lemma SN.of_le {r' : α → α → Prop} (hx : SN r x) (h : r' ≤ r) : SN r' x := by
   refine Subrelation.accessible ?_ hx
