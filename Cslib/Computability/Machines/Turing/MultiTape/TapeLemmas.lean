@@ -23,7 +23,36 @@ Those measures are read off the machine's own run, so results that hold of any r
 
 @[expose] public section
 
-namespace Turing.MultiTapeTM
+namespace Turing
+
+namespace MultiTapeNTM
+
+variable {k : ℕ} {State Symbol : Type*} {input : List Symbol}
+  {ntm : MultiTapeNTM k Symbol State}
+
+/-- A work tape head moves by at most one cell in a step. -/
+lemma workTapePos_step_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') (i : Fin k) :
+    |c'.workTapePos i - c.workTapePos i| ≤ 1 := by
+  cases hq : c.state with
+  | none => simp_all [Step, Cfg.StepWith]
+  | some q =>
+    simp only [Step, Cfg.StepWith, hq] at h
+    obtain ⟨a, -, rfl⟩ := h
+    exact workTapePos_apply_le a c i
+
+/-- A step changes no work tape cell but the one its head is on. -/
+lemma workTapes_step_eq_of_ne {c c' : Cfg k Symbol State input} (h : ntm.Step c c') (j : Fin k)
+    (z : ℤ) (hz : z ≠ c.workTapePos j) : c'.workTapes j z = c.workTapes j z := by
+  cases hq : c.state with
+  | none => simp_all [Step, Cfg.StepWith]
+  | some q =>
+    simp only [Step, Cfg.StepWith, hq] at h
+    obtain ⟨a, -, rfl⟩ := h
+    exact workTapes_apply_eq_of_ne a c j z hz
+
+end MultiTapeNTM
+
+namespace MultiTapeTM
 
 variable {k : ℕ}
 variable {State Symbol : Type*}
@@ -114,10 +143,10 @@ lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) 
   exact (List.toFinset_card_le _).trans (by simp [MultiTapeNTM.ComputationPath.length_cfgs])
 
 /-- The space used by a computation is bounded linearly by the number of steps. This is
-`ComputationPath.space_le` read off the machine's own run. -/
+`ComputationPath.space_le_linear` read off the machine's own run. -/
 lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
     tm.spaceUsed cfg t ≤ k * t + k := by
-  simpa using (tm.runPath cfg t).space_le
+  simpa using (tm.runPath cfg t).space_le_linear
 
 /-- The space used by a single tape is monotone in the number of steps. -/
 lemma spaceUsedByTape_mono
@@ -135,4 +164,6 @@ lemma spaceUsed_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State
   simp only [spaceUsed_eq_spaceUsedOfCfgs]
   exact spaceUsedOfCfgs_mono ((List.range_sublist.mpr (by omega)).map _)
 
-end Turing.MultiTapeTM
+end MultiTapeTM
+
+end Turing
