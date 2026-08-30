@@ -90,7 +90,7 @@ abbrev Normalizing (r : α → α → Prop) : Prop :=
 
 /-- An element `x` is `SN` (for strongly-normalising) for a relation `r` if it is accessible under
 the inverse of `r`. -/
-abbrev SN (r : α → α → Prop) := Acc (flip r)
+abbrev SN (r : α → α → Prop) := Acc (fun a b => r b a)
 
 /-- A relation is acyclic if its transitive closure is irreflexive, equivalently if it admits no
 nonempty cycle. -/
