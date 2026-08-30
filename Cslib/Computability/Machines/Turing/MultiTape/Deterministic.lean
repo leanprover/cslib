@@ -70,6 +70,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `MultiTapeTM`: the TM itself, a `MultiTapeNTM` whose transition relation is a function
 * `ofTr`: the machine with a given initial state and transition function
 * `runPath`: the machine's own run from a configuration, as a `ComputationPath`
+* `runFrom`: the configuration that run ends in, equal to iterating `step` (`runFrom_eq_iterate`)
 * `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure;
     the space of that run
 * `step_iff`: the inherited `Step` is the graph of `step`
@@ -182,6 +183,25 @@ lemma runFrom_zero {cfg : Cfg k Symbol State input} : tm.runFrom cfg 0 = cfg := 
 lemma runFrom_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
     tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := by
   simp only [runFrom, runPath, MultiTapeNTM.ComputationPath.concat_last]
+
+/-- The run ends where iterating `step` lands. Building the run says what running *is*; iterating
+says how to *do* it, and carries the `Function.iterate` API. -/
+theorem runFrom_eq_iterate (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input)
+    (t : ℕ) : tm.runFrom cfg t = tm.step^[t] cfg := by
+  induction t with
+  | zero => simp
+  | succ n ih =>
+    rw [runFrom_succ_eq_step', ih]
+    exact (Function.iterate_succ_apply' _ _ _).symm
+
+/-- How `runFrom` is evaluated: iterating `step`, rather than building the run it ends. -/
+def runFromIter (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) (t : ℕ) :
+    Cfg k Symbol State input := tm.step^[t] cfg
+
+@[csimp]
+theorem runFrom_eq_runFromIter : @runFrom = @runFromIter := by
+  funext k State Symbol input tm cfg t
+  exact tm.runFrom_eq_iterate cfg t
 
 @[simp]
 lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
