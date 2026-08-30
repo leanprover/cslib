@@ -26,7 +26,7 @@ See [bernstein2013a], Section 3.1.
 
 namespace Cslib.Crypto.Systems.Elligator.LegendreSymbol
 
-open Elligator.FiniteFieldBasic
+open Cslib.Crypto.Systems.Elligator.FiniteFieldBasic
 
 variable {F : Type*} [Field F] [Fintype F] [DecidableEq F]
 variable {q : ℕ}

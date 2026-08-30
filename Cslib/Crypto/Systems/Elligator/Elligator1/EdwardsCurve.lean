@@ -5,88 +5,71 @@ Authors: Chris Anto Fröschl
 -/
 module
 
-public import Cslib.Crypto.Systems.Elligator.TwistedEdwardsCurve
-public import Cslib.Crypto.Systems.Elligator.Elligator1.dProperties
+public import Cslib.Crypto.Primitives.ECC.TwistedEdwardsCurve
+public import Cslib.Crypto.Systems.Elligator.Elligator1.CurveParameters
 
 /-!
-# The Edwards curve used by Elligator 1
+# The Edwards curve used by Cslib.Crypto.Systems.Elligator 1
 
-This file specializes the general `Cslib.Crypto.Systems.Elligator.TwistedEdwardsCurve` API to
-the untwisted Edwards curve and parameter produced by Elligator 1.
-
-The general curve definition deliberately does not depend on a finite field, its cardinality, or
-the Elligator parameter `s`; those assumptions occur only in the specialization proving that
-`d s` is a valid coefficient.
+This file specializes the general Edwards curve API of `Elligator.Primitives.ECC.EdwardsCurve` to
+the curve and coefficient produced by Cslib.Crypto.Systems.Elligator 1.
 
 ## Main results
 
-* `curve`: the untwisted Edwards curve with the paper's coefficient `d(s)`.
+* `curve`: the Edwards curve with the paper's coefficient `d(s)`.
 * `curve_isValid`: the Elligator hypotheses imply that `d(s)` is a valid Edwards coefficient.
-* `EOverF`: the set of affine field-valued points satisfying the Elligator 1 curve equation.
-* `EOverF_eq_affinePoints`: `EOverF` agrees with the general twisted-Edwards affine-point set.
+* `EOverF s`: the set of affine field-valued points satisfying the Elligator 1 curve equation.
+* `EOverF s_eq_affinePoints`: `EOverF s` agrees with the general Edwards affine-point set.
 
 ## References
 
-See [bernstein2013a], Section 3.
+See [Bernstein2013a], Section 3.
 -/
 
 @[expose] public section
 
 namespace Cslib.Crypto.Systems.Elligator.Elligator1
 
-variable {F : Type*} [Field F] [Fintype F]
+open Cslib.Crypto.Primitives.ECC
+open Cslib.Crypto.Systems.Elligator.Elligator1.CurveParameters
+
+variable {F : Type*} [Field F]
 variable {q : ℕ}
 
-/-- The general Edwards curve with coefficient `d`.
-This is an alias for the `a = 1` specialization of a twisted Edwards curve. -/
-def edwardsCurve (d : F) : TwistedEdwardsCurve F := TwistedEdwardsCurve.ofD d
-
-/-- `edwardsCurveEquation` is the standard Edwards curve equation.
-The subtype argument is preserved for compatibility.  New generic developments should normally
-use `(edwardsCurve d).Equation x y`, and carry coefficient validity separately via
-`TwistedEdwardsCurve.IsValid`.
--/
-def edwardsCurveEquation (x y : F) (d : {d : F // d ≠ 0 ∧ d ≠ 1}) : Prop :=
-  (edwardsCurve (F := F) d.val).Equation x y
-
-omit [Fintype F] in
-@[simp]
-theorem edwardsCurveEquation_iff (x y : F) (d : {d : F // d ≠ 0 ∧ d ≠ 1}) :
-    edwardsCurveEquation x y d ↔ x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2 := by
-  simp [edwardsCurveEquation, edwardsCurve]
-
-/-- The Edwards curve selected by the Elligator 1 parameter `s`. -/
+/-- The Edwards curve selected by the Cslib.Crypto.Systems.Elligator 1 parameter `s`. -/
 def curve (s : F) : TwistedEdwardsCurve F := edwardsCurve (d s)
 
+/-- The curve equation of the Cslib.Crypto.Systems.Elligator 1 curve, in explicit form. -/
+lemma curve_equation_iff (s x y : F) :
+    (curve s).Equation x y ↔ x ^ 2 + y ^ 2 = 1 + d s * x ^ 2 * y ^ 2 :=
+  edwardsCurve_equation_iff (d s) x y
+
 /-- The Elligator 1 coefficient hypotheses imply that its specialized curve is valid. -/
-theorem curve_isValid {s : F} (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
+lemma curve_isValid [Fintype F]
+    {s : F}
+    (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
     (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) :
     (curve s).IsValid := by
-  rw [curve, edwardsCurve, TwistedEdwardsCurve.ofD_isValid_iff]
+  rw [curve, edwardsCurve_isValid_iff]
   exact d_ne_zero_and_d_ne_one sq_ne_pm_two hq_card hq_mod
 
-/-- `EOverF` is the set of affine points on the Edwards curve selected by Elligator 1.
-See `EOverF_eq_affinePoints` for the generic curve view. -/
-def EOverF {s : F} (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
-  (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) : Set (F × F) :=
-  let d := d s
-  let d_h : d ≠ 0 ∧ d ≠ 1 := d_ne_zero_and_d_ne_one sq_ne_pm_two hq_card hq_mod
-  {p | edwardsCurveEquation p.fst p.snd ⟨d, d_h⟩}
+/-- `EOverF s` is the set of affine points on the Edwards curve selected by Elligator 1. -/
+def EOverF (s : F) : Set (F × F) := (curve s).affinePoints
 
-/-- The compatibility set `EOverF` is exactly the affine point set of the general curve model. -/
-theorem EOverF_eq_affinePoints {s : F} (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
-    (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) :
-    EOverF sq_ne_pm_two hq_card hq_mod = (curve s).affinePoints := by
+/-- The compatibility set `EOverF s` is exactly the affine point set of the general curve model. -/
+lemma EOverF_s_eq_affinePoints {s : F} :
+    EOverF s = (curve s).affinePoints := by
   rfl
 
-lemma edwardsCurveEquation_zero_one {s : F} (sq_ne_pm_two : (s ^ 2 - 2) * (s ^ 2 + 2) ≠ 0)
-    (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) :
-    let d := d s
-    let d_h : d ≠ 0 ∧ d ≠ 1 := d_ne_zero_and_d_ne_one sq_ne_pm_two hq_card hq_mod
-    edwardsCurveEquation (0 : F) (1 : F) ⟨d, d_h⟩ := by
-  intro d_of_s d_h
-  unfold edwardsCurveEquation
-  simp [edwardsCurve]
+/-- Membership in `EOverF s`, written out as the Edwards curve equation. -/
+lemma mem_EOverF_iff {s : F} (p : F × F) :
+    p ∈ EOverF s ↔ p.1 ^ 2 + p.2 ^ 2 = 1 + d s * p.1 ^ 2 * p.2 ^ 2 :=
+  curve_equation_iff s p.1 p.2
 
+/-- The neutral point `(0, 1)` lies in `EOverF s`; a specialization of
+`Elligator.edwardsCurveEquation_zero_one`. -/
+lemma zero_mem_EOverF {s : F} :
+    ((0 : F), (1 : F)) ∈ EOverF s :=
+  (curve s).zero_mem_affinePoints
 
 end Cslib.Crypto.Systems.Elligator.Elligator1
