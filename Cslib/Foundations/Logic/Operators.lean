@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Thomas Waring
 module
 
 public import Cslib.Init
+public import Mathlib.Data.PFunctor.Univariate.Basic
 
 /-! # Logical operators
 
@@ -77,6 +78,22 @@ class HasDiamond (α : Type*) where
   diamond (a : α) : α
 
 @[inherit_doc] scoped prefix:40 "◇" => HasDiamond.diamond
+
+/-! ## General modalities from modal similarity types (polynomial functors) -/
+
+/-- The type `α` has a family of triangle operators (`Δ`). -/
+class HasTriangle (α : Type*) (τ : PFunctor) where
+  /-- `Δ[op](φ₁, ..., φₙ)` means that `φ₁`, ..., `φₙ` are valid at some respective related states. -/
+  triangle (op : τ.A) (arg : τ.B op → α) : α
+
+@[inherit_doc] scoped notation:50 "Δ[" op "]" arg:max => HasTriangle.triangle op arg
+
+/-- The type `α` has a family of nabla operators (`∇`). -/
+class HasNabla (α : Type*) (τ : PFunctor) where
+  /-- `∇[op](φ₁, ..., φₙ)` means that `φ₁`, ..., `φₙ` are valid at all respective related states. -/
+  nabla (op : τ.A) (arg : τ.B op → α) : α
+
+@[inherit_doc] scoped notation:50 "∇[" op "]" arg:max => HasNabla.nabla op arg
 
 end Modal
 
