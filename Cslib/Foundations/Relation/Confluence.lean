@@ -149,8 +149,7 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
   apply equivalence_join
   grind
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
-lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind only [Acc]
+lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind [Acc]
 
 lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
 
