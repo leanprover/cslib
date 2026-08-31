@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026 Mateo Petel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mateo Petel
+-/
+
 import Cslib.Computability.URM.Defs
 import Cslib.Foundations.Data.Lens.Basic
 
