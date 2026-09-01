@@ -27,7 +27,7 @@ public import Mathlib.Data.Set.Card
 
 namespace Cslib.Language
 
-open Set List Prod Automata Acceptor RightCongruence
+open Set List Prod Automata Acceptor
 open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
 variable {Symbol Symbol' : Type*}
@@ -183,6 +183,7 @@ theorem IsRegular.kstar {l : Language Symbol}
       obtain ⟨State, h_fin, nfa, rfl⟩ := h
       use Unit ⊕ Option State, inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
+open _root_.Language RightCongruence in
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
 theorem IsRegular.congr_fin_index {Symbol : Type}
