@@ -96,6 +96,8 @@ theorem mTr_iff_execution :
     lts.MTr s1 μs s2 ↔ ∃ ss : List State, lts.Execution s1 μs s2 ss := by
   grind
 
+-- Merging the `have` into `grind` triples this file's compile time.
+set_option linter.tacticAnalysis.mergeWithGrind false in
 private lemma Execution.comp_helper
     {lts : LTS State Label} {s r t : State} {μs1 μs2 : List Label} {ss1 ss2 : List State}
     (h1 : lts.Execution s μs1 r ss1) (h2 : lts.Execution r μs2 t ss2)
