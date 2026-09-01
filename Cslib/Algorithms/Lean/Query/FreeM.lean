@@ -49,6 +49,15 @@ universe u v t w
 
 variable {F : Type u → Type v} {α β : Type u}
 
+/-- `TimeM.ret` distributes across `FreeM.liftM`. -/
+@[simp]
+theorem timeMRet_liftM {T : Type t} [AddMonoid T] (interp : {ι : Type u} → F ι → TimeM T ι)
+    (p : FreeM F α) :
+    (p.liftM interp).ret = Id.run (p.liftM fun i => pure (interp i).ret) := by
+  induction p with
+  | pure => simp only [liftM_pure, TimeM.ret_pure, Id.run_pure]
+  | lift_bind op h ih => simp [ih]
+
 /-! ## Interpreters
 
 All three interpreters (`eval`, `cost`, `countQueries`) are defined as `liftM` interpretations
@@ -95,15 +104,12 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
 @[simp] theorem eval_bind (oracle : {ι : Type u} → F ι → ι)
     (t : FreeM F α) (f : α → FreeM F β) :
     eval oracle (t >>= f) = eval oracle (f (eval oracle t)) := by
-  induction t with
-  | pure a => rfl
-  | lift_bind op cont ih => exact ih (oracle op)
+  simp [eval]
 
 @[simp] theorem eval_map (oracle : {ι : Type u} → F ι → ι)
     (t : FreeM F α) (f : α → β) :
     eval oracle (f <$> t) = f (eval oracle t) := by
-  rw [← FreeM.map_eq_map, ← FreeM.bind_pure_comp, FreeM.bind_eq_bind, eval_bind]
-  simp
+  simp [eval]
 
 /-! ### Simp lemmas for `cost` -/
 
@@ -121,29 +127,19 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
     (oracle : {ι : Type u} → F ι → ι) (weight : {ι : Type u} → F ι → T)
     {ι : Type u} (op : F ι) :
     cost oracle weight (FreeM.lift op) = weight op := by
-  change weight op + 0 = weight op
-  exact add_zero _
+  simp [cost]
 
 @[simp] theorem cost_bind {T : Type t} [AddMonoid T] (oracle : {ι : Type u} → F ι → ι)
     (weight : {ι : Type u} → F ι → T) (t : FreeM F α) (f : α → FreeM F β) :
     cost oracle weight (t >>= f) =
       cost oracle weight t + cost oracle weight (f (eval oracle t)) := by
-  induction t with
-  | pure a =>
-    change cost oracle weight (f a) = 0 + cost oracle weight (f a)
-    simp
-  | lift_bind op cont ih =>
-    change weight op + cost oracle weight (cont (oracle op) >>= f) =
-      (weight op + cost oracle weight (cont (oracle op))) +
-        cost oracle weight (f (eval oracle (cont (oracle op))))
-    simp only [ih, add_assoc]
+  simp [cost, eval]
 
 @[simp] theorem cost_map {T : Type t} [AddMonoid T]
     (oracle : {ι : Type u} → F ι → ι) (weight : {ι : Type u} → F ι → T)
     (t : FreeM F α) (f : α → β) :
     cost oracle weight (f <$> t) = cost oracle weight t := by
-  rw [← FreeM.map_eq_map, ← FreeM.bind_pure_comp, FreeM.bind_eq_bind, cost_bind]
-  simp
+  simp [cost]
 
 /-! ### Simp lemmas for `countQueries` -/
 
@@ -157,9 +153,8 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
 
 @[simp] theorem countQueries_lift (oracle : {ι : Type u} → F ι → ι)
     {ι : Type u} (op : F ι) :
-    countQueries oracle (FreeM.lift op) = 1 := by
-  change 1 + 0 = 1
-  rfl
+    countQueries oracle (FreeM.lift op) = 1 :=
+  cost_lift _ _ _
 
 @[simp] theorem countQueries_bind (oracle : {ι : Type u} → F ι → ι)
     (t : FreeM F α) (f : α → FreeM F β) :
