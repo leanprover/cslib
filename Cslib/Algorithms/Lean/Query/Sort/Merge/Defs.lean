@@ -23,7 +23,11 @@ public section
 
 namespace Cslib.Query
 
-/-- Split a list into two halves by alternating elements. -/
+/-- Split a list into two halves by alternating elements.
+
+Unlike `List.MergeSort.Internal.splitInTwo`, which cuts the list at its midpoint, this
+alternating split is structurally recursive, which makes the termination argument and the
+proofs about `mergeSort` simpler. The price is that the split is not stable. -/
 @[expose] def split : List α → List α × List α
   | [] => ([], [])
   | [x] => ([x], [])
@@ -37,7 +41,7 @@ namespace Cslib.Query
     split (x :: y :: zs) = ((split zs).1 |>.cons x, (split zs).2 |>.cons y) := by
   simp [split]
 
-theorem split_fst_length_eq : ∀ (xs : List α),
+@[simp] theorem split_fst_length_eq : ∀ (xs : List α),
     (split xs).1.length = (xs.length + 1) / 2
   | [] => by simp [split]
   | [_] => by simp [split]
@@ -46,7 +50,7 @@ theorem split_fst_length_eq : ∀ (xs : List α),
     have := split_fst_length_eq zs
     omega
 
-theorem split_snd_length_eq : ∀ (xs : List α),
+@[simp] theorem split_snd_length_eq : ∀ (xs : List α),
     (split xs).2.length = xs.length / 2
   | [] => by simp [split]
   | [_] => by simp [split]
@@ -54,14 +58,6 @@ theorem split_snd_length_eq : ∀ (xs : List α),
     simp only [split_cons_cons, List.length_cons]
     have := split_snd_length_eq zs
     omega
-
-theorem split_fst_length_lt (x y : α) (zs : List α) :
-    (split (x :: y :: zs)).1.length < (x :: y :: zs).length := by
-  simp only [split_fst_length_eq, List.length_cons]; omega
-
-theorem split_snd_length_lt (x y : α) (zs : List α) :
-    (split (x :: y :: zs)).2.length < (x :: y :: zs).length := by
-  simp only [split_snd_length_eq, List.length_cons]; omega
 
 /-- Merge two sorted lists using comparison queries. -/
 @[expose] def merge (xs ys : List α) : FreeM (LEQuery α) (List α) :=
@@ -90,9 +86,7 @@ termination_by xs.length + ys.length
     merge sl sr
 termination_by xs.length
 decreasing_by
-  · exact split_fst_length_lt x y zs
-  · exact split_snd_length_lt x y zs
+  · simp only [split_fst_length_eq, List.length_cons]; omega
+  · simp only [split_snd_length_eq, List.length_cons]; omega
 
 end Cslib.Query
-
-end -- public section

@@ -18,6 +18,7 @@ All proofs are by plain equational reasoning on `FreeM.eval` and `FreeM.countQue
 -/
 
 open Cslib Cslib.Query
+open scoped List
 
 public section
 
@@ -25,21 +26,21 @@ namespace Cslib.Query
 
 variable {α : Type}
 
--- ## Split lemmas
+/-! ## Split lemmas -/
 
 theorem split_perm : ∀ (xs : List α),
-    ((split xs).1 ++ (split xs).2).Perm xs
-  | [] => List.Perm.refl _
-  | [_] => List.Perm.refl _
+    (split xs).1 ++ (split xs).2 ~ xs
+  | [] => .refl _
+  | [_] => .refl _
   | x :: y :: zs => by
     simp only [split_cons_cons]
-    show ((x :: (split zs).1) ++ (y :: (split zs).2)).Perm (x :: y :: zs)
+    show (x :: (split zs).1) ++ (y :: (split zs).2) ~ x :: y :: zs
     rw [List.cons_append]
-    refine List.Perm.cons _ ?_
-    -- goal: ((split zs).1 ++ y :: (split zs).2).Perm (y :: zs)
-    exact (List.perm_middle).trans (List.Perm.cons _ (split_perm zs))
+    refine .cons _ ?_
+    show (split zs).1 ++ y :: (split zs).2 ~ y :: zs
+    exact (List.perm_middle).trans (.cons _ (split_perm zs))
 
--- ## Evaluation simp lemmas for merge
+/-! ## Evaluation simp lemmas for merge -/
 
 @[simp] theorem eval_merge_nil_left (oracle : {ι : Type} → LEQuery α ι → ι) (ys : List α) :
     (merge ([] : List α) ys).eval oracle = ys := by
@@ -58,7 +59,7 @@ theorem split_perm : ∀ (xs : List α),
   simp [merge]
   split <;> simp_all
 
--- ## Evaluation simp lemmas for mergeSort
+/-! ## Evaluation simp lemmas for mergeSort -/
 
 @[simp] theorem eval_mergeSort_nil (oracle : {ι : Type} → LEQuery α ι → ι) :
     (mergeSort (α := α) []).eval oracle = [] := by
@@ -76,10 +77,10 @@ theorem split_perm : ∀ (xs : List α),
         ((mergeSort (split (x :: y :: zs)).2).eval oracle)).eval oracle := by
   simp [mergeSort]
 
--- ## Permutation proofs
+/-! ## Permutation proofs -/
 
 theorem merge_perm (oracle : {ι : Type} → LEQuery α ι → ι) (xs ys : List α) :
-    ((merge xs ys).eval oracle).Perm (xs ++ ys) := by
+    (merge xs ys).eval oracle ~ xs ++ ys := by
   induction xs, ys using merge.induct (α := α) with
   | case1 ys => simp
   | case2 xs => simp
@@ -87,12 +88,11 @@ theorem merge_perm (oracle : {ι : Type} → LEQuery α ι → ι) (xs ys : List
     simp only [eval_merge_cons_cons]
     split
     · exact List.Perm.cons _ ih_true
-    · -- goal: (y :: (merge (x :: xs') ys').eval oracle).Perm (x :: xs' ++ y :: ys')
-      -- ih: ((merge (x :: xs') ys').eval oracle).Perm ((x :: xs') ++ ys')
+    · show y :: (merge (x :: xs') ys').eval oracle ~ (x :: xs') ++ (y :: ys')
       exact (List.Perm.cons _ ih_false).trans List.perm_middle.symm
 
 theorem mergeSort_perm (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
-    ((mergeSort xs).eval oracle).Perm xs := by
+    (mergeSort xs).eval oracle ~ xs := by
   induction xs using mergeSort.induct (α := α) with
   | case1 => simp
   | case2 x => simp
@@ -100,16 +100,17 @@ theorem mergeSort_perm (oracle : {ι : Type} → LEQuery α ι → ι) (xs : Lis
     simp only [eval_mergeSort_cons_cons]
     exact (merge_perm oracle _ _).trans ((ih_l.append ih_r).trans (split_perm _))
 
--- ## Sortedness proofs
+/-! ## Sortedness proofs -/
 
 /-- If `l` is a permutation of `xs ++ ys`, and `r a` holds for all elements of `xs` and `ys`,
     then `r a` holds for all elements of `l`. -/
 private theorem forall_mem_of_perm_append {r : α → Prop} {l xs ys : List α}
-    (hperm : l.Perm (xs ++ ys))
+    (hperm : l ~ xs ++ ys)
     (hxs : ∀ z ∈ xs, r z) (hys : ∀ z ∈ ys, r z) :
     ∀ z ∈ l, r z := by
   intro z hz
-  rcases List.mem_append.mp (hperm.mem_iff.mp hz) with h | h
+  rw [hperm.mem_iff, List.mem_append] at hz
+  rcases hz with h | h
   · exact hxs z h
   · exact hys z h
 
@@ -160,7 +161,7 @@ theorem mergeSort_sorted
     simp only [eval_mergeSort_cons_cons]
     exact merge_sorted r oracle horacle _ _ ih_l ih_r
 
--- ## Query count simp lemmas
+/-! ## Query count simp lemmas -/
 
 @[simp] theorem countQueries_merge_nil_left (oracle : {ι : Type} → LEQuery α ι → ι) (ys : List α) :
     (merge ([] : List α) ys).countQueries oracle = 0 := by
@@ -196,7 +197,7 @@ theorem mergeSort_sorted
               ((mergeSort (split (x :: y :: zs)).2).eval oracle)).countQueries oracle) := by
   simp [mergeSort]
 
--- ## Query count proofs
+/-! ## Query count proofs -/
 
 theorem merge_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
     (xs ys : List α) :
@@ -247,20 +248,18 @@ theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι
     exact Nat.le_trans (Nat.add_le_add ih_l (Nat.add_le_add ih_r hml))
       (mergeSort_bound _ (by simp only [List.length_cons]; omega))
 
--- ## UpperBound and IsSort instances
+/-! ## UpperBound and IsSort instances -/
 
-public theorem mergeSort_upperBound :
+theorem mergeSort_upperBound :
     UpperBound (mergeSort (α := α)) List.length (fun n => n * Nat.clog 2 n) := by
   intro oracle n x hle
   exact Nat.le_trans (mergeSort_countQueries_le oracle x)
     (Nat.mul_le_mul hle (Nat.clog_mono_right 2 hle))
 
-public theorem mergeSort_isSort : IsSort (mergeSort (α := α)) where
+theorem mergeSort_isSort : IsSort (mergeSort (α := α)) where
   perm xs oracle := mergeSort_perm oracle xs
   sorted := by
     intro xs oracle r _ _ _ horacle
     exact mergeSort_sorted r oracle horacle xs
 
 end Cslib.Query
-
-end -- public section

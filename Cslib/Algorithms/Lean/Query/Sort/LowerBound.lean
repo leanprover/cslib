@@ -20,7 +20,7 @@ has query complexity at least `⌈log₂(n!)⌉` for every input size `n`.
 
 The proof constructs `n!` distinct total orders on `α` (one per permutation of `n`
 embedded elements), shows they produce distinct sorted outputs, and applies
-`FreeM.exists_countQueries_ge_clog` with `LEQuery.fintypeResponse` /
+`FreeM.exists_countQueries_ge_clog` with `LEQuery.finiteResponse` /
 `LEQuery.cardResponse_le_two` witnessing that all responses come from `Bool`
 (cardinality 2).
 -/
@@ -31,7 +31,7 @@ public section
 
 namespace Cslib.Query
 
--- ## infinitePermOrder: constructing n! distinct total orders
+/-! ## infinitePermOrder: constructing n! distinct total orders -/
 
 open Classical in
 /-- A total order on an infinite type `α` that orders `n` embedded elements
@@ -121,7 +121,7 @@ private theorem map_infinite_embedding_injective [Infinite α] :
     have := List.map_inj_left.mp h i (List.mem_finRange i)
     grind
 
--- ## Main theorem
+/-! ## Main theorem -/
 
 /-- Any correct comparison sort on an infinite type has query complexity at least `⌈log₂(n!)⌉`
     for every input size `n`. -/
@@ -154,10 +154,8 @@ theorem IsSort.lowerBound_infinite [Infinite α]
     exact e.symm.injective (map_infinite_embedding_injective h_eval)
   -- Apply the FreeM lower-bound lemma directly
   obtain ⟨i, hi⟩ := FreeM.exists_countQueries_ge_clog 2
-    LEQuery.fintypeResponse LEQuery.cardResponse_le_two
+    LEQuery.finiteResponse LEQuery.cardResponse_le_two
     (sort xs) progOracles (Nat.factorial_pos n) h_inj
   exact ⟨progOracles i, hi⟩
 
 end Cslib.Query
-
-end -- public section

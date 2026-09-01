@@ -37,5 +37,3 @@ namespace Cslib.Query
     orderedInsert x sorted
 
 end Cslib.Query
-
-end -- public section

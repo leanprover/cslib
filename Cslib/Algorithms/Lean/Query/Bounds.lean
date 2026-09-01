@@ -31,5 +31,3 @@ namespace Cslib.Query
     ∃ (oracle : {ι : Type} → Q ι → ι), bound n ≤ (prog x).countQueries oracle
 
 end Cslib.Query
-
-end -- public section

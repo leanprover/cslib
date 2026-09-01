@@ -33,5 +33,3 @@ structure IsSort (sort : List α → FreeM (LEQuery α) (List α)) : Prop where
     ((sort xs).eval oracle).Pairwise r
 
 end Cslib.Query
-
-end -- public section

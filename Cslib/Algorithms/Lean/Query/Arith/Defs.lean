@@ -76,5 +76,3 @@ end ArithQuery
   return (real, imag)
 
 end Cslib.Query
-
-end -- public section

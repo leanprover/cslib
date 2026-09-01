@@ -11,6 +11,7 @@ public import Mathlib.Combinatorics.Pigeonhole
 public import Mathlib.Data.Fintype.Card
 public import Mathlib.Data.Nat.Log
 public import Mathlib.Data.Set.Function
+public import Mathlib.SetTheory.Cardinal.Finite
 
 /-! # FreeM: query/cost interpreters and lower-bound lemma
 
@@ -77,7 +78,7 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
 @[expose] def countQueries (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) : Nat :=
   cost oracle (fun _ => 1) p
 
--- Simp lemmas for eval
+/-! ### Simp lemmas for `eval` -/
 
 @[simp] theorem eval_pure (oracle : {ι : Type} → F ι → ι) (a : α) :
     eval oracle (pure a : FreeM F α) = a := rfl
@@ -102,7 +103,7 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
   rw [← FreeM.map_eq_map, ← FreeM.bind_pure_comp, FreeM.bind_eq_bind, eval_bind]
   simp
 
--- Simp lemmas for cost
+/-! ### Simp lemmas for `cost` -/
 
 @[simp] theorem cost_pure {T : Type} [AddMonoid T] (oracle : {ι : Type} → F ι → ι)
     (weight : {ι : Type} → F ι → T) (a : α) :
@@ -142,7 +143,7 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
   rw [← FreeM.map_eq_map, ← FreeM.bind_pure_comp, FreeM.bind_eq_bind, cost_bind]
   simp
 
--- Simp lemmas for countQueries
+/-! ### Simp lemmas for `countQueries` -/
 
 @[simp] theorem countQueries_pure (oracle : {ι : Type} → F ι → ι) (a : α) :
     countQueries oracle (pure a : FreeM F α) = 0 := rfl
@@ -172,15 +173,15 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
 theorem countQueries_eq_cost_one (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) :
     countQueries oracle p = cost oracle (fun _ => 1) p := rfl
 
--- ## Combinatorial lower bound
+/-! ## Combinatorial lower bound -/
 
 section LowerBound
 
 /-- Finset-based version: if the oracles indexed by `S` produce `|S|`-many distinct
     evaluation results, then some oracle in `S` makes at least `⌈log_r |S|⌉` queries. -/
 private theorem exists_mem_countQueries_ge_clog (r : Nat)
-    (h_fin : ∀ {ρ : Type}, F ρ → Fintype ρ)
-    (h_card : ∀ {ρ : Type} (op : F ρ), @Fintype.card ρ (h_fin op) ≤ r)
+    (h_fin : ∀ {ρ : Type}, F ρ → Finite ρ)
+    (h_card : ∀ {ρ : Type}, F ρ → Nat.card ρ ≤ r)
     {ix : Type} (p : FreeM F α) (S : Finset ix) (hS : S.Nonempty)
     (oracles : ix → ({ρ : Type} → F ρ → ρ))
     (h_inj : Set.InjOn (fun i => p.eval (oracles i)) ↑S) :
@@ -203,8 +204,11 @@ private theorem exists_mem_countQueries_ge_clog (r : Nat)
       exact ⟨i, hi, by simp [Nat.clog_of_left_le_one hr]⟩
     push Not at hr
     -- 2 ≤ r, 2 ≤ S.card
-    let _ : Fintype ρ := h_fin op
-    have hk : Fintype.card ρ ≤ r := h_card op
+    have : Finite ρ := h_fin op
+    let _ : Fintype ρ := Fintype.ofFinite ρ
+    have hk : Fintype.card ρ ≤ r := by
+      rw [← Nat.card_eq_fintype_card]
+      exact h_card op
     -- Fintype.card ρ ≥ 1: any oracle produces an answer
     obtain ⟨i₀, _hi₀⟩ := hS
     have : Nonempty ρ := ⟨oracles i₀ op⟩
@@ -258,8 +262,8 @@ the adversarial/partition argument: at each query node, the `n` oracles split by
 answer; the largest group (size ≥ ⌈n/r⌉) still produces distinct results in the
 corresponding subtree, and the induction proceeds there. -/
 theorem exists_countQueries_ge_clog (r : Nat)
-    (h_fin : ∀ {ρ : Type}, F ρ → Fintype ρ)
-    (h_card : ∀ {ρ : Type} (op : F ρ), @Fintype.card ρ (h_fin op) ≤ r)
+    (h_fin : ∀ {ρ : Type}, F ρ → Finite ρ)
+    (h_card : ∀ {ρ : Type}, F ρ → Nat.card ρ ≤ r)
     (p : FreeM F α) {n : Nat}
     (oracles : Fin n → ({ρ : Type} → F ρ → ρ))
     (hn : 0 < n)
@@ -273,5 +277,3 @@ theorem exists_countQueries_ge_clog (r : Nat)
 end LowerBound
 
 end Cslib.FreeM
-
-end -- public section

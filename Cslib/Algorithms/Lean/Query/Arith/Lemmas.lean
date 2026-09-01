@@ -28,7 +28,7 @@ namespace Cslib.Query
 
 variable {α : Type}
 
--- ## Correctness
+/-! ## Correctness -/
 
 theorem complexMulNaive_eval_honest [Add α] [Sub α] [Mul α] (a b c d : α) :
     (complexMulNaive a b c d).eval ArithQuery.honest = (a * c - b * d, a * d + b * c) := by
@@ -39,7 +39,7 @@ theorem complexMulGauss_eval_honest [CommRing α] (a b c d : α) :
   simp [complexMulGauss, ArithQuery.doMul, ArithQuery.doSub, ArithQuery.doAdd, ArithQuery.honest]
   ring
 
--- ## Exact cost counts
+/-! ## Exact cost counts -/
 
 theorem complexMulNaive_cost (oracle : {ι : Type} → ArithQuery α ι → ι)
     (c_add c_mul : Nat) (a b c d : α) :
@@ -55,7 +55,7 @@ theorem complexMulGauss_cost (oracle : {ι : Type} → ArithQuery α ι → ι)
   simp [complexMulGauss, ArithQuery.doMul, ArithQuery.doSub, ArithQuery.doAdd, ArithQuery.weight]
   omega
 
--- ## Crossover: Gauss beats naive when multiplication costs at least 3× addition
+/-! ## Crossover: Gauss beats naive when multiplication costs at least 3× addition -/
 
 theorem gauss_le_naive (oracle : {ι : Type} → ArithQuery α ι → ι)
     (c_add c_mul : Nat) (a b c d : α) (h : 3 * c_add ≤ c_mul) :
@@ -73,5 +73,3 @@ theorem gauss_le_naive_iff (oracle : {ι : Type} → ArithQuery α ι → ι)
   omega
 
 end Cslib.Query
-
-end -- public section
