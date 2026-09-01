@@ -16,7 +16,7 @@ public import Mathlib.SetTheory.Cardinal.Finite
 /-! # FreeM: query/cost interpreters and lower-bound lemma
 
 This file adds query-complexity interpreters to `FreeM F α`, where the type constructor
-`F : Type → Type` represents a query type mapping each query to its response type.
+`F : Type u → Type v` represents a query type mapping each query to its response type.
 
 The key operations are:
 - `FreeM.eval oracle p`: evaluate `p` by answering each query using `oracle`
@@ -45,7 +45,9 @@ open Cslib.Algorithms.Lean (TimeM)
 
 namespace Cslib.FreeM
 
-variable {F : Type → Type} {α β : Type}
+universe u v t w
+
+variable {F : Type u → Type v} {α β : Type u}
 
 /-! ## Interpreters
 
@@ -65,39 +67,39 @@ property as the primary abstraction. -/
 
 /-- Evaluate a program by answering each query using `oracle`.
 Defined as `liftM` to `Id`, the canonical interpreter into pure values. -/
-@[expose] def eval (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) : α :=
+@[expose] def eval (oracle : {ι : Type u} → F ι → ι) (p : FreeM F α) : α :=
   Id.run <| p.liftM fun i => pure (oracle i)
 
 /-- Weighted query cost in an additive monoid: each query has a cost given by `weight`,
 accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -/
-@[expose] def cost {T : Type} [AddMonoid T] (oracle : {ι : Type} → F ι → ι)
-    (weight : {ι : Type} → F ι → T) (p : FreeM F α) : T :=
+@[expose] def cost {T : Type t} [AddMonoid T] (oracle : {ι : Type u} → F ι → ι)
+    (weight : {ι : Type u} → F ι → T) (p : FreeM F α) : T :=
   TimeM.time <| p.liftM fun op => ⟨oracle op, weight op⟩
 
 /-- Count the number of queries along the path determined by `oracle`. -/
-@[expose] def countQueries (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) : Nat :=
+@[expose] def countQueries (oracle : {ι : Type u} → F ι → ι) (p : FreeM F α) : Nat :=
   cost oracle (fun _ => 1) p
 
 /-! ### Simp lemmas for `eval` -/
 
-@[simp] theorem eval_pure (oracle : {ι : Type} → F ι → ι) (a : α) :
+@[simp] theorem eval_pure (oracle : {ι : Type u} → F ι → ι) (a : α) :
     eval oracle (pure a : FreeM F α) = a := rfl
 
-@[simp] theorem eval_liftBind (oracle : {ι : Type} → F ι → ι)
-    {ι : Type} (op : F ι) (cont : ι → FreeM F α) :
+@[simp] theorem eval_liftBind (oracle : {ι : Type u} → F ι → ι)
+    {ι : Type u} (op : F ι) (cont : ι → FreeM F α) :
     eval oracle (FreeM.lift op >>= cont) = eval oracle (cont (oracle op)) := rfl
 
-@[simp] theorem eval_lift (oracle : {ι : Type} → F ι → ι) {ι : Type} (op : F ι) :
+@[simp] theorem eval_lift (oracle : {ι : Type u} → F ι → ι) {ι : Type u} (op : F ι) :
     eval oracle (FreeM.lift op) = oracle op := rfl
 
-@[simp] theorem eval_bind (oracle : {ι : Type} → F ι → ι)
+@[simp] theorem eval_bind (oracle : {ι : Type u} → F ι → ι)
     (t : FreeM F α) (f : α → FreeM F β) :
     eval oracle (t >>= f) = eval oracle (f (eval oracle t)) := by
   induction t with
   | pure a => rfl
   | lift_bind op cont ih => exact ih (oracle op)
 
-@[simp] theorem eval_map (oracle : {ι : Type} → F ι → ι)
+@[simp] theorem eval_map (oracle : {ι : Type u} → F ι → ι)
     (t : FreeM F α) (f : α → β) :
     eval oracle (f <$> t) = f (eval oracle t) := by
   rw [← FreeM.map_eq_map, ← FreeM.bind_pure_comp, FreeM.bind_eq_bind, eval_bind]
@@ -105,25 +107,25 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
 
 /-! ### Simp lemmas for `cost` -/
 
-@[simp] theorem cost_pure {T : Type} [AddMonoid T] (oracle : {ι : Type} → F ι → ι)
-    (weight : {ι : Type} → F ι → T) (a : α) :
+@[simp] theorem cost_pure {T : Type t} [AddMonoid T] (oracle : {ι : Type u} → F ι → ι)
+    (weight : {ι : Type u} → F ι → T) (a : α) :
     cost oracle weight (pure a : FreeM F α) = 0 := rfl
 
-@[simp] theorem cost_liftBind {T : Type} [AddMonoid T]
-    (oracle : {ι : Type} → F ι → ι) (weight : {ι : Type} → F ι → T)
-    {ι : Type} (op : F ι) (cont : ι → FreeM F α) :
+@[simp] theorem cost_liftBind {T : Type t} [AddMonoid T]
+    (oracle : {ι : Type u} → F ι → ι) (weight : {ι : Type u} → F ι → T)
+    {ι : Type u} (op : F ι) (cont : ι → FreeM F α) :
     cost oracle weight (FreeM.lift op >>= cont) =
       weight op + cost oracle weight (cont (oracle op)) := rfl
 
-@[simp] theorem cost_lift {T : Type} [AddMonoid T]
-    (oracle : {ι : Type} → F ι → ι) (weight : {ι : Type} → F ι → T)
-    {ι : Type} (op : F ι) :
+@[simp] theorem cost_lift {T : Type t} [AddMonoid T]
+    (oracle : {ι : Type u} → F ι → ι) (weight : {ι : Type u} → F ι → T)
+    {ι : Type u} (op : F ι) :
     cost oracle weight (FreeM.lift op) = weight op := by
   change weight op + 0 = weight op
   exact add_zero _
 
-@[simp] theorem cost_bind {T : Type} [AddMonoid T] (oracle : {ι : Type} → F ι → ι)
-    (weight : {ι : Type} → F ι → T) (t : FreeM F α) (f : α → FreeM F β) :
+@[simp] theorem cost_bind {T : Type t} [AddMonoid T] (oracle : {ι : Type u} → F ι → ι)
+    (weight : {ι : Type u} → F ι → T) (t : FreeM F α) (f : α → FreeM F β) :
     cost oracle weight (t >>= f) =
       cost oracle weight t + cost oracle weight (f (eval oracle t)) := by
   induction t with
@@ -136,8 +138,8 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
         cost oracle weight (f (eval oracle (cont (oracle op))))
     simp only [ih, add_assoc]
 
-@[simp] theorem cost_map {T : Type} [AddMonoid T]
-    (oracle : {ι : Type} → F ι → ι) (weight : {ι : Type} → F ι → T)
+@[simp] theorem cost_map {T : Type t} [AddMonoid T]
+    (oracle : {ι : Type u} → F ι → ι) (weight : {ι : Type u} → F ι → T)
     (t : FreeM F α) (f : α → β) :
     cost oracle weight (f <$> t) = cost oracle weight t := by
   rw [← FreeM.map_eq_map, ← FreeM.bind_pure_comp, FreeM.bind_eq_bind, cost_bind]
@@ -145,32 +147,32 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
 
 /-! ### Simp lemmas for `countQueries` -/
 
-@[simp] theorem countQueries_pure (oracle : {ι : Type} → F ι → ι) (a : α) :
+@[simp] theorem countQueries_pure (oracle : {ι : Type u} → F ι → ι) (a : α) :
     countQueries oracle (pure a : FreeM F α) = 0 := rfl
 
-@[simp] theorem countQueries_liftBind (oracle : {ι : Type} → F ι → ι)
-    {ι : Type} (op : F ι) (cont : ι → FreeM F α) :
+@[simp] theorem countQueries_liftBind (oracle : {ι : Type u} → F ι → ι)
+    {ι : Type u} (op : F ι) (cont : ι → FreeM F α) :
     countQueries oracle (FreeM.lift op >>= cont) =
       1 + countQueries oracle (cont (oracle op)) := rfl
 
-@[simp] theorem countQueries_lift (oracle : {ι : Type} → F ι → ι)
-    {ι : Type} (op : F ι) :
+@[simp] theorem countQueries_lift (oracle : {ι : Type u} → F ι → ι)
+    {ι : Type u} (op : F ι) :
     countQueries oracle (FreeM.lift op) = 1 := by
   change 1 + 0 = 1
   rfl
 
-@[simp] theorem countQueries_bind (oracle : {ι : Type} → F ι → ι)
+@[simp] theorem countQueries_bind (oracle : {ι : Type u} → F ι → ι)
     (t : FreeM F α) (f : α → FreeM F β) :
     countQueries oracle (t >>= f) =
       countQueries oracle t + countQueries oracle (f (eval oracle t)) :=
   cost_bind oracle (fun _ => 1) t f
 
-@[simp] theorem countQueries_map (oracle : {ι : Type} → F ι → ι)
+@[simp] theorem countQueries_map (oracle : {ι : Type u} → F ι → ι)
     (t : FreeM F α) (f : α → β) :
     countQueries oracle (f <$> t) = countQueries oracle t :=
   cost_map oracle (fun _ => 1) t f
 
-theorem countQueries_eq_cost_one (oracle : {ι : Type} → F ι → ι) (p : FreeM F α) :
+theorem countQueries_eq_cost_one (oracle : {ι : Type u} → F ι → ι) (p : FreeM F α) :
     countQueries oracle p = cost oracle (fun _ => 1) p := rfl
 
 /-! ## Combinatorial lower bound -/
@@ -180,10 +182,10 @@ section LowerBound
 /-- Finset-based version: if the oracles indexed by `S` produce `|S|`-many distinct
     evaluation results, then some oracle in `S` makes at least `⌈log_r |S|⌉` queries. -/
 private theorem exists_mem_countQueries_ge_clog (r : Nat)
-    (h_fin : ∀ {ρ : Type}, F ρ → Finite ρ)
-    (h_card : ∀ {ρ : Type}, F ρ → Nat.card ρ ≤ r)
-    {ix : Type} (p : FreeM F α) (S : Finset ix) (hS : S.Nonempty)
-    (oracles : ix → ({ρ : Type} → F ρ → ρ))
+    (h_fin : ∀ {ρ : Type u}, F ρ → Finite ρ)
+    (h_card : ∀ {ρ : Type u}, F ρ → Nat.card ρ ≤ r)
+    {ix : Type w} (p : FreeM F α) (S : Finset ix) (hS : S.Nonempty)
+    (oracles : ix → ({ρ : Type u} → F ρ → ρ))
     (h_inj : Set.InjOn (fun i => p.eval (oracles i)) ↑S) :
     ∃ i ∈ S, p.countQueries (oracles i) ≥ Nat.clog r S.card := by
   classical
@@ -262,10 +264,10 @@ the adversarial/partition argument: at each query node, the `n` oracles split by
 answer; the largest group (size ≥ ⌈n/r⌉) still produces distinct results in the
 corresponding subtree, and the induction proceeds there. -/
 theorem exists_countQueries_ge_clog (r : Nat)
-    (h_fin : ∀ {ρ : Type}, F ρ → Finite ρ)
-    (h_card : ∀ {ρ : Type}, F ρ → Nat.card ρ ≤ r)
+    (h_fin : ∀ {ρ : Type u}, F ρ → Finite ρ)
+    (h_card : ∀ {ρ : Type u}, F ρ → Nat.card ρ ≤ r)
     (p : FreeM F α) {n : Nat}
-    (oracles : Fin n → ({ρ : Type} → F ρ → ρ))
+    (oracles : Fin n → ({ρ : Type u} → F ρ → ρ))
     (hn : 0 < n)
     (h_inj : Function.Injective (fun i => p.eval (oracles i))) :
     ∃ i : Fin n, p.countQueries (oracles i) ≥ Nat.clog r n := by
