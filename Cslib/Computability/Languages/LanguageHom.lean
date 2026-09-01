@@ -120,19 +120,20 @@ theorem mem_preimage (f : List α → List β) (l : Language β) (as : List α) 
   rfl
 
 theorem image_singleton (f : List α → List β) (as : List α) :
-    ({as} : Language α).image f = {f as} := by
-  apply Set.image_singleton
+    ({as} : Language α).image f = {f as} :=
+  Set.image_singleton
 
-theorem image_zero (f : List α → List β) : (0 : Language α).image f = 0 := by
-  apply Set.image_empty
+@[simp]
+theorem image_zero (f : List α → List β) : (0 : Language α).image f = 0 :=
+  Set.image_empty _
 
 theorem image_add (f : List α → List β) (l1 l2 : Language α) :
-    (l1 + l2).image f = l1.image f + l2.image f := by
-  apply Set.image_union
+    (l1 + l2).image f = l1.image f + l2.image f :=
+  Set.image_union _ _ _
 
 theorem image_iSup (f : List α → List β) {I : Type*} (l : I → Language α) :
-    (⨆ i : I, l i).image f = ⨆ i : I, (l i).image f := by
-  apply Set.image_iUnion
+    (⨆ i : I, l i).image f = ⨆ i : I, (l i).image f :=
+  Set.image_iUnion
 
 /-! The following distributive laws for the `image` operation requires the function `f`
 to be a language homomorphism. -/
