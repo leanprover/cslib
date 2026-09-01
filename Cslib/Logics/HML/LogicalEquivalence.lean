@@ -85,6 +85,8 @@ instance : IsEquiv (Proposition Label) (Proposition.Equiv lts) := by
   rw [← equivalence_iff_isEquiv]
   grind [Equivalence, Proposition.Equiv]
 
+-- Merging the `specialize` into `grind` breaks the other goal under `all_goals`.
+set_option linter.tacticAnalysis.mergeWithGrind false in
 /-- Logical equivalence is a lawful congruence. -/
 instance (lts : LTS State Label) :
     LawfulCongruence (Proposition.Equiv lts) where
