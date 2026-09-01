@@ -29,77 +29,75 @@ open Cslib Cslib.Query
 
 public section
 
+theorem Function.Injective.extend_sum_inl_inr (f : α → β) (hf : Function.Injective f) :
+    Function.Injective (Function.extend f (Sum.inl : α → α ⊕ β) (Sum.inr : β → α ⊕ β)) := by
+  intro x y h
+  have h_cases (z : β) : (∃ a, f a = z) ∨ (Function.extend f Sum.inl Sum.inr z = Sum.inr z) := by
+    rw [Classical.or_iff_not_imp_left]
+    simp +contextual
+  rcases h_cases x with ⟨a, rfl⟩ | hx <;> rcases h_cases y with ⟨b, rfl⟩ | hy
+  · rw [hf.extend_apply, hf.extend_apply] at h
+    exact congr_arg f (Sum.inl.inj h)
+  · rw [hf.extend_apply, hy] at h; contradiction
+  · rw [hx, hf.extend_apply] at h; contradiction
+  · rw [hx, hy] at h
+    exact Sum.inr.inj h
+
+instance [Std.Total r] : Std.Total (InvImage r f) where
+  total x y := Std.Total.total (f x) (f y)
+
 namespace Cslib.Query
 
-/-! ## infinitePermOrder: constructing n! distinct total orders -/
+/-! ## InfinitePermOrder: constructing n! distinct total orders -/
 
-open Classical in
+/-- Distinguish `n` elements of an infinite type. -/
+private noncomputable def infinitePrefix [Infinite α] : α → Fin n ⊕ α :=
+  Function.extend (Infinite.natEmbedding α <| Fin.val ·) .inl .inr
+
+@[simp, grind =] private lemma infinitePrefix_natEmbedding_finVal [Infinite α] {n : ℕ} (i : Fin n) :
+    infinitePrefix (Infinite.natEmbedding α i.val) = .inl i :=
+  (Infinite.natEmbedding α).injective.comp Fin.val_injective |>.extend_apply _ _ _
+
+private theorem infinitePrefix_injective [Infinite α] :
+    Function.Injective (infinitePrefix : α → Fin n ⊕ α) :=
+  ((Infinite.natEmbedding α).injective.comp Fin.val_injective).extend_sum_inl_inr
+
 /-- A total order on an infinite type `α` that orders `n` embedded elements
     (via `Infinite.natEmbedding`) according to `σ⁻¹`, with embedded elements
     preceding all others, and a well-ordering among non-embedded elements. -/
-private noncomputable def infinitePermOrder [Infinite α] (n : Nat)
-    (σ : Equiv.Perm (Fin n)) (a b : α) : Prop :=
-  if ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a then
-    if hb : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b then
-      σ.symm ha.choose ≤ σ.symm hb.choose
-    else True
-  else
-    if _ : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b then False
-    else @LE.le α (IsWellOrder.linearOrder (α := α) WellOrderingRel).toLE a b
+private noncomputable def InfinitePermOrder [Infinite α] (n : Nat)
+    (σ : Equiv.Perm (Fin n)) : α → α → Prop :=
+  letI := IsWellOrder.linearOrder (α := α) WellOrderingRel
+  InvImage (Sum.Lex (InvImage (· ≤ ·) σ.symm) (· ≤ ·)) infinitePrefix
 
 private noncomputable instance [Infinite α] :
-    DecidableRel (infinitePermOrder (α := α) n σ) := Classical.decRel _
-
-private theorem infinitePermOrder.choose_eq [Infinite α] {i : Fin n}
-    (h : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = (Infinite.natEmbedding α) i.val) :
-    h.choose = i := by
-  grind
+    DecidableRel (InfinitePermOrder (α := α) n σ) := Classical.decRel _
 
 private instance [Infinite α] :
-    IsTrans α (infinitePermOrder (α := α) n σ) where
-  trans a b c hab hbc := by
-    let _ : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
-    unfold infinitePermOrder at *
-    by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a <;>
-    by_cases hb : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b <;>
-    by_cases hc : ∃ k : Fin n, (Infinite.natEmbedding α) k.val = c <;>
-    grind
+    IsTrans α (InfinitePermOrder (α := α) n σ) := by
+  unfold InfinitePermOrder
+  infer_instance
 
 private instance [Infinite α] :
-    Std.Total (infinitePermOrder (α := α) n σ) where
-  total a b := by
-    let _ : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
-    unfold infinitePermOrder
-    by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a
-    · simp only [dite_true_right]
-      grind
-    · simp_all only [reduceDIte, dite_eq_ite, ite_true_left]
-      grind
+    Std.Total (InfinitePermOrder (α := α) n σ) := by
+  unfold InfinitePermOrder
+  infer_instance
 
-attribute [local grind inj] Equiv.injective in
 private instance [Infinite α] :
-    Std.Antisymm (infinitePermOrder (α := α) n σ) where
-  antisymm a b hab hba := by
-    let _ : LinearOrder α := IsWellOrder.linearOrder WellOrderingRel
-    simp only [infinitePermOrder] at hab hba
-    by_cases ha : ∃ i : Fin n, (Infinite.natEmbedding α) i.val = a <;>
-    by_cases hb : ∃ j : Fin n, (Infinite.natEmbedding α) j.val = b <;>
-      simp_all only [↓reduceDIte, not_exists] <;> grind
+    Std.Antisymm (InfinitePermOrder (α := α) n σ) := by
+  have : Std.Antisymm (InvImage (· ≤ ·) σ.symm) := σ.symm.injective.antisymm_onFun _
+  exact infinitePrefix_injective.antisymm_onFun _
 
-/-- `infinitePermOrder` restricted to embedded values matches `σ⁻¹(·) ≤ σ⁻¹(·)`. -/
+/-- `InfinitePermOrder` restricted to embedded values matches `σ⁻¹(·) ≤ σ⁻¹(·)`. -/
 @[grind =]
-private theorem infinitePermOrder_on_embedded [Infinite α] {i j : Fin n} :
-    infinitePermOrder (α := α) n σ ((Infinite.natEmbedding α) i.val)
+private theorem InfinitePermOrder_on_embedded [Infinite α] {i j : Fin n} :
+    InfinitePermOrder (α := α) n σ ((Infinite.natEmbedding α) i.val)
       ((Infinite.natEmbedding α) j.val) ↔ σ.symm i ≤ σ.symm j := by
-  have hi : ∃ k : Fin n, (Infinite.natEmbedding α) k.val = (Infinite.natEmbedding α) i.val :=
-    ⟨i, rfl⟩
-  have hj : ∃ k : Fin n, (Infinite.natEmbedding α) k.val = (Infinite.natEmbedding α) j.val :=
-    ⟨j, rfl⟩
-  grind [infinitePermOrder]
+  simp [InfinitePermOrder, InvImage]
 
-/-- `map (ι ∘ Fin.val ∘ σ) (finRange n)` is pairwise sorted by `infinitePermOrder n σ`. -/
-private theorem pairwise_map_infinitePermOrder [Infinite α] (σ : Equiv.Perm (Fin n)) :
-    List.Pairwise (infinitePermOrder (α := α) n σ)
+/-- `map (ι ∘ Fin.val ∘ σ) (finRange n)` is pairwise sorted by `InfinitePermOrder n σ`. -/
+private theorem pairwise_map_InfinitePermOrder [Infinite α] (σ : Equiv.Perm (Fin n)) :
+    List.Pairwise (InfinitePermOrder (α := α) n σ)
       ((List.finRange n).map (fun i => (Infinite.natEmbedding α) (σ i).val)) := by
   rw [List.pairwise_map]
   exact (List.pairwise_le_finRange n).imp fun hab => by grind
@@ -137,16 +135,16 @@ theorem IsSort.lowerBound_infinite [Infinite α]
     rw [Fintype.card_perm, Fintype.card_fin]
   let e := Fintype.equivFinOfCardEq hcard
   let progOracles : Fin (Nat.factorial n) → ({ι : Type} → LEQuery α ι → ι) :=
-    fun i => LEQuery.oracleOf fun a b => decide (infinitePermOrder n (e.symm i) a b)
+    fun i => LEQuery.oracleOf fun a b => decide (InfinitePermOrder n (e.symm i) a b)
   -- Each oracle produces a unique sorted output
   have eval_eq_map (i) : (sort xs).eval (progOracles i) =
       (List.finRange n).map (fun k => ι ((e.symm i) k).val) := by
     have h_perm := h.perm xs (progOracles i)
     have h_sorted := h.sorted xs (progOracles i)
-      (infinitePermOrder (α := α) n (e.symm i))
+      (InfinitePermOrder (α := α) n (e.symm i))
       (fun a b => by simp [progOracles])
     exact h_perm.trans (map_perm_of_infinite_embedding (e.symm i)).symm |>.eq_of_pairwise'
-      h_sorted (pairwise_map_infinitePermOrder (e.symm i))
+      h_sorted (pairwise_map_InfinitePermOrder (e.symm i))
   have h_inj : Function.Injective (fun i => (sort xs).eval (progOracles i)) := by
     intro i j h_eval
     dsimp only at h_eval
