@@ -15,6 +15,8 @@ A query `LEQuery.le a b` asks whether `a ≤ b` and returns a `Bool`.
 
 public section
 
+open scoped Cardinal
+
 namespace Cslib.Query
 
 /-- Comparison query: asks whether `a ≤ b`, returning a `Bool`. -/
@@ -35,14 +37,11 @@ abbrev LEQuery.ask (a b : α) : FreeM (LEQuery α) Bool :=
 @[simp] theorem LEQuery.oracleOf_le (f : α → α → Bool) (a b : α) :
     LEQuery.oracleOf f (.le a b) = f a b := rfl
 
-/-- Every `LEQuery α ι` has response type `ι = Bool`, hence finite. -/
-theorem LEQuery.finiteResponse : ∀ {ι : Type}, LEQuery α ι → Finite ι
-  | _, .le _ _ => inferInstanceAs (Finite Bool)
+/-- Every `LEQuery α ι` has response type `ι = Bool`, of cardinality two. -/
+theorem LEQuery.cardResponse_eq_two : ∀ {ι : Type}, LEQuery α ι → #ι = 2
+  | _, .le _ _ => Cardinal.mk_bool
 
-theorem LEQuery.cardResponse_eq_two : ∀ {ι : Type}, LEQuery α ι → Nat.card ι = 2
-  | _, .le _ _ => Nat.card_eq_fintype_card.trans Fintype.card_bool
-
-theorem LEQuery.cardResponse_le_two {ι : Type} (op : LEQuery α ι) : Nat.card ι ≤ 2 :=
+theorem LEQuery.cardResponse_le_two {ι : Type} (op : LEQuery α ι) : #ι ≤ 2 :=
   (LEQuery.cardResponse_eq_two op).le
 
 end Cslib.Query

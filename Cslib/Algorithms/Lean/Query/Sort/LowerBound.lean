@@ -20,9 +20,8 @@ has query complexity at least `⌈log₂(n!)⌉` for every input size `n`.
 
 The proof constructs `n!` distinct total orders on `α` (one per permutation of `n`
 embedded elements), shows they produce distinct sorted outputs, and applies
-`FreeM.exists_countQueries_ge_clog` with `LEQuery.finiteResponse` /
-`LEQuery.cardResponse_le_two` witnessing that all responses come from `Bool`
-(cardinality 2).
+`FreeM.exists_countQueries_ge_clog` with `LEQuery.cardResponse_le_two` witnessing that
+all responses come from `Bool` (cardinality 2).
 -/
 
 open Cslib Cslib.Query
@@ -158,7 +157,7 @@ theorem IsSort.lowerBound_infinite [Infinite α]
     exact e.symm.injective (map_finEmbedding_injective h h_eval)
   -- Apply the FreeM lower-bound lemma directly
   obtain ⟨i, hi⟩ := FreeM.exists_countQueries_ge_clog 2
-    LEQuery.finiteResponse LEQuery.cardResponse_le_two
+    LEQuery.cardResponse_le_two
     (sort xs) progOracles (Nat.factorial_pos n) h_inj
   exact ⟨progOracles i, hi⟩
 

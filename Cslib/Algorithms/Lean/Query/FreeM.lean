@@ -52,6 +52,7 @@ and the largest fiber still produces distinct results in the corresponding subtr
 public section
 
 open Cslib.Algorithms.Lean (TimeM)
+open scoped Cardinal
 
 namespace Cslib.FreeM
 
@@ -190,8 +191,7 @@ section LowerBound
 /-- Finset-based version: if the oracles indexed by `S` produce `|S|`-many distinct
     evaluation results, then some oracle in `S` makes at least `⌈log_r |S|⌉` queries. -/
 private theorem exists_mem_countQueries_ge_clog (r : Nat)
-    (h_fin : ∀ {ρ : Type u}, F ρ → Finite ρ)
-    (h_card : ∀ {ρ : Type u}, F ρ → Nat.card ρ ≤ r)
+    (h_card : ∀ {ρ : Type u}, F ρ → #ρ ≤ r)
     {ix : Type w} (p : FreeM F α) (S : Finset ix) (hS : S.Nonempty)
     (oracles : ix → ({ρ : Type u} → F ρ → ρ))
     (h_inj : Set.InjOn (fun i => p.eval (oracles i)) ↑S) :
@@ -214,11 +214,12 @@ private theorem exists_mem_countQueries_ge_clog (r : Nat)
       exact ⟨i, hi, by simp [Nat.clog_of_left_le_one hr]⟩
     push Not at hr
     -- 2 ≤ r, 2 ≤ S.card
-    have : Finite ρ := h_fin op
+    have : Finite ρ :=
+      Cardinal.mk_lt_aleph0_iff.mp ((h_card op).trans_lt Cardinal.natCast_lt_aleph0)
     let _ : Fintype ρ := Fintype.ofFinite ρ
     have hk : Fintype.card ρ ≤ r := by
-      rw [← Nat.card_eq_fintype_card]
-      exact h_card op
+      have h := h_card op
+      rwa [Cardinal.mk_fintype, Nat.cast_le] at h
     -- Fintype.card ρ ≥ 1: any oracle produces an answer
     obtain ⟨i₀, _hi₀⟩ := hS
     have : Nonempty ρ := ⟨oracles i₀ op⟩
@@ -264,22 +265,21 @@ private theorem exists_mem_countQueries_ge_clog (r : Nat)
       _ ≤ 1 + (cont b).countQueries (oracles i) := Nat.add_le_add_left hiq 1
 
 /-- If `n` oracles produce `n` distinct evaluation results from a `FreeM F α` program
-whose every response type is finite of cardinality at most `r`, then some oracle makes
-at least `⌈log_r n⌉` queries.
+whose every response type has cardinality at most `r` (and hence is finite), then some
+oracle makes at least `⌈log_r n⌉` queries.
 
 This is the core combinatorial lemma for query complexity lower bounds. The proof uses
 the adversarial/partition argument: at each query node, the `n` oracles split by their
 answer; the largest group (size ≥ ⌈n/r⌉) still produces distinct results in the
 corresponding subtree, and the induction proceeds there. -/
 theorem exists_countQueries_ge_clog (r : Nat)
-    (h_fin : ∀ {ρ : Type u}, F ρ → Finite ρ)
-    (h_card : ∀ {ρ : Type u}, F ρ → Nat.card ρ ≤ r)
+    (h_card : ∀ {ρ : Type u}, F ρ → #ρ ≤ r)
     (p : FreeM F α) {n : Nat}
     (oracles : Fin n → ({ρ : Type u} → F ρ → ρ))
     (hn : 0 < n)
     (h_inj : Function.Injective (fun i => p.eval (oracles i))) :
     ∃ i : Fin n, p.countQueries (oracles i) ≥ Nat.clog r n := by
-  have ⟨i, _, hi⟩ := exists_mem_countQueries_ge_clog r h_fin h_card p Finset.univ
+  have ⟨i, _, hi⟩ := exists_mem_countQueries_ge_clog r h_card p Finset.univ
     (Finset.univ_nonempty_iff.mpr ⟨⟨0, hn⟩⟩) oracles h_inj.injOn
   rw [Finset.card_univ, Fintype.card_fin] at hi
   exact ⟨i, hi⟩
