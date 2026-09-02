@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Mathlib.Order.Lattice.Nat
 
 /-!
 # Tape head visitation and space-usage lemmas
@@ -15,6 +16,10 @@ This file collects lemmas about the set of positions visited by a work-tape head
 (`MultiTapeTM.visitedByTapeHead`) and the resulting space-usage measures
 (`MultiTapeTM.spaceUsedByTape`, `MultiTapeTM.spaceUsed`) and how the tape head positions
 influence the cells that are modified on a tape.
+
+`MultiTapeTM.exists_spaceUsedByTape_max` shows that a computation whose space usage is bounded
+attains its per-tape space usage at a single step, which makes a bound that holds at every point
+in time usable as a bound for the whole run.
 
 -/
 
@@ -146,5 +151,23 @@ lemma spaceUsed_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State
     Monotone (tm.spaceUsed cfg ·) := by
   intro t t' h
   exact Finset.sum_le_sum (fun i _ => spaceUsedByTape_mono tm cfg i h)
+
+/-- A computation whose total space usage stays below a bound reaches a step `T` at which the space
+usage of *every* tape is maximal. This turns a bound that holds at every point in time into a
+bound for the whole run. -/
+lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
+    (hs : ∀ t, tm.spaceUsed cfg t ≤ s) :
+    ∃ T, ∀ t i, tm.spaceUsedByTape cfg t i ≤ tm.spaceUsedByTape cfg T i := by
+  -- The space usage of a single tape is bounded, so it attains its supremum at some step `T i`.
+  have h : ∀ i, ∃ Ti, ∀ t, tm.spaceUsedByTape cfg t i ≤ tm.spaceUsedByTape cfg Ti i := by
+    intro i
+    have hbdd : BddAbove (Set.range (tm.spaceUsedByTape cfg · i)) :=
+      ⟨s, by rintro _ ⟨t, rfl⟩; exact (tm.spaceUsedByTape_le_spaceUsed cfg t i).trans (hs t)⟩
+    obtain ⟨Ti, hTi⟩ := Nat.sSup_mem (Set.range_nonempty (tm.spaceUsedByTape cfg · i)) hbdd
+    exact ⟨Ti, fun t => (le_csSup hbdd ⟨t, rfl⟩).trans hTi.ge⟩
+  choose T hT using h
+  -- Monotonicity lets us use a single step that is late enough for every tape.
+  exact ⟨Finset.univ.sup T, fun t i =>
+    (hT i t).trans (tm.spaceUsedByTape_mono cfg i (Finset.le_sup (Finset.mem_univ i)))⟩
 
 end Turing.MultiTapeTM
