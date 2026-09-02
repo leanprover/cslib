@@ -246,7 +246,7 @@ lemma liftM_bind [LawfulMonad m]
 @[simp]
 lemma liftM_map [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (f : α → β) (x : FreeM F α) :
-    (f <$> x).liftM interp = f <$> x.liftM interp := by
+    (f <$> x).liftM @interp = f <$> x.liftM @interp := by
   simp_rw [← LawfulMonad.bind_pure_comp, liftM_bind, liftM_pure]
 
 @[simp]

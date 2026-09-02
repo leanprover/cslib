@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kim Morrison, Shreyas Srinivas
+Authors: Kim Morrison, Shreyas Srinivas, Eric Wieser
 -/
 module
 
@@ -16,24 +16,38 @@ open Cslib Cslib.Query
 
 public section
 
-namespace Cslib.Query
+namespace List
 
-/-- Insert `x` into a sorted list using comparison queries. -/
-@[expose] def orderedInsert (x : α) : List α → FreeM (LEQuery α) (List α)
+variable {m} [Monad m] (cmp : α → α → m Bool)
+
+/-- Insert `x` into a sorted list using monadic comparisons. -/
+@[expose] def orderedInsertM (x : α) : List α → m (List α)
   | [] => return [x]
   | y :: ys => do
-    let le ← LEQuery.ask x y
+    let le ← cmp x y
     if le then
       return (x :: y :: ys)
     else do
-      let rest ← orderedInsert x ys
+      let rest ← orderedInsertM x ys
       return (y :: rest)
 
-/-- Sort a list using insertion sort with comparison queries. -/
-@[expose] def insertionSort : List α → FreeM (LEQuery α) (List α)
+/-- Sort a list using insertion sort with monadic comparisons. -/
+@[expose] def insertionSortM : List α → m (List α)
   | [] => return []
   | x :: xs => do
-    let sorted ← insertionSort xs
-    orderedInsert x sorted
+    let sorted ← insertionSortM xs
+    orderedInsertM cmp x sorted
+
+end List
+
+namespace Cslib.Query
+
+/-- Insert `x` into a sorted list using comparison queries. -/
+abbrev orderedInsert (x : α) (xs : List α) : FreeM (LEQuery α) (List α) :=
+  xs.orderedInsertM LEQuery.ask x
+
+/-- Sort a list using insertion sort with comparison queries. -/
+abbrev insertionSort (xs : List α) : FreeM (LEQuery α) (List α) :=
+  xs.insertionSortM LEQuery.ask
 
 end Cslib.Query

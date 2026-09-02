@@ -34,9 +34,9 @@ supplied by the oracle. -/
     (orderedInsert x xs).eval oracle =
       xs.orderedInsert (fun x y => oracle (.le x y)) x := by
   induction xs with
-  | nil => simp [orderedInsert]
+  | nil => simp [List.orderedInsertM]
   | cons y ys ih =>
-    simp [orderedInsert]
+    simp [List.orderedInsertM]
     split <;> simp_all
 
 /-- Evaluating query-based insertion sort agrees with `List.insertionSort` using the relation
@@ -49,18 +49,19 @@ directly from the `List.insertionSort` API rather than being restated here. -/
     (insertionSort xs).eval oracle =
       xs.insertionSort (fun x y => oracle (.le x y)) := by
   induction xs with
-  | nil => simp [insertionSort]
-  | cons x xs ih => simp [insertionSort, ih]
+  | nil => simp [List.insertionSortM]
+  | cons x xs ih => simp [List.insertionSortM, ih]
 
 /-! ## Query count proofs -/
 
 theorem orderedInsert_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
     (x : α) (xs : List α) :
     (orderedInsert x xs).countQueries oracle ≤ xs.length := by
+  unfold orderedInsert
   induction xs with
-  | nil => simp [orderedInsert]
+  | nil => simp [List.orderedInsertM]
   | cons y ys ih =>
-    simp [orderedInsert]
+    simp [List.orderedInsertM]
     by_cases h : oracle (.le x y) = true <;> simp [h]
     omega
 
@@ -71,12 +72,12 @@ theorem insertionSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι �
     (xs : List α) :
     (insertionSort xs).countQueries oracle ≤ xs.length * (xs.length - 1) / 2 := by
   induction xs with
-  | nil => simp [insertionSort]
+  | nil => simp [List.insertionSortM]
   | cons x xs ih =>
     have hq : (insertionSort (x :: xs)).countQueries oracle =
         (insertionSort xs).countQueries oracle +
         (orderedInsert x ((insertionSort xs).eval oracle)).countQueries oracle := by
-      simp [insertionSort]
+      simp [List.insertionSortM]
     have hlen : ((insertionSort xs).eval oracle).length = xs.length := by
       rw [eval_insertionSort]
       exact (List.perm_insertionSort _ xs).length_eq
