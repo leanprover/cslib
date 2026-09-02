@@ -19,9 +19,9 @@ its input head in either direction. A transition reads the symbol under the head
 changing the state, moves the head one cell to the left, keeps it in place, or moves it one cell to
 the right.
 
-The input head cannot leave the input word to the left and once it leaves the word to the right,
-it stops. A run is accepting if and only if it ends in an accepting state with the head just past
-the end of the input.
+The input head cannot leave the input word to the left (in the sense that execution gets stuck in
+this case) and once it leaves the word to the right, it stops. A run is accepting if and only if it
+ends in an accepting state with the head just past the end of the input.
 
 ## Main definitions
 
@@ -32,9 +32,11 @@ the end of the input.
 ## Implementation notes
 
 The definition of `TwoWayNA` is kept close to [Vardi][Vardi1989]'s, because the main point is to
-prove equivalence to `NA.FinAcc`. This means we do not allow the head to move off the input to the
-left, but also do not provide an end marker. Once the head moves off to the right, it cannot move
-back into the word.
+prove that it accepts the same languages as `NA.FinAcc` via his proof. This means we do not allow
+the head to move off the input to the left (in the sense that if the transition relation has an
+entry that would cause that, there is no successor configuration, the computation is stuck), but
+also do not provide an end marker. Once the head moves off to the right, the machine instantly
+stops, so it also cannot move back into the word.
 
 ## References
 
@@ -88,8 +90,13 @@ def TwoWayNA.toCfgNAFinAcc {State Symbol : Type*} (a : TwoWayNA State Symbol)
   Tr
     | c, (x, m), c' =>
       c.input = c'.input ∧
+      -- This also enforces that `c`'s input head position has to be inside the word.
       some x = c.input[c.pos]? ∧
       a.Tr c.state x m c'.state ∧
+      -- By doing input head position arithmetic and comparison in the integers, we get the
+      -- desired restrictions since `0 ≤ c'.pos < n + 1` and `0 ≤ c.pos < n`:
+      -- The input head after the transition cannot be left of the word but it is fine to be
+      -- one position right of the word (in which case no further transition is possible).
       (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
   start := { c | c.IsInitialForInput a input }
   accept := { c | c.IsAccepting a }
