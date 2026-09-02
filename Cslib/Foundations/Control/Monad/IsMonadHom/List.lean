@@ -8,7 +8,9 @@ module
 public import Cslib.Init
 public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Mathlib.Data.List.Monad
+
 import all Init.Data.List.Control
+import Mathlib.Data.List.Basic
 
 /-!
 # List operations and monad morphisms
@@ -138,13 +140,70 @@ theorem map_listFirstM {F : ∀ {α}, m α → n α} (hf : IsAlternativeHom m n 
 
 end IsAlternativeHom
 
-/-! ### Monad homomorphisms on `List` -/
+/-! ### Monad homomorphisms on the `List` monad -/
+
+@[grind .]
+theorem IsApplicativeHom.map_listSingleton
+    {F : ∀ {α}, List α → List α} (hf : IsApplicativeHom List List F) {α} (a : α) :
+    F ([a] : List α) = [a] := hf.map_pure _
+
+@[grind .]
+theorem IsMonadHom.map_listFlatMap
+    {F : ∀ {α}, List α → List α} (hf : IsMonadHom List List F) {α β} (l : List α) (g : α → List β) :
+    F (l.flatMap g) = (F l).flatMap (F <| g ·) := hf.map_bind _ _
+
+@[grind .]
+theorem IsFunctorHom.map_listNil {F : ∀ {α}, List α → List α} (hf : IsFunctorHom List List F) {α} :
+    F ([] : List α) = [] := by
+  simpa [Subsingleton.elim (F ([] : List PEmpty)) []]
+    using (hf.map_map PEmpty.elim []).symm
 
 protected theorem List.isMonadHom_reverse : IsMonadHom List List List.reverse :=
   .mk' (fun _ => rfl) (fun _ _ => List.reverse_flatMap)
 
-/-- The only applicative morphism on lists are the identity and reversal. -/
-proof_wanted isApplicative_list_iff (f : ∀ {α}, List α → List α) :
-    IsApplicativeHom List List f ↔ @f = (@id <| List ·) ∨ @f = @List.reverse
+section uniqueness
+
+/-- A property holds on all lists if it holds on the nil list, the singleton list,
+and concatenations thereof. -/
+private theorem List.nil_singleton_append_induction {motive : List α → Prop}
+    (nil : motive []) (singleton : ∀ a, motive [a])
+    (append : ∀ xs ys, motive xs → motive ys → motive (xs ++ ys)) :
+    ∀ l, motive l
+  | [] => nil
+  | x :: xs => append [x] xs (singleton x) (nil_singleton_append_induction nil singleton append xs)
+
+/-- Universe-generic type with two elements. This is used only internally in a proof, and keeps
+things more concise than `ULift Bool`. -/
+private inductive Two : Type u | a | b
+
+private theorem eq_ab_or_ba : ∀ (l : List Two),
+    l.flatMap (fun | .a => [.a] | .b => []) = [Two.a] →
+    l.flatMap (fun | .a => [] | .b => [.b]) = [Two.b] →
+    l = [Two.a, Two.b] ∨ l = [Two.b, Two.a]
+  | [.a, .b], _, _ => .inl rfl
+  | [.b, .a], _, _ => .inr rfl
+
+/-- The only monad morphisms on lists are the identity and reversal. -/
+theorem isMonadHom_list_iff (f : ∀ {α : Type u}, List α → List α) :
+    IsMonadHom List List @f ↔ @f = (@id <| List ·) ∨ @f = @List.reverse := by
+  refine ⟨fun h => ?_, ?_⟩
+  · have h_append {α} (xs ys : List α) :
+        f (xs ++ ys) = (f [Two.a, Two.b]).flatMap (fun | .a => f xs | .b => f ys) := by
+      have : xs ++ ys = [Two.a, Two.b].flatMap (fun | .a => xs | .b => ys) := by
+        simp
+      rw [this, h.map_listFlatMap]
+      congr 1; funext x; cases x <;> rfl
+    refine (eq_ab_or_ba (f [Two.a, Two.b]) ?_ ?_).imp (fun hL => ?_) (fun hL => ?_)
+    · simpa [h.map_listNil, h.map_listSingleton] using (h_append [Two.a] []).symm
+    · simpa [h.map_listNil, h.map_listSingleton] using (h_append [] [Two.b]).symm
+    · funext α l
+      induction l using List.nil_singleton_append_induction with grind
+    · funext α l
+      induction l using List.nil_singleton_append_induction with grind
+  · rintro (rfl | rfl)
+    · exact .id _
+    · exact List.isMonadHom_reverse
+
+end uniqueness
 
 end Cslib
