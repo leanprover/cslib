@@ -6,6 +6,7 @@ Authors: Kim Morrison, Shreyas Srinivas
 module
 
 public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
+import Mathlib.Data.List.Sort
 
 /-! # IsSort: Specification for Comparison Sorts
 
@@ -31,5 +32,16 @@ structure IsSort (sort : List α → FreeM (LEQuery α) (List α)) : Prop where
     (r : α → α → Prop) [DecidableRel r] [Std.Total r] [IsTrans α r]
     (_ : ∀ a b, oracle (.le a b) = decide (r a b)),
     ((sort xs).eval oracle).Pairwise r
+
+/-- `IsSort` determines the output: under an oracle implementing an antisymmetric total
+    transitive relation, all correct comparison sorts produce the same list. -/
+theorem IsSort.eval_eq {sort₁ sort₂ : List α → FreeM (LEQuery α) (List α)}
+    (h₁ : IsSort sort₁) (h₂ : IsSort sort₂)
+    (r : α → α → Prop) [DecidableRel r] [Std.Total r] [IsTrans α r] [Std.Antisymm r]
+    (oracle : {ι : Type} → LEQuery α ι → ι)
+    (horacle : ∀ a b, oracle (.le a b) = decide (r a b)) (xs : List α) :
+    (sort₁ xs).eval oracle = (sort₂ xs).eval oracle :=
+  ((h₁.perm xs oracle).trans (h₂.perm xs oracle).symm).eq_of_pairwise'
+    (h₁.sorted xs oracle r horacle) (h₂.sorted xs oracle r horacle)
 
 end Cslib.Query
