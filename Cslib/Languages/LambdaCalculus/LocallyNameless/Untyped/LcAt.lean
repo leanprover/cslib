@@ -64,15 +64,21 @@ lemma depth_openRec_fvar_eq_depth (M : Term Var) (x : Var) (i : ℕ) :
 theorem depth_open_fvar_eq_depth (M : Term Var) (x : Var) : depth (M ^ fvar x) = depth M :=
   depth_openRec_fvar_eq_depth M x 0
 
-/-- Opening for some free variable at i-th bound variable, increments `LcAt`. -/
+lemma lcAt_le (M : Term Var) (i j : ℕ) (h : i ≤ j) (lc : LcAt i M) : LcAt j M := by
+  induction M generalizing i j <;> grind
+
 @[simp, scoped grind =]
-theorem lcAt_openRec_fvar_iff_lcAt (M : Term Var) (x : Var) (i : ℕ) :
-    LcAt i (M⟦i ↝ fvar x⟧) = LcAt (i + 1) M := by
-  induction M generalizing i <;> grind
+theorem lcAt_openRec_iff_lcAt (M N : Term Var) (i : ℕ) (h : LcAt i N) :
+    LcAt i (M⟦i ↝ N⟧) = LcAt (i + 1) M := by
+  induction M generalizing i with
+  | bvar _ => grind
+  | fvar _ => grind
+  | app _ _ _ _ => grind
+  | abs _ ih => exact ih _ (lcAt_le _ _ _ (by omega) h)
 
 /-- Opening for some free variable is locally closed if and only if `M` is `LcAt 1`. -/
 theorem lcAt_open_fvar_iff_lcAt (M : Term Var) (x : Var) : LcAt 0 (M ^ fvar x) = LcAt 1 M :=
-  lcAt_openRec_fvar_iff_lcAt M x 0
+  lcAt_openRec_iff_lcAt M (fvar x) 0 (lcAt_le _ 0 0 (by omega) (by grind))
 
 /-- Locally closed terms. -/
 inductive LC : Term Var → Prop
@@ -133,9 +139,6 @@ lemma open_abs_lc [HasFresh Var] {M N : Term Var} (hlc : LC (M ^ N)) : LC (M.abs
 
 lemma lcAt_openRec_above_lcAt (M N : Term Var) (i j : ℕ) (h : i ≤ j) (lc : LcAt i M) :
     M⟦j ↝ N⟧ = M := by
-  induction M generalizing i j <;> grind
-
-lemma lcAt_le (M : Term Var) (i j : ℕ) (h : i ≤ j) (lc : LcAt i M) : LcAt j M := by
   induction M generalizing i j <;> grind
 
 end Cslib.LambdaCalculus.LocallyNameless.Untyped.Term
