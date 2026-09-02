@@ -8,7 +8,6 @@ module
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
-public import Mathlib.Algebra.Group.Defs
 public import Mathlib.Data.Nat.Log
 import all Init.Data.List.Sort.Basic
 
