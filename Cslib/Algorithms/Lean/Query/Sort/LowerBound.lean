@@ -29,21 +29,17 @@ open Cslib Cslib.Query
 
 public section
 
-theorem Function.Injective.extend_sum_inl_inr (f : α → β) (hf : Function.Injective f) :
+-- Proposed upstream in https://github.com/leanprover-community/mathlib4/pull/43325;
+-- remove once cslib's Mathlib includes it.
+private theorem Function.Injective.extend_sum_inl_inr (f : α → β) (hf : Function.Injective f) :
     Function.Injective (Function.extend f (Sum.inl : α → α ⊕ β) (Sum.inr : β → α ⊕ β)) := by
-  intro x y h
-  have h_cases (z : β) : (∃ a, f a = z) ∨ (Function.extend f Sum.inl Sum.inr z = Sum.inr z) := by
-    rw [Classical.or_iff_not_imp_left]
-    simp +contextual
-  rcases h_cases x with ⟨a, rfl⟩ | hx <;> rcases h_cases y with ⟨b, rfl⟩ | hy
-  · rw [hf.extend_apply, hf.extend_apply] at h
-    exact congr_arg f (Sum.inl.inj h)
-  · rw [hf.extend_apply, hy] at h; contradiction
-  · rw [hx, hf.extend_apply] at h; contradiction
-  · rw [hx, hy] at h
-    exact Sum.inr.inj h
+  apply Function.LeftInverse.injective (g := Sum.elim f id)
+  intro x
+  obtain ⟨a, rfl⟩ | hx := em (∃ a, f a = x) <;> simp_all
 
-instance [Std.Total r] : Std.Total (InvImage r f) where
+-- Proposed upstream in https://github.com/leanprover-community/mathlib4/pull/43326;
+-- remove once cslib's Mathlib includes it.
+private instance [Std.Total r] : Std.Total (InvImage r f) where
   total x y := Std.Total.total (f x) (f y)
 
 namespace Cslib.Query
