@@ -7,6 +7,7 @@ Authors: Quang Dao
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Mathlib.Data.PFunctor.Univariate.Basic
 
 /-!
@@ -321,6 +322,16 @@ theorem Interprets.iff (handler : (a : P.A) → m (P.B a)) (eval : P.FreeM α �
     Interprets handler eval ↔ eval = (·.liftM handler) :=
   ⟨(·.eq), fun h => h ▸ Interprets.liftM _⟩
 
+/-- A morphism of monads moves inside `FreeM.liftM`. -/
+theorem _root_.Cslib.IsMonadHom.map_pfunctorFreeMLiftM [Monad n]
+    {f : ∀ {α}, m α → n α} (hf : Cslib.IsMonadHom m n f) (interp : (a : P.A) → m (P.B a))
+    (x : P.FreeM α) :
+    f (x.liftM interp) = x.liftM (fun op => f (interp op)) := by
+  induction x with
+  | pure a => exact hf.map_pure a
+  | lift_bind op cont ih =>
+    simp only [bind_eq_bind, liftM_lift_bind, hf.map_bind, ih]
+
 variable [LawfulMonad m]
 
 @[simp]
@@ -336,28 +347,32 @@ lemma liftM_bind {α β : Type uB} (x : P.FreeM α) (f : α → P.FreeM β) :
     funext u
     exact h u
 
+/-- `FreeM.liftM interp` is a morphism of monads. -/
+theorem isMonadHom_liftM : Cslib.IsMonadHom P.FreeM m (FreeM.liftM interp) :=
+  .mk' (liftM_pure interp) (liftM_bind interp)
+
 @[simp]
 lemma liftM_map {α β : Type uB} (f : α → β) (x : P.FreeM α) :
-    (f <$> x).liftM interp = f <$> x.liftM interp := by
-  simp_rw [← LawfulMonad.bind_pure_comp, liftM_bind, liftM_pure]
+    (f <$> x).liftM interp = f <$> x.liftM interp :=
+  isMonadHom_liftM interp |>.map_map _ _
 
 @[simp]
 lemma liftM_seq {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : P.FreeM (α → β)) (y : P.FreeM α) :
-    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp := by
-  simp [seq_eq_bind_map]
+    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seq _ _
 
 @[simp]
 lemma liftM_seqLeft {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : P.FreeM α) (y : P.FreeM β) :
-    (x <* y).liftM interp = x.liftM interp <* y.liftM interp := by
-  simp [seqLeft_eq_bind]
+    (x <* y).liftM interp = x.liftM interp <* y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seqLeft _ _
 
 @[simp]
 lemma liftM_seqRight {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : P.FreeM α) (y : P.FreeM β) :
-    (x *> y).liftM interp = x.liftM interp *> y.liftM interp := by
-  simp [seqRight_eq_bind]
+    (x *> y).liftM interp = x.liftM interp *> y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seqRight _ _
 
 @[simp]
 lemma liftM_lift (interp : (a : P.A) → m (P.B a)) (a : P.A) :
