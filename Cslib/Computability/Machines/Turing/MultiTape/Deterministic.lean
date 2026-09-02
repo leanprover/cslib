@@ -164,6 +164,14 @@ structure Cfg (k : ℕ) (Symbol State : Type*) (input : List Symbol) where
   output : List Symbol
 deriving Inhabited
 
+/-- Two configurations of a machine without work tapes are equal if their states, input head
+positions and outputs are equal. -/
+lemma Cfg.ext_zero_tapes {Symbol State : Type*} {input : List Symbol}
+    {cfg₁ cfg₂ : Cfg 0 Symbol State input} (state : cfg₁.state = cfg₂.state)
+    (inputPos : cfg₁.inputPos = cfg₂.inputPos) (output : cfg₁.output = cfg₂.output) :
+    cfg₁ = cfg₂ :=
+  Cfg.ext state inputPos (funext fun i => i.elim0) (funext fun i => i.elim0) output
+
 /-- Attempt to move the input tape head.
 The machine can only read one empty cell outside of the input,
 any attempted movement beyond that results in no movement.
@@ -397,6 +405,21 @@ def ComputesFunInTimeAndSpace
   ∀ input, ∃ t' ≤ t input.length, ∃ s' ≤ s input.length,
   ComputesInTimeAndSpace tm (input.map toMachineSymbol) ((f input).map toMachineSymbol) t' s'
 
+/-- A proof that the Turing machine `tm` computes the function `f` relative to some encoding
+of the input / output type such that on all inputs of encoded length `n` it uses at most `t n`
+steps and `s n` space.
+The tape alphabet of the Turing machine is always binary.
+Note that this does not require the alphabet or state set to be finite. -/
+def ComputesEncodedFunInTimeAndSpace
+    {α β : Type*}
+    (tm : MultiTapeTM k Bool State)
+    (encIn : α ↪ List Bool)
+    (encOut : β ↪ List Bool)
+    (f : α → β)
+    (t s : ℕ → ℕ) : Prop :=
+  ∀ input, ∃ t' ≤ t (encIn input).length, ∃ s' ≤ s (encIn input).length,
+  ComputesInTimeAndSpace tm (encIn input) (encOut (f input)) t' s'
+
 /-- The main definition of complexity of multi-tape Turing machines:
 A proof that the function `f` is computable by some multi-tape Turing machine `tm` (with finite
 work alphabet and finite state set) via an alphabet embedding function `toMachineSymbol`,
@@ -405,8 +428,21 @@ def ComputableInTimeAndSpace
     {IOSymbol : Type*}
     (f : List IOSymbol → List IOSymbol)
     (t s : ℕ → ℕ) : Prop :=
-  ∃ (k sym state : ℕ) (toMachineSymbol : _) (tm : MultiTapeTM k (Fin sym) (Fin state)),
+  ∃ (k : ℕ) (Symbol State : Type) (_ : Finite Symbol) (_ : Finite State) (toMachineSymbol : _)
+    (tm : MultiTapeTM k Symbol State),
   ComputesFunInTimeAndSpace tm f toMachineSymbol t s
+
+/-- A proof that the function `f` is computable by some multi-tape Turing machine with binary
+tape alphabet and finite state set, relative to the encodings `encIn` and `encOut` of its input and
+output type, such that on all inputs of encoded length `n` it uses at most `t n` steps and at most
+`s n` space. -/
+def EncodedComputableInTimeAndSpace {α β : Type*}
+    (f : α → β)
+    (encIn : α ↪ List Bool)
+    (encOut : β ↪ List Bool)
+    (t s : ℕ → ℕ) : Prop :=
+  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
+  ComputesEncodedFunInTimeAndSpace tm encIn encOut f t s
 
 open Classical in
 /-- The indicator function of a language. -/
