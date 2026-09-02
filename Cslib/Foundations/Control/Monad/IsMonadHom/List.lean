@@ -147,7 +147,6 @@ theorem IsApplicativeHom.map_listSingleton
     {F : ∀ {α}, List α → List α} (hf : IsApplicativeHom List List F) {α} (a : α) :
     F ([a] : List α) = [a] := hf.map_pure _
 
-@[grind .]
 theorem IsMonadHom.map_listFlatMap
     {F : ∀ {α}, List α → List α} (hf : IsMonadHom List List F) {α β} (l : List α) (g : α → List β) :
     F (l.flatMap g) = (F l).flatMap (F <| g ·) := hf.map_bind _ _
