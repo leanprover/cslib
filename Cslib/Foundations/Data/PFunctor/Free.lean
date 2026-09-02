@@ -352,7 +352,7 @@ theorem isMonadHom_liftM : Cslib.IsMonadHom P.FreeM m (FreeM.liftM interp) :=
   .mk' (liftM_pure interp) (liftM_bind interp)
 
 @[simp]
-lemma liftM_map {α β : Type uB} (f : α → β) (x : P.FreeM α) :
+lemma liftM_map {α β : Type uB} (f : α → β) (interp : (a : P.A) → m (P.B a)) (x : P.FreeM α) :
     (f <$> x).liftM interp = f <$> x.liftM interp :=
   isMonadHom_liftM interp |>.map_map _ _
 

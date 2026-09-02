@@ -7,6 +7,7 @@ module
 
 public import Cslib.Init
 public import Mathlib.Logic.Function.Defs
+public import Batteries.Control.AlternativeMonad
 
 /-!
 # (unbundled) morphisms of monads
@@ -59,9 +60,9 @@ protected theorem id : IsFunctorHom m m id where
 
 protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n α}
     (hf : IsFunctorHom n p f) (hg : IsFunctorHom m n g) :
-    IsFunctorHom m p (Function.dcomp f g) where
-  map_map _ _ := by simp [Function.dcomp, hf.map_map, hg.map_map]
-  map_mapConst _ _ := by simp [Function.dcomp, hf.map_mapConst, hg.map_mapConst]
+    IsFunctorHom m p (f ∘ g) where
+  map_map _ _ := by simp [hf.map_map, hg.map_map]
+  map_mapConst _ _ := by simp [hf.map_mapConst, hg.map_mapConst]
 
 end IsFunctorHom
 
@@ -145,12 +146,12 @@ protected theorem id : IsApplicativeHom m m id where
 
 protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n α}
     (hf : IsApplicativeHom n p f) (hg : IsApplicativeHom m n g) :
-    IsApplicativeHom m p (Function.dcomp f g) where
-  map_pure _ := by simp [Function.dcomp, hf.map_pure, hg.map_pure]
+    IsApplicativeHom m p (f ∘ g) where
+  map_pure _ := by simp [hf.map_pure, hg.map_pure]
   toIsFunctorHom := hf.toIsFunctorHom.comp hg.toIsFunctorHom
-  map_seq _ _ := by simp [Function.dcomp, hf.map_seq, hg.map_seq]
-  map_seqLeft _ _ := by simp [Function.dcomp, hf.map_seqLeft, hg.map_seqLeft]
-  map_seqRight _ _ := by simp [Function.dcomp, hf.map_seqRight, hg.map_seqRight]
+  map_seq _ _ := by simp [hf.map_seq, hg.map_seq]
+  map_seqLeft _ _ := by simp [hf.map_seqLeft, hg.map_seqLeft]
+  map_seqRight _ _ := by simp [hf.map_seqRight, hg.map_seqRight]
 
 end IsApplicativeHom
 
@@ -203,9 +204,9 @@ protected theorem id : IsMonadHom m m id where
 
 protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n α}
     (hf : IsMonadHom n p f) (hg : IsMonadHom m n g) :
-    IsMonadHom m p (Function.dcomp f g) where
+    IsMonadHom m p (f ∘ g) where
   toIsApplicativeHom := hf.toIsApplicativeHom.comp hg.toIsApplicativeHom
-  map_bind _ _ := by simp [Function.dcomp, hf.map_bind, hg.map_bind]
+  map_bind _ _ := by simp [hf.map_bind, hg.map_bind]
 
 end IsMonadHom
 
@@ -249,10 +250,10 @@ protected theorem id : IsAlternativeHom m m id where
 
 protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n α}
     (hf : IsAlternativeHom n p f) (hg : IsAlternativeHom m n g) :
-    IsAlternativeHom m p (Function.dcomp f g) where
+    IsAlternativeHom m p (f ∘ g) where
   toIsApplicativeHom := hf.toIsApplicativeHom.comp hg.toIsApplicativeHom
-  map_failure := by simp [Function.dcomp, hf.map_failure, hg.map_failure]
-  map_orElse _ _ := by simp [Function.dcomp, hf.map_orElse, hg.map_orElse]
+  map_failure := by simp [hf.map_failure, hg.map_failure]
+  map_orElse _ _ := by simp [hf.map_orElse, hg.map_orElse]
 
 end IsAlternativeHom
 
@@ -292,10 +293,10 @@ protected theorem id : IsAlternativeMonadHom m m id where
 
 protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n α}
     (hf : IsAlternativeMonadHom n p f) (hg : IsAlternativeMonadHom m n g) :
-    IsAlternativeMonadHom m p (Function.dcomp f g) where
+    IsAlternativeMonadHom m p (f ∘ g) where
   toIsMonadHom := hf.toIsMonadHom.comp hg.toIsMonadHom
-  map_failure := by simp [Function.dcomp, hf.map_failure, hg.map_failure]
-  map_orElse _ _ := by simp [Function.dcomp, hf.map_orElse, hg.map_orElse]
+  map_failure := by simp [hf.map_failure, hg.map_failure]
+  map_orElse _ _ := by simp [hf.map_orElse, hg.map_orElse]
 
 end IsAlternativeMonadHom
 
