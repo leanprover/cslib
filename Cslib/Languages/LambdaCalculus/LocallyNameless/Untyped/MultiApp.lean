@@ -61,6 +61,22 @@ lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ↠βᶠ M'.multiApp Ns := by
   induction steps <;> grind
 
+lemma step_multiApp_l_union {R1 R2} (step : (Xi R1 ⊔ Xi R2) M M') (lc_Ns : ∀ N ∈ Ns, LC N) :
+   (Xi R1 ⊔ Xi R2) (multiApp M Ns) (multiApp M' Ns) := by
+  induction Ns generalizing M M' with
+  | nil => grind
+  | cons head tail ih =>
+      apply ih ?_ (by grind)
+      cases step with
+        | inl h =>  left; grind
+        | inr h =>  right; grind
+
+lemma steps_multiApp_l_union {R1 R2}
+  (steps : Relation.ReflTransGen (Xi R1 ⊔ Xi R2) M M')
+  (lc_Ns : ∀ N ∈ Ns, LC N) :
+   Relation.ReflTransGen (Xi R1 ⊔ Xi R2) (multiApp M Ns) (multiApp M' Ns) := by
+  induction steps <;> grind [step_multiApp_l_union]
+
 /-- Congruence lemma for single reduction of one of the arguments of a multi-application -/
 @[scoped grind ←]
 lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ⭢βᶠ M.multiApp Ns' := by
