@@ -131,16 +131,18 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
     · exact sn_N
     · grind [→ steps_open_cong_abs, open_abs_lc, sn_steps]
   | append_singleton Ps P ih =>
-    rw [multiApp_tail]
+    unfold multiApp
+    rw [List.foldl_concat]
     apply sn_app
-    · rw [multiApp_tail] at sn_MNPs lc_MNPs
+    · unfold multiApp at sn_MNPs lc_MNPs
+      rw [List.foldl_concat] at sn_MNPs lc_MNPs
       cases lc_MNPs
       grind [sn_app_left]
-    · grind [multiApp_tail, sn_app_right]
+    · grind [sn_app_right]
     · intro Q' P' hstep1 hstep2
       have ⟨M', N', Ps', h_M_red, h_N_red, h_Ps_red, h_cases⟩ := invert_abs_multiApp_mst hstep1
       rcases h_cases with h_P | ⟨h_st1, h_st2⟩
-      · induction Ps' using List.reverseRecOn with grind [multiApp_tail]
+      · induction Ps' using List.reverseRecOn with grind
       · have innerSteps : (M ^ N).multiApp Ps ↠βᶠ (M' ^ N').multiApp Ps' := by
           trans
           · exact steps_multiApp_r h_Ps_red (by grind)
@@ -148,7 +150,8 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
             · apply steps_open_cong_abs M M' N N' <;> grind [open_abs_lc]
             · grind [multiApp_steps_lc]
         refine sn_steps ?_ sn_MNPs
-        rw [multiApp_tail]
+        unfold multiApp
+        rw [List.foldl_concat]
         · calc ((M ^ N).multiApp Ps).app P
             _ ↠βᶠ ((M ^ N).multiApp Ps).app P' := by grind
             _ ↠βᶠ Q'.abs.app P' := redex_app_l_cong (.trans innerSteps h_st2) (by grind)
