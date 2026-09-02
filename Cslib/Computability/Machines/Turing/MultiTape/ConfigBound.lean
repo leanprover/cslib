@@ -69,8 +69,6 @@ time attains its per-tape space usage at a single step (`MultiTapeTM.exists_spac
 
 @[expose] public section
 
-open Cslib
-
 namespace Turing.MultiTapeTM
 
 variable {k : ℕ}
@@ -147,7 +145,7 @@ def Storage.toBounded (x : Storage Symbol State k) (w : Fin k → ℕ) :
 /-- The restriction is injective on storages that fit in the windows. -/
 lemma Storage.toBounded_injOn (w : Fin k → ℕ) :
     Set.InjOn (Storage.toBounded (Symbol := Symbol) (State := State) · w) {x | x.FitsIn w} := by
-  rintro x ⟨hxp, hxc⟩ y ⟨hyp, hyc⟩ hxy
+  rintro x ⟨_, _⟩ y ⟨_, _⟩ hxy
   simp only [Storage.toBounded, Prod.mk.injEq] at hxy
   obtain ⟨hstate, htapes, hpos⟩ := hxy
   apply Storage.ext hstate (funext₂ fun j z => ?_) (funext fun j => ?_)
@@ -248,7 +246,7 @@ lemma storageBound_le_pow [Fintype Symbol] [Fintype State] :
 
 /-! ## The storage and the core of a configuration
 
-Now we relate `Cfg` and `Storage` by givin the projection.
+Now we relate `Cfg` and `Storage` by giving the projection.
 -/
 
 /-- This function maps a `Cfg` to `Storage`, forgetting the input head position and the
