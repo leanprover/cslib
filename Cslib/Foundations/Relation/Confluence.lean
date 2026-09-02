@@ -40,17 +40,17 @@ namespace Relation
 
 attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
 
-theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
-  induction h <;> grind
+theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b :=
+  EqvGen.reflGen_le_eqvGen r _ _ h
 
-theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b := by
-  induction h <;> grind
+theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b :=
+  EqvGen.transGen_le_eqvGen r _ _ h
 
-theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
-  induction h <;> grind
+theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b :=
+  EqvGen.reflTransGen_le_eqvGen r _ _ h
 
-theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b := by
-  induction h <;> grind
+theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b :=
+  EqvGen.symmGen_le_eqvGen r _ _ h
 
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
   SymmGen.to_eqvGen
@@ -329,12 +329,12 @@ theorem join_inr (r₂_ab : r₂ a b) : (r₁ ⊔ r₂) a b :=
   Or.inr r₂_ab
 
 @[scoped grind <=]
-theorem join_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ⊔ r₂) a b := by
-  induction r₁_ab <;> grind
+theorem join_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ⊔ r₂) a b :=
+  ReflTransGen.mono le_sup_left _ _ r₁_ab
 
 @[scoped grind <=]
-theorem join_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ⊔ r₂) a b := by
-  induction r₂_ab <;> grind
+theorem join_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ⊔ r₂) a b :=
+  ReflTransGen.mono le_sup_right _ _ r₂_ab
 
 lemma Commute.join_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ⊔ r₂) r₃ := by
   intro x y z xy xz
@@ -352,14 +352,8 @@ lemma Commute.join_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : 
 
 theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
     Confluent (r₁ ⊔ r₂) := by
-  intro a b c ab ac
-  induction ab generalizing c with
-  | refl => exists c
-  | @tail x y ax xy ih =>
-    have h_comm : Commute (r₁ ⊔ r₂) (r₁ ⊔ r₂) := by apply_rules [join_left, symm]
-    obtain ⟨z, xz, cz⟩ := ih ac
-    obtain ⟨w, yw, zw⟩ := h_comm (.single xy) xz
-    exact ⟨w, yw, cz.trans zw⟩
+  rw [←Commute.toConfluent]
+  apply_rules [join_left, symm]
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
 theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTransGen r₁) :
@@ -367,30 +361,11 @@ theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTra
   ext a b
   exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
 
-lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
-| .refl => .refl
-| .single (.inl h) => .single (.inr h)
-| .single (.inr h) => .single (.inl h)
+lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a :=
+  Std.Symm.symm a b
 
 @[simp, grind =]
-theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := by
-  ext a b
-  constructor
-  · intro h
-    induction h with
-    | refl => exact .refl _
-    | tail hab hbc ih =>
-      cases hbc with
-      | inl h => exact ih.trans _ _ _ (.rel _ _ h)
-      | inr h => exact ih.trans _ _ _ (.symm _ _ (.rel _ _ h))
-  · intro h
-    induction h with
-    | rel _ _ ih => exact .single (.inl ih)
-    | refl x => exact .refl
-    | symm x y eq ih =>
-      rw [symmGen_swap]
-      exact reflTransGen_swap.mp ih
-    | trans _ _ _ _ _ ih₁ ih₂ => exact ih₁.trans ih₂
+theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := EqvGen.reflTransGen_symmGen r
 
 /-- `Relator.RightUnique` corresponds to deterministic reductions, which are confluent, as all
 multi-reductions with a common origin start the same (this fact is
