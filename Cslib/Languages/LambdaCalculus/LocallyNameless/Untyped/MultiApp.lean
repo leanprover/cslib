@@ -26,9 +26,7 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
 /-- multiApp f [x₁, x₂, ..., xₙ] applies the arguments x₁, x₂, ..., xₙ
     to f in left-associative order, i.e. as (((f x₁) x₂) ... xₙ). -/
 @[simp, scoped grind =]
-def multiApp (f : Term Var) : List (Term Var) → Term Var
-| []      => f
-| a :: as => multiApp (app f a) as
+abbrev multiApp (f : Term Var) (Ns : List (Term Var)) := Ns.foldl app f
 
 /-- A list of arguments performs a single reduction step
 
@@ -44,11 +42,6 @@ inductive ListFullBeta : List (Term Var) → List (Term Var) → Prop where
 | cons : LC N → ListFullBeta Ns Ns' → ListFullBeta (N :: Ns) (N :: Ns')
 
 variable {M M' : Term Var} {Ns Ns' : List (Term Var)}
-
-lemma multiApp_tail {N} : (M.multiApp (Ns ++ [N])) = (M.multiApp Ns).app  N:= by
-  induction Ns generalizing M with
-  | nil => grind
-  | cons head tail ih => rw [List.cons_append]; apply ih
 
 /-- A term resulting from a multi-application is locally closed if
     and only if the leftmost term and all arguments applied to it are locally closed -/
@@ -77,6 +70,17 @@ lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns �
 lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
   induction steps <;> grind
 
+lemma multiapp_openRec {i} :
+   (multiApp M Ns)⟦i ↝ M'⟧ = multiApp (M⟦i ↝ M'⟧) (Ns.map (openRec i M')) := by
+  induction Ns generalizing M with
+  | nil => grind
+  | cons head tail ih => grind [@ih (M.app head)]
+
+lemma multiapp_fv [DecidableEq Var] : (multiApp M Ns).fv = (Ns.map fv).foldl Union.union M.fv := by
+  induction Ns generalizing M with
+  | nil => grind
+  | cons head tail ih => grind [@ih (M.app head)]
+
 lemma listFullBeta_cons_r (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) : (l ++ Ns) ⭢lβᶠ (l ++ Ns') := by
   induction l using List.reverseRecOn generalizing Ns Ns' with grind
 
@@ -98,17 +102,18 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
     (∃ Ps', Ps ⭢lβᶠ Ps' ∧ Q = multiApp (M.abs.app N) Ps') ∨
     (Q = multiApp (M ^ N) Ps) := by
   induction Ps using List.reverseRecOn generalizing M N Q with
-  | nil => grind only [cases Xi, multiApp]
+  | nil => grind [cases Xi]
   | append_singleton Ps P ih =>
-    rw [multiApp_tail] at h_red
+    unfold multiApp at h_red
+    rw [List.foldl_concat] at h_red
     cases h_red with
     | @appL _ _ P' _ P_P' =>
       have : (Ps ++ [P]) ⭢lβᶠ Ps ++ [P'] := by apply listFullBeta_cons_r (.step P_P' ?_) <;> grind
-      grind [multiApp_tail]
+      grind
     | appR _ h =>
       have {Ps'} (h : Ps ⭢lβᶠ Ps') : (Ps ++ [P]) ⭢lβᶠ Ps' ++ [P] := listFullBeta_cons_l h (by grind)
-      grind [multiApp_tail]
-    | base => induction Ps using List.reverseRecOn with grind [multiApp_tail]
+      grind
+    | base => induction Ps using List.reverseRecOn with grind
 
 
 /-- If a term (λ M) N P₁ ... Pₙ reduces in multiple steps to Q, then either Q if of the form
