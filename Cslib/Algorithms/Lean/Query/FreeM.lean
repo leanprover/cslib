@@ -37,6 +37,16 @@ oracles produce `n` distinct evaluation results from a program whose every respo
 cardinality at most `r`, then some oracle makes at least `⌈log_r n⌉` queries. The proof uses
 the adversarial/partition argument: at each query node, the oracles split by their answer,
 and the largest fiber still produces distinct results in the corresponding subtree.
+
+## Setting up your own query type
+
+1. Define an inductive `Q : Type u → Type v` whose constructors are the queries, indexed by
+   their response types (see `LEQuery`, `ArithQuery`).
+2. Wrap each constructor with `FreeM.lift` to obtain one-step programs (`LEQuery.ask`).
+3. Write algorithms in `do`-notation as values of `FreeM Q α`.
+4. Prove correctness by relating `FreeM.eval` to a reference implementation, and bounds by
+   equational reasoning with the `countQueries`/`cost` simp lemmas; state them with
+   `Cslib.Query.UpperBound`/`Cslib.Query.LowerBound`.
 -/
 
 public section
@@ -85,7 +95,10 @@ accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -
     (weight : {ι : Type u} → F ι → T) (p : FreeM F α) : T :=
   TimeM.time <| p.liftM fun op => ⟨oracle op, weight op⟩
 
-/-- Count the number of queries along the path determined by `oracle`. -/
+/-- Count the number of queries along the path determined by `oracle`.
+
+This is deliberately a `def` with its own simp lemmas, rather than an abbreviation for
+`cost oracle (fun _ => 1)`, so that goals display `countQueries`. -/
 @[expose] def countQueries (oracle : {ι : Type u} → F ι → ι) (p : FreeM F α) : Nat :=
   cost oracle (fun _ => 1) p
 
