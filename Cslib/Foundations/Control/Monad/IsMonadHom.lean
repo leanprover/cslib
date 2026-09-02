@@ -8,6 +8,7 @@ module
 public import Cslib.Init
 public import Mathlib.Logic.Function.Defs
 public import Batteries.Control.AlternativeMonad
+public import Std.Do.WP.Monad
 
 /-!
 # (unbundled) morphisms of monads
@@ -299,5 +300,9 @@ protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n �
   map_orElse _ _ := by simp [hf.map_orElse, hg.map_orElse]
 
 end IsAlternativeMonadHom
+
+open Std.Do WPMonad in
+theorem wp_isMonadHom [Monad m] [WPMonad m ps] : IsMonadHom m (PredTrans ps) WP.wp :=
+  .mk' wp_pure wp_bind
 
 end Cslib
