@@ -17,6 +17,8 @@ This file proves that monadic operations on lists commute with monad homomorphis
 (and applicative homomorphisms), and that `List.reverse` is a monad homomorphism on `List`.
 -/
 
+public section
+
 namespace Cslib
 
 universe u v w
