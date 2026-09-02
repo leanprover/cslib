@@ -46,6 +46,18 @@ by the oracle. -/
     simp [merge]
     split <;> simp_all
 
+-- Proposed upstream as `List.mergeSort_cons_cons` in
+-- https://github.com/leanprover/lean4/pull/14995; replace this private helper once the
+-- toolchain includes it. Until then we derive it from the auto-generated equation lemma
+-- `List.mergeSort.eq_3`, which is only visible here thanks to the (non-public)
+-- `import all Init.Data.List.Sort.Basic` above.
+private theorem list_mergeSort_cons_cons {le : α → α → Bool} (x y : α) (zs : List α) :
+    (x :: y :: zs).mergeSort le =
+      List.merge ((split (x :: y :: zs)).1.mergeSort le)
+        ((split (x :: y :: zs)).2.mergeSort le) le := by
+  rw [List.mergeSort.eq_3]
+  simp [split]
+
 /-- Evaluating query-based merge sort agrees with `List.mergeSort` using the relation
 supplied by the oracle.
 
@@ -58,7 +70,7 @@ transfer directly from the `List.mergeSort` API rather than being restated here.
   | case1 => simp [mergeSort]
   | case2 x => simp [mergeSort]
   | case3 x y zs halves ih_l ih_r =>
-    rw [List.mergeSort.eq_3]
+    rw [list_mergeSort_cons_cons]
     simp [halves, split] at ih_l ih_r
     simp [mergeSort, split, ih_l, ih_r]
 
@@ -116,8 +128,9 @@ theorem mergeSort_sorted
     (mergeSort (x :: y :: zs)).countQueries oracle =
       (mergeSort (split (x :: y :: zs)).1).countQueries oracle +
       ((mergeSort (split (x :: y :: zs)).2).countQueries oracle +
-       (merge ((mergeSort (split (x :: y :: zs)).1).eval oracle)
-              ((mergeSort (split (x :: y :: zs)).2).eval oracle)).countQueries oracle) := by
+       (merge ((split (x :: y :: zs)).1.mergeSort fun a b => oracle (.le a b))
+              ((split (x :: y :: zs)).2.mergeSort fun a b => oracle (.le a b))).countQueries
+         oracle) := by
   simp [mergeSort]
 
 /-! ## Query count proofs -/
@@ -161,10 +174,9 @@ theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι
   | case3 x y zs halves ih_l ih_r =>
     simp only [countQueries_mergeSort_cons_cons]
     have hml := merge_countQueries_le oracle
-      ((mergeSort (split (x :: y :: zs)).1).eval oracle)
-      ((mergeSort (split (x :: y :: zs)).2).eval oracle)
-    rw [(mergeSort_perm oracle (split (x :: y :: zs)).1).length_eq,
-        (mergeSort_perm oracle (split (x :: y :: zs)).2).length_eq,
+      ((split (x :: y :: zs)).1.mergeSort fun a b => oracle (.le a b))
+      ((split (x :: y :: zs)).2.mergeSort fun a b => oracle (.le a b))
+    rw [List.length_mergeSort, List.length_mergeSort,
         split_fst_length_eq, split_snd_length_eq] at hml
     rw [split_fst_length_eq] at ih_l
     rw [split_snd_length_eq] at ih_r
@@ -174,10 +186,10 @@ theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι
 /-! ## UpperBound and IsSort instances -/
 
 theorem mergeSort_upperBound :
-    UpperBound (mergeSort (α := α)) List.length (fun n => n * Nat.clog 2 n) := by
-  intro oracle n x hle
-  exact Nat.le_trans (mergeSort_countQueries_le oracle x)
-    (Nat.mul_le_mul hle (Nat.clog_mono_right 2 hle))
+    UpperBound (mergeSort (α := α)) List.length (fun n => n * Nat.clog 2 n) :=
+  UpperBound.of_pointwise
+    (fun _ _ h => Nat.mul_le_mul h (Nat.clog_mono_right 2 h))
+    fun oracle xs => mergeSort_countQueries_le oracle xs
 
 theorem mergeSort_isSort : IsSort (mergeSort (α := α)) where
   perm xs oracle := mergeSort_perm oracle xs
