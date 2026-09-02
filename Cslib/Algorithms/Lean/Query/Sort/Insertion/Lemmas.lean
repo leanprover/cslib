@@ -14,8 +14,9 @@ public import Mathlib.Algebra.Group.Defs
 
 /-! # Insertion Sort: Correctness and Upper Bound
 
-Proofs that `insertionSort` is a correct comparison sort and uses at most `n²` queries.
-All proofs are by plain equational reasoning on `FreeM.eval` and `FreeM.countQueries`.
+Proofs that `insertionSort` is a correct comparison sort and uses at most `n * (n - 1) / 2`
+queries (with `n²` as a corollary). All proofs are by plain equational reasoning on
+`FreeM.eval` and `FreeM.countQueries`.
 -/
 
 open Cslib Cslib.Query
@@ -61,16 +62,16 @@ theorem orderedInsert_countQueries_le (oracle : {ι : Type} → LEQuery α ι �
   induction xs with
   | nil => simp [orderedInsert]
   | cons y ys ih =>
-    unfold orderedInsert
-    simp
-    by_cases h : oracle (.le x y) = true
-    · simp [h]
-    · simp [h]
-      omega
+    simp [orderedInsert]
+    by_cases h : oracle (.le x y) = true <;> simp [h]
+    omega
 
+/-- Insertion sort makes at most `n * (n - 1) / 2` queries: inserting into the sorted
+prefix of length `k` costs at most `k` queries. This bound is attained by the all-`false`
+oracle. -/
 theorem insertionSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
     (xs : List α) :
-    (insertionSort xs).countQueries oracle ≤ xs.length ^ 2 := by
+    (insertionSort xs).countQueries oracle ≤ xs.length * (xs.length - 1) / 2 := by
   induction xs with
   | nil => simp [insertionSort]
   | cons x xs ih =>
@@ -78,26 +79,32 @@ theorem insertionSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι �
         (insertionSort xs).countQueries oracle +
         (orderedInsert x ((insertionSort xs).eval oracle)).countQueries oracle := by
       simp [insertionSort]
-    rw [hq]
     have hlen : ((insertionSort xs).eval oracle).length = xs.length := by
       rw [eval_insertionSort]
       exact (List.perm_insertionSort _ xs).length_eq
     have hord := orderedInsert_countQueries_le oracle x ((insertionSort xs).eval oracle)
     rw [hlen] at hord
-    have h1 := Nat.add_le_add ih hord
-    have hpow : xs.length ^ 2 + xs.length ≤ (xs.length + 1) ^ 2 := by
-      have : (xs.length + 1) ^ 2 = xs.length ^ 2 + 2 * xs.length + 1 := by ring
-      omega
-    simp only [List.length_cons]
-    exact Nat.le_trans h1 hpow
+    have htri : xs.length * (xs.length - 1) / 2 + xs.length =
+        (x :: xs).length * ((x :: xs).length - 1) / 2 := by
+      rw [← Nat.choose_two_right, ← Nat.choose_two_right, List.length_cons,
+        Nat.choose_succ_succ, Nat.choose_one_right, Nat.add_comm]
+    omega
+
+theorem insertionSort_countQueries_le_sq (oracle : {ι : Type} → LEQuery α ι → ι)
+    (xs : List α) :
+    (insertionSort xs).countQueries oracle ≤ xs.length ^ 2 := by
+  have h := insertionSort_countQueries_le oracle xs
+  have h2 : xs.length * (xs.length - 1) ≤ xs.length ^ 2 := by
+    rw [Nat.pow_two]
+    exact Nat.mul_le_mul_left _ (Nat.sub_le _ _)
+  omega
 
 /-! ## UpperBound and IsSort instances -/
 
 theorem insertionSort_upperBound :
-    UpperBound (insertionSort (α := α)) List.length (· ^ 2) := by
-  intro oracle n x hle
-  exact Nat.le_trans (insertionSort_countQueries_le oracle x)
-    (Nat.pow_le_pow_left hle 2)
+    UpperBound (insertionSort (α := α)) List.length (· ^ 2) :=
+  UpperBound.of_pointwise (fun _ _ h => Nat.pow_le_pow_left h 2)
+    fun oracle xs => insertionSort_countQueries_le_sq oracle xs
 
 theorem insertionSort_isSort : IsSort (insertionSort (α := α)) where
   perm xs oracle := by
