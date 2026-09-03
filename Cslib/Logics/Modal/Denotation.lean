@@ -25,8 +25,9 @@ open scoped Proposition InferenceSystem Satisfies
 def Proposition.denotation (m : Model World τ Atom) :
     Proposition τ Atom → Set World
   | .atom p => {w | m.v w p}
+  | .false => ∅
   | .not φ => (φ.denotation m)ᶜ
-  | .and φ₁ φ₂ => φ₁.denotation m ∩ φ₂.denotation m
+  | .or φ₁ φ₂ => φ₁.denotation m ∪ φ₂.denotation m
   | .triangle op φs => {w | ∃ ws, m.r op w ws ∧ ∀ i, ws i ∈ (φs i).denotation m}
 
 /-- Characterisation theorem for the denotational semantics. -/

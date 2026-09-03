@@ -24,8 +24,9 @@ structure Model World (τ : PFunctor) Atom extends Frame World τ where
 the proposition `φ`. -/
 def Satisfies (m : Model World τ Atom) (w : World) : Proposition τ Atom → Prop
   | .atom p => m.v w p
+  | .false => False
   | .not φ => ¬Satisfies m w φ
-  | .and φ₁ φ₂ => Satisfies m w φ₁ ∧ Satisfies m w φ₂
+  | .or φ₁ φ₂ => Satisfies m w φ₁ ∨ Satisfies m w φ₂
   | .triangle op φs => ∃ ws : τ.B op → World, m.r op w ws ∧ ∀ i, Satisfies m (ws i) (φs i)
 
 /-- Judgement, representing the conclusions one reaches in modal logic. -/
@@ -56,13 +57,16 @@ theorem derivation_def {m : Model World τ Atom} {w : World} {φ : Proposition �
 @[simp, scoped grind =, modal =]
 theorem Satisfies.atom_iff {a : Atom} : ⇓Modal[m,w ⊨ a] ↔ m.v w a := by rfl
 
+@[simp, scoped grind =, modal =]
+theorem Satisfies.false_iff : ⇓Modal[m,w ⊨ ⊥] ↔ False := by rfl
+
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =, modal =]
 theorem Satisfies.not_iff_not : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by rfl
 
 @[scoped grind =, modal =]
-theorem Satisfies.and_iff_and {m : Model World τ Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ∧ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∧ ⇓Modal[m,w ⊨ φ₂] := by rfl
+theorem Satisfies.or_iff_or {m : Model World τ Atom} :
+    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by rfl
 
 @[scoped grind =]
 theorem Satisfies.triangle_iff_exists {m : Model World τ Atom} :
@@ -75,14 +79,14 @@ theorem Satisfies.triangle_not_iff_exists_not {φs : τ.B op → Proposition τ 
   have : (¬φs) = (fun i => ¬(φs i)) := rfl
   grind
 
-/-- Characterisation of the `∨` connective.
+/-- Characterisation of the `∧` connective.
 
-Disjunction is defined in terms of the more primitive connectives given in `Proposition`.
+Conjunction is defined in terms of the more primitive connectives given in `Proposition`.
 This result proves that the definition is correct. -/
 @[scoped grind =, modal =]
-theorem Satisfies.or_iff_or {m : Model World τ Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by
-  grind [=_ Proposition.or_def, Proposition.or]
+theorem Satisfies.and_iff_and {m : Model World τ Atom} :
+    ⇓Modal[m,w ⊨ φ₁ ∧ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∧ ⇓Modal[m,w ⊨ φ₂] := by
+  grind [=_ Proposition.and_def, Proposition.and]
 
 /-- Characterisation of the `→` connective.
 

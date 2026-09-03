@@ -269,6 +269,7 @@ theorem Proposition.diamond_and_equiv_of_preserves {m : Model World τ Atom}
     obtain ⟨d, hbd, hcd⟩ := hd hab hac
     rw [Satisfies.diamond_iff_exists (τ := τ)]
     refine ⟨d, IsTrans.trans a b d hab hbd, ?_⟩
+    apply Satisfies.and_iff_and.mpr
     exact ⟨h₁ hbd hb, h₂ hcd hc⟩
 
 /-- In a reflexive and transitive model, diamond absorbs itself (idempotency). -/

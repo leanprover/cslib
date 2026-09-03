@@ -106,6 +106,6 @@ theorem Ideal.radical_inf [CommSemiring R] (I J : Ideal R) :
   apply SetLike.ext'
   simp_rw [Submodule.coe_inf, Ideal.radical_eq_modal_denotation,
     Proposition.denotation_eq_of_equiv (Ideal.inf_modelEquiv I J)]
-  rfl
+  grind
 
 end CslibTests

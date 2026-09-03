@@ -48,10 +48,12 @@ namespace Cslib.Logic.Modal
 inductive Proposition (τ : PFunctor) Atom where
   /-- Atomic proposition. -/
   | atom (p : Atom)
+  /-- Falsehood. -/
+  | false
   /-- Negation. -/
   | not (φ : Proposition τ Atom)
-  /-- Conjunction. -/
-  | and (φ₁ φ₂ : Proposition τ Atom)
+  /-- Disjunction. -/
+  | or (φ₁ φ₂ : Proposition τ Atom)
   /-- Generalised possibility, or triangle. -/
   | triangle (op : τ.A) (φs : τ.B op → Proposition τ Atom)
 
@@ -61,27 +63,31 @@ abbrev PropositionMap τ op Atom := τ.B op → Proposition τ Atom
 /-- Utility to coerce atoms into atomic propositions. -/
 instance : Coe Atom (Proposition τ Atom) := ⟨.atom⟩
 
+instance {τ : PFunctor} {Atom : Type*} : Bot (Proposition τ Atom) := ⟨.false⟩
 instance {τ : PFunctor} {Atom : Type*} : HasNot (Proposition τ Atom) := ⟨.not⟩
-instance {τ : PFunctor} {Atom : Type*} : HasAnd (Proposition τ Atom) := ⟨.and⟩
+instance {τ : PFunctor} {Atom : Type*} : HasOr (Proposition τ Atom) := ⟨Proposition.or⟩
 instance {τ : PFunctor} {Atom : Type*} : HasTriangle (Proposition τ Atom) τ := ⟨.triangle⟩
+
+@[scoped grind =]
+lemma Proposition.false_def : (.false : Proposition (τ := τ) (Atom := Atom)) = ⊥ := rfl
 
 @[scoped grind =]
 lemma Proposition.not_def (φ : Proposition τ Atom) : φ.not = ¬φ := rfl
 
 @[scoped grind =]
-lemma Proposition.and_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.and φ₂ = (φ₁ ∧ φ₂) := rfl
+lemma Proposition.or_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.or φ₂ = (φ₁ ∨ φ₂) := rfl
 
 @[scoped grind =]
 lemma Proposition.triangle_def {τ : PFunctor} (op : τ.A)
     (φs : τ.B op → Proposition τ Atom) : Proposition.triangle op φs = (Δ[op]φs) := rfl
 
-/-- Disjunction. -/
-def Proposition.or (φ₁ φ₂ : Proposition τ Atom) := ¬(¬φ₁ ∧ ¬φ₂)
+/-- Conjunction. -/
+def Proposition.and (φ₁ φ₂ : Proposition τ Atom) := ¬(¬φ₁ ∨ ¬φ₂)
 
-instance {τ : PFunctor} {Atom : Type*} : HasOr (Proposition τ Atom) := ⟨Proposition.or⟩
+instance {τ : PFunctor} {Atom : Type*} : HasAnd (Proposition τ Atom) := ⟨.and⟩
 
 @[scoped grind =]
-lemma Proposition.or_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.or φ₂ = (φ₁ ∨ φ₂) := rfl
+lemma Proposition.and_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.and φ₂ = (φ₁ ∧ φ₂) := rfl
 
 /-- Implication. -/
 def Proposition.imp (φ₁ φ₂ : Proposition τ Atom) := ¬φ₁ ∨ φ₂
