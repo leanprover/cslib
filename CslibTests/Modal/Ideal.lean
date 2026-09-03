@@ -43,12 +43,11 @@ local instance [Semiring R] : SMulMemClass (Ideal R) ℕ+ R := Ideal.posPowSMulM
 abbrev PosPow α [Monoid α] := Relation.ofSMul ℕ+ α
 
 /-- The unimodal frame of ideals under positive-power accessibility. -/
-abbrev idealPowerFrame [Semiring R] : Frame R (τUnimodal R) :=
-  Frame.ofRelation (PosPow R)
+abbrev idealPowerFrame [Semiring R] : Frame R (τUnimodal R) := Frame.ofRelation (PosPow R)
 
 /-- Container model induced by `idealPowerFrame R` and `Ideal R`. -/
 abbrev idealPowerModel {R : Type u} [Semiring R] : Model R (τUnimodal R) (Ideal R) :=
-  Model.ofContainers (Frame.ofRelation (PosPow R))
+  Model.ofContainers idealPowerFrame
 
 /-- Logical equivalence under `idealPowerModel`. -/
 abbrev IdealEquiv [Semiring R] := Proposition.Equiv (idealPowerModel (R := R))

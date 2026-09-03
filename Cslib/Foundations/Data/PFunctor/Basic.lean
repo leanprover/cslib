@@ -33,6 +33,10 @@ class DecidableEqChildren (P : PFunctor) where
 
 attribute [instance_reducible, instance] DecidableEqChildren.decidableEq
 
+/-- A unary polynomial functor has decidable child equality. -/
+instance (P : PFunctor) [P.Unary] : P.DecidableEqChildren where
+  decidableEq _ _ _ := isTrue (Subsingleton.elim _ _)
+
 end Unary
 
 end PFunctor
