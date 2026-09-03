@@ -70,6 +70,7 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.sub
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Env.Wf.ty
 #grind_lint skip Cslib.Logic.HML.bisimulation_satisfies
+#grind_lint skip Cslib.Logic.Modal.Satisfies.triangle_of_diagonal
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Untyped.Term.step_multiApp_l
 #adaptation_note
 /-- (changes from lean#13166) -/

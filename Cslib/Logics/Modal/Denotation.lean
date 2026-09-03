@@ -22,30 +22,30 @@ open scoped Proposition InferenceSystem Satisfies
 
 /-- Denotation of a proposition. -/
 @[simp, scoped grind =]
-def Proposition.denotation (m : Model World Atom) :
-    Proposition Atom → Set World
+def Proposition.denotation (m : Model World τ Atom) :
+    Proposition τ Atom → Set World
   | .atom p => {w | m.v w p}
   | .not φ => (φ.denotation m)ᶜ
   | .and φ₁ φ₂ => φ₁.denotation m ∩ φ₂.denotation m
-  | .diamond φ => {w | ∃ w', m.r w w' ∧ w' ∈ φ.denotation m}
+  | .triangle op φs => {w | ∃ ws, m.r op w ws ∧ ∀ i, ws i ∈ (φs i).denotation m}
 
 /-- Characterisation theorem for the denotational semantics. -/
 @[scoped grind =]
-theorem satisfies_mem_denotation {m : Model World Atom} {φ : Proposition Atom} :
+theorem satisfies_mem_denotation {m : Model World τ Atom} {φ : Proposition τ Atom} :
     w ∈ φ.denotation m ↔ ⇓Modal[m,w ⊨ φ] := by
   induction φ generalizing w <;> grind
 
 /-- A world is in the denotation of a proposition iff it is not in the denotation of the negation
 of the proposition. -/
 @[scoped grind =]
-theorem not_denotation {m : Model World Atom} (φ : Proposition Atom) :
+theorem not_denotation {m : Model World τ Atom} (φ : Proposition τ Atom) :
     w ∉ (¬φ).denotation m ↔ w ∈ φ.denotation m := by
   grind [_=_ satisfies_mem_denotation]
 
 /-- Two worlds are theory-equivalent iff they are denotationally equivalent. -/
-theorem theoryEq_denotation_eq {m : Model World Atom} {w₁ w₂ : World} :
+theorem theoryEq_denotation_eq {m : Model World τ Atom} {w₁ w₂ : World} :
     (TheoryEq m w₁ w₂) ↔
-    (∀ (φ : Proposition Atom), w₁ ∈ (φ.denotation m) ↔ w₂ ∈ (φ.denotation m)) := by
+    (∀ (φ : Proposition τ Atom), w₁ ∈ (φ.denotation m) ↔ w₂ ∈ (φ.denotation m)) := by
   apply Iff.intro <;> grind [_=_ satisfies_mem_denotation]
 
 /-- Logically equivalent propositions under a model have the same denotation. -/

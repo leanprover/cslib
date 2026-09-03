@@ -82,6 +82,7 @@ public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Cslib.Foundations.Data.OmegaSequence.Init
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.OmegaSequence.Topology
+public import Cslib.Foundations.Data.PFunctor.Basic
 public import Cslib.Foundations.Data.PFunctor.Free
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Set.Saturation
@@ -101,6 +102,7 @@ public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 public import Cslib.Foundations.Semantics.FLTS.Prod
+public import Cslib.Foundations.Semantics.Frame.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Foundations.Semantics.LTS.Divergence
@@ -175,11 +177,15 @@ public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
 public import Cslib.Logics.LinearLogic.CLL.MLL
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
 public import Cslib.Logics.Modal.Basic
-public import Cslib.Logics.Modal.Cube
 public import Cslib.Logics.Modal.Denotation
 public import Cslib.Logics.Modal.Lean.Basic
-public import Cslib.Logics.Modal.Lean.SMul
 public import Cslib.Logics.Modal.LogicalEquivalence
+public import Cslib.Logics.Modal.Semantics
+public import Cslib.Logics.Modal.Unary.Basic
+public import Cslib.Logics.Modal.Unimodal.Basic
+public import Cslib.Logics.Modal.Unimodal.Cube
+public import Cslib.Logics.Modal.Unimodal.Lean.Basic
+public import Cslib.Logics.Modal.Unimodal.Lean.SMul
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 public import Cslib.Logics.Propositional.NaturalDeduction.Theory
