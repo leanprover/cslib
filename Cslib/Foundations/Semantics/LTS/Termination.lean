@@ -52,7 +52,7 @@ instance bounded_terminating [lts.Bounded] : lts.Terminating :=
 
 /-- Terminating LTSs are acyclic. -/
 theorem Terminating.toAcyclic (h : lts.Terminating) : lts.Acyclic where
-  acyclic := h.terminating.toAcyclic
+  acyclic := h.terminating.to_acyclic
 
 /-- A terminating LTS is available as an acyclic LTS through typeclass inference. -/
 instance terminating_acyclic [lts.Terminating] : lts.Acyclic :=

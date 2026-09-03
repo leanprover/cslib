@@ -134,10 +134,10 @@ theorem evalStep_right_correct : (x y : SKI) → (x.evalStep = Sum.inr y) → x 
 theorem redexFree_of_normal_red {x : SKI} (h : Normal Red x) : x.RedexFree := by
   match hx : x.evalStep with
   | Sum.inl h' => exact h'.down
-  | Sum.inr y => rw [Normal_iff] at h; cases h _ (evalStep_right_correct x y hx)
+  | Sum.inr y => rw [normal_iff] at h; cases h _ (evalStep_right_correct x y hx)
 
 theorem RedexFree.normal_red {x : SKI} (hx : x.RedexFree) : Normal Red x := by
-  simp_rw [Normal_iff]
+  simp_rw [normal_iff]
   intro y hy
   match x, hx, y, hy with
   | S ⬝ x, hx, S ⬝ y, red_tail _ _ _ hx' => rw [RedexFree] at hx; exact hx.normal_red ⟨_, hx'⟩
