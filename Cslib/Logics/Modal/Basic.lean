@@ -81,6 +81,14 @@ lemma Proposition.or_def (φ₁ φ₂ : Proposition τ Atom) : φ₁.or φ₂ = 
 lemma Proposition.triangle_def {τ : PFunctor} (op : τ.A)
     (φs : τ.B op → Proposition τ Atom) : Proposition.triangle op φs = (Δ[op]φs) := rfl
 
+/-- Truth. -/
+def Proposition.true : Proposition τ Atom := ¬⊥
+
+instance {τ : PFunctor} {Atom : Type*} : Top (Proposition τ Atom) := ⟨.true⟩
+
+@[scoped grind =]
+lemma Proposition.true_def : Proposition.true (τ := τ) (Atom := Atom) = ⊤ := rfl
+
 /-- Conjunction. -/
 def Proposition.and (φ₁ φ₂ : Proposition τ Atom) := ¬(¬φ₁ ∨ ¬φ₂)
 

@@ -58,11 +58,15 @@ theorem derivation_def {m : Model World τ Atom} {w : World} {φ : Proposition �
 theorem Satisfies.atom_iff {a : Atom} : ⇓Modal[m,w ⊨ a] ↔ m.v w a := by rfl
 
 @[simp, scoped grind =, modal =]
-theorem Satisfies.false_iff : ⇓Modal[m,w ⊨ ⊥] ↔ False := by rfl
+theorem Satisfies.false : ⇓Modal[m,w ⊨ ⊥] ↔ False := by rfl
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =, modal =]
 theorem Satisfies.not_iff_not : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by rfl
+
+@[simp, scoped grind ., modal .]
+theorem Satisfies.true : ⇓Modal[m,w ⊨ ⊤] := by
+  grind [=_ Proposition.true_def, Proposition.true]
 
 @[scoped grind =, modal =]
 theorem Satisfies.or_iff_or {m : Model World τ Atom} :
