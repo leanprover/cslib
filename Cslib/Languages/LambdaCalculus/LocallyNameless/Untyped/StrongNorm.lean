@@ -7,7 +7,9 @@ Authors: David Wegmann
 module
 
 public import Cslib.Foundations.Relation.Termination
+public import Cslib.Foundations.Relation.Confluence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.ParEtaC
 
 /-! Strong normalization (termination) for full beta-reduction of untyped lambda calculus. -/
 
@@ -155,6 +157,14 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
               right
               refine Relation.TransGen.single (Xi.base (Beta.beta ?_ ?_))
               all_goals grind
+
+theorem sn_eta_step_inv [DecidableEq Var] [HasFresh Var]
+  (t_st_t' : t ⭢ηᶠ t') (sn_t' : SN FullBeta t') : SN FullBeta t :=
+    sn_transfer sn_t' (parEtaC_of_fullEta t_st_t')
+
+theorem sn_eta_steps_inv [DecidableEq Var] [HasFresh Var]
+  (t_st_t' : t ↠ηᶠ t') (sn_t' : SN FullBeta t') : SN FullBeta t := by
+    induction t_st_t' with grind [sn_eta_step_inv]
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
