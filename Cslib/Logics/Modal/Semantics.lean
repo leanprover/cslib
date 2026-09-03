@@ -113,10 +113,6 @@ theorem Satisfies.nabla_iff_forall {m : Model World τ Atom} :
     ⇓Modal[m,w ⊨ ∇[op]φs] ↔ ∀ ws, m.r op w ws → ∃ i, ⇓Modal[m,(ws i) ⊨ (φs i)] := by
   grind [=_ Proposition.nabla_def, Proposition.nabla]
 
-@[scoped grind ., modal .]
-theorem Satisfies.nabla_elim (h : ⇓Modal[m,w ⊨ ∇[op]φs]) (hr : m.r op w ws) :
-    ∃ i, ⇓Modal[m,ws i ⊨ φs i] := (Satisfies.nabla_iff_forall.mp h) ws hr
-
 /-- The theory of a world in a model is the set of all propositions that it satisfies. -/
 abbrev theory {World : Type*} {τ : PFunctor} {Atom : Type*} (m : Model World τ Atom)
     (w : World) : Set (Proposition τ Atom) := {φ | ⇓Modal[m,w ⊨ φ]}

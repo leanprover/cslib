@@ -105,7 +105,7 @@ def PropositionMap.not (φs : PropositionMap τ op Atom) := fun i => ¬φs i
 instance {τ : PFunctor} {op : τ.A} {Atom : Type*} : HasNot (PropositionMap τ op Atom) := ⟨.not⟩
 
 @[simp, scoped grind =, modal =]
-theorem PropositionMap.not_apply_not {φs : PropositionMap τ op Atom} (i : τ.B op) :
+theorem PropositionMap.not_apply {φs : PropositionMap τ op Atom} (i : τ.B op) :
     (¬φs) i = ¬(φs i) := by simp [HasNot.not, PropositionMap.not]
 
 /-- Point-wise conjunction of proposition maps. -/
@@ -131,6 +131,18 @@ instance {τ : PFunctor} {op : τ.A} {Atom : Type*} : HasImp (PropositionMap τ 
 def PropositionMap.iff (φs₁ φs₂ : PropositionMap τ op Atom) := fun i => φs₁ i ↔ φs₂ i
 
 instance {τ : PFunctor} {op : τ.A} {Atom : Type*} : HasIff (PropositionMap τ op Atom) := ⟨.iff⟩
+
+@[simp, scoped grind =, modal =]
+theorem PropositionMap.or_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op) :
+    (φs ∨ ψs) i = (φs i ∨ ψs i) := rfl
+
+@[simp, scoped grind =, modal =]
+theorem PropositionMap.imp_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op) :
+    (φs → ψs) i = (φs i → ψs i) := rfl
+
+@[simp, scoped grind =, modal =]
+theorem PropositionMap.iff_apply (φs ψs : PropositionMap τ op Atom) (i : τ.B op) :
+    (φs ↔ ψs) i = (φs i ↔ ψs i) := rfl
 
 /-- The constant proposition map, always returning the same proposition. -/
 abbrev PropositionMap.const (φ : Proposition τ Atom) : PropositionMap τ op Atom :=

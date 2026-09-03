@@ -1,78 +1,97 @@
 /-
-Copyright (c) 2026 Samuel Schlesinger. All rights reserved.
+Copyright (c) 2026 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Samuel Schlesinger
+Authors: Fabrizio Montesi
 -/
 
-import Cslib.Logics.Modal.Unimodal.Cube
+import Cslib.Logics.Modal.Semantics
 
-namespace Cslib.Logic.Modal.Unimodal
+namespace Cslib.Logic.Modal
 
-open scoped Proposition
+open scoped InferenceSystem Proposition Satisfies
 
-variable {World Atom : Type*} {φ : Proposition Atom}
+section Grind
 
--- Compound modal logics contain conjunctions of the axioms validated by their combined frame
--- conditions. Defining them as unions of the individual logics loses these conjunctions.
+variable {τ : PFunctor}
+variable {World Atom : Type*}
+variable {m : Model World τ Atom}
 
-example : ((◇◇φ → ◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈ K45 World Atom := by
-  intro m h w
-  let : IsTrans World m.rel := h.1
-  let : Relation.RightEuclidean m.rel := h.2
-  exact ⟨Satisfies.unimodal_four _ φ _ _, Satisfies.unimodal_five _ φ _ _⟩
+/-! ## Basic propositional connectives -/
 
-example : ((□φ → ◇φ) ∧ (◇◇φ → ◇φ) : Proposition Atom) ∈ D4 World Atom := by
-  intro m h w
-  let : Relation.Serial m.rel := h.1
-  let : IsTrans World m.rel := h.2
-  exact ⟨Satisfies.d _ φ _ _, Satisfies.unimodal_four _ φ _ _⟩
+example (h : ⇓Modal[m,w ⊨ ¬φ]) : ¬⇓Modal[m,w ⊨ φ] := by grind only [modal]
 
-example : ((□φ → ◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈ D5 World Atom := by
-  intro m h w
-  let : Relation.Serial m.rel := h.1
-  let : Relation.RightEuclidean m.rel := h.2
-  exact ⟨Satisfies.d _ φ _ _, Satisfies.unimodal_five _ φ _ _⟩
+example (h : ⇓Modal[m,w ⊨ φ₁ ∧ φ₂]) : ⇓Modal[m,w ⊨ φ₁] := by
+  grind only [modal]
 
-example :
-    Proposition.and (□φ → ◇φ) (Proposition.and (◇◇φ → ◇φ) (◇φ → □◇φ)) ∈
-      D45 World Atom := by
-  intro m h w
-  let : Relation.Serial m.rel := h.1
-  let : IsTrans World m.rel := h.2.1
-  let : Relation.RightEuclidean m.rel := h.2.2
-  exact ⟨Satisfies.d _ φ _ _, Satisfies.unimodal_four _ φ _ _, Satisfies.unimodal_five _ φ _ _⟩
+example (h₁ : ⇓Modal[m,w ⊨ φ₁]) (h₂ : ⇓Modal[m,w ⊨ φ₂]) : ⇓Modal[m,w ⊨ φ₁ ∧ φ₂] := by
+  grind only [modal]
 
-example : ((□φ → ◇φ) ∧ (φ → □◇φ) : Proposition Atom) ∈ DB World Atom := by
-  intro m h w
-  let : Relation.Serial m.rel := h.1
-  let : Std.Symm m.rel := h.2
-  exact ⟨Satisfies.d _ φ _ _, Satisfies.unimodal_b _ φ _ _⟩
+example (h : ⇓Modal[m,w ⊨ φ₁ → φ₂]) (h₁ : ⇓Modal[m,w ⊨ φ₁]) : ⇓Modal[m,w ⊨ φ₂] := by
+  grind only [modal]
 
-example : ((φ → ◇φ) ∧ (φ → □◇φ) : Proposition Atom) ∈ TB World Atom := by
-  intro m h w
-  let : Std.Refl m.rel := h.1
-  let : Std.Symm m.rel := h.2
-  exact ⟨Satisfies.t _ φ _ _, Satisfies.unimodal_b _ φ _ _⟩
+example (h : ⇓Modal[m,w ⊨ φ₁ ↔ φ₂]) (h₁ : ⇓Modal[m,w ⊨ φ₁]) : ⇓Modal[m,w ⊨ φ₂] := by
+  grind only [modal]
 
-example : ((φ → □◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈ KB5 World Atom := by
-  intro m h w
-  let : Std.Symm m.rel := h.1
-  let : Relation.RightEuclidean m.rel := h.2
-  exact ⟨Satisfies.unimodal_b _ φ _ _, Satisfies.unimodal_five _ φ _ _⟩
+/-! ## Triangle -/
 
-example : ((φ → ◇φ) ∧ (◇◇φ → ◇φ) : Proposition Atom) ∈ S4 World Atom := by
-  intro m h w
-  let : Std.Refl m.rel := h.1
-  let : IsTrans World m.rel := h.2
-  exact ⟨Satisfies.t _ φ _ _, Satisfies.unimodal_four _ φ _ _⟩
+example (h : ⇓Modal[m,w ⊨ Δ[op]φs]) : ∃ ws, m.r op w ws ∧ ∀ i, ⇓Modal[m,ws i ⊨ φs i] := by grind
 
-example :
-    Proposition.and (φ → ◇φ) (Proposition.and (◇◇φ → ◇φ) (◇φ → □◇φ)) ∈
-      S5 World Atom := by
-  intro m h w
-  let : Std.Refl m.rel := h.1
-  let : IsTrans World m.rel := h.2.1
-  let : Relation.RightEuclidean m.rel := h.2.2
-  exact ⟨Satisfies.t _ φ _ _, Satisfies.unimodal_four _ φ _ _, Satisfies.unimodal_five _ φ _ _⟩
+example (hr : m.r op w ws) (hs : ∀ i, ⇓Modal[m,ws i ⊨ φs i]) : ⇓Modal[m,w ⊨ Δ[op]φs] := by grind
 
-end Cslib.Logic.Modal.Unimodal
+/-! ## Nabla -/
+
+example (h : ⇓Modal[m,w ⊨ ∇[op]φs]) (hr : m.r op w ws) : ∃ i, ⇓Modal[m,ws i ⊨ φs i] := by grind
+
+example (h : ∀ ws, m.r op w ws → ∃ i, ⇓Modal[m,ws i ⊨ φs i]) : ⇓Modal[m,w ⊨ ∇[op]φs] := by grind
+
+/-! ## Composition of modal and propositional operators -/
+
+example (h : ⇓Modal[m,w ⊨ Δ[op]φs]) (himp : ∀ ws i, m.r op w ws → ⇓Modal[m,ws i ⊨ φs i → ψs i]) :
+    ⇓Modal[m,w ⊨ Δ[op]ψs] := by grind
+
+example (h : ⇓Modal[m,w ⊨ ∇[op]φs]) (himp : ∀ ws i, m.r op w ws → ⇓Modal[m,ws i ⊨ φs i → ψs i]) :
+    ⇓Modal[m,w ⊨ ∇[op]ψs] := by grind
+
+/-! ## Derivable modal laws -/
+
+/-- A modal implication should behave as modus ponens. -/
+example {φ ψ : Proposition τ Atom} (himp : ⇓Modal[m,w ⊨ φ → ψ]) (hφ : ⇓Modal[m,w ⊨ φ]) :
+    ⇓Modal[m,w ⊨ ψ] := by grind only [modal]
+
+/-- `grind` should instantiate quantified modal implications. -/
+example {φs ψs : PropositionMap τ op Atom}
+    (himp : ∀ i w, ⇓Modal[m,w ⊨ φs i → ψs i])
+    (hφ : ⇓Modal[m,w' ⊨ φs i]) :
+    ⇓Modal[m,w' ⊨ ψs i] := by
+  simp only [Satisfies.imp_iff_imp] at himp
+  grind only [modal]
+
+/-- Triangle is monotone in every argument. -/
+example {op : τ.A} {φs ψs : PropositionMap τ op Atom} (himp : ∀ i w, ⇓Modal[m,w ⊨ φs i → ψs i])
+    (h : ⇓Modal[m,w ⊨ Δ[op]φs]) : ⇓Modal[m,w ⊨ Δ[op]ψs] := by
+  simp only [Satisfies.imp_iff_imp] at himp
+  grind [modal]
+
+/-- Nabla is monotone in every argument. -/
+example {φs ψs : PropositionMap τ op Atom} (himp : ∀ i w, ⇓Modal[m,w ⊨ φs i → ψs i])
+    (h : ⇓Modal[m,w ⊨ ∇[op]φs]) : ⇓Modal[m,w ⊨ ∇[op]ψs] := by
+  simp only [Satisfies.imp_iff_imp] at himp
+  grind [modal]
+
+/-- Triangle preserves pointwise conjunction in the forward direction. -/
+example {φs ψs : PropositionMap τ op Atom}
+    (h : ⇓Modal[m,w ⊨ Δ[op](φs ∧ ψs)]) : ⇓Modal[m,w ⊨ Δ[op]φs ∧ Δ[op]ψs] := by
+  grind [modal]
+
+/-- Either nabla condition entails their pointwise disjunction. -/
+example {φs ψs : PropositionMap τ op Atom}
+    (h : ⇓Modal[m,w ⊨ ∇[op]φs ∨ ∇[op]ψs]) : ⇓Modal[m,w ⊨ ∇[op](φs ∨ ψs)] := by
+  grind [modal]
+
+/-- Nabla is the dual of triangle. -/
+example {φs : PropositionMap τ op Atom} : ⇓Modal[m,w ⊨ ∇[op]φs] ↔ ⇓Modal[m,w ⊨ ¬Δ[op](¬φs)] := by
+  grind
+
+end Grind
+
+end Cslib.Logic.Modal
