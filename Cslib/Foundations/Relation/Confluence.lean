@@ -352,7 +352,7 @@ lemma Commute.join_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : 
 
 theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
     Confluent (r₁ ⊔ r₂) := by
-  rw [←Commute.toConfluent]
+  rw [← Commute.toConfluent]
   apply_rules [join_left, symm]
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
