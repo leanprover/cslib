@@ -171,7 +171,7 @@ open Relation in
 lemma terminating : Terminating (@FullEta Var) := by
   apply WellFounded.intro
   intros t
-  induction h : t.size using Nat.strong_induction_on generalizing t with | h n ih =>
+  induction h : t.size using Nat.strong_induction_on generalizing t with | ind n ih =>
   apply Acc.intro
   intros y hy
   apply FullEta.step_size at hy
