@@ -33,6 +33,7 @@ namespace Cslib.Algorithms.Lean.TimeM
 
 variable {α : Type} [LinearOrder α]
 
+-- TODO: replace this with `List.mergeM`
 /-- Merges two lists into a single list, counting comparisons as time cost.
 Returns a `TimeM ℕ (List α)` where the time represents the number of comparisons performed. -/
 def merge :  List α → List α → TimeM ℕ (List α)
@@ -47,6 +48,7 @@ def merge :  List α → List α → TimeM ℕ (List α)
       let rest ← merge (x::xs') ys'
       return (y :: rest)
 
+-- TODO: replace this with `List.mergeSortM`
 /-- Sorts a list using the merge sort algorithm, counting comparisons as time cost.
 Returns a `TimeM ℕ (List α)` where the time represents the total number of comparisons. -/
 def mergeSort (xs : List α) : TimeM ℕ (List α) :=  do
