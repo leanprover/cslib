@@ -10,8 +10,7 @@ namespace CslibTests
 
 open Cslib Turing MultiTapeTM
 
-/-- Regardless of the encoding, the Boolean `and` function is computable in constant time
-and zero space. -/
+/-- The Boolean `and` function is computable in constant time and zero space. -/
 example : ∀ encIn encOut, ∃ c, EncodedComputableInTimeAndSpace
     (encIn := encIn)
     (encOut := encOut)
@@ -25,8 +24,7 @@ def fullAdder (a b carry : Bool) : Bool × Bool :=
   let newCarry := (a && b) || (carry && (a != b))
   (sum, newCarry)
 
-/-- Regardless of the encoding, the binary full adder is computable in constant time and zero
-space. -/
+/-- The binary full adder is computable in constant time and zero space. -/
 example : ∀ encIn encOut, ∃ c, EncodedComputableInTimeAndSpace
     (encIn := encIn)
     (encOut := encOut)
@@ -34,6 +32,5 @@ example : ∀ encIn encOut, ∃ c, EncodedComputableInTimeAndSpace
     (fun _ => c) (fun _ => 0) := by
   intro encIn encOut
   apply encodedComputableInTimeAndSpace_of_finite
-
 
 end CslibTests

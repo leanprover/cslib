@@ -10,20 +10,17 @@ public import Mathlib.Data.List.Infix
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 
 /-!
-# Complexity of Functions over Finite Types
+# Complexity of Functions on Finite Types
 
-Every function `f : α → β` between finite types is computable in constant time and zero space:
+Every function `f : α → β`, for a finite `α` is computable in constant time and zero space:
 the machine reads the encoded input while remembering the prefix it has seen so far (there are
 only finitely many such prefixes), then decodes the input and emits the encoded output one symbol
 per step.
 
-Since `α` and `β` are finite, the lengthes of the encoded input and output are bounded by a
-constant, which is why the time bound is a constant.
-
 ## Main Results
 
-* `encodedComputableInTimeAndSpace_of_finite`: Every function between finite types is computable
-    in constant time and zero space, relative to any encoding.
+* `encodedComputableInTimeAndSpace_of_finite`: Every function on a finite type is computable in
+    constant time and zero space, relative to any encoding.
 * `encodedComputableInTimeAndSpace_finiteFunTime`: The same as above with an explicit time bound.
 
 -/
@@ -32,7 +29,7 @@ namespace Turing.MultiTapeTM
 
 section FiniteFun
 
-/-! ## The machine computing a function between finite types -/
+/-! ## The machine computing a function on a finite type -/
 
 variable {α β : Type*} [Finite α] {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β}
 
@@ -106,7 +103,7 @@ lemma decodeOutput_mem_outSuffixes (p : List Bool) :
   · exact nil_mem_outSuffixes
 
 open Classical in
-/-- The machine computing a function between finite types. It has no work tapes.
+/-- The machine computing a function on a finite type. It has no work tapes.
 
 While reading the input it remembers the prefix read so far. Upon reaching the blank behind the
 input it switches to the state that holds the encoded output, which it then emits one symbol per
@@ -226,7 +223,7 @@ lemma computesEncodedFunInTimeAndSpace_finiteFunTM :
 
 end FiniteFun
 
-/-- Every function between finite types is computable in time `finiteFunTime` and zero space. -/
+/-- Every function on a finite type is computable in time `finiteFunTime` and zero space. -/
 public theorem encodedComputableInTimeAndSpace_finiteFunTime {α β : Type*} [Finite α]
     {encIn : α ↪ List Bool} {encOut : β ↪ List Bool}
     (f : α → β) :
@@ -235,7 +232,7 @@ public theorem encodedComputableInTimeAndSpace_finiteFunTime {α β : Type*} [Fi
   ⟨0, FiniteFunState encIn encOut f, inferInstance,
     finiteFunTM encIn encOut f, computesEncodedFunInTimeAndSpace_finiteFunTM⟩
 
-/-- Every function between finite types is computable in constant time and zero space. -/
+/-- Every function on a finite type is computable in constant time and zero space. -/
 public theorem encodedComputableInTimeAndSpace_of_finite {α β : Type*} [Finite α]
     {encIn : α ↪ List Bool} {encOut : β ↪ List Bool}
     (f : α → β) :
