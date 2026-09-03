@@ -48,6 +48,7 @@ Area maintainers are trusted contributors who take ownership of specific areas o
 Reviewers are trusted contributors who provide regular reviewing and technical guidance to PRs to CSLib.
 
 - Ching-Tsun Chou (@ctchou).
+- Christian Reitwiessner (@crei).
 - Samuel Schlesinger (@SamuelSchlesinger).
 - Thomas Waring (@thomaskwaring).
 - Eric Wieser (@eric-wieser), Google DeepMind.

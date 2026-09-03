@@ -40,9 +40,7 @@ variable {M M' N N' : Term Var}
 
 /-- The right side of an η-reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
-  refine Xi.step_lc_r ?_ step
-  grind
+lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := Xi.step_lc_r (by grind) step
 
 /-- The left side of an η-reduction is locally closed. -/
 @[scoped grind →]
@@ -127,10 +125,7 @@ lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ⭢ηᶠ t') (lc_s
     · exact redex_app_r_cong (ih_r t t' st) (subst_lc hl (step_lc_r st))
   | abs L body h_lc_body ih =>
     apply redex_abs_cong (L ∪ {x})
-    · intro z
-      grind =>
-        have : (body ^ fvar z)[x := t] ↠ηᶠ (body ^ fvar z)[x := t']
-        finish
+    · grind
 
 /- `steps_subst_cong_r` can be generalized to multiple reductions `t ↠ηᶠ t'`. -/
 lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (st : t ↠ηᶠ t') (lc_s : LC s) :

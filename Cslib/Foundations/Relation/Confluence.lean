@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 module
 
 public import Cslib.Foundations.Relation.Defs
-public import Mathlib.Data.List.TFAE
+public import Mathlib.Data.List.Pairwise
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 
@@ -149,8 +149,7 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
   apply equivalence_join
   grind
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
-lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind only [Acc]
+lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind [Acc]
 
 lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
 
@@ -192,7 +191,7 @@ theorem SN.normalizable (hx : SN r x) : Normalizable r x := by
   by_cases hy: (∃ y, r x y)
   · obtain ⟨y, hy⟩ := hy
     obtain ⟨z, hz, hnormal⟩ := ih y hy
-    exact ⟨z, .trans (.single hy) hz, hnormal⟩
+    exact ⟨z, .head hy hz, hnormal⟩
   · exists x
 
 lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
@@ -304,7 +303,7 @@ theorem StronglyCommute.extend (h : StronglyCommute r₁ r₂) (xy : ReflTransGe
   | @tail b c _ bc ih =>
     obtain ⟨w, bw, zw⟩ := ih
     cases bw with
-    | refl => exact ⟨c, .refl, zw.trans (.single bc)⟩
+    | refl => exact ⟨c, .refl, zw.tail bc⟩
     | single bw => cases h bc bw; grind [ReflTransGen.trans]
 
 theorem StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂ := by

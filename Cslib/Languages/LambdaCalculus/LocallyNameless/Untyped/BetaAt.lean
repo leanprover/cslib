@@ -97,7 +97,6 @@ lemma countRedexes_app_le (M N : Term Var) :
 /-- An application with an abstraction operator has one more redex than its parts. -/
 lemma countRedexes_app_abs {M : Term Var} (ha : IsAbs M) (N : Term Var) :
     countRedexes (app M N) = countRedexes M + countRedexes N + 1 := by
-  cases ha
   grind
 
 /-- Contracting a redex of an abstraction yields an abstraction. -/

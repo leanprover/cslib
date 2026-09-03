@@ -18,6 +18,13 @@ universe uA uB uA₁ uA₂ uB₁ uB₂ v
 namespace CslibTests
 
 open PFunctor
+open scoped PFunctor
+
+/-- Binary monomial notation preserves independent shape and direction universes. -/
+example (A : Type uA) (B : Type uB) : PFunctor.{uA, uB} := A y^ B
+
+/-- Prefix power notation denotes a representable polynomial functor. -/
+example (B : Type uB) : (y^ B : PFunctor.{uA, uB}) = purePower B := rfl
 
 /-- Addition notation is available when its result universe is fixed by the expected type. -/
 example (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
@@ -70,13 +77,19 @@ example (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) (a : P.A) :
 example (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) (a : Q.A) :
     (P.add Q).B (.inr a) = Q.B a := by simp
 
+/-- Nested sum directions normalize during elaboration. -/
+example (P Q R : PFunctor.{uA, uB}) (q : Q.A) (consume : Q.B q → Nat)
+    (d : ((P + Q) + R).B (.inl (.inr q))) : consume d = consume d := rfl
+
 /-- The simp set computes head and child types of a product. -/
 example (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) (a : P.A) (b : Q.A) :
     (P * Q).B (a, b) = (P.B a ⊕ Q.B b) := by simp
 
-/-- The named monomials reduce to the canonical `0`, `1`, and `X`. -/
+/-- The named monomials reduce to the canonical `0`, `1`, and `y`. -/
 example : (const PUnit : PFunctor.{uA, uB}) = 1 := by simp
-example : (linear PUnit : PFunctor.{uA, uB}) = X := by simp
+example : (linear PUnit : PFunctor.{uA, uB}) = y := by simp
+example : (selfMonomial PUnit : PFunctor.{uA, uA}) = y := by simp
+example : (purePower PUnit : PFunctor.{uA, uB}) = y := by simp
 
 /-- The `ext` tactic picks up the registered extensionality lemma. -/
 example (P Q : PFunctor.{uA, uB}) (h : P.A = Q.A) (h' : ∀ a, P.B a = Q.B (h ▸ a)) :

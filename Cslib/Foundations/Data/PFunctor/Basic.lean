@@ -13,11 +13,12 @@ public import Mathlib.Data.PFunctor.Univariate.Basic
 
 Definitions of common `PFunctor` constructions:
 - `monomial A B`: constant direction `B` for any shape `a : A`
-- `P + Q`: shapes are a disjoint sum, directions are define by sum elimination on `a : P.A ⊕ Q.A`
+- `P + Q`: shapes are a disjoint sum, directions are defined by sum elimination on `a : P.A ⊕ Q.A`
 - `P * Q`: shapes are pairs of underlying shapes, directions are a disjoint sum over both shapes.
 
-Special cases `const`, `linear`, `selfMonomial`, `purePower`, the indeterminate `X`,
-and canonical choices of `0` and `1` are defined as `abbrev` or instances over `monomial`.
+Special cases `const`, `linear`, `selfMonomial`, `purePower`, the indeterminate `y`,
+and canonical choices of `0` and `1` are defined as abbreviations or instances over `monomial`.
+The scoped notations `A y^ B` and `y^ B` denote `monomial A B` and `purePower B`, respectively.
 -/
 
 @[expose] public section
@@ -38,6 +39,8 @@ section monomial
 
 /-- The monomial `PFunctor` with head type `A` and constant `B` for any `a : A`. -/
 abbrev monomial (A : Type uA) (B : Type uB) : PFunctor := ⟨A, fun _ => B⟩
+
+@[inherit_doc] scoped[PFunctor] infixr:82 " y^ " => monomial
 
 lemma monomial_A (A : Type uA) (B : Type uB) : (monomial A B).A = A := rfl
 
@@ -70,21 +73,23 @@ instance instIsEmptyOneB (a : (1 : PFunctor.{uA, uB}).A) : IsEmpty ((1 : PFuncto
 
 end one
 
-/-- The constant polynomial functor `P(X) = A X^ PEmpty = A` -/
+/-- The constant polynomial functor `P(y) = A y^ PEmpty = A`. -/
 abbrev const (A : Type uA) : PFunctor := monomial A PEmpty
 
-/-- The linear polynomial functor `P(X) = A X` -/
+/-- The linear polynomial functor `P(y) = A y`. -/
 abbrev linear (A : Type uA) : PFunctor := monomial A PUnit
 
-/-- The self monomial polynomial functor `P(X) = S X^ S` -/
+/-- The self-monomial polynomial functor `P(y) = S y^ S`. -/
 abbrev selfMonomial (S : Type uA) : PFunctor.{uA, uA} := monomial S S
 
-/-- The pure power polynomial functor `P(X) = X^ B` -/
+/-- The pure-power polynomial functor `y^ B`, representable on `B`. -/
 abbrev purePower (B : Type uB) : PFunctor := monomial PUnit B
 
-/-- The indeterminate polynomial functor `P(X) = X`, the identity with respect to
+@[inherit_doc purePower] scoped[PFunctor] notation:100 "y^" B:100 => purePower B
+
+/-- The indeterminate polynomial functor `P(y) = y`, the identity with respect to
 composition and tensor product (up to equivalence). -/
-abbrev X : PFunctor := monomial PUnit PUnit
+abbrev y : PFunctor := monomial PUnit PUnit
 
 /- Note: no explicit `IsEmpty`/`Unique` instances are needed for the positions and directions
 of the abbreviations above: being reducible, they unfold to `PEmpty`/`PUnit` during instance
@@ -95,24 +100,27 @@ projections are not reducible. -/
 
 @[simp] lemma const_punit : const PUnit = 1 := rfl
 
-@[simp] lemma linear_punit : linear PUnit = X := rfl
+@[simp] lemma linear_punit : linear PUnit = y := rfl
 
-@[simp] lemma selfMonomial_punit : selfMonomial PUnit = X := rfl
+@[simp] lemma selfMonomial_punit : selfMonomial PUnit = y := rfl
 
-@[simp] lemma purePower_punit : purePower PUnit = X := rfl
+@[simp] lemma purePower_punit : purePower PUnit = y := rfl
 
 section add
 
 /-- The sum of two polynomial functors `P` and `Q`, written as `P + Q`,
-defined as the sum of the head types and the sum case analysis for the child types.
+defined as the sum of the head types and the dependent sum recursor for the child types.
+The recursor is written explicitly so that nested sum directions normalize at implicit
+transparency.
 
 This is kept as a `def` alongside the `HAdd` instance below, even though that instance is
 exactly as universe-general as `add` itself: the `binop%` elaborator behind `+` eagerly
 unifies the types of both operands with the expected type, so when the expected type carries
 universe metavariables (e.g. inside `PFunctor.W (P.add (.const α))` with `α : Type v`),
 `P + Q` can fail to elaborate where `P.add Q` succeeds; see `CslibTests/PFunctor.lean`. -/
-@[simps] def add (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
-    PFunctor.{max uA₁ uA₂, uB} := ⟨P.A ⊕ Q.A, Sum.elim P.B Q.B⟩
+@[simps, implicit_reducible] def add (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
+    PFunctor.{max uA₁ uA₂, uB} :=
+  ⟨P.A ⊕ Q.A, @Sum.rec P.A Q.A (fun _ => Type uB) P.B Q.B⟩
 
 /-- Addition of polynomial functors, defined as the sum construction. -/
 instance instHAddPFunctor :

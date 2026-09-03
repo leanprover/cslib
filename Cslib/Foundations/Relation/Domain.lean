@@ -49,8 +49,7 @@ lemma cod_empty : cod (emptyHRelation : α → β → Prop) = ∅ := by grind
 @[simp, grind =]
 lemma dom_eq_empty_iff : dom r = ∅ ↔ r = emptyHRelation where
   mp h := by
-    ext a b
-    simp
+    ext a
     grind => have : a ∈ dom r; finish
   mpr := by grind
 
@@ -58,7 +57,6 @@ lemma dom_eq_empty_iff : dom r = ∅ ↔ r = emptyHRelation where
 lemma cod_eq_empty_iff : cod r = ∅ ↔ r = emptyHRelation where
   mp h := by
     ext a b
-    simp
     grind => have : b ∈ cod r; finish
   mpr h := by grind
 

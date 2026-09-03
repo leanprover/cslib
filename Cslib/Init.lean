@@ -9,6 +9,7 @@ module -- shake: keep-downstream, shake: keep-all
 public import Cslib.Foundations.Lint.Basic
 public import Mathlib.Init
 public import Mathlib.Tactic.Common
+public import Cslib.Tactic.GrindAttrs
 
 /-!
 # CSLib Initialization
