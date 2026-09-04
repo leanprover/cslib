@@ -48,7 +48,7 @@ def Satisfies.Bundled (j : Judgement World τ Atom) : Prop := Satisfies j.m j.w 
 instance {World : Type*} {τ : PFunctor} {Atom : Type*} :
     HasInferenceSystem (Judgement World τ Atom) := ⟨Satisfies.Bundled⟩
 
-open scoped InferenceSystem Proposition PropositionMap Frame
+open scoped InferenceSystem Proposition PropositionMap Frame PFunctor
 
 @[scoped grind =]
 theorem derivation_def {m : Model World τ Atom} {w : World} {φ : Proposition τ Atom} :
@@ -203,16 +203,16 @@ theorem Satisfies.triangle_of_nabla {φs₁ φs₂ : PropositionMap τ op Atom}
 @[scoped grind .]
 theorem Satisfies.triangle_of_diagonal {m : Model World τ Atom} {op : τ.A} {w : World}
     {φ : Proposition τ Atom} [instRefl : Std.Refl (m.toFrame.diagonal op)]
-    (h : ⇓Modal[m,w ⊨ φ]) : ⇓Modal[m,w ⊨ Δ[op](PropositionMap.const φ)] :=
+    (h : ⇓Modal[m,w ⊨ φ]) : ⇓Modal[m,w ⊨ Δ[op](PropositionMap.const op φ)] :=
   ⟨fun _ => w, instRefl.refl w, by grind⟩
 
 /-- Axiom T. -/
 theorem Satisfies.t (f : Frame World τ) [instRefl : Std.Refl (f.diagonal op)]
-    (φ : Proposition τ Atom) : Axiom f⇓(φ → Δ[op](PropositionMap.const φ)) := by grind
+    (φ : Proposition τ Atom) : Axiom f⇓(φ → Δ[op](PropositionMap.const op φ)) := by grind
 
 /-- Any frame admitting T for `op` has a reflexive diagonal relation. -/
 theorem Satisfies.t_refl (f : Frame World τ) {op : τ.A} [Nonempty Atom]
-    (h : ∀ φ : Proposition τ Atom, Axiom f⇓(φ → Δ[op](PropositionMap.const φ))) :
+    (h : ∀ φ : Proposition τ Atom, Axiom f⇓(φ → Δ[op](PropositionMap.const op φ))) :
     Std.Refl (f.diagonal op) where
   refl w := by
     have a := Classical.arbitrary Atom
@@ -227,7 +227,7 @@ theorem Satisfies.t_refl (f : Frame World τ) {op : τ.A} [Nonempty Atom]
 /-- In any model whose diagonal relation for `op` is reflexive, `∇[op]φ → φ` is equivalent to
 `φ → Δ[op]φ`. -/
 theorem Satisfies.t_nabla_triangle (f : Frame World τ) [Std.Refl (f.diagonal op)] :
-    Axiom f⇓((∇[op](PropositionMap.const φ) → φ) ↔ (φ → Δ[op](PropositionMap.const φ))) := by
+    Axiom f⇓((∇[op](PropositionMap.const op φ) → φ) ↔ (φ → Δ[op](PropositionMap.const op φ))) := by
   intro _ w
   have hr : f.r op w (fun _ => w) := by
     simpa [Frame.diagonal] using (Std.Refl.refl (r := f.diagonal op) w)
@@ -235,7 +235,7 @@ theorem Satisfies.t_nabla_triangle (f : Frame World τ) [Std.Refl (f.diagonal op
 
 /-- Axiom B, valid for diagonally symmetric frames. -/
 theorem Satisfies.b (f : Frame World τ) [f.DiagonalSymm op] (φ : Proposition τ Atom) :
-    Axiom f⇓(φ → ∇[op](PropositionMap.const (Δ[op](PropositionMap.const φ)))) := by
+    Axiom f⇓(φ → ∇[op](PropositionMap.const op (Δ[op](PropositionMap.const op φ)))) := by
   intro _ w
   have := Frame.DiagonalSymm.symm (f := f) (op := op)
   grind
@@ -243,7 +243,7 @@ theorem Satisfies.b (f : Frame World τ) [f.DiagonalSymm op] (φ : Proposition �
 /-- Any frame that admits B at `op` is diagonally symmetric at `op`. -/
 theorem Satisfies.b_symm (f : Frame World τ) [Nonempty Atom]
     (h : ∀ φ : Proposition τ Atom,
-      Axiom f⇓(φ → ∇[op](PropositionMap.const (Δ[op](PropositionMap.const φ))))) :
+      Axiom f⇓(φ → ∇[op](PropositionMap.const op (Δ[op](PropositionMap.const op φ))))) :
     f.DiagonalSymm op where
   symm w ws hwws := by
     have a := Classical.arbitrary Atom
@@ -296,14 +296,14 @@ theorem Satisfies.four_trans (f : Frame World τ) [Nonempty Atom]
 /-- Axiom 5, valid for right-Euclidean frames. -/
 theorem Satisfies.five (f : Frame World τ) [f.RightEuclidean op]
     (φs : PropositionMap τ op Atom) :
-    Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const (Δ[op]φs))) := by
+    Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const op (Δ[op]φs))) := by
   have he := Frame.RightEuclidean.rightEuclidean (f := f) (op := op)
   grind
 
 /-- Any frame that admits 5 at `op` is right-Euclidean at `op`. -/
 theorem Satisfies.five_rightEuclidean (f : Frame World τ) (e : τ.B op ↪ Atom)
     (h : ∀ φs : PropositionMap τ op Atom,
-      Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const (Δ[op]φs)))) : f.RightEuclidean op where
+      Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const op (Δ[op]φs)))) : f.RightEuclidean op where
   rightEuclidean {w ws₁ ws₂} h₁ h₂ := by
     let φs : PropositionMap τ op Atom := fun i => e i
     let v : World → Atom → Prop :=

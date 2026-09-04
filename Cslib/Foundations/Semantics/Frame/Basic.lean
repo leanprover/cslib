@@ -85,6 +85,21 @@ corresponding predicate `Ps i`. -/
 def PreservesMap (f : Frame α τ) (op : τ.A) (P : α → Prop) (Ps : τ.B op → α → Prop) : Prop :=
   ∀ w ws, f.r op w ws → P w → ∃ i, Ps i (ws i)
 
+/-- Builds a unary frame from an indexed family of binary relations. -/
+def ofRelations {τ : PFunctor} [τ.Unary] (r : τ.A → World → World → Prop) :
+    Frame World τ where
+  r i w ws := r i w (ws default)
+
+@[scoped grind =, modal =]
+lemma ofRelations_iff {τ : PFunctor} [τ.Unary] (r : τ.A → World → World → Prop) (i : τ.A)
+    (w : World) (ws : τ.B i → World) : (ofRelations r).r i w ws ↔ r i w (ws default) := by rfl
+
+@[simp, scoped grind =, modal =]
+lemma ofRelations_diagonal_iff {τ : PFunctor} [τ.Unary]
+    (r : τ.A → World → World → Prop) (i : τ.A) (w w' : World) :
+    (ofRelations r).diagonal i w w' ↔ r i w w' := by
+  rfl
+
 end Frame
 
 end Cslib

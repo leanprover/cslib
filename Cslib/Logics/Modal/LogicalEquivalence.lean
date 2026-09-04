@@ -34,11 +34,11 @@ instance : Congruence (Proposition.Equiv m) := ⟨⟩
 theorem Proposition.equiv_def (m : Model World τ Atom) (φ₁ φ₂ : Proposition τ Atom) :
     (φ₁.Equiv m φ₂) ↔ φ₁ ≡[Equiv m] φ₂ := by rfl
 
-@[scoped grind ⇒]
+@[scoped grind ⇒, modal ⇒]
 theorem Proposition.equiv_iff_forall_der (m : Model World τ Atom) (φ₁ φ₂ : Proposition τ Atom)
     : (φ₁ ≡[Equiv m] φ₂) ↔ ∀ (w : World), ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] := by rfl
 
-@[scoped grind ⇒]
+@[scoped grind ⇒, modal ⇒]
 theorem Proposition.equiv_iff_forall_iff {m : Model World τ Atom} {φ₁ φ₂ : Proposition τ Atom} :
     (φ₁ ≡[Equiv m] φ₂) ↔ ∀ (w : World), ⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂] := by
   grind [=_ Satisfies.iff_iff_iff]
@@ -52,9 +52,17 @@ def Proposition.EquivWithin (S : ModelClass World τ Atom) (φ₁ φ₂ : Propos
 
 instance : Congruence (Proposition.EquivWithin S) := ⟨⟩
 
+/-- Universal logical equivalence: `φ₁` and `φ₂` are equivalent in the class of all models. -/
+abbrev Proposition.UEquiv {World : Type*} (φ₁ φ₂ : Proposition τ Atom) :=
+  EquivWithin (World := World) Set.univ φ₁ φ₂
+
 @[scoped grind =]
 theorem Proposition.equivWithin_def (S : ModelClass World τ Atom) (φ₁ φ₂ : Proposition τ Atom) :
     φ₁.EquivWithin S φ₂ ↔ (φ₁ ≡[EquivWithin S] φ₂) := by rfl
+
+@[scoped grind ⇒, modal ⇒]
+theorem Proposition.equivWithin_iff_forall_iff :
+    (φ₁ ≡[EquivWithin S] φ₂) ↔ ∀ m ∈ S, φ₁ ≡[Equiv m] φ₂ := by rfl
 
 @[scoped grind ⇒]
 theorem Proposition.equiv_of_EquivWithin {S : ModelClass World τ Atom} (h : φ₁ ≡[EquivWithin S] φ₂)
@@ -71,7 +79,7 @@ abbrev PropositionMap.Without (τ : PFunctor) (Atom : Type*) (op : τ.A) (i : τ
   {j : τ.B op // j ≠ i} → Proposition τ Atom
 
 /-- Propositional contexts. -/
-inductive Proposition.Context (τ : PFunctor) (Atom : Type u) : Type u where
+inductive Proposition.Context (τ : PFunctor) (Atom : Type u) where
   | hole
   | not (c : Context τ Atom)
   | andL (c : Context τ Atom) (φ : Proposition τ Atom)
@@ -157,24 +165,24 @@ instance {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*}
     LawfulCongruence.covariant.elim ctx (h m hm)
 
 /-- Judgemental contexts. -/
-structure Satisfies.Context (World : Type*) (τ : PFunctor) (Atom : Type*) where
+structure Judgement.Context (World : Type*) (τ : PFunctor) (Atom : Type*) where
   /-- The model to consider. -/
   m : Model World τ Atom
   /-- The world to check propositions against. -/
   w : World
 
 /-- Fills a judgemental context with a proposition. -/
-def Satisfies.Context.fill (c : Satisfies.Context World τ Atom) (φ : Proposition τ Atom) :
+def Judgement.Context.fill (c : Judgement.Context World τ Atom) (φ : Proposition τ Atom) :
     Judgement World τ Atom := Modal[c.m, c.w ⊨ φ]
 
 instance {World : Type*} {τ : PFunctor} {Atom : Type*} :
-    HasHContext (Judgement World τ Atom) (Proposition τ Atom) := ⟨Satisfies.Context.fill⟩
+    HasHContext (Judgement World τ Atom) (Proposition τ Atom) := ⟨Judgement.Context.fill⟩
 
 @[scoped grind =]
-lemma Satisfies.Context.fill_def {c : Satisfies.Context World τ Atom} :
+lemma Judgement.Context.fill_def {c : Judgement.Context World τ Atom} {φ : Proposition τ Atom} :
     Modal[c.m,c.w ⊨ φ] = c<[φ] := rfl
 
-open scoped Satisfies.Context
+open scoped Judgement.Context
 
 /-- Logical equivalence for Modal Logic K. That is, no assumptions on models are made. -/
 instance {τ : PFunctor} [τ.DecidableEqChildren] : LogicalEquivalence
@@ -183,10 +191,33 @@ instance {τ : PFunctor} [τ.DecidableEqChildren] : LogicalEquivalence
     (Proposition.EquivWithin (Set.univ (α := Model World τ Atom))) where
   eqvFillValid heqv c h := by
     specialize heqv c.m
-    grind [=_ Satisfies.Context.fill_def]
+    grind [=_ Judgement.Context.fill_def]
+
+section Axiom
 
 /-- Correspondence of equivalence and axiom validity. -/
+@[scoped grind =, modal =]
 theorem Proposition.axiom_iff_forall_equiv (f : Frame World τ) (φ₁ φ₂ : Proposition τ Atom) :
     (Axiom f⇓(φ₁ ↔ φ₂)) ↔ ∀ v, φ₁ ≡[Equiv ⟨f, v⟩] φ₂ := Iff.rfl
+
+/-- A frame-valid bi-implication induces logical equivalence in every model over that frame. -/
+@[scoped grind ., modal .]
+theorem Proposition.equiv_of_axiom {f : Frame World τ} {φ₁ φ₂ : Proposition τ Atom}
+    (h : Axiom f⇓(φ₁ ↔ φ₂)) (v : World → Atom → Prop) : φ₁ ≡[Equiv ⟨f, v⟩] φ₂ :=
+  (Proposition.axiom_iff_forall_equiv f φ₁ φ₂).mp h v
+
+/-- A bi-implication is an axiom of `f` iff its sides are equivalent in every model over `f`. -/
+@[scoped grind =, modal =]
+theorem Proposition.axiom_iff_equivWithin_modelsOfFrame
+    (f : Frame World τ) (φ₁ φ₂ : Proposition τ Atom) :
+    Axiom f⇓(φ₁ ↔ φ₂) ↔ φ₁ ≡[EquivWithin (modelsOfFrame f)] φ₂ := by grind
+
+/-- Triangle and the negation of the dual nabla are universally logically equivalent. -/
+theorem Proposition.dual_equiv (φs : PropositionMap τ op Atom) :
+    Δ[op]φs ≡[UEquiv (World := World)] ¬∇[op]¬φs := by
+  -- We use `grind only` as a test that `modal` can lift axioms to logical equivalences
+  grind only [modal, Satisfies.dual]
+
+end Axiom
 
 end Cslib.Logic.Modal

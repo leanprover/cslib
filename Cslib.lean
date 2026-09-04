@@ -103,6 +103,7 @@ public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 public import Cslib.Foundations.Semantics.FLTS.Prod
 public import Cslib.Foundations.Semantics.Frame.Basic
+public import Cslib.Foundations.Semantics.Frame.LTS
 public import Cslib.Foundations.Semantics.LTS.Basic
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Foundations.Semantics.LTS.Divergence
@@ -170,7 +171,6 @@ public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.HML.Basic
-public import Cslib.Logics.HML.LogicalEquivalence
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
@@ -182,6 +182,7 @@ public import Cslib.Logics.Modal.Lean.Basic
 public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Modal.Semantics
 public import Cslib.Logics.Modal.Unary.Basic
+public import Cslib.Logics.Modal.Unary.LTS
 public import Cslib.Logics.Modal.Unimodal.Basic
 public import Cslib.Logics.Modal.Unimodal.Cube
 public import Cslib.Logics.Modal.Unimodal.Lean.Basic

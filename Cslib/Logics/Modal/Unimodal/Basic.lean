@@ -282,8 +282,8 @@ theorem Proposition.diamond_diamond_equiv {m : Model World τ Atom} [Std.Refl m.
   · grind [Satisfies.unimodal_t]
 
 /-- Context constructor for the diamond modality. -/
-def Proposition.Context.diamond (c : Context τ Atom) : Context τ Atom :=
-  .triangle default default c fun ⟨i, hi⟩ => (hi (Subsingleton.elim i default)).elim
+@[match_pattern]
+def Proposition.Context.diamond (c : Context τ Atom) : Context τ Atom := .dynDiamond c default
 
 /-- Constructs a signature for basic modal logic at the same universe level of the input type. -/
 def τUnimodal (_ : Type u) : PFunctor.{u,u} where

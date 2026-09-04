@@ -95,32 +95,32 @@ class HasDynamicDiamond (α : Type*) (β : outParam Type*) where
   /-- `b` is possibly valid after `a`. -/
   dynDiamond (a : β) (b : α) : α
 
-@[inherit_doc] scoped notation "d⟨" a "⟩" φ => HasDynamicDiamond.dynDiamond a φ
+@[inherit_doc] scoped notation "d⟨" a "⟩" φ:max => HasDynamicDiamond.dynDiamond a φ
 
 /-- The type `α` has a dynamic box modality with action type `β` (`d[a]φ`). -/
 class HasDynamicBox (α : Type*) (β : outParam Type*) where
   /-- `b` is necessarily valid after `a`. -/
   dynBox (a : β) (b : α) : α
 
-@[inherit_doc] scoped notation "d[" a "]" φ => HasDynamicBox.dynBox a φ
+@[inherit_doc] scoped notation "d[" a "]" φ:max => HasDynamicBox.dynBox a φ
 
 /-- A family of triangle operators over induces dynamic diamond modalities by applying each operator
 to the constant argument family. -/
 instance [HasTriangle α τ] : HasDynamicDiamond α τ.A where
-  dynDiamond op φ := Δ[op](fun _ => φ)
+  dynDiamond op φ := Δ[op](PFunctor.const op φ)
 
 @[simp, scoped grind =, modal =]
 theorem dynDiamond_eq_triangle [HasTriangle α τ] (op : τ.A) (φ : α) :
-    (d⟨op⟩φ) = (Δ[op](fun _ => φ)) := rfl
+    (d⟨op⟩φ) = (Δ[op](PFunctor.const op φ)) := rfl
 
 /-- A family of nabla operators induces dynamic box modalities by applying each operator to the
 constant argument family. -/
 instance [HasNabla α τ] : HasDynamicBox α τ.A where
-  dynBox op φ := ∇[op](fun _ => φ)
+  dynBox op φ := ∇[op](PFunctor.const op φ)
 
 @[simp, scoped grind =, modal =]
 theorem dynBox_eq_nabla [HasNabla α τ] (op : τ.A) (φ : α) :
-    (d[op]φ) = (∇[op](fun _ => φ)) := rfl
+    (d[op]φ) = (∇[op](PFunctor.const op φ)) := rfl
 
 end Dynamic
 
