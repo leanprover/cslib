@@ -17,6 +17,8 @@ public import Mathlib.Computability.Language
 
 namespace Language
 
+open scoped Computability
+
 variable {α β : Type*}
 
 /-- A language homomorphism from `α` to `β` is a map from `List α` to `List β` which
@@ -107,17 +109,53 @@ def image (f : List α → List β) (l : Language α) : Language β :=
 def preimage (f : List α → List β) (l : Language β) : Language α :=
   f ⁻¹' l
 
-variable (f : List α → List β)
-
 @[simp, scoped grind =]
-theorem mem_image (l : Language α) (bs : List β) :
+theorem mem_image (f : List α → List β) (l : Language α) (bs : List β) :
     bs ∈ l.image f ↔ ∃ as, as ∈ l ∧ f as = bs := by
   rfl
 
 @[simp, scoped grind =]
-theorem mem_preimage (l : Language β) (as : List α) :
+theorem mem_preimage (f : List α → List β) (l : Language β) (as : List α) :
     as ∈ l.preimage f ↔ f as ∈ l := by
   rfl
+
+theorem image_singleton (f : List α → List β) (as : List α) :
+    ({as} : Language α).image f = {f as} :=
+  Set.image_singleton
+
+@[simp]
+theorem image_zero (f : List α → List β) : (0 : Language α).image f = 0 :=
+  Set.image_empty _
+
+theorem image_add (f : List α → List β) (l1 l2 : Language α) :
+    (l1 + l2).image f = l1.image f + l2.image f :=
+  Set.image_union _ _ _
+
+theorem image_iSup (f : List α → List β) {I : Type*} (l : I → Language α) :
+    (⨆ i : I, l i).image f = ⨆ i : I, (l i).image f :=
+  Set.image_iUnion
+
+/-! The following distributive laws for the `image` operation requires the function `f`
+to be a language homomorphism. -/
+
+theorem image_one (f : Hom α β) : (1 : Language α).image f = 1 := by
+  ext bs
+  simp
+
+theorem image_mul (f : Hom α β) (l1 l2 : Language α) :
+    (l1 * l2).image f = l1.image f * l2.image f := by
+  ext bs
+  simp [mem_mul]
+
+theorem image_pow (f : Hom α β) (l : Language α) (n : ℕ) :
+    (l^n).image f = (l.image f)^n := by
+  induction n with
+  | zero => simp [image_one]
+  | succ n h_ind => simp [pow_succ, image_mul, h_ind]
+
+theorem image_kstar (f : Hom α β) (l : Language α) :
+    (l∗).image f = (l.image f)∗ := by
+  simp [kstar_eq_iSup_pow, image_iSup, image_pow]
 
 end ImagePreimage
 
