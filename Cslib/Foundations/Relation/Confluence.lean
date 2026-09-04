@@ -131,6 +131,13 @@ theorem Normal_iff (r : α → α → Prop) (x : α) : Normal r x ↔ ∀ y, ¬ 
 theorem Normal.reflTransGen_eq (h : Normal r x) (xy : ReflTransGen r x y) : x = y := by
   induction xy <;> grind
 
+theorem Normal.sup_iff (x : α) : Normal (r₁ ⊔ r₂) x ↔ Normal r₁ x /\ Normal r₂ x := by
+  constructor
+  · intros g
+    constructor <;> intros h <;> apply g <;> obtain ⟨t, _⟩ := h <;> exists t <;> tauto
+  · rintro _ ⟨t, h⟩
+    cases h <;> grind
+
 /-- For a Church-Rosser relation, elements in an equivalence class must be multi-step related. -/
 theorem ChurchRosser.normal_eqvGen_reflTransGen (cr : ChurchRosser r) (norm : Normal r x)
     (xy : EqvGen r y x) : ReflTransGen r y x := by
