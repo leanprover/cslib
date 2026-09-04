@@ -444,11 +444,8 @@ theorem bisimilarity_is_congruence
 instance : Congruence (HomBisimilarity (lts (defs := defs))) := ⟨⟩
 
 /-- Bisimilarity is a congruence in CCS. -/
-instance bisimilarityCongruence :
-    LawfulCongruence (HomBisimilarity (lts (defs := defs))) where
-  elim := by
-    dsimp [Congruence.r]
-    grind [Covariant, bisimilarity_is_congruence]
+instance bisimilarityCongruence : LawfulCongruence (HomBisimilarity (lts (defs := defs))) where
+  elim := by grind [Covariant, bisimilarity_is_congruence]
 
 end CCS
 

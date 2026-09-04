@@ -7,7 +7,7 @@ Authors: Dhruv Gupta
 module
 
 public import Cslib.MachineLearning.PACLearning.Defs
-public import Mathlib.MeasureTheory.Measure.Dirac
+public import Mathlib.MeasureTheory.Measure.Dirac.Basic
 public import Mathlib.MeasureTheory.Measure.Map
 
 /-! # Version Space
@@ -165,7 +165,7 @@ theorem empiricalError_eq_div [DecidableEq β]
     empiricalError h S = (empiricalMiscount h S : ℝ≥0∞) / m := by
   have hm_ne : m ≠ 0 := hm.ne'
   unfold empiricalError empiricalMeasure error empiricalMiscount
-  rw [dif_neg hm_ne, Measure.smul_apply, Measure.finsetSum_apply]
+  rw [dite_eq_right hm_ne, Measure.smul_apply, Measure.finsetSum_apply]
   simp only [Measure.dirac_apply, Set.indicator, Set.mem_ofPred_eq, Pi.one_apply, smul_eq_mul]
   rw [Finset.sum_boole, ← ENNReal.div_eq_inv_mul]
 
@@ -252,9 +252,6 @@ private lemma pi_map_graph_eq_one
     (Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x))))
       (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1})) = 1 := by
   have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
-  have : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
-    Measure.isProbabilityMeasure_map hφ.aemeasurable
-  rw [Measure.pi_pi]
   simp [map_graph_eq_one hcm P hG]
 
 /-- Under iid sampling from the realizable joint distribution induced by
@@ -268,10 +265,6 @@ theorem ae_mem_versionSpace_of_realizable
     ∀ᵐ S : LabeledSample α β m
       ∂(Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x)))),
       c ∈ VersionSpace C S := by
-  have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
-  have : IsProbabilityMeasure (P.map (fun x : α => (x, c x))) :=
-    Measure.isProbabilityMeasure_map hφ.aemeasurable
-  rw [ae_iff]
   have hsub : {S : Fin m → α × β | ¬ c ∈ VersionSpace C S} ⊆
       (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1}))ᶜ := by
     intro S hS hcontra

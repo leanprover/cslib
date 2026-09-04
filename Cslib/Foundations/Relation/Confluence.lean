@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 module
 
 public import Cslib.Foundations.Relation.Defs
-public import Mathlib.Data.List.TFAE
+public import Mathlib.Data.List.Pairwise
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 
@@ -38,7 +38,7 @@ theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFou
 
 namespace Relation
 
-attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen CompRel
+attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
 
 theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
   induction h <;> grind
@@ -111,13 +111,13 @@ private theorem confluent_equivalents : [ChurchRosser r, SemiConfluent r, Conflu
   grind [List.tfae_cons_cons, List.tfae_singleton]
 
 theorem SemiConfluent_iff_ChurchRosser : SemiConfluent r ↔ ChurchRosser r :=
-  List.TFAE.out confluent_equivalents 1 0
+  List.TFAE.out confluent_equivalents 2 1
 
 theorem Confluent_iff_ChurchRosser : Confluent r ↔ ChurchRosser r :=
-  List.TFAE.out confluent_equivalents 2 0
+  List.TFAE.out confluent_equivalents 3 1
 
 theorem Confluent_iff_SemiConfluent : Confluent r ↔ SemiConfluent r :=
-  List.TFAE.out confluent_equivalents 2 1
+  List.TFAE.out confluent_equivalents 3 2
 
 theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : Confluent r := by
   intro a b c hab hac
@@ -149,8 +149,7 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
   apply equivalence_join
   grind
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
-lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind only [Acc]
+lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind [Acc]
 
 lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
 
@@ -187,6 +186,14 @@ lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x
 
 lemma SN.of_normal (hx : Normal r x) : SN r x := SN.intro fun y hy => (hx ⟨y, hy⟩).elim
 
+theorem SN.normalizable (hx : SN r x) : Normalizable r x := by
+  induction hx with | intro x h ih =>
+  by_cases hy: (∃ y, r x y)
+  · obtain ⟨y, hy⟩ := hy
+    obtain ⟨z, hz, hnormal⟩ := ih y hy
+    exact ⟨z, .head hy hz, hnormal⟩
+  · exists x
+
 lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
 
 lemma Terminating.iff_forall_sn : Terminating r ↔ ∀ x, SN r x :=
@@ -220,17 +227,8 @@ lemma Terminating.subtype_sn (r : α → α → Prop) :
     Terminating (α := {x // SN r x}) (fun a b => r a b) :=
   iff_forall_sn.mpr fun x => x.property.onFun_of_image
 
-theorem SN.isNormalizable (hx : SN r x) : Normalizable r x := by
-  -- restrict to the subtype where all elements are `SN`, so `flip r` is well-founded
-  obtain ⟨⟨y, hsn⟩, hred : ReflTransGen r x y, hnorm⟩ :=
-    (Terminating.subtype_sn r).has_min
-    (s := Subtype.val ⁻¹' ({y | ReflTransGen r x y})) ⟨⟨x, hx⟩, ReflTransGen.refl⟩
-  use y, hred
-  intro ⟨z, hyz⟩
-  exact hnorm ⟨z, hsn.of_rel hyz⟩ (.tail hred hyz) hyz
-
 theorem Terminating.isNormalizing (hr : Terminating r) : Normalizing r :=
-  fun x => (hr.apply x).isNormalizable
+  fun x => (hr.apply x).normalizable
 
 theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
     Confluent r ↔ ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n := by
@@ -305,7 +303,7 @@ theorem StronglyCommute.extend (h : StronglyCommute r₁ r₂) (xy : ReflTransGe
   | @tail b c _ bc ih =>
     obtain ⟨w, bw, zw⟩ := ih
     cases bw with
-    | refl => exact ⟨c, .refl, zw.trans (.single bc)⟩
+    | refl => exact ⟨c, .refl, zw.tail bc⟩
     | single bw => cases h bc bw; grind [ReflTransGen.trans]
 
 theorem StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂ := by
@@ -369,13 +367,13 @@ theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTra
   ext a b
   exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
 
-lemma ReflGen.compRel_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
+lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
 | .refl => .refl
 | .single (.inl h) => .single (.inr h)
 | .single (.inr h) => .single (.inl h)
 
 @[simp, grind =]
-theorem reflTransGen_compRel : ReflTransGen (SymmGen r) = EqvGen r := by
+theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := by
   ext a b
   constructor
   · intro h

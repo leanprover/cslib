@@ -16,5 +16,7 @@ import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.MLL
 import CslibTests.Modal
+import CslibTests.Modal.Ideal
+import CslibTests.Modal.Stlc
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
