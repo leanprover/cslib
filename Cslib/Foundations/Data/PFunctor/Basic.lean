@@ -6,6 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
+public import Cslib.Init
 public import Mathlib.Data.PFunctor.Univariate.Basic
 
 /-! # Additional basic theory on polynomial functors -/
