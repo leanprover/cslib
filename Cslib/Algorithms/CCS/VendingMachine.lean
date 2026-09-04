@@ -55,7 +55,7 @@ def vm : Process String Constant := const .vm
 /-- Constant definitions: vm = coin.(tea.VM + coffee.VM) -/
 @[local grind =]
 def vendingDefs : Constant → Option (Process String Constant)
-  | .vm => some <| pre Coin (choice (pre Tea (const .vm)) (pre Coffee (const .vm)))
+  | .vm => some <| `(CCS| Coin. ((Tea. call .vm) + (Coffee. call .vm)))
 
 /-- The LTS of CCS for the deterministic vending machine. -/
 abbrev ltsD := CCS.lts (defs := vendingDefs)
@@ -68,7 +68,7 @@ example : ltsD.Tr vm Coin (choice (pre Tea (const .vm)) (pre Coffee (const .vm))
 
 /-- vm = coin.tea.VM + coin.coffee.VM -/
 def vendingDefsND : Constant → Option (Process String Constant)
-  | .vm => some <| (choice (pre Coin (pre Tea (const .vm))) (pre Coin (pre Coffee (const .vm))))
+  | .vm => some <| `(CCS| (Coin. Tea. call .vm) + (Coin. Coffee. call .vm))
 
 /-- The LTS of CCS for the nondeterministic vending machine. -/
 abbrev ltsND := CCS.lts (defs := vendingDefsND)
@@ -78,8 +78,8 @@ open LTS LTS.IsBisimulation LTS.Bisimilarity
 /-- The deterministic and nondeterministic vending machines are not bisimilar. -/
 theorem vm_ltsD_ltsND_not_bisim : ¬(vm ~[ltsD, ltsND] vm) := by
   rintro ⟨r, hr, hbisim⟩
-  let p₁ := (choice (pre Tea (const Constant.vm)) (pre Coffee (const Constant.vm)))
-  let q₁ := (pre Tea (const Constant.vm))
+  let p₁ := `(CCS| (Tea. call Constant.vm) + (Coffee. call Constant.vm))
+  let q₁ := `(CCS| Tea. call Constant.vm)
   have ltsD_vm_deterministic : ltsD.DeterministicStateLabel vm Coin := by
     intro _ _ htr₁ htr₂
     grind [const_tr htr₁, const_tr htr₂]

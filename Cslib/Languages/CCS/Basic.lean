@@ -44,13 +44,59 @@ deriving DecidableEq
 
 /-- Processes. -/
 inductive Process (Name : Type u) (Constant : Type v) : Type (max u v) where
+  /-- Terminated process. -/
   | nil
+  /-- Do `μ` and proceed as `p`. -/
   | pre (μ : Act Name) (p : Process Name Constant)
+  /-- `p` parallel `q`. -/
   | par (p q : Process Name Constant)
+  /-- Do `p` or `q` (nondeterministically). -/
   | choice (p q : Process Name Constant)
+  /-- Restriction. -/
   | res (a : Name) (p : Process Name Constant)
+  /-- Constant. -/
   | const (c : Constant)
 deriving DecidableEq
+
+/-- Syntactic category for processes. -/
+declare_syntax_cat ccsProc
+
+@[inherit_doc Process.nil]
+scoped syntax num : ccsProc
+
+@[inherit_doc Process.pre]
+scoped syntax ident "." ccsProc : ccsProc
+
+@[inherit_doc Process.pre]
+scoped syntax "(" term ")" "." ccsProc : ccsProc
+
+@[inherit_doc Process.choice]
+scoped syntax ccsProc "+" ccsProc : ccsProc
+
+@[inherit_doc Process.par]
+scoped syntax ccsProc "|" ccsProc : ccsProc
+
+@[inherit_doc Process.res]
+scoped syntax "ν" term ccsProc : ccsProc
+
+@[inherit_doc Process.const]
+scoped syntax "call" term : ccsProc
+
+@[inherit_doc Process]
+scoped syntax "(" ccsProc ")" : ccsProc
+
+@[inherit_doc Process]
+scoped syntax "`(CCS| " ccsProc ")" : term
+
+scoped macro_rules
+  | `(`(CCS| 0)) => `(Process.nil)
+  | `(`(CCS| $μ:ident . $p:ccsProc)) => `(Process.pre $μ `(CCS| $p))
+  | `(`(CCS| ( $μ:term ) . $p:ccsProc)) => `(Process.pre $μ `(CCS| $p))
+  | `(`(CCS| $p:ccsProc + $q:ccsProc)) => `(Process.choice `(CCS| $p) `(CCS| $q))
+  | `(`(CCS| $p:ccsProc | $q:ccsProc)) => `(Process.par `(CCS| $p) `(CCS| $q))
+  | `(`(CCS| ν $a:term $p:ccsProc)) => `(Process.res $a `(CCS| $p))
+  | `(`(CCS| call $c:term)) => `(Process.const $c)
+  | `(`(CCS| ( $p:ccsProc ))) => `(`(CCS| $p))
 
 namespace Act
 
