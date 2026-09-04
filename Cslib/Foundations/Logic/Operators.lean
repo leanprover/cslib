@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Thomas Waring
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Data.PFunctor.Basic
 
 /-! # Logical operators
 
@@ -62,7 +63,70 @@ end Propositional
 
 section Modal
 
-/-! ## Basic modalities -/
+/-! ## General modalities from modal similarity types (polynomial functors) -/
+
+/-- The type `α` has a family of triangle operators (`Δ`). -/
+class HasTriangle (α : Type*) (τ : outParam PFunctor) where
+  /-- `Δ[op](φ₁, ..., φₙ)` means that `φ₁`, ..., `φₙ` are valid at some respective related states.
+  -/
+  triangle (op : τ.A) (arg : τ.B op → α) : α
+
+@[inherit_doc] scoped notation:50 "Δ[" op "]" arg:max => HasTriangle.triangle op arg
+
+/-- The type `α` has a family of nabla operators (`∇`). -/
+class HasNabla (α : Type*) (τ : outParam PFunctor) where
+  /-- `∇[op](φ₁, ..., φₙ)` means that `φ₁`, ..., `φₙ` are valid at all respective related states. -/
+  nabla (op : τ.A) (arg : τ.B op → α) : α
+
+@[inherit_doc] scoped notation:50 "∇[" op "]" arg:max => HasNabla.nabla op arg
+
+end Modal
+
+section Dynamic
+
+/-! ## Dynamic modalities
+
+Here we need to use the prefix `d` to distinguish our notation from the normal `[·]` and `⟨·⟩`.
+A refactoring that makes this unnecessary would be welcome.
+-/
+
+/-- The type `α` has a dynamic diamond modality with action type `β` (`d⟨a⟩φ`). -/
+class HasDynamicDiamond (α : Type*) (β : outParam Type*) where
+  /-- `b` is possibly valid after `a`. -/
+  dynDiamond (a : β) (b : α) : α
+
+@[inherit_doc] scoped notation "d⟨" a "⟩" φ:max => HasDynamicDiamond.dynDiamond a φ
+
+/-- The type `α` has a dynamic box modality with action type `β` (`d[a]φ`). -/
+class HasDynamicBox (α : Type*) (β : outParam Type*) where
+  /-- `b` is necessarily valid after `a`. -/
+  dynBox (a : β) (b : α) : α
+
+@[inherit_doc] scoped notation "d[" a "]" φ:max => HasDynamicBox.dynBox a φ
+
+/-- A family of triangle operators over induces dynamic diamond modalities by applying each operator
+to the constant argument family. -/
+instance [HasTriangle α τ] : HasDynamicDiamond α τ.A where
+  dynDiamond op φ := Δ[op](PFunctor.const op φ)
+
+@[simp, scoped grind =, modal =]
+theorem dynDiamond_eq_triangle [HasTriangle α τ] (op : τ.A) (φ : α) :
+    (d⟨op⟩φ) = (Δ[op](PFunctor.const op φ)) := rfl
+
+/-- A family of nabla operators induces dynamic box modalities by applying each operator to the
+constant argument family. -/
+instance [HasNabla α τ] : HasDynamicBox α τ.A where
+  dynBox op φ := ∇[op](PFunctor.const op φ)
+
+@[simp, scoped grind =, modal =]
+theorem dynBox_eq_nabla [HasNabla α τ] (op : τ.A) (φ : α) :
+    (d[op]φ) = (∇[op](PFunctor.const op φ)) := rfl
+
+end Dynamic
+
+section Unimodal
+
+/-! ## Basic modalities (Unimodal logic operators) -/
 
 /-- The type `α` has a box modality (`□`). -/
 class HasBox (α : Type*) where
@@ -78,31 +142,23 @@ class HasDiamond (α : Type*) where
 
 @[inherit_doc] scoped prefix:40 "◇" => HasDiamond.diamond
 
-end Modal
+/-- A dynamic diamond modality with a unique action induces a basic diamond modality. -/
+instance [Unique β] [HasDynamicDiamond α β] : HasDiamond α where
+  diamond φ := d⟨default⟩φ
 
-section Dynamic
+@[simp, scoped grind =, modal =]
+theorem diamond_eq_dynDiamond [Unique β] [HasDynamicDiamond α β] {φ : α} :
+    (◇φ) = (d⟨default⟩φ) := rfl
 
-/-! ## Dynamic modalities
+/-- A dynamic box modality with a unique action induces a basic box modality. -/
+instance [Unique β] [HasDynamicBox α β] : HasBox α where
+  box φ := d[default]φ
 
-Here we need to use the prefix `d` to distinguish our notation from the normal `[·]` and `⟨·⟩`.
-A refactoring that makes this unnecessary would be welcome.
--/
+@[simp, scoped grind =, modal =]
+theorem box_eq_dynBox [Unique β] [HasDynamicBox α β] {φ : α} :
+    (□φ) = (d[default]φ) := rfl
 
-/-- The type `α` has a dynamic box modality with action type `β` (`d[a]φ`). -/
-class HasDynamicBox (α β : Type*) where
-  /-- `b` is necessarily valid after `a`. -/
-  dynBox (a : β) (b : α) : α
-
-@[inherit_doc] scoped notation "d[" a "]" φ => HasDynamicBox.dynBox a φ
-
-/-- The type `α` has a dynamic diamond modality with action type `β` (`d⟨a⟩φ`). -/
-class HasDynamicDiamond (α β : Type*) where
-  /-- `b` is possibly valid after `a`. -/
-  dynDiamond (a : β) (b : α) : α
-
-@[inherit_doc] scoped notation "d⟨" a "⟩" φ => HasDynamicDiamond.dynDiamond a φ
-
-end Dynamic
+end Unimodal
 
 section Linear
 
