@@ -9,3 +9,5 @@ These modules describe executable machines and their effects on configurations a
   contributes one visited cell to space. Arbitrary data on unused tapes is preserved.
 - `OutputToWorkTape` redirects output to one fresh tape, including the symbol on a halting step.
 - `InputFromWorkTape` simulates the native input on a work tape, preserving boundary clamping.
+- `Rewind` shares one controller between native-input and work-tape rewinding. Work-tape rewind
+  starts immediately after contiguous contents and finishes at their first cell, including when empty.
