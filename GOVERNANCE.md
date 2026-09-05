@@ -4,6 +4,8 @@ Cslib is governed by two main bodies:
 - A [steering committee](#steering-committee), responsible for securing financial support and guiding the overall vision of the project.
 - A [maintainer team](#maintainers), responsible for curating, expanding, and maintaining the code repository and its technical direction.
 
+The project also has a [reviewer team](#reviewers), consisting of trusted contributors who support the maintainer team by providing regular technical review and guidance.
+
 These groups work together to define the project's roadmap and foster a welcoming and productive environment.
 New members may be invited based on project needs and individual merit (e.g., contributions, review activity).
 
@@ -45,7 +47,7 @@ Area maintainers are trusted contributors who take ownership of specific areas o
 - Alexandre Rademaker (@arademaker), Renaissance Philanthropy and Getulio Vargas Foundation. Areas: logic.
 - Sorrachai Yingchareonthawornchai (@sorrachai), ETH Zurich. Areas: algorithms and data structures.
 
-### Reviewers
+## Reviewers
 
 Reviewers are trusted contributors who provide regular reviewing and technical guidance to PRs to CSLib.
 
