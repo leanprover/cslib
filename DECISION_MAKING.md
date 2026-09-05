@@ -43,7 +43,7 @@ A maintainer may, at their discretion, delegate the act of merging to a member o
 
 The maintainers authorised to accept pull requests are codified in [CODEOWNERS](/.github/CODEOWNERS).
 
-If a maintainer is the author of a pull request, the required maintainer approval must come from another maintainer.
+If a maintainer is the author of a pull request, the required maintainer approval must come from another maintainer. Simple PRs for keeping CSLib up to date with the rest of the Lean ecosystem (e.g., dependency version bumps or fixes to deal with new Lean versions) are exempt from this rule.
 
 ### Disagreement
 
