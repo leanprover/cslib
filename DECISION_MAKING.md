@@ -60,9 +60,9 @@ In doing so, the Lead Maintainer will consider the arguments raised and may seek
 
 Reviewers and maintainers are trusted members of the CSLib community who are expected to uphold a high standard of collaboration.
 
-New CSLib reviewers and maintainers may be proposed by any member of the CSLib reviewer team, maintainer team, or Steering Committee. Appointment requires affirmative support from at least half of the eligible CSLib voters described below, with no objections after five days of consideration.
+New CSLib reviewers and maintainers may be proposed by any member of the CSLib reviewer team, maintainer team, or Steering Committee. Appointment requires affirmative support from at least half of the eligible CSLib voters (eligibility is described in the next two sections), with no objections after five days of consideration.
 
-Members of the steering committee are not included when calculating the number of votes required for appointment, but may vote for both reviewers and maintainers. Their votes otherwise have the same effect as those of the eligible CSLib voters. The intention is to allow the steering committee members to contribute to appointment decisions without making their participation necessary for reaching the required threshold.
+Members of the Steering Committee are not included when calculating the number of votes required for appointment, but may vote for both reviewers and maintainers. Their votes otherwise have the same effect as those of the eligible CSLib voters. The intention is to allow the Steering Committee members to contribute to appointment decisions without making their participation necessary for reaching the required threshold.
 
 Candidates should be considered on the basis of their contributions to CSLib and the qualities relevant to the role. These may include technical contributions, constructive reviewing activity, subject-matter expertise, reliability, collaboration with other contributors, and commitment to the long-term development of CSLib.
 
@@ -90,4 +90,4 @@ In such cases, the Lead Maintainer may intervene to determine how a decision sho
 
 ## Maintenance of these policies
 
-The [CODEOWNERS](/.github/CODEOWNERS) file is maintained by the lead maintainer, who is also responsible for coordinating changes to this document and related CSLib governance policies.
+The [CODEOWNERS](/.github/CODEOWNERS) file is maintained by the Lead Maintainer, who is also responsible for coordinating changes to this document and related CSLib governance policies.
