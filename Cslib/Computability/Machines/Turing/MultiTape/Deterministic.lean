@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Christian Reitwiessner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Christian Reitwiessner
+Authors: Christian Reitwiessner, Samuel Schlesinger
 -/
 
 module
@@ -9,7 +9,6 @@ module
 public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-public import Mathlib.Computability.Language
 public import Mathlib.Basic.Sign.Defs
 public import Cslib.Foundations.Data.RelatesInSteps
 
@@ -72,8 +71,10 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
 * `ComputesInTimeAndSpace`: a proof that a specific TM computes an output from an input in a certain
     number of steps and using a certain number of tape cells
-* `ComputableInTimeAndSpace`: a proof that there is a multi-tape TM that computes a function
-    (on strings) respecting a time and space bound in the input length.
+* `ComputesFunInTimeAndSpace`: a machine computes a function between specified encodings,
+    respecting time and space bounds on each actual input.
+* `ComputableInTimeAndSpace`: such a machine exists with binary alphabet and finitely many states.
+* `ComputableInTimeAndSpaceOfLength`: the specialization to bounds on encoded input length.
 * `DecidableInTimeAndSpace`: a proof that a TM decides a language within a certain time
     and space bound.
 
@@ -424,43 +425,58 @@ lemma output_length_le_time
   rw [← hout]
   simpa using tm.runFrom_output_length_le (tm.initCfg input) t
 
-/-- A proof that the Turing machine `tm` computes the function `f` such that on all inputs of
-length `n` it uses at most `t n` steps and `s n` space. It assumes an embedding function
-from the input/output alphabet into the machine alphabet.
-Note that this does not require the alphabet or state set to be finite. -/
-def ComputesFunInTimeAndSpace
+/-- A machine computes `f` between the supplied encodings, with bounds depending on the input.
+The machine's alphabet and state type need not be finite. -/
+def ComputesFunInTimeAndSpace {α β : Type*}
     (tm : MultiTapeTM k Symbol State)
-    {IOSymbol : Type*}
-    (f : List IOSymbol → List IOSymbol)
-    (toMachineSymbol : IOSymbol ↪ Symbol)
-    (t s : ℕ → ℕ) : Prop :=
-  ∀ input, ∃ t' ≤ t input.length, ∃ s' ≤ s input.length,
-  ComputesInTimeAndSpace tm (input.map toMachineSymbol) ((f input).map toMachineSymbol) t' s'
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol)
+    (f : α → β) (t s : α → ℕ) : Prop :=
+  ∀ a, ∃ t' ≤ t a, ∃ s' ≤ s a,
+    ComputesInTimeAndSpace tm (encIn a) (encOut (f a)) t' s'
 
-/-- The main definition of complexity of multi-tape Turing machines:
-A proof that the function `f` is computable by some multi-tape Turing machine `tm` (with finite
-work alphabet and finite state set) via an alphabet embedding function `toMachineSymbol`,
-such that on all inputs of length `n`, `tm` uses at most `t n` steps and at most `s n` space. -/
-def ComputableInTimeAndSpace
-    {IOSymbol : Type*}
-    (f : List IOSymbol → List IOSymbol)
+/-- A function is computable within the input-indexed bounds by a machine with binary alphabet
+and finitely many states. Input and output types may have different encodings. -/
+def ComputableInTimeAndSpace {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
+    (t s : α → ℕ) : Prop :=
+  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
+    ComputesFunInTimeAndSpace tm encIn encOut f t s
+
+/-- Length-based complexity is the specialization to bounds on the encoded input length. -/
+abbrev ComputableInTimeAndSpaceOfLength {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : ℕ → ℕ) : Prop :=
-  ∃ (k sym state : ℕ) (toMachineSymbol : _) (tm : MultiTapeTM k (Fin sym) (Fin state)),
-  ComputesFunInTimeAndSpace tm f toMachineSymbol t s
+  ComputableInTimeAndSpace f encIn encOut
+    (fun a => t (encIn a).length) (fun a => s (encIn a).length)
+
+/-- Resource bounds can be weakened independently on every input. -/
+theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
+    {tm : MultiTapeTM k Symbol State} {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol}
+    {f : α → β} {t s t' s' : α → ℕ}
+    (h : ComputesFunInTimeAndSpace tm encIn encOut f t s)
+    (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
+    ComputesFunInTimeAndSpace tm encIn encOut f t' s' := fun a => by
+  obtain ⟨u, hu, v, hv, hc⟩ := h a
+  exact ⟨u, hu.trans (ht a), v, hv.trans (hs a), hc⟩
+
+/-- Computability is monotone in its input-indexed resource bounds. -/
+theorem ComputableInTimeAndSpace.mono {α β : Type*}
+    {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {t s t' s' : α → ℕ}
+    (h : ComputableInTimeAndSpace f encIn encOut t s)
+    (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
+    ComputableInTimeAndSpace f encIn encOut t' s' := by
+  obtain ⟨k, State, hfinite, tm, htm⟩ := h
+  exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
 
 open Classical in
-/-- The indicator function of a language. -/
-noncomputable def indicator {Symbol : Type*} [Inhabited Symbol] (L : Language Symbol) :
-    List Symbol → List Symbol
-  | x => if x ∈ L then [default] else []
+/-- The Boolean indicator function of a set. -/
+noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
+  fun x => if x ∈ L then true else false
 
-/-- A language is decidable in time `t` and space `s` if and only if its indicator function
-is computable in time `t` and space `s`. -/
-def DecidableInTimeAndSpace
-    {IOSymbol : Type} [Inhabited IOSymbol]
-    (L : Language IOSymbol)
-    (t s : ℕ → ℕ) : Prop :=
-  ComputableInTimeAndSpace (indicator L) t s
+/-- A set is decidable within the given input-indexed bounds when its Boolean indicator is. -/
+def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
+    (t s : α → ℕ) : Prop :=
+  ComputableInTimeAndSpace (indicator L) enc ⟨fun b => [b], by intro a b h; simpa using h⟩ t s
 
 /-- This lemma translates between the relational notion and the iterated step notion. The latter
 can be more convenient especially for deterministic machines as we have here. -/

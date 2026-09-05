@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Samuel Schlesinger
 -/
 
-import Cslib.Computability.Machines.Turing.MultiTape.Composition
+import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Composition
 import Mathlib.Tactic.FinCases
 
 /-! Regression tests for composition: empty output, boundary clamping, final-step output,

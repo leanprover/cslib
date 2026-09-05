@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Computability.Machines.Turing.MultiTape.Composition.Rewind
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Composition.Rewind
 
 import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 import Mathlib.Algebra.BigOperators.Fin
@@ -16,8 +16,7 @@ import Mathlib.Algebra.BigOperators.Fin
 
 `comp_haltsWithOutput` gives operational correctness. `comp_computesInTimeAndSpace` composes
 individual computations, charging the rewind and extra tape to the actual intermediate output
-length. `comp_computesFunInTimeAndSpace_of_length_le` lifts this result to functions with a
-separate output-length bound; `comp_computesFunInTimeAndSpace` uses the first time bound instead.
+length. The function-level interface is in `MultiTape.Combinators.Comp`.
 
 The first machine takes one composite step per native step; the second takes two. The bounds
 include the intermediate tape and both blank boundary cells. They permit padded halting times.
@@ -113,17 +112,17 @@ private inductive CompositionCfgPhase
       (hs : s ≤ (firstFinalCfg tm₀ input u).output.length)
       (hcfg : cfg = intermediateCfg tm₀ tm₁
           (firstFinalCfg tm₀ input u)
-          .rewind
+          (.inr (.inl .scan))
           (((firstFinalCfg tm₀ input u).output.length : ℤ) - 1 - s))
   | initialClassify
       (hcfg : cfg = intermediateCfg tm₀ tm₁
           (firstFinalCfg tm₀ input u)
-          (.classify tm₁.q₀ .right) 0)
+          (.inr (.inr (.classify tm₁.q₀ .right))) 0)
   | second (m : ℕ) (hm : m ≤ v)
       (hcfg : cfg = embedSecond tm₀ tm₁
           (firstFinalCfg tm₀ input u)
           (secondCfgAt tm₀ tm₁ input u m))
-  | secondClassify (m : ℕ) (hm : m < v) (boundary : CompositionBoundary)
+  | secondClassify (m : ℕ) (hm : m < v) (boundary : InputBoundary)
       (hcfg : cfg = classifyCfg tm₀ tm₁
           (firstFinalCfg tm₀ input u)
           (secondCfgAt tm₀ tm₁ input u (m + 1))
@@ -179,28 +178,6 @@ private lemma runFrom_composition_cases
 ## Resource bounds and function-level correctness
 -/
 
-namespace Composition
-
-/-- Time bound produced by sequentially composing computations with bounds `T₀` and `T₁`. -/
-def timeBound (T₀ T₁ : ℕ → ℕ) (n : ℕ) : ℕ :=
-  2 * T₀ n + 3 + 2 * T₁ (T₀ n)
-
-/-- Space bound produced by sequential composition, including its intermediate work tape. -/
-def spaceBound (T₀ S₀ S₁ : ℕ → ℕ) (n : ℕ) : ℕ :=
-  S₀ n + (T₀ n + 2) + S₁ (T₀ n)
-
-/-- Sequential composition preserves monotonicity of time bounds. -/
-lemma timeBound_mono {T₀ T₁ : ℕ → ℕ} (hT₀ : Monotone T₀) (hT₁ : Monotone T₁) :
-    Monotone (timeBound T₀ T₁) := by
-  exact ((hT₀.const_mul' 2).add monotone_const).add ((hT₁.comp hT₀).const_mul' 2)
-
-/-- Sequential composition preserves monotonicity of space bounds. -/
-lemma spaceBound_mono {T₀ S₀ S₁ : ℕ → ℕ}
-    (hT₀ : Monotone T₀) (hS₀ : Monotone S₀) (hS₁ : Monotone S₁) :
-    Monotone (spaceBound T₀ S₀ S₁) := by
-  exact (hS₀.add (hT₀.add monotone_const)).add (hS₁.comp hT₀)
-
-end Composition
 
 /-- Decompose composite space usage into the first, intermediate, and second tape blocks. -/
 private lemma compositionSpaceUsed_eq
@@ -314,7 +291,7 @@ private lemma compositionIntermediateTapePos_mem_Icc
     rw [hcfg]
     simp only [tapes, firstFinalCfg, embedSecond, compositionIntermediateTapeIdx_val,
       lt_self_iff_false, ↓reduceDIte, Finset.mem_Icc]
-    unfold virtualInputPos
+    unfold InputFromWorkTape.virtualInputPos
     constructor <;> omega
   | secondClassify m _ _ hcfg =>
     have hp := (secondCfgAt tm₀ tm₁ input u (m + 1)).inputPos.isLt
@@ -323,7 +300,7 @@ private lemma compositionIntermediateTapePos_mem_Icc
     simp only [tapes, firstFinalCfg, classifyCfg, embedSecond,
       compositionIntermediateTapeIdx_val, lt_self_iff_false, ↓reduceDIte,
       Finset.mem_Icc]
-    unfold virtualInputPos
+    unfold InputFromWorkTape.virtualInputPos
     constructor <;> omega
 
 /-- The intermediate tape visits at most `output.length + 2` cells in a complete run. -/
@@ -389,45 +366,5 @@ theorem comp_computesInTimeAndSpace
       (u + (middle.length + 3) + 2 * t₁), by omega, ?_⟩
   have hcomp := comp_haltsWithOutput tm₀ tm₁ hhaltu hactiveu houtu h₁.1 h₁.2.1
   exact ⟨hcomp.1, hcomp.2, rfl⟩
-
-/-- Function composition with a separate bound on intermediate output length.
-This avoids charging a long first computation's running time as intermediate space. -/
-theorem comp_computesFunInTimeAndSpace_of_length_le
-    {IOSymbol : Type*} {f g : List IOSymbol → List IOSymbol}
-    (embedding : IOSymbol ↪ Symbol) {T₀ S₀ T₁ S₁ L : ℕ → ℕ}
-    (h₀ : ComputesFunInTimeAndSpace tm₀ f embedding T₀ S₀)
-    (h₁ : ComputesFunInTimeAndSpace tm₁ g embedding T₁ S₁)
-    (hL : ∀ input, (f input).length ≤ L input.length)
-    (hT₁ : Monotone T₁) (hS₁ : Monotone S₁) :
-    ComputesFunInTimeAndSpace (comp tm₀ tm₁) (g ∘ f) embedding
-      (fun n => T₀ n + (L n + 3) + 2 * T₁ (L n))
-      (fun n => S₀ n + (L n + 2) + S₁ (L n)) := by
-  intro input
-  obtain ⟨t₀, ht₀, s₀, hs₀, hc₀⟩ := h₀ input
-  obtain ⟨t₁, ht₁, s₁, hs₁, hc₁⟩ := h₁ (f input)
-  obtain ⟨t, ht, s, hs, hc⟩ := comp_computesInTimeAndSpace tm₀ tm₁ hc₀ hc₁
-  simp only [List.length_map] at ht hs
-  have hlength := hL input
-  have htime := hT₁ hlength
-  have hspace := hS₁ hlength
-  exact ⟨t, by dsimp only; omega, s, by dsimp only; omega, hc⟩
-
-/-- Function composition with bounds expressed only in terms of component time and space.
-The first time bound also bounds intermediate output length. -/
-theorem comp_computesFunInTimeAndSpace
-    {IOSymbol : Type*} {f g : List IOSymbol → List IOSymbol}
-    (embedding : IOSymbol ↪ Symbol) {T₀ S₀ T₁ S₁ : ℕ → ℕ}
-    (h₀ : ComputesFunInTimeAndSpace tm₀ f embedding T₀ S₀)
-    (h₁ : ComputesFunInTimeAndSpace tm₁ g embedding T₁ S₁)
-    (hT₁ : Monotone T₁) (hS₁ : Monotone S₁) :
-    ComputesFunInTimeAndSpace (comp tm₀ tm₁) (g ∘ f) embedding
-      (Composition.timeBound T₀ T₁) (Composition.spaceBound T₀ S₀ S₁) := by
-  have hlength (input) : (f input).length ≤ T₀ input.length := by
-    obtain ⟨t, ht, s, _, hc⟩ := h₀ input
-    simpa only [List.length_map] using (output_length_le_time hc).trans ht
-  change ComputesFunInTimeAndSpace _ _ _
-    (fun n => 2 * T₀ n + 3 + 2 * T₁ (T₀ n)) (fun n => S₀ n + (T₀ n + 2) + S₁ (T₀ n))
-  simpa only [two_mul, Nat.add_assoc]
-    using comp_computesFunInTimeAndSpace_of_length_le tm₀ tm₁ embedding h₀ h₁ hlength hT₁ hS₁
 
 end Turing.MultiTapeTM
