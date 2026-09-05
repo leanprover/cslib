@@ -18,5 +18,6 @@ import CslibTests.MLL
 import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
+import CslibTests.MultiTapeComposition
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses

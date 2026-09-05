@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Mathlib.Data.Int.Interval
 
 /-!
 # Tape head visitation and space-usage lemmas
@@ -131,6 +132,29 @@ lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
       = ∑ i, (tm.spaceUsedByTape cfg t i) := by rfl
     _ ≤ ∑ i, (t + 1) := Finset.sum_le_sum (fun i _ => tm.spaceUsedByTape_le cfg t i)
     _ = k * t + k := by simp [Nat.mul_succ]
+
+/--
+The space used by one tape is monotone under inclusion of its visited head positions in the
+trajectory of another tape. The hypothesis `hpos` maps every time `r` in the first run to a time
+`r'` in the second run at which the two selected tape heads occupy the same position.
+-/
+lemma spaceUsedByTape_le_of_positions
+    {k' : ℕ} {Symbol' State' : Type*}
+    (tm : MultiTapeTM k Symbol State) (tm' : MultiTapeTM k' Symbol' State')
+    {input : List Symbol} {input' : List Symbol'}
+    (cfg : Cfg k Symbol State input) (cfg' : Cfg k' Symbol' State' input')
+    (t t' : ℕ) (i : Fin k) (i' : Fin k')
+    (hpos : ∀ r ≤ t, ∃ r' ≤ t',
+      (tm.runFrom cfg r).workTapePos i =
+        (tm'.runFrom cfg' r').workTapePos i') :
+    tm.spaceUsedByTape cfg t i ≤ tm'.spaceUsedByTape cfg' t' i' := by
+  unfold spaceUsedByTape visitedByTapeHead
+  apply Finset.card_le_card
+  intro p hp
+  simp only [Finset.mem_image, Finset.mem_range] at hp ⊢
+  obtain ⟨r, hr, rfl⟩ := hp
+  obtain ⟨r', hr', hpos'⟩ := hpos r (by omega)
+  exact ⟨r', by omega, hpos'.symm⟩
 
 /-- The space used by a single tape is monotone in the number of steps. -/
 lemma spaceUsedByTape_mono

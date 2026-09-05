@@ -6,8 +6,6 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Mathlib.Data.Finset.Max
-public import Mathlib.Data.Int.Interval
 public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
@@ -294,6 +292,20 @@ lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n
   | succ d ih =>
     rw [runFrom_succ_eq_step', ih, step_of_halt h]
 
+/-- Once a run has halted, every later time denotes the same configuration. -/
+lemma runFrom_eq_of_halt (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
+    (hhalt : (tm.runFrom cfg τ).state = none) :
+    tm.runFrom cfg t = tm.runFrom cfg τ := by
+  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le hle
+  rw [runFrom_add, runFrom_of_halt _ hhalt]
+
+/-- Halting is monotone in the number of execution steps. -/
+lemma runFrom_state_eq_none_mono (cfg : Cfg k Symbol State input) :
+    Monotone fun t => (tm.runFrom cfg t).state = none := by
+  intro τ t hle hhalt
+  rw [runFrom_eq_of_halt cfg hle hhalt]
+  exact hhalt
+
 @[simp]
 lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
     tm.outputSymbol cfg = none := by
@@ -369,9 +381,28 @@ lemma runFrom_output_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
-    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output := by
-  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
-  rw [runFrom_add, runFrom_of_halt _ hhalt]
+    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output :=
+  congrArg Cfg.output (tm.runFrom_eq_of_halt cfg hle hhalt)
+
+/-- Output length is monotone because a machine only appends output symbols. -/
+lemma runFrom_output_length_mono
+    (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
+    Monotone fun t => (tm.runFrom cfg t).output.length := by
+  apply monotone_nat_of_le_succ
+  intro t
+  rw [runFrom_succ_eq_step', step_output, List.length_append]
+  exact Nat.le_add_right _ _
+
+/-- A run can append at most one output symbol per step. -/
+lemma runFrom_output_length_le
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
+  induction t with
+  | zero => simp
+  | succ t ih =>
+      rw [runFrom_succ_eq_step', step_output, List.length_append]
+      grind [Option.toList]
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
@@ -383,6 +414,15 @@ def ComputesInTimeAndSpace
   (tm.runFrom (tm.initCfg input) t).state = none ∧
   (tm.runFrom (tm.initCfg input) t).output = output ∧
   tm.spaceUsed (tm.initCfg input) t = s
+
+/-- The output of a computation is no longer than its running time. -/
+lemma output_length_le_time
+    {tm : MultiTapeTM k Symbol State} {input output : List Symbol} {t s : ℕ}
+    (h : ComputesInTimeAndSpace tm input output t s) :
+    output.length ≤ t := by
+  obtain ⟨-, hout, -⟩ := h
+  rw [← hout]
+  simpa using tm.runFrom_output_length_le (tm.initCfg input) t
 
 /-- A proof that the Turing machine `tm` computes the function `f` such that on all inputs of
 length `n` it uses at most `t n` steps and `s n` space. It assumes an embedding function
@@ -447,6 +487,16 @@ Note that every Turing machine hast to perform at least one step to halt. -/
 def haltsAtStep (tm : MultiTapeTM k Symbol State) (input : List Symbol) (t : ℕ) : Bool :=
   (tm.runFrom (tm.initCfg input) t).state.isNone &&
   !(tm.runFrom (tm.initCfg input) (t - 1)).state.isNone
+
+/-- Every padded halting run has a least halting time. -/
+lemma exists_minimal_halting_time (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ)
+    (hhalt : (tm.runFrom cfg t).state = none) :
+    ∃ τ ≤ t, (tm.runFrom cfg τ).state = none ∧
+      ∀ m < τ, (tm.runFrom cfg m).state ≠ none := by
+  let hExists : ∃ n, (tm.runFrom cfg n).state = none := ⟨t, hhalt⟩
+  refine ⟨Nat.find hExists, Nat.find_min' hExists hhalt, Nat.find_spec hExists, ?_⟩
+  exact fun _ hm => Nat.find_min hExists hm
 
 /-- If a Turing machine halts, the time step is uniquely determined. -/
 lemma halting_step_unique
