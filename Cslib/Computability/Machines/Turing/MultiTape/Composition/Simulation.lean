@@ -99,19 +99,9 @@ private lemma compositionNextBoundary_eq_left {input : List Symbol}
     (p : Fin (input.length + 2)) (move : SignType)
     (hmove : moveInputPos p move = 0) :
     (inputMode p).nextBoundary move = .left := by
-  cases move with
-  | zero =>
-      have hp : p = 0 := by simpa using hmove
-      simp [hp, inputMode, CompositionInputMode.nextBoundary]
-  | neg => rfl
-  | pos =>
-      by_cases hright : p.val = input.length + 1
-      · have hp : p = ⟨input.length + 1, by omega⟩ := Fin.ext hright
-        rw [hp] at hmove
-        simp at hmove
-      · rw [moveInputPos_pos_of_ne_right p hright] at hmove
-        have hp := congrArg Fin.val hmove
-        simp at hp
+  cases move <;>
+    simp_all [inputMode, CompositionInputMode.nextBoundary, moveInputPos]
+  split_ifs at hmove <;> simp_all
 
 /-- The boundary hint selected before a move is right whenever the resulting native position is
 the right boundary. -/
@@ -119,23 +109,9 @@ private lemma compositionNextBoundary_eq_right {input : List Symbol}
     (p : Fin (input.length + 2)) (move : SignType)
     (hmove : (moveInputPos p move).val = input.length + 1) :
     (inputMode p).nextBoundary move = .right := by
-  cases move with
-  | zero =>
-      have hright : p.val = input.length + 1 := by simpa using hmove
-      have hleft : p ≠ 0 := by
-        intro h
-        rw [h] at hright
-        simp at hright
-      simp [inputMode, hright, hleft, CompositionInputMode.nextBoundary]
-  | pos => rfl
-  | neg =>
-      by_cases hleft : p = 0
-      · rw [hleft] at hmove
-        simp at hmove
-      · rw [moveInputPos_neg_of_ne_left p hleft] at hmove
-        simp at hmove
-        have hp : 0 < p.val := Nat.pos_of_ne_zero (fun hz => hleft (Fin.ext hz))
-        omega
+  cases move <;>
+    simp_all [inputMode, CompositionInputMode.nextBoundary, moveInputPos] <;>
+    split_ifs at * <;> simp_all <;> omega
 
 /-- Classifying the canonical intermediate tape recovers a native input-head mode, provided the
 boundary hint agrees at the two blank boundary cells. -/
@@ -147,31 +123,18 @@ private lemma compositionClassifyMode_listTape {input : List Symbol}
       (listTape input (virtualInputPos p)) boundary =
       inputMode p := by
   by_cases hp0 : p = 0
-  · have hb := hleft hp0
-    rw [hp0]
-    have hv : virtualInputPos (0 : Fin (input.length + 2)) = -1 := by
-      unfold virtualInputPos
-      simp
-    rw [hv]
-    simp [compositionClassifyMode, inputMode, hb, CompositionBoundary.inputMode]
+  · simp [hp0, hleft hp0, virtualInputPos, inputMode,
+      compositionClassifyMode, CompositionBoundary.inputMode, listTape]
     rfl
   · by_cases hpr : p.val = input.length + 1
-    · have hb := hright hpr
-      have hp : p = ⟨input.length + 1, by omega⟩ := Fin.ext hpr
-      rw [hp]
-      have hv : virtualInputPos
-          (⟨input.length + 1, by omega⟩ : Fin (input.length + 2)) = input.length := by
-        unfold virtualInputPos
-        omega
-      rw [hv]
-      simp [compositionClassifyMode, inputMode, hb, CompositionBoundary.inputMode]
+    · simp [virtualInputPos, hpr, hright hpr, inputMode, hp0,
+        compositionClassifyMode, CompositionBoundary.inputMode]
     · have hp : 0 < p.val := Nat.pos_of_ne_zero (fun hz => hp0 (Fin.ext hz))
       have hi : p.val - 1 < input.length := by omega
       have hv : virtualInputPos p = (p.val - 1 : ℕ) := by
         unfold virtualInputPos
         omega
-      rw [hv]
-      simp [compositionClassifyMode, inputMode, hp0, hpr, hi]
+      simp [hv, compositionClassifyMode, inputMode, hp0, hpr, hi]
 
 /-- Classifying the intermediate cell reached by a virtual move recovers the native clamped
 input-head mode after that move. -/
@@ -202,20 +165,11 @@ lemma step_classifyCfg
         (classifyCfg tm₀ tm₁ firstCfg secondCfg boundary) =
       embedSecond tm₀ tm₁ firstCfg secondCfg := by
   cases hstate : secondCfg.state with
-  | none =>
-      simp [step, classifyCfg, embedSecond, hstate]
+  | none => simp [step, classifyCfg, embedSecond, hstate]
   | some q =>
-      apply Cfg.ext
-      · simp [step, classifyCfg, embedSecond, comp, hstate,
-          Cfg.workTapeSymbols, compositionIntermediateTapeIdx, hmode]
-      · simp [step, classifyCfg, embedSecond, comp, hstate]
-      · funext i p
+      ext i p <;>
         simp [step, classifyCfg, embedSecond, comp, hstate,
-          idleWorkAction]
-      · funext i
-        simp [step, classifyCfg, embedSecond, comp, hstate,
-          idleWorkAction]
-      · simp [step, classifyCfg, embedSecond, comp, hstate]
+          Cfg.workTapeSymbols, compositionIntermediateTapeIdx, hmode, idleWorkAction]
 
 /-- The moving half of a simulated second-machine step performs all native tape actions and enters
 the classifier state. -/
@@ -259,14 +213,9 @@ private lemma step_embedSecond
           have hi := i.isLt
           simp only [compositionTapeCount] at hi
           omega⟩
-        cases hwrite : (workActions j).1 with
-        | none =>
-            simp [classifyCfg, embedSecond,
-              compositionSecondWorkActions, hstate, hfirst, hmiddle,
-              j, hwrite]
-        | some s =>
-            simp [classifyCfg, embedSecond,
-              compositionSecondWorkActions, hstate, hfirst, hmiddle, j, hwrite]
+        cases hwrite : (workActions j).1 <;>
+          simp [classifyCfg, embedSecond, compositionSecondWorkActions,
+            hstate, hfirst, hmiddle, j, hwrite]
   · funext i
     by_cases hfirst : i.val < k₀
     · simp [classifyCfg, embedSecond, compositionSecondWorkActions,
@@ -295,13 +244,9 @@ private lemma runFrom_two_embedSecond
         ((comp tm₀ tm₁).step (embedSecond tm₀ tm₁ firstCfg secondCfg)) = _
       rw [step_embedSecond tm₀ tm₁ firstCfg secondCfg q hstate]
       apply step_classifyCfg
-      unfold step
-      rw [hstate]
-      generalize htr : tm₁.tr q secondCfg.inputSymbol secondCfg.workTapeSymbols = out
-      obtain ⟨inputMove, workActions, outS, q'⟩ := out
-      simp only [htr]
-      rw [virtualInputPos_move]
-      exact compositionClassifyMode_move secondCfg.inputPos inputMove
+      simpa only [step, hstate, virtualInputPos_move] using
+        compositionClassifyMode_move secondCfg.inputPos
+          (tm₁.tr q secondCfg.inputSymbol secondCfg.workTapeSymbols).inputMove
 
 /-- Simulation of the second machine, at a cost of two composite steps per native step. -/
 lemma runFrom_secondPhase

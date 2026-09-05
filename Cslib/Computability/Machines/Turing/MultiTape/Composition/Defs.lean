@@ -227,17 +227,11 @@ lemma listTape_append_single (xs : List Symbol) (x : Symbol) :
   cases z with
   | negSucc n => simp [listTape]
   | ofNat n =>
-      simp only [listTape]
-      rw [List.getElem?_append]
       by_cases h : n = xs.length
-      · subst n
-        simp
+      · subst n; simp
       · by_cases hn : n < xs.length
-        · simp [hn, h]
-        · have hle : xs.length ≤ n := Nat.le_of_not_gt hn
-          have hlt : xs.length < n := lt_of_le_of_ne hle (Ne.symm h)
-          have hsub : n - xs.length ≠ 0 := by omega
-          simp [h, hn, hsub]
+        · simp [List.getElem?_append, hn, h]
+        · simp [List.getElem?_append, hn, h, show n - xs.length ≠ 0 by omega]
 
 /-- Embed a first-machine configuration into the first phase of the composite machine. -/
 def embedFirst

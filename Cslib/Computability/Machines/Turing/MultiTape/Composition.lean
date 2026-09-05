@@ -58,34 +58,12 @@ theorem comp_haltsWithOutput
           (u + (out₀.length + 3) + 2 * v)).output = out₁ := by
   subst out₀
   subst out₁
-  have hmid :
-      (comp tm₀ tm₁).runFrom ((comp tm₀ tm₁).initCfg input)
-          (u + ((tm₀.runFrom (tm₀.initCfg input) u).output.length + 3)) =
-        embedSecond tm₀ tm₁
-          (tm₀.runFrom (tm₀.initCfg input) u)
-          (tm₁.initCfg ((tm₀.runFrom (tm₀.initCfg input) u).output)) :=
-    runFrom_to_secondInit tm₀ tm₁ input u hhalt₀ hactive₀
-  have hfinal :
-      (comp tm₀ tm₁).runFrom ((comp tm₀ tm₁).initCfg input)
-          (u + ((tm₀.runFrom (tm₀.initCfg input) u).output.length + 3) + 2 * v) =
-        embedSecond tm₀ tm₁
-          (tm₀.runFrom (tm₀.initCfg input) u)
-          (tm₁.runFrom
-            (tm₁.initCfg ((tm₀.runFrom (tm₀.initCfg input) u).output)) v) := by
-    rw [(comp tm₀ tm₁).runFrom_add ((comp tm₀ tm₁).initCfg input)
-      (u + ((tm₀.runFrom (tm₀.initCfg input) u).output.length + 3)) (2 * v)]
-    rw [hmid]
-    exact runFrom_secondPhase tm₀ tm₁
-      (tm₀.runFrom (tm₀.initCfg input) u)
-      (tm₁.initCfg ((tm₀.runFrom (tm₀.initCfg input) u).output)) v
+  have hfinal := runFrom_secondPhase tm₀ tm₁
+    (tm₀.runFrom (tm₀.initCfg input) u)
+    (tm₁.initCfg (tm₀.runFrom (tm₀.initCfg input) u).output) v
+  rw [← runFrom_to_secondInit tm₀ tm₁ input u hhalt₀ hactive₀, ← runFrom_add] at hfinal
   rw [hfinal]
-  constructor
-  · change Option.map _
-      (tm₁.runFrom
-        (tm₁.initCfg ((tm₀.runFrom (tm₀.initCfg input) u).output)) v).state = none
-    rw [hhalt₁]
-    rfl
-  · rfl
+  simp only [embedSecond, hhalt₁, and_self]
 
 /-- Final first-component configuration used throughout the resource analysis. -/
 @[simp] private abbrev firstFinalCfg
@@ -214,22 +192,13 @@ def spaceBound (T₀ S₀ S₁ : ℕ → ℕ) (n : ℕ) : ℕ :=
 /-- Sequential composition preserves monotonicity of time bounds. -/
 lemma timeBound_mono {T₀ T₁ : ℕ → ℕ} (hT₀ : Monotone T₀) (hT₁ : Monotone T₁) :
     Monotone (timeBound T₀ T₁) := by
-  intro m n hmn
-  have hT₀mn := hT₀ hmn
-  have hT₁mn := hT₁ hT₀mn
-  simp only [timeBound]
-  omega
+  exact ((hT₀.const_mul' 2).add monotone_const).add ((hT₁.comp hT₀).const_mul' 2)
 
 /-- Sequential composition preserves monotonicity of space bounds. -/
 lemma spaceBound_mono {T₀ S₀ S₁ : ℕ → ℕ}
     (hT₀ : Monotone T₀) (hS₀ : Monotone S₀) (hS₁ : Monotone S₁) :
     Monotone (spaceBound T₀ S₀ S₁) := by
-  intro m n hmn
-  have hT₀mn := hT₀ hmn
-  have hS₀mn := hS₀ hmn
-  have hS₁mn := hS₁ hT₀mn
-  simp only [spaceBound]
-  omega
+  exact (hS₀.add (hT₀.add monotone_const)).add (hS₁.comp hT₀)
 
 end Composition
 
@@ -268,19 +237,11 @@ private lemma exists_firstComponent_tapePos_eq
     refine ⟨m, hm, ?_⟩
     rw [hcfg]
     simp [embedFirst, compositionFirstTapeIdx]
-  | rewind _ _ hcfg =>
+  | rewind _ _ hcfg | initialClassify hcfg =>
     refine ⟨u, le_rfl, ?_⟩
     rw [hcfg]
     simp [intermediateCfg, embedFirst, compositionFirstTapeIdx, hidx_ne]
-  | initialClassify hcfg =>
-    refine ⟨u, le_rfl, ?_⟩
-    rw [hcfg]
-    simp [intermediateCfg, embedFirst, compositionFirstTapeIdx, hidx_ne]
-  | second _ _ hcfg =>
-    refine ⟨u, le_rfl, ?_⟩
-    rw [hcfg]
-    simp [embedSecond, compositionFirstTapeIdx]
-  | secondClassify _ _ _ hcfg =>
+  | second _ _ hcfg | secondClassify _ _ _ hcfg =>
     refine ⟨u, le_rfl, ?_⟩
     rw [hcfg]
     simp [classifyCfg, embedSecond, compositionFirstTapeIdx]
@@ -305,12 +266,7 @@ private lemma exists_secondComponent_tapePos_eq
     rw [hcfg]
     simp [embedFirst, compositionSecondTapeIdx, secondCfgAt, secondInitCfg, runFrom,
       hidx_not_lt, hidx_ne]
-  | rewind _ _ hcfg =>
-    refine ⟨0, Nat.zero_le _, ?_⟩
-    rw [hcfg]
-    simp [intermediateCfg, embedFirst, compositionSecondTapeIdx,
-      secondCfgAt, secondInitCfg, runFrom, hidx_not_lt, hidx_ne]
-  | initialClassify hcfg =>
+  | rewind _ _ hcfg | initialClassify hcfg =>
     refine ⟨0, Nat.zero_le _, ?_⟩
     rw [hcfg]
     simp [intermediateCfg, embedFirst, compositionSecondTapeIdx,
@@ -379,27 +335,13 @@ private lemma compositionIntermediateSpace_le
         (compositionTotalTime tm₀ input u v)
         (compositionIntermediateTapeIdx k₀ k₁) ≤
       (firstFinalCfg tm₀ input u).output.length + 2 := by
-  unfold spaceUsedByTape
-  have hsub :
-      (comp tm₀ tm₁).visitedByTapeHead
-        ((comp tm₀ tm₁).initCfg input)
-        (compositionTotalTime tm₀ input u v)
-        (compositionIntermediateTapeIdx k₀ k₁) ⊆
-      Finset.Icc (-1) ((firstFinalCfg tm₀ input u).output.length : ℤ) := by
-    intro p hp
-    simp only [visitedByTapeHead, Finset.mem_image, Finset.mem_range] at hp
-    obtain ⟨r, hr, rfl⟩ := hp
-    exact compositionIntermediateTapePos_mem_Icc tm₀ tm₁ input u v r
-      hrun (by simpa [compositionTotalTime] using hr)
-  calc ((comp tm₀ tm₁).visitedByTapeHead
-        ((comp tm₀ tm₁).initCfg input)
-        (compositionTotalTime tm₀ input u v)
-        (compositionIntermediateTapeIdx k₀ k₁)).card
-      ≤ (Finset.Icc (-1) ((firstFinalCfg tm₀ input u).output.length : ℤ)).card :=
-        Finset.card_le_card hsub
-    _ = (firstFinalCfg tm₀ input u).output.length + 2 := by
-        rw [Int.card_Icc]
-        omega
+  calc
+    _ ≤ (Finset.Icc (-1) ((firstFinalCfg tm₀ input u).output.length : ℤ)).card := by
+      apply Finset.card_le_card
+      intro p hp
+      obtain ⟨r, hr, rfl⟩ := (comp tm₀ tm₁).mem_visitedByTapeHead.mp hp
+      exact compositionIntermediateTapePos_mem_Icc tm₀ tm₁ input u v r hrun (by omega)
+    _ = _ := by rw [Int.card_Icc]; omega
 
 /-- Component tape blocks retain their native space bounds; only the intermediate tape is new. -/
 private lemma CompositionRunSpec.spaceUsed_le

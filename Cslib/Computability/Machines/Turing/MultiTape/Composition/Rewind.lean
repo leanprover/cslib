@@ -29,18 +29,11 @@ configuration. -/
 private lemma embedFirst_initCfg (input : List Symbol) :
     embedFirst tm₀ tm₁ (tm₀.initCfg input) =
       (comp tm₀ tm₁).initCfg input := by
-  apply Cfg.ext
-  · rfl
-  · rfl
+  apply Cfg.ext <;> try rfl
   · funext i p
-    by_cases hfirst : i.val < k₀
-    · simp [embedFirst, hfirst]
-    · by_cases hmiddle : i.val = k₀
-      · cases p <;> simp [embedFirst, hmiddle, listTape]
-      · simp [embedFirst, hfirst, hmiddle]
+    cases p <;> simp [embedFirst, ite_apply, listTape]
   · funext i
     simp [embedFirst]
-  · rfl
 
 /-- The first-phase embedding preserves the symbol read from the real input. -/
 @[simp]
@@ -86,13 +79,9 @@ private lemma step_embedFirst {input : List Symbol}
         · cases hwrite : (workActions ⟨i.val, hfirst⟩).1 <;>
             simp [embedFirst, compositionFirstWorkActions, hfirst, hwrite]
         · by_cases hmiddle : i.val = k₀
-          · cases outS with
-            | none =>
-                simp [embedFirst, compositionFirstWorkActions, hmiddle,
-                  idleWorkAction]
-            | some s =>
-                simp [embedFirst, compositionFirstWorkActions, hmiddle,
-                  listTape_append_single]
+          · cases outS <;>
+              simp [embedFirst, compositionFirstWorkActions, hmiddle,
+                idleWorkAction, listTape_append_single]
           · simp [embedFirst, compositionFirstWorkActions, hfirst, hmiddle,
               idleWorkAction]
       · funext i
@@ -127,27 +116,10 @@ private lemma intermediateCfg_classify_init {input : List Symbol}
     intermediateCfg tm₀ tm₁ cfg
         (.classify tm₁.q₀ .right) 0 =
       classifyCfg tm₀ tm₁ cfg (tm₁.initCfg cfg.output) .right := by
-  apply Cfg.ext
-  · rfl
-  · rfl
-  · funext i p
-    by_cases hfirst : i.val < k₀
-    · simp [intermediateCfg, embedFirst, classifyCfg,
-        embedSecond, hfirst]
-    · by_cases hmiddle : i.val = k₀
-      · simp [intermediateCfg, embedFirst, classifyCfg,
-          embedSecond, hmiddle]
-      · simp [intermediateCfg, embedFirst, classifyCfg,
-          embedSecond, hfirst, hmiddle]
-  · funext i
-    by_cases hfirst : i.val < k₀
-    · have hmiddle : i.val ≠ k₀ := by omega
-      simp [intermediateCfg, embedFirst, classifyCfg,
-        embedSecond, virtualInputPos, hfirst, hmiddle]
-    · by_cases hmiddle : i.val = k₀ <;>
-        simp [intermediateCfg, embedFirst, classifyCfg,
-          embedSecond, virtualInputPos, hfirst, hmiddle]
-  · rfl
+  ext i p <;>
+    simp [intermediateCfg, embedFirst, classifyCfg, embedSecond, virtualInputPos]
+  split_ifs <;> simp_all
+  omega
 
 /-- Entering the rewind phase moves the intermediate head one cell to the left. -/
 private lemma step_rewindStart {input : List Symbol}
@@ -155,21 +127,10 @@ private lemma step_rewindStart {input : List Symbol}
     (comp tm₀ tm₁).step (embedFirst tm₀ tm₁ cfg) =
       intermediateCfg tm₀ tm₁ cfg .rewind
         (cfg.output.length - 1) := by
-  apply Cfg.ext
-  · simp [step, embedFirst, intermediateCfg, comp, hhalt]
-  · simp [step, embedFirst, intermediateCfg, comp, hhalt]
-  · funext i p
-    by_cases hmiddle : i.val = k₀ <;>
-      simp [step, embedFirst, intermediateCfg, comp, hhalt,
-        compositionMoveIntermediate, idleWorkAction, hmiddle]
-  · funext i
-    by_cases hmiddle : i.val = k₀
-    · simp [step, embedFirst, intermediateCfg, comp, hhalt,
-        compositionMoveIntermediate, idleWorkAction, hmiddle]
-      omega
-    · simp [step, embedFirst, intermediateCfg, comp, hhalt,
-        compositionMoveIntermediate, idleWorkAction, hmiddle]
-  · simp [step, embedFirst, intermediateCfg, comp, hhalt]
+  ext i p <;>
+    simp [step, embedFirst, intermediateCfg, comp, hhalt,
+      compositionMoveIntermediate, idleWorkAction] <;>
+    split_ifs <;> simp_all <;> omega
 
 /-- One rewind step over a nonblank intermediate cell. -/
 private lemma step_rewind_some {input : List Symbol}
@@ -178,24 +139,10 @@ private lemma step_rewind_some {input : List Symbol}
     (comp tm₀ tm₁).step
         (intermediateCfg tm₀ tm₁ cfg .rewind pos) =
       intermediateCfg tm₀ tm₁ cfg .rewind (pos - 1) := by
-  apply Cfg.ext
-  · simp [step, intermediateCfg, embedFirst, comp,
-      Cfg.workTapeSymbols, hcell, compositionMoveIntermediate, idleWorkAction]
-  · simp [step, intermediateCfg, embedFirst, comp,
-      Cfg.workTapeSymbols, hcell]
-  · funext i p
-    by_cases hmiddle : i.val = k₀ <;>
-      simp [step, intermediateCfg, embedFirst, comp,
-        Cfg.workTapeSymbols, hcell, compositionMoveIntermediate, idleWorkAction, hmiddle]
-  · funext i
-    by_cases hmiddle : i.val = k₀
-    · simp [step, intermediateCfg, embedFirst, comp,
-        Cfg.workTapeSymbols, hcell, compositionMoveIntermediate, idleWorkAction, hmiddle]
-      omega
-    · simp [step, intermediateCfg, embedFirst, comp,
-        Cfg.workTapeSymbols, hcell, compositionMoveIntermediate, idleWorkAction, hmiddle]
-  · simp [step, intermediateCfg, embedFirst, comp,
-      Cfg.workTapeSymbols, hcell]
+  ext i p <;>
+    simp [step, intermediateCfg, embedFirst, comp, Cfg.workTapeSymbols,
+      hcell, compositionMoveIntermediate, idleWorkAction, sub_eq_add_neg] <;>
+    split_ifs <;> simp_all
 
 /-- The blank just left of the intermediate output ends rewinding and moves the head to cell
 zero for classification. -/
@@ -206,21 +153,10 @@ private lemma step_rewind_none {input : List Symbol}
         (intermediateCfg tm₀ tm₁ cfg .rewind pos) =
       intermediateCfg tm₀ tm₁ cfg
         (.classify tm₁.q₀ .right) (pos + 1) := by
-  apply Cfg.ext
-  · simp [step, intermediateCfg, embedFirst, comp,
-      Cfg.workTapeSymbols, hcell]
-  · simp [step, intermediateCfg, embedFirst, comp,
-      Cfg.workTapeSymbols, hcell]
-  · funext i p
-    by_cases hmiddle : i.val = k₀ <;>
-      simp [step, intermediateCfg, embedFirst, comp,
-        Cfg.workTapeSymbols, hcell, compositionMoveIntermediate, idleWorkAction, hmiddle]
-  · funext i
-    by_cases hmiddle : i.val = k₀ <;>
-      simp [step, intermediateCfg, embedFirst, comp,
-        Cfg.workTapeSymbols, hcell, compositionMoveIntermediate, idleWorkAction, hmiddle]
-  · simp [step, intermediateCfg, embedFirst, comp,
-      Cfg.workTapeSymbols, hcell]
+  ext i p <;>
+    simp [step, intermediateCfg, embedFirst, comp, Cfg.workTapeSymbols,
+      hcell, compositionMoveIntermediate, idleWorkAction] <;>
+    split_ifs <;> simp_all
 
 /-- A canonical list tape is nonblank at every position inside the represented list. -/
 private lemma listTape_isSome_of_lt (xs : List Symbol) {r : ℕ} (h : r < xs.length) :
@@ -243,13 +179,8 @@ private lemma runFrom_rewind {input : List Symbol}
   | zero => simp [runFrom]
   | succ r ih =>
       rw [(comp tm₀ tm₁).runFrom_succ_eq_step', ih (by omega)]
-      have hcell :
-          (listTape cfg.output ((cfg.output.length : ℤ) - 1 - r)).isSome := by
-        simpa using
-          (listTape_isSome_of_lt cfg.output
-            (r := r) (show r < cfg.output.length by omega))
-      convert step_rewind_some tm₀ tm₁ cfg
-        ((cfg.output.length : ℤ) - 1 - r) hcell using 1
+      convert step_rewind_some tm₀ tm₁ cfg _
+        (listTape_isSome_of_lt cfg.output (r := r) (by omega)) using 1
       congr 1
       omega
 
@@ -272,8 +203,7 @@ lemma runFrom_firstHalt_classify {input : List Symbol}
         (embedFirst tm₀ tm₁ cfg) (cfg.output.length + 2) =
       intermediateCfg tm₀ tm₁ cfg
         (.classify tm₁.q₀ .right) 0 := by
-  rw [show cfg.output.length + 2 = (cfg.output.length + 1) + 1 by omega,
-    (comp tm₀ tm₁).runFrom_succ_eq_step']
+  rw [(comp tm₀ tm₁).runFrom_succ_eq_step']
   rw [runFrom_firstHalt_rewind tm₀ tm₁ cfg hhalt cfg.output.length le_rfl]
   rw [show (cfg.output.length : ℤ) - 1 - cfg.output.length = -1 by omega]
   simpa using step_rewind_none tm₀ tm₁ cfg (-1) (by rfl)
@@ -298,8 +228,7 @@ private lemma runFrom_firstHalt_to_secondInit {input : List Symbol}
     (comp tm₀ tm₁).runFrom
         (embedFirst tm₀ tm₁ cfg) (cfg.output.length + 3) =
       embedSecond tm₀ tm₁ cfg (tm₁.initCfg cfg.output) := by
-  rw [show cfg.output.length + 3 = (cfg.output.length + 2) + 1 by omega,
-    (comp tm₀ tm₁).runFrom_succ_eq_step', runFrom_firstHalt_classify tm₀ tm₁ cfg hhalt]
+  rw [(comp tm₀ tm₁).runFrom_succ_eq_step', runFrom_firstHalt_classify tm₀ tm₁ cfg hhalt]
   exact step_intermediateCfg_classify_init tm₀ tm₁ cfg
 
 /-- Running the first phase and rewinding its output reaches the second machine's initial
