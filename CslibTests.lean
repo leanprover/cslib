@@ -18,5 +18,6 @@ import CslibTests.MLL
 import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Query
+import CslibTests.QueryMonadicStyle
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
