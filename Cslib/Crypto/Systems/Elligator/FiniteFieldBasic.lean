@@ -29,7 +29,6 @@ See [bernstein2013a] for the original account on this specifc finite field.
 @[expose] public section
 
 variable {F : Type*} [Field F] [Fintype F]
-variable {q : ℕ}
 
 namespace Cslib.Crypto.Systems.Elligator.FiniteFieldBasic
 
@@ -37,13 +36,13 @@ namespace Cslib.Crypto.Systems.Elligator.FiniteFieldBasic
 
 This is why no statement of this development has to assume `IsPrimePow q`: the hypothesis
 `Fintype.card F = q` already forces `q` to be a prime power, so all results proved for a finite
-field `F` with `Fintype.card F = q` and `q % 4 = 3` are exactly the results of [bernstein2013a]
+field `F` with `Fintype.card F = q` and `q % 4 = 3` are exactly the results of [Bernstein2013a]
 for an arbitrary prime power `q ≡ 3 (mod 4)`. -/
-lemma card_isPrimePow (hq_card : Fintype.card F = q) : IsPrimePow q := by
+lemma card_isPrimePow {q : ℕ} (hq_card : Fintype.card F = q) : IsPrimePow q := by
   rw [← hq_card]
   exact FiniteField.isPrimePow_card F
 
-lemma two_ne_zero (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) : (2 : F) ≠ 0 := by
+lemma two_ne_zero (hq_mod : Fintype.card F % 4 = 3) : (2 : F) ≠ 0 := by
   intro h
   -- turn `(2 : F) = 0` into a divisibility statement about the characteristic
   have hdvd : ringChar F ∣ 2 := (CharP.cast_eq_zero_iff F (ringChar F) 2).mp h
@@ -57,38 +56,36 @@ lemma two_ne_zero (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) : (2 : F) 
     exact ringChar.charP F
   -- a finite field of characteristic 2 has cardinality a power of 2
   obtain ⟨n, -, hcard⟩ := FiniteField.card F 2
-  have hqeq : q = 2 ^ (n : ℕ) := by rw [← hq_card, hcard]
-  have hdvd2 : (2 : ℕ) ∣ q := by
+  have hqeq : Fintype.card F = 2 ^ (n : ℕ) := by rw [hcard]
+  have hdvd2 : (2 : ℕ) ∣ Fintype.card F := by
     rw [hqeq]
     exact dvd_pow_self 2 n.pos.ne'
   -- q even contradicts q % 4 = 3
   omega
 
-lemma four_ne_zero (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) : (4 : F) ≠ 0 := by
+lemma four_ne_zero (hq_mod : Fintype.card F % 4 = 3) : (4 : F) ≠ 0 := by
   have hnum : (4 : F) = 2 * 2 := by norm_num
   rw [hnum]
-  apply mul_ne_zero <;> exact two_ne_zero hq_card hq_mod
+  apply mul_ne_zero <;> exact two_ne_zero hq_mod
 
-lemma ringChar_ne_two (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) : ringChar F ≠ 2 := by
+lemma ringChar_ne_two (hq_mod : Fintype.card F % 4 = 3) : ringChar F ≠ 2 := by
   intro hchar
-  apply two_ne_zero  hq_card hq_mod
+  apply two_ne_zero hq_mod
   have hcon : (2 : F) = 0 := (ringChar.spec F 2).mpr (by rw [hchar])
   exact hcon
 
-lemma neg_one_non_square (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3) :
+lemma neg_one_non_square (hq_mod : Fintype.card F % 4 = 3) :
     ¬IsSquare (-1 : F) := by
   intro hsq
   apply FiniteField.isSquare_neg_one_iff.mp at hsq
-  rw [hq_card] at hsq
   contradiction
 
 /-- If some algebraic identity would force `-1` to be a square, contradiction - `-1` is never
 a square when `q % 4 = 3`. A common closing step for the `r`/`d` nonvanishing proofs. -/
-lemma false_of_isSquare_neg_one (hq_card : Fintype.card F = q) (hq_mod : q % 4 = 3)
-    (h : IsSquare (-1 : F)) :
-    False :=
-  neg_one_non_square hq_card hq_mod h
+lemma false_of_isSquare_neg_one (hq_mod : Fintype.card F % 4 = 3)
+    (h : IsSquare (-1 : F)) : False := neg_one_non_square hq_mod h
 
+-- TODO fix omits
 omit [Fintype F] in
 lemma one_sub_t_ne_zero (t : {n : F // n ≠ 1 ∧ n ≠ -1}) : (1 : F) - t.val ≠ 0 :=
   sub_ne_zero.mpr t.prop.1.symm
@@ -118,101 +115,8 @@ lemma not_t_ne_one_and_t_ne_neg_one (t : { t : F // t = 1 ∨  t = -1}) :
   rcases t.prop with th | th <;> simp [th]
 
 omit [Field F] in
-lemma one_add_q_div_four_mul_two_eq_one_add_q_div_two (hq_mod : q % 4 = 3) :
-    ((1 + q) / 4 * 2) = (1 + q) / 2 := by
+lemma one_add_q_div_four_mul_two_eq_one_add_q_div_two (hq_mod : Fintype.card F % 4 = 3) :
+    ((1 + Fintype.card F) / 4 * 2) = (1 + Fintype.card F) / 2 := by
   omega
-
-/-- If `F` has `q` elements and `q` is prime, `q` is literally the characteristic of `F`. -/
-lemma ringChar_of_F_eq_q (hq_card : Fintype.card F = q) (q_prime : Prime q) : ringChar F = q := by
-  -- Every finite field's cardinality is a power of its characteristic, and the
-  -- characteristic itself is prime.
-  obtain ⟨n, h_char_prime, h_card_eq_pow⟩ := FiniteField.card F (ringChar F)
-  have h_q_eq_pow : q = (ringChar F) ^ (n : ℕ) := by rw [← hq_card, h_card_eq_pow]
-  -- In particular `ringChar F` divides `q` (the exponent `n` is at least `1`).
-  have h_dvd : ringChar F ∣ q := h_q_eq_pow ▸ dvd_pow_self _ n.pos.ne'
-  -- `q` is prime, so its only divisors are `1` and `q` - and a field's characteristic
-  -- is never `1`, so it must be `q` itself.
-  rcases (Nat.dvd_prime (Nat.prime_iff.mpr q_prime)).1 h_dvd with hchar | hchar
-  · exact absurd hchar h_char_prime.ne_one
-  · exact hchar
-
-/-- The cast `Fin q → F` is injective -/
-lemma fin_to_finfield_injective (hq_card : Fintype.card F = q) (q_prime : Prime q) :
-    Function.Injective (fun n : Fin q => (n : F)) := by
-  intro a b hab
-  have h : CharP F q := by
-    rw [← ringChar_of_F_eq_q hq_card q_prime]
-    exact ringChar.charP F
-  exact Fin.ext (CharP.natCast_injOn_Iio F q a.isLt b.isLt hab)
-
-lemma fin_to_finfield_bijective (hq_card : Fintype.card F = q) (q_prime : Prime q) :
-    Function.Bijective (fun n : Fin q => (n : F)) :=
-  (Fintype.bijective_iff_injective_and_card _).mpr
-    ⟨fin_to_finfield_injective hq_card q_prime, by rw [Fintype.card_fin, hq_card]⟩
-
-/-- Every element of `F` is the cast of some `n : Fin q`:
-this cast is injective and `Fin q` and `F` have the same cardinality, so it is bijective. -/
-lemma exists_fin_cast_eq (hq_card : Fintype.card F = q) (q_prime : Prime q) (t : F) :
-    ∃ n : Fin q, (n : F) = t :=
-  (fin_to_finfield_bijective hq_card q_prime).surjective t
-
-/- Every element of F can be written as (n : F) for some n < q because Fintype.card F = q and
-the natural cast n ↦ (n : F) has period equal to ringChar F = q (since q is prime),
-so {(0 : F), (1 : F), ..., (q-1 : F)} gives all q distinct elements.  -/
-lemma exists_nat_cast_eq (hq_card : Fintype.card F = q) (q_prime : Prime q) (t : F) :
-    ∃ (n : ℕ), n < q ∧ (n : F) = t := by
-  obtain ⟨n, hn⟩ : ∃ n : Fin q, (n : F) = t := exists_fin_cast_eq hq_card q_prime t
-  exact ⟨n.val, n.isLt, hn⟩
-
-/-- A natural number `q` is the cardinality of some finite field iff it is a prime power.
-
-Together with `Elligator.FiniteFieldBasic.card_isPrimePow` this says that the standing
-hypotheses `Fintype.card F = q`, `q % 4 = 3` of this development describe exactly the setting of
-[bernstein2013a], Section 3.1: an arbitrary prime power `q ≡ 3 (mod 4)`. -/
-lemma exists_field_card_eq_iff_isPrimePow (q : ℕ) :
-    (∃ (F : Type) (_ : Field F) (_ : Fintype F), Fintype.card F = q) ↔ IsPrimePow q := by
-  constructor
-  · rintro ⟨F, _, _, hcard⟩
-    exact card_isPrimePow hcard
-  · rintro ⟨p, k, hp, hk, rfl⟩
-    have hp' : Nat.Prime p := Nat.prime_iff.mpr hp
-    have hfact : Fact (Nat.Prime p) := ⟨hp'⟩
-    have hk0 : k ≠ 0 := hk.ne'
-    have htype : Fintype (GaloisField p k) := Fintype.ofFinite _
-    use GaloisField p k
-    use inferInstance
-    use inferInstance
-    have hcard := GaloisField.card p k hk0
-    rw [Nat.card_eq_fintype_card] at hcard
-    exact hcard
-
-/-- If every element of `F` is the image of a natural number under the canonical cast, then the
-cardinality of `F` is *prime*, not merely a *prime power*.
-
-This is the precise reason why the string encoding `ι` of [bernstein2013a], Section 3.4, is
-formalized for prime `q` only: it represents field elements by the naturals
-`0, 1, ..., q - 1`, which requires the natural casts to exhaust `F`. The `ϕ` part of the
-development makes no such assumption and therefore covers all *prime powers*. -/
-lemma prime_of_natCast_surjective (hq_card : Fintype.card F = q)
-    (hsurj : Function.Surjective (Nat.cast : ℕ → F)) :
-    q.Prime := by
-  have h_char_prime : (ringChar F).Prime := CharP.char_is_prime F (ringChar F)
-  -- Step 1: the cast `Fin (ringChar F) → F` is surjective.
-  have h_surj : Function.Surjective (fun k : Fin (ringChar F) => ((k : ℕ) : F)) := by
-    intro t
-    obtain ⟨n, hn⟩ := hsurj t
-    refine ⟨⟨n % ringChar F, Nat.mod_lt _ h_char_prime.pos⟩, ?_⟩
-    simpa [CharP.cast_eq_mod F (ringChar F) n] using hn
-  -- Step 2: the same cast is always injective below the characteristic - the defining
-  -- property of `ringChar`.
-  have h_inj : Function.Injective (fun k : Fin (ringChar F) => ((k : ℕ) : F)) :=
-    fun a b hab => Fin.ext (CharP.natCast_injOn_Iio F (ringChar F) a.isLt b.isLt hab)
-  -- Step 3: surjective gives `card F ≤ ringChar F`; injective gives `ringChar F ≤ card F`.
-  -- Together, `card F = ringChar F` exactly.
-  have h_le : Fintype.card F ≤ ringChar F := by simpa using Fintype.card_le_of_surjective _ h_surj
-  have h_ge : ringChar F ≤ Fintype.card F := by simpa using Fintype.card_le_of_injective _ h_inj
-  have h_eq : q = ringChar F := by omega
-  rw [h_eq]
-  exact h_char_prime
 
 end Cslib.Crypto.Systems.Elligator.FiniteFieldBasic

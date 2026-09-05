@@ -67,6 +67,7 @@ public import Cslib.Crypto.Protocols.SecretSharing.Scheme
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir.Polynomial
 public import Cslib.Crypto.Systems.Elligator.Basic
+public import Cslib.Crypto.Systems.Elligator.Context
 public import Cslib.Crypto.Systems.Elligator.Elligator1.AuxiliaryCoordinates
 public import Cslib.Crypto.Systems.Elligator.Elligator1.CurveParameters
 public import Cslib.Crypto.Systems.Elligator.Elligator1.EdwardsCurve
