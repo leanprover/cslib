@@ -60,7 +60,9 @@ In doing so, the Lead Maintainer will consider the arguments raised and may seek
 
 Reviewers and maintainers are trusted members of the CSLib community who are expected to uphold a high standard of collaboration.
 
-New CSLib reviewers and maintainers may be proposed by any member of the CSLib reviewer team, maintainer team, or Steering Committee. Appointment requires affirmative support from at least half of the eligible CSLib voters (eligibility is described in the next two sections), with no objections after five days of consideration.
+New CSLib reviewers and maintainers may be proposed by any member of the CSLib reviewer team, maintainer team, or Steering Committee. Appointment requires affirmative support from at least half of the eligible CSLib voters, rounded up (eligibility is described in the next two sections). At least one affirmative vote must come from a maintainer.
+
+A candidacy remains under consideration for at least five calendar days. If the required support has been reached and there are no unresolved objections at the end of this period, the candidate is appointed.
 
 Members of the Steering Committee are not included when calculating the number of votes required for appointment, but may vote for both reviewers and maintainers. Their votes otherwise have the same effect as those of the eligible CSLib voters. The intention is to allow the Steering Committee members to contribute to appointment decisions without making their participation necessary for reaching the required threshold.
 
@@ -81,6 +83,18 @@ Candidates for the CSLib maintainer team are discussed and voted on by the curre
 During this process, maintainers may privately seek input from reviewers, other members of the CSLib community, or from people who have worked with the candidate.
 
 Members of the Steering Committee are welcome to participate in the discussion of maintainer candidacies.
+
+### Re-nomination
+
+A candidate who is not appointed may be proposed again at a later time. There is no fixed waiting period, but a renewed candidacy should take into account any concerns or circumstances that prevented the previous appointment.
+
+### Resignation and removal
+
+A reviewer or maintainer may step down from their role at any time by informing the reviewer and maintainer teams (this is easiest done on Zulip) or, alternatively, the Lead Maintainer.
+
+Inactivity does not automatically result in removal. However, prolonged inactivity or other circumstances (e.g., inappropriate conduct) may lead to a review of a person's continued membership of the reviewer or maintainer team. When removal from a role is proposed, the matter should be considered by the same group that is responsible for appointments to that role. Whenever appropriate, the person concerned should be given an opportunity to provide their perspective before a decision is made.
+
+The Lead Maintainer is responsible for ensuring that the relevant governance documents and repository permissions are updated following an appointment, resignation, or removal.
 
 ## Exceptional cases
 
