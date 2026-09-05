@@ -47,6 +47,7 @@ def u (t : {n : F // n ≠ 1 ∧ n ≠ -1}) : F :=
     let t := t.val
     (1 - t) / (1 + t)
 
+/-- InputData wrapper for u. -/
 def _root_.Cslib.Crypto.Systems.Elligator.InputData.u (I : InputData F) : F :=
     AuxiliaryCoordinates.u I.tSub
 
@@ -76,6 +77,7 @@ def v (t : {n : F // n ≠ 1 ∧ n ≠ -1}) (s : F) : F :=
     let r := r s
     u ^ 5 + (r ^ 2 - 2) * u ^ 3 + u
 
+/-- MapData wrapper for v. -/
 def _root_.Cslib.Crypto.Systems.Elligator.MapData.v (M : MapData F) : F :=
     AuxiliaryCoordinates.v M.tSub M.s
 
@@ -148,6 +150,7 @@ def X (t : {n : F // n ≠ 1 ∧ n ≠ -1}) (s : F) : F :=
     let v := v t s
     (χ v) * u
 
+/-- MapData wrapper for X. -/
 def _root_.Cslib.Crypto.Systems.Elligator.MapData.X (M : MapData F) : F :=
     AuxiliaryCoordinates.X M.tSub M.s
 
@@ -188,6 +191,7 @@ def Y (t : {n : F // n ≠ 1 ∧ n ≠ -1}) (s : F) (q : ℕ) : F :=
     let v := v t s
     ((χ v) * v) ^ ((q + 1) / 4) * (χ v) * χ (u ^ 2 + 1 / c ^ 2)
 
+/-- MapData wrapper for Y. -/
 def _root_.Cslib.Crypto.Systems.Elligator.MapData.Y (M : MapData F) : F :=
     AuxiliaryCoordinates.Y M.tSub M.s (Fintype.card F)
 

@@ -88,6 +88,7 @@ def ϕ (t : F) {s : F}
       exact (curve s).zero_mem_affinePoints
   ⟨P, P_in_EOverF⟩
 
+/-- ParamData wrapper for ϕ. -/
 def _root_.Cslib.Crypto.Systems.Elligator.ParamData.ϕ
     [IsNonzeroParam D.s] [IsRegularParam D.s] [IsCardThreeModFour F] (t : F) :
     {P : F × F // P ∈ D.EOverF} :=

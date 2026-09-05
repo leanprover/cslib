@@ -53,6 +53,7 @@ def x (t : {n : F // n ≠ 1 ∧ n ≠ -1}) (s : F) (q : ℕ) : F :=
     let Y := Y t s q
     (c - 1) * s * X * (1 + X) / Y
 
+/-- MapData wrapper for x. -/
 def _root_.Cslib.Crypto.Systems.Elligator.MapData.x (M : MapData F) : F :=
     OutputCoordinates.x M.tSub M.s (Fintype.card F)
 
@@ -83,6 +84,7 @@ def y (t : {n : F // n ≠ 1 ∧ n ≠ -1}) (s : F) : F :=
     let X := X t s
     (r * X - (1 + X) ^ 2) / (r * X + (1 + X) ^ 2)
 
+/-- MapData wrapper for y. -/
 def _root_.Cslib.Crypto.Systems.Elligator.MapData.y (M : MapData F) : F :=
     OutputCoordinates.y M.tSub M.s
 
@@ -178,7 +180,7 @@ lemma y_divisor_ne_zero [IsNonzeroParam M.s] [IsRegularParam M.s] [IsCardThreeMo
   have h_mod_eq_three : Fintype.card F % 4 = 3 := card_mod_four
   contradiction
 
-lemma y_add_one_ne_zero [IsNonzeroParam M.s] [IsRegularParam M.s] [IsCardThreeModFour F] :
+lemma y_add_one_ne_zero [IsNonzeroParam M.s] [IsCardThreeModFour F] :
     M.y + 1 ≠ 0 := by
   intro h_contra
   have hy_eq_neg_one : M.y = -1 := Eq.symm (neg_eq_of_add_eq_zero_left h_contra)

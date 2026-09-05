@@ -39,6 +39,7 @@ variable (D : ParamData F)
 /-- The Edwards curve selected by the Elligator 1 parameter `s`. -/
 def curve (s : F) : TwistedEdwardsCurve F := edwardsCurve (d s)
 
+/-- ParamData wrapper for curve. -/
 def _root_.Cslib.Crypto.Systems.Elligator.ParamData.curve : TwistedEdwardsCurve F :=
     Elligator1.curve D.s
 
@@ -57,6 +58,7 @@ lemma curve_isValid [Fintype F] [IsRegularParam D.s] [IsCardThreeModFour F] :
 /-- `EOverF s` is the set of affine points on the Edwards curve selected by Elligator 1. -/
 def EOverF (s : F) : Set (F × F) := (curve s).affinePoints
 
+/-- ParamData wrapper for EOverF. -/
 def _root_.Cslib.Crypto.Systems.Elligator.ParamData.EOverF : Set (F × F) :=
     Elligator1.EOverF D.s
 
