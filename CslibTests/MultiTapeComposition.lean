@@ -9,7 +9,7 @@ import Mathlib.Data.Fin.VecNotation
 import Mathlib.Tactic.FinCases
 
 /-! Regression tests for composition: empty output, boundary clamping, final-step output,
-and disjoint work tapes. -/
+disjoint work tapes, and padded component runs. -/
 
 namespace CslibTests.MultiTapeComposition
 
@@ -57,5 +57,13 @@ example : ((comp (writeEmit true) (writeEmit false)).runFrom
       ![some true, some true, some false] := by
   funext i
   fin_cases i <;> rfl
+
+-- The public computation theorem accepts padded halting times for both components.
+example : ∃ t ≤ 10 + (0 + 3) + 2 * 12, ∃ s ≤ 0 + (0 + 2) + 0,
+    ComputesInTimeAndSpace (comp (emit none) (emit (some true))) [] [true] t s := by
+  apply comp_computesInTimeAndSpace (emit none) (emit (some true))
+    (middle := []) (t₀ := 10) (s₀ := 0) (t₁ := 12) (s₁ := 0)
+  · exact ⟨rfl, rfl, spaceUsed_zero_tapes_eq_zero _ _ rfl⟩
+  · exact ⟨rfl, rfl, spaceUsed_zero_tapes_eq_zero _ _ rfl⟩
 
 end CslibTests.MultiTapeComposition
