@@ -12,4 +12,7 @@ These modules describe executable machines and their effects on configurations a
 - `Rewind` shares one controller between native-input and work-tape rewinding. Work-tape rewind
   starts immediately after contiguous contents and finishes at their first cell, including when empty.
 - `Composition` assembles output redirection, work-tape rewind, and input substitution with `seq`
-  and tape injections, then proves operational correctness.
+  and tape injections, then proves operational and resource bounds.
+
+These machines preserve the alphabet. Function complexity results belong in
+[Combinators](../Combinators); halting normal forms belong in [NormalForms](../NormalForms).
