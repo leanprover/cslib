@@ -5,14 +5,14 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuits.Interpretation
+public import Cslib.Computability.Circuits.Signature
 
 /-!
 # Homomorphisms of interpretations
 
 A homomorphism between two interpretations of the same signature is a map of
-carriers that commutes with every operation. Homomorphisms have identities and
-compose, and these satisfy the usual category laws up to `Homomorphism.ext`.
+carriers that commutes with every operation. This file defines identity and
+composition and proves their laws.
 
 The main use of homomorphisms in this library is that evaluation of lines,
 programs, and circuits commutes with them (`Line.map_eval`, `Program.map_eval`,
@@ -22,6 +22,11 @@ programs, and circuits commutes with them (`Line.map_eval`, `Program.map_eval`,
 @[expose] public section
 
 namespace Cslib.Circuits
+
+universe v u u₁ u₂ u₃ u₄
+
+variable {σ : Signature.{v}} {U : Type u}
+variable {U₁ : Type u₁} {U₂ : Type u₂} {U₃ : Type u₃} {U₄ : Type u₄}
 
 /-- A map that preserves every operation in a pair of interpretations. -/
 structure Homomorphism (i₁ : Interpretation σ U₁) (i₂ : Interpretation σ U₂) where
