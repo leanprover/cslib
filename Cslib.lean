@@ -163,6 +163,10 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StandardRed
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.BetaReduction
+public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.ChurchRosser
+public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.DeBruijnSyntax
+public import Cslib.Languages.LambdaCalculus.Unscoped.Untyped.ParallelReduction
 public import Cslib.Languages.Mech.Choreography.Basic
 public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Languages.StatefulProcesses.Basic
