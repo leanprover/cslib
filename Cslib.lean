@@ -28,6 +28,11 @@ public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
+public import Cslib.Computability.Circuits.Circuit
+public import Cslib.Computability.Circuits.Homomorphism
+public import Cslib.Computability.Circuits.Program
+public import Cslib.Computability.Circuits.Signature
+public import Cslib.Computability.Circuits.Wire
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.Consensus
