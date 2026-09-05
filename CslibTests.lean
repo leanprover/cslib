@@ -20,6 +20,7 @@ import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
 import CslibTests.MultiTapeAdapters
 import CslibTests.MultiTapeComplexity
+import CslibTests.MultiTapeComposition
 import CslibTests.MultiTapePlumbing
 import CslibTests.MultiTapeRewind
 import CslibTests.Reduction
