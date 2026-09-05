@@ -4,6 +4,8 @@ Cslib is governed by two main bodies:
 - A [steering committee](#steering-committee), responsible for securing financial support and guiding the overall vision of the project.
 - A [maintainer team](#maintainers), responsible for curating, expanding, and maintaining the code repository and its technical direction.
 
+The project also has a [reviewer team](#reviewers), consisting of trusted contributors who support the maintainer team by providing regular technical review and guidance.
+
 These groups work together to define the project's roadmap and foster a welcoming and productive environment.
 New members may be invited based on project needs and individual merit (e.g., contributions, review activity).
 
@@ -19,11 +21,13 @@ New members may be invited based on project needs and individual merit (e.g., co
 
 ## Maintainers
 
-The maintainer team is responsible for the quality of the codebase, establishing technical standards and ensuring coherence across contributions.
+The maintainer team is responsible for fostering the growth of the project, maintaining the quality of the codebase, establishing technical standards, and ensuring coherence across contributions. They form the technical decision-making authority for determining what code is included in CSLib.
+
+Maintainers also act as technical architects within their areas of responsibility. They are expected to guide the long-term development of those areas, promote reuse and coherence with the rest of CSLib, and help ensure that local design decisions contribute to a consistent overall architecture.
 
 ### Lead maintainer
 
-The lead maintainer coordinates the maintainer team's overall work and oversees the project's repositories.
+The Lead Maintainer is CSLib's chief architect, coordinates the maintainer team's overall work, oversees the project's repositories, ensures the overall architectural coherence of the library, and guides its long-term technical direction.
 
 - Fabrizio Montesi (@fmontesi), FORM, University of Southern Denmark and Danish Institute for Advanced Study.
 
@@ -40,10 +44,10 @@ Area maintainers are trusted contributors who take ownership of specific areas o
 
 - Chris Henson (@chenson2018), Drexel University. Areas: Lambda calculus, metaprogramming.
 - Kim Morrison (@kim-em), Lean FRO. Areas: Continuous Integration and Deployment (CI/CD) with upstream (Lean, mathlib).
-- Alexandre Rademaker (@arademaker), Atlas Computing and Getulio Vargas Foundation. Areas: logic.
+- Alexandre Rademaker (@arademaker), Renaissance Philanthropy and Getulio Vargas Foundation. Areas: logic.
 - Sorrachai Yingchareonthawornchai (@sorrachai), ETH Zurich. Areas: algorithms and data structures.
 
-### Reviewers
+## Reviewers
 
 Reviewers are trusted contributors who provide regular reviewing and technical guidance to PRs to CSLib.
 

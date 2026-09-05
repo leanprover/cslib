@@ -50,11 +50,15 @@ If you have any questions, a good place to ask them is the [Lean prover Zulip ch
 # Contribution model
 
 To get your code approved, you need to submit a [pull request (PR)](https://github.com/leanprover/cslib/pulls).
-Each PR needs to be approved by at least one relevant maintainer. You can read the [list of current maintainers](/GOVERNANCE.md#maintainers).
+Each PR needs to be approved by at least one maintainer.
+For more details on the decision making process about PRs, please see [pull request inclusion](/DECISION_MAKING.md#pull-request-inclusion).
+You can also read the [list of current maintainers](/GOVERNANCE.md#maintainers).
 
 If you are adding something new to CSLib and are in doubt about it, you are very welcome to contact us on the [Lean prover Zulip chat](https://leanprover.zulipchat.com/).
 
 If you are unfamiliar with CSLib as a whole and want to understand how to get started, please see [Getting started](#getting-started).
+
+For a more detailed explanation of CSLib's decision-making processes, see [decision making](/DECISION_MAKING.md).
 
 # The role of AI
 
