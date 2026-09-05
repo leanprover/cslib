@@ -21,5 +21,6 @@ import CslibTests.Modal.Stlc
 import CslibTests.MultiTapeAdapters
 import CslibTests.MultiTapeComplexity
 import CslibTests.MultiTapePlumbing
+import CslibTests.MultiTapeRewind
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses

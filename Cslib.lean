@@ -47,11 +47,13 @@ public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.NormalForms.RewindInput
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromWorkTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromWorkTape.Defs
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToWorkTape
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Rewind
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TapeContents
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
