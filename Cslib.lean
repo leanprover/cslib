@@ -49,6 +49,11 @@ public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.NormalForms.RewindInput
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Basic
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Composition
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Composition.Defs
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Composition.Layout
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Composition.Rewind
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Composition.Simulation
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromWorkTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromWorkTape.Defs
