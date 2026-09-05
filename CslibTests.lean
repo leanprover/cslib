@@ -18,6 +18,7 @@ import CslibTests.MLL
 import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
+import CslibTests.MultiTapeAdapters
 import CslibTests.MultiTapeComplexity
 import CslibTests.MultiTapePlumbing
 import CslibTests.Reduction

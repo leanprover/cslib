@@ -7,3 +7,5 @@ These modules describe executable machines and their effects on configurations a
   transition hands its tapes, head positions, and accumulated output to the second machine.
 - `ExtendTapes` places a machine's tapes along any injection. Time is unchanged; each unused tape
   contributes one visited cell to space. Arbitrary data on unused tapes is preserved.
+- `OutputToWorkTape` redirects output to one fresh tape, including the symbol on a halting step.
+- `InputFromWorkTape` simulates the native input on a work tape, preserving boundary clamping.
