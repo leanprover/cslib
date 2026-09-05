@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Mathlib.Data.Int.Interval
 
 /-!
 # Tape head visitation and space-usage lemmas
