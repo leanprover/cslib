@@ -8,23 +8,29 @@ module
 public import Cslib.Init
 
 /-!
-# Signatures
+# Signatures and interpretations
 
-A signature is a collection of finitary operation symbols, each with a fixed
-arity. Signatures carry no semantics: an `Interpretation` assigns concrete
-operations to the symbols, and programs and circuits over a signature are
-purely syntactic until they are evaluated in an interpretation.
+A `Signature` specifies operation symbols with finite arities. The set of symbols
+may be infinite, and their arities need not have a uniform bound.
+An `Interpretation` assigns each symbol an operation on a carrier type.
+Programs and circuits keep the signature separate from its interpretation.
 -/
 
 @[expose] public section
 
 namespace Cslib.Circuits
 
-/-- A collection of finitary operation symbols and their arities. -/
+universe v
+
+/-- A collection of operation symbols, each with a fixed finite arity. -/
 structure Signature where
   /-- The operation symbols of the signature. -/
   Op : Type v
   /-- The number of arguments taken by each operation symbol. -/
-  Arity : (op : Op) → Nat
+  Arity : Op → Nat
+
+/-- An interpretation assigns an operation on `Carrier` to every symbol in `σ`. -/
+abbrev Interpretation (σ : Signature) (Carrier : Type*) :=
+  (op : σ.Op) → (Fin (σ.Arity op) → Carrier) → Carrier
 
 end Cslib.Circuits
