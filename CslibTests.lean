@@ -19,5 +19,6 @@ import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
 import CslibTests.MultiTapeComplexity
+import CslibTests.MultiTapePlumbing
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
