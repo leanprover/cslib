@@ -171,7 +171,7 @@ theorem merge_ret_length_eq_sum (xs ys : List α) :
     ⟪merge xs ys⟫.length = xs.length + ys.length := by
   simp
 
-@[simp] theorem mergeSort_same_length (xs : List α) :
+theorem mergeSort_same_length (xs : List α) :
     ⟪mergeSort xs⟫.length = xs.length := by
   simp
 
