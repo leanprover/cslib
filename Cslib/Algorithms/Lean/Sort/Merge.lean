@@ -51,7 +51,7 @@ theorem idRun_mergeM (xs ys : List α) (le : α → α → Id Bool) :
   mergeM_pure _ _ _
 
 set_option linter.unusedVariables false in
-/-- A monadic version of `List.mergeSortM` -/
+/-- A monadic version of `List.mergeSort` -/
 def mergeSortM : ∀ (xs : List α) (le : α → α → m Bool), m (List α)
   | [], _ => return []
   | [a], _ => return [a]
