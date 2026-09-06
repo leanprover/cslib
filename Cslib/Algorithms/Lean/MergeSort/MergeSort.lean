@@ -70,10 +70,8 @@ section Correctness
 open List
 
 /-- Our merge computes the one already in mathlib. -/
-@[simp, grind =]
 theorem ret_merge (xs ys : List α) : ⟪merge xs ys⟫ = xs.merge ys := by
-  unfold merge
-  fun_induction mergeM with grind [nil_merge, merge_right, cons_merge_cons]
+  simp
 
 /-- A list is sorted if it satisfies the `Pairwise (· ≤ ·)` predicate. -/
 abbrev IsSorted (l : List α) : Prop := List.Pairwise (· ≤ ·) l
