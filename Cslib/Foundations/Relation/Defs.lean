@@ -111,10 +111,6 @@ abbrev LocallyConfluent (r : α → α → Prop) :=
 abbrev StronglyConfluent (r : α → α → Prop) :=
   ∀ {x y₁ y₂}, r x y₁ → r x y₂ → ∃ z, ReflGen r y₁ z ∧ ReflTransGen r y₂ z
 
-/-- Generalization of `Confluent` to two relations. -/
-def Commute (r₁ r₂ : α → α → Prop) := ∀ {x y₁ y₂},
-  ReflTransGen r₁ x y₁ → ReflTransGen r₂ x y₂ → ∃ z, ReflTransGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
-
 /-- Generalization of `StronglyConfluent` to two relations. -/
 def StronglyCommute (r₁ r₂ : α → α → Prop) :=
   ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → ∃ z, ReflGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
@@ -122,6 +118,9 @@ def StronglyCommute (r₁ r₂ : α → α → Prop) :=
 /-- Generalization of `Diamond` to two relations. -/
 def DiamondCommute (r₁ r₂ : α → α → Prop) :=
   ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → ∃ z, r₂ y₁ z ∧ r₁ y₂ z
+
+/-- Generalization of `Confluent` to two relations. -/
+abbrev Commute (r₁ r₂ : α → α → Prop) := DiamondCommute (ReflTransGen r₁) (ReflTransGen r₂)
 
 /-- A pair of subrelations lifts to transitivity on the relation. -/
 @[implicit_reducible]
