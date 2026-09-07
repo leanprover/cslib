@@ -13,7 +13,8 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Basic
 
 `seq` runs two machines with the same work-tape count. The transition that would halt the first
 machine instead enters the second machine's initial state. Tape contents, head positions, and
-accumulated output are carried across, with no extra transition for the handoff.
+accumulated output are carried across, with no extra transition for the handoff. No information
+is passed through the finite control state: the second machine starts in its own initial state.
 -/
 
 @[expose] public section
@@ -22,18 +23,18 @@ namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State State₀ State₁ : Type*} {input : List Symbol}
 
-/-- Run two machines on the same tapes, handing off on the first halting transition. -/
+/-- Run two machines sequentially on the same tapes, handing off on the first halting transition. -/
 def seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁) :
     MultiTapeTM k Symbol (State₀ ⊕ State₁) where
   q₀ := .inl tm₀.q₀
   tr q input work := match q with
     | .inl q =>
-      let out := tm₀.tr q input work
-      ⟨out.inputMove, out.workActions, out.outS,
-        some (out.q'.elim (.inr tm₁.q₀) Sum.inl)⟩
+      let action := tm₀.tr q input work
+      ⟨action.inputMove, action.workActions, action.outS,
+        some (action.q'.elim (.inr tm₁.q₀) Sum.inl)⟩
     | .inr q =>
-      let out := tm₁.tr q input work
-      ⟨out.inputMove, out.workActions, out.outS, out.q'.map Sum.inr⟩
+      let action := tm₁.tr q input work
+      ⟨action.inputMove, action.workActions, action.outS, action.q'.map Sum.inr⟩
 
 namespace Sequential
 
@@ -76,10 +77,8 @@ lemma runFrom_left (cfg : Cfg k Symbol State₀ input) (n : ℕ)
 
 /-- Once in the second phase, runs are exactly the second machine's runs. -/
 lemma runFrom_right (cfg : Cfg k Symbol State₁ input) (n : ℕ) :
-    (seq tm₀ tm₁).runFrom (right cfg) n = right (tm₁.runFrom cfg n) := by
-  induction n with
-  | zero => rfl
-  | succ n ih => rw [runFrom_succ_eq_step', ih, step_right, runFrom_succ_eq_step']
+    (seq tm₀ tm₁).runFrom (right cfg) n = right (tm₁.runFrom cfg n) :=
+  runFrom_map tm₁ (seq tm₀ tm₁) right (step_right tm₀ tm₁) cfg n
 
 end Sequential
 
@@ -87,14 +86,13 @@ end Sequential
 all final tapes and head positions, together with the output accumulated so far. -/
 lemma runFrom_seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁)
     (cfg : Cfg k Symbol State₀ input) (u v : ℕ)
-    (hhalt : (tm₀.runFrom cfg u).state = none)
-    (hactive : ∀ m < u, (tm₀.runFrom cfg m).state ≠ none) :
+    (hhalt : tm₀.HaltsAt cfg u) :
     (seq tm₀ tm₁).runFrom (Sequential.left tm₁ cfg) (u + v) =
       Sequential.right (tm₁.runFrom ((tm₀.runFrom cfg u).withState (some tm₁.q₀)) v) := by
-  rw [runFrom_add, Sequential.runFrom_left tm₀ tm₁ cfg u hactive]
+  rw [runFrom_add, Sequential.runFrom_left tm₀ tm₁ cfg u hhalt.active]
   rw [show Sequential.left tm₁ (tm₀.runFrom cfg u) =
     Sequential.right ((tm₀.runFrom cfg u).withState (some tm₁.q₀)) by
-      simp [Sequential.left, Sequential.right, Cfg.withState, hhalt]]
+      simp [Sequential.left, Sequential.right, Cfg.withState, hhalt.halted]]
   exact Sequential.runFrom_right tm₀ tm₁ _ v
 
 end Turing.MultiTapeTM

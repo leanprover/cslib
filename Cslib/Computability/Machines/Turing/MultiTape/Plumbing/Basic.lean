@@ -8,10 +8,11 @@ module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 
-/-! # Configuration state replacement
+/-! # Configuration state replacement and execution paths
 
 `Cfg.withState` changes the control state, possibly changing its type, and preserves all tapes,
-head positions, and accumulated output.
+head positions, and accumulated output. `runFrom_map` transports runs along maps that preserve
+steps, and `runFrom_eq_of_isChain` identifies the endpoint of an explicit execution path.
 -/
 
 @[expose] public section
@@ -22,29 +23,10 @@ variable {k : ℕ} {State Symbol : Type*} {input : List Symbol}
 
 /-- The configuration `cfg` with its state replaced by `q`, possibly over a different state
 type. -/
+@[simps]
 def Cfg.withState (cfg : Cfg k Symbol State input) {State' : Type*}
     (q : Option State') : Cfg k Symbol State' input :=
   ⟨q, cfg.inputPos, cfg.workTapes, cfg.workTapePos, cfg.output⟩
-
-@[simp]
-lemma Cfg.withState_state {cfg : Cfg k Symbol State input} {State' : Type*}
-    {q : Option State'} : (cfg.withState q).state = q := rfl
-
-@[simp]
-lemma Cfg.withState_inputPos {cfg : Cfg k Symbol State input} {State' : Type*}
-    {q : Option State'} : (cfg.withState q).inputPos = cfg.inputPos := rfl
-
-@[simp]
-lemma Cfg.withState_workTapes {cfg : Cfg k Symbol State input} {State' : Type*}
-    {q : Option State'} : (cfg.withState q).workTapes = cfg.workTapes := rfl
-
-@[simp]
-lemma Cfg.withState_workTapePos {cfg : Cfg k Symbol State input} {State' : Type*}
-    {q : Option State'} : (cfg.withState q).workTapePos = cfg.workTapePos := rfl
-
-@[simp]
-lemma Cfg.withState_output {cfg : Cfg k Symbol State input} {State' : Type*}
-    {q : Option State'} : (cfg.withState q).output = cfg.output := rfl
 
 @[simp]
 lemma Cfg.withState_inputSymbol {cfg : Cfg k Symbol State input} {State' : Type*}
@@ -63,14 +45,22 @@ lemma Cfg.withState_withState {cfg : Cfg k Symbol State input} {State' State'' :
 lemma Cfg.withState_self {cfg : Cfg k Symbol State input} :
     cfg.withState cfg.state = cfg := rfl
 
-/-- A family of configurations with the prescribed steps agrees with `runFrom`. -/
-lemma runFrom_eq_of_step (tm : MultiTapeTM k Symbol State)
-    (path : ℕ → Cfg k Symbol State input) (n : ℕ)
-    (hstep : ∀ r < n, tm.step (path r) = path (r + 1)) :
-    tm.runFrom (path 0) n = path n := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    rw [runFrom_succ_eq_step', ih (fun r hr => hstep r (by omega)), hstep n (by omega)]
+/-- A map that preserves steps maps every configuration of an execution. -/
+lemma runFrom_map {k' : ℕ} {Symbol' State' : Type*} {input' : List Symbol'}
+    (tm : MultiTapeTM k Symbol State) (tm' : MultiTapeTM k' Symbol' State')
+    (embed : Cfg k Symbol State input → Cfg k' Symbol' State' input')
+    (hstep : ∀ cfg, tm'.step (embed cfg) = embed (tm.step cfg))
+    (cfg : Cfg k Symbol State input) (n : ℕ) :
+    tm'.runFrom (embed cfg) n = embed (tm.runFrom cfg n) := by
+  have h : Function.Semiconj embed tm.step tm'.step := fun cfg => (hstep cfg).symm
+  exact (h.iterate_right n cfg).symm
+
+/-- An execution path ends at the configuration reached after one step per adjacent pair. -/
+lemma runFrom_eq_of_isChain (tm : MultiTapeTM k Symbol State)
+    {cfg cfg' : Cfg k Symbol State input} {path : List (Cfg k Symbol State input)}
+    (hpath : path.IsChainFromTo tm.TransitionRelation cfg cfg') :
+    tm.runFrom cfg (path.length - 1) = cfg' := by
+  apply (tm.relatesInSteps_iff_runFrom_eq cfg cfg' _).mp
+  exact hpath.relatesInSteps (by have := hpath.length_pos; omega)
 
 end Turing.MultiTapeTM
