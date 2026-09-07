@@ -38,4 +38,32 @@ example : ((writer.extendTapes sparse).runFrom
     (ExtendTapes.embed sparse (writer.initCfg [])
       (fun _ _ => some false) (fun _ => 7)) 1).workTapes 2 0 = some true := by rfl
 
+-- Exact halting time includes an already halted starting configuration.
+example (cfg : Cfg 0 Bool Unit []) (h : cfg.state = none) :
+    (finish 0 true).HaltsAt cfg 0 :=
+  ⟨h, fun _ hs => (Nat.not_lt_zero _ hs).elim⟩
+
+-- An initialized machine must take a step before halting; later padded times are not first halts.
+example : ¬ (finish 0 true).haltsAtStep [] 0 := by
+  intro h
+  simpa [runFrom, initCfg] using h.halted
+
+example : (finish 0 true).haltsAtStep [] 1 := by
+  refine ⟨rfl, ?_⟩
+  intro s hs
+  have : s = 0 := by omega
+  subst s
+  simp [runFrom, initCfg]
+
+example : ¬ (finish 0 true).haltsAtStep [] 2 := by
+  intro h
+  exact h.active 1 (by decide) rfl
+
+-- A zero-time first phase hands off without charging an additional step.
+example (cfg : Cfg 0 Bool Unit []) (h : cfg.state = none) :
+    ((finish 0 true).seq (finish 0 false)).runFrom
+        (Sequential.left (finish 0 false) cfg) 1 =
+      Sequential.right ((finish 0 false).step (cfg.withState (some ()))) :=
+  runFrom_seq _ _ cfg 0 1 ⟨h, fun _ hs => (Nat.not_lt_zero _ hs).elim⟩
+
 end CslibTests.MultiTapePlumbing

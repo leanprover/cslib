@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Basic
 public import Mathlib.Data.Fintype.Inv
 public import Mathlib.Data.Fintype.Card
 
@@ -53,8 +53,9 @@ def extendTapes (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k') :
     MultiTapeTM k' Symbol State where
   q₀ := tm.q₀
   tr q input work :=
-    let out := tm.tr q input (work ∘ e)
-    ⟨out.inputMove, ExtendTapes.extend e out.workActions (fun _ => (none, 0)), out.outS, out.q'⟩
+    let action := tm.tr q input (work ∘ e)
+    ⟨action.inputMove, ExtendTapes.extend e action.workActions (fun _ => (none, 0)),
+      action.outS, action.q'⟩
 
 namespace ExtendTapes
 
@@ -78,21 +79,20 @@ lemma step_embed :
     · funext j p
       by_cases hj : j ∈ Set.range e
       · obtain ⟨i, rfl⟩ := hj
-        simp only [extend_apply]
+        simp [extend_apply]
       · simp [extend, hj]
     · funext j
       by_cases hj : j ∈ Set.range e
       · obtain ⟨i, rfl⟩ := hj
-        simp only [extend_apply]
+        simp [extend_apply]
       · simp [extend, hj]
 
-/-- Extending the tape count does not change the execution time. -/
+/-- Tape extension maps each configuration of the native run, preserving the unused tapes. -/
 lemma runFrom_embed (n : ℕ) :
     (tm.extendTapes e).runFrom (embed e cfg extraTapes extraPos) n =
-      embed e (tm.runFrom cfg n) extraTapes extraPos := by
-  induction n with
-  | zero => rfl
-  | succ n ih => rw [runFrom_succ_eq_step', ih, step_embed, runFrom_succ_eq_step']
+      embed e (tm.runFrom cfg n) extraTapes extraPos :=
+  runFrom_map tm (tm.extendTapes e) (fun cfg => embed e cfg extraTapes extraPos)
+    (fun cfg => step_embed tm e cfg extraTapes extraPos) cfg n
 
 /-- An injected tape visits exactly the native tape's positions. -/
 lemma spaceUsedByTape_embed (n : ℕ) (i : Fin k) :

@@ -435,14 +435,16 @@ def ComputesFunInTimeAndSpace {α β : Type*}
     ComputesInTimeAndSpace tm (encIn a) (encOut (f a)) t' s'
 
 /-- A function is computable within the input-indexed bounds by a machine with binary alphabet
-and finitely many states. Input and output types may have different encodings. -/
+and finitely many states. -/
 def ComputableInTimeAndSpace {α β : Type*}
     (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
     ComputesFunInTimeAndSpace tm encIn encOut f t s
 
-/-- Length-based complexity is the specialization to bounds on the encoded input length. -/
+/-- There exists a binary Turing machine with finitely many states that, for every input `a`,
+computes `encOut (f a)` from `encIn a` in at most `t (encIn a).length` steps,
+using at most `s (encIn a).length` work-tape cells. -/
 abbrev ComputableInTimeAndSpaceOfLength {α β : Type*}
     (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : ℕ → ℕ) : Prop :=
@@ -459,7 +461,7 @@ theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
   obtain ⟨u, hu, v, hv, hc⟩ := h a
   exact ⟨u, hu.trans (ht a), v, hv.trans (hs a), hc⟩
 
-/-- Computability is monotone in its input-indexed resource bounds. -/
+/-- Computability is monotone in the resource bounds. -/
 theorem ComputableInTimeAndSpace.mono {α β : Type*}
     {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {t s t' s' : α → ℕ}
     (h : ComputableInTimeAndSpace f encIn encOut t s)
@@ -497,45 +499,40 @@ lemma relatesInSteps_iff_runFrom_eq
       use tm.step^[t] cfg₁
       grind
 
-/-- The Turing machine `tm` halts after exactly `t` steps on input `input`
-if its state is `none` at step `t` and non-none at step `t - 1`.
-Note that every Turing machine hast to perform at least one step to halt. -/
-def haltsAtStep (tm : MultiTapeTM k Symbol State) (input : List Symbol) (t : ℕ) : Bool :=
-  (tm.runFrom (tm.initCfg input) t).state.isNone &&
-  !(tm.runFrom (tm.initCfg input) (t - 1)).state.isNone
+/-- The run from `cfg` first reaches a halting configuration at time `t`.
+An already halted starting configuration has halting time zero. -/
+structure HaltsAt (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input)
+    (t : ℕ) : Prop where
+  /-- The configuration at time `t` is halted. -/
+  halted : (tm.runFrom cfg t).state = none
+  /-- All earlier configurations are active. -/
+  active : ∀ s < t, (tm.runFrom cfg s).state ≠ none
 
-/-- Every padded halting run has a least halting time. -/
+/-- A run has at most one first halting time. -/
+lemma HaltsAt.unique {tm : MultiTapeTM k Symbol State} {cfg : Cfg k Symbol State input}
+    {t₀ t₁ : ℕ} (h₀ : tm.HaltsAt cfg t₀) (h₁ : tm.HaltsAt cfg t₁) : t₀ = t₁ := by
+  rcases lt_trichotomy t₀ t₁ with h | h | h
+  · exact (h₁.active t₀ h h₀.halted).elim
+  · exact h
+  · exact (h₀.active t₁ h h₁.halted).elim
+
+/-- The machine first halts at step `t` when started on `input`. -/
+abbrev haltsAtStep (tm : MultiTapeTM k Symbol State) (input : List Symbol) (t : ℕ) : Prop :=
+  tm.HaltsAt (tm.initCfg input) t
+
+/-- Every halted run has a first halting time no later than the supplied time. -/
 lemma exists_minimal_halting_time (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) (t : ℕ)
     (hhalt : (tm.runFrom cfg t).state = none) :
-    ∃ τ ≤ t, (tm.runFrom cfg τ).state = none ∧
-      ∀ m < τ, (tm.runFrom cfg m).state ≠ none := by
+    ∃ s ≤ t, tm.HaltsAt cfg s := by
   let hExists : ∃ n, (tm.runFrom cfg n).state = none := ⟨t, hhalt⟩
-  refine ⟨Nat.find hExists, Nat.find_min' hExists hhalt, Nat.find_spec hExists, ?_⟩
-  exact fun _ hm => Nat.find_min hExists hm
+  exact ⟨Nat.find hExists, Nat.find_min' hExists hhalt, Nat.find_spec hExists,
+    fun _ hs => Nat.find_min hExists hs⟩
 
-/-- If a Turing machine halts, the time step is uniquely determined. -/
-lemma halting_step_unique
-    {tm : MultiTapeTM k Symbol State}
-    {input : List Symbol}
-    {t₁ t₂ : ℕ}
-    (h_halts₁ : tm.haltsAtStep input t₁)
-    (h_halts₂ : tm.haltsAtStep input t₂) :
-    t₁ = t₂ := by
-  wlog h : t₁ ≤ t₂
-  · exact (this h_halts₂ h_halts₁ (Nat.le_of_not_le h)).symm
-  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
-  cases d with
-  | zero => rfl
-  | succ d =>
-    have halts₁ : (tm.runFrom (tm.initCfg input) t₁).state = none := by
-      simp [haltsAtStep] at h_halts₁
-      exact h_halts₁.left
-    have halts₂ : (tm.runFrom (tm.initCfg input) (d + t₁)).state ≠ none := by
-      grind [haltsAtStep, runFrom]
-    refine absurd ?_ halts₂
-    rw [Nat.add_comm, runFrom_add, tm.runFrom_of_halt _ halts₁]
-    exact halts₁
+/-- If a Turing machine halts, its first halting step is unique. -/
+lemma halting_step_unique {tm : MultiTapeTM k Symbol State} {input : List Symbol}
+    {t₀ t₁ : ℕ} (h₀ : tm.haltsAtStep input t₀) (h₁ : tm.haltsAtStep input t₁) :
+    t₀ = t₁ := h₀.unique h₁
 
 /-- If a deterministic machine repeats a non-halting configuration, it never halts,
 because the sequence between the two configurations will loop forever.
