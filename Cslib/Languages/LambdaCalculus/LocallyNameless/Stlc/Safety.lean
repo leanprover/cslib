@@ -6,10 +6,9 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.Relation.Defs
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
-public import Cslib.Foundations.Relation.Confluence
-public import Cslib.Foundations.Relation.Preserves
 
 /-! # λ-calculus
 

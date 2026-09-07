@@ -6,10 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Relation.Confluence
+public import Cslib.Foundations.Relation.Termination
 public import Cslib.Foundations.Semantics.LTS.Execution
-public import Mathlib.Data.Fintype.Card
-public import Mathlib.Data.List.Chain
 public import Mathlib.SetTheory.Cardinal.Finite
 
 /-!
