@@ -28,7 +28,7 @@ def fullAdder (a b carry : Bool) : Bool × Bool :=
 example : ∀ encIn encOut, ∃ c, EncodedComputableInTimeAndSpace
     (encIn := encIn)
     (encOut := encOut)
-    (Function.uncurry fullAdder)
+    (fun (a, b, carry) => fullAdder a b carry)
     (fun _ => c) (fun _ => 0) := by
   intro encIn encOut
   apply encodedComputableInTimeAndSpace_of_finite
