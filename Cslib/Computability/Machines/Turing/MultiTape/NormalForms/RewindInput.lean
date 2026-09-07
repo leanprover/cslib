@@ -27,6 +27,10 @@ variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 def rewindInput (tm : MultiTapeTM k Symbol State) : MultiTapeTM k Symbol (State ⊕ RewindState) :=
   tm.seq (rewind .input)
 
+/-- The normalized machine starts in the original machine's initial configuration. -/
+lemma initCfg_rewindInput (tm : MultiTapeTM k Symbol State) (input : List Symbol) :
+    tm.rewindInput.initCfg input = Sequential.left (rewind .input) (tm.initCfg input) := rfl
+
 /-- Exact input-rewind execution from any configuration, once the first machine reaches its
 least halting time. Everything other than the input head and control state is preserved. -/
 lemma runFrom_rewindInput (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input)
@@ -51,6 +55,43 @@ lemma rewindInput_halts (tm : MultiTapeTM k Symbol State) (t : ℕ)
     omega
   · rw [tm.runFrom_eq_of_halt (tm.initCfg input) hu hhaltu]
     exact runFrom_rewindInput tm (tm.initCfg input) u hhaltu hactiveu
+
+/-- **Normalizing costs no space.** The rewind moves no work-tape head, so every cell the
+normalized machine visits was already visited by the original one. This is what makes the normal
+form free to use inside a combinator: only the time bound grows. -/
+lemma spaceUsed_rewindInput_le (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input)
+    (u v : ℕ) (hhalt : (tm.runFrom cfg u).state = none)
+    (hactive : ∀ m < u, (tm.runFrom cfg m).state ≠ none) :
+    tm.rewindInput.spaceUsed (Sequential.left (rewind .input) cfg) (u + v) ≤
+      tm.spaceUsed cfg u := by
+  refine spaceUsed_le_of_workTapePos_mem _ _ (u + v) u fun m _ i => ?_
+  rcases Nat.lt_or_ge m u with hm | hm
+  · rw [rewindInput,
+      Sequential.runFrom_left tm (rewind .input) cfg m fun r hr => hactive r (by omega)]
+    exact mem_visitedByTapeHead.mpr ⟨m, by omega, rfl⟩
+  · obtain ⟨j, rfl⟩ := Nat.exists_eq_add_of_le hm
+    rw [rewindInput, runFrom_seq tm (rewind .input) cfg u j hhalt hactive]
+    simp only [Sequential.right, Cfg.withState_workTapePos, Rewind.runFrom_input_workTapePos,
+      Cfg.withState_workTapePos]
+    exact mem_visitedByTapeHead.mpr ⟨u, by omega, rfl⟩
+
+/-- The normal form together with its cost: the run takes at most the input length plus two extra
+steps, and uses no extra space at all. The bound accepts padded native halting times. -/
+lemma rewindInput_halts_spaceUsed (tm : MultiTapeTM k Symbol State) (t : ℕ)
+    (hhalt : (tm.runFrom (tm.initCfg input) t).state = none) :
+    ∃ t' ≤ t + input.length + 2,
+      tm.rewindInput.runFrom (tm.rewindInput.initCfg input) t' =
+          Sequential.right (Rewind.inputCfg (tm.runFrom (tm.initCfg input) t) none 1) ∧
+        tm.rewindInput.spaceUsed (tm.rewindInput.initCfg input) t' ≤
+          tm.spaceUsed (tm.initCfg input) t := by
+  obtain ⟨u, hu, hhaltu, hactiveu⟩ := exists_minimal_halting_time tm (tm.initCfg input) t hhalt
+  refine ⟨u + ((tm.runFrom (tm.initCfg input) u).inputPos.val - 1 + 2), ?_, ?_, ?_⟩
+  · have := (tm.runFrom (tm.initCfg input) u).inputPos.isLt
+    omega
+  · rw [tm.runFrom_eq_of_halt (tm.initCfg input) hu hhaltu]
+    exact runFrom_rewindInput tm (tm.initCfg input) u hhaltu hactiveu
+  · exact (spaceUsed_rewindInput_le tm (tm.initCfg input) u _ hhaltu hactiveu).trans
+      (spaceUsed_mono tm (tm.initCfg input) hu)
 
 /-- Every halting run from an initial configuration has its input head at the initial position. -/
 def HaltsWithInputAtStart (tm : MultiTapeTM k Symbol State) : Prop :=
