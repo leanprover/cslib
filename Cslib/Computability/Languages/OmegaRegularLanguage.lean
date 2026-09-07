@@ -13,7 +13,6 @@ public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
 public import Mathlib.SetTheory.Cardinal.NatCard
-public import Mathlib.Data.Finite.Sigma
 public import Mathlib.Logic.Equiv.Fin.Basic
 
 /-!

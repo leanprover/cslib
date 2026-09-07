@@ -206,7 +206,7 @@ theorem parallelReduction_diamond : Diamond ParallelReduction := by
 
 theorem join_parallelReduction_equivalence :
     Equivalence (MJoin ParallelReduction) :=
-  Confluent.equivalence_join_reflTransGen <| Diamond.toConfluent parallelReduction_diamond
+  Confluent.equivalence_join_reflTransGen <| Diamond.to_confluent parallelReduction_diamond
 
 /-- The **Church-Rosser** theorem in its general form. -/
 theorem mJoin_red_equivalence : Equivalence (MJoin Red) := by
