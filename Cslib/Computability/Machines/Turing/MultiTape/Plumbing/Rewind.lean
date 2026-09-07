@@ -9,6 +9,8 @@ module
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TapeContents
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Basic
 
+import Mathlib.Data.List.ChainOfFn
+
 /-!
 # Rewinding a tape
 
@@ -95,12 +97,20 @@ lemma runFrom_work_scan (cfg : Cfg k Symbol State input) (i : Fin k) (xs : List 
       workCfg cfg i (some .scan) (xs.length - 1 - r) := by
   have hstep (s : ℕ) (hs : s < r) := step_work_scan cfg i (xs.length - 1 - s)
     (by rw [htape]; exact listTape_isSome xs (by omega) (by omega))
-  convert runFrom_eq_of_step (rewind (.work i))
-    (fun s => workCfg cfg i (some .scan) (xs.length - 1 - s)) r (fun s hs => ?_) using 1
-  · simp
-  · convert hstep s hs using 1
+  let path := List.ofFn fun s : Fin (r + 1) =>
+    workCfg cfg i (some .scan) (xs.length - 1 - s.val)
+  have hpath : path.IsChain (rewind (.work i)).TransitionRelation := by
+    rw [List.isChain_ofFn]
+    intro s hs
+    change (rewind (.work i)).step _ = _
+    convert hstep s (by omega) using 1
     congr 1
+    dsimp only
     omega
+  have hends := hpath.isChainFromTo_of_ne_nil (by simp [path])
+  simpa only [path, List.length_ofFn, List.head_ofFn, List.getLast_ofFn, Fin.val_zero,
+    Fin.val_last, Nat.cast_zero, sub_zero, Nat.add_sub_cancel] using
+    runFrom_eq_of_isChain (rewind (.work i)) hends
 
 /-- Rewind contiguous work-tape contents from the blank cell immediately after them.
 This takes `xs.length + 2` steps and preserves the other heads, all contents, and output. -/
