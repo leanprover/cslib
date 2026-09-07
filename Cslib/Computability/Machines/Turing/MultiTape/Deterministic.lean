@@ -393,14 +393,16 @@ def ComputesFunInTimeAndSpace {α β : Type*}
     ComputesInTimeAndSpace tm (encIn a) (encOut (f a)) t' s'
 
 /-- A function is computable within the input-indexed bounds by a machine with binary alphabet
-and finitely many states. Input and output types may have different encodings. -/
+and finitely many states. -/
 def ComputableInTimeAndSpace {α β : Type*}
     (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
     ComputesFunInTimeAndSpace tm encIn encOut f t s
 
-/-- Length-based complexity is the specialization to bounds on the encoded input length. -/
+/-- There exists a binary Turing machine with finitely many states that, for every input `a`,
+computes `encOut (f a)` from `encIn a` in at most `t (encIn a).length` steps,
+using at most `s (encIn a).length` work-tape cells. -/
 abbrev ComputableInTimeAndSpaceOfLength {α β : Type*}
     (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : ℕ → ℕ) : Prop :=
@@ -417,7 +419,7 @@ theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
   obtain ⟨u, hu, v, hv, hc⟩ := h a
   exact ⟨u, hu.trans (ht a), v, hv.trans (hs a), hc⟩
 
-/-- Computability is monotone in its input-indexed resource bounds. -/
+/-- Computability is monotone in the resource bounds. -/
 theorem ComputableInTimeAndSpace.mono {α β : Type*}
     {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {t s t' s' : α → ℕ}
     (h : ComputableInTimeAndSpace f encIn encOut t s)
