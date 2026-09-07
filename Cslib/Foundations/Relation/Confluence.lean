@@ -40,17 +40,17 @@ namespace Relation
 
 attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
 
-theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
-  induction h <;> grind
+theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b :=
+  EqvGen.reflGen_le_eqvGen r _ _ h
 
-theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b := by
-  induction h <;> grind
+theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b :=
+  EqvGen.transGen_le_eqvGen r _ _ h
 
-theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
-  induction h <;> grind
+theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b :=
+  EqvGen.reflTransGen_le_eqvGen r _ _ h
 
-theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b := by
-  induction h <;> grind
+theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b :=
+  EqvGen.symmGen_le_eqvGen r _ _ h
 
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
   SymmGen.to_eqvGen
@@ -73,7 +73,7 @@ lemma Diamond.extend (h : Diamond r) :
     exact ⟨d', b_d', .head cd d_d'⟩
 
 /-- The diamond property implies confluence. -/
-theorem Diamond.toConfluent (h : Diamond r) : Confluent r := by
+theorem Diamond.to_confluent (h : Diamond r) : Confluent r := by
   intros a b c ab bc
   induction ab using ReflTransGen.head_induction_on generalizing c
   case refl => exists c
@@ -82,7 +82,9 @@ theorem Diamond.toConfluent (h : Diamond r) : Confluent r := by
     obtain ⟨d', b_d', d_d'⟩ := ih c'_d
     exact ⟨d', b_d', .trans cd d_d'⟩
 
-theorem Confluent.toChurchRosser (h : Confluent r) : ChurchRosser r := by
+@[deprecated (since := "2026-09-03")] alias Diamond.toConfluent := Diamond.to_confluent
+
+theorem Confluent.to_churchRosser (h : Confluent r) : ChurchRosser r := by
   intro x y h_eqv
   induction h_eqv with
   | rel _ b => exists b; grind [ReflTransGen.single]
@@ -95,7 +97,9 @@ theorem Confluent.toChurchRosser (h : Confluent r) : ChurchRosser r := by
       exists w
       grind [ReflTransGen.trans]
 
-theorem SemiConfluent.toConfluent (h : SemiConfluent r) : Confluent r := by
+@[deprecated (since := "2026-09-03")] alias Confluent.toChurchRosser := Confluent.to_churchRosser
+
+theorem SemiConfluent.to_confluent (h : SemiConfluent r) : Confluent r := by
   intro x y1 y2 h_xy1 h_xy2
   induction h_xy1 with
   | refl => use y2
@@ -105,26 +109,40 @@ theorem SemiConfluent.toConfluent (h : SemiConfluent r) : Confluent r := by
       exists v
       grind [ReflTransGen.trans]
 
-attribute [scoped grind →] Confluent.toChurchRosser SemiConfluent.toConfluent
+@[deprecated (since := "2026-09-03")] alias SemiConfluent.toConfluent := SemiConfluent.to_confluent
+
+attribute [scoped grind →] Confluent.to_churchRosser SemiConfluent.to_confluent
 
 private theorem confluent_equivalents : [ChurchRosser r, SemiConfluent r, Confluent r].TFAE := by
   grind [List.tfae_cons_cons, List.tfae_singleton]
 
-theorem SemiConfluent_iff_ChurchRosser : SemiConfluent r ↔ ChurchRosser r :=
+theorem semiConfluent_iff_churchRosser : SemiConfluent r ↔ ChurchRosser r :=
   List.TFAE.out confluent_equivalents 2 1
 
-theorem Confluent_iff_ChurchRosser : Confluent r ↔ ChurchRosser r :=
+@[deprecated (since := "2026-09-03")] alias SemiConfluent_iff_ChurchRosser :=
+  semiConfluent_iff_churchRosser
+
+theorem confluent_iff_churchRosser : Confluent r ↔ ChurchRosser r :=
   List.TFAE.out confluent_equivalents 3 1
 
-theorem Confluent_iff_SemiConfluent : Confluent r ↔ SemiConfluent r :=
+@[deprecated (since := "2026-09-03")] alias Confluent_iff_ChurchRosser := confluent_iff_churchRosser
+
+theorem confluent_iff_semiConfluent : Confluent r ↔ SemiConfluent r :=
   List.TFAE.out confluent_equivalents 3 2
 
-theorem Confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : Confluent r := by
+@[deprecated (since := "2026-09-03")] alias Confluent_iff_SemiConfluent :=
+  confluent_iff_semiConfluent
+
+theorem confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : Confluent r := by
   intro a b c hab hac
   exact ⟨x, h b, h c⟩
 
-theorem Normal_iff (r : α → α → Prop) (x : α) : Normal r x ↔ ∀ y, ¬ r x y := by
+@[deprecated (since := "2026-09-03")] alias Confluent_of_unique_end := confluent_of_unique_end
+
+theorem normal_iff (r : α → α → Prop) (x : α) : Normal r x ↔ ∀ y, ¬ r x y := by
   rw [Normal, not_exists]
+
+@[deprecated (since := "2026-09-03")] alias Normal_iff := normal_iff
 
 /-- A multi-step from a normal form must be reflexive. -/
 @[grind =>]
@@ -199,17 +217,23 @@ lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.ap
 lemma Terminating.iff_forall_sn : Terminating r ↔ ∀ x, SN r x :=
   ⟨WellFounded.apply, WellFounded.intro⟩
 
-theorem Terminating.toTransGen (ht : Terminating r) : Terminating (TransGen r) := by
+theorem Terminating.to_transGen (ht : Terminating r) : Terminating (TransGen r) := by
   simp_rw [iff_forall_sn, SN.iff_transGen] at ht ⊢
   exact ht
 
-/-- A terminating relation is acyclic. -/
-theorem Terminating.toAcyclic (ht : Terminating r) : Acyclic r :=
-  ⟨fun x hx => ht.toTransGen.irrefl.irrefl x hx⟩
+@[deprecated (since := "2026-09-03")] alias Terminating.toTransGen := Terminating.to_transGen
 
-theorem Terminating.ofTransGen : Terminating (TransGen r) → Terminating r := by
+/-- A terminating relation is acyclic. -/
+theorem Terminating.to_acyclic (ht : Terminating r) : Acyclic r :=
+  ⟨fun x hx => ht.to_transGen.irrefl.irrefl x hx⟩
+
+@[deprecated (since := "2026-09-03")] alias Terminating.toAcyclic := Terminating.to_acyclic
+
+theorem Terminating.of_transGen : Terminating (TransGen r) → Terminating r := by
   simp_rw [iff_forall_sn, SN.iff_transGen]
   exact id
+
+@[deprecated (since := "2026-09-03")] alias Terminating.ofTransGen := Terminating.of_transGen
 
 theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r := by
   simp_rw [iff_forall_sn, SN.iff_transGen]
@@ -227,12 +251,14 @@ lemma Terminating.subtype_sn (r : α → α → Prop) :
     Terminating (α := {x // SN r x}) (fun a b => r a b) :=
   iff_forall_sn.mpr fun x => x.property.onFun_of_image
 
-theorem Terminating.isNormalizing (hr : Terminating r) : Normalizing r :=
+theorem Terminating.to_normalizing (hr : Terminating r) : Normalizing r :=
   fun x => (hr.apply x).normalizable
 
-theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
+@[deprecated (since := "2026-09-03")] alias Terminating.isNormalizing := Terminating.to_normalizing
+
+theorem Terminating.confluent_iff_forall_unique_normal (ht : Terminating r) :
     Confluent r ↔ ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n := by
-  have hn : Normalizing r := ht.isNormalizing
+  have hn : Normalizing r := ht.to_normalizing
   constructor
   · intro hc a
     apply existsUnique_of_exists_of_unique (hn a)
@@ -253,22 +279,37 @@ theorem Terminating.isConfluent_iff_all_unique_Normal (ht : Terminating r) :
     rw [hnanc] at hcnc
     exact ⟨hbnb, hcnc⟩
 
-theorem Convergent.isTerminating (h : Convergent r) : Terminating r := h.right
+@[deprecated (since := "2026-09-03")] alias Terminating.isConfluent_iff_all_unique_Normal :=
+  Terminating.confluent_iff_forall_unique_normal
 
-theorem Convergent.isConfluent (h : Convergent r) : Confluent r := h.left
+theorem Convergent.to_terminating (h : Convergent r) : Terminating r := h.right
 
-theorem Convergent.isNormalizing (h : Convergent r) : Normalizing r := h.isTerminating.isNormalizing
+@[deprecated (since := "2026-09-03")] alias Convergent.isTerminating := Convergent.to_terminating
 
-theorem Convergent.unique_Normal (h : Convergent r) :
+theorem Convergent.to_confluent (h : Convergent r) : Confluent r := h.left
+
+@[deprecated (since := "2026-09-03")] alias Convergent.isConfluent := Convergent.to_confluent
+
+theorem Convergent.to_normalizing (h : Convergent r) : Normalizing r :=
+  h.to_terminating.to_normalizing
+
+@[deprecated (since := "2026-09-03")] alias Convergent.isNormalizing := Convergent.to_normalizing
+
+theorem Convergent.unique_normal (h : Convergent r) :
     ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n :=
-  h.isTerminating.isConfluent_iff_all_unique_Normal.mp h.isConfluent
+  h.to_terminating.confluent_iff_forall_unique_normal.mp h.to_confluent
 
-theorem Confluent.toLocallyConfluent (h : Confluent r) : LocallyConfluent r := by
+@[deprecated (since := "2026-09-03")] alias Convergent.unique_Normal := Convergent.unique_normal
+
+theorem Confluent.to_locallyConfluent (h : Confluent r) : LocallyConfluent r := by
   intro _ _ _ ab ac
   exact h (.single ab) (.single ac)
 
+@[deprecated (since := "2026-09-03")] alias Confluent.toLocallyConfluent :=
+  Confluent.to_locallyConfluent
+
 /-- Newman's lemma: a terminating, locally confluent relation is confluent. -/
-theorem LocallyConfluent.Terminating_toConfluent (hlc : LocallyConfluent r) (ht : Terminating r) :
+theorem LocallyConfluent.terminating_toConfluent (hlc : LocallyConfluent r) (ht : Terminating r) :
     Confluent r := by
   intro x
   induction x using ht.induction with
@@ -287,14 +328,24 @@ theorem LocallyConfluent.Terminating_toConfluent (hlc : LocallyConfluent r) (ht 
         have ⟨w, vw, zw⟩ : Join (ReflTransGen r) v z := by grind [ReflTransGen.trans]
         exact ⟨w, .trans yv vw, zw⟩
 
+@[deprecated (since := "2026-09-03")] alias LocallyConfluent.Terminating_toConfluent :=
+  LocallyConfluent.terminating_toConfluent
+
 instance : Std.Symm (@Commute α) where
   symm r₁ r₂ h x y₁ y₂ x_y₁ x_y₂ := by grind [h x_y₂ x_y₁]
 
-theorem Commute.toConfluent : Commute r r = Confluent r := rfl
+theorem Commute.to_confluent : Commute r r = Confluent r := rfl
 
-theorem StronglyCommute.toStronglyConfluent : StronglyCommute r r = StronglyConfluent r := rfl
+@[deprecated (since := "2026-09-03")] alias Commute.toConfluent := Commute.to_confluent
 
-theorem DiamondCommute.toDiamond : DiamondCommute r r = Diamond r := by rfl
+theorem StronglyCommute.to_stronglyConfluent : StronglyCommute r r = StronglyConfluent r := rfl
+
+@[deprecated (since := "2026-09-03")] alias StronglyCommute.toStronglyConfluent :=
+  StronglyCommute.to_stronglyConfluent
+
+theorem DiamondCommute.to_diamond : DiamondCommute r r = Diamond r := by rfl
+
+@[deprecated (since := "2026-09-03")] alias DiamondCommute.toDiamond := DiamondCommute.to_diamond
 
 theorem StronglyCommute.extend (h : StronglyCommute r₁ r₂) (xy : ReflTransGen r₁ x y)
     (xz : r₂ x z) : ∃ w, ReflGen r₂ y w ∧ ReflTransGen r₁ z w := by
@@ -306,7 +357,7 @@ theorem StronglyCommute.extend (h : StronglyCommute r₁ r₂) (xy : ReflTransGe
     | refl => exact ⟨c, .refl, zw.tail bc⟩
     | single bw => cases h bc bw; grind [ReflTransGen.trans]
 
-theorem StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂ := by
+theorem StronglyCommute.to_commute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂ := by
   intro x y₁ y₂ x_y₁ x_y₂
   induction x_y₂ with
   | refl => exists y₁
@@ -315,8 +366,13 @@ theorem StronglyCommute.toCommute (h : StronglyCommute r₁ r₂) : Commute r₁
     obtain ⟨w, zw, bw⟩ := h.extend y₂_z ab
     exact ⟨w, y₁_z.trans zw.to_reflTransGen, bw⟩
 
-theorem StronglyConfluent.toConfluent (h : StronglyConfluent r) : Confluent r :=
-  StronglyCommute.toCommute h
+@[deprecated (since := "2026-09-03")] alias StronglyCommute.toCommute := StronglyCommute.to_commute
+
+theorem StronglyConfluent.to_confluent (h : StronglyConfluent r) : Confluent r :=
+  StronglyCommute.to_commute h
+
+@[deprecated (since := "2026-09-03")] alias StronglyConfluent.toConfluent :=
+  StronglyConfluent.to_confluent
 
 variable {r₁ r₂ : α → α → Prop}
 
@@ -329,12 +385,12 @@ theorem join_inr (r₂_ab : r₂ a b) : (r₁ ⊔ r₂) a b :=
   Or.inr r₂_ab
 
 @[scoped grind <=]
-theorem join_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ⊔ r₂) a b := by
-  induction r₁_ab <;> grind
+theorem join_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (r₁ ⊔ r₂) a b :=
+  ReflTransGen.mono le_sup_left _ _ r₁_ab
 
 @[scoped grind <=]
-theorem join_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ⊔ r₂) a b := by
-  induction r₂_ab <;> grind
+theorem join_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ⊔ r₂) a b :=
+  ReflTransGen.mono le_sup_right _ _ r₂_ab
 
 lemma Commute.join_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ⊔ r₂) r₃ := by
   intro x y z xy xz
@@ -352,14 +408,8 @@ lemma Commute.join_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : 
 
 theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
     Confluent (r₁ ⊔ r₂) := by
-  intro a b c ab ac
-  induction ab generalizing c with
-  | refl => exists c
-  | @tail x y ax xy ih =>
-    have h_comm : Commute (r₁ ⊔ r₂) (r₁ ⊔ r₂) := by apply_rules [join_left, symm]
-    obtain ⟨z, xz, cz⟩ := ih ac
-    obtain ⟨w, yw, zw⟩ := h_comm (.single xy) xz
-    exact ⟨w, yw, cz.trans zw⟩
+  rw [← Commute.to_confluent]
+  apply_rules [join_left, symm]
 
 /-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
 theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTransGen r₁) :
@@ -367,38 +417,22 @@ theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTra
   ext a b
   exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
 
-lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a
-| .refl => .refl
-| .single (.inl h) => .single (.inr h)
-| .single (.inr h) => .single (.inl h)
+@[deprecated Relation.ReflGen.stdSymm (since := "2026-09-03")]
+lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a :=
+  Std.Symm.symm a b
 
 @[simp, grind =]
-theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := by
-  ext a b
-  constructor
-  · intro h
-    induction h with
-    | refl => exact .refl _
-    | tail hab hbc ih =>
-      cases hbc with
-      | inl h => exact ih.trans _ _ _ (.rel _ _ h)
-      | inr h => exact ih.trans _ _ _ (.symm _ _ (.rel _ _ h))
-  · intro h
-    induction h with
-    | rel _ _ ih => exact .single (.inl ih)
-    | refl x => exact .refl
-    | symm x y eq ih =>
-      rw [symmGen_swap]
-      exact reflTransGen_swap.mp ih
-    | trans _ _ _ _ _ ih₁ ih₂ => exact ih₁.trans ih₂
+theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := EqvGen.reflTransGen_symmGen r
 
 /-- `Relator.RightUnique` corresponds to deterministic reductions, which are confluent, as all
 multi-reductions with a common origin start the same (this fact is
 `Relation.ReflTransGen.total_of_right_unique`.) -/
-theorem RightUnique.toConfluent (hr : Relator.RightUnique r) : Confluent r := by
+theorem RightUnique.to_confluent (hr : Relator.RightUnique r) : Confluent r := by
   intro a b c ab ac
   obtain (h | h) := ReflTransGen.total_of_right_unique hr ab ac
   · use c
   · use b
+
+@[deprecated (since := "2026-09-03")] alias RightUnique.toConfluent := RightUnique.to_confluent
 
 end Relation
