@@ -172,6 +172,19 @@ lemma runFrom_input (cfg : Cfg k Symbol State input) :
     split_ifs <;> simp_all <;> omega
   rw [hm, runFrom_input_scan cfg _ (by have := cfg.inputPos.isLt; omega), step_input_stop]
 
+/-- The native-input rewind never moves a work-tape head. -/
+lemma step_input_workTapePos (cfg : Cfg k Symbol RewindState input) :
+    ((rewind (Symbol := Symbol) (k := k) .input).step cfg).workTapePos = cfg.workTapePos := by
+  funext i
+  cases hs : cfg.state <;> simp [step, rewind, hs]
+
+/-- A whole native-input rewind leaves every work-tape head where it was. -/
+lemma runFrom_input_workTapePos (cfg : Cfg k Symbol RewindState input) (n : ℕ) :
+    ((rewind (Symbol := Symbol) (k := k) .input).runFrom cfg n).workTapePos = cfg.workTapePos := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [runFrom_succ_eq_step', step_input_workTapePos, ih]
+
 end Rewind
 
 end Turing.MultiTapeTM

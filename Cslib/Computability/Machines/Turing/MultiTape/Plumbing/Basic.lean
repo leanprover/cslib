@@ -6,7 +6,7 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
-public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
 /-! # Configuration state replacement
 
@@ -62,6 +62,68 @@ lemma Cfg.withState_withState {cfg : Cfg k Symbol State input} {State' State'' :
 @[simp]
 lemma Cfg.withState_self {cfg : Cfg k Symbol State input} :
     cfg.withState cfg.state = cfg := rfl
+
+/-- The configuration `cfg` with `o` prepended to the output produced so far. -/
+def Cfg.prependOutput (o : List Symbol) (cfg : Cfg k Symbol State input) :
+    Cfg k Symbol State input :=
+  { cfg with output := o ++ cfg.output }
+
+@[simp]
+lemma Cfg.prependOutput_state {o : List Symbol} {cfg : Cfg k Symbol State input} :
+    (cfg.prependOutput o).state = cfg.state := rfl
+
+@[simp]
+lemma Cfg.prependOutput_inputPos {o : List Symbol} {cfg : Cfg k Symbol State input} :
+    (cfg.prependOutput o).inputPos = cfg.inputPos := rfl
+
+@[simp]
+lemma Cfg.prependOutput_workTapes {o : List Symbol} {cfg : Cfg k Symbol State input} :
+    (cfg.prependOutput o).workTapes = cfg.workTapes := rfl
+
+@[simp]
+lemma Cfg.prependOutput_workTapePos {o : List Symbol} {cfg : Cfg k Symbol State input} :
+    (cfg.prependOutput o).workTapePos = cfg.workTapePos := rfl
+
+@[simp]
+lemma Cfg.prependOutput_output {o : List Symbol} {cfg : Cfg k Symbol State input} :
+    (cfg.prependOutput o).output = o ++ cfg.output := rfl
+
+@[simp]
+lemma Cfg.prependOutput_inputSymbol {o : List Symbol} {cfg : Cfg k Symbol State input} :
+    (cfg.prependOutput o).inputSymbol = cfg.inputSymbol := rfl
+
+@[simp]
+lemma Cfg.prependOutput_workTapeSymbols {o : List Symbol} {cfg : Cfg k Symbol State input} :
+    (cfg.prependOutput o).workTapeSymbols = cfg.workTapeSymbols := rfl
+
+/-- A step does not depend on the output accumulated so far, since the output tape is write-only
+and a step only appends to it. -/
+lemma step_prependOutput (tm : MultiTapeTM k Symbol State) (o : List Symbol)
+    (cfg : Cfg k Symbol State input) :
+    tm.step (cfg.prependOutput o) = (tm.step cfg).prependOutput o := by
+  cases hs : cfg.state with
+  | none => simp [step, Cfg.prependOutput, hs]
+  | some q =>
+    have hstate : (cfg.prependOutput o).state = some q := hs
+    unfold step
+    rw [hstate, hs, Cfg.prependOutput_inputSymbol, Cfg.prependOutput_workTapeSymbols]
+    apply Cfg.ext <;> simp [List.append_assoc]
+
+/-- A whole run does not depend on the output accumulated before it. This is what lets a machine
+be run after another one has already written part of the output. -/
+lemma runFrom_prependOutput (tm : MultiTapeTM k Symbol State) (o : List Symbol)
+    (cfg : Cfg k Symbol State input) (n : ℕ) :
+    tm.runFrom (cfg.prependOutput o) n = (tm.runFrom cfg n).prependOutput o := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [runFrom_succ_eq_step', ih, step_prependOutput, runFrom_succ_eq_step']
+
+/-- Prepending output does not change the space used. -/
+lemma spaceUsed_prependOutput (tm : MultiTapeTM k Symbol State) (o : List Symbol)
+    (cfg : Cfg k Symbol State input) (n : ℕ) :
+    tm.spaceUsed (cfg.prependOutput o) n = tm.spaceUsed cfg n :=
+  spaceUsed_eq_of_workTapePos _ _ n fun m _ => by
+    rw [runFrom_prependOutput, Cfg.prependOutput_workTapePos]
 
 /-- A family of configurations with the prescribed steps agrees with `runFrom`. -/
 lemma runFrom_eq_of_step (tm : MultiTapeTM k Symbol State)

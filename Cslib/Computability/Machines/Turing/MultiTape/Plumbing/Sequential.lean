@@ -83,6 +83,11 @@ lemma runFrom_right (cfg : Cfg k Symbol State₁ input) (n : ℕ) :
 
 end Sequential
 
+/-- Sequential execution starts in the first machine's initial configuration. -/
+lemma initCfg_seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁)
+    (input : List Symbol) :
+    (tm₀.seq tm₁).initCfg input = Sequential.left tm₁ (tm₀.initCfg input) := rfl
+
 /-- Sequential execution splits at the first machine's earliest halt. The second machine receives
 all final tapes and head positions, together with the output accumulated so far. -/
 lemma runFrom_seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁)
@@ -96,5 +101,25 @@ lemma runFrom_seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k
     Sequential.right ((tm₀.runFrom cfg u).withState (some tm₁.q₀)) by
       simp [Sequential.left, Sequential.right, Cfg.withState, hhalt]]
   exact Sequential.runFrom_right tm₀ tm₁ _ v
+
+/-- Sequential execution uses at most the space of its two phases. The two phases may revisit
+each other's cells, so the bound is an inequality. -/
+lemma spaceUsed_seq_le (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁)
+    (cfg : Cfg k Symbol State₀ input) (u v : ℕ)
+    (hhalt : (tm₀.runFrom cfg u).state = none)
+    (hactive : ∀ m < u, (tm₀.runFrom cfg m).state ≠ none) :
+    (tm₀.seq tm₁).spaceUsed (Sequential.left tm₁ cfg) (u + v) ≤
+      tm₀.spaceUsed cfg u + tm₁.spaceUsed ((tm₀.runFrom cfg u).withState (some tm₁.q₀)) v := by
+  refine ((tm₀.seq tm₁).spaceUsed_add_le _ u v).trans (Nat.add_le_add (le_of_eq ?_) (le_of_eq ?_))
+  · refine spaceUsed_eq_of_workTapePos _ _ u fun m hm => ?_
+    rw [Sequential.runFrom_left tm₀ tm₁ cfg m fun r hr => hactive r (by omega)]
+    rfl
+  · rw [Sequential.runFrom_left tm₀ tm₁ cfg u hactive,
+      show Sequential.left tm₁ (tm₀.runFrom cfg u) =
+        Sequential.right ((tm₀.runFrom cfg u).withState (some tm₁.q₀)) by
+          simp [Sequential.left, Sequential.right, Cfg.withState, hhalt]]
+    refine spaceUsed_eq_of_workTapePos _ _ v fun m _ => ?_
+    rw [Sequential.runFrom_right tm₀ tm₁ _ m]
+    rfl
 
 end Turing.MultiTapeTM

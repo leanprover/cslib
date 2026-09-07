@@ -148,4 +148,52 @@ lemma spaceUsed_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State
   intro t t' h
   exact Finset.sum_le_sum (fun i _ => spaceUsedByTape_mono tm cfg i h)
 
+/-- The cells a run visits are the ones visited by its two halves. -/
+lemma visitedByTapeHead_add (cfg : Cfg k Symbol State input) (a b : ℕ) (i : Fin k) :
+    tm.visitedByTapeHead cfg (a + b) i =
+      tm.visitedByTapeHead cfg a i ∪ tm.visitedByTapeHead (tm.runFrom cfg a) b i := by
+  ext z
+  simp only [mem_visitedByTapeHead, Finset.mem_union]
+  constructor
+  · rintro ⟨r, hr, rfl⟩
+    rcases Nat.lt_or_ge r (a + 1) with h | h
+    · exact Or.inl ⟨r, h, rfl⟩
+    · exact Or.inr ⟨r - a, by omega,
+        by rw [← runFrom_add, show a + (r - a) = r from by omega]⟩
+  · rintro (⟨r, hr, rfl⟩ | ⟨r, hr, rfl⟩)
+    · exact ⟨r, by omega, rfl⟩
+    · exact ⟨a + r, by omega, by rw [runFrom_add]⟩
+
+/-- Splitting a run into two phases can only overcount the cells it visits, since the two phases
+may revisit each other's cells. -/
+lemma spaceUsed_add_le (cfg : Cfg k Symbol State input) (a b : ℕ) :
+    tm.spaceUsed cfg (a + b) ≤ tm.spaceUsed cfg a + tm.spaceUsed (tm.runFrom cfg a) b := by
+  rw [spaceUsed, spaceUsed, spaceUsed, ← Finset.sum_add_distrib]
+  refine Finset.sum_le_sum fun i _ => ?_
+  rw [spaceUsedByTape, visitedByTapeHead_add]
+  exact Finset.card_union_le _ _
+
+/-- Space usage only depends on where the work-tape heads are at each step, so two runs whose head
+positions agree use the same space. This is what lets a machine be replaced by a simulation of it,
+or by the same machine started with different output already accumulated. -/
+lemma spaceUsed_eq_of_workTapePos {State' : Type*} {input' : List Symbol}
+    {tm' : MultiTapeTM k Symbol State'} (cfg : Cfg k Symbol State input)
+    (cfg' : Cfg k Symbol State' input') (t : ℕ)
+    (h : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos = (tm'.runFrom cfg' m).workTapePos) :
+    tm.spaceUsed cfg t = tm'.spaceUsed cfg' t := by
+  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card (Finset.image_congr fun m hm => ?_)
+  exact congrFun (h m (Nat.lt_succ_iff.mp (Finset.mem_range.mp hm))) i
+
+/-- A run that never takes a head outside the cells another run visits uses no more space than
+that other run. This is the sharp form of the space bound for a phase that moves no head: such a
+phase visits no new cell at all, rather than one per tape. -/
+lemma spaceUsed_le_of_workTapePos_mem {State' : Type*} {input' : List Symbol}
+    {tm' : MultiTapeTM k Symbol State'} (cfg : Cfg k Symbol State input)
+    (cfg' : Cfg k Symbol State' input') (t t' : ℕ)
+    (h : ∀ m ≤ t, ∀ i, (tm.runFrom cfg m).workTapePos i ∈ tm'.visitedByTapeHead cfg' t' i) :
+    tm.spaceUsed cfg t ≤ tm'.spaceUsed cfg' t' := by
+  refine Finset.sum_le_sum fun i _ => Finset.card_le_card fun z hz => ?_
+  obtain ⟨m, hm, rfl⟩ := mem_visitedByTapeHead.mp hz
+  exact h m (by omega) i
+
 end Turing.MultiTapeTM
