@@ -6,18 +6,16 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 module
 
-public import Cslib.Foundations.Relation.Defs
+public import Cslib.Foundations.Relation.Termination
 public import Mathlib.Data.List.Pairwise
-public import Mathlib.Order.Comparable
-public import Mathlib.Order.WellFounded
 
 /-! # Relations: Confluence and Termination
 
-This module proves some properties regarding confluence and termination that are used for both
-lambda calculi and combinatory logic. Some notable theorems:
+This module proves some properties regarding confluence that are used for both lambda calculi and
+combinatory logic. Some notable theorems:
 
-* `Diamond.toConfluent`: the diamond property implies confluence
-* `LocallyConfluent.Terminating_toConfluent`: Newman's lemma
+* `Diamond.to_confluent`: the diamond property implies confluence
+* `LocallyConfluent.terminating_toConfluent`: Newman's lemma
 
 ## References
 
@@ -29,37 +27,7 @@ lambda calculi and combinatory logic. Some notable theorems:
 
 variable {α : Type*} {r r₁ r₂ : α → α → Prop}
 
-theorem WellFounded.ofTransGen (trans_wf : WellFounded (Relation.TransGen r)) : WellFounded r := by
-  grind [WellFounded.wellFounded_iff_has_min, Relation.TransGen]
-
-@[simp, grind =]
-theorem WellFounded.iff_transGen : WellFounded (Relation.TransGen r) ↔ WellFounded r :=
-  ⟨ofTransGen, transGen⟩
-
 namespace Relation
-
-attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
-
-theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b :=
-  EqvGen.reflGen_le_eqvGen r _ _ h
-
-theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b :=
-  EqvGen.transGen_le_eqvGen r _ _ h
-
-theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b :=
-  EqvGen.reflTransGen_le_eqvGen r _ _ h
-
-theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b :=
-  EqvGen.symmGen_le_eqvGen r _ _ h
-
-attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
-  SymmGen.to_eqvGen
-
-theorem MJoin.refl (a : α) : MJoin r a a := by
-  use a
-
-theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
-  use b
 
 /-- Extending a multistep reduction by a single step preserves multi-joinability. -/
 lemma Diamond.extend (h : Diamond r) :
@@ -139,16 +107,6 @@ theorem confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : 
 
 @[deprecated (since := "2026-09-03")] alias Confluent_of_unique_end := confluent_of_unique_end
 
-theorem normal_iff (r : α → α → Prop) (x : α) : Normal r x ↔ ∀ y, ¬ r x y := by
-  rw [Normal, not_exists]
-
-@[deprecated (since := "2026-09-03")] alias Normal_iff := normal_iff
-
-/-- A multi-step from a normal form must be reflexive. -/
-@[grind =>]
-theorem Normal.reflTransGen_eq (h : Normal r x) (xy : ReflTransGen r x y) : x = y := by
-  induction xy <;> grind
-
 /-- For a Church-Rosser relation, elements in an equivalence class must be multi-step related. -/
 theorem ChurchRosser.normal_eqvGen_reflTransGen (cr : ChurchRosser r) (norm : Normal r x)
     (xy : EqvGen r y x) : ReflTransGen r y x := by
@@ -166,95 +124,6 @@ theorem Confluent.equivalence_join_reflTransGen (h : Confluent r) :
     Equivalence (Join (ReflTransGen r)) := by
   apply equivalence_join
   grind
-
-lemma SN_iff_SN_of_rel (x : α) : SN r x ↔ ∀ y, r x y → SN r y := by grind [Acc]
-
-lemma SN.intro : (h : ∀ y, r x y → SN r y) → SN r x := (SN_iff_SN_of_rel x).mpr
-
-lemma SN.of_rel (hx : SN r x) (h : r x y) : SN r y := Acc.inv hx h
-
-@[grind →]
-lemma SN.of_rel_reflTransGen (hx : SN r x) (h : ReflTransGen r x y) : SN r y := by
-  induction h with
-  | refl => exact hx
-  | tail _ h ih => exact ih.of_rel h
-
-lemma SN.transGen (hx : SN r x) : SN (TransGen r) x := by
-  have eq : TransGen (Function.swap r) = (fun a b => TransGen r b a) := by
-    ext
-    exact transGen_swap
-  simpa [eq] using Acc.transGen hx
-
-lemma SN.of_le {r' : α → α → Prop} (hx : SN r x) (h : r' ≤ r) : SN r' x := by
-  refine Subrelation.accessible ?_ hx
-  exact subrelation_iff_le.mpr fun {x y} => h y x
-
-@[simp]
-lemma SN.iff_transGen (x : α) : SN (TransGen r) x ↔ SN r x :=
-  ⟨fun hx => hx.of_le <| fun _ _ => TransGen.single, transGen⟩
-
-/-- `SN r x` is equivalent to the more elementary definition, that there is no infinite sequence
-of reductions starting with `x`. -/
-theorem SN.iff_isEmpty_chain :
-    SN r x ↔ IsEmpty {f : ℕ → α | f 0 = x ∧ ∀ n, r (f n) (f (n + 1))} :=
-  acc_iff_isEmpty_descending_chain
-
-lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x)) :
-    SN (Function.onFun r f) x := InvImage.accessible f hx
-
-lemma SN.of_normal (hx : Normal r x) : SN r x := SN.intro fun y hy => (hx ⟨y, hy⟩).elim
-
-theorem SN.normalizable (hx : SN r x) : Normalizable r x := by
-  induction hx with | intro x h ih =>
-  by_cases hy: (∃ y, r x y)
-  · obtain ⟨y, hy⟩ := hy
-    obtain ⟨z, hz, hnormal⟩ := ih y hy
-    exact ⟨z, .head hy hz, hnormal⟩
-  · exists x
-
-lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
-
-lemma Terminating.iff_forall_sn : Terminating r ↔ ∀ x, SN r x :=
-  ⟨WellFounded.apply, WellFounded.intro⟩
-
-theorem Terminating.to_transGen (ht : Terminating r) : Terminating (TransGen r) := by
-  simp_rw [iff_forall_sn, SN.iff_transGen] at ht ⊢
-  exact ht
-
-@[deprecated (since := "2026-09-03")] alias Terminating.toTransGen := Terminating.to_transGen
-
-/-- A terminating relation is acyclic. -/
-theorem Terminating.to_acyclic (ht : Terminating r) : Acyclic r :=
-  ⟨fun x hx => ht.to_transGen.irrefl.irrefl x hx⟩
-
-@[deprecated (since := "2026-09-03")] alias Terminating.toAcyclic := Terminating.to_acyclic
-
-theorem Terminating.of_transGen : Terminating (TransGen r) → Terminating r := by
-  simp_rw [iff_forall_sn, SN.iff_transGen]
-  exact id
-
-@[deprecated (since := "2026-09-03")] alias Terminating.ofTransGen := Terminating.of_transGen
-
-theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r := by
-  simp_rw [iff_forall_sn, SN.iff_transGen]
-
-theorem Terminating.iff_isEmpty_chain :
-    Terminating r ↔ IsEmpty {f : ℕ → α // ∀ n, r (f n) (f (n + 1))} :=
-  wellFounded_iff_isEmpty_descending_chain
-
-theorem Terminating.of_le {r' : α → α → Prop} (hr : Terminating r) (h : r' ≤ r) :
-    Terminating r' := by
-  rw [iff_forall_sn] at hr ⊢
-  exact fun x => (hr x).of_le h
-
-lemma Terminating.subtype_sn (r : α → α → Prop) :
-    Terminating (α := {x // SN r x}) (fun a b => r a b) :=
-  iff_forall_sn.mpr fun x => x.property.onFun_of_image
-
-theorem Terminating.to_normalizing (hr : Terminating r) : Normalizing r :=
-  fun x => (hr.apply x).normalizable
-
-@[deprecated (since := "2026-09-03")] alias Terminating.isNormalizing := Terminating.to_normalizing
 
 theorem Terminating.confluent_iff_forall_unique_normal (ht : Terminating r) :
     Confluent r ↔ ∀ a : α, ∃! n : α, ReflTransGen r a n ∧ Normal r n := by
@@ -410,19 +279,6 @@ theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (
     Confluent (r₁ ⊔ r₂) := by
   rw [← Commute.to_confluent]
   apply_rules [join_left, symm]
-
-/-- If a relation is squeezed by a relation and its multi-step closure, they are multi-step equal -/
-theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTransGen r₁) :
-    ReflTransGen r₁ = ReflTransGen r₂ := by
-  ext a b
-  exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
-
-@[deprecated Relation.ReflGen.stdSymm (since := "2026-09-03")]
-lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a :=
-  Std.Symm.symm a b
-
-@[simp, grind =]
-theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := EqvGen.reflTransGen_symmGen r
 
 /-- `Relator.RightUnique` corresponds to deterministic reductions, which are confluent, as all
 multi-reductions with a common origin start the same (this fact is
