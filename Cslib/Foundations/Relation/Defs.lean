@@ -42,6 +42,9 @@ abbrev MJoin (r : α → α → Prop) := Join (ReflTransGen r)
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
 
+/-- Relation `r` preserves predicate `P`. -/
+def Preserves (r : α → α → Prop) (P : α → Prop) : Prop := ∀ ⦃a b⦄, r a b → P a → P b
+
 /-! ### Confluence and commutation properties -/
 
 /-- A relation has the diamond property when all reductions with a common origin are joinable -/
@@ -121,9 +124,6 @@ class LeftEuclidean (r : α → α → Prop) where
 /-- A relation `r` is serial if every element is `Reducible`, i.e. `Relator.LeftTotal`. -/
 class Serial (r : α → α → Prop) where
   serial : Relator.LeftTotal r
-
-/-- Relation `r` preserves predicate `P`. -/
-def Preserves (r : α → α → Prop) (P : α → Prop) : Prop := ∀ ⦃a b⦄, r a b → P a → P b
 
 end Relation
 
