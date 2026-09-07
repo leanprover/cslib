@@ -35,7 +35,7 @@ lemma runFrom_rewindInput (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol 
     tm.rewindInput.runFrom (Sequential.left (rewind .input) cfg)
         (u + ((tm.runFrom cfg u).inputPos.val - 1 + 2)) =
       Sequential.right (Rewind.inputCfg (tm.runFrom cfg u) none 1) := by
-  rw [rewindInput, runFrom_seq tm (rewind .input) cfg u _ hhalt hactive]
+  rw [rewindInput, runFrom_seq tm (rewind .input) cfg u _ ⟨hhalt, hactive⟩]
   exact congrArg Sequential.right (Rewind.runFrom_input (tm.runFrom cfg u))
 
 /-- Any halting computation can be normalized to finish with its input head reset.
