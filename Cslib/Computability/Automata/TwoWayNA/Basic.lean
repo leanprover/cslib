@@ -9,7 +9,7 @@ module
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Mathlib.Data.List.Chain
-public import Mathlib.Data.Sign.Basic
+public import Mathlib.Basic.Sign.Defs
 public import Cslib.Foundations.Data.List.IsChainFromTo
 
 /-! # Nondeterministic Two-Way Automaton
@@ -100,6 +100,13 @@ def TwoWayNA.toCfgNAFinAcc {State Symbol : Type*} (a : TwoWayNA State Symbol)
       (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
   start := { c | c.IsInitialForInput a input }
   accept := { c | c.IsAccepting a }
+
+/-- Any reachable state of `a.toCfgNAFinAcc input` contains the original input. -/
+lemma TwoWayNA.toCfgNAFinAcc_input_eq {State Symbol : Type*} (a : TwoWayNA State Symbol)
+    (input : List Symbol) :
+    (a.toCfgNAFinAcc input).toLTS.TrInv (fun c => c.input = input) := by
+  intro c μ c' h_tr rfl
+  simp_all [TwoWayNA.toCfgNAFinAcc]
 
 @[simp, scoped grind =]
 instance : Acceptor (TwoWayNA State Symbol) Symbol where
