@@ -209,6 +209,9 @@ theorem splitLast_aux {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Sy
     contradiction
   · grind [(splitLast_nonempty_iff_mem_PathSupp hxs).mpr (Or.inl hx2)]
 
+/-- If the run of `xs` from `i` to `j` has `k` as the largest interior state, then
+  `splitLast flts i k xs` (the longest prefix ending at `k`)
+  is a path from `i` to `k` whose interior states are all below `k + 1`. -/
 theorem splitLast_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
     (h : xs ∈ language (BddPath.mk flts i j (k + 1)))
     (h' : xs ∉ language (BddPath.mk flts i j k)) :
@@ -280,6 +283,10 @@ theorem splitLastCompl_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : Li
       · grind [splitLastCompl_eq, PathSupp]
       grind [splitLastCompl_append, splitLast_nonempty_iff_mem_PathSupp, pathSupp_head]
 
+/-- The recursion step of Kleene's algorithm.
+A run from `i` to `j` whose interior states are all at most `k` either has no interior state equal
+to `k`, or it splits at its last visit to `k` into a run from `i` to `k` with interior states
+below `k + 1`, followed by a run from `k` to `j` with interior states below `k`. -/
 theorem language_bddpath_splitLastCompl (flts : FLTS (Fin n) Symbol) (i j k : Fin n) :
     language (BddPath.mk flts i j (k + 1)) = language (BddPath.mk flts i j k) +
     (language (BddPath.mk flts i k (k + 1)) * language (BddPath.mk flts k j k)) := by
@@ -367,6 +374,10 @@ theorem splitFirstCompl_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : Lis
   · grind [PathSupp]
   grind [pathSupp_append]
 
+/-- Part of Kleene's algorithm.
+A run from `i` to `j` whose interior states are all at most `k` splits upon first reaching `k`.
+The part before the visit is a run from `i` to `k` with interior states below `k`.
+The part after it is a run from `k` to `k` with interior states below `k + 1`. -/
 theorem language_bddpath_splitFirst (flts : FLTS (Fin n) Symbol) (i k : Fin n) :
     language (BddPath.mk flts i k (k + 1)) =
     language (BddPath.mk flts i k k) * language (BddPath.mk flts k k (k + 1)) := by
@@ -395,6 +406,9 @@ theorem kstar_eq {α : Type*} (l : Language α) : l∗ = (l - 1)∗ := by
   exact ⟨fun ⟨S, hx, h⟩ => ⟨S, ⟨hx, fun y ys => h y ys⟩⟩,
     fun ⟨S, ⟨hx, h⟩⟩ => ⟨S, hx, fun y ys => h y ys⟩⟩
 
+/-- A run from `k` to `k` whose interior states are all at most `k` is a concatenation of runs from
+`k` to `k` whose interior states are all below `k`.
+In Kleene's algorithm, this is the "star" in the recursion. -/
 theorem language_bddpath_kstar (flts : FLTS (Fin n) Symbol) (k : Fin n) :
     language (BddPath.mk flts k k (k + 1)) = (language (BddPath.mk flts k k k))∗ := by
   rw [← mul_one (language (BddPath.mk flts k k ↑k))∗, kstar_eq]
@@ -451,6 +465,9 @@ noncomputable def Regex (flts : FLTS (Fin n) Symbol) (i j : Fin n) : ℕ → Reg
       let kFin : Fin n := ⟨k, by omega⟩
       Regex flts i j k + Regex flts i kFin k * (Regex flts kFin kFin k).star * Regex flts kFin j k
 
+/-- Shows the correctness of Kleene's algorithm.
+`Regex flts i j k` exactly matches the strings that have a run starting
+at `i`, ending at `j`, and having all interior states below `k`. -/
 theorem language_bddpath_eq_regex {k : ℕ} {flts : FLTS (Fin n) Symbol} {i j : Fin n} :
     language (BddPath.mk flts i j k) = (Regex flts i j k).matches' := by
   induction k generalizing i j with
