@@ -197,8 +197,8 @@ lemma runFrom_read (a : α) {j : ℕ} (hj : j ≤ (encIn a).length)
     have hend : 1 + j ≠ (encIn a).length + 1 := by omega
     have hprev : 1 + j - 1 = j := by omega
     rw [runFrom_succ_eq_step', ih (by omega) hmem']
-    simp only [step, almostConstTM, Cfg.inputSymbol, Fin.ext_iff, Fin.val_zero, hstart, hend,
-      hprev, reduceDIte, hcat]
+    simp only [step, Action.apply, almostConstTM, Cfg.inputSymbol, Fin.ext_iff, Fin.val_zero,
+      hstart, hend, hprev, reduceDIte, hcat]
     exact Cfg.ext_zero_tapes (by grind [List.take_concat_get']) hmove (by simp)
 
 /-- The configuration reached after having emitted the first `i` symbols of `w`, starting from a
@@ -220,9 +220,9 @@ lemma runFrom_write {input : List Bool} (pos : Fin (input.length + 2)) (o : List
     have htake := List.take_concat_get' w i hilt
     have hnotdone : ¬ (w.length ≤ i) := by omega
     rw [runFrom_succ_eq_step', ih (by omega)]
-    simp only [step, almostConstTM, List.head?_drop, List.getElem?_eq_getElem hilt,
-      List.drop_eq_nil_iff, hnotdone, reduceIte, List.tail_drop, moveInputPos_zero,
-      Option.toList_some]
+    simp only [step, Action.apply, almostConstTM, List.head?_drop,
+      List.getElem?_eq_getElem hilt, List.drop_eq_nil_iff, hnotdone, reduceIte, List.tail_drop,
+      moveInputPos_zero, Option.toList_some]
     exact Cfg.ext_zero_tapes rfl rfl (by grind)
 
 /-- Starting from a configuration that is about to emit `w`, the machine halts after `w.length + 1`
@@ -238,8 +238,8 @@ lemma runFrom_write_halted {input : List Bool} (pos : Fin (input.length + 2)) (o
         workTapePos := fun _ => 0,
         output := o ++ w } := by
   rw [runFrom_succ_eq_step', runFrom_write pos o hw le_rfl]
-  simp only [step, almostConstTM, List.drop_length, reduceIte, List.head?_nil, moveInputPos_zero,
-    Option.toList_none, List.append_nil, List.take_length]
+  simp only [step, Action.apply, almostConstTM, List.drop_length, reduceIte, List.head?_nil,
+    moveInputPos_zero, Option.toList_none, List.append_nil, List.take_length]
   exact Cfg.ext_zero_tapes rfl rfl (by simp)
 
 /-- A constant time bound for the machine `almostConstTM`. -/
@@ -310,8 +310,8 @@ lemma reaches_write (h : ∀ a ∉ S, encOut (f a) = out) (a : α) :
       grind [List.take_concat_get']
     have ha : a ∉ S := fun ha => hnotmem (mem_encPrefixes ha ((encIn a).take_prefix _))
     have hstart : 1 + j ≠ 0 := by omega
-    simp only [step, almostConstTM, Cfg.inputSymbol, Fin.ext_iff, Fin.val_zero, hstart, hend,
-      hprev, reduceDIte, hcat, moveInputPos_zero]
+    simp only [step, Action.apply, almostConstTM, Cfg.inputSymbol, Fin.ext_iff, Fin.val_zero,
+      hstart, hend, hprev, reduceDIte, hcat, moveInputPos_zero]
     refine Cfg.ext_zero_tapes ?_ (by simp) (by simp)
     simp only [Option.some.injEq, Sum.inr.injEq, Subtype.mk.injEq]
     exact (h a ha).symm
