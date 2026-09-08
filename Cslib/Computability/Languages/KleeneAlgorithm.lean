@@ -14,17 +14,19 @@ public import Mathlib.Computability.RegularExpressions
 /-!
 # Kleene's Algorithm
 
-Every language accepted by a DFA on a set comprised of finite states is the language of a
-regular expression.
-We prove this by induction on a bound (k) that restricts which interior states a run may pass
-through.
+Kleene's algorithm constructs a regular expresssion by induction on a bound `k` that restricts
+which interior states a run may pass through.
+It is used to prove `Cslib.Language.IsRegular.iff_regex`, that every language accepted by
+a DFA comprised of finite states is the language of a regular expression.
+The special case where the DFA has only one accepting state is proved in
+`regex_of_dfa_singleton_accept` in this file.
 
 ## Main definitions
 - `PathSupp`: The interior states of a run
 - `BddPath`: A transition system containing a start state, finish state, and a specific bound on
-  all interior states
+all interior states
 - `Regex flts i j k`: The regular expression for the paths from state `i` to state `j`,
-  whose interior states are all under a specific bound `k`
+whose interior states are all under a specific bound `k`
 
 ## Main results
 - `regex_of_dfa_singleton_accept`: DFAs with one accepting state have a matching regular
@@ -52,8 +54,8 @@ section PathSupp
 
 variable {State : Type*}
 
-/-- PathSupp s xs is the set of states that can be reached from state s by reading the string xs,
-not including the starting state and the ending state. -/
+/-- `PathSupp s xs` is the set of states that can be reached from state `s` by reading
+the string `xs`, not including the starting state and the ending state. -/
 def PathSupp (flts : FLTS State Symbol) : State → List Symbol → Set State
   | _, [] | _, [_] => ∅
   | s, a :: x => {flts.tr s a} ∪ PathSupp flts (flts.tr s a) x
@@ -66,7 +68,7 @@ theorem pathSupp_empty_iff_empty_or_char {flts : FLTS State Symbol} {s : State} 
     have : flts.tr s x ∈ PathSupp flts s (x :: y :: ys) := by grind [PathSupp]
     grind
 
-/-- If xs is nonempty, then the interior states of the run that starts at `s` and reads `a :: xs`
+/-- If `xs` is nonempty, then the interior states of the run that starts at `s` and reads `a :: xs`
 consist of the state reached after reading `a` as well as the interior states of the run that starts
 at `flts.tr s a` and reads `xs`. -/
 theorem pathSupp_head {flts : FLTS State Symbol} {s : State} {a : Symbol} {xs : List Symbol}
@@ -137,11 +139,11 @@ theorem isPrefix_splitLast (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List
   | nil => simp [splitLast]
   | cons a xs ih => grind [splitLast]
 
-/-- Starting at state `i`, the function `splitLast` sends a string to its shortest suffix
+/-- Starting at state `i`, the function `splitLastCompl` sends a string to its shortest suffix
 starting at state `k`.
-If the string ends at state `k`, then `splitLast` returns the empty string.
+If the string ends at state `k`, then `splitLastCompl` returns the empty string.
 If the string never passes through state `k` (starting state can be `k`),
-then `splitLast` returns the original string. -/
+then `splitLastCompl` returns the original string. -/
 noncomputable def splitLastCompl (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
     List Symbol := (isPrefix_splitLast flts i k xs).choose
 
@@ -168,8 +170,8 @@ theorem splitLastCompl_eq {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List 
     (h : k ∉ PathSupp flts i xs) (h' : k = flts.mtr i xs) : splitLastCompl flts i k xs = [] := by
   simpa [splitLast_eq h h'] using splitLastCompl_append flts i k xs
 
-/-- `splitLast flts i k xs` is non-empty exclusively when the run from `i` over xs visits
-`k` at some step AFTER the start. -/
+/-- `splitLast flts i k xs` is non-empty exclusively when the run from `i` over `xs`
+visits `k` at some step AFTER the start. -/
 theorem splitLast_nonempty_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : Fin n}
     {xs : List Symbol} (hxs : xs ≠ []) :
     ¬(splitLast flts i k xs = []) ↔ k ∈ PathSupp flts i xs ∨ k = flts.mtr i xs := by
@@ -181,8 +183,8 @@ theorem splitLast_nonempty_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : 
   grind [pathSupp_head hxs', splitLast,
     (isPrefix_splitLast flts (flts.tr i a) k xs).length_le]
 
-/-- `splitLastCompl flts i k xs` is not all of `xs` exclusively when the run from `i` over xs visits
-`k` at some step AFTER the start. -/
+/-- `splitLastCompl flts i k xs` is not all of `xs` exclusively when the run from `i` over `xs`
+visits `k` at some step AFTER the start. -/
 theorem splitLastCompl_neq_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : Fin n}
     {xs : List Symbol} (hxs : xs ≠ []) :
     ¬(splitLastCompl flts i k xs = xs) ↔ k ∈ PathSupp flts i xs ∨ k = flts.mtr i xs := by
@@ -213,8 +215,8 @@ theorem splitLast_aux {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Sy
   · grind [(splitLast_nonempty_iff_mem_PathSupp hxs).mpr (Or.inl hx2)]
 
 /-- If the run of `xs` from `i` to `j` has `k` as the largest interior state, then
-  `splitLast flts i k xs` (the longest prefix ending at `k`)
-  is a path from `i` to `k` whose interior states are all below `k + 1`. -/
+`splitLast flts i k xs` (the longest prefix of `xs` ending at `k`)
+is a path from `i` to `k` whose interior states are all below `k + 1`. -/
 theorem splitLast_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
     (h : xs ∈ language (BddPath.mk flts i j (k + 1)))
     (h' : xs ∉ language (BddPath.mk flts i j k)) :
@@ -246,8 +248,8 @@ theorem splitLast_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Sy
       simpa [hc1, Accepts, PathSupp, FLTS.mtr] using hc
 
 /-- If the run of `xs` from `i` to `j` has `k` as the largest interior state, then
-  `splitLastCompl flts i k xs` (which is the shortest suffix of `xs` starting at `k`)
-  is a path from `k` to `j` whose interior states are all below `k`. -/
+`splitLastCompl flts i k xs` (the shortest suffix of `xs` starting at `k`)
+is a path from `k` to `j` whose interior states are all below `k`. -/
 theorem splitLastCompl_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
     (h : xs ∈ language (BddPath.mk flts i j (k + 1)))
     (h' : xs ∉ language (BddPath.mk flts i j k)) :
@@ -286,11 +288,11 @@ theorem splitLastCompl_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : Li
       · grind [splitLastCompl_eq, PathSupp]
       grind [splitLastCompl_append, splitLast_nonempty_iff_mem_PathSupp, pathSupp_head]
 
-/-- The recursion step of Kleene's algorithm.
+/-- Part of the recursion step of Kleene's algorithm.
 A run from `i` to `j` whose interior states are all at most `k` either has no interior state equal
 to `k`, or it splits at its last visit to `k` into a run from `i` to `k` with interior states
 below `k + 1`, followed by a run from `k` to `j` with interior states below `k`. -/
-theorem language_bddpath_splitLastCompl (flts : FLTS (Fin n) Symbol) (i j k : Fin n) :
+theorem language_bddpath_splitLast (flts : FLTS (Fin n) Symbol) (i j k : Fin n) :
     language (BddPath.mk flts i j (k + 1)) = language (BddPath.mk flts i j k) +
     (language (BddPath.mk flts i k (k + 1)) * language (BddPath.mk flts k j k)) := by
   ext xs
@@ -383,7 +385,7 @@ theorem splitFirstCompl_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : Lis
   · grind [PathSupp]
   grind [pathSupp_append]
 
-/-- Part of Kleene's algorithm.
+/-- Part of the recursion step of Kleene's algorithm.
 A run from `i` to `j` whose interior states are all at most `k` splits upon first reaching `k`.
 The part before the visit is a run from `i` to `k` with interior states below `k`.
 The part after it is a run from `k` to `k` with interior states below `k + 1`. -/
@@ -415,7 +417,8 @@ theorem kstar_eq {α : Type*} (l : Language α) : l∗ = (l - 1)∗ := by
   exact ⟨fun ⟨S, hx, h⟩ => ⟨S, ⟨hx, fun y ys => h y ys⟩⟩,
     fun ⟨S, ⟨hx, h⟩⟩ => ⟨S, hx, fun y ys => h y ys⟩⟩
 
-/-- A run from `k` to `k` whose interior states are all at most `k` is a concatenation of runs from
+/-- Part of the recursion step of Kleene's algorithm.
+A run from `k` to `k` whose interior states are all at most `k` is a concatenation of runs from
 `k` to `k` whose interior states are all below `k`.
 In Kleene's algorithm, this is the "star" in the recursion. -/
 theorem language_bddpath_kstar (flts : FLTS (Fin n) Symbol) (k : Fin n) :
@@ -474,7 +477,7 @@ noncomputable def Regex (flts : FLTS (Fin n) Symbol) (i j : Fin n) : ℕ → Reg
       let kFin : Fin n := ⟨k, by omega⟩
       Regex flts i j k + Regex flts i kFin k * (Regex flts kFin kFin k).star * Regex flts kFin j k
 
-/-- Shows the correctness of Kleene's algorithm.
+/-- The correctness of Kleene's algorithm.
 `Regex flts i j k` exactly matches the strings that have a run starting
 at `i`, ending at `j`, and having all interior states below `k`. -/
 theorem language_bddpath_eq_regex {k : ℕ} {flts : FLTS (Fin n) Symbol} {i j : Fin n} :
@@ -495,7 +498,7 @@ theorem language_bddpath_eq_regex {k : ℕ} {flts : FLTS (Fin n) Symbol} {i j : 
     simp only [Regex]
     split_ifs with hk
     · rw [← ih, language_bddpath_eq_dfa flts i j hk, language_bddpath_eq_dfa flts i j (by omega)]
-    rw [language_bddpath_splitLastCompl (k := ⟨k, by omega⟩), language_bddpath_splitFirst,
+    rw [language_bddpath_splitLast (k := ⟨k, by omega⟩), language_bddpath_splitFirst,
       language_bddpath_kstar]
     grind [matches'_add, matches'_mul, matches'_star]
 
