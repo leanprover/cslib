@@ -171,6 +171,8 @@ theorem splitLastCompl_eq {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List 
     (h : k ∉ PathSupp flts i xs) (h' : k = flts.mtr i xs) : splitLastCompl flts i k xs = [] := by
   simpa [splitLast_eq h h'] using splitLastCompl_append flts i k xs
 
+/-- `splitLast flts i k xs` is non-empty exclusively when the run from `i` over xs visits
+`k` at some step AFTER the start. -/
 theorem splitLast_nonempty_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : Fin n}
     {xs : List Symbol} (hxs : xs ≠ []) :
     ¬(splitLast flts i k xs = []) ↔ k ∈ PathSupp flts i xs ∨ k = flts.mtr i xs := by
@@ -182,6 +184,8 @@ theorem splitLast_nonempty_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : 
   grind [pathSupp_head hxs', splitLast,
     (isPrefix_splitLast flts (flts.tr i a) k xs).length_le]
 
+/-- `splitLastCompl flts i k xs` is not all of `xs` exclusively when the run from `i` over xs visits
+`k` at some step AFTER the start. -/
 theorem splitLastCompl_neq_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : Fin n}
     {xs : List Symbol} (hxs : xs ≠ []) :
     ¬(splitLastCompl flts i k xs = xs) ↔ k ∈ PathSupp flts i xs ∨ k = flts.mtr i xs := by
@@ -189,6 +193,8 @@ theorem splitLastCompl_neq_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : 
   nth_rw 2 [← splitLastCompl_append flts i k xs]
   simp
 
+/-- The run of `a :: xs` from `i` to `j` having `k` as the largest interior state and
+no prefix of `a :: xs` (of length 1 or more) ending at state `k` cannot both be true. -/
 theorem splitLast_aux {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
     {a : Symbol} (h : a :: xs ∈ language (BddPath.mk flts i j (k + 1)))
     (h' : a :: xs ∉ language (BddPath.mk flts i j k))
@@ -334,6 +340,9 @@ theorem splitFirst_append (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List 
     splitFirst flts i k xs ++ splitFirstCompl flts i k xs = xs := by
   grind [splitFirstCompl]
 
+/-- If the run of `xs` from `i` to `k` has all interior states below `k + 1`, then
+  `splitFirst flts i k xs` (the shortest prefix of `xs`)
+  is a path whose interior states are all below `k`. -/
 theorem splitFirst_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
     (h : xs ∈ (language (BddPath.mk flts i k (k + 1)))) :
     splitFirst flts i k xs ∈ language (BddPath.mk flts i k k) := by
@@ -363,6 +372,9 @@ theorem splitFirst_mem_nonempty {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs :
   | nil => contradiction
   | cons a xs ih => grind [splitFirst]
 
+/-- If the run of `xs` from `i` to `k` has all interior states below `k + 1`, then
+  `splitFirstCompl flts i k xs` (the longest suffix of `xs` starting at `k`)
+  is a path from `k` to `k` whose interior states are all below `k + 1`. -/
 theorem splitFirstCompl_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
     (h : xs ∈ (language (BddPath.mk flts i k (k + 1)))) :
     splitFirstCompl flts i k xs ∈ language (BddPath.mk flts k k (k + 1)) := by
