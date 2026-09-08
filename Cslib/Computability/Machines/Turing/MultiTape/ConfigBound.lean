@@ -69,7 +69,7 @@ time attains its per-tape space usage at a single step (`MultiTapeTM.exists_spac
 
 @[expose] public section
 
-namespace Turing.MultiTapeTM
+namespace Turing
 
 variable {k : ℕ}
 variable {State Symbol : Type*}
@@ -270,7 +270,7 @@ lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.c
   have hws : c₁.workTapeSymbols = c₂.workTapeSymbols := by
     funext i
     simp [Cfg.workTapeSymbols, hwt, hwp]
-  simp only [Cfg.core, Cfg.storage, step, hstate, hsym, hws]
+  simp only [Cfg.core, Cfg.storage, MultiTapeTM.step, hstate, hsym, hws]
   cases c₂.state <;> simp [hpos, hstate, hwt, hwp]
 
 /-! ## The storages and cores of a space-bounded run
@@ -278,6 +278,8 @@ lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.c
 These are the main results giving upper bounds on the number of storages and configuration cores
 reachable in bounded space.
 -/
+
+namespace MultiTapeTM
 
 /-- The storage reached after `t` steps fits in the windows given by the per-tape space usage up
 to step `t`. -/
