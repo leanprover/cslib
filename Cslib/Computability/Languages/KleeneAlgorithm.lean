@@ -69,9 +69,9 @@ theorem pathSupp_empty_iff_empty_or_char {flts : FLTS State Symbol} {s : State} 
     have : flts.tr s x ∈ PathSupp flts s (x :: y :: ys) := by grind [PathSupp]
     grind
 
-/-- If xs is nonempty, then the interior states of the run the start at s and reads a :: xs
-consists of the state reached after reading a as well as the interior states of the run that starts
-at flts.tr s a and reads xs. -/
+/-- If xs is nonempty, then the interior states of the run that starts at `s` and reads `a :: xs`
+consist of the state reached after reading `a` as well as the interior states of the run that starts
+at `flts.tr s a` and reads `xs`. -/
 theorem pathSupp_head {flts : FLTS State Symbol} {s : State} {a : Symbol} {xs : List Symbol}
     (hxs : xs ≠ []) : PathSupp flts s (a :: xs) =
     {flts.tr s a} ∪ PathSupp flts (flts.tr s a) xs := by
