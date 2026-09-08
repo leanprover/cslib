@@ -19,6 +19,24 @@ The aim is to build end-to-end models where cryptographic operations appear insi
 
 To this end, we expect to leverage the combination of `Crypto` and [Languages](../Languages) to define and formally reason about security protocols. CSLib's common semantics APIs connecting [Languages](../Languages) and [Logics](../Logics) should enable such reasoning.
 
+## Pseudorandom generators
+
+[`Primitives/PRG`](Primitives/PRG) formalizes Boneh and Shoup's Attack Game 3.1 using
+PMFs. `Generator.Secure G Admissible ε` bounds the distinguishing advantage of every
+admissible randomized test. `Family.Secure` requires negligible advantage for each
+admissible adversary family, using Mathlib's `SuperpolynomialDecay`. The caller supplies
+`Admissible`; these definitions do not by themselves assert computational efficiency.
+
+The range-membership adversary has advantage at least `1 - |Seed| / |Output|`.
+Consequently, strictly expanding generators cannot have zero error against arbitrary
+adversaries, and bitstring generator families stretching by at least one bit cannot have
+negligible advantage against arbitrary adversary families. The latter statement also
+allows stretching to hold only eventually. The identity generator provides a nonexpanding
+example with zero advantage.
+
+Zero-error security against all tests is equivalent to exactly uniform output.
+The bitstring impossibility theorem is available for both `Fin n → Bool` and `BitVec n`.
+
 ## Plans and notes
 
 - We plan on developing applied calculi and logics for modelling and reasoning about security protocols.
