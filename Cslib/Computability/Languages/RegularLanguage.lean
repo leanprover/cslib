@@ -14,7 +14,6 @@ public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.DA.ToNA
-public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Languages.KleeneAlgorithm
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
