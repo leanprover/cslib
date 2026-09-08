@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Mathlib.GroupTheory.GroupAction.SubMulAction
-public import Cslib.Logics.Modal.Lean.Basic
+public import Cslib.Logics.Modal.Unimodal.Lean.Basic
 
 /-! # Modal Logic for scalar multiplication (SMul)
 
@@ -82,25 +82,41 @@ theorem ofSMul_preserves_mem [SMul M α] [SetLike S α] [SMulMemClass S M α]
   rw [Relation.ofSMul_preserves_iff]
   apply SMulMemClass.smul_mem
 
+@[scoped grind →]
+theorem ofSMul_mem_of_mem [SMul M α] [SetLike S α] [SMulMemClass S M α]
+    {p : S} {a b : α} (hab : Relation.ofSMul M α a b) (ha : a ∈ p) : b ∈ p :=
+  ofSMul_preserves_mem p hab ha
+
 end Relation
 
 namespace Cslib.Logic.Modal.Proposition
 
+variable {τ : PFunctor} [τ.Unary] [Unique τ.A]
+
+open scoped Satisfies Frame Relation
+
 /-- Characterisation of the denotation of a `◇p` under `ofSMul`. -/
 theorem ofSMul_diamond_denotation [SMul M α] [Membership α β] (p : β) :
-    (◇p : Proposition β).denotation (Model.ofContainers (Relation.ofSMul M α)) =
+    (◇p : Proposition τ β).denotation
+      (Model.ofContainers (Frame.ofRelation (Relation.ofSMul M α))) =
       {x | ∃ m : M, m • x ∈ p} := by
   ext x
-  change (∃ y, (∃ m : M, m • x = y) ∧ y ∈ p) ↔ ∃ m : M, m • x ∈ p
-  grind
+  rw [satisfies_mem_denotation, Satisfies.diamond_iff_exists]
+  constructor
+  · grind [Relation.ofSMul]
+  · rintro ⟨m, hm⟩
+    refine ⟨m • x, ?_⟩
+    grind [Relation.ofSMul]
 
 /-- For `SetLike` objects closed under a commutative semigroup action, simultaneous reachability is
 equivalent to separate reachability. -/
 theorem ofSMul_diamond_and_equiv [CommSemigroup M] [SemigroupAction M α] [SetLike S α]
     [SMulMemClass S M α] (p q : S) :
-    ◇(p ∧ q : Proposition S) ≡[Equiv.OfContainers (Relation.ofSMul M α)] (◇p ∧ ◇q) :=
-  diamond_and_equiv_of_preserves Relation.ofSMul_diamond
-    (Relation.ofSMul_preserves_mem p)
-    (Relation.ofSMul_preserves_mem q)
+    ◇(p ∧ q : Proposition τ S) ≡[Equiv.OfContainers
+      (Frame.ofRelation (τ := τ) (Relation.ofSMul M α))
+    ] (◇p ∧ ◇q) := by
+  have : IsTrans α (Frame.ofRelation (τ := τ) (Relation.ofSMul M α)).rel := by
+    simpa [Frame.ofRelation_rel] using (inferInstance : IsTrans α (Relation.ofSMul M α))
+  apply diamond_and_equiv_of_preserves <;> grind [Relation.Preserves]
 
 end Cslib.Logic.Modal.Proposition

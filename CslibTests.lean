@@ -12,11 +12,13 @@ import CslibTests.HasSubstitution
 import CslibTests.HasWellFormed
 import CslibTests.ImportWithMathlib
 import CslibTests.InferenceSystem
+import CslibTests.LTL
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.MLL
 import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
+import CslibTests.Modal.UnimodalCube
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
