@@ -19,7 +19,6 @@ regular expression.
 We prove this by induction on a bound (k) that restricts which interior states a run may pass
 through.
 
-
 ## Main definitions
 - `PathSupp`: The interior states of a run
 - `BddPath`: A transition system containing a start state, finish state, and a specific bound on
@@ -28,14 +27,12 @@ through.
   whose interior states are all under a specific bound `k`
 
 ## Main results
-
 - `regex_of_dfa_singleton_accept`: DFAs with one accepting state have a matching regular
   expression
 - `language_bddpath_eq_dfa`: A bound that has reached the total number of states no longer
-constrains anything
+  constrains anything
 - `language_bddpath_eq_regex`: `Regex flts i j k` matches exactly the same paths from `i` to `j`
-with interior states below `k`
-
+  with interior states below `k`
 
 ## References
 
@@ -509,6 +506,7 @@ theorem language_dfa_eq_regex_of_singleton_accept {dfa : DA.FinAcc (Fin n) Symbo
 
 end Regex
 
+/-- DFAs with one accepting state have a matching regular expression -/
 theorem regex_of_dfa_singleton_accept [Finite Symbol] {State : Type*} [Finite State]
     (dfa : DA.FinAcc State Symbol) (h : ∃ s, dfa.accept = {s}) :
     ∃ r : RegularExpression Symbol, language dfa = r.matches' := by
