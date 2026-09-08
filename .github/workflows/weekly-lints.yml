@@ -51,6 +51,9 @@ jobs:
       working-directory: ${{ github.workspace }}/${{ env.CSLIB }}
       continue-on-error: true
       run: |
+        # The default step shell is `bash -e` without `pipefail`, so the status of
+        # `lake build | tee` would be tee's. Make the pipeline report lake's instead.
+        set -o pipefail
         lean_outfile=$(mktemp)
         build_status=0
         lake build 2>&1 | tee "${lean_outfile}" || build_status=$?
