@@ -57,7 +57,7 @@ theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b :=
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
   SymmGen.to_eqvGen
 
-@[deprecated _root_.refl (since := "2026-09-07")]
+@[deprecated _root_.refl +typeChanged (since := "2026-09-07")]
 theorem MJoin.refl (a : α) : MJoin r a a := _root_.refl a
 
 theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
@@ -69,7 +69,7 @@ theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTra
   ext a b
   exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
 
-@[deprecated Relation.ReflGen.stdSymm (since := "2026-09-03")]
+@[deprecated Relation.ReflGen.stdSymm +typeChanged (since := "2026-09-03")]
 lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a :=
   Std.Symm.symm a b
 
