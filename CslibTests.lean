@@ -12,6 +12,7 @@ import CslibTests.HasSubstitution
 import CslibTests.HasWellFormed
 import CslibTests.ImportWithMathlib
 import CslibTests.InferenceSystem
+import CslibTests.LTL
 import CslibTests.LTS
 import CslibTests.LambdaCalculus
 import CslibTests.MLL
