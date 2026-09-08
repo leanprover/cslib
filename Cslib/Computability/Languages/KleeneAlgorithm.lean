@@ -97,8 +97,11 @@ variable {n : ℕ}
 starting with state `start` and ending with state `finish`
 with the interior states less than `bound`. -/
 structure BddPath (n : ℕ) (Symbol : Type*) extends FLTS (Fin n) Symbol where
+  /-- The starting state of the path. -/
   start : Fin n
+  /-- The finishing state of the path. -/
   finish : Fin n
+  /-- The bound for interior states of the path. -/
   bound : ℕ
 
 instance : Acceptor (BddPath n Symbol) Symbol where
@@ -332,6 +335,11 @@ theorem isPrefix_splitFirst (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : Lis
   | nil => simp [splitFirst]
   | cons a xs ih => grind [splitFirst]
 
+/-- Starting at state `i`, the function `splitFirstCompl` sends a string to its longest suffix
+starting at state `k`.
+The string is empty if and only if `splitFirstCompl` is the original string.
+If the string never passes through state `k` (starting state can be `k`),
+then `splitFirstCompl` returns empty string. -/
 noncomputable def splitFirstCompl (flts : FLTS (Fin n) Symbol) (i k : Fin n)
     (xs : List Symbol) : List Symbol := (isPrefix_splitFirst flts i k xs).choose
 
