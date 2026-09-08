@@ -166,8 +166,6 @@ theorem splitLast_eq {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbo
   · grind [splitLast, PathSupp]
   grind [pathSupp_head hxs, splitLast,
     (isPrefix_splitLast flts (flts.tr i a) k xs).length_le]
-  -- classical
-  -- simpa [splitLastCompl_eq h h'] using splitLastCompl_append flts s t xs
 
 theorem splitLastCompl_eq {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
     (h : k ∉ PathSupp flts i xs) (h' : k = flts.mtr i xs) : splitLastCompl flts i k xs = [] := by
