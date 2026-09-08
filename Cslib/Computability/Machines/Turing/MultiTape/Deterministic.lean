@@ -175,14 +175,21 @@ lemma runFrom_add (cfg : Cfg k Symbol State input) (a b : ℕ) :
   unfold runFrom
   rw [Nat.add_comm, Function.iterate_add_apply]
 
+/-- If a function `f` that maps the configurations of one TM to those of another one commutes with
+their `step` function, then it also commutes with their `runFrom` function. -/
+lemma runFrom_comm_of_step {k' : ℕ} {State' : Type*} {input input' : List Symbol}
+    {tm : MultiTapeTM k Symbol State} {tm' : MultiTapeTM k' Symbol State'}
+    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
+    (hstep : ∀ cfg, tm'.step (f cfg) = f (tm.step cfg))
+    (cfg : Cfg k Symbol State input) (n : ℕ) :
+    tm'.runFrom (f cfg) n = f (tm.runFrom cfg n) :=
+  (Function.Semiconj.iterate_right (fun c => (hstep c).symm) n cfg).symm
+
 /-- Running from a halting configuration stays at that configuration. -/
 @[simp]
 lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
-    tm.runFrom cfg n = cfg := by
-  induction n with
-  | zero => rfl
-  | succ d ih =>
-    rw [runFrom_succ_eq_step', ih, step_of_halt h]
+    tm.runFrom cfg n = cfg :=
+  Function.iterate_fixed (step_of_halt h) n
 
 @[simp]
 lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
@@ -398,10 +405,9 @@ lemma not_halts_of_repeat_nonhalt
   -- The configuration will repeat every `t + 1` steps.
   have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
     intro n
-    induction n with
-    | zero => simp
-    | succ n ih =>
-      rw [show (n + 1) * (t + 1) = n * (t + 1) + (t + 1) by grind, tm.runFrom_add, ih, heq]
+    unfold runFrom
+    rw [Nat.mul_comm, Function.iterate_mul]
+    exact Function.iterate_fixed heq n
   by_contra hnh
   -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
   have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
