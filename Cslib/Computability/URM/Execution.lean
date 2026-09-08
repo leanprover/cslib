@@ -133,7 +133,7 @@ theorem isHalted_iff_normal {p : Program} {s : State} :
 
 /-- The step relation is confluent. -/
 theorem step_confluent (p : Program) : Relation.Confluent (Step p) := by
-  apply Relation.RightUnique.toConfluent
+  apply Relation.RightUnique.to_confluent
   exact Step.deterministic
 
 namespace Steps

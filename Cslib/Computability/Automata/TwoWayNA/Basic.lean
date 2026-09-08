@@ -9,7 +9,7 @@ module
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Mathlib.Data.List.Chain
-public import Mathlib.Basic.Sign.Defs
+public import Mathlib.Basic.Sign.Basic
 public import Cslib.Foundations.Data.List.IsChainFromTo
 
 /-! # Nondeterministic Two-Way Automaton
