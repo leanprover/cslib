@@ -48,8 +48,7 @@ theorem mapHom_mTr {lts : LTS State Label₁} {μs : List Label₂} :
   | cons μ μs ih =>
     rw [Hom.map_cons]
     apply Iff.intro .. <;> intro h
-    · obtain ⟨_, _, _⟩ := MTr.cons_iff.mp h
-      grind [mapHom_tr, MTr.append_iff (lts := lts)]
+    · grind [mapHom_tr, MTr.append_iff (lts := lts)]
     · obtain ⟨_, _, _⟩ := (MTr.append_iff (lts := lts)).mp h
       grind [mapHom_tr, MTr.cons_iff (lts := lts.mapHom f)]
 

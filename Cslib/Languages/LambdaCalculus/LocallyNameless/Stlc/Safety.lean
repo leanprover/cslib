@@ -9,6 +9,7 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Foundations.Relation.Confluence
+public import Cslib.Foundations.Relation.Preserves
 
 /-! # λ-calculus
 
@@ -31,30 +32,13 @@ universe u v
 
 namespace LambdaCalculus.LocallyNameless.Stlc
 
-open Untyped Typing
+open Untyped Typing Relation
 
 variable {Var : Type u} {Base : Type v} {R : Term Var → Term Var → Prop}
 
 /-- A relation on terms preserves typing if all related terms have the same type. -/
 def PreservesTyping (R : Term Var → Term Var → Prop) (Base : Type v) :=
-  ∀ {Γ t t'} {τ : Ty Base}, Γ ⊢ t ∶ τ → R t t' → Γ ⊢ t' ∶ τ
-
-/-- If a reduction preserves types, so does its reflexive transitive closure. -/
-@[scoped grind →]
-theorem redex_preservesTyping :
-    PreservesTyping R Base → PreservesTyping (Relation.ReflTransGen R) Base := by
-  intros _ _ _ _ _ _ redex
-  induction redex <;> [grind; aesop]
-
-
-open _root_.Relation in
-/-- Confluence preserves type preservation. -/
-theorem confluence_preservesTyping {τ : Ty Base}
-    (con : Confluent R) (p : PreservesTyping R Base) (der : Γ ⊢ a ∶ τ)
-    (ab : ReflTransGen R a b) (ac : ReflTransGen R a c) :
-    ∃ d, ReflTransGen R b d ∧ ReflTransGen R c d ∧ Γ ⊢ d ∶ τ := by
-  have ⟨d, bd, cd⟩ := con ab ac
-  exact ⟨d, bd, cd, redex_preservesTyping p der (ab.trans bd)⟩
+  ∀ ⦃Γ⦄ ⦃τ : Ty Base⦄, Preserves R (Γ ⊢ · ∶ τ)
 
 variable [HasFresh Var] [DecidableEq Var] {Γ : Context Var (Ty Base)}
 
@@ -64,8 +48,9 @@ open LambdaCalculus.LocallyNameless.Untyped.Term FullBeta
 
 set_option linter.unusedDecidableInType false in
 /-- Typing preservation for full beta reduction. -/
-@[scoped grind →]
-theorem preservation (der : Γ ⊢ t ∶ τ) (step : t ⭢βᶠ t') : Γ ⊢ t' ∶ τ := by
+@[scoped grind .]
+theorem preservation : PreservesTyping (Var := Var) (· ⭢βᶠ ·) Base := by
+  intro Γ τ t t' step der
   induction der generalizing t' <;> cases step
   case abs.abs xs _ _ _ xs' _ => apply Typing.abs (free_union Var); grind
   case app.base h der _ _ der_l =>
