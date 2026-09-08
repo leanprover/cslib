@@ -60,7 +60,6 @@ theorem IsRegular.iff_nfa {l : Language Symbol} :
     use Set State, inferInstance, na.toDAFinAcc
     grind
 
-
 /-- The complementation of a regular language is regular. -/
 theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegular := by
   rw [IsRegular.iff_dfa] at h ⊢
