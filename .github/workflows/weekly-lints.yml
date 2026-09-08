@@ -32,8 +32,12 @@ jobs:
     - name: Enable weekly linters
       working-directory: ${{ github.workspace }}/${{ env.CSLIB }}
       run: |
-        # Add the mergeWithGrind linter back for this run
-        sed -i '/^\[leanOptions\]/a weak.linter.weeklyLintSet = true' lakefile.toml
+        # Add the weekly lint set back for this run, creating [leanOptions] if missing.
+        if grep -q '^\[leanOptions\]' lakefile.toml; then
+          sed -i '/^\[leanOptions\]/a weak.linter.weeklyLintSet = true' lakefile.toml
+        else
+          printf '\n[leanOptions]\nweak.linter.weeklyLintSet = true\n' >> lakefile.toml
+        fi
 
         # Show what changed
         git diff lakefile.toml
