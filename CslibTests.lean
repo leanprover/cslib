@@ -2,6 +2,7 @@ import CslibTests.Bisimulation
 import CslibTests.CCS
 import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
+import CslibTests.Commitment
 import CslibTests.Congruence
 import CslibTests.DFA
 import CslibTests.FreeMonad
@@ -17,5 +18,7 @@ import CslibTests.LambdaCalculus
 import CslibTests.MLL
 import CslibTests.Modal
 import CslibTests.Modal.Ideal
+import CslibTests.Modal.Stlc
+import CslibTests.MultiTapeComplexity
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
