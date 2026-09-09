@@ -10,7 +10,7 @@ public import Mathlib.Data.List.Sort
 import Cslib.Init
 
 /-!
-# A Monadic version of the builtin `List.insertionSort`
+# A Monadic version of Mathlib's `List.insertionSort`
 
 This can be instantiated with `Id` to recover the original, or with `TimeM` or `FreeM` for
 algorithmic analysis.
