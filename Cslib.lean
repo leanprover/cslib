@@ -47,7 +47,10 @@ public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.SafetyLiveness
+public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.DeterministicToNondeterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
@@ -58,6 +61,9 @@ public import Cslib.Computability.URM.Defs
 public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
+public import Cslib.Crypto.Protocols.Commitment.Basic
+public import Cslib.Crypto.Protocols.Commitment.Defs
+public import Cslib.Crypto.Protocols.Commitment.Scheme
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
@@ -191,4 +197,5 @@ public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
 public import Cslib.MachineLearning.PACLearning.VersionSpaceLattice
 public import Cslib.Probability.PMF
+public import Cslib.Probability.StatisticalDistance
 public import Cslib.Tactic.GrindAttrs
