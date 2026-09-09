@@ -40,7 +40,7 @@ def mergeM (xs ys : List α) (le : α → α → m Bool) : m (List α) := do
   | nil => simp
   | cons x xs ih => simp [mergeM]
 
-@[simp]
+@[simp↓]
 theorem mergeM_pure [LawfulMonad m] (xs ys : List α) (le : α → α → Bool) :
     mergeM xs ys (fun x y => (pure (le x y) : m Bool)) = pure (merge xs ys le) := by
   fun_induction mergeM with grind [merge]
@@ -50,19 +50,17 @@ theorem idRun_mergeM (xs ys : List α) (le : α → α → Id Bool) :
     Id.run (mergeM xs ys le) = merge xs ys (fun x y => Id.run <| le x y) :=
   mergeM_pure _ _ _
 
-set_option linter.unusedVariables false in
 /-- A monadic version of `List.mergeSortM` -/
-def mergeSortM : ∀ (xs : List α) (le : α → α → m Bool), m (List α)
-  | [], _ => return []
-  | [a], _ => return [a]
-  | a :: b :: xs, le => do
+def mergeSortM (xs : List α) (le : α → α → m Bool) : m (List α) :=
+  match xs with
+  | [] => return []
+  | [a] => return [a]
+  | a :: b :: xs => do
     let lr := MergeSort.Internal.splitInTwo ⟨a :: b :: xs, rfl⟩
-    have := by simpa using lr.2.2
-    have := by simpa using lr.1.2
     mergeM (← mergeSortM lr.1 le) (← mergeSortM lr.2 le) le
-termination_by xs => xs.length
+termination_by xs.length
 
-@[simp]
+@[simp↓]
 theorem mergeSortM_pure [LawfulMonad m] (xs : List α) (le : α → α → Bool) :
     mergeSortM xs (fun x y => (pure (le x y) : m Bool)) = pure (mergeSort xs le) := by
   fun_induction mergeSort with

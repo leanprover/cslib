@@ -49,7 +49,7 @@ theorem ret_mergeSortM {T} [AddMonoid T] (xs : List α) (le : α → α → Time
     ⟪List.mergeSortM xs le⟫ = List.mergeSort xs (fun x y => ⟪le x y⟫) := by
   fun_induction List.mergeSortM with
   | case1 | case2 => simp
-  | case3 a b xs le _ _ _ iha ihb =>
+  | case3 a b xs le iha ihb =>
     simp only [ret_bind, ret_mergeM, mergeSort]
     rw [iha, ihb]
 
@@ -94,13 +94,10 @@ theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1) (hys : IsSorted l2) :
   grind [hxs.merge hys]
 
 theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
-  unfold mergeSort
-  simp only [bind_pure_comp, ret_mergeSortM, ret_map]
-  convert List.pairwise_mergeSort ?_ ?_ ?_ <;> grind
+  simpa using List.pairwise_mergeSort' _ xs
 
 lemma merge_perm (l₁ l₂ : List α) : ⟪merge l₁ l₂⟫ ~ l₁ ++ l₂ := by
-  unfold merge
-  fun_induction mergeM with grind [List.merge_perm_append]
+  simpa using List.merge_perm_append _
 
 theorem mergeSort_perm (xs : List α) : ⟪mergeSort xs⟫ ~ xs := by
   simpa using List.mergeSort_perm _ _
@@ -182,12 +179,10 @@ theorem merge_ret_length_eq_sum (xs ys : List α) :
 theorem mergeSort_time_le (xs : List α) :
     (mergeSort xs).time ≤ timeMergeSortRec xs.length := by
   unfold mergeSort
-  generalize hle' : (fun x y : α => _) = le'
   fun_induction List.mergeSortM with
   | case1 | case2 =>
     grind
-  | case3 _ _ _ _ _ ih2 ih1 =>
-    subst hle'
+  | case3 _ _ _ _ ih2 ih1 =>
     simp only [time_bind]
     grw [merge_time]
     simp only [mergeSort_same_length]
