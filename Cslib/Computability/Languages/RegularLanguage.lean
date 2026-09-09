@@ -16,7 +16,7 @@ public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.DA.ToNA
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
-public import Mathlib.Data.Finite.Sum
+public import Mathlib.Basic.Finite.Sum
 public import Mathlib.Data.Set.Card
 
 /-!
