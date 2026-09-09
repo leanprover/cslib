@@ -3,6 +3,9 @@ module  -- shake: keep-all --deprecated_module: ignore
 public import Cslib.Algorithms.CCS.VendingMachine
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.TimeM
+public import Cslib.CodingTheory.Bounds.GilbertVarshamov
+public import Cslib.CodingTheory.Code.Defs
+public import Cslib.CodingTheory.HammingBall
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Computability.Automata.DA.Basic
