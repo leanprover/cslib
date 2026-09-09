@@ -92,6 +92,13 @@ lemma Leftmost.of_cbn (h : M ↠ₙ N) : M ↠ℓ N := by
 
 variable [DecidableEq Var] [HasFresh Var]
 
+lemma Leftmost.steps_fv (steps : M ↠ℓ M') : M'.fv ⊆ M.fv := by
+  induction steps with
+  | refl => grind
+  | tail _ h _ =>
+      apply BetaAt.step_fv at h
+      grind
+
 /-- Leftmost reduction preserves local closure. -/
 lemma Leftmost.steps_lc_r (h : M ↠ℓ M') (lc : LC M) : LC M' := by
   induction h with
