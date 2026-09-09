@@ -150,7 +150,7 @@ then `splitLastCompl` returns the original string. -/
 noncomputable def splitLastCompl (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
     List Symbol := (isPrefix_splitLast flts i k xs).choose
 
-theorem splitLastCompl_append (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
+theorem splitLast_append (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
     splitLast flts i k xs ++ splitLastCompl flts i k xs = xs := by
   grind [splitLastCompl]
 
@@ -171,7 +171,7 @@ theorem splitLast_eq {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbo
 
 theorem splitLastCompl_eq {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
     (h : k ∉ PathSupp flts i xs) (h' : k = flts.mtr i xs) : splitLastCompl flts i k xs = [] := by
-  simpa [splitLast_eq h h'] using splitLastCompl_append flts i k xs
+  simpa [splitLast_eq h h'] using splitLast_append flts i k xs
 
 /-- `splitLast flts i k xs` is non-empty exclusively when the run from `i` over `xs`
 visits `k` at some step AFTER the start. -/
@@ -192,7 +192,7 @@ theorem splitLastCompl_neq_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : 
     {xs : List Symbol} (hxs : xs ≠ []) :
     ¬(splitLastCompl flts i k xs = xs) ↔ k ∈ PathSupp flts i xs ∨ k = flts.mtr i xs := by
   rw [← splitLast_nonempty_iff_mem_PathSupp hxs, not_iff_not]
-  nth_rw 2 [← splitLastCompl_append flts i k xs]
+  nth_rw 2 [← splitLast_append flts i k xs]
   simp
 
 /-- The run of `a :: xs` from `i` to `j` having `k` as the largest interior state and
@@ -289,7 +289,7 @@ theorem splitLastCompl_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : Li
       simp only [mem_language, Accepts] at h ⊢
       by_cases hxs : xs = []
       · grind [splitLastCompl_eq, PathSupp]
-      grind [splitLastCompl_append, splitLast_nonempty_iff_mem_PathSupp, pathSupp_head]
+      grind [splitLast_append, splitLast_nonempty_iff_mem_PathSupp, pathSupp_head]
 
 /-- Part of the recursion step of Kleene's algorithm.
 A run from `i` to `j` whose interior states are all at most `k` either has no interior state equal
@@ -307,7 +307,7 @@ theorem language_bddpath_splitLast (flts : FLTS (Fin n) Symbol) (i j k : Fin n) 
     right
     use splitLast flts i k xs, splitLast_mem h h',
     splitLastCompl flts i k xs, splitLastCompl_mem h h',
-    splitLastCompl_append flts _ _ _
+    splitLast_append flts _ _ _
   · rintro (h_left | ⟨ys, ⟨⟨hys, hsuppys⟩, ⟨zs, ⟨⟨hzs, hsuppzs⟩, happend⟩⟩⟩⟩)
     · simp only [mem_language, Accepts] at h_left ⊢
       grind
@@ -348,8 +348,8 @@ theorem splitFirst_append (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List 
   grind [splitFirstCompl]
 
 /-- If the run of `xs` from `i` to `k` has all interior states below `k + 1`, then
-  `splitFirst flts i k xs` (the shortest prefix of `xs`)
-  is a path whose interior states are all below `k`. -/
+`splitFirst flts i k xs` (the shortest prefix of `xs`)
+is a path whose interior states are all below `k`. -/
 theorem splitFirst_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
     (h : xs ∈ (language (BddPath.mk flts i k (k + 1)))) :
     splitFirst flts i k xs ∈ language (BddPath.mk flts i k k) := by
@@ -467,13 +467,11 @@ theorem mem_sum_matches'_iff {α : Type*} (L : List (RegularExpression α)) (x :
 
 variable [Fintype Symbol]
 
-/--
-Regex i j k is the regex for the path from state i to state j passing through states < k.
+/-- Regex i j k is the regex for the path from state i to state j passing through states < k.
 When k = 0, i = j, the regex is ε union all characters from state i to state i.
 When k = 0, i ≠ j, the regex is all characters from state i to state j.
 For k + 1, the regex is the union of Regex i j k and
-(Regex i k k) (Regex k k k)∗ (Regex k j k).
--/
+(Regex i k k) (Regex k k k)∗ (Regex k j k). -/
 noncomputable def Regex (flts : FLTS (Fin n) Symbol) (i j : Fin n) : ℕ → RegularExpression Symbol
   | 0 =>
     let chars := (Finset.univ.filter
@@ -517,7 +515,7 @@ theorem language_dfa_eq_regex_of_singleton_accept {dfa : DA.FinAcc (Fin n) Symbo
 
 end Regex
 
-/-- DFAs with one accepting state have a matching regular expression -/
+/-- A DFA with exactly one accepting state has a matching regular expression. -/
 theorem regex_of_dfa_singleton_accept [Finite Symbol] {State : Type*} [Finite State]
     (dfa : DA.FinAcc State Symbol) (h : ∃ s, dfa.accept = {s}) :
     ∃ r : RegularExpression Symbol, language dfa = r.matches' := by
