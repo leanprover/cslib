@@ -80,7 +80,7 @@ scoped syntax ccsProc "|" ccsProc : ccsProc
 scoped syntax "ν" term ccsProc : ccsProc
 
 @[inherit_doc Process.const]
-scoped syntax "call" term : ccsProc
+scoped syntax "const" term : ccsProc
 
 @[inherit_doc Process]
 scoped syntax "(" ccsProc ")" : ccsProc
@@ -95,7 +95,7 @@ scoped macro_rules
   | `(`(CCS| $p:ccsProc + $q:ccsProc)) => `(Process.choice `(CCS| $p) `(CCS| $q))
   | `(`(CCS| $p:ccsProc | $q:ccsProc)) => `(Process.par `(CCS| $p) `(CCS| $q))
   | `(`(CCS| ν $a:term $p:ccsProc)) => `(Process.res $a `(CCS| $p))
-  | `(`(CCS| call $c:term)) => `(Process.const $c)
+  | `(`(CCS| const $c:term)) => `(Process.const $c)
   | `(`(CCS| ( $p:ccsProc ))) => `(`(CCS| $p))
 
 namespace Act
@@ -197,7 +197,7 @@ theorem Context.complete (p : Process Name Constant) :
     obtain ⟨c, hc⟩ := ih
     exists res a c
     grind
-  case const k =>
+  case «const» k =>
     exists hole
     grind
 
