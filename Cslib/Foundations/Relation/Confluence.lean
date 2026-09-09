@@ -107,6 +107,13 @@ theorem confluent_of_unique_end {x : α} (h : ∀ y : α, ReflTransGen r y x) : 
 
 @[deprecated (since := "2026-09-03")] alias Confluent_of_unique_end := confluent_of_unique_end
 
+theorem Normal.sup_iff (x : α) : Normal (r₁ ⊔ r₂) x ↔ Normal r₁ x /\ Normal r₂ x := by
+  constructor
+  · intros g
+    constructor <;> intros h <;> apply g <;> obtain ⟨t, _⟩ := h <;> exists t <;> tauto
+  · rintro _ ⟨t, h⟩
+    cases h <;> grind
+
 /-- For a Church-Rosser relation, elements in an equivalence class must be multi-step related. -/
 theorem ChurchRosser.normal_eqvGen_reflTransGen (cr : ChurchRosser r) (norm : Normal r x)
     (xy : EqvGen r y x) : ReflTransGen r y x := by
