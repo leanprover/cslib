@@ -108,6 +108,23 @@ lemma TwoWayNA.toCfgNAFinAcc_input_eq {State Symbol : Type*} (a : TwoWayNA State
   intro c μ c' h_tr rfl
   simp_all [TwoWayNA.toCfgNAFinAcc]
 
+/-- A configuration running on `input` is the one determined by its state and head position. -/
+theorem TwoWayNACfg.eta {input : List Symbol} {c : TwoWayNACfg State Symbol}
+    (h : c.input = input) (h' : (c.pos : ℕ) < input.length + 1) :
+    ({ input := input, pos := ⟨c.pos, h'⟩, state := c.state } : TwoWayNACfg State Symbol) = c := by
+  cases c
+  subst h
+  rfl
+
+/-- A step reads the symbol at the head position, which therefore lies inside the input. -/
+theorem TwoWayNA.getElem_of_tr {a : TwoWayNA State Symbol} {input : List Symbol}
+    {c c' : TwoWayNACfg State Symbol} {x : Symbol} {m : SignType}
+    (htr : (a.toCfgNAFinAcc input).Tr c (x, m) c') (hc : c.input = input) :
+    ∃ h : (c.pos : ℕ) < input.length, input[(c.pos : ℕ)] = x := by
+  obtain ⟨-, hx, -, -⟩ := htr
+  subst hc
+  exact List.getElem?_eq_some_iff.mp hx.symm
+
 @[simp, scoped grind =]
 instance : Acceptor (TwoWayNA State Symbol) Symbol where
   Accepts (a : TwoWayNA State Symbol) (input : List Symbol) :=
