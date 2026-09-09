@@ -5,7 +5,7 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuits.Program
+public import Cslib.Computability.Circuit.Program
 
 /-!
 # Circuits

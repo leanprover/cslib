@@ -5,8 +5,8 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuits.Homomorphism
-public import Cslib.Computability.Circuits.Wire
+public import Cslib.Computability.Circuit.Homomorphism
+public import Cslib.Computability.Circuit.Wire
 
 /-!
 # Straight-line programs

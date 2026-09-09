@@ -5,7 +5,7 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuits.Signature
+public import Cslib.Computability.Circuit.Signature
 
 /-!
 # Homomorphisms of interpretations
