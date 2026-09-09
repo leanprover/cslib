@@ -29,12 +29,28 @@ open Cslib Cslib.Query
 public section
 
 -- Proposed upstream in https://github.com/leanprover-community/mathlib4/pull/43325;
--- remove once cslib's Mathlib includes it.
-private theorem Function.Injective.extend_sum_inl_inr (f : α → β) (hf : Function.Injective f) :
-    Function.Injective (Function.extend f (Sum.inl : α → α ⊕ β) (Sum.inr : β → α ⊕ β)) := by
-  apply Function.LeftInverse.injective (g := Sum.elim f id)
-  intro x
-  obtain ⟨a, rfl⟩ | hx := em (∃ a, f a = x) <;> simp_all
+-- remove once cslib's Mathlib includes them.
+private theorem Function.Injective.extend_of_disjoint {α β γ : Type*}
+    {f : α → β} {g : α → γ} {j : β → γ}
+    (hf : Function.Injective f) (hg : Function.Injective g) (hj : Function.Injective j)
+    (hd : Disjoint (Set.range g) (Set.range j)) :
+    Function.Injective (Function.extend f g j) := by
+  intro x y h
+  obtain ⟨a, rfl⟩ | hx := em (∃ a, f a = x) <;> obtain ⟨b, rfl⟩ | hy := em (∃ a, f a = y)
+  · rw [hf.extend_apply, hf.extend_apply] at h
+    rw [hg h]
+  · rw [hf.extend_apply, Function.extend_apply' _ _ _ hy] at h
+    exact absurd ⟨y, h.symm⟩ (Set.disjoint_left.1 hd (Set.mem_range_self a))
+  · rw [Function.extend_apply' _ _ _ hx, hf.extend_apply] at h
+    exact absurd ⟨x, h⟩ (Set.disjoint_left.1 hd (Set.mem_range_self b))
+  · rw [Function.extend_apply' _ _ _ hx, Function.extend_apply' _ _ _ hy] at h
+    exact hj h
+
+private theorem Function.Injective.extend_sum_inl_inr {α β : Type*} {f : α → β}
+    (hf : Function.Injective f) :
+    Function.Injective (Function.extend f (Sum.inl : α → α ⊕ β) (Sum.inr : β → α ⊕ β)) :=
+  hf.extend_of_disjoint Sum.inl_injective Sum.inr_injective
+    Set.isCompl_range_inl_range_inr.disjoint
 
 -- Proposed upstream in https://github.com/leanprover-community/mathlib4/pull/43326;
 -- remove once cslib's Mathlib includes it.
