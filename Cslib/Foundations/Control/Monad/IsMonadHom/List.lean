@@ -23,8 +23,8 @@ public section
 
 namespace Cslib
 
-universe u v w
-variable {m n : Type u → Type v}
+universe u um un v
+variable {m : Type u → Type um} {n : Type u → Type un}
 
 /-! ### Preservation of list operations under applicative homomorphisms -/
 
@@ -33,13 +33,13 @@ variable [Applicative m] [Applicative n]
 
 @[grind .]
 theorem map_listMapA {F : ∀ {α}, m α → n α} (hf : IsApplicativeHom m n F)
-    {α : Type w} {β : Type u} (f : α → m β) (l : List α) :
+    {α : Type v} {β : Type u} (f : α → m β) (l : List α) :
     F (l.mapA f) = l.mapA (F ∘ f) := by
   induction l with grind [List.mapA]
 
 @[grind .]
 theorem map_listForA {F : ∀ {α}, m α → n α} (hf : IsApplicativeHom m n F)
-    {α : Type w} (l : List α) (f : α → m PUnit) :
+    {α : Type v} (l : List α) (f : α → m PUnit) :
     F (l.forA f) = l.forA (F ∘ f) := by
   induction l with grind [List.forA]
 
@@ -53,32 +53,32 @@ variable [Monad m] [Monad n]
 @[grind .]
 theorem map_listMapM'
     {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
-    {α : Type w} {β : Type u} (f : α → m β) (l : List α) :
+    {α : Type v} {β : Type u} (f : α → m β) (l : List α) :
     F (l.mapM' f) = l.mapM' (F ∘ f) := by
   induction l with grind [List.mapM']
 
 @[grind .]
 theorem map_listMapM [LawfulMonad m] [LawfulMonad n]
     {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
-    {α : Type w} {β : Type u} (f : α → m β) (l : List α) :
+    {α : Type v} {β : Type u} (f : α → m β) (l : List α) :
     F (l.mapM f) = l.mapM (F ∘ f) := by
   induction l with grind
 
 @[grind .]
 theorem map_listForM {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
-    {α : Type w} (l : List α) (f : α → m PUnit) :
+    {α : Type v} (l : List α) (f : α → m PUnit) :
     F (l.forM f) = l.forM (F ∘ f) := by
   induction l with grind [List.forM]
 
 @[grind .]
 theorem map_listFoldlM {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
-    {s : Type u} {α : Type w} (f : s → α → m s) (init : s) (l : List α) :
+    {s : Type u} {α : Type v} (f : s → α → m s) (init : s) (l : List α) :
     F (l.foldlM f init) = l.foldlM (fun s a => F (f s a)) init := by
   induction l generalizing init with grind [List.foldlM]
 
 @[grind .]
 theorem map_listFoldrM {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
-    {s : Type u} {α : Type w} (f : α → s → m s) (init : s) (l : List α) :
+    {s : Type u} {α : Type v} (f : α → s → m s) (init : s) (l : List α) :
     F (l.foldrM f init) = l.foldrM (fun a s => F (f a s)) init := by
   simp only [List.foldrM]
   exact hf.map_listFoldlM (fun s a => f a s) init l.reverse
@@ -86,7 +86,7 @@ theorem map_listFoldrM {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
 @[grind .]
 theorem map_listFindSomeM?
     {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
-    {α : Type w} {β : Type u} (f : α → m (Option β)) (l : List α) :
+    {α : Type v} {β : Type u} (f : α → m (Option β)) (l : List α) :
     F (l.findSomeM? f) = l.findSomeM? (F ∘ f) := by
   induction l with grind
 
@@ -100,14 +100,14 @@ theorem map_listFindM? {m n : Type → Type v} [Monad m] [Monad n]
 @[grind .]
 theorem map_listAnyM {m n : Type → Type v} [Monad m] [Monad n]
     {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
-    {α : Type w} (p : α → m Bool) (l : List α) :
+    {α : Type v} (p : α → m Bool) (l : List α) :
     F (l.anyM p) = l.anyM (F ∘ p) := by
   induction l with grind [List.anyM]
 
 @[grind .]
 theorem map_listAllM {m n : Type → Type v} [Monad m] [Monad n]
     {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
-    {α : Type w} (p : α → m Bool) (l : List α) :
+    {α : Type v} (p : α → m Bool) (l : List α) :
     F (l.allM p) = l.allM (F ∘ p) := by
   induction l with grind [List.allM]
 
@@ -134,7 +134,7 @@ variable [Alternative m] [Alternative n]
 
 @[grind .]
 theorem map_listFirstM {F : ∀ {α}, m α → n α} (hf : IsAlternativeHom m n F)
-    {α : Type w} {β : Type u} (f : α → m β) (l : List α) :
+    {α : Type v} {β : Type u} (f : α → m β) (l : List α) :
     F (l.firstM f) = l.firstM (F ∘ f) := by
   induction l with grind [List.firstM]
 
@@ -164,7 +164,7 @@ section uniqueness
 
 /-- A property holds on all lists if it holds on the nil list, the singleton list,
 and concatenations thereof. -/
-private theorem List.nil_singleton_append_induction {motive : List α → Prop}
+private theorem List.nil_singleton_append_induction {α : Type*} {motive : List α → Prop}
     (nil : motive []) (singleton : ∀ a, motive [a])
     (append : ∀ xs ys, motive xs → motive ys → motive (xs ++ ys)) :
     ∀ l, motive l
