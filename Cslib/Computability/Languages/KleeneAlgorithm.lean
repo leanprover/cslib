@@ -23,7 +23,7 @@ The special case where the DFA has only one accepting state is proved in
 
 ## Main definitions
 - `PathSupp`: The interior states of a run
-- `BddPath`: A transition system containing a start state, finish state, and a specific bound on
+- `BddPathFLTS`: A transition system containing a start state, finish state, and a specific bound on
 all interior states
 - `Regex flts i j k`: The regular expression for the paths from state `i` to state `j`,
 whose interior states are all under a specific bound `k`
@@ -93,10 +93,10 @@ open Automata Acceptor
 
 variable {n : ℕ}
 
-/-- A Bounded Path (`BddPath`) has states `Fin n` and accepts strings (lists of symbols)
+/-- A Bounded Path (`BddPathFLTS`) has states `Fin n` and accepts strings (lists of symbols)
 starting with state `start` and ending with state `finish`
 with the interior states less than `bound`. -/
-structure BddPath (n : ℕ) (Symbol : Type*) extends FLTS (Fin n) Symbol where
+structure BddPathFLTS (n : ℕ) (Symbol : Type*) extends FLTS (Fin n) Symbol where
   /-- The starting state of the path. -/
   start : Fin n
   /-- The finishing state of the path. -/
@@ -104,21 +104,24 @@ structure BddPath (n : ℕ) (Symbol : Type*) extends FLTS (Fin n) Symbol where
   /-- The bound for interior states of the path. -/
   bound : ℕ
 
-instance : Acceptor (BddPath n Symbol) Symbol where
-  Accepts (p : BddPath n Symbol) (xs : List Symbol) :=
+instance : Acceptor (BddPathFLTS n Symbol) Symbol where
+  Accepts (p : BddPathFLTS n Symbol) (xs : List Symbol) :=
+    -- let ss := p.toFLTS.execution p.start xs
+    -- p.mtr p.start xs = p.finish ∧ ∀ i ∈ ss, i < p.bound
     p.mtr p.start xs = p.finish ∧ (∀ i ∈ PathSupp p.toFLTS p.start xs, i < p.bound)
 
 theorem language_bddpath_head_iff {flts : FLTS (Fin n) Symbol} {i j : Fin n} {k : ℕ}
     {a : Symbol} {xs : List Symbol} :
-    a :: xs ∈ language (BddPath.mk flts i j k) ↔
-    xs ∈ language (BddPath.mk flts (flts.tr i a) j k) ∧ (flts.tr i a < k ∨ xs = []) := by
+    a :: xs ∈ language (BddPathFLTS.mk flts i j k) ↔
+    xs ∈ language (BddPathFLTS.mk flts (flts.tr i a) j k) ∧ (flts.tr i a < k ∨ xs = []) := by
   simp only [mem_language, Accepts]
   by_cases hxs : xs = []
   · grind [PathSupp]
   grind [pathSupp_head hxs]
 
 theorem language_bddpath_eq_dfa (flts : FLTS (Fin n) Symbol) (i j : Fin n) {k : ℕ} (hk : n ≤ k) :
-    language (BddPath.mk flts i j k) = language (DA.FinAcc.mk {tr := flts.tr, start := i} {j}) := by
+    language (BddPathFLTS.mk flts i j k) =
+    language (DA.FinAcc.mk {tr := flts.tr, start := i} {j}) := by
   simp [language, Accepts]
   grind
 
@@ -198,8 +201,8 @@ theorem splitLastCompl_neq_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : 
 /-- The run of `a :: xs` from `i` to `j` having `k` as the largest interior state and
 no prefix of `a :: xs` (of length 1 or more) ending at state `k` cannot both be true. -/
 theorem splitLast_aux {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
-    {a : Symbol} (h : a :: xs ∈ language (BddPath.mk flts i j (k + 1)))
-    (h' : a :: xs ∉ language (BddPath.mk flts i j k))
+    {a : Symbol} (h : a :: xs ∈ language (BddPathFLTS.mk flts i j (k + 1)))
+    (h' : a :: xs ∉ language (BddPathFLTS.mk flts i j k))
     (hc : splitLast flts (flts.tr i a) k xs = [] ∧ flts.tr i a ≠ k) : False := by
   simp only [mem_language, Accepts, Order.lt_add_one_iff, Fin.val_fin_le, not_and,
       not_forall, not_lt] at *
@@ -221,9 +224,9 @@ theorem splitLast_aux {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Sy
 `splitLast flts i k xs` (the longest prefix of `xs` ending at `k`)
 is a path from `i` to `k` whose interior states are all below `k + 1`. -/
 theorem splitLast_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
-    (h : xs ∈ language (BddPath.mk flts i j (k + 1)))
-    (h' : xs ∉ language (BddPath.mk flts i j k)) :
-    splitLast flts i k xs ∈ language (BddPath.mk flts i k (k + 1)) := by
+    (h : xs ∈ language (BddPathFLTS.mk flts i j (k + 1)))
+    (h' : xs ∉ language (BddPathFLTS.mk flts i j k)) :
+    splitLast flts i k xs ∈ language (BddPathFLTS.mk flts i k (k + 1)) := by
   induction xs generalizing i with
   | nil =>
   simp [Accepts, PathSupp] at h h'
@@ -254,9 +257,9 @@ theorem splitLast_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Sy
 `splitLastCompl flts i k xs` (the shortest suffix of `xs` starting at `k`)
 is a path from `k` to `j` whose interior states are all below `k`. -/
 theorem splitLastCompl_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
-    (h : xs ∈ language (BddPath.mk flts i j (k + 1)))
-    (h' : xs ∉ language (BddPath.mk flts i j k)) :
-    splitLastCompl flts i k xs ∈ language (BddPath.mk flts k j k) := by
+    (h : xs ∈ language (BddPathFLTS.mk flts i j (k + 1)))
+    (h' : xs ∉ language (BddPathFLTS.mk flts i j k)) :
+    splitLastCompl flts i k xs ∈ language (BddPathFLTS.mk flts k j k) := by
   induction xs generalizing i with
   | nil =>
   simp [Accepts, PathSupp] at h h'
@@ -296,13 +299,13 @@ A run from `i` to `j` whose interior states are all at most `k` either has no in
 to `k`, or it splits at its last visit to `k` into a run from `i` to `k` with interior states
 below `k + 1`, followed by a run from `k` to `j` with interior states below `k`. -/
 theorem language_bddpath_splitLast (flts : FLTS (Fin n) Symbol) (i j k : Fin n) :
-    language (BddPath.mk flts i j (k + 1)) = language (BddPath.mk flts i j k) +
-    (language (BddPath.mk flts i k (k + 1)) * language (BddPath.mk flts k j k)) := by
+    language (BddPathFLTS.mk flts i j (k + 1)) = language (BddPathFLTS.mk flts i j k) +
+    (language (BddPathFLTS.mk flts i k (k + 1)) * language (BddPathFLTS.mk flts k j k)) := by
   ext xs
   rw [Language.mem_add, Language.mem_mul]
   constructor
   · intro h
-    by_cases h' : xs ∈ language (BddPath.mk flts i j k)
+    by_cases h' : xs ∈ language (BddPathFLTS.mk flts i j k)
     · left; exact h'
     right
     use splitLast flts i k xs, splitLast_mem h h',
@@ -351,8 +354,8 @@ theorem splitFirst_append (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List 
 `splitFirst flts i k xs` (the shortest prefix of `xs`)
 is a path whose interior states are all below `k`. -/
 theorem splitFirst_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
-    (h : xs ∈ (language (BddPath.mk flts i k (k + 1)))) :
-    splitFirst flts i k xs ∈ language (BddPath.mk flts i k k) := by
+    (h : xs ∈ (language (BddPathFLTS.mk flts i k (k + 1)))) :
+    splitFirst flts i k xs ∈ language (BddPathFLTS.mk flts i k k) := by
   induction xs generalizing i with
   | nil => simpa [Accepts, splitFirst, PathSupp] using h
   | cons a xs ih =>
@@ -370,8 +373,8 @@ theorem splitFirst_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Sym
     grind [pathSupp_head]
 
 theorem splitFirst_mem_nonempty {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
-    (hxs : xs ≠ []) (h : xs ∈ (language (BddPath.mk flts i k (k + 1)))) :
-    splitFirst flts i k xs ∈ language (BddPath.mk flts i k k) - 1 := by
+    (hxs : xs ≠ []) (h : xs ∈ (language (BddPathFLTS.mk flts i k (k + 1)))) :
+    splitFirst flts i k xs ∈ language (BddPathFLTS.mk flts i k k) - 1 := by
   rw [Language.mem_sub]
   refine ⟨splitFirst_mem h, ?_⟩
   simp only [Language.mem_one]
@@ -383,8 +386,8 @@ theorem splitFirst_mem_nonempty {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs :
   `splitFirstCompl flts i k xs` (the longest suffix of `xs` starting at `k`)
   is a path from `k` to `k` whose interior states are all below `k + 1`. -/
 theorem splitFirstCompl_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
-    (h : xs ∈ (language (BddPath.mk flts i k (k + 1)))) :
-    splitFirstCompl flts i k xs ∈ language (BddPath.mk flts k k (k + 1)) := by
+    (h : xs ∈ (language (BddPathFLTS.mk flts i k (k + 1)))) :
+    splitFirstCompl flts i k xs ∈ language (BddPathFLTS.mk flts k k (k + 1)) := by
   have h' := splitFirst_mem h
   simp only [mem_language, Accepts] at h h' ⊢
   rw [← splitFirst_append flts i k xs] at h
@@ -398,8 +401,8 @@ A run from `i` to `j` whose interior states are all at most `k` splits upon firs
 The part before the visit is a run from `i` to `k` with interior states below `k`.
 The part after it is a run from `k` to `k` with interior states below `k + 1`. -/
 theorem language_bddpath_splitFirst (flts : FLTS (Fin n) Symbol) (i k : Fin n) :
-    language (BddPath.mk flts i k (k + 1)) =
-    language (BddPath.mk flts i k k) * language (BddPath.mk flts k k (k + 1)) := by
+    language (BddPathFLTS.mk flts i k (k + 1)) =
+    language (BddPathFLTS.mk flts i k k) * language (BddPathFLTS.mk flts k k (k + 1)) := by
   ext xs
   rw [Language.mem_mul]
   constructor
@@ -430,8 +433,8 @@ A run from `k` to `k` whose interior states are all at most `k` is a concatenati
 `k` to `k` whose interior states are all below `k`.
 In Kleene's algorithm, this is the "star" in the recursion. -/
 theorem language_bddpath_kstar (flts : FLTS (Fin n) Symbol) (k : Fin n) :
-    language (BddPath.mk flts k k (k + 1)) = (language (BddPath.mk flts k k k))∗ := by
-  rw [← mul_one (language (BddPath.mk flts k k ↑k))∗, kstar_eq]
+    language (BddPathFLTS.mk flts k k (k + 1)) = (language (BddPathFLTS.mk flts k k k))∗ := by
+  rw [← mul_one (language (BddPathFLTS.mk flts k k ↑k))∗, kstar_eq]
   refine (Language.self_eq_mul_add_iff (by simp [Language.mem_sub])).mp ?_
   ext xs
   simp only [Language.mem_add, Language.mem_mul, Language.mem_sub]
@@ -487,7 +490,7 @@ noncomputable def Regex (flts : FLTS (Fin n) Symbol) (i j : Fin n) : ℕ → Reg
 `Regex flts i j k` exactly matches the strings that have a run starting
 at `i`, ending at `j`, and having all interior states below `k`. -/
 theorem language_bddpath_eq_regex {k : ℕ} {flts : FLTS (Fin n) Symbol} {i j : Fin n} :
-    language (BddPath.mk flts i j k) = (Regex flts i j k).matches' := by
+    language (BddPathFLTS.mk flts i j k) = (Regex flts i j k).matches' := by
   induction k generalizing i j with
   | zero =>
     ext xs
