@@ -6,7 +6,7 @@ Authors: Eric Wieser
 module
 
 public import Cslib.Init
-public import Mathlib.Logic.Function.Defs
+
 public import Batteries.Control.AlternativeMonad
 public import Std.Do.WP.Monad
 
@@ -209,6 +209,16 @@ protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n �
   toIsApplicativeHom := hf.toIsApplicativeHom.comp hg.toIsApplicativeHom
   map_bind _ _ := by simp [hf.map_bind, hg.map_bind]
 
+protected theorem monadLift [LawfulMonad m] [LawfulMonad n]
+    [MonadLift m n] [LawfulMonadLift m n] :
+    IsMonadHom m n MonadLift.monadLift :=
+  .mk' LawfulMonadLift.monadLift_pure LawfulMonadLift.monadLift_bind
+
+protected theorem monadLiftT [LawfulMonad m] [LawfulMonad n]
+    [MonadLiftT m n] [LawfulMonadLiftT m n] :
+    IsMonadHom m n monadLift :=
+  .mk' LawfulMonadLiftT.monadLift_pure LawfulMonadLiftT.monadLift_bind
+
 end IsMonadHom
 
 /-! ### Alternative Homomorphisms -/
@@ -302,7 +312,7 @@ protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n �
 end IsAlternativeMonadHom
 
 open Std.Do WPMonad in
-theorem wp_isMonadHom [Monad m] [WPMonad m ps] : IsMonadHom m (PredTrans ps) WP.wp :=
+theorem IsMonadHom.wp [Monad m] [WPMonad m ps] : IsMonadHom m (PredTrans ps) WP.wp :=
   .mk' wp_pure wp_bind
 
 end Cslib

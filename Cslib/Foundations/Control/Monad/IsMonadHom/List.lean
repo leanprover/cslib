@@ -58,11 +58,20 @@ theorem map_listMapM'
   induction l with grind [List.mapM']
 
 @[grind .]
+theorem map_listMapMLoop [LawfulMonad m] [LawfulMonad n]
+    {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
+    {α : Type v} {β : Type u} (f : α → m β) (l : List α) (acc : List β) :
+    F (List.mapM.loop f l acc) = List.mapM.loop (F ∘ f) l acc := by
+  induction l generalizing acc with
+  | nil => exact hf.map_pure _
+  | cons a l ih => simp only [List.mapM.loop, hf.map_bind, ih, Function.comp_def]
+
+@[grind .]
 theorem map_listMapM [LawfulMonad m] [LawfulMonad n]
     {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
     {α : Type v} {β : Type u} (f : α → m β) (l : List α) :
     F (l.mapM f) = l.mapM (F ∘ f) := by
-  induction l with grind
+  grind [List.mapM]
 
 @[grind .]
 theorem map_listForM {F : ∀ {α}, m α → n α} (hf : IsMonadHom m n F)
