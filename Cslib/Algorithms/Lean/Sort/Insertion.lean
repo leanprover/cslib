@@ -76,7 +76,7 @@ theorem idRun_insertionSortM (xs : List α) (r : α → α → Id Bool) :
   insertionSortM_pure _ _
 
 @[grind .]
-theorem _root_.Cslib.IsMonadHom.map_listinsertionSortM {f : {β : Type} → m β → n β}
+theorem _root_.Cslib.IsMonadHom.map_listInsertionSortM {f : {β : Type} → m β → n β}
     (hf : IsMonadHom m n f) (r : α → α → m Bool) (xs : List α) :
     f (insertionSortM r xs) = insertionSortM (fun x y => f (r x y)) xs := by
   fun_induction insertionSortM r xs with simp [hf.map_pure, hf.map_bind, hf.map_orderedInsertM, *]
