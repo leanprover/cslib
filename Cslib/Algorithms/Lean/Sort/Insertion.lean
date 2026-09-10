@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Eric Wieser
 module
 
 public import Mathlib.Data.List.Sort
+public import Cslib.Foundations.Control.Monad.IsMonadHom
 
 import Cslib.Init
 
@@ -18,18 +19,20 @@ algorithmic analysis.
 
 public section
 
+open Cslib (IsMonadHom)
+
 namespace List
 
-variable {m} [Monad m] (r : α → α → m Bool)
+variable {m n} [Monad m] [Monad n] (r : α → α → m Bool)
 
 /-- A monadic version of `List.orderedInsert`. -/
 def orderedInsertM (a : α) : List α → m (List α)
   | [] => return [a]
   | b :: l => do if ← r a b then return a :: b :: l else return b :: (← orderedInsertM a l)
 
-@[simp] theorem orderedInsertM_nil (a : α) : orderedInsertM r a [] = pure [a] := by
+@[simp, grind =] theorem orderedInsertM_nil (a : α) : orderedInsertM r a [] = pure [a] := by
   rfl
-@[simp] theorem orderedInsertM_cons (a b : α) (l : List α) :
+@[simp, grind =] theorem orderedInsertM_cons (a b : α) (l : List α) :
     orderedInsertM r a (b :: l) = do
       if ← r a b then return a :: b :: l else return b :: (← orderedInsertM r a l) := by
   rfl
@@ -44,6 +47,12 @@ theorem orderedInsertM_pure [LawfulMonad m] (r : α → α → Bool) (a : α) (x
 theorem idRun_orderedInsertM (r : α → α → Id Bool) (a : α) (xs : List α) :
     Id.run (orderedInsertM r a xs) = orderedInsert (fun x y => Id.run <| r x y) a xs :=
   orderedInsertM_pure _ _ _
+
+@[grind .]
+theorem _root_.Cslib.IsMonadHom.map_orderedInsertM {f : {β : Type} → m β → n β}
+    (hf : IsMonadHom m n f) (r : α → α → m Bool) (a : α) (xs : List α) :
+    f (orderedInsertM r a xs) = orderedInsertM (fun x y => f (r x y)) a xs := by
+  fun_induction orderedInsertM r a xs with grind
 
 /-- A monadic version of `List.insertionSort`. -/
 def insertionSortM : List α → m (List α)
@@ -65,5 +74,11 @@ theorem insertionSortM_pure [LawfulMonad m] (xs : List α) (r : α → α → Bo
 theorem idRun_insertionSortM (xs : List α) (r : α → α → Id Bool) :
     Id.run (insertionSortM r xs) = insertionSort (fun x y => Id.run <| r x y) xs :=
   insertionSortM_pure _ _
+
+@[grind .]
+theorem _root_.Cslib.IsMonadHom.map_listinsertionSortM {f : {β : Type} → m β → n β}
+    (hf : IsMonadHom m n f) (r : α → α → m Bool) (xs : List α) :
+    f (insertionSortM r xs) = insertionSortM (fun x y => f (r x y)) xs := by
+  fun_induction insertionSortM r xs with simp [hf.map_pure, hf.map_bind, hf.map_orderedInsertM, *]
 
 end List
