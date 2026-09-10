@@ -63,7 +63,7 @@ theorem idRun_mergeM (xs ys : List α) (le : α → α → Id Bool) :
   mergeM_pure _ _ _
 
 @[grind .]
-theorem _root_.Cslib.IsMonadHom.map_listMergeM (f : {β : Type} → m β → n β)
+theorem _root_.Cslib.IsMonadHom.map_listMergeM {f : {β : Type} → m β → n β}
     (hf : IsMonadHom m n f) (xs ys : List α) (le : α → α → m Bool) :
     f (mergeM xs ys le) = mergeM xs ys (fun x y => f (le x y)) := by
   fun_induction mergeM xs ys le with
@@ -102,7 +102,7 @@ theorem idRun_mergeSortM (xs : List α) (le : α → α → Id Bool) :
   mergeSortM_pure _ _
 
 @[grind .]
-theorem _root_.Cslib.IsMonadHom.map_listMergeSortM (f : {β : Type} → m β → n β)
+theorem _root_.Cslib.IsMonadHom.map_listMergeSortM {f : {β : Type} → m β → n β}
     (hf : IsMonadHom m n f) (xs : List α) (le : α → α → m Bool) :
     f (mergeSortM xs le) = mergeSortM xs (fun x y => f (le x y)) := by
   fun_induction mergeSortM xs le with
