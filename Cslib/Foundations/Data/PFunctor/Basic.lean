@@ -16,7 +16,7 @@ Definitions of common `PFunctor` constructions:
 - `P + Q`: shapes are a disjoint sum, directions are defined by sum elimination on `a : P.A ⊕ Q.A`
 - `P * Q`: shapes are pairs of underlying shapes, directions are a disjoint sum over both shapes.
 
-Special cases `const`, `linear`, `selfMonomial`, `purePower`, the indeterminate `y`,
+Special cases `C`, `linear`, `selfMonomial`, `purePower`, the indeterminate `y`,
 and canonical choices of `0` and `1` are defined as abbreviations or instances over `monomial`.
 The scoped notations `A y^ B` and `y^ B` denote `monomial A B` and `purePower B`, respectively.
 -/
@@ -74,7 +74,7 @@ instance instIsEmptyOneB (a : (1 : PFunctor.{uA, uB}).A) : IsEmpty ((1 : PFuncto
 end one
 
 /-- The constant polynomial functor `P(y) = A y^ PEmpty = A`. -/
-abbrev const (A : Type uA) : PFunctor := monomial A PEmpty
+abbrev C (A : Type uA) : PFunctor := monomial A PEmpty
 
 /-- The linear polynomial functor `P(y) = A y`. -/
 abbrev linear (A : Type uA) : PFunctor := monomial A PUnit
@@ -96,9 +96,9 @@ of the abbreviations above: being reducible, they unfold to `PEmpty`/`PUnit` dur
 search. Only `0` and `1` need the explicit instances above, since the `Zero`/`One` instance
 projections are not reducible. -/
 
-@[simp] lemma const_pempty : const PEmpty = 0 := rfl
+@[simp] lemma const_pempty : C PEmpty = 0 := rfl
 
-@[simp] lemma const_punit : const PUnit = 1 := rfl
+@[simp] lemma const_punit : C PUnit = 1 := rfl
 
 @[simp] lemma linear_punit : linear PUnit = y := rfl
 
@@ -116,7 +116,7 @@ transparency.
 This is kept as a `def` alongside the `HAdd` instance below, even though that instance is
 exactly as universe-general as `add` itself: the `binop%` elaborator behind `+` eagerly
 unifies the types of both operands with the expected type, so when the expected type carries
-universe metavariables (e.g. inside `PFunctor.W (P.add (.const α))` with `α : Type v`),
+universe metavariables (e.g. inside `PFunctor.W (P.add (.C α))` with `α : Type v`),
 `P + Q` can fail to elaborate where `P.add Q` succeeds; see `CslibTests/PFunctor.lean`. -/
 @[simps, implicit_reducible] def add (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
     PFunctor.{max uA₁ uA₂, uB} :=

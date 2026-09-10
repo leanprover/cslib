@@ -35,18 +35,18 @@ different universes. -/
 example (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) :
     PFunctor.{max uA₁ uA₂, max uB₁ uB₂} := P * Q
 
-/-- The `def` spelling `P.add (.const α)` elaborates under `PFunctor.W` even when the
+/-- The `def` spelling `P.add (.C α)` elaborates under `PFunctor.W` even when the
 expected type only determines the universe levels up to a `max`. This is the motivating
 use case for keeping `PFunctor.add` as a `def` alongside the `HAdd` instance. -/
 example (P : PFunctor.{uA₁, uB}) (α : Type v) : Type (max uA₁ uB v) :=
-  PFunctor.W (P.add (.const α))
+  PFunctor.W (P.add (.C α))
 
 /- The `+` spelling of the same type fails: the `binop%` elaborator behind `+` commits the
 universe metavariables in the expected type to the first operand's universes before it
 considers the heterogeneous `HAdd` instance. -/
 /--
 error: Type mismatch
-  P + const α
+  P + C α
 has type
   PFunctor.{max uA₁ v, uB}
 of sort
@@ -64,7 +64,7 @@ with
 -/
 #guard_msgs in
 example (P : PFunctor.{uA₁, uB}) (α : Type v) : Type (max uA₁ uB v) :=
-  PFunctor.W (P + PFunctor.const α)
+  PFunctor.W (P + PFunctor.C α)
 
 /-- The simp set rewrites the head type of a sum through the `+` notation. -/
 example (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
@@ -86,7 +86,7 @@ example (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) (a : P.A) (b
     (P * Q).B (a, b) = (P.B a ⊕ Q.B b) := by simp
 
 /-- The named monomials reduce to the canonical `0`, `1`, and `y`. -/
-example : (const PUnit : PFunctor.{uA, uB}) = 1 := by simp
+example : (C PUnit : PFunctor.{uA, uB}) = 1 := by simp
 example : (linear PUnit : PFunctor.{uA, uB}) = y := by simp
 example : (selfMonomial PUnit : PFunctor.{uA, uA}) = y := by simp
 example : (purePower PUnit : PFunctor.{uA, uB}) = y := by simp
