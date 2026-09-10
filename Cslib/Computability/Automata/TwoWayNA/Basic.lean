@@ -30,10 +30,6 @@ ends in an accepting state with the head just past the end of the input.
 * `TwoWayNA.toCfgNAFinAcc`, the finite acceptor on configurations whose runs on a fixed input are
   the runs of the two-way automaton on that input. It also provides the `Acceptor` instance.
 
-The comparison with finite acceptors is in `Cslib.Computability.Automata.TwoWayNA.ToNA`,
-`Cslib.Computability.Automata.TwoWayNA.OfNA` and
-`Cslib.Computability.Automata.TwoWayNA.Regular`.
-
 ## Implementation notes
 
 The definition of `TwoWayNA` is kept close to [Vardi][Vardi1989]'s, because the main point is to
