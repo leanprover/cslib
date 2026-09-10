@@ -41,11 +41,9 @@ example : ∃ g ≤ 2, ∃ c : Circuit signature 2 g 2,
   have hkeep : Synthesis (inputs 2 ∪ {conjunction}) {conjunction} 0 :=
     Synthesis.of_subset Set.subset_union_right
   have h := hand.comp (hkeep.union hkeep.not)
-  obtain ⟨⟨g, p⟩, hg, _, hout⟩ := h ⟨0, .empty⟩ (by
-    rintro _ ⟨i, rfl⟩
-    exact ⟨Wire.input i, fun x => Program.trace_input _ _ x i⟩)
-  obtain ⟨w, hw⟩ := hout (Set.mem_union_left _ (Set.mem_singleton _))
-  obtain ⟨v, hv⟩ := hout (Set.mem_union_right _ (Set.mem_singleton _))
+  obtain ⟨g, p, hg, _, hout⟩ := h 0 .empty (inputs_subset_available _)
+  obtain ⟨w, hw⟩ := mem_available.mp (hout (Set.mem_union_left _ (Set.mem_singleton _)))
+  obtain ⟨v, hv⟩ := mem_available.mp (hout (Set.mem_union_right _ (Set.mem_singleton _)))
   let c : Circuit signature 2 g 2 := ⟨p, Fin.cases w (fun _ => v)⟩
   exact ⟨g, hg, c, fun x => ⟨hw x, hv x⟩⟩
 

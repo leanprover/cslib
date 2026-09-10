@@ -11,7 +11,9 @@ public import Cslib.Computability.Circuit.Basic
 # Boolean circuits
 
 The De Morgan basis consists of binary AND and OR, unary NOT, and Boolean constants.
-Circuit size counts every gate, including constants; designated output wires are free.
+Every gate has fan-in at most two, so these are the usual bounded fan-in Boolean circuits
+(`Program.fanInAtMost_two`). Circuit size counts every gate, including constants;
+designated output wires are free.
 -/
 
 @[expose] public section
@@ -50,6 +52,18 @@ def interpretation : Interpretation signature Bool
   | .or, x => x 0 || x 1
 
 end Boolean
+
+/-- Every De Morgan program has fan-in at most two. -/
+theorem Program.fanInAtMost_two {n g : ℕ} (p : Program Boolean.signature n g) :
+    p.FanInAtMost 2 := by
+  induction p with
+  | empty => trivial
+  | gate p line ih => exact And.intro ih (by cases line.op <;> simp)
+
+/-- Every De Morgan circuit has fan-in at most two. -/
+theorem Circuit.fanInAtMost_two {n g o : ℕ} (c : Circuit Boolean.signature n g o) :
+    c.FanInAtMost 2 :=
+  c.program.fanInAtMost_two
 
 /-- A single-output De Morgan circuit computes `f` if its output agrees with `f` on every input. -/
 def Circuit.Computes {n g : ℕ} (c : Circuit Boolean.signature n g 1)
