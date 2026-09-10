@@ -35,6 +35,12 @@ variable {Var : Type u} [DecidableEq Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
+omit [DecidableEq Var] in
+theorem induction_by_sizeOf {C : Term Var → Prop}
+    (step : ∀ m : Term Var, (∀ m1 : Term Var, sizeOf m1 < sizeOf m → C m1) → C m ) :
+    ∀ m : Term Var, C m :=
+  WellFounded.fix (r := sizeOfWFRel.rel) sizeOfWFRel.wf step
+
 /-- α-equivalent terms have the same size. -/
 theorem AlphaEquiv.eq_sizeOf {m n : Term Var} : m =α n → sizeOf m = sizeOf n := by
   intro h

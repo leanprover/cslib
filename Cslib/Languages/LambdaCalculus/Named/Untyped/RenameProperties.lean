@@ -89,12 +89,6 @@ theorem rename_comm {m : Term Var} {x y z w : Var} :
     (m.rename x y).rename (if z = x then y else z) w = (m.rename z w).rename x y := by
   grind [rename_comm_fresh]
 
-omit [DecidableEq Var] in
-theorem induction_by_sizeOf {C : Term Var → Prop}
-    (step : ∀ m : Term Var, (∀ m1 : Term Var, sizeOf m1 < sizeOf m → C m1) → C m ) :
-    ∀ m : Term Var, C m :=
-  WellFounded.fix (r := sizeOfWFRel.rel) sizeOfWFRel.wf step
-
 end LambdaCalculus.Named.Untyped.Term
 
 end Cslib
