@@ -14,6 +14,8 @@ public import Cslib.Algorithms.Lean.Query.Sort.LowerBound
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
+public import Cslib.Algorithms.Lean.Sort.Insertion
+public import Cslib.Algorithms.Lean.Sort.Merge
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
@@ -40,6 +42,12 @@ public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
+public import Cslib.Computability.Automata.TwoWayNA.Basic
+public import Cslib.Computability.Circuit.Basic
+public import Cslib.Computability.Circuit.Homomorphism
+public import Cslib.Computability.Circuit.Program
+public import Cslib.Computability.Circuit.Signature
+public import Cslib.Computability.Circuit.Wire
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.Consensus
