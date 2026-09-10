@@ -1,6 +1,7 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
 public import Cslib.Algorithms.CCS.VendingMachine
+public import Cslib.Algorithms.Lean.GraphAlgorithms.DFS
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.Sort.Insertion
 public import Cslib.Algorithms.Lean.Sort.Merge
