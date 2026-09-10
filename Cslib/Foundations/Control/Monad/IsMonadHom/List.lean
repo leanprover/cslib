@@ -166,7 +166,7 @@ theorem IsFunctorHom.map_listNil {F : ∀ {α}, List α → List α} (hf : IsFun
   simpa [Subsingleton.elim (F ([] : List PEmpty)) []]
     using (hf.map_map PEmpty.elim []).symm
 
-protected theorem List.isMonadHom_reverse : IsMonadHom List List List.reverse :=
+protected theorem _root_.List.isMonadHom_reverse : IsMonadHom List List List.reverse :=
   .mk' (fun _ => rfl) (fun _ _ => List.reverse_flatMap)
 
 section uniqueness
