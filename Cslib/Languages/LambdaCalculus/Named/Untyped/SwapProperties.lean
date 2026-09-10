@@ -193,13 +193,16 @@ lemma permute_trans (m : Term Var) (π π' : Equiv.Perm Var) :
 lemma permute_swap (m : Term Var) (x y : Var) : m.permute (Equiv.swap x y) = m.swap x y := by
   induction m <;> simp_all [permute, swap, Equiv.swap_apply_def]
 
--- First 4 case examination of example 1
+/- The following 5 lemmas are representative of non-trivial cases of the 27 cases occuring
+in the proof of `AlphaEquiv.swap_preserve`. See Lemma 6.1 [Crole2012]. -/
+
+-- First 4 case examinations in represenative case z ≠ u, v
 lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
     (hm1 : z ∉ E.vars ∪ E'.vars ∪ {a, b})
     (h2 : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
     (hzu : z ≠ u)
-    (hzv : z ≠ v)
-    : ((E.swap u v).swap (Equiv.swap u v a) z) =α ((E'.swap u v).swap (Equiv.swap u v b) z) := by
+    (hzv : z ≠ v) :
+    ((E.swap u v).swap (Equiv.swap u v a) z) =α ((E'.swap u v).swap (Equiv.swap u v b) z) := by
   have hzb : z ≠ b := by simp_all
   have hza : z ≠ a := by simp_all
   have z_h1 : z ∉ (E.swap u v).vars := by exact not_mem_vars_swap hzu hzv (by simp_all)
@@ -215,7 +218,8 @@ lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
   · rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all
   · rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all
 
--- example 1: use z as witness
+-- representative case: z ≠ u, v
+-- Use z as witness.
 lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : Var}
     (hm : z ∉ E.vars ∪ E'.vars ∪ {a, b})
     (hbody : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
@@ -231,7 +235,7 @@ lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : Var}
     grind
   · exact hren
 
--- example 2: use v as witness
+-- representative case: a ≠ u, v; b ≠ u, v; z = u
 lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var}
     (hm : u ∉ E.vars ∪ E'.vars ∪ {a, b})
     (hbody : ((E.rename a u).swap u v) =α ((E'.rename b u).swap u v))
@@ -249,7 +253,7 @@ lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var
   rw [swap_eq_rename_of_not_mem_vars hvE, swap_eq_rename_of_not_mem_vars hvE'] at hbody
   apply AlphaEquiv.abs (y := v) <;> (simp_all [swap]; grind)
 
--- example 3
+-- representative case: a ≠ u, v; b = u; z = v
 lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
     (hm : v ∉ E.vars ∪ E'.vars ∪ {a})
     (hbody : ((E.rename a v).swap u v) =α ((E'.rename u v).swap u v))
@@ -275,7 +279,7 @@ lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
   · simp_all [swap]
     grind
 
--- example 4
+-- representative case: a = u; b = u; z = v
 lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
     (hm : v ∉ E.vars ∪ E'.vars ∪ {u})
     (ih : ((E.rename u v).swap u v) =α ((E'.rename u v).swap u v)) (huv : u ≠ v) :
@@ -326,33 +330,33 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
       · rcases h4 with hb | hb | ⟨hbu, hbv⟩
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           · simp_all
-          -- representative example 4 case of: a = u; b = u; z = v
+          -- representative case: a = u; b = u; z = v
           · subst ha hb hz
             exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih h2
-          -- example 1 reuse
+          -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           · simp_all
-          -- example 1 reuse
+          -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           · simp_all
-          -- example 3 reuse
+          -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst ha hz
             apply AlphaEquiv.symm
             exact
               (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) (AlphaEquiv.symm ih) hbu hbv h2)
-          -- example 1 reuse
+          -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
       · rcases h4 with hb | hb | ⟨hbu, hbv⟩
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           · simp_all
-          -- example 1 reuse
+          -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
-          -- example 4 reuse
+          -- reuse representative case: a = u; b = u; z = v
           · subst ha hb hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
@@ -361,10 +365,10 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
             nth_rw 2 [swap_comm] at ih
             apply alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih z_h2
           · simp_all
-          -- example 1 reuse
+          -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
-          -- example 3 reuse
+          -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst ha hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
@@ -376,18 +380,18 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
             nth_rw 2 [swap_comm]
             exact ih
           · simp_all
-          -- example 1 reuse
+          -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
       · rcases h4 with hb | hb | ⟨hbu, hbv⟩
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
           · simp_all
-          -- representative example 3 case of: a ≠ u, v; b = u; z = v
+          -- representative case: a ≠ u, v; b = u; z = v
           · subst hb; subst hz
             exact alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih hau hav h2
-          -- example 1 reuse
+          -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
-          -- example 3 reuse
+          -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst hb hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
@@ -397,27 +401,28 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
             nth_rw 2 [swap_comm]
             exact ih
           · simp_all
-          -- example 1 reuse
+          -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
         · rcases h5 with hz | hz | ⟨hzu, hzv⟩
-          -- representative example 2 case of: a ≠ u, v; b ≠ u, v; z = u
+          -- representative case: a ≠ u, v; b ≠ u, v; z = u
           -- use z' = v
           · subst hz
             exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm1 ih hau hav hbu hbv
-          -- example 2 reuse after adjusting via swap commutativity and choosing z' = u
+          -- reuse representative case: a ≠ u, v; b ≠ u, v; z = u
+          -- after adjusting via swap commutativity and choosing z' = u
           · rw [swap_comm (m := Term.abs a E) (x := u) (y := v),
                 swap_comm (m := Term.abs b E') (x := u) (y := v)]
             subst hz
             nth_rw 1 [swap_comm] at ih
             nth_rw 2 [swap_comm] at ih
             exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm1 ih hav hau hbv hbu
-          -- representative example 1 case of: z ≠ u, v
+          -- representative case: z ≠ u, v
           -- use z' = z
           · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
     | app hm1 hm2 ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
 omit [HasFresh Var] in
-/-- **Lemma 6.2 part 1** [Crole2012]. -/
+/-- Lemma 6.2 part 1 [Crole2012]. -/
 lemma permute_eq_of_vars_subset_agreementSet (m : Term Var) (π π' : Equiv.Perm Var)
     (h : (m.vars : Set Var) ⊆ agreementSet π π') :
     m.permute π = m.permute π' := by
@@ -432,7 +437,7 @@ lemma permute_eq_of_vars_subset_agreementSet (m : Term Var) (π π' : Equiv.Perm
     have hn : n.permute π = n.permute π' := ihn fun y hy => h (by simp [vars, hy])
     simp [permute, hm, hn]
 
-/-- **Lemma 6.2 part 2** [Crole2012]. -/
+/-- Lemma 6.2 part 2 [Crole2012]. -/
 lemma permute_alphaEquiv_of_fv_subset_agreementSet (m : Term Var) (π π' : Equiv.Perm Var)
     (h : (m.fv : Set Var) ⊆ agreementSet π π') :
     (m.permute π) =α (m.permute π') := by
@@ -491,7 +496,7 @@ lemma permute_alphaEquiv_of_fv_subset_agreementSet (m : Term Var) (π π' : Equi
     unfold permute
     apply AlphaEquiv.abs (y := z) (by simp_all [z]) hbody
 
-/-- **Lemma 6.2 part 2** [Crole2012] (specialized). -/
+/-- Lemma 6.2 part 2 [Crole2012] (specialized). -/
 lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
     (hu : u ∉ m.fv) (hz : z ∉ m.fv) :
     ((m.swap u a).swap z u) =α (m.swap z a) := by
