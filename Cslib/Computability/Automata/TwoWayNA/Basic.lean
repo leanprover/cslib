@@ -27,7 +27,12 @@ ends in an accepting state with the head just past the end of the input.
 
 * `TwoWayNA`, the automaton itself
 * `TwoWayNACfg`, a configuration of a `TwoWayNA`: Its input plus a state and the head position.
-* `TwoWayNA.Step`, The single-step relation between configurations.
+* `TwoWayNA.toCfgNAFinAcc`, the finite acceptor on configurations whose runs on a fixed input are
+  the runs of the two-way automaton on that input. It also provides the `Acceptor` instance.
+
+The comparison with finite acceptors is in `Cslib.Computability.Automata.TwoWayNA.ToNA`,
+`Cslib.Computability.Automata.TwoWayNA.OfNA` and
+`Cslib.Computability.Automata.TwoWayNA.Regular`.
 
 ## Implementation notes
 

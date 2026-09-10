@@ -8,15 +8,18 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.TwoWayNA.Basic
-public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Foundations.Semantics.LTS.Relation
 
-/-! # Two-way automata are not more powerful than one-way automata
+/-! # A finite acceptor for the complement of the language of a two-way automaton
 
-Every language accepted by a nondeterministic two-way automaton (`TwoWayNA`) is also accepted by
-a one-way nondeterministic automaton (`NA`). We follow Vardi's proof, which -- unlike
-Shepherdson's crossing-sequence argument -- proceeds by characterising *non*-acceptance in a way
-that can be checked by a single left-to-right sweep over the input.
+For every nondeterministic two-way automaton (`TwoWayNA`) `a`, this file constructs a
+nondeterministic finite acceptor (`NA.FinAcc`) that accepts exactly the words rejected by `a`
+(`TwoWayNA.toNAComplement`, `TwoWayNA.language_toNAComplement`). We follow Vardi's proof, which --
+unlike Shepherdson's crossing-sequence argument -- characterises non-acceptance in a way that can
+be checked by a single left-to-right sweep over the input.
+
+This result is the main ingredient in proving equivalence of two-way and one-way automata, which
+can be found in `Cslib.Computability.Automata.TwoWayNA.Regular`.
 
 ## Vardi's condition of non-acceptance
 
@@ -38,24 +41,13 @@ holds at the end of every run (`LTS.mtrInv_of_trInv`). Conversely, the reachable
 (`TwoWayNA.reachable`) themselves form the least such family, so a certificate exists exactly when
 `a` rejects (`TwoWayNA.not_accepts_iff_exists_isRejectionCert`).
 
-## The one-way automaton
+## The finite acceptor for the complement
 
 The point of the reformulation is locality: `TwoWayNA.isStepClosed_iff_localOK` turns condition 2
 into a condition `TwoWayNA.LocalOK` relating only `T (i - 1)`, `T i` and `T (i + 1)` with the
-symbol at position `i`. A one-way automaton can therefore guess the certificate while scanning
-the input, keeping only the last two subsets in its state. This is `TwoWayNA.toNAComplement`, and
-`TwoWayNA.accepts_toNAComplement_iff` shows that it accepts exactly the complement of the language
-of `a`.
-
-## Regular languages
-
-Conversely, a one-way automaton is the special case of a two-way automaton that always moves its
-head to the right (`NA.FinAcc.toTwoWayNA`). Rejection certificates play no role here: since the
-head advances by exactly one symbol per step, the runs of the two-way automaton correspond directly
-to multistep transitions of the one-way one (`NA.FinAcc.mTr_take_of_canReach` and
-`NA.FinAcc.canReach_of_mTr`). Together with closure of regular languages under complement this
-gives `Cslib.Language.IsRegular.iff_twoWayNA`: a language is regular if and only if
-it is accepted by a two-way automaton with finitely many states.
+symbol at position `i`. A finite acceptor can therefore guess the certificate while scanning the
+input, keeping only the last two subsets in its state. This is `TwoWayNA.toNAComplement`, and
+`TwoWayNA.accepts_toNAComplement_iff` shows that it accepts exactly the words rejected by `a`.
 
 ## Implementation notes
 
@@ -119,7 +111,7 @@ theorem IsRejectionCert.not_accepts (hT : a.IsRejectionCert input T) :
     ¬ Acceptor.Accepts a input := by
   rintro ⟨μs, c, ⟨hstart, hpos, hinput⟩, c', ⟨hacc, hlast⟩, hmtr⟩
   obtain ⟨hinput', hmem⟩ := LTS.mtrInv_of_trInv hT.step_closed c μs c' hmtr
-    ⟨hinput, by rw [hpos]; simpa using hT.start_mem c.state hstart⟩
+    ⟨hinput, by simpa [hpos] using hT.start_mem c.state hstart⟩
   rw [hlast, Fin.val_last, hinput'] at hmem
   exact hT.accept_notMem c'.state hmem hacc
 
@@ -141,7 +133,7 @@ theorem isRejectionCert_reachable (h : ¬ Acceptor.Accepts a input) :
     rintro ⟨hc_input, c₀, hstart, hlt, hreach⟩
     have hc'_input : c'.input = input := a.toCfgNAFinAcc_input_eq input c μ c' htr hc_input
     rw [TwoWayNACfg.eta hc_input hlt] at hreach
-    refine ⟨hc'_input, c₀, hstart, by rw [← hc'_input]; exact c'.pos.isLt, ?_⟩
+    refine ⟨hc'_input, c₀, hstart, hc'_input ▸ c'.pos.isLt, ?_⟩
     rw [TwoWayNACfg.eta hc'_input]
     exact (LTS.reflTransGen_unlabelledTr_iff _).mp
       (((LTS.reflTransGen_unlabelledTr_iff _).mpr hreach).tail ⟨μ, htr⟩)
@@ -197,23 +189,23 @@ theorem isStepClosed_iff_localOK :
     have hthis := hloc ⟨(c.pos : ℕ), hlt⟩ c.state hmem m c'.state htr
     cases m with
     | zero =>
-      rw [show (c'.pos : ℕ) = (c.pos : ℕ) by simp at hpos; omega]
-      exact hthis
+      have hpos' : (c'.pos : ℕ) = (c.pos : ℕ) := by simp at hpos; omega
+      rwa [hpos']
     | pos =>
-      rw [show (c'.pos : ℕ) = (c.pos : ℕ) + 1 by simp at hpos; omega]
-      exact hthis
+      have hpos' : (c'.pos : ℕ) = (c.pos : ℕ) + 1 := by simp at hpos; omega
+      rwa [hpos']
     | neg =>
       simp only [SignType.neg_eq_neg_one, SignType.coe_neg_one] at hpos
       obtain ⟨j, hj⟩ : ∃ j, (c.pos : ℕ) = j + 1 := ⟨(c.pos : ℕ) - 1, by omega⟩
-      rw [show (c'.pos : ℕ) = j by omega]
-      rw [show ((⟨(c.pos : ℕ), hlt⟩ : Fin input.length) : ℕ) = j + 1 from hj] at hthis
-      exact hthis
+      have hpos' : (c'.pos : ℕ) = j := by omega
+      rw [hpos']
+      rwa [show ((⟨(c.pos : ℕ), hlt⟩ : Fin input.length) : ℕ) = j + 1 from hj] at hthis
 
-/-! ## The one-way automaton for the complement -/
+/-! ## The finite acceptor for the complement -/
 
-/-- The one-way automaton that guesses a rejection certificate `T` for `a` while scanning the
-input, keeping the pair `(T (i - 1), T i)` in its state after reading `i` symbols. Reading the
-symbol at position `i` guesses `T (i + 1)` and checks local consistency at position `i`. -/
+/-- The nondeterministic finite acceptor that guesses a rejection certificate `T` for `a` while
+scanning the input, keeping the pair `(T (i - 1), T i)` in its state after reading `i` symbols.
+Reading the symbol at position `i` guesses `T (i + 1)` and checks local consistency at `i`. -/
 def toNAComplement (a : TwoWayNA State Symbol) : NA.FinAcc (Set State × Set State) Symbol where
   Tr PC x PC' := PC'.1 = PC.2 ∧ a.LocalOK x PC.1 PC.2 PC'.2
   start := {PC | PC.1 = Set.univ ∧ a.start ⊆ PC.2}
@@ -235,7 +227,7 @@ theorem exists_accepting_mTr_iff (a : TwoWayNA State Symbol) (xs : List Symbol) 
       subst hmtr
       exact ⟨[P, C], by simp, by simp, by simp, by simpa [toNAComplement] using hf⟩
     · rintro ⟨T, h0, h1, -, hacc⟩
-      exact ⟨(P, C), by rw [← h1]; simpa [toNAComplement] using hacc, by simp⟩
+      exact ⟨(P, C), by simpa [toNAComplement, ← h1] using hacc, by simp⟩
   | cons x xs ih =>
     constructor
     · rintro ⟨f, hf, hmtr⟩
@@ -248,7 +240,7 @@ theorem exists_accepting_mTr_iff (a : TwoWayNA State Symbol) (xs : List Symbol) 
             ((P :: T).getI i) ((P :: T).getI (i + 1)) ((P :: T).getI (i + 2)) := by
         intro i hi
         obtain _ | i := i
-        · simpa [h0, h1] using hlocal'
+        · simpa [h0, h1] using hlocal
         · simpa using hloc i (by simpa using hi)
       exact ⟨P :: T, by simp, by simpa using h0, hstep, by simpa using hacc⟩
     · rintro ⟨T, h0, h1, hloc, hacc⟩
@@ -311,16 +303,15 @@ theorem accepts_toNAComplement_iff (a : TwoWayNA State Symbol) (input : List Sym
           ((certToList input T).getI (i + 2)) := by
       intro i hi
       have e0 : (certToList input T).getI i = prevSet T i := by
-        obtain _ | j := i
-        · rfl
-        · exact getI_certToList (by omega)
+        cases i with
+        | zero => rfl
+        | succ j => exact getI_certToList (by omega)
       have e1 : (certToList input T).getI (i + 1) = T i := getI_certToList (by omega)
       have e2 : (certToList input T).getI (i + 2) = T (i + 1) := getI_certToList (by omega)
-      rw [e0, e1, e2]
-      exact hloc ⟨i, hi⟩
+      simpa [e0, e1, e2] using hloc ⟨i, hi⟩
     obtain ⟨f, hf, hmtr⟩ := (exists_accepting_mTr_iff a input Set.univ (T 0)).mpr
       ⟨certToList input T, rfl, getI_certToList (by omega), hstep,
-        by rw [getI_certToList (by omega)]; exact hT.accept_notMem⟩
+        by simpa using hT.accept_notMem⟩
     exact ⟨(Set.univ, T 0), ⟨rfl, hT.start_mem⟩, f, hf, hmtr⟩
 
 /-- `a.toNAComplement` recognises the complement of the language of `a`. -/
@@ -332,111 +323,4 @@ theorem language_toNAComplement (a : TwoWayNA State Symbol) :
 
 end TwoWayNA
 
-/-! ## One-way automata as two-way automata -/
-
-namespace NA.FinAcc
-
-variable {n : NA.FinAcc State Symbol}
-
-/-- The two-way automaton that performs the transitions of `n`, always moving its head one symbol
-to the right. -/
-def toTwoWayNA (n : NA.FinAcc State Symbol) : TwoWayNA State Symbol where
-  Tr q x m q' := m = SignType.pos ∧ n.Tr q x q'
-  start := n.start
-  accept := n.accept
-
-/-- A run of `n.toTwoWayNA` starting on `input` reads a multistep transition of `n` over the
-prefix of `input` scanned so far. -/
-theorem mTr_take_of_canReach {s : State} {c c' : TwoWayNACfg State Symbol}
-    (hreach : (n.toTwoWayNA.toCfgNAFinAcc input).CanReach c c') (hc : c.input = input)
-    (hmtr : n.MTr s (input.take c.pos) c.state) :
-    c'.input = input ∧ n.MTr s (input.take c'.pos) c'.state := by
-  obtain ⟨μs, hreach⟩ := hreach
-  refine LTS.mtrInv_of_trInv
-    (p := fun d => d.input = input ∧ n.MTr s (input.take d.pos) d.state) ?_ c μs c' hreach
-    ⟨hc, hmtr⟩
-  rintro d ⟨x, m⟩ d' hstep ⟨hd, hmtr⟩
-  obtain ⟨hlt, rfl⟩ := TwoWayNA.getElem_of_tr hstep hd
-  obtain ⟨hinput, -, ⟨rfl, htr⟩, hpos⟩ := hstep
-  refine ⟨by rw [← hinput, hd], ?_⟩
-  rw [show (d'.pos : ℕ) = (d.pos : ℕ) + 1 by simp at hpos; omega,
-    List.take_succ_eq_append_getElem hlt]
-  exact LTS.MTr.stepR _ hmtr htr
-
-/-- A multistep transition of `n` over the part of `input` that starts at position `p` is read by
-a run of `n.toTwoWayNA` taking its head from `p` to the end of the input. -/
-theorem canReach_of_mTr {suf : List Symbol} {s s' : State} {p : ℕ}
-    (hp : p < input.length + 1) (hdrop : input.drop p = suf) (hmtr : n.MTr s suf s') :
-    (n.toTwoWayNA.toCfgNAFinAcc input).CanReach ⟨input, s, ⟨p, hp⟩⟩ ⟨input, s', Fin.last _⟩ := by
-  induction suf generalizing s p with
-  | nil =>
-    rw [LTS.MTr.nil_iff] at hmtr
-    subst hmtr
-    obtain rfl : p = input.length := by grind [List.drop_eq_nil_iff]
-    exact LTS.CanReach.refl _ _
-  | cons x xs ih =>
-    rw [LTS.MTr.cons_iff] at hmtr
-    obtain ⟨t, htr, hmtr⟩ := hmtr
-    have hlt : p < input.length := by
-      by_contra hc
-      grind [List.drop_eq_nil_iff]
-    have hx : input[p]'hlt = x := by
-      have h0 : (input.drop p)[0]? = some x := by rw [hdrop]; simp
-      grind
-    have hdrop' : input.drop (p + 1) = xs := by simp [← List.tail_drop, hdrop]
-    have hstep : (n.toTwoWayNA.toCfgNAFinAcc input).Tr
-        ⟨input, s, ⟨p, hp⟩⟩ (x, SignType.pos) ⟨input, t, ⟨p + 1, by omega⟩⟩ :=
-      ⟨rfl, by rw [← hx]; simp, ⟨rfl, htr⟩, by simp⟩
-    obtain ⟨μs, hmtr'⟩ := ih (by omega) hdrop' hmtr
-    exact ⟨(x, SignType.pos) :: μs, LTS.MTr.cons_iff.mpr ⟨_, hstep, hmtr'⟩⟩
-
-/-- A one-way automaton and its two-way rendering accept the same words. -/
-theorem accepts_toTwoWayNA_iff (n : NA.FinAcc State Symbol) (input : List Symbol) :
-    Acceptor.Accepts n.toTwoWayNA input ↔ Acceptor.Accepts n input := by
-  constructor
-  · rintro ⟨μs, c, ⟨hs, hpos, hinput⟩, c', ⟨hacc, hlast⟩, hmtr⟩
-    have hstart : n.MTr c.state (input.take c.pos) c.state := by
-      rw [hpos]
-      simp
-    obtain ⟨hinput', hmtr⟩ := mTr_take_of_canReach ⟨μs, hmtr⟩ hinput hstart
-    rw [hlast, Fin.val_last, hinput', List.take_length] at hmtr
-    exact ⟨c.state, hs, c'.state, hacc, hmtr⟩
-  · rintro ⟨s, hs, s', hs', hmtr⟩
-    obtain ⟨μs, hmtr⟩ :=
-      canReach_of_mTr (suf := input) (by omega) List.drop_zero hmtr
-    exact ⟨μs, ⟨input, s, ⟨0, by omega⟩⟩, ⟨hs, Fin.ext (by simp), rfl⟩,
-      ⟨input, s', Fin.last _⟩, ⟨hs', rfl⟩, hmtr⟩
-
-/-- A one-way automaton and its two-way rendering recognise the same language. -/
-theorem language_toTwoWayNA (n : NA.FinAcc State Symbol) :
-    Acceptor.language n.toTwoWayNA = Acceptor.language n := by
-  ext xs
-  simp only [Acceptor.mem_language]
-  exact accepts_toTwoWayNA_iff n xs
-
-end NA.FinAcc
-
 end Cslib.Automata
-
-namespace Cslib.Language
-
-open Automata Acceptor
-
-/-- A language is regular if and only if it is accepted by some two-way nondeterministic
-automaton with finitely many states. -/
-theorem IsRegular.iff_twoWayNA {Symbol : Type*} {l : Language Symbol} :
-    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ a : Automata.TwoWayNA State Symbol, language a = l := by
-  constructor
-  · intro h
-    rw [IsRegular.iff_nfa] at h
-    obtain ⟨State, hfin, na, rfl⟩ := h
-    exact ⟨State, hfin, na.toTwoWayNA, na.language_toTwoWayNA⟩
-  · rintro ⟨State, hfin, a, rfl⟩
-    have := hfin
-    have hc : (language a)ᶜ.IsRegular := by
-      rw [IsRegular.iff_nfa]
-      exact ⟨Set State × Set State, inferInstance, a.toNAComplement, a.language_toNAComplement⟩
-    simpa using hc.compl
-
-end Cslib.Language
