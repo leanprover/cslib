@@ -6,6 +6,7 @@ Authors: Kim Morrison, Shreyas Srinivas, Sorrachai Yingchareonthawornchai
 module
 
 public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
+public import Cslib.Algorithms.Lean.Sort.Merge
 
 /-! # Merge Sort as a Query Program
 
@@ -46,31 +47,17 @@ theorem split_fst_append_split_snd (xs : List α) : (split xs).1 ++ (split xs).2
 
 variable [Monad m] (cmp : α → α → m Bool)
 
-/-- Merge two sorted lists using monadic comparisons. -/
-@[expose] def mergeM (xs ys : List α) : m (List α) :=
-  match xs, ys with
-  | [], ys => return ys
-  | xs, [] => return xs
-  | x :: xs', y :: ys' => do
-    let le ← cmp x y
-    if le then do
-      let rest ← mergeM xs' (y :: ys')
-      return (x :: rest)
-    else do
-      let rest ← mergeM (x :: xs') ys'
-      return (y :: rest)
-termination_by xs.length + ys.length
-
+-- TODO: this is a duplicate of `List.mergeSortM`
 /-- Sort a list using merge sort with monadic comparisons. -/
-@[expose] def mergeSortM (xs : List α) : m (List α) :=
+@[expose] def mergeSortM' (xs : List α) : m (List α) :=
   match xs with
   | [] => return []
   | [x] => return [x]
   | x :: y :: zs => do
     let halves := split (x :: y :: zs)
-    let sl ← mergeSortM halves.1
-    let sr ← mergeSortM halves.2
-    mergeM cmp sl sr
+    let sl ← mergeSortM' halves.1
+    let sr ← mergeSortM' halves.2
+    mergeM sl sr cmp
 termination_by xs.length
 decreasing_by
   · simp only [split_fst_length_eq, List.length_cons]; omega
@@ -82,10 +69,10 @@ namespace Cslib.Query
 
 /-- Merge two sorted lists using comparison queries. -/
 abbrev merge (xs ys : List α) : FreeM (LEQuery α) (List α) :=
-  xs.mergeM LEQuery.ask ys
+  xs.mergeM ys LEQuery.ask
 
 /-- Sort a list using merge sort with comparison queries. -/
 abbrev mergeSort (xs : List α) : FreeM (LEQuery α) (List α) :=
-  xs.mergeSortM LEQuery.ask
+  xs.mergeSortM' LEQuery.ask
 
 end Cslib.Query
