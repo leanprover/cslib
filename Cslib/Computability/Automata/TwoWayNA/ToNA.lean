@@ -13,10 +13,10 @@ public import Cslib.Foundations.Semantics.LTS.Relation
 
 /-! # Two-way automata are not more powerful than one-way automata
 
-Every language recognised by a nondeterministic two-way automaton (`TwoWayNA`) is also recognised by
+Every language accepted by a nondeterministic two-way automaton (`TwoWayNA`) is also accepted by
 a one-way nondeterministic automaton (`NA`). We follow Vardi's proof, which -- unlike
-Shepherdson's classical crossing-sequence argument -- proceeds by characterising *non*-acceptance
-in a way that can be checked by a single left-to-right sweep over the input.
+Shepherdson's crossing-sequence argument -- proceeds by characterising *non*-acceptance in a way
+that can be checked by a single left-to-right sweep over the input.
 
 ## Vardi's condition of non-acceptance
 
@@ -95,10 +95,10 @@ namespace TwoWayNA
 /-! ## Vardi's condition of non-acceptance -/
 
 /-- Every step of `a` on `input` out of a state that `T` attaches to the head position lands in a
-state that `T` attaches to the new head position. -/
+state that `T` attaches to the new head position. The conjunct on the input restricts the
+invariant to the configurations that run on `input`. -/
 def IsStepClosed (a : TwoWayNA State Symbol) (input : List Symbol) (T : ℕ → Set State) : Prop :=
-  ∀ c c', c.input = input → (a.toCfgNAFinAcc input).UnlabelledTr c c' → c.state ∈ T c.pos →
-    c'.state ∈ T c'.pos
+  (a.toCfgNAFinAcc input).TrInv (fun c => c.input = input ∧ c.state ∈ T c.pos)
 
 /-- A family of subsets of the state set, one for every position of the input head on `input`,
 which contains all initial states, is closed under the transitions of `a`, and contains no
@@ -118,14 +118,8 @@ variable {T : ℕ → Set State}
 theorem IsRejectionCert.not_accepts (hT : a.IsRejectionCert input T) :
     ¬ Acceptor.Accepts a input := by
   rintro ⟨μs, c, ⟨hstart, hpos, hinput⟩, c', ⟨hacc, hlast⟩, hmtr⟩
-  have hinv : (a.toCfgNAFinAcc input).MTrInv
-      (fun d => d.input = input ∧ d.state ∈ T d.pos) := by
-    apply LTS.mtrInv_of_trInv
-    rintro d μ d' htr ⟨hd_input, hd_mem⟩
-    exact ⟨a.toCfgNAFinAcc_input_eq input d μ d' htr hd_input,
-      hT.step_closed d d' hd_input ⟨μ, htr⟩ hd_mem⟩
-  obtain ⟨hinput', hmem⟩ :=
-    hinv c μs c' hmtr ⟨hinput, by rw [hpos]; simpa using hT.start_mem c.state hstart⟩
+  obtain ⟨hinput', hmem⟩ := LTS.mtrInv_of_trInv hT.step_closed c μs c' hmtr
+    ⟨hinput, by rw [hpos]; simpa using hT.start_mem c.state hstart⟩
   rw [hlast, Fin.val_last, hinput'] at hmem
   exact hT.accept_notMem c'.state hmem hacc
 
@@ -143,16 +137,14 @@ theorem isRejectionCert_reachable (h : ¬ Acceptor.Accepts a input) :
   start_mem s hs :=
     ⟨{ input := input, pos := ⟨0, Nat.succ_pos _⟩, state := s },
       ⟨hs, Fin.ext (by simp), rfl⟩, Nat.succ_pos _, LTS.CanReach.refl _ _⟩
-  step_closed c c' hc_input htr hmem := by
-    obtain ⟨c₀, hstart, hlt, hreach⟩ := hmem
-    have hc'_input : c'.input = input := by
-      obtain ⟨μ, htr⟩ := htr
-      exact a.toCfgNAFinAcc_input_eq input c μ c' htr hc_input
+  step_closed c μ c' htr := by
+    rintro ⟨hc_input, c₀, hstart, hlt, hreach⟩
+    have hc'_input : c'.input = input := a.toCfgNAFinAcc_input_eq input c μ c' htr hc_input
     rw [TwoWayNACfg.eta hc_input hlt] at hreach
-    refine ⟨c₀, hstart, by rw [← hc'_input]; exact c'.pos.isLt, ?_⟩
+    refine ⟨hc'_input, c₀, hstart, by rw [← hc'_input]; exact c'.pos.isLt, ?_⟩
     rw [TwoWayNACfg.eta hc'_input]
     exact (LTS.reflTransGen_unlabelledTr_iff _).mp
-      (((LTS.reflTransGen_unlabelledTr_iff _).mpr hreach).tail htr)
+      (((LTS.reflTransGen_unlabelledTr_iff _).mpr hreach).tail ⟨μ, htr⟩)
   accept_notMem s hs hacc := by
     obtain ⟨c₀, hstart, hlt, μs, hmtr⟩ := hs
     exact h ⟨μs, c₀, hstart, _, ⟨hacc, Fin.ext (by simp)⟩, hmtr⟩
@@ -187,18 +179,19 @@ theorem isStepClosed_iff_localOK :
     have hlt : (i : ℕ) < input.length := i.isLt
     cases m with
     | zero =>
-      exact hcl ⟨input, q, ⟨i, by omega⟩⟩ ⟨input, q', ⟨i, by omega⟩⟩ rfl
-        ⟨(input[i], SignType.zero), rfl, by simp, htr, by simp⟩ hq
+      exact (hcl ⟨input, q, ⟨i, by omega⟩⟩ (input[i], SignType.zero)
+        ⟨input, q', ⟨i, by omega⟩⟩ ⟨rfl, by simp, htr, by simp⟩ ⟨rfl, hq⟩).2
     | pos =>
-      exact hcl ⟨input, q, ⟨i, by omega⟩⟩ ⟨input, q', ⟨i + 1, by omega⟩⟩ rfl
-        ⟨(input[i], SignType.pos), rfl, by simp, htr, by simp⟩ hq
+      exact (hcl ⟨input, q, ⟨i, by omega⟩⟩ (input[i], SignType.pos)
+        ⟨input, q', ⟨i + 1, by omega⟩⟩ ⟨rfl, by simp, htr, by simp⟩ ⟨rfl, hq⟩).2
     | neg =>
       obtain ⟨iv, hiv⟩ := i
       obtain _ | j := iv
       · exact Set.mem_univ q'
-      · exact hcl ⟨input, q, ⟨j + 1, by omega⟩⟩ ⟨input, q', ⟨j, by omega⟩⟩ rfl
-          ⟨(input[j + 1], SignType.neg), rfl, by simp, htr, by simp⟩ hq
-  · rintro hloc c c' hc_input ⟨⟨x, m⟩, hstep⟩ hmem
+      · exact (hcl ⟨input, q, ⟨j + 1, by omega⟩⟩ (input[j + 1], SignType.neg)
+          ⟨input, q', ⟨j, by omega⟩⟩ ⟨rfl, by simp, htr, by simp⟩ ⟨rfl, hq⟩).2
+  · rintro hloc c ⟨x, m⟩ c' hstep ⟨hc_input, hmem⟩
+    refine ⟨a.toCfgNAFinAcc_input_eq input c (x, m) c' hstep hc_input, ?_⟩
     obtain ⟨hlt, rfl⟩ := getElem_of_tr hstep hc_input
     obtain ⟨-, -, htr, hpos⟩ := hstep
     have hthis := hloc ⟨(c.pos : ℕ), hlt⟩ c.state hmem m c'.state htr
