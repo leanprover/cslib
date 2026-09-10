@@ -92,13 +92,15 @@ merge sort operation, so correctness properties (permutation, sortedness, stabil
 transfer directly from the `List.mergeSort` API rather than being restated here. -/
 @[simp] theorem eval_mergeSort (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
     (mergeSort xs).eval oracle = xs.mergeSort (fun a b => oracle (.le a b)) := by
-  induction xs using List.mergeSortM.induct (α := α) with
-  | case1 => simp [List.mergeSortM']
-  | case2 x => simp [List.mergeSortM']
+  unfold mergeSort
+  fun_induction List.mergeSortM xs LEQuery.ask with
+  | case1 => simp
+  | case2 x => simp
   | case3 x y zs halves ih_l ih_r =>
     rw [list_mergeSort_cons_cons]
-    simp [halves] at ih_l ih_r
-    simp [List.mergeSortM', List.split, ih_l, ih_r]
+    subst halves
+    simp only [List.splitInTwo_fst, List.splitInTwo_snd] at *
+    simp [ih_l, ih_r]
 
 /-! ## Correctness, transferred from the `List.mergeSort` API -/
 
@@ -143,11 +145,11 @@ theorem mergeSort_sorted
 
 @[simp] theorem countQueries_mergeSort_nil (oracle : {ι : Type} → LEQuery α ι → ι) :
     (mergeSort (α := α) []).countQueries oracle = 0 := by
-  simp [List.mergeSortM']
+  simp
 
 @[simp] theorem countQueries_mergeSort_singleton (oracle : {ι : Type} → LEQuery α ι → ι) (x : α) :
     (mergeSort [x]).countQueries oracle = 0 := by
-  simp [List.mergeSortM']
+  simp
 
 open List (split) in
 @[simp] theorem countQueries_mergeSort_cons_cons (oracle : {ι : Type} → LEQuery α ι → ι)
@@ -158,7 +160,8 @@ open List (split) in
        (merge ((x :: y :: zs).split.1.mergeSort fun a b => oracle (.le a b))
               ((x :: y :: zs).split.2.mergeSort fun a b => oracle (.le a b))).countQueries
          oracle) := by
-  simp [List.mergeSortM']
+  simp only [List.mergeSortM, List.splitInTwo_fst, List.splitInTwo_snd]
+  simp
 
 /-! ## Query count proofs -/
 
@@ -195,10 +198,12 @@ private theorem mergeSort_bound (n : ℕ) (hn : 2 ≤ n) :
 theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
     (xs : List α) :
     (mergeSort xs).countQueries oracle ≤ xs.length * Nat.clog 2 xs.length := by
-  induction xs using List.mergeSortM'.induct (α := α) with
+  induction xs using List.mergeSortM.induct (α := α) with
   | case1 => simp [mergeSort]
   | case2 x => simp [mergeSort]
   | case3 x y zs halves ih_l ih_r =>
+    subst halves
+    simp only [List.splitInTwo_fst, List.splitInTwo_snd] at ih_l ih_r
     simp only [countQueries_mergeSort_cons_cons]
     have hml := merge_countQueries_le oracle
       ((x :: y :: zs).split.1.mergeSort fun a b => oracle (.le a b))

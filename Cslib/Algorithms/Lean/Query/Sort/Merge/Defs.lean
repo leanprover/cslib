@@ -7,6 +7,8 @@ module
 
 public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
 public import Cslib.Algorithms.Lean.Sort.Merge
+import all Init.Data.List.Sort.Basic
+import all Cslib.Algorithms.Lean.Sort.Merge
 
 /-! # Merge Sort as a Query Program
 
@@ -47,21 +49,13 @@ theorem split_fst_append_split_snd (xs : List α) : (split xs).1 ++ (split xs).2
 
 variable [Monad m] (cmp : α → α → m Bool)
 
--- TODO: this is a duplicate of `List.mergeSortM`
-/-- Sort a list using merge sort with monadic comparisons. -/
-@[expose] def mergeSortM' (xs : List α) : m (List α) :=
-  match xs with
-  | [] => return []
-  | [x] => return [x]
-  | x :: y :: zs => do
-    let halves := split (x :: y :: zs)
-    let sl ← mergeSortM' halves.1
-    let sr ← mergeSortM' halves.2
-    mergeM sl sr cmp
-termination_by xs.length
-decreasing_by
-  · simp only [split_fst_length_eq, List.length_cons]; omega
-  · simp only [split_snd_length_eq, List.length_cons]; omega
+theorem splitInTwo_fst (xs : {l : List α // l.length = n}) :
+    (List.MergeSort.Internal.splitInTwo xs).1 = xs.val.split.1 := by
+  simp [split, xs.prop]
+
+theorem splitInTwo_snd (xs : {l : List α // l.length = n}) :
+    (List.MergeSort.Internal.splitInTwo xs).2 = xs.val.split.2 := by
+  simp [split, xs.prop]
 
 end List
 
@@ -73,6 +67,6 @@ abbrev merge (xs ys : List α) : FreeM (LEQuery α) (List α) :=
 
 /-- Sort a list using merge sort with comparison queries. -/
 abbrev mergeSort (xs : List α) : FreeM (LEQuery α) (List α) :=
-  xs.mergeSortM' LEQuery.ask
+  xs.mergeSortM LEQuery.ask
 
 end Cslib.Query
