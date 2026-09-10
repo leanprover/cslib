@@ -6,7 +6,13 @@ Authors: Sorrachai Yingchareonthawornhcai
 
 module
 
+<<<<<<< HEAD:Cslib/AlgorithmsTheory/Lean/MergeSort/MergeSort.lean
 public import Cslib.AlgorithmsTheory.Lean.TimeM
+=======
+public import Cslib.Algorithms.Lean.TimeM
+public import Cslib.Algorithms.Lean.Sort.Merge
+import all Cslib.Algorithms.Lean.Sort.Merge
+>>>>>>> ec768ef1e7819d48c9809ffc1f9583443fff976c:Cslib/Algorithms/Lean/MergeSort/MergeSort.lean
 public import Mathlib.Data.Nat.Cast.Order.Ring
 public import Mathlib.Order.Lattice.Nat
 public import Mathlib.Data.Nat.Log
@@ -31,42 +37,45 @@ set_option autoImplicit false
 
 namespace Cslib.Algorithms.Lean.TimeM
 
-variable {α : Type} [LinearOrder α]
+variable {α : Type}
+
+open List in
+/-- `TimeM.ret` passes through `List.mergeM` into the comparator. -/
+@[simp, grind =]
+theorem ret_mergeM {T} [AddMonoid T] (xs ys : List α) (le : α → α → TimeM T Bool) :
+    ⟪List.mergeM xs ys le⟫ = List.merge xs ys (fun x y => ⟪le x y⟫) := by
+  fun_induction merge with grind [mergeM, nil_merge, merge_right, cons_merge_cons]
+
+open List in
+/-- `TimeM.ret` passes through `List.mergeSortM` into the comparator. -/
+@[simp]
+theorem ret_mergeSortM {T} [AddMonoid T] (xs : List α) (le : α → α → TimeM T Bool) :
+    ⟪List.mergeSortM xs le⟫ = List.mergeSort xs (fun x y => ⟪le x y⟫) := by
+  fun_induction List.mergeSortM with
+  | case1 | case2 => simp
+  | case3 a b xs le iha ihb =>
+    simp only [ret_bind, ret_mergeM, mergeSort]
+    rw [iha, ihb]
+
+variable [LinearOrder α]
 
 /-- Merges two lists into a single list, counting comparisons as time cost.
 Returns a `TimeM ℕ (List α)` where the time represents the number of comparisons performed. -/
-def merge :  List α → List α → TimeM ℕ (List α)
-  | [], ys => return ys
-  | xs, [] => return xs
-  | x::xs', y::ys' => do
-    ✓ let c := (x ≤ y : Bool)
-    if c then
-      let rest ← merge xs' (y::ys')
-      return (x :: rest)
-    else
-      let rest ← merge (x::xs') ys'
-      return (y :: rest)
+abbrev merge (xs ys : List α) : TimeM ℕ (List α) :=
+  List.mergeM xs ys fun x y => do ✓ return x ≤ y
 
 /-- Sorts a list using the merge sort algorithm, counting comparisons as time cost.
 Returns a `TimeM ℕ (List α)` where the time represents the total number of comparisons. -/
-def mergeSort (xs : List α) : TimeM ℕ (List α) :=  do
-  if xs.length < 2 then return xs
-  else
-    let half  := xs.length / 2
-    let left  := xs.take half
-    let right := xs.drop half
-    let sortedLeft  ← mergeSort left
-    let sortedRight ← mergeSort right
-    merge sortedLeft sortedRight
+abbrev mergeSort (xs : List α) : TimeM ℕ (List α) :=
+  List.mergeSortM xs fun x y => do ✓ return x ≤ y
 
 section Correctness
 
 open List
 
 /-- Our merge computes the one already in mathlib. -/
-@[simp, grind =]
 theorem ret_merge (xs ys : List α) : ⟪merge xs ys⟫ = xs.merge ys := by
-  fun_induction merge with grind [nil_merge, merge_right, cons_merge_cons]
+  simp
 
 /-- A list is sorted if it satisfies the `Pairwise (· ≤ ·)` predicate. -/
 abbrev IsSorted (l : List α) : Prop := List.Pairwise (· ≤ ·) l
@@ -87,24 +96,13 @@ theorem sorted_merge {l1 l2 : List α} (hxs : IsSorted l1) (hys : IsSorted l2) :
   grind [hxs.merge hys]
 
 theorem mergeSort_sorted (xs : List α) : IsSorted ⟪mergeSort xs⟫ := by
-  fun_induction mergeSort xs with
-  | case1 x =>
-    rcases x with _ | ⟨a, _ | ⟨b, rest⟩⟩ <;> grind
-  | case2 _ _ _ _ _ ih2 ih1 => exact sorted_merge ih2 ih1
+  simpa using List.pairwise_mergeSort' _ xs
 
 lemma merge_perm (l₁ l₂ : List α) : ⟪merge l₁ l₂⟫ ~ l₁ ++ l₂ := by
-  fun_induction merge with grind [List.merge_perm_append]
+  simpa using List.merge_perm_append _
 
 theorem mergeSort_perm (xs : List α) : ⟪mergeSort xs⟫ ~ xs := by
-  fun_induction mergeSort xs with
-  | case1 => simp
-  | case2 x _ _ left right ih2 ih1 =>
-    simp only [ret_bind]
-    calc
-      ⟪merge ⟪mergeSort left⟫ ⟪mergeSort right⟫⟫  ~
-      ⟪mergeSort left⟫ ++ ⟪mergeSort right⟫  := by apply merge_perm
-      _ ~ left++right := Perm.append ih2 ih1
-      _ ~ x := by simp only [take_append_drop, Perm.refl, left, right]
+  simpa using List.mergeSort_perm _ _
 
 /-- MergeSort is functionally correct. -/
 theorem mergeSort_correct (xs : List α) : IsSorted ⟪mergeSort xs⟫ ∧ ⟪mergeSort xs⟫ ~ xs :=
@@ -176,24 +174,21 @@ theorem merge_ret_length_eq_sum (xs ys : List α) :
     ⟪merge xs ys⟫.length = xs.length + ys.length := by
   simp
 
-@[simp] theorem mergeSort_same_length (xs : List α) :
+theorem mergeSort_same_length (xs : List α) :
     ⟪mergeSort xs⟫.length = xs.length := by
-  fun_induction mergeSort
-  · simp
-  · grind [List.length_merge]
+  simp
 
 @[simp] theorem merge_time (xs ys : List α) : (merge xs ys).time ≤ xs.length + ys.length := by
-  fun_induction merge with
-  | case3 =>
-    grind
-  | _ => simp
+  unfold merge
+  fun_induction List.mergeM with grind
 
 theorem mergeSort_time_le (xs : List α) :
     (mergeSort xs).time ≤ timeMergeSortRec xs.length := by
-  fun_induction mergeSort with
-  | case1 =>
+  unfold mergeSort
+  fun_induction List.mergeSortM with
+  | case1 | case2 =>
     grind
-  | case2 _ _ _ _ _ ih2 ih1 =>
+  | case3 _ _ _ _ ih2 ih1 =>
     simp only [time_bind]
     grw [merge_time]
     simp only [mergeSort_same_length]
