@@ -403,4 +403,27 @@ theorem Program.lines_eval
       · simp only [Program.lines_gate_castSucc, Program.eval_gate_castSucc]
         exact (evalWidened (program.lines priorGate)).trans (ih priorGate)
 
+/-- A valuation satisfying every gate equation is the program's evaluation. -/
+theorem Program.eq_eval_of_forall_lines_eval
+    (p : Program σ inputCount gateCount) (i : Interpretation σ U) (x : Fin inputCount → U)
+    (values : Fin gateCount → U)
+    (h : ∀ gate, (p.lines gate).eval i x values = values gate) :
+    values = p.eval i x := by
+  induction p with
+  | empty => exact Subsingleton.elim _ _
+  | @gate g p line ih =>
+      have hmap (l : Line σ inputCount g) :
+          (l.mapWires Wire.Renaming.castSucc).eval i x values =
+            l.eval i x (values ∘ Fin.castSucc) := by
+        apply Line.eval_mapWires
+        intro w
+        refine Fin.addCases (fun a => ?_) (fun b => ?_) w <;>
+          simp [Wire.Renaming.castSucc, Function.comp_def]
+      have hp : values ∘ Fin.castSucc = p.eval i x :=
+        ih _ (fun gate => by simpa [hmap] using h gate.castSucc)
+      funext gate
+      refine Fin.lastCases ?_ (fun gate => ?_) gate
+      · simpa [hmap, hp] using (h (Fin.last g)).symm
+      · simpa using congrFun hp gate
+
 end Cslib.Circuits
