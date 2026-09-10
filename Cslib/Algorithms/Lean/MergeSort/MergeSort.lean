@@ -7,6 +7,7 @@ Authors: Sorrachai Yingchareonthawornhcai
 module
 
 public import Cslib.Algorithms.Lean.TimeM
+public import Mathlib.Data.List.Sort
 public import Mathlib.Data.Nat.Cast.Order.Ring
 public import Mathlib.Order.Lattice.Nat
 public import Mathlib.Data.Nat.Log
@@ -109,6 +110,16 @@ theorem mergeSort_perm (xs : List α) : ⟪mergeSort xs⟫ ~ xs := by
 /-- MergeSort is functionally correct. -/
 theorem mergeSort_correct (xs : List α) : IsSorted ⟪mergeSort xs⟫ ∧ ⟪mergeSort xs⟫ ~ xs :=
   ⟨mergeSort_sorted xs, mergeSort_perm xs⟩
+
+/-- the timed merge sort computes the same sorted list as list merge sort -/
+@[simp, grind =]
+theorem ret_mergeSort (xs : List α) :
+    ⟪mergeSort xs⟫ = xs.mergeSort (· ≤ ·) := by
+  have hsorted₁ : (⟪mergeSort xs⟫).SortedLE := by
+    simpa [List.sortedLE_iff_pairwise] using mergeSort_sorted xs
+  have hsorted₂ : (xs.mergeSort (· ≤ ·)).SortedLE := List.sortedLE_mergeSort
+  exact List.Perm.eq_of_sortedLE hsorted₁ hsorted₂
+    ((mergeSort_perm xs).trans (List.mergeSort_perm xs (· ≤ ·)).symm)
 
 end Correctness
 
