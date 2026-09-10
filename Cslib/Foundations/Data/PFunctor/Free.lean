@@ -107,7 +107,7 @@ protected def bind : P.FreeM α → (α → P.FreeM β) → P.FreeM β
 
 instance : Bind (P.FreeM) where bind := .bind
 
-/-- Not marked `simp` since it is not universe level generic -/
+/-- Not marked `simp` since it is not universe level generic. -/
 theorem bind_eq_bind {α β : Type v} :
     (FreeM.bind : P.FreeM α → _ → P.FreeM β) = Bind.bind := rfl
 
