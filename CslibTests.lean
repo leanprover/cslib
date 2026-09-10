@@ -1,4 +1,5 @@
 import CslibTests.Bisimulation
+import CslibTests.BooleanCircuits
 import CslibTests.CCS
 import CslibTests.CCS.VendingMachine
 import CslibTests.CLL

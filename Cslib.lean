@@ -30,6 +30,10 @@ public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Automata.TwoWayNA.Basic
 public import Cslib.Computability.Circuit.Basic
+public import Cslib.Computability.Circuit.Boolean.Basic
+public import Cslib.Computability.Circuit.Boolean.Lupanov
+public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
+public import Cslib.Computability.Circuit.Boolean.Synthesis
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Program
 public import Cslib.Computability.Circuit.Signature
