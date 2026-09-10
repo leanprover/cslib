@@ -6,13 +6,9 @@ Authors: Sorrachai Yingchareonthawornhcai
 
 module
 
-<<<<<<< HEAD:Cslib/AlgorithmsTheory/Lean/MergeSort/MergeSort.lean
 public import Cslib.AlgorithmsTheory.Lean.TimeM
-=======
-public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Algorithms.Lean.Sort.Merge
 import all Cslib.Algorithms.Lean.Sort.Merge
->>>>>>> ec768ef1e7819d48c9809ffc1f9583443fff976c:Cslib/Algorithms/Lean/MergeSort/MergeSort.lean
 public import Mathlib.Data.Nat.Cast.Order.Ring
 public import Mathlib.Order.Lattice.Nat
 public import Mathlib.Data.Nat.Log
