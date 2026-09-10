@@ -7,8 +7,9 @@ Authors: Bolton Bailey, Pim Spelier, Daan van Gent
 module
 
 public import Cslib.Foundations.Data.BiTape
+public import Cslib.Foundations.Data.Polynomial.Monotone
 public import Cslib.Foundations.Data.RelatesInSteps
-public import Mathlib.Algebra.Polynomial.Eval.Defs
+public import Mathlib.Order.PartialSups
 
 /-!
 # Single-Tape Turing Machines
@@ -52,6 +53,8 @@ We also provide ways of constructing polynomial-runtime TMs
 
 * `PolyTimeComputable.id`: computes the identity function
 * `PolyTimeComputable.comp`: computes the composition of polynomial time machines
+* `TimeComputable.withMonotoneBound`, `PolyTimeComputable.withMonotoneBound`: replace the time
+  bound with a monotone one (its `partialSups`) without changing the machine
 
 ## TODOs
 
@@ -451,6 +454,21 @@ def TimeComputable.comp {f g : List Symbol → List Symbol}
       -- Use the lemma about output length being bounded by input length + time
       exact output_length_le_input_length_add_time hf.tm _ _ _ (hf.outputsFunInTime a)
 
+/--
+Convert a `TimeComputable` to one with a monotone time bound, by replacing the time bound `t`
+with `partialSups t`, i.e. `n ↦ max (t 0) ⋯ (t n)`. The underlying machine is unchanged.
+-/
+def TimeComputable.withMonotoneBound {f : List Symbol → List Symbol}
+    (hf : TimeComputable f) : TimeComputable f where
+  tm := hf.tm
+  timeBound := partialSups hf.timeBound
+  outputsFunInTime a :=
+    RelatesWithinSteps.mono (le_partialSups hf.timeBound _) (hf.outputsFunInTime a)
+
+lemma TimeComputable.withMonotoneBound_timeBound_monotone {f : List Symbol → List Symbol}
+    (hf : TimeComputable f) : Monotone hf.withMonotoneBound.timeBound :=
+  (partialSups hf.timeBound).monotone
+
 end TimeComputable
 
 /-!
@@ -482,22 +500,35 @@ noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) 
   poly := 1
   bounds _ := by simp [TimeComputable.id]
 
--- TODO remove `h_mono` assumption
--- by developing function to convert PolyTimeComputable into one with monotone time bound
+/--
+Convert a `PolyTimeComputable` to one with a monotone time bound.
+The polynomial bound is unchanged, since polynomial evaluation over `ℕ` is monotone.
+-/
+noncomputable def PolyTimeComputable.withMonotoneBound {f : List Symbol → List Symbol}
+    (hf : PolyTimeComputable f) : PolyTimeComputable f where
+  toTimeComputable := hf.toTimeComputable.withMonotoneBound
+  poly := hf.poly
+  bounds _ := partialSups_le _ _ _ fun k hk => (hf.bounds k).trans (hf.poly.monotone_eval hk)
+
 /--
 A proof that the composition of two polytime computable functions is polytime computable.
+
+The time bound of `hg` is first replaced by a monotone one via `withMonotoneBound`,
+so that no monotonicity assumption is required of the caller.
 -/
 noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
-    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
-    (h_mono : Monotone hg.timeBound) :
+    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g) :
     PolyTimeComputable (g ∘ f) where
-  toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
+  toTimeComputable :=
+    TimeComputable.comp hf.toTimeComputable hg.withMonotoneBound.toTimeComputable
+      hg.toTimeComputable.withMonotoneBound_timeBound_monotone
   poly := hf.poly + hg.poly.comp (1 + X + hf.poly)
   bounds n := by
     simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
     apply add_le_add
     · exact hf.bounds n
-    · exact (h_mono (add_le_add (by omega) (hf.bounds n))).trans (hg.bounds _)
+    · exact (hg.toTimeComputable.withMonotoneBound_timeBound_monotone
+        (add_le_add (by omega) (hf.bounds n))).trans (hg.withMonotoneBound.bounds _)
 
 end PolyTimeComputable
 
