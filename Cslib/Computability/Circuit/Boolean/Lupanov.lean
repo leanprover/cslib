@@ -16,10 +16,30 @@ import Mathlib.Data.Nat.Log
 Every Boolean function on `n` inputs has a De Morgan circuit with at most
 `(1 + ε) * 2 ^ n / n` gates for all sufficiently large `n`, given any `ε > 0`.
 The threshold is uniform in the function; size counts constants and negations.
+This matches Shannon's counting lower bound up to the factor `1 + ε`, which is why the
+bound is called asymptotically optimal.
 
-We apply the finite construction with `3 log₂ n` address bits and blocks of `n - 5 log₂ n`
-rows. The number of blocks times `2 ^ (n - 3 log₂ n)` gives the leading term `2 ^ n / n`;
-minterms and pattern banks contribute lower-order terms.
+This file only does the asymptotics. The circuit comes from the block construction in
+`LupanovConstruction.lean`, which gives, for any split of the inputs into `k` address bits
+and `d` data bits and any positive block size `s`, a circuit with at most `bound k d s` gates.
+
+## Choosing the parameters
+
+Write `l = log₂ n`. We take `k = 3 l` address bits, `d = n - 3 l` data bits, and blocks of
+`s = n - 5 l` rows. Then:
+
+* the leading term of `bound` is `(2 ^ k / s + 1) · 2 ^ d ≈ 2 ^ n / s`, and since
+  `s = n - 5 l` is `n (1 - o(1))`, this is `(1 + o(1)) 2 ^ n / n` (`mainTerm_le`);
+* the minterms cost about `(2 ^ k + 2 ^ d) · 2 n = O(n ^ 4) + O(2 ^ n / n ^ 2)`, using
+  `2 ^ k ≤ n ^ 3`;
+* the `left` parts cost about `(2 ^ k / s) · 2 ^ s · 2 s ≈ 2 ^ (k + s) = 2 ^ (n - 2 l)`,
+  which is `O(2 ^ n / n ^ 2)`.
+
+`bound_le` packages the two error terms as `3 n ^ 4 + 16 n · 2 ^ d`; `polynomial_le_pow` and
+`error_le` show that the polynomial and the exponential term are each `o(2 ^ n / n)`; and
+`eventually_bound_le` combines everything into `P · n · bound ≤ (P + 1) · 2 ^ n` for all
+large `n`, for any natural number `P`. Taking `P > 1 / ε` in `exists_circuit` gives the
+theorem.
 
 ## References
 
@@ -36,6 +56,7 @@ namespace Cslib.Circuits.Boolean.Lupanov
 
 open Filter
 
+/-- Polynomials are eventually dominated by `2 ^ n`. -/
 private theorem polynomial_le_pow (c r : ℕ) :
     ∀ᶠ n : ℕ in atTop, c * n ^ r ≤ 2 ^ n := by
   have h := Asymptotics.isLittleO_iff_nat_mul_le.mp
@@ -43,6 +64,7 @@ private theorem polynomial_le_pow (c r : ℕ) :
   filter_upwards [h] with n hn
   exact_mod_cast (by simpa using hn : (c : ℝ) * n ^ r ≤ (2 : ℝ) ^ n)
 
+/-- Any constant multiple of `log₂ n` is eventually at most `n`. -/
 private theorem log_le (c : ℕ) : ∀ᶠ n : ℕ in atTop, c * Nat.log 2 n ≤ n := by
   obtain ⟨N, hN⟩ := eventually_atTop.mp (polynomial_le_pow c 1)
   filter_upwards [eventually_ge_atTop (2 ^ N)] with n hn
@@ -51,6 +73,10 @@ private theorem log_le (c : ℕ) : ∀ᶠ n : ℕ in atTop, c * Nat.log 2 n ≤ 
     simpa using hN (Nat.log 2 n) (Nat.le_log_of_pow_le (by omega) hn)
   exact hh.trans (Nat.pow_log_le_self 2 hn0)
 
+/-- With the chosen parameters, the budget is the leading term `(2 ^ k / s + 1) · 2 ^ d`
+plus error terms `3 n ^ 4`, from the address minterms, and `16 n · 2 ^ d`, from the data
+minterms, the per-pattern overhead of every block (`left` parts, constants, conjunctions and
+ORs), and the final constant. -/
 private theorem bound_le (n : ℕ) (hn : 5 * Nat.log 2 n < n) :
     bound (3 * Nat.log 2 n) (n - 3 * Nat.log 2 n) (n - 5 * Nat.log 2 n) ≤
       (2 ^ (3 * Nat.log 2 n) / (n - 5 * Nat.log 2 n) + 1) *
@@ -102,6 +128,9 @@ private theorem bound_le (n : ℕ) (hn : 5 * Nat.log 2 n < n) :
   dsimp [B] at hpattern ⊢
   nlinarith
 
+/-- For `P > 0`, the leading term is at most `(1 + 1 / P) · 2 ^ n / n` up to a lower-order
+term, once `n` is large enough that dropping `5 log₂ n` rows per block costs at most a factor
+`(P + 1) / P`. The statement is multiplied through by `P n` to stay in `ℕ`. -/
 private theorem mainTerm_le (P n : ℕ)
     (hn : 5 * Nat.log 2 n < n) (hP : (P + 1) * (5 * Nat.log 2 n) ≤ n) :
     P * n * ((2 ^ (3 * Nat.log 2 n) / (n - 5 * Nat.log 2 n) + 1) *
@@ -127,6 +156,9 @@ private theorem mainTerm_le (P n : ℕ)
       ring
     _ ≤ (P + 1) * 2 ^ n + (P + 1) * n * 2 ^ d := by gcongr; exact Nat.sub_le _ _
 
+/-- An error term of order `n · 2 ^ d` is `o(2 ^ n / n)`: with `d = n - 3 log₂ n`,
+`c n ^ 2 · 2 ^ d ≤ 2 ^ n` once `n ≥ 8 c` and `3 log₂ n ≤ n`, using
+`2 ^ (3 log₂ n) > (n / 2) ^ 3`. -/
 private theorem error_le (c n : ℕ) (hc : 8 * c ≤ n) (hn : 3 * Nat.log 2 n ≤ n) :
     c * n ^ 2 * 2 ^ (n - 3 * Nat.log 2 n) ≤ 2 ^ n := by
   let q := 2 ^ Nat.log 2 n
@@ -147,6 +179,9 @@ private theorem error_le (c n : ℕ) (hc : 8 * c ≤ n) (hn : 3 * Nat.log 2 n �
       congr 1
       omega
 
+/-- For every `P`, eventually `P n · bound ≤ (P + 1) 2 ^ n`; for `P > 0` this says the budget
+is at most `(1 + 1 / P) · 2 ^ n / n`. Combines `bound_le`, `mainTerm_le`, `polynomial_le_pow`,
+and `error_le`; the slack `Q = 3 P` absorbs the constants in the error terms. -/
 private theorem eventually_bound_le (P : ℕ) :
     ∀ᶠ n : ℕ in atTop,
       P * n * bound (3 * Nat.log 2 n) (n - 3 * Nat.log 2 n) (n - 5 * Nat.log 2 n) ≤
@@ -171,6 +206,7 @@ private theorem eventually_bound_le (P : ℕ) :
   dsimp [Q] at htotal
   nlinarith only [htotal]
 
+/-- Transport `synthesis` along `k + d = n`. -/
 private theorem exists_circuit_of_split {n k d s : ℕ} (h : k + d = n) (hs : 0 < s)
     (f : BooleanFunction n) : ∃ g ≤ bound k d s, ∃ c : Circuit signature n g 1,
       c.Computes f := by
@@ -178,7 +214,10 @@ private theorem exists_circuit_of_split {n k d s : ℕ} (h : k + d = n) (hs : 0 
   exact (synthesis f hs).exists_circuit
 
 /-- Lupanov's upper bound: every Boolean function on `n` inputs has a De Morgan circuit
-with at most `(1 + ε) 2ⁿ/n` gates, uniformly for sufficiently large `n`. -/
+with at most `(1 + ε) 2ⁿ/n` gates, uniformly for sufficiently large `n`.
+
+Pick a natural number `P > 1 / ε`, so that `(P + 1) / P < 1 + ε`; then the threshold `N`
+comes from `eventually_bound_le P`. -/
 theorem exists_circuit (ε : ℝ) (hε : 0 < ε) :
     ∃ N : ℕ, ∀ n ≥ N, ∀ f : BooleanFunction n,
       ∃ g, ∃ c : Circuit signature n g 1,

@@ -11,10 +11,50 @@ public import Mathlib.Data.Fintype.BigOperators
 /-!
 # Lupanov's block construction
 
-Split the truth table into address rows and data columns, and divide the rows into blocks.
-Within each block, group columns with identical patterns. These groups partition the data
-assignments, so disjoining their shared minterms contributes `2 ^ d` OR gates per block,
-the leading term in the bound.
+This file is the finite, parametrised core of Lupanov's upper bound. Its purpose is to give a
+gate budget `bound k d s` that is valid for every Boolean function on `k + d` inputs and every
+positive block size `s`, and to prove (`synthesis`) that the budget suffices. The asymptotic file
+`Lupanov.lean` then chooses `k`, `d`, and `s` as functions of `n` and shows that the budget is
+`(1 + ε) 2 ^ n / n`. No asymptotics happen here.
+
+## Why not the disjunctive normal form?
+
+Writing `f` as the disjunction of its true minterms uses up to `2 ^ n` minterms of `n`
+literals each, so roughly `n 2 ^ n` gates. The waste is that nothing is shared between
+minterms. Lupanov's construction shares almost everything.
+
+## The picture
+
+Split the `n = k + d` inputs into `k` *address* bits and `d` *data* bits, and view the truth
+table of `f` as a `2 ^ k × 2 ^ d` matrix: row `a` is an address assignment, column `b` is a
+data assignment, and the entry is `f (a ++ b)`. Cut the rows into blocks of `s` consecutive
+rows. Inside one block every column is a bit string of length `s`, its *pattern* in that
+block; there are only `2 ^ s` possible patterns, however many columns there are.
+
+For each block `B` and pattern `v` define two functions:
+
+* `left B v`, of the address bits only: true at `a` when row `a` lies in `B` and `v` has a
+  `1` at the position of `a` within `B`;
+* `right f B v`, of the data bits only: true at `b` when column `b` has pattern `v` in `B`.
+
+Both are functions of the full input that ignore the other half of it. Then
+`left B v a ∧ right f B v b` holds exactly when `a` lies in `B`, `v` is the pattern of
+column `b` inside `B`, and the entry `f (a ++ b)` is `true`. So `f` is the disjunction over
+all pairs `(B, v)` of `left B v ∧ right f B v` (`table_eq`).
+
+## Counting gates
+
+All `2 ^ k` address minterms and `2 ^ d` data minterms are built once and shared. Each
+`left B v` is a disjunction of at most `s` address minterms, so it costs `O(s)` gates, and
+there are `(2 ^ k / s + 1) · 2 ^ s` of them. Each `right f B v` is a disjunction of data
+minterms, one per column with pattern `v`; the columns of a block are partitioned by their
+patterns (`support_card_sum`), so all the `right f B v` of one block together cost about
+`2 ^ d` gates. Summing over blocks, the dominant contribution is
+
+  `(2 ^ k / s) · 2 ^ d = 2 ^ n / s`.
+
+For the parameters chosen in `Lupanov.lean` the remaining terms are of lower order, and
+`s ≈ n` makes this `2 ^ n / n`. The exact expression is `bound`.
 
 ## References
 
@@ -33,15 +73,25 @@ namespace Cslib.Circuits.Boolean.Lupanov
 noncomputable section
 variable {k d s : ℕ}
 
+/-! ### Minterms -/
+
+/-- An assignment to `k` Boolean variables. Address assignments index the rows of the truth
+table and data assignments index its columns. -/
 private abbrev Assignment (k : ℕ) := Fin k → Bool
 
+/-- Number the address assignments as rows `0, …, 2 ^ k - 1`. Any bijection will do, so we
+take an arbitrary one; this is what makes the section noncomputable. -/
 private def index (k : ℕ) : Assignment k ≃ Fin (2 ^ k) :=
   Fintype.equivOfCardEq (by simp)
 
+/-- The minterm testing that the address bits equal `a` (`.inl a`) or that the data bits
+equal `b` (`.inr b`). Both kinds are built once and shared by every block. -/
 private def minterm : Assignment k ⊕ Assignment d → BooleanFunction (k + d)
   | .inl a => fun x => decide ((fun i => x (Fin.castAdd d i)) = a)
   | .inr b => fun x => decide ((fun i => x (Fin.natAdd k i)) = b)
 
+/-- Build every address and data minterm from the inputs. Each costs `2 (k + d) + 1` gates
+by `synthesis_minterm`. -/
 private theorem minterms_synthesis :
     Synthesis (inputs (k + d)) (Set.range (minterm (k := k) (d := d)))
       ((2 ^ k + 2 ^ d) * (2 * (k + d) + 1)) := by
@@ -56,14 +106,26 @@ private theorem minterms_synthesis :
           Set.Subset.rfl Set.Subset.rfl (by omega)
   simpa using Synthesis.family minterm (fun _ => 2 * (k + d) + 1) h
 
+/-- Once the minterms have been built, each of them is free. -/
 private theorem minterm_available (a : Assignment k ⊕ Assignment d) :
     Synthesis (Set.range minterm) {minterm a} 0 :=
   Synthesis.of_subset (by rintro _ rfl; exact ⟨a, rfl⟩)
 
-private def column (f : BooleanFunction (k + d)) (block : ℕ) (data : Assignment d) : Assignment s :=
+/-! ### The block decomposition
+
+Rows `block * s, …, block * s + s - 1` form block number `block`. The final block may be
+partial, and when `s ∣ 2 ^ k` there is an empty extra block; rows past `2 ^ k` are read as
+`false` throughout. -/
+
+/-- The pattern of column `data` inside block `block`: the `s` entries of the truth table in
+the block's rows, read down the column. -/
+private def column (f : BooleanFunction (k + d)) (block : ℕ) (data : Assignment d) :
+    Assignment s :=
   fun offset => if h : block * s + offset.val < 2 ^ k then
     f (Fin.append ((index k).symm ⟨block * s + offset.val, h⟩) data) else false
 
+/-- The contribution of the row at `offset` within `block` to `left`: the address minterm of
+that row when `pattern` is `1` there, and the constant `false` otherwise. -/
 private def leftRow (block : ℕ) (pattern : Assignment s) (offset : Fin s) :
     BooleanFunction (k + d) :=
   if pattern offset then
@@ -72,21 +134,34 @@ private def leftRow (block : ℕ) (pattern : Assignment s) (offset : Fin s) :
     else fun _ => false
   else fun _ => false
 
+/-- The address-only function of a block and pattern: true when the address lies in the
+block, at an offset where the pattern is `1`. -/
 private def left (block : ℕ) (pattern : Assignment s) : BooleanFunction (k + d) :=
   fun x => decide (∃ offset, leftRow (d := d) block pattern offset x = true)
 
+/-- The columns whose pattern inside `block` is `pattern`. For a fixed block, these sets
+partition the columns. -/
 private def support (f : BooleanFunction (k + d)) (block : ℕ) (pattern : Assignment s) :
     Finset (Assignment d) := Finset.univ.filter fun data => column f block data = pattern
 
+/-- The data-only function of a block and pattern: true when the data bits name a column
+whose pattern inside the block is `pattern`. -/
 private def right (f : BooleanFunction (k + d)) (block : ℕ) (pattern : Assignment s) :
     BooleanFunction (k + d) :=
   fun x => decide (∃ data ∈ support f block pattern, minterm (.inr data) x = true)
 
+/-! ### Gate counts -/
+
+/-- The supports of one block partition the `2 ^ d` columns. This is why all the `right`
+parts of a block together cost only about `2 ^ d` gates. -/
 private theorem support_card_sum (f : BooleanFunction (k + d)) (block : ℕ) :
     ∑ pattern : Assignment s, (support f block pattern).card = 2 ^ d := by
   simpa [support] using (Finset.card_eq_sum_card_fiberwise
     (s := Finset.univ) (t := Finset.univ) (f := column (s := s) f block) (by simp)).symm
 
+/-- A `left` part costs `2 s + 1` gates once the minterms are available: at most one gate per
+row (a shared minterm costs nothing, a padding row needs a constant), one OR per row, and one
+constant for the empty disjunction. -/
 private theorem left_synthesis (block : ℕ) (pattern : Assignment s) :
     Synthesis (Set.range (minterm (k := k) (d := d))) {left block pattern} (2 * s + 1) := by
   have h (offset : Fin s) :
@@ -103,7 +178,10 @@ private theorem left_synthesis (block : ℕ) (pattern : Assignment s) :
   simpa [Nat.mul_comm] using Synthesis.exists_mem Finset.univ
     (leftRow (d := d) block pattern) (fun _ => 1) (fun i _ => h i)
 
-private theorem right_synthesis (f : BooleanFunction (k + d)) (block : ℕ) (pattern : Assignment s) :
+/-- A `right` part costs one OR per column in its support, plus one constant for the empty
+disjunction, once the minterms are available. -/
+private theorem right_synthesis (f : BooleanFunction (k + d)) (block : ℕ)
+    (pattern : Assignment s) :
     Synthesis (Set.range minterm) {right f block pattern} ((support f block pattern).card + 1) := by
   change Synthesis (Set.range (minterm (k := k) (d := d)))
     {fun x => decide (∃ data ∈ support f block pattern, minterm (.inr data) x = true)} _
@@ -111,6 +189,10 @@ private theorem right_synthesis (f : BooleanFunction (k + d)) (block : ℕ) (pat
     (fun data => minterm (.inr data)) (fun _ => 0)
     (fun data _ => minterm_available (.inr data))
 
+/-! ### Correctness -/
+
+/-- `left` is true exactly at inputs whose address is a row of the block, at an offset where
+the pattern is `1`. -/
 private theorem left_eq_true (block : ℕ) (pattern : Assignment s) (x : Assignment (k + d)) :
     left block pattern x = true ↔ ∃ offset : Fin s,
       ∃ h : block * s + offset.val < 2 ^ k,
@@ -122,15 +204,22 @@ private theorem left_eq_true (block : ℕ) (pattern : Assignment s) (x : Assignm
   by_cases h : block * s + offset.val < 2 ^ k <;>
     cases hp : pattern offset <;> simp [leftRow, hp, h, minterm, eq_comm]
 
+/-- `right` is true exactly at inputs whose data bits name a column with the given pattern
+inside the block. -/
 private theorem right_eq_true (f : BooleanFunction (k + d)) (block : ℕ) (pattern : Assignment s)
     (x : Assignment (k + d)) :
     right f block pattern x = true ↔ column f block (fun i => x (Fin.natAdd k i)) = pattern := by
   simp [right, support, minterm, eq_comm]
 
+/-- The disjunction over all blocks and patterns of `left ∧ right`. Block numbers range over
+`2 ^ k / s + 1` values to include a partial final block. -/
 private def table (f : BooleanFunction (k + d)) (s : ℕ) : BooleanFunction (k + d) :=
   fun x => decide (∃ pair : Fin (2 ^ k / s + 1) × Assignment s,
     (left pair.1.val pair.2 x && right f pair.1.val pair.2 x) = true)
 
+/-- The block decomposition reconstructs `f`. At an input `a ++ b` with `f (a ++ b) = true`,
+the witnessing pair is the block containing row `a` and the pattern of column `b` in that
+block. -/
 private theorem table_eq (f : BooleanFunction (k + d)) (hs : 0 < s) : table f s = f := by
   funext x
   apply Bool.eq_iff_iff.mpr
@@ -156,14 +245,22 @@ private theorem table_eq (f : BooleanFunction (k + d)) (hs : 0 < s) : table f s 
       ⟨offset, hvalid, haddress, ?_⟩, rfl⟩
     simpa [column, hvalid, haddress, Fin.append_castAdd_natAdd] using hx
 
-/-- Gate budget for `k` address bits, `d` data bits, and blocks of `s` rows.
-The terms account for minterms, block-pattern pairs, and a final constant.
-The block count allows a partial last block, or an empty extra block when `s ∣ 2 ^ k`. -/
+/-! ### The bound -/
+
+/-- Gate budget for `k` address bits, `d` data bits, and blocks of `s` rows, as spent by
+`synthesis`. In order: the shared minterms; then for each of the `2 ^ k / s + 1` blocks
+(a partial final block, or an empty extra block when `s ∣ 2 ^ k`), `2 s + 4` gates per
+pattern, namely `2 s + 1` for its `left` part, the constant starting its `right` part, the
+conjunction of the two, and the OR into the running disjunction, plus `2 ^ d` gates in total
+for the ORs inside the `right` parts of the block, one per column; and one constant for the
+empty outer disjunction. The leading term is `(2 ^ k / s) · 2 ^ d ≈ 2 ^ n / s`. -/
 def bound (k d s : ℕ) : ℕ :=
   (2 ^ k + 2 ^ d) * (2 * (k + d) + 1) +
     (2 ^ k / s + 1) * (2 ^ s * (2 * s + 4) + 2 ^ d) + 1
 
-/-- Synthesize any Boolean function within Lupanov's finite gate budget. -/
+/-- Every Boolean function on `k + d` inputs can be built from the input projections within
+`bound k d s` gates: build all minterms, then the disjunction over block-pattern pairs of
+`left ∧ right`, which equals `f` by `table_eq`. -/
 theorem synthesis (f : BooleanFunction (k + d)) (hs : 0 < s) :
     Synthesis (inputs (k + d)) {f} (bound k d s) := by
   have hpair (pair : Fin (2 ^ k / s + 1) × Assignment s) :=
