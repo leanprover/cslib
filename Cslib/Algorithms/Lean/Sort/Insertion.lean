@@ -27,6 +27,13 @@ def orderedInsertM (a : α) : List α → m (List α)
   | [] => return [a]
   | b :: l => do if ← r a b then return a :: b :: l else return b :: (← orderedInsertM a l)
 
+@[simp] theorem orderedInsertM_nil (a : α) : orderedInsertM r a [] = pure [a] := by
+  rfl
+@[simp] theorem orderedInsertM_cons (a b : α) (l : List α) :
+    orderedInsertM r a (b :: l) = do
+      if ← r a b then return a :: b :: l else return b :: (← orderedInsertM r a l) := by
+  rfl
+
 @[simp]
 theorem orderedInsertM_pure [LawfulMonad m] (r : α → α → Bool) (a : α) (xs : List α) :
     orderedInsertM (fun x y => (pure (r x y) : m Bool)) a xs =
@@ -39,10 +46,15 @@ theorem idRun_orderedInsertM (r : α → α → Id Bool) (a : α) (xs : List α)
   orderedInsertM_pure _ _ _
 
 /-- A monadic version of `List.insertionSort`. -/
-@[simp]
 def insertionSortM : List α → m (List α)
   | [] => return []
   | b :: l => do orderedInsertM r b (← insertionSortM l)
+
+@[simp] theorem insertionSortM_nil : insertionSortM r [] = pure [] := by
+  rfl
+@[simp] theorem insertionSortM_cons (b : α) (l : List α) :
+    insertionSortM r (b :: l) = (do orderedInsertM r b (← insertionSortM r l)) := by
+  rfl
 
 @[simp]
 theorem insertionSortM_pure [LawfulMonad m] (xs : List α) (r : α → α → Bool) :

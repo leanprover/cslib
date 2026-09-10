@@ -39,6 +39,13 @@ def mergeM (xs ys : List α) (le : α → α → m Bool) : m (List α) := do
   induction xs with
   | nil => simp
   | cons x xs ih => simp [mergeM]
+@[simp] theorem cons_mergeM_cons (x y : α) (xs ys : List α) (le : α → α → m Bool) :
+    mergeM (x :: xs) (y :: ys) le = do
+      if ← le x y then
+        return x :: (← mergeM xs (y :: ys) le)
+      else
+        return y :: (← mergeM (x :: xs) ys le) := by
+  simp [mergeM]
 
 @[simp↓]
 theorem mergeM_pure [LawfulMonad m] (xs ys : List α) (le : α → α → Bool) :
@@ -60,12 +67,18 @@ def mergeSortM (xs : List α) (le : α → α → m Bool) : m (List α) :=
     mergeM (← mergeSortM lr.1 le) (← mergeSortM lr.2 le) le
 termination_by xs.length
 
+@[simp] theorem mergeSortM_nil (le : α → α → m Bool) : mergeSortM [] le = pure [] := by
+  simp [mergeSortM]
+@[simp] theorem mergeSortM_singleton (a : α) (le : α → α → m Bool) :
+    mergeSortM [a] le = pure [a] := by
+  simp [mergeSortM]
+
 @[simp↓]
 theorem mergeSortM_pure [LawfulMonad m] (xs : List α) (le : α → α → Bool) :
     mergeSortM xs (fun x y => (pure (le x y) : m Bool)) = pure (mergeSort xs le) := by
   fun_induction mergeSort with
-  | case1 | case2 => simp [mergeSortM]
-  | case3  a b xs le lr _ _ ih1 ih2 =>
+  | case1 | case2 => simp
+  | case3 a b xs le lr _ _ ih1 ih2 =>
     simp only [mergeSortM]
     rw [ih1, ih2]
     simp
