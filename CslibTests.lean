@@ -21,5 +21,7 @@ import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
 import CslibTests.MultiTapeComplexity
+import CslibTests.QueryModel.ProgExamples
+import CslibTests.QueryModel.QueryExamples
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
