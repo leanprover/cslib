@@ -90,7 +90,7 @@ namespace TwoWayNA
 state that `T` attaches to the new head position. The conjunct on the input restricts the
 invariant to the configurations that run on `input`. -/
 def IsStepClosed (a : TwoWayNA State Symbol) (input : List Symbol) (T : ℕ → Set State) : Prop :=
-  (a.toCfgNAFinAcc input).TrInv (fun c => c.input = input ∧ c.state ∈ T c.pos)
+  (a.toCfgNA input).TrInv (fun c => c.input = input ∧ c.state ∈ T c.pos)
 
 /-- A family of subsets of the state set, one for every position of the input head on `input`,
 which contains all initial states, is closed under the transitions of `a`, and contains no
@@ -121,7 +121,7 @@ def reachable (a : TwoWayNA State Symbol) (input : List Symbol) (i : ℕ) :
     Set State :=
   {q | ∃ c, c.IsInitialForInput a input ∧
       ∃ h : i < input.length + 1,
-      (a.toCfgNAFinAcc input).CanReach c { input := input, pos := ⟨i, h⟩, state := q } }
+      (a.toCfgNA input).CanReach c { input := input, pos := ⟨i, h⟩, state := q } }
 
 /-- If `a` does not accept `input`, then its reachable states form a rejection certificate. -/
 theorem isRejectionCert_reachable (h : ¬ Acceptor.Accepts a input) :
@@ -131,7 +131,7 @@ theorem isRejectionCert_reachable (h : ¬ Acceptor.Accepts a input) :
       ⟨hs, Fin.ext (by simp), rfl⟩, Nat.succ_pos _, LTS.CanReach.refl _ _⟩
   step_closed c μ c' htr := by
     rintro ⟨hc_input, c₀, hstart, hlt, hreach⟩
-    have hc'_input : c'.input = input := a.toCfgNAFinAcc_input_eq input c μ c' htr hc_input
+    have hc'_input : c'.input = input := a.toCfgNA_input_eq input c μ c' htr hc_input
     rw [TwoWayNACfg.eta hc_input hlt] at hreach
     refine ⟨hc'_input, c₀, hstart, hc'_input ▸ c'.pos.isLt, ?_⟩
     rw [TwoWayNACfg.eta hc'_input]
@@ -183,7 +183,7 @@ theorem isStepClosed_iff_localOK :
       · exact (hcl ⟨input, q, ⟨j + 1, by omega⟩⟩ (input[j + 1], SignType.neg)
           ⟨input, q', ⟨j, by omega⟩⟩ ⟨rfl, by simp, htr, by simp⟩ ⟨rfl, hq⟩).2
   · rintro hloc c ⟨x, m⟩ c' hstep ⟨hc_input, hmem⟩
-    refine ⟨a.toCfgNAFinAcc_input_eq input c (x, m) c' hstep hc_input, ?_⟩
+    refine ⟨a.toCfgNA_input_eq input c (x, m) c' hstep hc_input, ?_⟩
     obtain ⟨hlt, rfl⟩ := getElem_of_tr hstep hc_input
     obtain ⟨-, -, htr, hpos⟩ := hstep
     have hthis := hloc ⟨(c.pos : ℕ), hlt⟩ c.state hmem m c'.state htr

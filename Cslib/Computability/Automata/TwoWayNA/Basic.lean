@@ -27,7 +27,7 @@ ends in an accepting state with the head just past the end of the input.
 
 * `TwoWayNA`, the automaton itself
 * `TwoWayNACfg`, a configuration of a `TwoWayNA`: Its input plus a state and the head position.
-* `TwoWayNA.toCfgNAFinAcc`, the finite acceptor on configurations whose runs on a fixed input are
+* `TwoWayNA.toCfgNA`, the finite acceptor on configurations whose runs on a fixed input are
   the runs of the two-way automaton on that input. It also provides the `Acceptor` instance.
 
 ## Implementation notes
@@ -85,7 +85,7 @@ def TwoWayNACfg.IsAccepting (a : TwoWayNA State Symbol) (c : TwoWayNACfg State S
 
 /-- Returns a nondeterministic finite acceptor on the configurations as states, accepting exactly
 the runs of the two-way automaton on `input` that end in an accepting configuration. -/
-def TwoWayNA.toCfgNAFinAcc {State Symbol : Type*} (a : TwoWayNA State Symbol)
+def TwoWayNA.toCfgNA {State Symbol : Type*} (a : TwoWayNA State Symbol)
     (input : List Symbol) :
     NA.FinAcc (TwoWayNACfg State Symbol) (Symbol × SignType) where
   Tr
@@ -102,12 +102,12 @@ def TwoWayNA.toCfgNAFinAcc {State Symbol : Type*} (a : TwoWayNA State Symbol)
   start := { c | c.IsInitialForInput a input }
   accept := { c | c.IsAccepting a }
 
-/-- Any reachable state of `a.toCfgNAFinAcc input` contains the original input. -/
-lemma TwoWayNA.toCfgNAFinAcc_input_eq {State Symbol : Type*} (a : TwoWayNA State Symbol)
+/-- Any reachable state of `a.toCfgNA input` contains the original input. -/
+lemma TwoWayNA.toCfgNA_input_eq {State Symbol : Type*} (a : TwoWayNA State Symbol)
     (input : List Symbol) :
-    (a.toCfgNAFinAcc input).toLTS.TrInv (fun c => c.input = input) := by
+    (a.toCfgNA input).toLTS.TrInv (fun c => c.input = input) := by
   intro c μ c' h_tr rfl
-  simp_all [TwoWayNA.toCfgNAFinAcc]
+  simp_all [TwoWayNA.toCfgNA]
 
 /-- A configuration running on `input` is the one determined by its state and head position. -/
 theorem TwoWayNACfg.eta {input : List Symbol} {c : TwoWayNACfg State Symbol}
@@ -120,7 +120,7 @@ theorem TwoWayNACfg.eta {input : List Symbol} {c : TwoWayNACfg State Symbol}
 /-- A step reads the symbol at the head position, which therefore lies inside the input. -/
 theorem TwoWayNA.getElem_of_tr {a : TwoWayNA State Symbol} {input : List Symbol}
     {c c' : TwoWayNACfg State Symbol} {x : Symbol} {m : SignType}
-    (htr : (a.toCfgNAFinAcc input).Tr c (x, m) c') (hc : c.input = input) :
+    (htr : (a.toCfgNA input).Tr c (x, m) c') (hc : c.input = input) :
     ∃ h : (c.pos : ℕ) < input.length, input[(c.pos : ℕ)] = x := by
   obtain ⟨-, hx, -, -⟩ := htr
   subst hc
@@ -129,6 +129,6 @@ theorem TwoWayNA.getElem_of_tr {a : TwoWayNA State Symbol} {input : List Symbol}
 @[simp, scoped grind =]
 instance : Acceptor (TwoWayNA State Symbol) Symbol where
   Accepts (a : TwoWayNA State Symbol) (input : List Symbol) :=
-    ∃ μs, Acceptor.Accepts (a.toCfgNAFinAcc input) μs
+    ∃ μs, Acceptor.Accepts (a.toCfgNA input) μs
 
 end Cslib.Automata

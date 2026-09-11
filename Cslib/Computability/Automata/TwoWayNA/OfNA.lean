@@ -39,7 +39,7 @@ def ofNA (n : NA.FinAcc State Symbol) : TwoWayNA State Symbol where
 /-- A run of `ofNA n` starting on `input` reads a multistep transition of `n` over the prefix of
 `input` scanned so far. -/
 theorem mTr_take_of_canReach {s : State} {c c' : TwoWayNACfg State Symbol}
-    (hreach : ((ofNA n).toCfgNAFinAcc input).CanReach c c') (hc : c.input = input)
+    (hreach : ((ofNA n).toCfgNA input).CanReach c c') (hc : c.input = input)
     (hmtr : n.MTr s (input.take c.pos) c.state) :
     c'.input = input ∧ n.MTr s (input.take c'.pos) c'.state := by
   obtain ⟨μs, hreach⟩ := hreach
@@ -58,7 +58,7 @@ theorem mTr_take_of_canReach {s : State} {c c' : TwoWayNACfg State Symbol}
 run of `ofNA n` taking its head from `p` to the end of the input. -/
 theorem canReach_of_mTr {suf : List Symbol} {s s' : State} {p : ℕ}
     (hp : p < input.length + 1) (hdrop : input.drop p = suf) (hmtr : n.MTr s suf s') :
-    ((ofNA n).toCfgNAFinAcc input).CanReach ⟨input, s, ⟨p, hp⟩⟩ ⟨input, s', Fin.last _⟩ := by
+    ((ofNA n).toCfgNA input).CanReach ⟨input, s, ⟨p, hp⟩⟩ ⟨input, s', Fin.last _⟩ := by
   induction suf generalizing s p with
   | nil =>
     rw [LTS.MTr.nil_iff] at hmtr
@@ -73,7 +73,7 @@ theorem canReach_of_mTr {suf : List Symbol} {s s' : State} {p : ℕ}
       have h0 : (input.drop p)[0]? = some x := by simp [hdrop]
       grind
     have hdrop' : input.drop (p + 1) = xs := by simp [← List.tail_drop, hdrop]
-    have hstep : ((ofNA n).toCfgNAFinAcc input).Tr
+    have hstep : ((ofNA n).toCfgNA input).Tr
         ⟨input, s, ⟨p, hp⟩⟩ (x, SignType.pos) ⟨input, t, ⟨p + 1, by omega⟩⟩ :=
       ⟨rfl, by simp [← hx], ⟨rfl, htr⟩, by simp⟩
     obtain ⟨μs, hmtr'⟩ := ih (by omega) hdrop' hmtr
