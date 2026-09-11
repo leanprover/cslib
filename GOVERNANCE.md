@@ -56,3 +56,4 @@ Reviewers are trusted contributors who provide regular reviewing and technical g
 - Samuel Schlesinger (@SamuelSchlesinger).
 - Thomas Waring (@thomaskwaring).
 - Eric Wieser (@eric-wieser), Google DeepMind.
+- Xueying Qin (@XYUnknown), FORM, University of Southern Denmark.
