@@ -29,8 +29,8 @@ public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Automata.TwoWayNA.Basic
+public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
 public import Cslib.Computability.Automata.TwoWayNA.OfNA
-public import Cslib.Computability.Automata.TwoWayNA.ToNA
 public import Cslib.Computability.Circuit.Basic
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Program

@@ -15,7 +15,7 @@ public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.TwoWayNA.OfNA
-public import Cslib.Computability.Automata.TwoWayNA.ToNA
+public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
 public import Mathlib.Basic.Finite.Sum
