@@ -102,10 +102,15 @@ def TwoWayNA.toCfgNA {State Symbol : Type*} (a : TwoWayNA State Symbol)
   start := { c | c.IsInitialForInput a input }
   accept := { c | c.IsAccepting a }
 
+@[simp, scoped grind =]
+instance : Acceptor (TwoWayNA State Symbol) Symbol where
+  Accepts (a : TwoWayNA State Symbol) (input : List Symbol) :=
+    ∃ μs, Acceptor.Accepts (a.toCfgNA input) μs
+
 /-- Any reachable state of `a.toCfgNA input` contains the original input. -/
 lemma TwoWayNA.toCfgNA_input_eq {State Symbol : Type*} (a : TwoWayNA State Symbol)
     (input : List Symbol) :
-    (a.toCfgNA input).toLTS.TrInv (fun c => c.input = input) := by
+    (a.toCfgNA input).TrInv (fun c => c.input = input) := by
   intro c μ c' h_tr rfl
   simp_all [TwoWayNA.toCfgNA]
 
@@ -125,10 +130,5 @@ theorem TwoWayNA.getElem_of_tr {a : TwoWayNA State Symbol} {input : List Symbol}
   obtain ⟨-, hx, -, -⟩ := htr
   subst hc
   exact List.getElem?_eq_some_iff.mp hx.symm
-
-@[simp, scoped grind =]
-instance : Acceptor (TwoWayNA State Symbol) Symbol where
-  Accepts (a : TwoWayNA State Symbol) (input : List Symbol) :=
-    ∃ μs, Acceptor.Accepts (a.toCfgNA input) μs
 
 end Cslib.Automata
