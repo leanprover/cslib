@@ -37,19 +37,22 @@ open scoped BigOperators
 
 variable {n g s : ℕ}
 
-/-- Boolean functions computable with at most `s` De Morgan gates. -/
-noncomputable def computableFunctions (n s : ℕ) : Finset (BooleanFunction n) := by
-  classical
-  exact Finset.univ.filter fun f => ∃ g ≤ s, ∃ c : Circuit signature n g 1, c.Computes f
+/-- Boolean functions on `n` inputs computable with at most `s` De Morgan gates. -/
+noncomputable def computableFunctions (n s : ℕ) : Finset (BooleanFunction n) :=
+  open scoped Classical in
+  Finset.univ.filter fun f => ∃ g ≤ s, ∃ c : Circuit signature n g 1, c.Computes f
 
 @[simp] theorem mem_computableFunctions {f : BooleanFunction n} :
     f ∈ computableFunctions n s ↔ ∃ g ≤ s, ∃ c : Circuit signature n g 1, c.Computes f := by
   classical
   simp [computableFunctions]
 
-private noncomputable def irredundantFunctions (n g : ℕ) : Finset (BooleanFunction n) := by
-  classical
-  exact Finset.univ.filter fun f => ∃ c : Circuit signature n g 1,
+/-- Boolean functions on `n` inputs admitting a circuit with exactly `g` gates whose
+computed functions are pairwise distinct. Each such circuit has `g!` distinct presentations
+obtained by relabeling its gates, giving the factorial correction in the counting bound. -/
+private noncomputable def irredundantFunctions (n g : ℕ) : Finset (BooleanFunction n) :=
+  open scoped Classical in
+  Finset.univ.filter fun f => ∃ c : Circuit signature n g 1,
     c.Computes f ∧ Function.Injective (c.program.gateFunction interpretation)
 
 private theorem mem_irredundantFunctions {f : BooleanFunction n} :
@@ -57,10 +60,6 @@ private theorem mem_irredundantFunctions {f : BooleanFunction n} :
       c.Computes f ∧ Function.Injective (c.program.gateFunction interpretation) := by
   classical
   simp [irredundantFunctions]
-
-private instance opFintype : Fintype Op where
-  elems := {.const false, .const true, .not, .and, .or}
-  complete := by intro op; cases op <;> simp
 
 private def lineEquiv (n g : ℕ) :
     Line signature n g ≃ Σ op : Op, Fin (signature.Arity op) → Wire n g where
@@ -118,18 +117,18 @@ private theorem relabel_output (c : Circuit signature n g 1) (π : Equiv.Perm (F
   intro gate
   simp [Wire.Renaming.ofPermutation, Function.comp_def]
 
-private noncomputable def representative (f : ↥(irredundantFunctions n g)) :
+private noncomputable def representative (f : irredundantFunctions n g) :
     Circuit signature n g 1 :=
   (mem_irredundantFunctions.mp f.property).choose
 
-private theorem representative_spec (f : ↥(irredundantFunctions n g)) :
+private theorem representative_spec (f : irredundantFunctions n g) :
     (representative f).Computes f ∧
       Function.Injective ((representative f).program.gateFunction interpretation) :=
   (mem_irredundantFunctions.mp f.property).choose_spec
 
 -- Equal presentations determine the function; distinct gate functions determine the labels.
 private theorem relabel_injective : Function.Injective
-    (fun p : ↥(irredundantFunctions n g) × Equiv.Perm (Fin g) =>
+    (fun p : irredundantFunctions n g × Equiv.Perm (Fin g) =>
       relabel (representative p.1) p.2) := by
   rintro ⟨f, π⟩ ⟨f', τ⟩ heq
   dsimp only at heq
