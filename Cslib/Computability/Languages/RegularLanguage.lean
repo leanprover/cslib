@@ -86,7 +86,7 @@ theorem IsRegular.iff_twoWayNA {l : Language Symbol} :
     have := hfin
     have hc : (language a)ᶜ.IsRegular := by
       rw [IsRegular.iff_nfa]
-      exact ⟨Set State × Set State, inferInstance, a.toNAComplement, a.language_toNAComplement⟩
+      exact ⟨Set State × Set State, inferInstance, a.complToNA, a.language_complToNA⟩
     simpa using hc.compl
 
 /-- The empty language is regular. -/

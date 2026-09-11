@@ -14,7 +14,7 @@ public import Cslib.Foundations.Semantics.LTS.Relation
 
 For every nondeterministic two-way automaton (`TwoWayNA`) `a`, this file constructs a
 nondeterministic finite acceptor (`NA.FinAcc`) that accepts exactly the words rejected by `a`
-(`TwoWayNA.toNAComplement`, `TwoWayNA.language_toNAComplement`). We follow Vardi's proof, which --
+(`TwoWayNA.complToNA`, `TwoWayNA.language_complToNA`). We follow Vardi's proof, which --
 unlike Shepherdson's crossing-sequence argument -- characterises non-acceptance in a way that can
 be checked by a single left-to-right sweep over the input.
 
@@ -46,8 +46,8 @@ holds at the end of every run (`LTS.mtrInv_of_trInv`). Conversely, the reachable
 The point of the reformulation is locality: `TwoWayNA.isStepClosed_iff_localOK` turns condition 2
 into a condition `TwoWayNA.LocalOK` relating only `T (i - 1)`, `T i` and `T (i + 1)` with the
 symbol at position `i`. A finite acceptor can therefore guess the certificate while scanning the
-input, keeping only the last two subsets in its state. This is `TwoWayNA.toNAComplement`, and
-`TwoWayNA.accepts_toNAComplement_iff` shows that it accepts exactly the words rejected by `a`.
+input, keeping only the last two subsets in its state. This is `TwoWayNA.complToNA`, and
+`TwoWayNA.accepts_complToNA_iff` shows that it accepts exactly the words rejected by `a`.
 
 ## Implementation notes
 
@@ -206,16 +206,16 @@ theorem isStepClosed_iff_localOK :
 /-- The nondeterministic finite acceptor that guesses a rejection certificate `T` for `a` while
 scanning the input, keeping the pair `(T (i - 1), T i)` in its state after reading `i` symbols.
 Reading the symbol at position `i` guesses `T (i + 1)` and checks local consistency at `i`. -/
-def toNAComplement (a : TwoWayNA State Symbol) : NA.FinAcc (Set State × Set State) Symbol where
+def complToNA (a : TwoWayNA State Symbol) : NA.FinAcc (Set State × Set State) Symbol where
   Tr PC x PC' := PC'.1 = PC.2 ∧ a.LocalOK x PC.1 PC.2 PC'.2
   start := {PC | PC.1 = Set.univ ∧ a.start ⊆ PC.2}
   accept := {PC | ∀ s ∈ PC.2, s ∉ a.accept}
 
-/-- An accepting multistep transition of `a.toNAComplement` out of `(P, C)` over `xs` is the same
+/-- An accepting multistep transition of `a.complToNA` out of `(P, C)` over `xs` is the same
 thing as a list of subsets starting with `P` and `C` that is locally consistent at every position
 of `xs` and ends in a subset without accepting states. -/
 theorem exists_accepting_mTr_iff (a : TwoWayNA State Symbol) (xs : List Symbol) (P C : Set State) :
-    (∃ f ∈ a.toNAComplement.accept, a.toNAComplement.MTr (P, C) xs f) ↔
+    (∃ f ∈ a.complToNA.accept, a.complToNA.MTr (P, C) xs f) ↔
       ∃ T : List (Set State), T.getI 0 = P ∧ T.getI 1 = C ∧
         (∀ i, ∀ hi : i < xs.length, a.LocalOK xs[i] (T.getI i) (T.getI (i + 1)) (T.getI (i + 2))) ∧
         ∀ s ∈ T.getI (xs.length + 1), s ∉ a.accept := by
@@ -225,9 +225,9 @@ theorem exists_accepting_mTr_iff (a : TwoWayNA State Symbol) (xs : List Symbol) 
     · rintro ⟨f, hf, hmtr⟩
       rw [LTS.MTr.nil_iff] at hmtr
       subst hmtr
-      exact ⟨[P, C], by simp, by simp, by simp, by simpa [toNAComplement] using hf⟩
+      exact ⟨[P, C], by simp, by simp, by simp, by simpa [complToNA] using hf⟩
     · rintro ⟨T, h0, h1, -, hacc⟩
-      exact ⟨(P, C), by simpa [toNAComplement, ← h1] using hacc, by simp⟩
+      exact ⟨(P, C), by simpa [complToNA, ← h1] using hacc, by simp⟩
   | cons x xs ih =>
     constructor
     · rintro ⟨f, hf, hmtr⟩
@@ -256,7 +256,7 @@ theorem exists_accepting_mTr_iff (a : TwoWayNA State Symbol) (xs : List Symbol) 
         have h := hloc 0 (by simp)
         rw [List.getElem_cons_zero] at h
         simpa [h0, h1] using h
-      have htr : a.toNAComplement.Tr (P, C) x (C, T.getI 2) := ⟨rfl, hlocal⟩
+      have htr : a.complToNA.Tr (P, C) x (C, T.getI 2) := ⟨rfl, hlocal⟩
       exact ⟨f, hf, LTS.MTr.cons_iff.mpr ⟨(C, T.getI 2), htr, hmtr⟩⟩
 
 /-- The family of subsets carried by a list, which holds the subset for the position to the left
@@ -276,9 +276,9 @@ theorem getI_certToList {T : ℕ → Set State} {i : ℕ} (hi : i < input.length
   rw [certToList, List.getI_cons_succ, List.getI_eq_getElem (hn := by simpa using hi)]
   simp
 
-/-- `a.toNAComplement` accepts exactly the words that `a` rejects. -/
-theorem accepts_toNAComplement_iff (a : TwoWayNA State Symbol) (input : List Symbol) :
-    Acceptor.Accepts a.toNAComplement input ↔ ¬ Acceptor.Accepts a input := by
+/-- `a.complToNA` accepts exactly the words that `a` rejects. -/
+theorem accepts_complToNA_iff (a : TwoWayNA State Symbol) (input : List Symbol) :
+    Acceptor.Accepts a.complToNA input ↔ ¬ Acceptor.Accepts a input := by
   rw [not_accepts_iff_exists_isRejectionCert]
   constructor
   · rintro ⟨s, ⟨hs, hstart⟩, f, hf, hmtr⟩
@@ -314,12 +314,12 @@ theorem accepts_toNAComplement_iff (a : TwoWayNA State Symbol) (input : List Sym
         by simpa using hT.accept_notMem⟩
     exact ⟨(Set.univ, T 0), ⟨rfl, hT.start_mem⟩, f, hf, hmtr⟩
 
-/-- `a.toNAComplement` recognises the complement of the language of `a`. -/
-theorem language_toNAComplement (a : TwoWayNA State Symbol) :
-    Acceptor.language a.toNAComplement = (Acceptor.language a)ᶜ := by
+/-- `a.complToNA` recognises the complement of the language of `a`. -/
+theorem language_complToNA (a : TwoWayNA State Symbol) :
+    Acceptor.language a.complToNA = (Acceptor.language a)ᶜ := by
   ext xs
   simp only [Acceptor.mem_language]
-  exact accepts_toNAComplement_iff a xs
+  exact accepts_complToNA_iff a xs
 
 end TwoWayNA
 
