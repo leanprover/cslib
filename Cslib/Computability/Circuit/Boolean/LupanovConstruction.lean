@@ -139,6 +139,19 @@ block, at an offset where the pattern is `1`. -/
 private def left (block : ℕ) (pattern : Assignment s) : BooleanFunction (k + d) :=
   fun x => decide (∃ offset, leftRow (d := d) block pattern offset x = true)
 
+/-- `left` is true exactly at inputs whose address is a row of the block, at an offset where
+the pattern is `1`. -/
+private theorem left_eq_true (block : ℕ) (pattern : Assignment s) (x : Assignment (k + d)) :
+    left block pattern x = true ↔ ∃ offset : Fin s,
+      ∃ h : block * s + offset.val < 2 ^ k,
+        (index k).symm ⟨block * s + offset.val, h⟩ = (fun i => x (Fin.castAdd d i)) ∧
+          pattern offset = true := by
+  simp only [left, decide_eq_true_eq]
+  apply exists_congr
+  intro offset
+  by_cases h : block * s + offset.val < 2 ^ k <;>
+    cases hp : pattern offset <;> simp [leftRow, hp, h, minterm, eq_comm]
+
 /-- The columns whose pattern inside `block` is `pattern`. For a fixed block, these sets
 partition the columns. -/
 private def support (f : BooleanFunction (k + d)) (block : ℕ) (pattern : Assignment s) :
@@ -149,6 +162,13 @@ whose pattern inside the block is `pattern`. -/
 private def right (f : BooleanFunction (k + d)) (block : ℕ) (pattern : Assignment s) :
     BooleanFunction (k + d) :=
   fun x => decide (∃ data ∈ support f block pattern, minterm (.inr data) x = true)
+
+/-- `right` is true exactly at inputs whose data bits name a column with the given pattern
+inside the block. -/
+private theorem right_eq_true (f : BooleanFunction (k + d)) (block : ℕ) (pattern : Assignment s)
+    (x : Assignment (k + d)) :
+    right f block pattern x = true ↔ column f block (fun i => x (Fin.natAdd k i)) = pattern := by
+  simp [right, support, minterm, eq_comm]
 
 /-! ### Gate counts -/
 
@@ -190,26 +210,6 @@ private theorem right_synthesis (f : BooleanFunction (k + d)) (block : ℕ)
     (fun data _ => minterm_available (.inr data))
 
 /-! ### Correctness -/
-
-/-- `left` is true exactly at inputs whose address is a row of the block, at an offset where
-the pattern is `1`. -/
-private theorem left_eq_true (block : ℕ) (pattern : Assignment s) (x : Assignment (k + d)) :
-    left block pattern x = true ↔ ∃ offset : Fin s,
-      ∃ h : block * s + offset.val < 2 ^ k,
-        (index k).symm ⟨block * s + offset.val, h⟩ = (fun i => x (Fin.castAdd d i)) ∧
-          pattern offset = true := by
-  simp only [left, decide_eq_true_eq]
-  apply exists_congr
-  intro offset
-  by_cases h : block * s + offset.val < 2 ^ k <;>
-    cases hp : pattern offset <;> simp [leftRow, hp, h, minterm, eq_comm]
-
-/-- `right` is true exactly at inputs whose data bits name a column with the given pattern
-inside the block. -/
-private theorem right_eq_true (f : BooleanFunction (k + d)) (block : ℕ) (pattern : Assignment s)
-    (x : Assignment (k + d)) :
-    right f block pattern x = true ↔ column f block (fun i => x (Fin.natAdd k i)) = pattern := by
-  simp [right, support, minterm, eq_comm]
 
 /-- The disjunction over all blocks and patterns of `left ∧ right`. Block numbers range over
 `2 ^ k / s + 1` values to include a partial final block. -/
