@@ -8,8 +8,9 @@ module
 public import Cslib.Computability.Circuit.Boolean.Basic
 public import Mathlib.Basic.Real.Basic
 import Cslib.Computability.Circuit.Boolean.Counting
-import Mathlib.Analysis.SpecificLimits.Normed
+import Cslib.Foundations.Data.Nat.Asymptotics
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Order.Filter.AtTopBot.Basic
 
 /-!
 # Shannon's circuit lower bound
@@ -71,23 +72,13 @@ private theorem exists_card_le_exp :
   have hlogs := Real.log_le_self (by positivity : (0 : ℝ) ≤ s)
   nlinarith
 
-private theorem eventually_inputs_le_budget :
-    ∀ᶠ n : ℕ in atTop, n + 1 ≤ 2 ^ n / n := by
-  have growth := Asymptotics.isLittleO_iff_nat_mul_le.mp
-    (isLittleO_pow_const_const_pow_of_one_lt (R := ℝ) 2 (by norm_num : (1 : ℝ) < 2)) 2
-  filter_upwards [growth, eventually_ge_atTop 1] with n hn hn0
-  have hn' : 2 * n ^ 2 ≤ 2 ^ n := by
-    exact_mod_cast (by simpa using hn : (2 : ℝ) * n ^ 2 ≤ 2 ^ n)
-  apply (Nat.le_div_iff_mul_le (by omega)).mpr
-  nlinarith
-
 private theorem eventually_card_lt :
     ∀ᶠ n : ℕ in atTop, (computableFunctions n (2 ^ n / n)).card < 2 ^ (2 ^ n) := by
   have hlogtwo : 0 < Real.log 2 := Real.log_pos (by norm_num)
   obtain ⟨C, hC⟩ := exists_card_le_exp
   obtain ⟨t, ht⟩ := exists_nat_gt (C / Real.log 2)
   have hgap : C < t * Real.log 2 := (div_lt_iff₀ hlogtwo).mp ht
-  filter_upwards [eventually_inputs_le_budget, eventually_ge_atTop t,
+  filter_upwards [Nat.eventually_add_one_le_pow_div Nat.one_lt_two, eventually_ge_atTop t,
     eventually_ge_atTop (2 ^ t)] with n hn htn hlarge
   let s := 2 ^ n / n
   have hs : (0 : ℝ) < s := by exact_mod_cast (by dsimp [s]; omega : 0 < s)
