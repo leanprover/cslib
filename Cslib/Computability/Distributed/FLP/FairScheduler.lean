@@ -231,7 +231,6 @@ theorem fair_omegaExecution {d : DeliverMsg P M S} {ps : Set P} {q : State P M S
     grind [fair_fairSegs hd s0 hs0]
   obtain ⟨ss, _, _, _⟩ := flatten_fairSegs hmtr hpos hsch
   have : ss 0 = s0 := by grind [fairScheduler_init]
-  use ss
   grind
 
 /-- If `d.ForallActions r`, then the concatenation of all `a.fairSegActions d ps s0` segments

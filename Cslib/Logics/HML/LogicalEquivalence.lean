@@ -94,14 +94,13 @@ instance (lts : LTS State Label) :
       grind [=_ Proposition.Context.fill_def]
     case not c ih | andL c ih | andR c ih =>
       intro s
-      specialize ih s
       grind [=_ Proposition.Context.fill_def]
     case diamond c ih =>
       intro s
       rw [Satisfies.iff_iff_iff]
       apply Iff.intro
-      all_goals
-        rintro ⟨w', h⟩
+      · grind [=_ Proposition.Context.fill_def]
+      · rintro ⟨w', h⟩
         specialize ih w'
         grind [=_ Proposition.Context.fill_def]
 

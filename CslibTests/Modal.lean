@@ -19,19 +19,19 @@ example : ((◇◇φ → ◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈
   intro m h w
   let : IsTrans World m.r := h.1
   let : Relation.RightEuclidean m.r := h.2
-  exact ⟨Satisfies.four φ, Satisfies.five φ⟩
+  exact ⟨Satisfies.four _ φ _ _, Satisfies.five _ φ _ _⟩
 
 example : ((□φ → ◇φ) ∧ (◇◇φ → ◇φ) : Proposition Atom) ∈ D4 World Atom := by
   intro m h w
   let : Relation.Serial m.r := h.1
   let : IsTrans World m.r := h.2
-  exact ⟨Satisfies.d φ, Satisfies.four φ⟩
+  exact ⟨Satisfies.d _ φ _ _, Satisfies.four _ φ _ _⟩
 
 example : ((□φ → ◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈ D5 World Atom := by
   intro m h w
   let : Relation.Serial m.r := h.1
   let : Relation.RightEuclidean m.r := h.2
-  exact ⟨Satisfies.d φ, Satisfies.five φ⟩
+  exact ⟨Satisfies.d _ φ _ _, Satisfies.five _ φ _ _⟩
 
 example :
     Proposition.and (□φ → ◇φ) (Proposition.and (◇◇φ → ◇φ) (◇φ → □◇φ)) ∈
@@ -40,31 +40,31 @@ example :
   let : Relation.Serial m.r := h.1
   let : IsTrans World m.r := h.2.1
   let : Relation.RightEuclidean m.r := h.2.2
-  exact ⟨Satisfies.d φ, Satisfies.four φ, Satisfies.five φ⟩
+  exact ⟨Satisfies.d _ φ _ _, Satisfies.four _ φ _ _, Satisfies.five _ φ _ _⟩
 
 example : ((□φ → ◇φ) ∧ (φ → □◇φ) : Proposition Atom) ∈ DB World Atom := by
   intro m h w
   let : Relation.Serial m.r := h.1
   let : Std.Symm m.r := h.2
-  exact ⟨Satisfies.d φ, Satisfies.b φ⟩
+  exact ⟨Satisfies.d _ φ _ _, Satisfies.b _ φ _ _⟩
 
 example : ((φ → ◇φ) ∧ (φ → □◇φ) : Proposition Atom) ∈ TB World Atom := by
   intro m h w
   let : Std.Refl m.r := h.1
   let : Std.Symm m.r := h.2
-  exact ⟨Satisfies.t φ, Satisfies.b φ⟩
+  exact ⟨Satisfies.t _ φ _ _, Satisfies.b _ φ _ _⟩
 
 example : ((φ → □◇φ) ∧ (◇φ → □◇φ) : Proposition Atom) ∈ KB5 World Atom := by
   intro m h w
   let : Std.Symm m.r := h.1
   let : Relation.RightEuclidean m.r := h.2
-  exact ⟨Satisfies.b φ, Satisfies.five φ⟩
+  exact ⟨Satisfies.b _ φ _ _, Satisfies.five _ φ _ _⟩
 
 example : ((φ → ◇φ) ∧ (◇◇φ → ◇φ) : Proposition Atom) ∈ S4 World Atom := by
   intro m h w
   let : Std.Refl m.r := h.1
   let : IsTrans World m.r := h.2
-  exact ⟨Satisfies.t φ, Satisfies.four φ⟩
+  exact ⟨Satisfies.t _ φ _ _, Satisfies.four _ φ _ _⟩
 
 example :
     Proposition.and (φ → ◇φ) (Proposition.and (◇◇φ → ◇φ) (◇φ → □◇φ)) ∈
@@ -73,6 +73,6 @@ example :
   let : Std.Refl m.r := h.1
   let : IsTrans World m.r := h.2.1
   let : Relation.RightEuclidean m.r := h.2.2
-  exact ⟨Satisfies.t φ, Satisfies.four φ, Satisfies.five φ⟩
+  exact ⟨Satisfies.t _ φ _ _, Satisfies.four _ φ _ _, Satisfies.five _ φ _ _⟩
 
 end Cslib.Logic.Modal

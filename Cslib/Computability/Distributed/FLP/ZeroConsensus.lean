@@ -79,7 +79,9 @@ theorem inv_tr_right (inp : Fin n → Bool) {s t : State (Fin n) M S} {m : Messa
     t.msgs = s.msgs.erase m ∧ (t.proc m.dest).out = some (inp ⟨0, npos⟩) ∧
     ∀ p, p ≠ m.dest → (t.proc p).out = (s.proc p).out := by
   simp only [alg] at htr
-  grind [Inv, Algorithm.lts, Algorithm.recvMsg]
+  obtain ⟨hs1, hs2⟩ := hs
+  obtain ⟨hmem, rfl⟩ := htr
+  grind [Algorithm.recvMsg]
 
 /-- The truth of `Inv` is preserved by every transition of `alg`. -/
 theorem trInv_inv (inp : Fin n → Bool) : (alg npos).lts.TrInv (Inv npos inp) := by

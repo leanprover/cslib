@@ -259,12 +259,6 @@ theorem mem_denotation_iff_satisfies {φ : Proposition Label} :
 theorem mem_theory_iff_satisfies : φ ∈ theory lts s ↔ ⇓HML[lts,s ⊨ φ] := by
   grind
 
-/- A state satisfies a proposition iff it does not satisfy the negation of the proposition. -/
--- @[simp, scoped grind =]
--- theorem Satisfies.not_not_iff {lts : LTS State Label} :
---   ¬⇓HML[lts,s ⊨ ¬φ] ↔ ⇓HML[lts,s ⊨ φ] := by
---   grind
-
 open scoped Satisfies
 
 /-- A state is in the denotation of a proposition iff it is not in the denotation of the negation
