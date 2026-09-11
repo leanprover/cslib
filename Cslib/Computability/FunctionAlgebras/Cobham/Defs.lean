@@ -115,13 +115,14 @@ def recNotation {n : ℕ} (base : (Fin n → List Symbol) → List Symbol)
 
 /-- The string function denoted by a term. The bounding term of a `boundedRec` plays no
 role in evaluation; it is checked by `Cobham.Limited`. -/
-def eval : {n : ℕ} → Cobham Symbol n → (Fin n → List Symbol) → List Symbol
-  | _, proj i, v => v i
-  | _, empty, _ => []
-  | _, cons a, v => a :: v 0
-  | _, smash a, v => List.replicate ((v 0).length * (v 1).length) a
-  | _, comp f gs, v => f.eval fun i => (gs i).eval v
-  | _, boundedRec base step _, v =>
+def eval {n : ℕ} (t : Cobham Symbol n) (v : Fin n → List Symbol) : List Symbol :=
+  match t with
+  | proj i => v i
+  | empty => []
+  | cons a => a :: v 0
+  | smash a => List.replicate ((v 0).length * (v 1).length) a
+  | comp f gs => f.eval fun i => (gs i).eval v
+  | boundedRec base step _ =>
       recNotation base.eval (fun a => (step a).eval) (Fin.tail v) (v 0)
 
 @[simp] theorem eval_proj {n : ℕ} (i : Fin n) (v : Fin n → List Symbol) :
@@ -148,13 +149,13 @@ def eval : {n : ℕ} → Cobham Symbol n → (Fin n → List Symbol) → List Sy
 /-- A term is **limited** when every recursion in it is limited in Cobham's sense: the
 result of each `boundedRec base step bound` is length-bounded, uniformly in the arguments,
 by `bound`. -/
-def Limited : {n : ℕ} → Cobham Symbol n → Prop
-  | _, proj _ => True
-  | _, empty => True
-  | _, cons _ => True
-  | _, smash _ => True
-  | _, comp f gs => f.Limited ∧ ∀ i, (gs i).Limited
-  | _, boundedRec base step bound =>
+def Limited {n : ℕ} : Cobham Symbol n → Prop
+  | proj _ => True
+  | empty => True
+  | cons _ => True
+  | smash _ => True
+  | comp f gs => f.Limited ∧ ∀ i, (gs i).Limited
+  | boundedRec base step bound =>
       base.Limited ∧ (∀ a, (step a).Limited) ∧ bound.Limited ∧
         ∀ v x, (recNotation base.eval (fun a => (step a).eval) v x).length ≤
           (bound.eval (Fin.cons x v)).length
