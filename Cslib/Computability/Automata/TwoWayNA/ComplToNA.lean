@@ -209,9 +209,10 @@ scanning the input, keeping the pair `(cert (i - 1), cert i)` in its state after
 symbols.
 Reading the symbol at position `i` guesses `cert (i + 1)` and checks local consistency at `i`. -/
 def complToNA (a : TwoWayNA State Symbol) : NA.FinAcc (Set State × Set State) Symbol where
-  Tr PC x PC' := PC'.1 = PC.2 ∧ a.LocalOK x PC.1 PC.2 PC'.2
-  start := {PC | PC.1 = Set.univ ∧ a.start ⊆ PC.2}
-  accept := {PC | ∀ s ∈ PC.2, s ∉ a.accept}
+  Tr
+    | (prev, cur), x, (prev', cur') => prev' = cur ∧ a.LocalOK x prev cur cur'
+  start := {(prev, cur) | prev = Set.univ ∧ a.start ⊆ cur}
+  accept := {(_, cur) | ∀ s ∈ cur, s ∉ a.accept}
 
 /-- An accepting multistep transition of `a.complToNA` out of `(left, cur)` over `xs` is the same
 thing as a list of subsets starting with `left` and `cur` that is locally consistent at every
