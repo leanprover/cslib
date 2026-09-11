@@ -6,6 +6,8 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Basic
+public import Mathlib.Data.Finset.Insert
+public import Mathlib.Data.Fintype.Defs
 
 /-!
 # Boolean circuits
@@ -35,6 +37,10 @@ inductive Op where
   /-- Binary disjunction. -/
   | or
   deriving DecidableEq
+
+instance Op.instFintype : Fintype Op where
+  elems := {.const false, .const true, .not, .and, .or}
+  complete := by intro op; cases op <;> simp
 
 /-- The De Morgan signature. -/
 abbrev signature : Signature where
