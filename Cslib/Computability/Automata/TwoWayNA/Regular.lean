@@ -12,7 +12,7 @@ public import Cslib.Computability.Languages.RegularLanguage
 
 /-! # Two-way automata recognise exactly the regular languages
 
-This is the combination of the results of `TwoWayNA.ofNA` and `TwoWayNA.toNAComplement`
+This is the combination of the results of `NA.FinAcc.toTwoWayNA` and `TwoWayNA.toNAComplement`
 plus the fact that regular languages are closed under complementation.
 -/
 
@@ -29,7 +29,7 @@ public theorem IsRegular.iff_twoWayNA {Symbol : Type*} {l : Language Symbol} :
   · intro h
     rw [IsRegular.iff_nfa] at h
     obtain ⟨State, hfin, na, rfl⟩ := h
-    exact ⟨State, hfin, TwoWayNA.ofNA na, TwoWayNA.language_ofNA na⟩
+    exact ⟨State, hfin, NA.FinAcc.toTwoWayNA na, TwoWayNA.language_toTwoWayNA na⟩
   · rintro ⟨State, hfin, a, rfl⟩
     have := hfin
     have hc : (language a)ᶜ.IsRegular := by
