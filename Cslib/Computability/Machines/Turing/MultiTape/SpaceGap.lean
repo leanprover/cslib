@@ -146,19 +146,9 @@ theorem exists_spaceUsed_le_of_isLittleO_log_log {k : ℕ} {Symbol State : Type*
         (hspace input t)
       have hsmall : s input.length ≤ R := Finset.le_sup (Finset.mem_range.mpr (by omega))
       exact hi.not_ge (hsinput.trans hsmall)
-    have hH := hhalt input
-    let T := Nat.find hH
-    have hT : (tm.runFrom (tm.initCfg input) T).Halted := Nat.find_spec hH
-    have hfirst : ∀ u < T, ¬ (tm.runFrom (tm.initCfg input) u).Halted :=
-      fun u hu => Nat.find_min hH hu
-    have hrun : tm.runFrom (tm.initCfg input) (min t T) = tm.runFrom (tm.initCfg input) t := by
-      rcases le_total t T with h | h
-      · rw [min_eq_left h]
-      · rw [min_eq_right h, tm.runFrom_eq_of_halt h hT]
     obtain ⟨input', hshort, u, hstore⟩ := tm.exists_shorter_input_storage
-      hT hfirst (hspace input) (hN input.length hlarge) (min_le_right t T)
-    have heq := congrArg (fun st => st.workTapePos i)
-      (hstore.trans (congrArg Cfg.storage hrun))
+      (hhalt input) (hspace input) (hN input.length hlarge) t
+    have heq := congrArg (fun st => st.workTapePos i) hstore
     change (tm.runFrom (tm.initCfg input') u).workTapePos i =
       (tm.runFrom (tm.initCfg input) t).workTapePos i at heq
     have hi' : R < ((tm.runFrom (tm.initCfg input') u).workTapePos i).natAbs := by
