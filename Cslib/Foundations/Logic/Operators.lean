@@ -38,6 +38,36 @@ class HasOr (α : Type*) where
 
 @[inherit_doc] scoped infixr:30 " ∨ " => HasOr.or
 
+/-- Finite conjunction, with empty conjunction equal to truth. -/
+def finiteAnd [HasAnd α] [Top α] (as : List α) : α := as.foldr (· ∧ ·) ⊤
+
+@[inherit_doc] scoped prefix:max "⋀" => finiteAnd
+
+@[simp, scoped grind =]
+lemma finiteAnd_def [HasAnd α] [Top α] (as : List α) : finiteAnd as = ⋀as := rfl
+
+@[simp, scoped grind =]
+theorem finiteAnd_nil [HasAnd α] [Top α] : ⋀([] : List α) = ⊤ := rfl
+
+@[simp, scoped grind =]
+theorem finiteAnd_cons [HasAnd α] [Top α] (a : α) (as : List α) :
+    ⋀(a :: as) = (a ∧ ⋀as) := rfl
+
+/-- Finite disjunction, with empty disjunction equal to falsehood. -/
+def finiteOr [HasOr α] [Bot α] (as : List α) : α := as.foldr (· ∨ ·) ⊥
+
+@[inherit_doc] scoped prefix:max "⋁" => finiteOr
+
+@[simp, scoped grind =]
+lemma finiteOr_def [HasOr α] [Bot α] (as : List α) : finiteOr as = ⋁as := rfl
+
+@[simp, scoped grind =]
+theorem finiteOr_nil [HasOr α] [Bot α] : ⋁([] : List α) = ⊥ := rfl
+
+@[simp, scoped grind =]
+theorem finiteOr_cons [HasOr α] [Bot α] (a : α) (as : List α) :
+    ⋁(a :: as) = (a ∨ ⋁as) := rfl
+
 /-- The type `α` has an implication connective (`→`). -/
 class HasImp (α : Type*) where
   /-- `a → b` denotes `a` implies `b`. -/

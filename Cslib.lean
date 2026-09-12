@@ -198,7 +198,6 @@ public import Cslib.Logics.Modal.Lean.Basic
 public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Modal.Semantics
 public import Cslib.Logics.Modal.Unary.Basic
-public import Cslib.Logics.Modal.Unary.LTS
 public import Cslib.Logics.Modal.Unimodal.Basic
 public import Cslib.Logics.Modal.Unimodal.Cube
 public import Cslib.Logics.Modal.Unimodal.Lean.Basic

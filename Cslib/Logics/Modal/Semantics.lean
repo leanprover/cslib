@@ -121,6 +121,16 @@ theorem Satisfies.nabla_iff_forall {m : Model World τ Atom} :
     ⇓Modal[m,w ⊨ ∇[op]φs] ↔ ∀ ws, m.r op w ws → ∃ i, ⇓Modal[m,(ws i) ⊨ (φs i)] := by
   grind [=_ Proposition.nabla_def, Proposition.nabla]
 
+/-- A state satisfies a finite conjunction iff it satisfies all conjuncts. -/
+@[scoped grind =, modal =]
+theorem Satisfies.finiteAnd_iff_forall : ⇓Modal[m,s ⊨ ⋀φs] ↔ ∀ φ ∈ φs, ⇓Modal[m,s ⊨ φ] := by
+  induction φs <;> grind
+
+/-- A state satisfies a finite disjunction iff it satisfies some disjunct. -/
+@[scoped grind =, modal =]
+theorem Satisfies.finiteOr_iff_exists : ⇓Modal[m,s ⊨ ⋁φs] ↔ ∃ φ ∈ φs, ⇓Modal[m,s ⊨ φ] := by
+  induction φs <;> grind
+
 /-- The theory of a world in a model is the set of all propositions that it satisfies. -/
 abbrev theory {World : Type*} {τ : PFunctor} {Atom : Type*} (m : Model World τ Atom)
     (w : World) : Set (Proposition τ Atom) := {φ | ⇓Modal[m,w ⊨ φ]}
