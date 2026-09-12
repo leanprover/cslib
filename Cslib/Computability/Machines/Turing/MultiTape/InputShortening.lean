@@ -30,6 +30,29 @@ namespace Turing.MultiTapeTM
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 
+/-- Runs starting with the same core keep the same core. -/
+lemma core_runFrom_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input}
+    (h : c₁.core = c₂.core) (t : ℕ) :
+    (tm.runFrom c₁ t).core = (tm.runFrom c₂ t).core := by
+  induction t with
+  | zero => exact h
+  | succ t ih =>
+    simpa only [runFrom_succ_eq_step'] using core_step_eq_of_core_eq (tm := tm) ih
+
+/-- The cores up to and including the first halt are pairwise distinct. -/
+lemma core_runFrom_injOn {cfg : Cfg k Symbol State input} {T : ℕ}
+    (hhalt : (tm.runFrom cfg T).Halted)
+    (hfirst : ∀ t < T, ¬ (tm.runFrom cfg t).Halted) :
+    Set.InjOn (fun t => (tm.runFrom cfg t).core) (Set.Iic T) := by
+  intro a ha b hb heq
+  wlog hab : a ≤ b generalizing a b
+  · exact (this hb ha heq.symm (le_of_not_ge hab)).symm
+  by_contra hne
+  change b ≤ T at hb
+  have heq' := tm.core_runFrom_eq_of_core_eq heq (T - b)
+  rw [← runFrom_add, ← runFrom_add, Nat.add_sub_of_le hb] at heq'
+  exact hfirst (a + (T - b)) (by omega) ((congrArg (fun c => c.2.state) heq').trans hhalt)
+
 /-- Times when the input head is at `p`, with no earlier halted configuration.
 The final configuration is counted once; the stationary continuation after halting is excluded. -/
 def visitTimes (cfg : Cfg k Symbol State input) (p : ℕ) : Set ℕ :=
@@ -112,6 +135,41 @@ lemma visitSequence_nodup {cfg : Cfg k Symbol State input}
   apply tm.core_runFrom_injOn hT hfirst
     (le_of_not_gt (fun ht => ha'.2 T ht hT)) (le_of_not_gt (fun ht => hb'.2 T ht hT))
   exact Prod.ext (Fin.ext (ha'.1.trans hb'.1.symm)) h
+
+/-- If every work head stays in `[-R, R]`, the run visits at most `k * (2 * R + 1)` cells. -/
+lemma spaceUsed_le_of_workTapePos_natAbs_le (cfg : Cfg k Symbol State input) (T R : ℕ)
+    (h : ∀ t ≤ T, ∀ i, ((tm.runFrom cfg t).workTapePos i).natAbs ≤ R) :
+    tm.spaceUsed cfg T ≤ k * (2 * R + 1) := by
+  calc tm.spaceUsed cfg T
+    _ ≤ ∑ _ : Fin k, (window R).card := by
+      apply Finset.sum_le_sum
+      intro i _
+      apply Finset.card_le_card
+      intro z hz
+      obtain ⟨t, ht, rfl⟩ := tm.mem_visitedByTapeHead.mp hz
+      exact mem_window.mpr (h t (by omega) i)
+    _ = k * (2 * R + 1) := by simp
+
+/-- Equal storage and input symbols give equal storage after one step. A relation `r` between
+the input positions is also preserved if it holds initially and after every common head move. -/
+lemma step_congr_storage {input' : List Symbol}
+    {c : Cfg k Symbol State input} {c' : Cfg k Symbol State input'}
+    (hstore : c.storage = c'.storage) (hsym : c.inputSymbol = c'.inputSymbol)
+    (r : ℕ → ℕ → Prop) (hp : r c.inputPos.val c'.inputPos.val)
+    (hm : ∀ m, r (moveInputPos c.inputPos m).val (moveInputPos c'.inputPos m).val) :
+    (tm.step c).storage = (tm.step c').storage ∧
+      r (tm.step c).inputPos.val (tm.step c').inputPos.val := by
+  rcases c with ⟨state, pos, tapes, heads, out⟩
+  rcases c' with ⟨state', pos', tapes', heads', out'⟩
+  simp only [Cfg.storage, Storage.mk.injEq] at hstore
+  rcases hstore with ⟨rfl, rfl, rfl⟩
+  cases state with
+  | none => exact ⟨rfl, hp⟩
+  | some state =>
+    dsimp only [step]
+    unfold Cfg.workTapeSymbols
+    rw [hsym]
+    exact ⟨rfl, hm _⟩
 
 /-- Deleting the cells after `a` through `b` preserves symbols at positions at most `a`. -/
 private lemma inputSymbol_cut_left {a b : ℕ} (ha : a ≤ input.length)
