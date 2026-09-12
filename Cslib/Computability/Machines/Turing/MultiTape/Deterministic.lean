@@ -279,9 +279,8 @@ lemma runFrom_output_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
-    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output := by
-  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
-  rw [runFrom_add, runFrom_of_halt _ hhalt]
+    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output :=
+  congrArg Cfg.output (tm.runFrom_eq_of_halt hle hhalt)
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
