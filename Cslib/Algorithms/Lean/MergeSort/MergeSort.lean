@@ -40,18 +40,14 @@ open List in
 @[simp, grind =]
 theorem ret_mergeM {T} [AddMonoid T] (xs ys : List α) (le : α → α → TimeM T Bool) :
     ⟪List.mergeM xs ys le⟫ = List.merge xs ys (fun x y => ⟪le x y⟫) := by
-  fun_induction merge with grind [mergeM, nil_merge, merge_right, cons_merge_cons]
+  simpa using Id.ext_iff.1 <| isMonadHom_pure_ret.map_listMergeM xs ys le
 
 open List in
 /-- `TimeM.ret` passes through `List.mergeSortM` into the comparator. -/
 @[simp]
 theorem ret_mergeSortM {T} [AddMonoid T] (xs : List α) (le : α → α → TimeM T Bool) :
     ⟪List.mergeSortM xs le⟫ = List.mergeSort xs (fun x y => ⟪le x y⟫) := by
-  fun_induction List.mergeSortM with
-  | case1 | case2 => simp
-  | case3 a b xs le iha ihb =>
-    simp only [ret_bind, ret_mergeM, mergeSort]
-    rw [iha, ihb]
+  simpa using Id.ext_iff.1 <| isMonadHom_pure_ret.map_listMergeSortM xs le
 
 variable [LinearOrder α]
 
