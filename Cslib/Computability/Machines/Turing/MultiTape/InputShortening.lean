@@ -7,14 +7,17 @@ module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Mathlib.Combinatorics.Pigeonhole
-public import Mathlib.Data.Finset.Sort
+public import Mathlib.Data.Nat.Nth
+public import Mathlib.Data.Seq.Basic
 
 /-!
 # Input shortening for multi-tape Turing machines
 
-A visit sequence records the storages seen at a fixed input position during a finite run.
-Up to the first halt, these storages are distinct: repeating a core would repeat the rest of the
-computation, regardless of the write-only output.
+A visit sequence records the storages seen at a fixed input position during a run. It is defined
+for every run and may be infinite. Visits include the first halted configuration but exclude the
+stationary continuation after halting. For a halting run, the sequence is finite and its storages
+are distinct: repeating a core would repeat the rest of the computation, regardless of the
+write-only output.
 
 The input-shortening argument follows Gadi Aleksandrowicz's account at
 <https://gadial.net/2009/10/04/sub_loglog_space_is_constant/>.
@@ -27,36 +30,88 @@ namespace Turing.MultiTapeTM
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 
-/-- Times up to `T` at which the input head is at `p`. -/
-def visitTimes (cfg : Cfg k Symbol State input) (T p : ℕ) : Finset ℕ :=
-  (Finset.range (T + 1)).filter fun t => (tm.runFrom cfg t).inputPos.val = p
+/-- Times when the input head is at `p`, with no earlier halted configuration.
+The final configuration is counted once; the stationary continuation after halting is excluded. -/
+def visitTimes (cfg : Cfg k Symbol State input) (p : ℕ) : Set ℕ :=
+  {t | (tm.runFrom cfg t).inputPos.val = p ∧ ∀ u < t, ¬ (tm.runFrom cfg u).Halted}
 
 @[simp]
-lemma mem_visitTimes {cfg : Cfg k Symbol State input} {T p t : ℕ} :
-    t ∈ tm.visitTimes cfg T p ↔ t ≤ T ∧ (tm.runFrom cfg t).inputPos.val = p := by
-  simp [visitTimes]
+lemma mem_visitTimes {cfg : Cfg k Symbol State input} {p t : ℕ} :
+    t ∈ tm.visitTimes cfg p ↔
+      (tm.runFrom cfg t).inputPos.val = p ∧ ∀ u < t, ¬ (tm.runFrom cfg u).Halted := Iff.rfl
 
-/-- The chronological list of storages encountered at input position `p` through time `T`. -/
-def visitSequence (cfg : Cfg k Symbol State input) (T p : ℕ) : List (Storage Symbol State k) :=
-  ((tm.visitTimes cfg T p).sort (· ≤ ·)).map fun t => (tm.runFrom cfg t).storage
+/-- The chronological, possibly infinite sequence of storages encountered at input position `p`. -/
+noncomputable def visitSequence (cfg : Cfg k Symbol State input) (p : ℕ) :
+    Stream'.Seq (Storage Symbol State k) := by
+  classical
+  exact if h : (tm.visitTimes cfg p).Finite then
+    .ofList ((h.toFinset.sort (· ≤ ·)).map fun t => (tm.runFrom cfg t).storage)
+  else
+    .ofStream (fun n => (tm.runFrom cfg (Nat.nth (· ∈ tm.visitTimes cfg p) n)).storage)
 
-@[simp]
-lemma length_visitSequence (cfg : Cfg k Symbol State input) (T p : ℕ) :
-    (tm.visitSequence cfg T p).length = (tm.visitTimes cfg T p).card := by
-  simp [visitSequence]
-
-/-- No storage occurs twice at one input position before the first halt. -/
-lemma visitSequence_nodup {cfg : Cfg k Symbol State input} {T : ℕ}
+/-- On a run whose first halt is at `T`, visits are exactly the head positions through `T`. -/
+lemma visitTimes_eq_of_first_halt {cfg : Cfg k Symbol State input} {T : ℕ}
     (hhalt : (tm.runFrom cfg T).Halted)
     (hfirst : ∀ t < T, ¬ (tm.runFrom cfg t).Halted) (p : ℕ) :
-    (tm.visitSequence cfg T p).Nodup := by
+    tm.visitTimes cfg p = {t | t ≤ T ∧ (tm.runFrom cfg t).inputPos.val = p} := by
+  ext t
+  constructor
+  · rintro ⟨hp, h⟩
+    exact ⟨le_of_not_gt (fun ht => h T ht hhalt), hp⟩
+  · rintro ⟨ht, hp⟩
+    exact ⟨hp, fun u hu => hfirst u (hu.trans_le ht)⟩
+
+/-- A halting run has finitely many visits to each input position. -/
+lemma visitTimes_finite_of_halt {cfg : Cfg k Symbol State input}
+    (hhalt : ∃ T, (tm.runFrom cfg T).Halted) (p : ℕ) : (tm.visitTimes cfg p).Finite := by
+  obtain ⟨T, hT⟩ := hhalt
+  exact (Set.finite_Iic T).subset fun t ht => le_of_not_gt (fun h => ht.2 T h hT)
+
+/-- When there are finitely many visits, the sequence is the sorted list of their storages. -/
+lemma visitSequence_eq_of_finite {cfg : Cfg k Symbol State input} {p : ℕ}
+    (h : (tm.visitTimes cfg p).Finite) :
+    tm.visitSequence cfg p = Stream'.Seq.ofList
+      ((h.toFinset.sort (· ≤ ·)).map fun t => (tm.runFrom cfg t).storage) := by
   classical
+  exact dite_eq_left h
+
+/-- The visit sequence of a halting run is finite. -/
+lemma visitSequence_terminates_of_halt {cfg : Cfg k Symbol State input}
+    (hhalt : ∃ T, (tm.runFrom cfg T).Halted) (p : ℕ) :
+    (tm.visitSequence cfg p).Terminates := by
+  rw [tm.visitSequence_eq_of_finite (tm.visitTimes_finite_of_halt hhalt p)]
+  exact Stream'.Seq.terminates_ofList _
+
+/-- Converting a halting run's visit sequence to a list enumerates the visits in time order. -/
+lemma visitSequence_toList {cfg : Cfg k Symbol State input}
+    (hhalt : ∃ T, (tm.runFrom cfg T).Halted) (p : ℕ) :
+    (tm.visitSequence cfg p).toList (tm.visitSequence_terminates_of_halt hhalt p) =
+      (((tm.visitTimes_finite_of_halt hhalt p).toFinset).sort (· ≤ ·)).map
+        (fun t => (tm.runFrom cfg t).storage) := by
+  apply Stream'.Seq.ofList_injective
+  rw [Stream'.Seq.ofList_toList, tm.visitSequence_eq_of_finite]
+
+/-- The finite visit sequence has one entry for each visit time. -/
+lemma length_visitSequence {cfg : Cfg k Symbol State input}
+    (hhalt : ∃ T, (tm.runFrom cfg T).Halted) (p : ℕ) :
+    ((tm.visitSequence cfg p).toList (tm.visitSequence_terminates_of_halt hhalt p)).length =
+      (tm.visitTimes_finite_of_halt hhalt p).toFinset.card := by
+  simp [tm.visitSequence_toList hhalt p]
+
+/-- No storage occurs twice in a halting run's visit sequence. -/
+lemma visitSequence_nodup {cfg : Cfg k Symbol State input}
+    (hhalt : ∃ T, (tm.runFrom cfg T).Halted) (p : ℕ) :
+    ((tm.visitSequence cfg p).toList (tm.visitSequence_terminates_of_halt hhalt p)).Nodup := by
+  classical
+  rw [tm.visitSequence_toList hhalt p]
   apply List.Nodup.map_on _ (Finset.sort_nodup _ _)
   intro a ha b hb h
-  have ha' := tm.mem_visitTimes.mp (by simpa using ha)
-  have hb' := tm.mem_visitTimes.mp (by simpa using hb)
-  apply tm.core_runFrom_injOn hhalt hfirst ha'.1 hb'.1
-  exact Prod.ext (Fin.ext (ha'.2.trans hb'.2.symm)) h
+  have ha' : a ∈ tm.visitTimes cfg p := by simpa using ha
+  have hb' : b ∈ tm.visitTimes cfg p := by simpa using hb
+  obtain ⟨T, hT, hfirst⟩ := Nat.findX hhalt
+  apply tm.core_runFrom_injOn hT hfirst
+    (le_of_not_gt (fun ht => ha'.2 T ht hT)) (le_of_not_gt (fun ht => hb'.2 T ht hT))
+  exact Prod.ext (Fin.ext (ha'.1.trans hb'.1.symm)) h
 
 /-- Deleting the cells after `a` through `b` preserves symbols at positions at most `a`. -/
 private lemma inputSymbol_cut_left {a b : ℕ} (ha : a ≤ input.length)
@@ -230,52 +285,60 @@ private lemma glue_visits {S : Type*} (p : ℕ → ℕ) (q : ℕ → S) {T a b m
         exact hright t (by omega) hprev hr (by
           simpa [hprev'] using ih (by omega) (Or.inr hprev))
 
-/-- The entry at index `i` is the storage at the `i`th visit time. -/
-private lemma visitSequence_get {cfg : Cfg k Symbol State input} {T p m : ℕ}
-    (h : (tm.visitTimes cfg T p).card = m) (i : Fin m) :
-    (tm.visitSequence cfg T p)[i.val]'(by rw [length_visitSequence, h]; exact i.isLt) =
-      (tm.runFrom cfg ((tm.visitTimes cfg T p).orderEmbOfFin h i)).storage := by
-  simp [visitSequence, Finset.orderEmbOfFin_apply]
-
-/-- Deleting the cells after `a` through `b` preserves every storage reached outside the deleted
-interval, provided the symbols and visit sequences at `a` and `b` agree. Input positions are
-one-based, as in `Cfg.inputPos`; neither cut position is an endmarker. -/
-theorem exists_storage_cut {a b T : ℕ}
+/-- For a halting run, deleting the cells after `a` through `b` preserves every storage reached
+outside the deleted interval, provided the symbols and visit sequences at `a` and `b` agree.
+Input positions are one-based, as in `Cfg.inputPos`; neither cut position is an endmarker. -/
+theorem exists_storage_cut
+    (hhalt : ∃ T, (tm.runFrom (tm.initCfg input) T).Halted) {a b : ℕ}
     (ha : 0 < a) (hab : a < b) (hb : b ≤ input.length)
     (hsym : input[a - 1]? = input[b - 1]?)
-    (hseq : tm.visitSequence (tm.initCfg input) T a =
-      tm.visitSequence (tm.initCfg input) T b)
-    {t : ℕ} (ht : t ≤ T)
+    (hseq : tm.visitSequence (tm.initCfg input) a =
+      tm.visitSequence (tm.initCfg input) b)
+    {t : ℕ}
     (hp : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ a ∨
       b ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val) :
     ∃ u, (tm.runFrom (tm.initCfg (input.take a ++ input.drop b)) u).storage =
       (tm.runFrom (tm.initCfg input) t).storage := by
+  classical
+  obtain ⟨T, hT, hfirst⟩ := Nat.findX hhalt
+  wlog ht : t ≤ T generalizing t
+  · rw [tm.runFrom_eq_of_halt (Nat.le_of_not_ge ht) hT] at hp ⊢
+    exact this hp le_rfl
   let c := tm.runFrom (tm.initCfg input)
   let c' := tm.runFrom (tm.initCfg (input.take a ++ input.drop b))
-  let m := (tm.visitTimes (tm.initCfg input) T a).card
-  have hcard : (tm.visitTimes (tm.initCfg input) T b).card = m := by
-    simpa [m] using (congrArg List.length hseq).symm
-  let A := (tm.visitTimes (tm.initCfg input) T a).orderEmbOfFin rfl
-  let B := (tm.visitTimes (tm.initCfg input) T b).orderEmbOfFin hcard
+  let times := fun p => (tm.visitTimes_finite_of_halt hhalt p).toFinset
+  let seq := fun p => (tm.visitSequence (tm.initCfg input) p).toList
+    (tm.visitSequence_terminates_of_halt hhalt p)
+  have hmem (p u : ℕ) : u ∈ times p ↔ u ≤ T ∧ (c u).inputPos.val = p := by
+    simp only [times, Set.Finite.mem_toFinset, tm.visitTimes_eq_of_first_halt hT hfirst,
+      Set.mem_ofPred_eq, c]
+  have hseq' : seq a = seq b := by simp only [seq, hseq]
+  let m := (times a).card
+  have hcard : (times b).card = m := by
+    simpa only [seq, tm.length_visitSequence hhalt, times, m] using
+      (congrArg List.length hseq').symm
+  let A := (times a).orderEmbOfFin rfl
+  let B := (times b).orderEmbOfFin hcard
   have hA : ∀ i, A i ≤ T ∧ (c (A i)).inputPos.val = a := fun i =>
-    tm.mem_visitTimes.mp (Finset.orderEmbOfFin_mem _ _ i)
+    (hmem a _).mp (Finset.orderEmbOfFin_mem _ _ i)
   have hB : ∀ i, B i ≤ T ∧ (c (B i)).inputPos.val = b := fun i =>
-    tm.mem_visitTimes.mp (Finset.orderEmbOfFin_mem _ _ i)
+    (hmem b _).mp (Finset.orderEmbOfFin_mem _ _ i)
   have hAc : ∀ u ≤ T, (c u).inputPos.val = a → ∃ i, A i = u := by
     intro u hu hpu
     change u ∈ Set.range A
     simpa only [A, Finset.range_orderEmbOfFin, Finset.mem_coe] using
-      tm.mem_visitTimes.mpr ⟨hu, hpu⟩
+      (hmem a u).mpr ⟨hu, hpu⟩
   have hBc : ∀ u ≤ T, (c u).inputPos.val = b → ∃ i, B i = u := by
     intro u hu hpu
     change u ∈ Set.range B
     simpa only [B, Finset.range_orderEmbOfFin, Finset.mem_coe] using
-      tm.mem_visitTimes.mpr ⟨hu, hpu⟩
+      (hmem b u).mpr ⟨hu, hpu⟩
   have hq : ∀ i, (c (A i)).storage = (c (B i)).storage := by
     intro i
-    have heq := List.getElem_of_eq hseq (i := i.val)
-      (by rw [length_visitSequence]; exact i.isLt)
-    exact (visitSequence_get rfl i).symm.trans (heq.trans (visitSequence_get hcard i))
+    have heq := List.getElem_of_eq hseq' (i := i.val)
+      (by simpa only [seq, tm.length_visitSequence hhalt] using i.isLt)
+    simpa only [seq, tm.visitSequence_toList hhalt, List.getElem_map, A, B,
+      Finset.orderEmbOfFin_apply, Fin.getElem_fin, times, c] using heq
   have hmove : ∀ i,
       (c (A i + 1)).inputPos.val + b = (c (B i + 1)).inputPos.val + a := by
     intro i
@@ -329,25 +392,28 @@ theorem exists_storage_cut {a b T : ℕ}
   obtain ⟨u, _, hstore⟩ := hglue
   exact ⟨u, hstore⟩
 
-/-- Every entry of a visit sequence is a storage reached by the run. -/
-lemma mem_range_of_mem_visitSequence {cfg : Cfg k Symbol State input} {T p : ℕ}
-    {s : Storage Symbol State k} (h : s ∈ tm.visitSequence cfg T p) :
+/-- Every entry of a finite visit sequence is a storage reached by the run. -/
+lemma mem_range_of_mem_visitSequence {cfg : Cfg k Symbol State input}
+    (hhalt : ∃ T, (tm.runFrom cfg T).Halted) {p : ℕ} {s : Storage Symbol State k}
+    (h : s ∈ (tm.visitSequence cfg p).toList (tm.visitSequence_terminates_of_halt hhalt p)) :
     s ∈ Set.range (fun t => (tm.runFrom cfg t).storage) := by
+  rw [tm.visitSequence_toList hhalt p] at h
   obtain ⟨t, _, rfl⟩ := List.mem_map.mp h
   exact ⟨t, rfl⟩
 
 /-- A visit sequence of a halting space-bounded run has length at most the storage bound. -/
-lemma length_visitSequence_le [Fintype Symbol] [Fintype State] {T s : ℕ}
-    (hhalt : (tm.runFrom (tm.initCfg input) T).Halted)
-    (hfirst : ∀ t < T, ¬ (tm.runFrom (tm.initCfg input) t).Halted)
+lemma length_visitSequence_le [Fintype Symbol] [Fintype State] {s : ℕ}
+    (hhalt : ∃ T, (tm.runFrom (tm.initCfg input) T).Halted)
     (hs : ∀ t, tm.spaceUsed (tm.initCfg input) t ≤ s) (p : ℕ) :
-    (tm.visitSequence (tm.initCfg input) T p).length ≤ storageBound Symbol State k s := by
+    ((tm.visitSequence (tm.initCfg input) p).toList
+      (tm.visitSequence_terminates_of_halt hhalt p)).length ≤ storageBound Symbol State k s := by
   classical
-  have hn := tm.visitSequence_nodup hhalt hfirst p
-  have hsub : ((tm.visitSequence (tm.initCfg input) T p).toFinset : Set _) ⊆
+  have hn := tm.visitSequence_nodup hhalt p
+  have hsub : (((tm.visitSequence (tm.initCfg input) p).toList
+      (tm.visitSequence_terminates_of_halt hhalt p)).toFinset : Set _) ⊆
       Set.range (fun t => (tm.runFrom (tm.initCfg input) t).storage) := by
     intro x hx
-    exact tm.mem_range_of_mem_visitSequence (List.mem_toFinset.mp hx)
+    exact tm.mem_range_of_mem_visitSequence hhalt (List.mem_toFinset.mp hx)
   have hle := (Set.encard_le_encard hsub).trans (tm.encard_storages_le hs)
   rw [Set.encard_coe_eq_coe_finsetCard, List.toFinset_card_of_nodup hn] at hle
   exact_mod_cast hle
@@ -364,9 +430,6 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
       ∃ u, (tm.runFrom (tm.initCfg input') u).storage =
         (tm.runFrom (tm.initCfg input) t).storage := by
   classical
-  obtain ⟨T, hT, hfirst⟩ := Nat.findX hhalt
-  wlog ht : t ≤ T generalizing t
-  · simpa only [tm.runFrom_eq_of_halt (Nat.le_of_not_ge ht) hT] using this T le_rfl
   let B := storageBound Symbol State k s
   let S := Set.range (fun u => (tm.runFrom (tm.initCfg input) u).storage)
   have hbound : S.encard ≤ B := tm.encard_storages_le hs
@@ -375,13 +438,14 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     have h := hbound
     rw [← Set.coe_fintypeCard] at h
     exact_mod_cast h
-  let seq := tm.visitSequence (tm.initCfg input) T
+  let seq := fun p => (tm.visitSequence (tm.initCfg input) p).toList
+    (tm.visitSequence_terminates_of_halt hhalt p)
   let enc (p : ℕ) : List S := (seq p).attachWith (· ∈ S)
-    (fun _ h => tm.mem_range_of_mem_visitSequence h)
+    (fun _ h => tm.mem_range_of_mem_visitSequence hhalt h)
   have henc (p : ℕ) : (enc p).map Subtype.val = seq p :=
     List.attachWith_map_subtype_val _
   have hlength (p : ℕ) : (enc p).length ≤ B := by
-    simpa only [enc, List.length_attachWith] using tm.length_visitSequence_le hT hfirst hs p
+    simpa only [enc, List.length_attachWith] using tm.length_visitSequence_le hhalt hs p
   let f (i : Fin input.length) : Symbol × (Fin B → Option S) :=
     (input[i], fun j => (enc (i.val + 1))[j.val]?)
   have heq {i j : Fin input.length} (h : f i = f j) :
@@ -431,9 +495,10 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
       have := i.isLt
       have := j.isLt
       omega
-    · exact tm.exists_storage_cut (by omega) hij (by have := j.isLt; omega)
+    · apply tm.exists_storage_cut hhalt (by omega) hij (by have := j.isLt; omega)
         (by simpa [List.getElem?_eq_getElem i.isLt, List.getElem?_eq_getElem j.isLt] using hij'.1)
-        hij'.2 ht hpos
+        ?_ hpos
+      simpa only [seq, Stream'.Seq.ofList_toList] using congrArg Stream'.Seq.ofList hij'.2
   by_cases hpos : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ (e 0).val + 1 ∨
       (e 1).val + 1 ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val
   · exact cut hab hab' hpos
