@@ -21,6 +21,11 @@ computation, regardless of the write-only output.
 `InputCut` describes a deletion between input-symbol indices. Its position map relates
 configurations on the original and shortened inputs, allowing the run segments on either side
 to be joined.
+
+`InputCut.VisitPairing` pairs boundary visits in order with equal symbols and storages.
+The shortened run first follows the retained prefix. Between consecutive pairs, the common
+head move selects an excursion on a retained side. Induction over the pairs reaches every
+boundary visit; subsequent retained steps reach every configuration outside the cut.
 -/
 
 @[expose] public section
@@ -148,6 +153,13 @@ def position (p : ℕ) : ℕ :=
 def SameSide (p q : ℕ) : Prop :=
   (p ≤ cut.left ∧ q ≤ cut.left) ∨ (cut.right ≤ p ∧ cut.right ≤ q)
 
+/-- A one-cell move ending outside the cut, away from its boundaries, stays on a retained side. -/
+lemma sameSide_of_not_boundary {p q : ℕ} (hstep : q ≤ p + 1 ∧ p ≤ q + 1)
+    (hq : q ≤ cut.left ∨ cut.right ≤ q) (hne : ¬ (q = cut.left ∨ q = cut.right)) :
+    cut.SameSide p q := by
+  dsimp only [SameSide]
+  omega
+
 /-- Adding back the deleted cells recovers the original input length. -/
 private lemma length_shortened_add :
     cut.shortened.length + (cut.right - cut.left) = input.length := by
@@ -242,13 +254,21 @@ lemma inputSymbol (hsym : input[cut.fst] = input[cut.snd])
   simp only [inputSymbol_eq_getElem?, h.1, cut.position_eq_zero,
     cut.getElem?_position hsym hp]
 
-/-- A step whose endpoints lie on the same retained side preserves matching configurations. -/
-lemma step (hsym : input[cut.fst] = input[cut.snd])
-    {c : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened}
-    (h : cut.Matches c c') (hside : cut.SameSide c.inputPos.val (tm.step c).inputPos.val) :
+/-- Matching configurations on the retained prefix scan the same symbol. -/
+lemma inputSymbol_left {c : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened}
+    (h : cut.Matches c c') (hp : c.inputPos.val ≤ cut.left) :
+    c.inputSymbol = c'.inputSymbol := by
+  have hi : c.inputPos.val - 1 < cut.left := by
+    have : 0 < cut.left := Nat.succ_pos _
+    omega
+  simp only [inputSymbol_eq_getElem?, h.1, cut.position_left hp, cut.getElem?_left hi]
+
+/-- Matching configurations scanning the same symbol stay matched across a retained step. -/
+lemma step {c : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened}
+    (h : cut.Matches c c') (hsym : c.inputSymbol = c'.inputSymbol)
+    (hside : cut.SameSide c.inputPos.val (tm.step c).inputPos.val) :
     cut.Matches (tm.step c) (tm.step c') := by
-  obtain ⟨m, hs, hm, hm'⟩ := tm.exists_step_move_of_storage_eq h.2.symm
-    (h.inputSymbol hsym (hside.imp And.left And.left))
+  obtain ⟨m, hs, hm, hm'⟩ := tm.exists_step_move_of_storage_eq h.2.symm hsym
   rw [hm] at hside
   refine ⟨?_, hs.symm⟩
   rw [hm, hm']
@@ -267,7 +287,25 @@ lemma reaches_runFrom (hsym : input[cut.fst] = input[cut.snd])
     obtain ⟨d, hd, hm⟩ := ih fun t hut htv => hside t hut (by omega)
     refine ⟨tm.step d, hd.tail rfl, ?_⟩
     rw [runFrom_succ_eq_step']
-    exact hm.step hsym (by simpa only [runFrom_succ_eq_step'] using hside v huv (by omega))
+    have hv := hside v huv (by omega)
+    exact hm.step (hm.inputSymbol hsym (hv.imp And.left And.left))
+      (by simpa only [runFrom_succ_eq_step'] using hv)
+
+/-- Simulate a segment in the retained prefix, without any assumption on the boundary symbols. -/
+lemma reaches_runFrom_left
+    {cfg : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened} {u v : ℕ}
+    (h : cut.Matches (tm.runFrom cfg u) c') (huv : u ≤ v)
+    (hside : ∀ t, u ≤ t → t ≤ v → (tm.runFrom cfg t).inputPos.val ≤ cut.left) :
+    ∃ d, ReflTransGen tm.TransitionRelation c' d ∧ cut.Matches (tm.runFrom cfg v) d := by
+  induction v, huv using Nat.le_induction with
+  | base => exact ⟨c', .refl, h⟩
+  | succ v huv ih =>
+    obtain ⟨d, hd, hm⟩ := ih fun t hut htv => hside t hut (htv.trans (Nat.le_succ _))
+    have hv := hside v huv (Nat.le_succ _)
+    refine ⟨tm.step d, hd.tail rfl, ?_⟩
+    rw [runFrom_succ_eq_step']
+    exact hm.step (hm.inputSymbol_left hv) (.inl ⟨hv, by
+      simpa only [runFrom_succ_eq_step'] using hside (v + 1) (by omega) le_rfl⟩)
 
 end Matches
 
@@ -277,93 +315,107 @@ lemma matches_init : cut.Matches (tm.initCfg input) (tm.initCfg cut.shortened) :
   · exact (cut.position_left (p := 1) (Nat.succ_le_succ (Nat.zero_le _))).symm
   · rfl
 
-/-- Equal storages at the two boundary positions match the same shortened configurations. -/
-private lemma matches_boundary_iff
-    {c₁ c₂ : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened}
-    (h₁ : c₁.inputPos.val = cut.left) (h₂ : c₂.inputPos.val = cut.right)
-    (hs : c₁.storage = c₂.storage) : cut.Matches c₁ c' ↔ cut.Matches c₂ c' := by
+/-- An order-preserving pairing of boundary visits with equal symbols and storages. -/
+structure VisitPairing (tm : MultiTapeTM k Symbol State) (T : ℕ) where
+  /-- The paired boundary positions carry the same input symbol. -/
+  symbol_eq : input[cut.fst] = input[cut.snd]
+  /-- The visits to the two boundaries correspond in chronological order. -/
+  orderIso : tm.visitTimes (tm.initCfg input) T cut.left ≃o
+    tm.visitTimes (tm.initCfg input) T cut.right
+  /-- Corresponding visits have the same storage. -/
+  storage_eq (u : tm.visitTimes (tm.initCfg input) T cut.left) :
+    (tm.runFrom (tm.initCfg input) u).storage =
+      (tm.runFrom (tm.initCfg input) (orderIso u)).storage
+
+/-- The retained prefix reaches the first visit to the left boundary. -/
+private lemma exists_matches_first_visit {T : ℕ}
+    {u : tm.visitTimes (tm.initCfg input) T cut.left} (hu : IsMin u) :
+    ∃ c', ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧
+      cut.Matches (tm.runFrom (tm.initCfg input) u) c' := by
+  have hside (v) (hv : v ≤ u.val) :
+      (tm.runFrom (tm.initCfg input) v).inputPos.val ≤ cut.left := by
+    apply tm.inputPos_le_of_forall_ne (Nat.zero_le v) (by simp [left])
+    exact fun r _ hrv => not_visit_before hu (hrv.trans_le hv)
+  exact cut.matches_init.reaches_runFrom_left (cfg := tm.initCfg input) (u := 0)
+    (Nat.zero_le _) fun v _ hv => hside v hv
+
+namespace VisitPairing
+
+variable {cut} {T : ℕ} (pairing : cut.VisitPairing tm T)
+
+include pairing
+
+/-- Paired visits represent the same storage at the collapsed boundary. -/
+private lemma matches_iff (u : tm.visitTimes (tm.initCfg input) T cut.left)
+    {c' : Cfg k Symbol State cut.shortened} :
+    cut.Matches (tm.runFrom (tm.initCfg input) u) c' ↔
+      cut.Matches (tm.runFrom (tm.initCfg input) (pairing.orderIso u)) c' := by
+  have hleft := (tm.mem_visitTimes.mp u.property).2
+  have hright := (tm.mem_visitTimes.mp (pairing.orderIso u).property).2
   have hba : cut.right - (cut.right - cut.left) = cut.left :=
     Nat.sub_sub_self (Nat.add_le_add_right cut.fst_le_snd 1)
-  simp only [Matches, h₁, h₂, cut.position_left le_rfl, cut.position_right le_rfl,
-    hba, hs]
+  simp only [Matches, hleft, hright, cut.position_left le_rfl,
+    cut.position_right le_rfl, hba, pairing.storage_eq u]
 
-/-- Of two boundary configurations with equal storage, at least one steps into a retained side. -/
-private lemma step_boundary_sides (hsym : input[cut.fst] = input[cut.snd])
-    {c₁ c₂ : Cfg k Symbol State input}
-    (h₁ : c₁.inputPos.val = cut.left) (h₂ : c₂.inputPos.val = cut.right)
-    (hs : c₁.storage = c₂.storage) :
-    (tm.step c₁).inputPos.val ≤ cut.left ∨ cut.right ≤ (tm.step c₂).inputPos.val := by
-  have hsy : c₁.inputSymbol = c₂.inputSymbol := by
-    rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, h₁, h₂]
-    simpa [left, right, Fin.getElem_fin] using hsym
-  obtain ⟨dir, _, hm₁, hm₂⟩ := tm.exists_step_move_of_storage_eq hs hsy
-  have hm := moveInputPos_interior c₁.inputPos c₂.inputPos
-    (by rw [h₁]; exact Nat.succ_pos _) (by rw [h₁]; exact cut.fst.isLt)
-    (by rw [h₂]; exact Nat.succ_pos _) (by rw [h₂]; exact cut.snd.isLt) dir
-  rw [← hm₁, ← hm₂, h₁, h₂] at hm
-  omega
+/-- At a paired visit, at least one of the two next steps enters a retained side. -/
+private lemma step_sides (u : tm.visitTimes (tm.initCfg input) T cut.left) :
+    (tm.runFrom (tm.initCfg input) (u.val + 1)).inputPos.val ≤ cut.left ∨
+      cut.right ≤ (tm.runFrom (tm.initCfg input) ((pairing.orderIso u).val + 1)).inputPos.val := by
+  have hleft := (tm.mem_visitTimes.mp u.property).2
+  have hright := (tm.mem_visitTimes.mp (pairing.orderIso u).property).2
+  have hsym : (tm.runFrom (tm.initCfg input) u).inputSymbol =
+      (tm.runFrom (tm.initCfg input) (pairing.orderIso u)).inputSymbol := by
+    rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, hleft, hright]
+    simpa [left, right, Fin.getElem_fin] using pairing.symbol_eq
+  obtain ⟨m, _, hm, hm'⟩ := tm.exists_step_move_of_storage_eq (pairing.storage_eq u) hsym
+  rw [runFrom_succ_eq_step', runFrom_succ_eq_step', hm, hm',
+    moveInputPos_val, moveInputPos_val, hleft, hright]
+  have hb : cut.right ≤ input.length := cut.snd.isLt
+  cases m <;> simp [SignType.cast]; omega
 
-/-- Paired boundary visits have reachable matching configurations: at each pair, follow the
-next excursion on whichever side its first step retains. -/
-private lemma exists_matches_visit {T : ℕ}
-    (hsym : input[cut.fst] = input[cut.snd])
-    (hseq : tm.visitSequence (tm.initCfg input) T cut.left =
-      tm.visitSequence (tm.initCfg input) T cut.right)
-    {t : ℕ} (ht : t ≤ T)
-    (hp : (tm.runFrom (tm.initCfg input) t).inputPos.val = cut.left ∨
-      (tm.runFrom (tm.initCfg input) t).inputPos.val = cut.right) :
+/-- Between consecutive paired visits, follow the excursion on a retained side. -/
+private lemma reaches_next_visit {u v : tm.visitTimes (tm.initCfg input) T cut.left}
+    (huv : u ⋖ v) {c' : Cfg k Symbol State cut.shortened}
+    (h : cut.Matches (tm.runFrom (tm.initCfg input) u) c') :
+    ∃ d, ReflTransGen tm.TransitionRelation c' d ∧
+      cut.Matches (tm.runFrom (tm.initCfg input) v) d := by
+  rcases pairing.step_sides u with hleft | hright
+  · exact h.reaches_runFrom_left huv.le (inputPos_le_of_covBy huv hleft)
+  · have he := (apply_covBy_apply_iff pairing.orderIso).mpr huv
+    have hside := le_inputPos_of_covBy he hright
+    obtain ⟨d, hd, hm⟩ := ((pairing.matches_iff u).mp h).reaches_runFrom
+      pairing.symbol_eq he.le fun r hlo hhi =>
+        Or.inr ⟨hside r hlo hhi.le, hside (r + 1) (hlo.trans (Nat.le_succ _)) hhi⟩
+    exact ⟨d, hd, (pairing.matches_iff v).mpr hm⟩
+
+/-- Induct over the paired visits, starting with the retained prefix. -/
+private lemma exists_matches_left_visit (u : tm.visitTimes (tm.initCfg input) T cut.left) :
     ∃ c', ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧
-      cut.Matches (tm.runFrom (tm.initCfg input) t) c' := by
-  let c := tm.runFrom (tm.initCfg input)
-  let p := fun u => (c u).inputPos.val
-  let P := fun u => ∃ c',
-    ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧ cut.Matches (c u) c'
-  obtain ⟨e, hstore⟩ := tm.exists_visitTimes_orderIso hseq
-  have hleft (u : tm.visitTimes (tm.initCfg input) T cut.left) :=
-    (tm.mem_visitTimes.mp u.property).2
-  have hright (u : tm.visitTimes (tm.initCfg input) T cut.right) :=
-    (tm.mem_visitTimes.mp u.property).2
-  have hmatch (u : tm.visitTimes (tm.initCfg input) T cut.left) : P u ↔ P (e u) :=
-    exists_congr fun c' => and_congr_right fun _ =>
-      cut.matches_boundary_iff (hleft u) (hright (e u)) (hstore u)
-  have follow {u v} (huv : u ≤ v) (hu : P u)
-      (hside : ∀ r, u ≤ r → r < v → cut.SameSide (p r) (p (r + 1))) : P v := by
-    obtain ⟨c', hr, hm⟩ := hu
-    obtain ⟨d, hd, hm'⟩ := hm.reaches_runFrom hsym huv hside
+      cut.Matches (tm.runFrom (tm.initCfg input) u) c' := by
+  induction u using WellFoundedLT.induction with | ind u ih =>
+  by_cases hu : IsMin u
+  · exact cut.exists_matches_first_visit hu
+  · obtain ⟨v, hvu⟩ := exists_covBy_of_wellFoundedGT hu
+    obtain ⟨c', hr, hm⟩ := ih v hvu.lt
+    obtain ⟨d, hd, hm'⟩ := pairing.reaches_next_visit hvu hm
     exact ⟨d, hr.trans hd, hm'⟩
-  have boundary (u : tm.visitTimes (tm.initCfg input) T cut.left) : P u := by
-    induction u using WellFoundedLT.induction with | ind u ih =>
-    by_cases hu : IsMin u
-    · have hside (v) (hv : v ≤ u.val) : p v ≤ cut.left := by
-        apply tm.inputPos_le_of_forall_ne (Nat.zero_le v) (by simp [left])
-        intro r _ hrv
-        exact not_visit_before hu (hrv.trans_le hv)
-      exact follow (Nat.zero_le _) ⟨_, .refl, cut.matches_init⟩ fun v _ hv =>
-        Or.inl ⟨hside v hv.le, hside (v + 1) hv⟩
-    · obtain ⟨v, hvu⟩ := exists_covBy_of_wellFoundedGT hu
-      have hdir := cut.step_boundary_sides hsym (tm := tm) (hleft v) (hright (e v))
-        (hstore v)
-      simp only [← runFrom_succ_eq_step'] at hdir
-      rcases hdir with hdir | hdir
-      · have hside := inputPos_le_of_covBy hvu hdir
-        exact follow hvu.le (ih v hvu.lt) fun r hlo hhi =>
-          Or.inl ⟨hside r hlo hhi.le, hside (r + 1) (hlo.trans (Nat.le_succ _)) hhi⟩
-      · have he := (apply_covBy_apply_iff e).mpr hvu
-        have hside := le_inputPos_of_covBy he hdir
-        exact (hmatch u).mpr (follow he.le ((hmatch v).mp (ih v hvu.lt)) fun r hlo hhi =>
-          Or.inr ⟨hside r hlo hhi.le, hside (r + 1) (hlo.trans (Nat.le_succ _)) hhi⟩)
-  rcases hp with hp | hp
-  · exact boundary ⟨t, tm.mem_visitTimes.mpr ⟨ht, hp⟩⟩
-  · let u : tm.visitTimes (tm.initCfg input) T cut.right := ⟨t, tm.mem_visitTimes.mpr ⟨ht, hp⟩⟩
-    simpa only [e.apply_symm_apply] using (hmatch (e.symm u)).mp (boundary (e.symm u))
 
-/-- Equal boundary visit sequences give every configuration outside the cut a reachable
+/-- Every boundary visit has a reachable matching configuration on the shortened input. -/
+lemma exists_matches_visit
+    (u : (tm.visitTimes (tm.initCfg input) T cut.left ∪
+      tm.visitTimes (tm.initCfg input) T cut.right : Finset ℕ)) :
+    ∃ c', ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧
+      cut.Matches (tm.runFrom (tm.initCfg input) u) c' := by
+  rcases Finset.mem_union.mp u.property with hu | hu
+  · exact pairing.exists_matches_left_visit ⟨u.val, hu⟩
+  · let v := pairing.orderIso.symm ⟨u.val, hu⟩
+    obtain ⟨c', hr, hm⟩ := pairing.exists_matches_left_visit v
+    exact ⟨c', hr, by
+      simpa only [v, pairing.orderIso.apply_symm_apply] using (pairing.matches_iff v).mp hm⟩
+
+/-- A pairing of boundary visits gives every configuration outside the cut a reachable
 matching configuration on the shortened input. -/
-theorem exists_matches_of_visitSequence_eq {T : ℕ}
-    (hsym : input[cut.fst] = input[cut.snd])
-    (hseq : tm.visitSequence (tm.initCfg input) T cut.left =
-      tm.visitSequence (tm.initCfg input) T cut.right)
-    {t : ℕ} (ht : t ≤ T)
+theorem exists_matches {t : ℕ} (ht : t ≤ T)
     (hp : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ cut.left ∨
       cut.right ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val) :
     ∃ c', ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧
@@ -373,17 +425,19 @@ theorem exists_matches_of_visitSequence_eq {T : ℕ}
   | succ t ih =>
     by_cases hb : (tm.runFrom (tm.initCfg input) (t + 1)).inputPos.val = cut.left ∨
         (tm.runFrom (tm.initCfg input) (t + 1)).inputPos.val = cut.right
-    · exact cut.exists_matches_visit hsym hseq ht hb
+    · exact pairing.exists_matches_visit ⟨t + 1, by
+        simp only [Finset.mem_union, tm.mem_visitTimes]
+        exact hb.imp (fun h => ⟨ht, h⟩) (fun h => ⟨ht, h⟩)⟩
     have hbounds := tm.inputPos_step_bounds (tm.runFrom (tm.initCfg input) t)
-    have hside : cut.SameSide (tm.runFrom (tm.initCfg input) t).inputPos.val
-        (tm.runFrom (tm.initCfg input) (t + 1)).inputPos.val := by
-      dsimp only [SameSide]
-      rw [← runFrom_succ_eq_step'] at hbounds
-      omega
+    rw [← runFrom_succ_eq_step'] at hbounds
+    have hside := cut.sameSide_of_not_boundary hbounds hp hb
     obtain ⟨c', hr, hm⟩ := ih (by omega) (hside.imp And.left And.left)
     refine ⟨tm.step c', hr.tail rfl, ?_⟩
     rw [runFrom_succ_eq_step']
-    exact hm.step hsym (by simpa only [runFrom_succ_eq_step'] using hside)
+    exact hm.step (hm.inputSymbol pairing.symbol_eq (hside.imp And.left And.left))
+      (by simpa only [runFrom_succ_eq_step'] using hside)
+
+end VisitPairing
 
 end InputCut
 
@@ -398,7 +452,9 @@ theorem exists_storage_cut (cut : InputCut input) {T : ℕ}
       cut.right ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val) :
     ∃ u, (tm.runFrom (tm.initCfg cut.shortened) u).storage =
       (tm.runFrom (tm.initCfg input) t).storage := by
-  obtain ⟨c', hr, _, hs⟩ := cut.exists_matches_of_visitSequence_eq hsym hseq ht hp
+  obtain ⟨e, hstore⟩ := tm.exists_visitTimes_orderIso hseq
+  let pairing : cut.VisitPairing tm T := ⟨hsym, e, hstore⟩
+  obtain ⟨c', hr, _, hs⟩ := pairing.exists_matches ht hp
   obtain ⟨u, hu⟩ := hr.relatesInSteps
   refine ⟨u, ?_⟩
   rwa [(tm.relatesInSteps_iff_runFrom_eq _ _ _).mp hu]
