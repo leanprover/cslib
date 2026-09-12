@@ -6,11 +6,11 @@ Authors: Aviv Bar Natan
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.InputShortening
-public import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
-public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Cslib.Foundations.Analysis.Asymptotics
+public import Mathlib.Computability.Language
 
 /-!
-# Subloglog space is constant
+# Subloglog space equals constant space
 
 A halting deterministic machine whose space usage is `o(log log n)` uses uniformly bounded
 space. The proof shortens an input while preserving a chosen storage, using the visit sequences
@@ -18,7 +18,7 @@ from `InputShortening` and the storage count from `ConfigBound`. A shortest inpu
 large work-head displacement must therefore lie below a fixed length threshold.
 
 `exists_spaceUsed_le_of_isLittleO_log_log` bounds the space of the same machine on all inputs.
-`decidableInTimeAndSpace_subloglog_iff` gives `SPACE(o(log log n)) = SPACE(1)` for binary words,
+`loglogn_equals_no_space` gives `SPACE(o(log log n)) = SPACE(1)` for binary words,
 using the existing `DecidableInTimeAndSpace` predicate with the identity encoding.
 
 The argument follows Gadi Aleksandrowicz's account at
@@ -31,88 +31,28 @@ open Filter Asymptotics
 
 namespace Turing.MultiTapeTM
 
-private lemma exp_isLittleO_exp {f g : ℕ → ℝ} (h : f =o[atTop] g)
-    (hg : Tendsto g atTop atTop) :
-    (fun n => Real.exp (f n)) =o[atTop] (fun n => Real.exp (g n)) := by
-  rw [Real.isLittleO_exp_comp_exp_comp]
-  exact (IsEquivalent.refl.sub_isLittleO h).symm.tendsto_atTop hg
-
-private lemma isLittleO_pow_pow {s : ℕ → ℕ}
-    (hs : (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ))))
-    (a c : ℕ) :
-    (fun n => ((2 ^ (2 ^ (a + c * s n)) : ℕ) : ℝ)) =o[atTop] (fun n => (n : ℝ)) := by
-  have hlog : Tendsto (fun n : ℕ => Real.log (n : ℝ)) atTop atTop :=
-    Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop
-  have hloglog := Real.tendsto_log_atTop.comp hlog
-  have hc : (fun _ : ℕ => (a : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ))) :=
-    Real.isLittleO_const_log_atTop.comp_tendsto hlog
-  have hlin : (fun n => Real.log 2 * ((a + c * s n : ℕ) : ℝ)) =o[atTop]
-      (fun n => Real.log (Real.log (n : ℝ))) := by
-    simpa only [Nat.cast_add, Nat.cast_mul] using
-      (hc.add (hs.const_mul_left (c : ℝ))).const_mul_left (Real.log 2)
-  have hpow (r : ℕ) : Real.exp (Real.log 2 * (r : ℝ)) = ((2 ^ r : ℕ) : ℝ) := by
-    rw [mul_comm, Real.exp_nat_mul, Real.exp_log (by norm_num : (0 : ℝ) < 2)]
-    simp
-  have hinner : (fun n => ((2 ^ (a + c * s n) : ℕ) : ℝ)) =o[atTop]
-      (fun n => Real.log (n : ℝ)) :=
-    (exp_isLittleO_exp hlin hloglog).congr'
-      (Eventually.of_forall fun n => hpow _)
-      ((hlog.eventually_gt_atTop 0).mono fun n hn => Real.exp_log hn)
-  exact (exp_isLittleO_exp (hinner.const_mul_left (Real.log 2)) hlog).congr'
-    (Eventually.of_forall fun n => hpow _)
-    ((eventually_gt_atTop (0 : ℕ)).mono fun n hn => Real.exp_log (by exact_mod_cast hn))
-
-private lemma visit_bound_le_pow_pow {Symbol State : Type*} [Fintype Symbol] [Fintype State]
-    (k : ℕ) :
-    ∃ a c : ℕ, ∀ s : ℕ,
-      2 * Fintype.card Symbol * (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s
-        ≤ 2 ^ (2 ^ (a + c * s)) := by
-  obtain ⟨a, c, hbound⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
-  refine ⟨2 * Fintype.card Symbol + 2 * a + 1, 2 * c, fun s => ?_⟩
-  let B := storageBound Symbol State k s
-  let E := 2 * Fintype.card Symbol + 2 * a + 2 * c * s
-  have hB : B ≤ 2 ^ (a + c * s) := by
-    calc B
-      _ ≤ a * 2 ^ (c * s) := hbound s
-      _ ≤ 2 ^ a * 2 ^ (c * s) := Nat.mul_le_mul_right _ (Nat.lt_two_pow_self.le)
-      _ = 2 ^ (a + c * s) := (pow_add ..).symm
-  have hBsq : B * B ≤ 2 ^ E := by
-    calc B * B
-      _ ≤ 2 ^ (a + c * s) * 2 ^ (a + c * s) := Nat.mul_le_mul hB hB
-      _ = 2 ^ (2 * a + 2 * c * s) := by rw [← pow_add]; congr 1; ring
-      _ ≤ 2 ^ E := by apply Nat.pow_le_pow_right (by decide); dsimp [E]; omega
-  have hR : 2 * Fintype.card Symbol ≤ 2 ^ E := by
-    calc 2 * Fintype.card Symbol
-      _ ≤ 2 ^ (2 * Fintype.card Symbol) := Nat.lt_two_pow_self.le
-      _ ≤ 2 ^ E := by apply Nat.pow_le_pow_right (by decide); dsimp [E]; omega
-  have hsum : 2 * Fintype.card Symbol + B * B ≤
-      2 ^ (2 * Fintype.card Symbol + 2 * a + 1 + 2 * c * s) := by
-    calc 2 * Fintype.card Symbol + B * B
-      _ ≤ 2 ^ E + 2 ^ E := Nat.add_le_add hR hBsq
-      _ = 2 ^ (E + 1) := by ring
-      _ = _ := by congr 1; dsimp [E]; omega
-  change 2 * Fintype.card Symbol * (B + 1) ^ B ≤ _
-  calc 2 * Fintype.card Symbol * (B + 1) ^ B
-    _ ≤ 2 ^ (2 * Fintype.card Symbol) * (2 ^ B) ^ B := by
-      apply Nat.mul_le_mul Nat.lt_two_pow_self.le
-      exact Nat.pow_le_pow_left (by have := Nat.lt_two_pow_self (n := B); omega) B
-    _ = 2 ^ (2 * Fintype.card Symbol + B * B) := by rw [← pow_mul, ← pow_add]
-    _ ≤ _ := Nat.pow_le_pow_right (by decide) hsum
-
+/-- For `s(n) = o(log log n)`, sufficiently long inputs exceed the shortening threshold. -/
 private lemma eventually_visit_bound_lt {Symbol State : Type*} [Fintype Symbol] [Fintype State]
     (k : ℕ) {s : ℕ → ℕ}
     (hs : (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ)))) :
     ∀ᶠ n in atTop, 2 * Fintype.card Symbol *
       (storageBound Symbol State k (s n) + 1) ^ storageBound Symbol State k (s n) < n := by
-  obtain ⟨a, c, hbound⟩ := visit_bound_le_pow_pow (Symbol := Symbol) (State := State) k
-  have hsmall := isLittleO_pow_pow hs a c
-  filter_upwards [hsmall.bound (by norm_num : (0 : ℝ) < 1 / 2), eventually_gt_atTop (0 : ℕ)]
-    with n hn hn₀
-  have hn' : ((2 ^ (2 ^ (a + c * s n)) : ℕ) : ℝ) < (n : ℝ) := by
-    simp only [Real.norm_natCast] at hn
-    have : (0 : ℝ) < n := by exact_mod_cast hn₀
-    linarith
-  exact (hbound (s n)).trans_lt (by exact_mod_cast hn')
+  obtain ⟨a, c, hbound⟩ := storageBound_pow_le_pow_pow (Symbol := Symbol) (State := State) (k := k)
+    (2 * Fintype.card Symbol)
+  have hlog := Real.tendsto_log_atTop.comp (tendsto_natCast_atTop_atTop (R := ℝ))
+  have hc : (fun _ : ℕ => (a : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ))) :=
+    Real.isLittleO_const_log_atTop.comp_tendsto hlog
+  have hlin : (fun n => ((a + c * s n : ℕ) : ℝ)) =o[atTop]
+      (fun n => Real.log (Real.log (n : ℝ))) := by
+    simpa only [Nat.cast_add, Nat.cast_mul] using hc.add (hs.const_mul_left (c : ℝ))
+  have hsmall : (fun n => ((2 ^ (2 ^ (a + c * s n)) : ℕ) : ℝ)) =o[atTop]
+      (fun n => (n : ℝ)) :=
+    (hlin.natCast_const_pow hlog (by decide)).natCast_const_pow
+      tendsto_natCast_atTop_atTop (by decide)
+  have hpos : ∀ᶠ n : ℕ in atTop, 0 < ‖(n : ℝ)‖ := by
+    simpa using eventually_gt_atTop (0 : ℕ)
+  filter_upwards [hsmall.eventuallyLT_norm_of_eventually_pos hpos] with n hn
+  exact (hbound (s n)).trans_lt (by simpa only [Real.norm_natCast, Nat.cast_lt] using hn)
 
 /-- A halting machine whose space usage is `o(log log n)` has a uniform constant space bound.
 The bound applies to the same machine, on every input and at every time. -/
@@ -146,19 +86,9 @@ theorem exists_spaceUsed_le_of_isLittleO_log_log {k : ℕ} {Symbol State : Type*
         (hspace input t)
       have hsmall : s input.length ≤ R := Finset.le_sup (Finset.mem_range.mpr (by omega))
       exact hi.not_ge (hsinput.trans hsmall)
-    have hH := hhalt input
-    let T := Nat.find hH
-    have hT : (tm.runFrom (tm.initCfg input) T).Halted := Nat.find_spec hH
-    have hfirst : ∀ u < T, ¬ (tm.runFrom (tm.initCfg input) u).Halted :=
-      fun u hu => Nat.find_min hH hu
-    have hrun : tm.runFrom (tm.initCfg input) (min t T) = tm.runFrom (tm.initCfg input) t := by
-      rcases le_total t T with h | h
-      · rw [min_eq_left h]
-      · rw [min_eq_right h, tm.runFrom_eq_of_halt h hT]
     obtain ⟨input', hshort, u, hstore⟩ := tm.exists_shorter_input_storage
-      hT hfirst (hspace input) (hN input.length hlarge) (min_le_right t T)
-    have heq := congrArg (fun st => st.workTapePos i)
-      (hstore.trans (congrArg Cfg.storage hrun))
+      (hhalt input) (hspace input) (hN input.length hlarge) t
+    have heq := congrArg (fun st => st.workTapePos i) hstore
     change (tm.runFrom (tm.initCfg input') u).workTapePos i =
       (tm.runFrom (tm.initCfg input) t).workTapePos i at heq
     have hi' : R < ((tm.runFrom (tm.initCfg input') u).workTapePos i).natAbs := by
@@ -171,7 +101,7 @@ theorem exists_spaceUsed_le_of_isLittleO_log_log {k : ℕ} {Symbol State : Type*
 
 /-- A subloglog-space decider for binary words already obeys a constant space bound,
 with its time bound unchanged. -/
-theorem DecidableInTimeAndSpace.exists_const_space {L : Set (List Bool)}
+theorem DecidableInTimeAndSpace.exists_const_space {L : Language Bool}
     {t : List Bool → ℕ} {s : ℕ → ℕ}
     (h : DecidableInTimeAndSpace L (Function.Embedding.refl _) t (fun x => s x.length))
     (hs : (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ)))) :
@@ -193,12 +123,14 @@ theorem DecidableInTimeAndSpace.exists_const_space {L : Set (List Bool)}
 
 /-- `SPACE(o(log log n)) = SPACE(1)` for deterministic deciders on binary words.
 The input has its usual identity encoding, and space counts work-tape cells visited. -/
-theorem decidableInTimeAndSpace_subloglog_iff (L : Set (List Bool)) :
-    (∃ (s : ℕ → ℕ) (t : List Bool → ℕ),
+theorem loglogn_equals_no_space (L : Language Bool) :
+    (∃ s t : ℕ → ℕ,
       (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ))) ∧
-      DecidableInTimeAndSpace L (Function.Embedding.refl _) t (fun x => s x.length)) ↔
-    (∃ (C : ℕ) (t : List Bool → ℕ),
-      DecidableInTimeAndSpace L (Function.Embedding.refl _) t (fun _ => C)) := by
+      DecidableInTimeAndSpace L (Function.Embedding.refl _)
+        (fun x => t x.length) (fun x => s x.length)) ↔
+    (∃ (C : ℕ) (t : ℕ → ℕ),
+      DecidableInTimeAndSpace L (Function.Embedding.refl _)
+        (fun x => t x.length) (fun _ => C)) := by
   constructor
   · rintro ⟨s, t, hs, h⟩
     obtain ⟨C, hC⟩ := h.exists_const_space hs
