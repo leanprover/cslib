@@ -7,18 +7,21 @@ module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Mathlib.Combinatorics.Pigeonhole
-public import Mathlib.Data.Nat.Nth
-public import Mathlib.Data.Seq.Basic
+public import Mathlib.Data.Finset.Sort
+public import Mathlib.Data.Nat.Count
+public import Mathlib.Data.Part
 public import Mathlib.Order.Interval.Set.Infinite
 
 /-!
 # Input shortening for multi-tape Turing machines
 
-A visit sequence records the storages seen at a fixed input position over the entire run. Both
-visits and their chronological sequence are defined independently of halting. On a halting run,
-the final input position has infinitely many visits, with a constant storage after halting. At
-every other position, the visit sequence is finite and its storages are distinct. The counting
-argument omits the final position.
+A visit sequence records the storages seen at a fixed input position over the entire run.
+Its entries are partial values (`Part`): searching for the `n`th visit returns its storage if that
+visit occurs. Both definitions are computable and independent of halting.
+
+Equal visit sequences allow an interval of the input to be deleted. Finite visit sets have distinct
+storages, so their cardinalities are bounded by the storage bound. On a halting run only the final
+input position has infinitely many visits; the counting argument omits that position.
 
 The input-shortening argument follows Gadi Aleksandrowicz's account at
 <https://gadial.net/2009/10/04/sub_loglog_space_is_constant/>.
@@ -40,20 +43,6 @@ lemma core_runFrom_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input}
   | succ t ih =>
     simpa only [runFrom_succ_eq_step'] using core_step_eq_of_core_eq (tm := tm) ih
 
-/-- The cores up to and including the first halt are pairwise distinct. -/
-lemma core_runFrom_injOn {cfg : Cfg k Symbol State input} {T : ℕ}
-    (hhalt : (tm.runFrom cfg T).Halted)
-    (hfirst : ∀ t < T, ¬ (tm.runFrom cfg t).Halted) :
-    Set.InjOn (fun t => (tm.runFrom cfg t).core) (Set.Iic T) := by
-  intro a ha b hb heq
-  wlog hab : a ≤ b generalizing a b
-  · exact (this hb ha heq.symm (le_of_not_ge hab)).symm
-  by_contra hne
-  change b ≤ T at hb
-  have heq' := tm.core_runFrom_eq_of_core_eq heq (T - b)
-  rw [← runFrom_add, ← runFrom_add, Nat.add_sub_of_le hb] at heq'
-  exact hfirst (a + (T - b)) (by omega) ((congrArg (fun c => c.2.state) heq').trans hhalt)
-
 /-- All times when the input head is at position `p`. -/
 def visitTimes (cfg : Cfg k Symbol State input) (p : ℕ) : Set ℕ :=
   {t | (tm.runFrom cfg t).inputPos.val = p}
@@ -62,14 +51,56 @@ def visitTimes (cfg : Cfg k Symbol State input) (p : ℕ) : Set ℕ :=
 lemma mem_visitTimes {cfg : Cfg k Symbol State input} {p t : ℕ} :
     t ∈ tm.visitTimes cfg p ↔ (tm.runFrom cfg t).inputPos.val = p := Iff.rfl
 
-/-- The chronological, possibly infinite sequence of storages encountered at input position `p`. -/
-noncomputable def visitSequence (cfg : Cfg k Symbol State input) (p : ℕ) :
-    Stream'.Seq (Storage Symbol State k) := by
-  classical
-  exact if h : (tm.visitTimes cfg p).Finite then
-    .ofList ((h.toFinset.sort (· ≤ ·)).map fun t => (tm.runFrom cfg t).storage)
-  else
-    .ofStream (fun n => (tm.runFrom cfg (Nat.nth (· ∈ tm.visitTimes cfg p) n)).storage)
+instance {cfg : Cfg k Symbol State input} {p : ℕ} :
+    DecidablePred (· ∈ tm.visitTimes cfg p) := fun _ =>
+  inferInstanceAs (Decidable ((_ : ℕ) = p))
+
+/-- The storage at the `n`th visit to `p`, obtained by searching the run in time order.
+An entry is undefined if that visit never occurs. No halting assumption is needed. -/
+def visitSequence (cfg : Cfg k Symbol State input) (p : ℕ) :
+    ℕ → Part (Storage Symbol State k) := fun n =>
+  ⟨∃ t ∈ tm.visitTimes cfg p, Nat.count (· ∈ tm.visitTimes cfg p) t = n,
+    fun h => (tm.runFrom cfg (Nat.find h)).storage⟩
+
+/-- An entry records the storage at the visit with exactly `n` earlier visits. -/
+lemma mem_visitSequence {cfg : Cfg k Symbol State input} {p n : ℕ}
+    {s : Storage Symbol State k} :
+    s ∈ tm.visitSequence cfg p n ↔ ∃ t ∈ tm.visitTimes cfg p,
+      Nat.count (· ∈ tm.visitTimes cfg p) t = n ∧ (tm.runFrom cfg t).storage = s := by
+  constructor
+  · rintro ⟨h, hs⟩
+    exact ⟨Nat.find h, (Nat.find_spec h).1, (Nat.find_spec h).2, hs⟩
+  · rintro ⟨t, ht, hn, rfl⟩
+    let h : ∃ u ∈ tm.visitTimes cfg p, Nat.count (· ∈ tm.visitTimes cfg p) u = n :=
+      ⟨t, ht, hn⟩
+    exact ⟨h, congrArg (fun u => (tm.runFrom cfg u).storage)
+      (Nat.count_injective (Nat.find_spec h).1 ht ((Nat.find_spec h).2.trans hn.symm))⟩
+
+/-- Equal visit sequences match visit times in order and preserve their storages. -/
+lemma exists_visitTimes_orderIso {cfg : Cfg k Symbol State input} {a b : ℕ}
+    (hseq : tm.visitSequence cfg a = tm.visitSequence cfg b) :
+    ∃ e : tm.visitTimes cfg a ≃o tm.visitTimes cfg b,
+      ∀ t : tm.visitTimes cfg a,
+        (tm.runFrom cfg t).storage = (tm.runFrom cfg (e t)).storage := by
+  have hmatch (t : tm.visitTimes cfg a) : ∃ u : tm.visitTimes cfg b,
+      Nat.count (· ∈ tm.visitTimes cfg a) t = Nat.count (· ∈ tm.visitTimes cfg b) u ∧
+        (tm.runFrom cfg t).storage = (tm.runFrom cfg u).storage := by
+    have h := tm.mem_visitSequence.mpr ⟨t, t.property, rfl, rfl⟩
+    rw [hseq] at h
+    obtain ⟨u, hu, hn, hs⟩ := tm.mem_visitSequence.mp h
+    exact ⟨⟨u, hu⟩, hn.symm, hs.symm⟩
+  choose f hf hs using hmatch
+  have hmono : StrictMono f := fun t u h => Nat.lt_of_count_lt_count (by
+    rw [← hf t, ← hf u]
+    exact Nat.count_strict_mono t.property h)
+  have hsurj : Function.Surjective f := by
+    intro u
+    have h := tm.mem_visitSequence.mpr ⟨u, u.property, rfl, rfl⟩
+    rw [← hseq] at h
+    obtain ⟨t, ht, hn, _⟩ := tm.mem_visitSequence.mp h
+    exact ⟨⟨t, ht⟩, Subtype.ext (Nat.count_injective (f ⟨t, ht⟩).property u.property
+      ((hf ⟨t, ht⟩).symm.trans hn))⟩
+  exact ⟨OrderIso.ofSurjective (OrderEmbedding.ofStrictMono f hmono) hsurj, hs⟩
 
 /-- The final input position has infinitely many visits, since the halted configuration repeats. -/
 lemma visitTimes_infinite_of_halt {cfg : Cfg k Symbol State input} {T : ℕ}
@@ -99,62 +130,6 @@ lemma visitTimes_finite_iff_of_halt {cfg : Cfg k Symbol State input} {T p : ℕ}
   · intro hp
     exact (Set.finite_Iio T).subset (tm.visitTimes_subset_Iio_of_halt hhalt hp)
 
-/-- When there are finitely many visits, the sequence is the sorted list of their storages. -/
-lemma visitSequence_eq_of_finite {cfg : Cfg k Symbol State input} {p : ℕ}
-    (h : (tm.visitTimes cfg p).Finite) :
-    tm.visitSequence cfg p = Stream'.Seq.ofList
-      ((h.toFinset.sort (· ≤ ·)).map fun t => (tm.runFrom cfg t).storage) := by
-  classical
-  exact dite_eq_left h
-
-/-- A visit sequence terminates exactly when its set of visit times is finite. -/
-@[simp]
-lemma visitSequence_terminates_iff {cfg : Cfg k Symbol State input} {p : ℕ} :
-    (tm.visitSequence cfg p).Terminates ↔ (tm.visitTimes cfg p).Finite := by
-  classical
-  unfold visitSequence
-  split_ifs with h
-  · exact iff_of_true (Stream'.Seq.terminates_ofList _) h
-  · simp only [h, iff_false]
-    exact Stream'.Seq.not_terminates_iff.mpr (fun _ => rfl)
-
-/-- Finitely many visit times give a terminating visit sequence. -/
-lemma visitSequence_terminates {cfg : Cfg k Symbol State input} {p : ℕ}
-    (hf : (tm.visitTimes cfg p).Finite) : (tm.visitSequence cfg p).Terminates :=
-  tm.visitSequence_terminates_iff.mpr hf
-
-/-- Converting a finite visit sequence to a list enumerates its visits in time order. -/
-lemma visitSequence_toList {cfg : Cfg k Symbol State input} {p : ℕ}
-    (hf : (tm.visitTimes cfg p).Finite) :
-    (tm.visitSequence cfg p).toList (tm.visitSequence_terminates hf) =
-      (hf.toFinset.sort (· ≤ ·)).map (fun t => (tm.runFrom cfg t).storage) := by
-  apply Stream'.Seq.ofList_injective
-  rw [Stream'.Seq.ofList_toList, tm.visitSequence_eq_of_finite]
-
-/-- The finite visit sequence has one entry for each visit time. -/
-lemma length_visitSequence {cfg : Cfg k Symbol State input} {p : ℕ}
-    (hf : (tm.visitTimes cfg p).Finite) :
-    ((tm.visitSequence cfg p).toList (tm.visitSequence_terminates hf)).length =
-      hf.toFinset.card := by
-  simp [tm.visitSequence_toList hf]
-
-/-- No storage occurs twice in a finite visit sequence of a halting run. -/
-lemma visitSequence_nodup {cfg : Cfg k Symbol State input} {p : ℕ}
-    (hhalt : ∃ T, (tm.runFrom cfg T).Halted) (hf : (tm.visitTimes cfg p).Finite) :
-    ((tm.visitSequence cfg p).toList (tm.visitSequence_terminates hf)).Nodup := by
-  classical
-  rw [tm.visitSequence_toList hf]
-  apply List.Nodup.map_on _ (Finset.sort_nodup _ _)
-  intro a ha b hb h
-  have ha' : a ∈ tm.visitTimes cfg p := by simpa using ha
-  have hb' : b ∈ tm.visitTimes cfg p := by simpa using hb
-  obtain ⟨T, hT, hfirst⟩ := Nat.findX hhalt
-  have hbefore := tm.visitTimes_subset_Iio_of_halt hT
-    (tm.visitTimes_finite_iff_of_halt hT |>.mp hf)
-  apply tm.core_runFrom_injOn hT hfirst
-    (show a ≤ T from (hbefore ha').le) (show b ≤ T from (hbefore hb').le)
-  exact Prod.ext (Fin.ext (ha'.trans hb'.symm)) h
-
 /-- If every work head stays in `[-R, R]`, the run visits at most `k * (2 * R + 1)` cells. -/
 lemma spaceUsed_le_of_workTapePos_natAbs_le (cfg : Cfg k Symbol State input) (T R : ℕ)
     (h : ∀ t ≤ T, ∀ i, ((tm.runFrom cfg t).workTapePos i).natAbs ≤ R) :
@@ -170,11 +145,11 @@ lemma spaceUsed_le_of_workTapePos_natAbs_le (cfg : Cfg k Symbol State input) (T 
     _ = k * (2 * R + 1) := by simp
 
 /-- Equal storage and input symbols give equal storage after one step. A relation `r` between
-the input positions is also preserved if it holds initially and after every common head move. -/
+the input positions is also preserved if it holds after every common head move. -/
 lemma step_congr_storage {input' : List Symbol}
     {c : Cfg k Symbol State input} {c' : Cfg k Symbol State input'}
     (hstore : c.storage = c'.storage) (hsym : c.inputSymbol = c'.inputSymbol)
-    (r : ℕ → ℕ → Prop) (hp : r c.inputPos.val c'.inputPos.val)
+    (r : ℕ → ℕ → Prop)
     (hm : ∀ m, r (moveInputPos c.inputPos m).val (moveInputPos c'.inputPos m).val) :
     (tm.step c).storage = (tm.step c').storage ∧
       r (tm.step c).inputPos.val (tm.step c').inputPos.val := by
@@ -183,7 +158,7 @@ lemma step_congr_storage {input' : List Symbol}
   simp only [Cfg.storage, Storage.mk.injEq] at hstore
   rcases hstore with ⟨rfl, rfl, rfl⟩
   cases state with
-  | none => exact ⟨rfl, hp⟩
+  | none => exact ⟨rfl, by simpa only [moveInputPos_zero, step] using hm 0⟩
   | some state =>
     dsimp only [step]
     unfold Cfg.workTapeSymbols
@@ -264,109 +239,95 @@ private lemma walk_right {p : ℕ → ℕ} {u v b : ℕ}
 
 /-- Matching ordered visits at `a` and `b` allow the portions of a walk outside `(a, b)`
 to be joined. Any predicate `R` preserved along those portions holds throughout the joined walk. -/
-private lemma glue_visits {S : Type*} (p : ℕ → ℕ) (q : ℕ → S) {T a b m : ℕ}
+private lemma glue_visits {S : Type*} (p : ℕ → ℕ) (q : ℕ → S) {a b : ℕ}
     (hab : a < b) (hp₀ : p 0 ≤ a)
-    (hstep : ∀ t < T, p (t + 1) ≤ p t + 1 ∧ p t ≤ p (t + 1) + 1)
-    (A B : Fin m ↪o ℕ)
-    (hA : ∀ i, A i ≤ T ∧ p (A i) = a)
-    (hB : ∀ i, B i ≤ T ∧ p (B i) = b)
-    (hAc : ∀ t ≤ T, p t = a → ∃ i, A i = t)
-    (hBc : ∀ t ≤ T, p t = b → ∃ i, B i = t)
-    (hq : ∀ i, q (A i) = q (B i))
-    (hmove : ∀ i, p (A i + 1) + b = p (B i + 1) + a)
+    (hstep : ∀ t, p (t + 1) ≤ p t + 1 ∧ p t ≤ p (t + 1) + 1)
+    (e : {t // p t = a} ≃o {t // p t = b})
+    (hq : ∀ t : {t // p t = a}, q t = q (e t))
+    (hmove : ∀ t : {t // p t = a}, p (t + 1) + b = p (e t + 1) + a)
     (R : ℕ → S → Prop) (hR₀ : R (p 0) (q 0))
-    (hleft : ∀ t < T, p t ≤ a → p (t + 1) ≤ a →
+    (hleft : ∀ t, p t ≤ a → p (t + 1) ≤ a →
       R (p t) (q t) → R (p (t + 1)) (q (t + 1)))
-    (hright : ∀ t < T, b ≤ p t → b ≤ p (t + 1) →
+    (hright : ∀ t, b ≤ p t → b ≤ p (t + 1) →
       R (p t - (b - a)) (q t) → R (p (t + 1) - (b - a)) (q (t + 1))) :
-    ∀ t ≤ T, p t ≤ a ∨ b ≤ p t →
+    ∀ t, p t ≤ a ∨ b ≤ p t →
       R (if p t ≤ a then p t else p t - (b - a)) (q t) := by
+  classical
   have hba : b - (b - a) = a := by omega
-  have boundary : ∀ i, R a (q (A i)) := by
-    cases m with
-    | zero => exact fun i => Fin.elim0 i
-    | succ m =>
-      intro i
-      induction i using Fin.induction with
-      | zero =>
-        have hno : ∀ t < A 0, p t ≠ a := by
-          intro t ht hpt
-          obtain ⟨j, rfl⟩ := hAc t (ht.le.trans (hA 0).1) hpt
-          exact (not_lt_of_ge (A.monotone (Fin.zero_le j))) ht
-        have hside : ∀ t ≤ A 0, p t ≤ a := by
-          intro t ht
-          apply propagate (Nat.zero_le t) hp₀
-          intro r _ hrt hr
-          have := (hstep r (by have := (hA 0).1; omega)).1
-          have := hno r (by omega)
+  have boundary : ∀ t, p t = a → R a (q t) := by
+    intro t
+    induction t using Nat.strong_induction_on with
+    | h t ih =>
+      intro ht
+      by_cases hex : ∃ u < t, p u = a
+      · obtain ⟨u, hut, hu, hno⟩ :
+          ∃ u < t, p u = a ∧ ∀ v, u < v → v < t → p v ≠ a := by
+          obtain ⟨v, hvt, hv⟩ := hex
+          refine ⟨Nat.findGreatest (fun u => p u = a) (t - 1),
+            lt_of_le_of_lt (Nat.findGreatest_le _) (by omega),
+            Nat.findGreatest_spec (P := fun u => p u = a) (by omega) hv, ?_⟩
+          exact fun w huw hwt hw => (not_le_of_gt huw)
+            (Nat.le_findGreatest (P := fun u => p u = a) (by omega) hw)
+        let i : {t // p t = a} := ⟨u, hu⟩
+        let j : {t // p t = a} := ⟨t, ht⟩
+        by_cases hdir : p (u + 1) ≤ a
+        · have hside := walk_left (fun v _ _ => (hstep v).1) hu.le hdir hno
+          have hr := propagate hut.le (show R (p u) (q u) from hu ▸ ih u hut hu)
+            fun v huv hvt => hleft v (hside v huv hvt.le) (hside (v + 1) (by omega) hvt)
+          simpa [ht] using hr
+        · have hdir' : b ≤ p (e i + 1) := by
+            have h := hmove i
+            change p (u + 1) + b = p (e i + 1) + a at h
+            omega
+          have hno' : ∀ v, (e i).val < v → v < (e j).val → p v ≠ b := by
+            intro v hiv hvj hv
+            let w : {t // p t = b} := ⟨v, hv⟩
+            exact hno (e.symm w)
+              (show i < e.symm w from e.lt_symm_apply.mpr (show e i < w from hiv))
+              (show e.symm w < j from e.symm_apply_lt.mpr (show w < e j from hvj))
+              (e.symm w).property
+          have hside := walk_right (fun v _ _ => (hstep v).2) (e i).property.ge hdir' hno'
+          have hr := propagate (e.strictMono hut).le
+            (show R (p (e i) - (b - a)) (q (e i)) by
+              simpa only [(e i).property, hba, ← hq i] using ih u hut hu)
+            fun v huv hvt => hright v (hside v huv hvt.le) (hside (v + 1) (by omega) hvt)
+          simpa only [(e j).property, hba, ← hq j] using hr
+      · have hside : ∀ u ≤ t, p u ≤ a := by
+          intro u hut
+          apply propagate (Nat.zero_le u) hp₀
+          intro v _ hvu hv
+          have := (hstep v).1
+          have : p v ≠ a := fun h => hex ⟨v, by omega, h⟩
           omega
-        have hr := propagate (Nat.zero_le (A 0)) hR₀ fun t _ ht =>
-          hleft t (ht.trans_le (hA 0).1) (hside t ht.le) (hside (t + 1) ht)
-        simpa [(hA 0).2] using hr
-      | succ i ih =>
-        have hAj := A.strictMono i.castSucc_lt_succ
-        have hBj := B.strictMono i.castSucc_lt_succ
-        have hnoA : ∀ t, A i.castSucc < t → t < A i.succ → p t ≠ a := by
-          intro t hjt hti hpt
-          obtain ⟨r, rfl⟩ := hAc t (hti.le.trans (hA i.succ).1) hpt
-          exact (not_lt_of_ge (Fin.le_castSucc_iff.mpr (A.lt_iff_lt.mp hti)))
-            (A.lt_iff_lt.mp hjt)
-        have hnoB : ∀ t, B i.castSucc < t → t < B i.succ → p t ≠ b := by
-          intro t hjt hti hpt
-          obtain ⟨r, rfl⟩ := hBc t (hti.le.trans (hB i.succ).1) hpt
-          exact (not_lt_of_ge (Fin.le_castSucc_iff.mpr (B.lt_iff_lt.mp hti)))
-            (B.lt_iff_lt.mp hjt)
-        by_cases hdir : p (A i.castSucc + 1) ≤ a
-        · have hside := walk_left
-            (fun t (_ : A i.castSucc ≤ t) (ht : t < A i.succ) =>
-              (hstep t (ht.trans_le (hA i.succ).1)).1)
-            (le_of_eq (hA i.castSucc).2) hdir hnoA
-          have hr := propagate hAj.le
-            (show R (p (A i.castSucc)) (q (A i.castSucc)) by
-              simpa [(hA i.castSucc).2] using ih) fun t hjt hti =>
-                hleft t (hti.trans_le (hA i.succ).1)
-                  (hside t hjt hti.le) (hside (t + 1) (by omega) hti)
-          simpa [(hA i.succ).2] using hr
-        · have hdir' : b ≤ p (B i.castSucc + 1) := by have := hmove i.castSucc; omega
-          have hside := walk_right
-            (fun t (_ : B i.castSucc ≤ t) (ht : t < B i.succ) =>
-              (hstep t (ht.trans_le (hB i.succ).1)).2)
-            (ge_of_eq (hB i.castSucc).2) hdir' hnoB
-          have hr := propagate hBj.le
-            (show R (p (B i.castSucc) - (b - a)) (q (B i.castSucc)) by
-              simpa [(hB i.castSucc).2, hba, ← hq i.castSucc] using ih) fun t hjt hti =>
-                hright t (hti.trans_le (hB i.succ).1)
-                  (hside t hjt hti.le) (hside (t + 1) (by omega) hti)
-          simpa [(hB i.succ).2, hba, ← hq i.succ] using hr
+        have hr := propagate (Nat.zero_le t) hR₀ fun u _ hut =>
+          hleft u (hside u hut.le) (hside (u + 1) hut)
+        simpa [ht] using hr
   intro t
   induction t with
-  | zero => intro _ _; simpa [hp₀] using hR₀
+  | zero => intro _; simpa [hp₀] using hR₀
   | succ t ih =>
-    intro ht hside
-    have hst := hstep t (by omega)
+    intro hside
+    have hst := hstep t
     by_cases hl : p (t + 1) ≤ a
     · rw [ite_eq_left hl]
       by_cases heq : p (t + 1) = a
-      · obtain ⟨i, hi⟩ := hAc (t + 1) ht heq
-        simpa [hi, heq] using boundary i
+      · simpa [heq] using boundary (t + 1) heq
       · have hprev : p t ≤ a := by omega
-        exact hleft t (by omega) hprev hl (by
-          simpa [hprev] using ih (by omega) (Or.inl hprev))
+        exact hleft t hprev hl (by simpa [hprev] using ih (Or.inl hprev))
     · rw [ite_eq_right hl]
       have hr : b ≤ p (t + 1) := hside.resolve_left hl
       by_cases heq : p (t + 1) = b
-      · obtain ⟨i, hi⟩ := hBc (t + 1) ht heq
-        simpa [hq i, hi, heq, hba] using boundary i
+      · let j : {t // p t = b} := ⟨t + 1, heq⟩
+        simpa only [hq (e.symm j), e.apply_symm_apply, heq, hba] using
+          boundary (e.symm j) (e.symm j).property
       · have hprev : b ≤ p t := by omega
         have hprev' : ¬ p t ≤ a := by omega
-        exact hright t (by omega) hprev hr (by
-          simpa [hprev'] using ih (by omega) (Or.inr hprev))
+        exact hright t hprev hr (by simpa [hprev'] using ih (Or.inr hprev))
 
-/-- For a halting run, deleting the cells after `a` through `b` preserves every storage reached
-outside the deleted interval, provided the symbols and visit sequences at `a` and `b` agree.
+/-- Deleting the cells after `a` through `b` preserves every storage reached outside the deleted
+interval, provided the symbols and visit sequences at `a` and `b` agree.
 Input positions are one-based, as in `Cfg.inputPos`; neither cut position is an endmarker. -/
-theorem exists_storage_cut
-    (hhalt : ∃ T, (tm.runFrom (tm.initCfg input) T).Halted) {a b : ℕ}
+theorem exists_storage_cut {a b : ℕ}
     (ha : 0 < a) (hab : a < b) (hb : b ≤ input.length)
     (hsym : input[a - 1]? = input[b - 1]?)
     (hseq : tm.visitSequence (tm.initCfg input) a =
@@ -377,71 +338,24 @@ theorem exists_storage_cut
     ∃ u, (tm.runFrom (tm.initCfg (input.take a ++ input.drop b)) u).storage =
       (tm.runFrom (tm.initCfg input) t).storage := by
   classical
-  obtain ⟨T, hT, hfirst⟩ := Nat.findX hhalt
-  wlog ht : t ≤ T generalizing t
-  · rw [tm.runFrom_eq_of_halt (Nat.le_of_not_ge ht) hT] at hp ⊢
-    exact this hp le_rfl
-  have hfa : (tm.visitTimes (tm.initCfg input) a).Finite := by
-    by_cases hpa : a = (tm.runFrom (tm.initCfg input) T).inputPos.val
-    · have hfb := (tm.visitTimes_finite_iff_of_halt hT).mpr
-        (show b ≠ (tm.runFrom (tm.initCfg input) T).inputPos.val by omega)
-      have hterm := tm.visitSequence_terminates hfb
-      rw [← hseq] at hterm
-      exact tm.visitSequence_terminates_iff.mp hterm
-    · exact (tm.visitTimes_finite_iff_of_halt hT).mpr hpa
-  have hfb : (tm.visitTimes (tm.initCfg input) b).Finite :=
-    tm.visitSequence_terminates_iff.mp (hseq ▸ tm.visitSequence_terminates hfa)
+  obtain ⟨e, hq⟩ := tm.exists_visitTimes_orderIso hseq
   let c := tm.runFrom (tm.initCfg input)
   let c' := tm.runFrom (tm.initCfg (input.take a ++ input.drop b))
-  let seqA := (tm.visitSequence (tm.initCfg input) a).toList (tm.visitSequence_terminates hfa)
-  let seqB := (tm.visitSequence (tm.initCfg input) b).toList (tm.visitSequence_terminates hfb)
-  have hmem {p : ℕ} (hf : (tm.visitTimes (tm.initCfg input) p).Finite) (u : ℕ) :
-      u ∈ hf.toFinset ↔ u ≤ T ∧ (c u).inputPos.val = p := by
-    rw [Set.Finite.mem_toFinset]
-    exact ⟨fun hu => ⟨(tm.visitTimes_subset_Iio_of_halt hT
-      (tm.visitTimes_finite_iff_of_halt hT |>.mp hf) hu).le, hu⟩, And.right⟩
-  have hseq' : seqA = seqB := by simp only [seqA, seqB, hseq]
-  let m := hfa.toFinset.card
-  have hcard : hfb.toFinset.card = m := by
-    simpa only [seqA, seqB, tm.length_visitSequence hfa, tm.length_visitSequence hfb, m] using
-      (congrArg List.length hseq').symm
-  let A := hfa.toFinset.orderEmbOfFin rfl
-  let B := hfb.toFinset.orderEmbOfFin hcard
-  have hA : ∀ i, A i ≤ T ∧ (c (A i)).inputPos.val = a := fun i =>
-    (hmem hfa _).mp (Finset.orderEmbOfFin_mem _ _ i)
-  have hB : ∀ i, B i ≤ T ∧ (c (B i)).inputPos.val = b := fun i =>
-    (hmem hfb _).mp (Finset.orderEmbOfFin_mem _ _ i)
-  have hAc : ∀ u ≤ T, (c u).inputPos.val = a → ∃ i, A i = u := by
-    intro u hu hpu
-    change u ∈ Set.range A
-    simpa only [A, Finset.range_orderEmbOfFin, Finset.mem_coe] using
-      (hmem hfa u).mpr ⟨hu, hpu⟩
-  have hBc : ∀ u ≤ T, (c u).inputPos.val = b → ∃ i, B i = u := by
-    intro u hu hpu
-    change u ∈ Set.range B
-    simpa only [B, Finset.range_orderEmbOfFin, Finset.mem_coe] using
-      (hmem hfb u).mpr ⟨hu, hpu⟩
-  have hq : ∀ i, (c (A i)).storage = (c (B i)).storage := by
-    intro i
-    have heq := List.getElem_of_eq hseq' (i := i.val)
-      (by simpa only [seqA, tm.length_visitSequence hfa] using i.isLt)
-    simpa only [seqA, seqB, tm.visitSequence_toList hfa, tm.visitSequence_toList hfb,
-      List.getElem_map, A, B,
-      Finset.orderEmbOfFin_apply, Fin.getElem_fin, c] using heq
-  have hmove : ∀ i,
-      (c (A i + 1)).inputPos.val + b = (c (B i + 1)).inputPos.val + a := by
-    intro i
-    have hsy : (c (A i)).inputSymbol = (c (B i)).inputSymbol := by
-      rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, (hA i).2, (hB i).2]
+  have hA (i : tm.visitTimes (tm.initCfg input) a) : (c i).inputPos.val = a := i.property
+  have hB (i : tm.visitTimes (tm.initCfg input) a) : (c (e i)).inputPos.val = b := (e i).property
+  have hmove (i : tm.visitTimes (tm.initCfg input) a) :
+      (c (i.val + 1)).inputPos.val + b = (c (e i + 1)).inputPos.val + a := by
+    have hsy : (c i).inputSymbol = (c (e i)).inputSymbol := by
+      rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, hA i, hB i]
       simpa [Nat.ne_of_gt ha, show b ≠ 0 by omega] using hsym
-    have hcong := step_congr_storage (tm := tm) (hq i) hsy
-      (fun p p' => p + b = p' + a)
-      (by rw [(hA i).2, (hB i).2]; omega) (fun dir => by
-        have hm := moveInputPos_interior (c (A i)).inputPos (c (B i)).inputPos
-          (by rw [(hA i).2]; exact ha) (by rw [(hA i).2]; omega)
-          (by rw [(hB i).2]; omega) (by rw [(hB i).2]; exact hb) dir
-        have := (hA i).2
-        have := (hB i).2
+    have hcong := step_congr_storage (tm := tm)
+      (show (c i).storage = (c (e i)).storage from hq i) hsy
+      (fun p p' => p + b = p' + a) (fun dir => by
+        have hm := moveInputPos_interior (c i).inputPos (c (e i)).inputPos
+          (by rw [hA i]; exact ha) (by rw [hA i]; omega)
+          (by rw [hB i]; omega) (by rw [hB i]; exact hb) dir
+        have := hA i
+        have := hB i
         omega)
     simpa only [c, runFrom_succ_eq_step'] using hcong.2
   let R := fun p s => ∃ u, (c' u).inputPos.val = p ∧ (c' u).storage = s
@@ -450,24 +364,24 @@ theorem exists_storage_cut
   have hlen : (input.take a ++ input.drop b).length + (b - a) = input.length := by
     simp only [List.length_append, List.length_take, List.length_drop]
     omega
-  have hleft : ∀ u < T, (c u).inputPos.val ≤ a → (c (u + 1)).inputPos.val ≤ a →
+  have hleft : ∀ u, (c u).inputPos.val ≤ a → (c (u + 1)).inputPos.val ≤ a →
       R (c u).inputPos.val (c u).storage → R (c (u + 1)).inputPos.val (c (u + 1)).storage := by
-    rintro u _ hpu _ ⟨v, hpv, hsv⟩
+    rintro u hpu _ ⟨v, hpv, hsv⟩
     have hsy := inputSymbol_cut_left (by omega : a ≤ input.length) (c u) (c' v) hpu hpv
-    have hcong := step_congr_storage (tm := tm) hsv.symm hsy Eq hpv.symm
+    have hcong := step_congr_storage (tm := tm) hsv.symm hsy Eq
       (fun dir => moveInputPos_same (c u).inputPos (c' v).inputPos hpv.symm
         (by omega) (by omega) dir)
     refine ⟨v + 1, ?_, ?_⟩
     · simpa only [c, c', runFrom_succ_eq_step'] using hcong.2.symm
     · simpa only [c, c', runFrom_succ_eq_step'] using hcong.1.symm
-  have hright : ∀ u < T, b ≤ (c u).inputPos.val → b ≤ (c (u + 1)).inputPos.val →
+  have hright : ∀ u, b ≤ (c u).inputPos.val → b ≤ (c (u + 1)).inputPos.val →
       R ((c u).inputPos.val - (b - a)) (c u).storage →
       R ((c (u + 1)).inputPos.val - (b - a)) (c (u + 1)).storage := by
-    rintro u _ hpu _ ⟨v, hpv, hsv⟩
+    rintro u hpu _ ⟨v, hpv, hsv⟩
     have hpv' : (c' v).inputPos.val + (b - a) = (c u).inputPos.val := by omega
     have hsy := inputSymbol_cut_right ha hab hb hsym (c u) (c' v) hpu hpv'
     have hcong := step_congr_storage (tm := tm) hsv.symm hsy
-      (fun p p' => p' + (b - a) = p) hpv'
+      (fun p p' => p' + (b - a) = p)
       (fun dir => moveInputPos_shift (c u).inputPos (c' v).inputPos hpv' hlen (by omega) dir)
     refine ⟨v + 1, ?_, ?_⟩
     · have hpos : (c' (v + 1)).inputPos.val + (b - a) = (c (u + 1)).inputPos.val := by
@@ -476,37 +390,38 @@ theorem exists_storage_cut
     · simpa only [c, c', runFrom_succ_eq_step'] using hcong.1.symm
   have hglue := glue_visits (fun u => (c u).inputPos.val) (fun u => (c u).storage)
     hab (by simp [c]; omega)
-    (fun u _ => by simpa only [c, runFrom_succ_eq_step'] using tm.inputPos_step_bounds (c u))
-    A B hA hB hAc hBc hq hmove R hR₀ hleft hright t ht hp
+    (fun u => by simpa only [c, runFrom_succ_eq_step'] using tm.inputPos_step_bounds (c u))
+    e hq hmove R hR₀ hleft hright t hp
   obtain ⟨u, _, hstore⟩ := hglue
   exact ⟨u, hstore⟩
 
-/-- Every entry of a finite visit sequence is a storage reached by the run. -/
-lemma mem_range_of_mem_visitSequence {cfg : Cfg k Symbol State input} {p : ℕ}
-    (hf : (tm.visitTimes cfg p).Finite) {s : Storage Symbol State k}
-    (h : s ∈ (tm.visitSequence cfg p).toList (tm.visitSequence_terminates hf)) :
-    s ∈ Set.range (fun t => (tm.runFrom cfg t).storage) := by
-  rw [tm.visitSequence_toList hf] at h
-  obtain ⟨t, _, rfl⟩ := List.mem_map.mp h
-  exact ⟨t, rfl⟩
+/-- A finite set of visits has distinct storages: a repeated core would force another visit
+strictly after the last one. -/
+lemma storage_runFrom_injOn_visitTimes {cfg : Cfg k Symbol State input} {p : ℕ}
+    (hf : (tm.visitTimes cfg p).Finite) :
+    Set.InjOn (fun t => (tm.runFrom cfg t).storage) (tm.visitTimes cfg p) := by
+  intro a ha b hb heq
+  wlog hab : a ≤ b generalizing a b
+  · exact (this hb ha heq.symm (le_of_not_ge hab)).symm
+  obtain ⟨T, hT, hmax⟩ := hf.toFinset.exists_max_image id ⟨a, hf.mem_toFinset.mpr ha⟩
+  have haT : a ≤ T := hmax a (hf.mem_toFinset.mpr ha)
+  have hcore := tm.core_runFrom_eq_of_core_eq
+    (Prod.ext (Fin.ext (ha.trans hb.symm)) heq) (T - a)
+  rw [← runFrom_add, ← runFrom_add, Nat.add_sub_of_le haT] at hcore
+  have hvisit : b + (T - a) ∈ tm.visitTimes cfg p :=
+    (congrArg Fin.val (congrArg Prod.fst hcore)).symm.trans (hf.mem_toFinset.mp hT)
+  have := hmax _ (hf.mem_toFinset.mpr hvisit)
+  dsimp only [id] at this
+  omega
 
-/-- A finite visit sequence of a halting space-bounded run has length at most the storage bound. -/
-lemma length_visitSequence_le [Fintype Symbol] [Fintype State] {s p : ℕ}
-    (hhalt : ∃ T, (tm.runFrom (tm.initCfg input) T).Halted)
+/-- A finite visit set of a space-bounded run has cardinality at most the storage bound. -/
+lemma encard_visitTimes_le [Fintype Symbol] [Fintype State] {s p : ℕ}
     (hs : ∀ t, tm.spaceUsed (tm.initCfg input) t ≤ s)
     (hf : (tm.visitTimes (tm.initCfg input) p).Finite) :
-    ((tm.visitSequence (tm.initCfg input) p).toList
-      (tm.visitSequence_terminates hf)).length ≤ storageBound Symbol State k s := by
-  classical
-  have hn := tm.visitSequence_nodup hhalt hf
-  have hsub : (((tm.visitSequence (tm.initCfg input) p).toList
-      (tm.visitSequence_terminates hf)).toFinset : Set _) ⊆
-      Set.range (fun t => (tm.runFrom (tm.initCfg input) t).storage) := by
-    intro x hx
-    exact tm.mem_range_of_mem_visitSequence hf (List.mem_toFinset.mp hx)
-  have hle := (Set.encard_le_encard hsub).trans (tm.encard_storages_le hs)
-  rw [Set.encard_coe_eq_coe_finsetCard, List.toFinset_card_of_nodup hn] at hle
-  exact_mod_cast hle
+    (tm.visitTimes (tm.initCfg input) p).encard ≤ storageBound Symbol State k s :=
+  (Set.encard_le_encard_of_injOn
+    (t := Set.range (fun t => (tm.runFrom (tm.initCfg input) t).storage)) (fun t _ => ⟨t, rfl⟩)
+    (tm.storage_runFrom_injOn_visitTimes hf)).trans (tm.encard_storages_le hs)
 
 /-- A sufficiently long input to a halting space-bounded machine can be shortened while
 preserving any designated storage reached by the run. The extra `1` in the length threshold
@@ -547,30 +462,34 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     omega
   have hfinite (i : D) : (tm.visitTimes (tm.initCfg input) (i.val.val + 1)).Finite :=
     (tm.visitTimes_finite_iff_of_halt hT).mpr i.property
-  let seq := fun i : D => (tm.visitSequence (tm.initCfg input) (i.val.val + 1)).toList
-    (tm.visitSequence_terminates (hfinite i))
-  let enc (i : D) : List S := (seq i).attachWith (· ∈ S)
-    (fun _ h => tm.mem_range_of_mem_visitSequence (hfinite i) h)
-  have henc (i : D) : (enc i).map Subtype.val = seq i :=
-    List.attachWith_map_subtype_val _
-  have hlength (i : D) : (enc i).length ≤ B := by
-    simpa only [enc, List.length_attachWith] using
-      tm.length_visitSequence_le ⟨T, hT⟩ hs (hfinite i)
+  let enc (p n : ℕ) : Option S :=
+    if h : (tm.visitSequence (tm.initCfg input) p n).Dom then
+      some ⟨(tm.visitSequence (tm.initCfg input) p n).get h, by
+        obtain ⟨u, _, _, hu⟩ := tm.mem_visitSequence.mp (Part.get_mem h)
+        exact ⟨u, hu⟩⟩
+    else none
+  have henc (p n : ℕ) : (enc p n).map Subtype.val =
+      (tm.visitSequence (tm.initCfg input) p n).toOption := by
+    dsimp only [enc, Part.toOption]
+    split_ifs <;> rfl
+  have hindex (i : D) {n : ℕ} (hn : (tm.visitSequence (tm.initCfg input) (i.val.val + 1) n).Dom) :
+      n < B := by
+    obtain ⟨u, hu, rfl⟩ := hn
+    have hbound := tm.encard_visitTimes_le hs (hfinite i)
+    rw [← Set.Finite.coe_toFinset (hfinite i), Set.encard_coe_eq_coe_finsetCard] at hbound
+    exact (Nat.count_lt_card (hfinite i) hu).trans_le (by exact_mod_cast hbound)
   let f (i : D) : Symbol × (Fin B → Option S) :=
-    (input[i.val], fun j => (enc i)[j.val]?)
+    (input[i.val], fun j => enc (i.val.val + 1) j)
   have heq {i j : D} (h : f i = f j) :
       input[i.val] = input[j.val] ∧ tm.visitSequence (tm.initCfg input) (i.val.val + 1) =
         tm.visitSequence (tm.initCfg input) (j.val.val + 1) := by
-    refine ⟨congrArg Prod.fst h, ?_⟩
-    have hh : enc i = enc j := by
-      apply List.ext_getElem?
-      intro r
-      by_cases hr : r < B
-      · exact congrFun (congrArg Prod.snd h) ⟨r, hr⟩
-      · rw [List.getElem?_eq_none (by have := hlength i; omega),
-          List.getElem?_eq_none (by have := hlength j; omega)]
-    have hseq : seq i = seq j := by simpa only [henc] using congrArg (List.map Subtype.val) hh
-    simpa only [seq, Stream'.Seq.ofList_toList] using congrArg Stream'.Seq.ofList hseq
+    refine ⟨congrArg Prod.fst h, funext fun n => ?_⟩
+    by_cases hn : n < B
+    · have he := congrArg (Option.map Subtype.val) (congrFun (congrArg Prod.snd h) ⟨n, hn⟩)
+      change (enc (i.val.val + 1) n).map Subtype.val = (enc (j.val.val + 1) n).map Subtype.val at he
+      simpa only [henc, Part.of_toOption] using congrArg Part.ofOption he
+    · rw [Part.eq_none_iff'.mpr (fun hd => hn (hindex i hd)),
+        Part.eq_none_iff'.mpr (fun hd => hn (hindex j hd))]
   have hsig : Fintype.card (Symbol × (Fin B → Option S)) ≤
       Fintype.card Symbol * (B + 1) ^ B := by
     simp only [Fintype.card_prod, Fintype.card_fun, Fintype.card_fin, Fintype.card_option]
@@ -608,7 +527,7 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
       have := i.isLt
       have := j.isLt
       omega
-    · exact tm.exists_storage_cut ⟨T, hT⟩ (by omega) hij (by have := j.isLt; omega)
+    · exact tm.exists_storage_cut (by omega) hij (by have := j.isLt; omega)
         (by simpa [List.getElem?_eq_getElem i.isLt, List.getElem?_eq_getElem j.isLt] using hij'.1)
         hij'.2 hpos
   by_cases hpos : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ (e 0).val + 1 ∨
