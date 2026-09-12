@@ -61,6 +61,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.DeterministicToNondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.InputShortening
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.SpaceGap
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
