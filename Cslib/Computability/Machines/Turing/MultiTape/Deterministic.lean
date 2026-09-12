@@ -359,10 +359,10 @@ def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b => [b], by intro a b h; simpa using h⟩ t s
 
-/-- A language over a finite alphabet is decidable using at most `s n` work-tape cells on inputs
-of length `n`. The last state before halting records the decision: `.inr true` accepts and
+/-- A language is decidable using at most `s n` work-tape cells on inputs of length `n`.
+The last state before halting records the decision: `.inr true` accepts and
 `.inr false` rejects. -/
-def DecidableInSpace {Symbol : Type*} [Finite Symbol] (L : Language Symbol) (s : ℕ → ℕ) : Prop :=
+def DecidableInSpace {Symbol : Type*} (L : Language Symbol) (s : ℕ → ℕ) : Prop :=
   ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Symbol (State ⊕ Bool)),
     ∀ input, ∃ t,
       (tm.runFrom (tm.initCfg input) t).state = some (.inr (indicator L input)) ∧
