@@ -158,15 +158,6 @@ lemma moveInputPos_shift {n n' d : ℕ} (p : Fin (n + 2)) (p' : Fin (n' + 2))
   have := p'.isLt
   cases m <;> simp [SignType.cast] <;> omega
 
-/-- The same move gives the same displacement at any two positions inside the input. -/
-lemma moveInputPos_interior {n n' : ℕ}
-    (p : Fin (n + 2)) (p' : Fin (n' + 2))
-    (hp₀ : 0 < p.val) (hp : p.val ≤ n) (hp'₀ : 0 < p'.val) (hp' : p'.val ≤ n')
-    (m : SignType) :
-    (moveInputPos p m).val + p'.val = (moveInputPos p' m).val + p.val := by
-  rw [moveInputPos_val, moveInputPos_val]
-  cases m <;> simp [SignType.cast] <;> omega
-
 /-- The symbol currently under the input tape head. -/
 def Cfg.inputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   if h₁ : cfg.inputPos = 0 then none
