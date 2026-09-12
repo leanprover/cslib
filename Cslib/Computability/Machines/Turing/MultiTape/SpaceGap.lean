@@ -31,12 +31,14 @@ open Filter Asymptotics
 
 namespace Turing.MultiTapeTM
 
+/-- If `f = o(g)` and `g` tends to infinity, then `exp f = o(exp g)`. -/
 private lemma exp_isLittleO_exp {f g : ℕ → ℝ} (h : f =o[atTop] g)
     (hg : Tendsto g atTop atTop) :
     (fun n => Real.exp (f n)) =o[atTop] (fun n => Real.exp (g n)) := by
   rw [Real.isLittleO_exp_comp_exp_comp]
   exact (IsEquivalent.refl.sub_isLittleO h).symm.tendsto_atTop hg
 
+/-- A double exponential in `s(n) = o(log log n)` grows sublinearly in `n`. -/
 private lemma isLittleO_pow_pow {s : ℕ → ℕ}
     (hs : (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ))))
     (a c : ℕ) :
@@ -62,6 +64,7 @@ private lemma isLittleO_pow_pow {s : ℕ → ℕ}
     (Eventually.of_forall fun n => hpow _)
     ((eventually_gt_atTop (0 : ℕ)).mono fun n hn => Real.exp_log (by exact_mod_cast hn))
 
+/-- The counting threshold for input shortening is bounded by a double exponential in space. -/
 private lemma visit_bound_le_pow_pow {Symbol State : Type*} [Fintype Symbol] [Fintype State]
     (k : ℕ) :
     ∃ a c : ℕ, ∀ s : ℕ,
@@ -99,6 +102,7 @@ private lemma visit_bound_le_pow_pow {Symbol State : Type*} [Fintype Symbol] [Fi
     _ = 2 ^ (2 * Fintype.card Symbol + B * B) := by rw [← pow_mul, ← pow_add]
     _ ≤ _ := Nat.pow_le_pow_right (by decide) hsum
 
+/-- For `s(n) = o(log log n)`, sufficiently long inputs exceed the shortening threshold. -/
 private lemma eventually_visit_bound_lt {Symbol State : Type*} [Fintype Symbol] [Fintype State]
     (k : ℕ) {s : ℕ → ℕ}
     (hs : (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ)))) :
