@@ -180,10 +180,4 @@ def Limited {n : ℕ} : Cobham Symbol n → Prop
 
 end Cobham
 
-/-- The unary fragment of Cobham's function algebra over `Symbol`: the string functions
-denoted by limited unary terms. By Cobham's theorem [Cobham1965], this machine-independent
-class is exactly the polynomial-time computable functions. -/
-def CobhamFP (Symbol : Type u) : Set (List Symbol → List Symbol) :=
-  {f | ∃ c : Cobham Symbol 1, c.Limited ∧ ∀ x, c.eval (fun _ => x) = f x}
-
 end Cslib
