@@ -64,7 +64,7 @@ private lemma isLittleO_pow_pow {s : ℕ → ℕ}
     (Eventually.of_forall fun n => hpow _)
     ((eventually_gt_atTop (0 : ℕ)).mono fun n hn => Real.exp_log (by exact_mod_cast hn))
 
-/-- The counting threshold for input shortening is bounded by a double exponential in space. -/
+/-- The counting bound grows at most doubly exponentially in the space. -/
 private lemma visit_bound_le_pow_pow {Symbol State : Type*} [Fintype Symbol] [Fintype State]
     (k : ℕ) :
     ∃ a c : ℕ, ∀ s : ℕ,
@@ -107,16 +107,17 @@ private lemma eventually_visit_bound_lt {Symbol State : Type*} [Fintype Symbol] 
     (k : ℕ) {s : ℕ → ℕ}
     (hs : (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ)))) :
     ∀ᶠ n in atTop, 2 * Fintype.card Symbol *
-      (storageBound Symbol State k (s n) + 1) ^ storageBound Symbol State k (s n) < n := by
+      (storageBound Symbol State k (s n) + 1) ^ storageBound Symbol State k (s n) + 1 < n := by
   obtain ⟨a, c, hbound⟩ := visit_bound_le_pow_pow (Symbol := Symbol) (State := State) k
   have hsmall := isLittleO_pow_pow hs a c
-  filter_upwards [hsmall.bound (by norm_num : (0 : ℝ) < 1 / 2), eventually_gt_atTop (0 : ℕ)]
+  filter_upwards [hsmall.bound (by norm_num : (0 : ℝ) < 1 / 2), eventually_gt_atTop (2 : ℕ)]
     with n hn hn₀
-  have hn' : ((2 ^ (2 ^ (a + c * s n)) : ℕ) : ℝ) < (n : ℝ) := by
+  have hn' : ((2 ^ (2 ^ (a + c * s n)) + 1 : ℕ) : ℝ) < (n : ℝ) := by
     simp only [Real.norm_natCast] at hn
-    have : (0 : ℝ) < n := by exact_mod_cast hn₀
+    simp only [Nat.cast_add, Nat.cast_one]
+    have : (2 : ℝ) < n := by exact_mod_cast hn₀
     linarith
-  exact (hbound (s n)).trans_lt (by exact_mod_cast hn')
+  exact (Nat.add_le_add_right (hbound (s n)) 1).trans_lt (by exact_mod_cast hn')
 
 /-- A halting machine whose space usage is `o(log log n)` has a uniform constant space bound.
 The bound applies to the same machine, on every input and at every time. -/
