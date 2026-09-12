@@ -32,7 +32,7 @@ boundary visit; subsequent retained steps reach every configuration outside the 
 
 namespace Turing.MultiTapeTM
 
-open Relation
+open Relation Set
 
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
@@ -87,43 +87,33 @@ lemma exists_visitTimes_orderIso {cfg : Cfg k Symbol State input} {T p q : ℕ}
     OrderIso.symm_apply_apply, A, B, Finset.coe_orderIsoOfFin_apply,
     Finset.orderEmbOfFin_apply, Fin.getElem_fin] using heq
 
-/-- No earlier time visits the position of a minimal visit. -/
-private lemma not_visit_before {cfg : Cfg k Symbol State input} {T p t : ℕ}
-    {u : tm.visitTimes cfg T p} (hu : IsMin u) (ht : t < u.val) :
-    (tm.runFrom cfg t).inputPos.val ≠ p := by
-  intro hp
-  have hT := (tm.mem_visitTimes.mp u.property).1
-  exact ht.not_ge (hu (b := ⟨t, tm.mem_visitTimes.mpr ⟨ht.le.trans hT, hp⟩⟩) ht.le)
-
-/-- The covering relation on visit times means that no visit occurs strictly between them. -/
-private lemma not_visit_between {cfg : Cfg k Symbol State input} {T p t : ℕ}
-    {u v : tm.visitTimes cfg T p} (h : u ⋖ v) (hlo : u.val < t) (hhi : t < v.val) :
-    (tm.runFrom cfg t).inputPos.val ≠ p := by
-  intro hp
-  have hT := (tm.mem_visitTimes.mp v.property).1
-  exact h.2 (c := ⟨t, tm.mem_visitTimes.mpr ⟨hhi.le.trans hT, hp⟩⟩) hlo hhi
-
 /-- Between consecutive visits, a first step to the left keeps the input head on the left. -/
-private lemma inputPos_le_of_covBy {cfg : Cfg k Symbol State input} {T p : ℕ}
+private lemma inputPos_mapsTo_Iic_of_covBy {cfg : Cfg k Symbol State input} {T p : ℕ}
     {u v : tm.visitTimes cfg T p} (h : u ⋖ v)
     (hdir : (tm.runFrom cfg (u.val + 1)).inputPos.val ≤ p) :
-    ∀ t, u.val ≤ t → t ≤ v.val → (tm.runFrom cfg t).inputPos.val ≤ p := by
-  intro t hut htv
+    MapsTo (fun t => (tm.runFrom cfg t).inputPos.val) (Icc u.val v.val) (Iic p) := by
+  have hT := (tm.mem_visitTimes.mp v.property).1
+  rintro t ⟨hut, htv⟩
   rcases eq_or_lt_of_le hut with rfl | hut
   · exact (tm.mem_visitTimes.mp u.property).2.le
-  · exact tm.inputPos_le_of_forall_ne hut hdir fun r hur hrt =>
-      not_visit_between h (Nat.lt_of_succ_le hur) (hrt.trans_le htv)
+  · apply tm.inputPos_le_of_forall_ne hut hdir
+    intro r hur hrt hp
+    exact h.2 (c := ⟨r, tm.mem_visitTimes.mpr ⟨by omega, hp⟩⟩)
+      (Nat.lt_of_succ_le hur) (hrt.trans_le htv)
 
 /-- Between consecutive visits, a first step to the right keeps the input head on the right. -/
-private lemma le_inputPos_of_covBy {cfg : Cfg k Symbol State input} {T p : ℕ}
+private lemma inputPos_mapsTo_Ici_of_covBy {cfg : Cfg k Symbol State input} {T p : ℕ}
     {u v : tm.visitTimes cfg T p} (h : u ⋖ v)
     (hdir : p ≤ (tm.runFrom cfg (u.val + 1)).inputPos.val) :
-    ∀ t, u.val ≤ t → t ≤ v.val → p ≤ (tm.runFrom cfg t).inputPos.val := by
-  intro t hut htv
+    MapsTo (fun t => (tm.runFrom cfg t).inputPos.val) (Icc u.val v.val) (Ici p) := by
+  have hT := (tm.mem_visitTimes.mp v.property).1
+  rintro t ⟨hut, htv⟩
   rcases eq_or_lt_of_le hut with rfl | hut
   · exact (tm.mem_visitTimes.mp u.property).2.ge
-  · exact tm.le_inputPos_of_forall_ne hut hdir fun r hur hrt =>
-      not_visit_between h (Nat.lt_of_succ_le hur) (hrt.trans_le htv)
+  · apply tm.le_inputPos_of_forall_ne hut hdir
+    intro r hur hrt hp
+    exact h.2 (c := ⟨r, tm.mem_visitTimes.mpr ⟨by omega, hp⟩⟩)
+      (Nat.lt_of_succ_le hur) (hrt.trans_le htv)
 
 /-- An ordered pair of input-symbol indices. The cut deletes the symbols after the first
 through the second; equal endpoints give an empty deletion.
@@ -274,38 +264,37 @@ lemma step {c : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened
   rw [hm, hm']
   exact (cut.position_moveInputPos h.1 m hside).symm
 
-/-- Simulate a run segment in which every step stays on a retained side of the cut. -/
-lemma reaches_runFrom (hsym : input[cut.fst] = input[cut.snd])
-    {cfg : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened} {u v : ℕ}
-    (h : cut.Matches (tm.runFrom cfg u) c') (huv : u ≤ v)
-    (hside : ∀ t, u ≤ t → t < v →
-      cut.SameSide (tm.runFrom cfg t).inputPos.val (tm.runFrom cfg (t + 1)).inputPos.val) :
-    ∃ d, ReflTransGen tm.TransitionRelation c' d ∧ cut.Matches (tm.runFrom cfg v) d := by
-  induction v, huv using Nat.le_induction with
-  | base => exact ⟨c', .refl, h⟩
-  | succ v huv ih =>
-    obtain ⟨d, hd, hm⟩ := ih fun t hut htv => hside t hut (by omega)
-    refine ⟨tm.step d, hd.tail rfl, ?_⟩
-    rw [runFrom_succ_eq_step']
-    have hv := hside v huv (by omega)
-    exact hm.step (hm.inputSymbol hsym (hv.imp And.left And.left))
-      (by simpa only [runFrom_succ_eq_step'] using hv)
-
 /-- Simulate a segment in the retained prefix, without any assumption on the boundary symbols. -/
 lemma reaches_runFrom_left
     {cfg : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened} {u v : ℕ}
     (h : cut.Matches (tm.runFrom cfg u) c') (huv : u ≤ v)
-    (hside : ∀ t, u ≤ t → t ≤ v → (tm.runFrom cfg t).inputPos.val ≤ cut.left) :
+    (hside : MapsTo (fun t => (tm.runFrom cfg t).inputPos.val) (Icc u v) (Iic cut.left)) :
     ∃ d, ReflTransGen tm.TransitionRelation c' d ∧ cut.Matches (tm.runFrom cfg v) d := by
   induction v, huv using Nat.le_induction with
   | base => exact ⟨c', .refl, h⟩
   | succ v huv ih =>
-    obtain ⟨d, hd, hm⟩ := ih fun t hut htv => hside t hut (htv.trans (Nat.le_succ _))
-    have hv := hside v huv (Nat.le_succ _)
+    obtain ⟨d, hd, hm⟩ := ih (hside.mono_left (Icc_subset_Icc_right (Nat.le_succ _)))
+    have hv := hside ⟨huv, Nat.le_succ _⟩
     refine ⟨tm.step d, hd.tail rfl, ?_⟩
     rw [runFrom_succ_eq_step']
     exact hm.step (hm.inputSymbol_left hv) (.inl ⟨hv, by
-      simpa only [runFrom_succ_eq_step'] using hside (v + 1) (by omega) le_rfl⟩)
+      simpa only [mem_Iic, runFrom_succ_eq_step'] using hside ⟨by omega, le_rfl⟩⟩)
+
+/-- Simulate a segment in the retained suffix when the boundary symbols agree. -/
+lemma reaches_runFrom_right (hsym : input[cut.fst] = input[cut.snd])
+    {cfg : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened} {u v : ℕ}
+    (h : cut.Matches (tm.runFrom cfg u) c') (huv : u ≤ v)
+    (hside : MapsTo (fun t => (tm.runFrom cfg t).inputPos.val) (Icc u v) (Ici cut.right)) :
+    ∃ d, ReflTransGen tm.TransitionRelation c' d ∧ cut.Matches (tm.runFrom cfg v) d := by
+  induction v, huv using Nat.le_induction with
+  | base => exact ⟨c', .refl, h⟩
+  | succ v huv ih =>
+    obtain ⟨d, hd, hm⟩ := ih (hside.mono_left (Icc_subset_Icc_right (Nat.le_succ _)))
+    have hv := hside ⟨huv, Nat.le_succ _⟩
+    refine ⟨tm.step d, hd.tail rfl, ?_⟩
+    rw [runFrom_succ_eq_step']
+    exact hm.step (hm.inputSymbol hsym (.inr hv)) (.inr ⟨hv, by
+      simpa only [mem_Ici, runFrom_succ_eq_step'] using hside ⟨by omega, le_rfl⟩⟩)
 
 end Matches
 
@@ -332,12 +321,12 @@ private lemma exists_matches_first_visit {T : ℕ}
     {u : tm.visitTimes (tm.initCfg input) T cut.left} (hu : IsMin u) :
     ∃ c', ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧
       cut.Matches (tm.runFrom (tm.initCfg input) u) c' := by
-  have hside (v) (hv : v ≤ u.val) :
-      (tm.runFrom (tm.initCfg input) v).inputPos.val ≤ cut.left := by
-    apply tm.inputPos_le_of_forall_ne (Nat.zero_le v) (by simp [left])
-    exact fun r _ hrv => not_visit_before hu (hrv.trans_le hv)
-  exact cut.matches_init.reaches_runFrom_left (cfg := tm.initCfg input) (u := 0)
-    (Nat.zero_le _) fun v _ hv => hside v hv
+  apply cut.matches_init.reaches_runFrom_left (cfg := tm.initCfg input) (u := 0) (Nat.zero_le _)
+  have hT := (tm.mem_visitTimes.mp u.property).1
+  rintro v ⟨_, hv⟩
+  apply tm.inputPos_le_of_forall_ne (Nat.zero_le v) (by simp [left])
+  intro r _ hrv hp
+  exact hu.not_lt (b := ⟨r, tm.mem_visitTimes.mpr ⟨by omega, hp⟩⟩) (hrv.trans_le hv)
 
 namespace VisitPairing
 
@@ -380,12 +369,10 @@ private lemma reaches_next_visit {u v : tm.visitTimes (tm.initCfg input) T cut.l
     ∃ d, ReflTransGen tm.TransitionRelation c' d ∧
       cut.Matches (tm.runFrom (tm.initCfg input) v) d := by
   rcases pairing.step_sides u with hleft | hright
-  · exact h.reaches_runFrom_left huv.le (inputPos_le_of_covBy huv hleft)
+  · exact h.reaches_runFrom_left huv.le (inputPos_mapsTo_Iic_of_covBy huv hleft)
   · have he := (apply_covBy_apply_iff pairing.orderIso).mpr huv
-    have hside := le_inputPos_of_covBy he hright
-    obtain ⟨d, hd, hm⟩ := ((pairing.matches_iff u).mp h).reaches_runFrom
-      pairing.symbol_eq he.le fun r hlo hhi =>
-        Or.inr ⟨hside r hlo hhi.le, hside (r + 1) (hlo.trans (Nat.le_succ _)) hhi⟩
+    obtain ⟨d, hd, hm⟩ := ((pairing.matches_iff u).mp h).reaches_runFrom_right
+      pairing.symbol_eq he.le (inputPos_mapsTo_Ici_of_covBy he hright)
     exact ⟨d, hd, (pairing.matches_iff v).mpr hm⟩
 
 /-- Induct over the paired visits, starting with the retained prefix. -/
