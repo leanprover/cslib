@@ -44,9 +44,6 @@ def finiteAnd [HasAnd α] [Top α] (as : List α) : α := as.foldr (· ∧ ·) �
 @[inherit_doc] scoped prefix:max "⋀" => finiteAnd
 
 @[simp, scoped grind =]
-lemma finiteAnd_def [HasAnd α] [Top α] (as : List α) : finiteAnd as = ⋀as := rfl
-
-@[simp, scoped grind =]
 theorem finiteAnd_nil [HasAnd α] [Top α] : ⋀([] : List α) = ⊤ := rfl
 
 @[simp, scoped grind =]
@@ -57,9 +54,6 @@ theorem finiteAnd_cons [HasAnd α] [Top α] (a : α) (as : List α) :
 def finiteOr [HasOr α] [Bot α] (as : List α) : α := as.foldr (· ∨ ·) ⊥
 
 @[inherit_doc] scoped prefix:max "⋁" => finiteOr
-
-@[simp, scoped grind =]
-lemma finiteOr_def [HasOr α] [Bot α] (as : List α) : finiteOr as = ⋁as := rfl
 
 @[simp, scoped grind =]
 theorem finiteOr_nil [HasOr α] [Bot α] : ⋁([] : List α) = ⊥ := rfl
