@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Basic.Sign.Defs
+public import Mathlib.Computability.Language
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
@@ -76,6 +77,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `ComputableInTimeAndSpaceOfLength`: the specialization to bounds on encoded input length.
 * `DecidableInTimeAndSpace`: a proof that a TM decides a language within a certain time
     and space bound.
+* `DecidableInSpace`: a binary language is decidable within a bound on space by input length.
 
 There are two ways to talk about the behaviour of a multi-tape Turing machine, and they are
 proven to be equivalent.
@@ -356,6 +358,11 @@ noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
 def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b => [b], by intro a b h; simpa using h⟩ t s
+
+/-- A binary language is decidable using at most `s n` work-tape cells on inputs of length `n`,
+with no restriction on time. -/
+def DecidableInSpace (L : Language Bool) (s : ℕ → ℕ) : Prop :=
+  ∃ t, DecidableInTimeAndSpace L (Function.Embedding.refl _) t (s ∘ List.length)
 
 /-- This lemma translates between the relational notion and the iterated step notion. The latter
 can be more convenient especially for deterministic machines as we have here. -/
