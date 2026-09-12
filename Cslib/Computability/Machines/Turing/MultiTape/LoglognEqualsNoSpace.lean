@@ -7,7 +7,6 @@ module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.InputShortening
 public import Cslib.Foundations.Analysis.Asymptotics
-public import Mathlib.Computability.Language
 
 /-!
 # Subloglog space equals constant space
@@ -18,8 +17,8 @@ from `InputShortening` and the storage count from `ConfigBound`. A shortest inpu
 large work-head displacement must therefore lie below a fixed length threshold.
 
 `exists_spaceUsed_le_of_isLittleO_log_log` bounds the space of the same machine on all inputs.
-`loglogn_equals_no_space` gives `SPACE(o(log log n)) = SPACE(1)` for binary words,
-using the existing `DecidableInTimeAndSpace` predicate with the identity encoding.
+`loglogn_equals_no_space` gives `SPACE(o(log log n)) = SPACE(1)` for languages over finite
+alphabets, using `DecidableInSpace` with a bound on space by input length.
 -/
 
 @[expose] public section
@@ -96,44 +95,37 @@ theorem exists_spaceUsed_le_of_isLittleO_log_log {k : ℕ} {Symbol State : Type*
     tm.spaceUsed_le_of_workTapePos_natAbs_le (tm.initCfg input) t R
       (fun u _ i => hhead input u i)⟩
 
-/-- A subloglog-space decider for binary words already obeys a constant space bound,
-with its time bound unchanged. -/
-theorem DecidableInTimeAndSpace.exists_const_space {L : Language Bool}
-    {t : List Bool → ℕ} {s : ℕ → ℕ}
-    (h : DecidableInTimeAndSpace L (Function.Embedding.refl _) t (fun x => s x.length))
+/-- A language decidable in subloglog space is decidable in constant space. -/
+theorem DecidableInSpace.exists_const_space {Symbol : Type*} [Finite Symbol]
+    {L : Language Symbol} {s : ℕ → ℕ} (h : DecidableInSpace L s)
     (hs : (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ)))) :
-    ∃ C : ℕ, DecidableInTimeAndSpace L (Function.Embedding.refl _) t (fun _ => C) := by
+    ∃ C : ℕ, DecidableInSpace L (fun _ => C) := by
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   let : Finite State := hfinite
-  have hhalt : ∀ input : List Bool, ∃ T, (tm.runFrom (tm.initCfg input) T).Halted := by
+  have hhalt : ∀ input : List Symbol, ∃ T, (tm.runFrom (tm.initCfg input) T).Halted := by
     intro input
-    obtain ⟨T, _, s', _, hc⟩ := htm input
-    exact ⟨T, hc.1⟩
-  have hspace : ∀ (input : List Bool) u, tm.spaceUsed (tm.initCfg input) u ≤ s input.length := by
-    intro input u
-    obtain ⟨T, _, s', hs', hc⟩ := htm input
-    exact tm.spaceUsed_le_of_halt hc.1 (hc.2.2.trans_le hs') u
+    obtain ⟨T, _, hT, _⟩ := htm input
+    exact ⟨T + 1, hT⟩
+  have hspace : ∀ (input : List Symbol) t, tm.spaceUsed (tm.initCfg input) t ≤ s input.length := by
+    intro input t
+    obtain ⟨T, _, hT, hs⟩ := htm input
+    exact tm.spaceUsed_le_of_halt hT hs t
   obtain ⟨C, hC⟩ := tm.exists_spaceUsed_le_of_isLittleO_log_log hhalt hspace hs
   refine ⟨C, k, State, hfinite, tm, fun input => ?_⟩
-  obtain ⟨T, hT, s', _, hc⟩ := htm input
-  exact ⟨T, hT, s', hc.2.2 ▸ hC input T, hc⟩
+  obtain ⟨T, hdecision, hT, _⟩ := htm input
+  exact ⟨T, hdecision, hT, hC input (T + 1)⟩
 
-/-- `SPACE(o(log log n)) = SPACE(1)` for deterministic deciders on binary words.
-The input has its usual identity encoding, and space counts work-tape cells visited. -/
-theorem loglogn_equals_no_space (L : Language Bool) :
-    (∃ s t : ℕ → ℕ,
+/-- `SPACE(o(log log n)) = SPACE(1)` for languages over any finite alphabet. -/
+theorem loglogn_equals_no_space {Symbol : Type*} [Finite Symbol] (L : Language Symbol) :
+    (∃ s : ℕ → ℕ,
       (fun n => (s n : ℝ)) =o[atTop] (fun n => Real.log (Real.log (n : ℝ))) ∧
-      DecidableInTimeAndSpace L (Function.Embedding.refl _)
-        (fun x => t x.length) (fun x => s x.length)) ↔
-    (∃ (C : ℕ) (t : ℕ → ℕ),
-      DecidableInTimeAndSpace L (Function.Embedding.refl _)
-        (fun x => t x.length) (fun _ => C)) := by
+      DecidableInSpace L s) ↔
+    (∃ C : ℕ, DecidableInSpace L (fun _ => C)) := by
   constructor
-  · rintro ⟨s, t, hs, h⟩
-    obtain ⟨C, hC⟩ := h.exists_const_space hs
-    exact ⟨C, t, hC⟩
-  · rintro ⟨C, t, h⟩
-    refine ⟨fun _ => C, t, ?_, h⟩
+  · rintro ⟨s, hs, h⟩
+    exact h.exists_const_space hs
+  · rintro ⟨C, h⟩
+    refine ⟨fun _ => C, ?_, h⟩
     exact Real.isLittleO_const_log_atTop.comp_tendsto
       (Real.tendsto_log_atTop.comp tendsto_natCast_atTop_atTop)
 
