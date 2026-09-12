@@ -13,7 +13,8 @@ public import Mathlib.Order.Lattice.Nat
 /-!
 # Tape head visitation and space-usage lemmas
 
-This file collects lemmas about the set of positions visited by a work-tape head
+The input head cannot cross a cell without visiting it.
+This file also collects lemmas about the set of positions visited by a work-tape head
 (`MultiTapeTM.visitedByTapeHead`) and the resulting space-usage measures
 (`MultiTapeTM.spaceUsedByTape`, `MultiTapeTM.spaceUsed`) and how the tape head positions
 influence the cells that are modified on a tape.
@@ -33,6 +34,36 @@ variable {State Symbol : Type*}
 variable {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 variable {cfg : Cfg k Symbol State input}
+
+/-- An input head at or left of `p` at time `u` is still at or left of `p` at time `v`
+if it does not visit `p` during `[u, v)`. -/
+lemma inputPos_le_of_forall_ne {u v p : ℕ} (huv : u ≤ v)
+    (hu : (tm.runFrom cfg u).inputPos.val ≤ p)
+    (hno : ∀ t, u ≤ t → t < v → (tm.runFrom cfg t).inputPos.val ≠ p) :
+    (tm.runFrom cfg v).inputPos.val ≤ p := by
+  induction v, huv using Nat.le_induction with
+  | base => exact hu
+  | succ v huv ih =>
+    have hprev := ih fun t hut htv => hno t hut (by omega)
+    have := hno v huv (Nat.lt_succ_self _)
+    have hstep := (tm.inputPos_step_bounds (tm.runFrom cfg v)).1
+    rw [← runFrom_succ_eq_step'] at hstep
+    omega
+
+/-- An input head at or right of `p` at time `u` is still at or right of `p` at time `v`
+if it does not visit `p` during `[u, v)`. -/
+lemma le_inputPos_of_forall_ne {u v p : ℕ} (huv : u ≤ v)
+    (hu : p ≤ (tm.runFrom cfg u).inputPos.val)
+    (hno : ∀ t, u ≤ t → t < v → (tm.runFrom cfg t).inputPos.val ≠ p) :
+    p ≤ (tm.runFrom cfg v).inputPos.val := by
+  induction v, huv using Nat.le_induction with
+  | base => exact hu
+  | succ v huv ih =>
+    have hprev := ih fun t hut htv => hno t hut (by omega)
+    have := hno v huv (Nat.lt_succ_self _)
+    have hstep := (tm.inputPos_step_bounds (tm.runFrom cfg v)).2
+    rw [← runFrom_succ_eq_step'] at hstep
+    omega
 
 /-- If the work tape head is not at position `z`, then the tape does not change there. -/
 lemma step_workTapes_eq_of_ne
