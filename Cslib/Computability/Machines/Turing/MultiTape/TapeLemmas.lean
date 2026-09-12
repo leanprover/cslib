@@ -35,35 +35,35 @@ variable {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 variable {cfg : Cfg k Symbol State input}
 
+/-- Avoiding a cell preserves both possible bounds relative to that cell. -/
+private lemma inputPos_bounds_of_forall_ne {u v p : ℕ} (huv : u ≤ v)
+    (hno : ∀ t, u ≤ t → t < v → (tm.runFrom cfg t).inputPos.val ≠ p) :
+    ((tm.runFrom cfg u).inputPos.val ≤ p → (tm.runFrom cfg v).inputPos.val ≤ p) ∧
+      (p ≤ (tm.runFrom cfg u).inputPos.val → p ≤ (tm.runFrom cfg v).inputPos.val) := by
+  induction v, huv using Nat.le_induction with
+  | base => exact ⟨id, id⟩
+  | succ v huv ih =>
+    have hprev := ih fun t hut htv => hno t hut (by omega)
+    have := hno v huv (Nat.lt_succ_self _)
+    have hstep := tm.inputPos_step_bounds (tm.runFrom cfg v)
+    rw [← runFrom_succ_eq_step'] at hstep
+    constructor <;> intro h <;> omega
+
 /-- An input head at or left of `p` at time `u` is still at or left of `p` at time `v`
 if it does not visit `p` during `[u, v)`. -/
 lemma inputPos_le_of_forall_ne {u v p : ℕ} (huv : u ≤ v)
     (hu : (tm.runFrom cfg u).inputPos.val ≤ p)
     (hno : ∀ t, u ≤ t → t < v → (tm.runFrom cfg t).inputPos.val ≠ p) :
-    (tm.runFrom cfg v).inputPos.val ≤ p := by
-  induction v, huv using Nat.le_induction with
-  | base => exact hu
-  | succ v huv ih =>
-    have hprev := ih fun t hut htv => hno t hut (by omega)
-    have := hno v huv (Nat.lt_succ_self _)
-    have hstep := (tm.inputPos_step_bounds (tm.runFrom cfg v)).1
-    rw [← runFrom_succ_eq_step'] at hstep
-    omega
+    (tm.runFrom cfg v).inputPos.val ≤ p :=
+  (inputPos_bounds_of_forall_ne huv hno).1 hu
 
 /-- An input head at or right of `p` at time `u` is still at or right of `p` at time `v`
 if it does not visit `p` during `[u, v)`. -/
 lemma le_inputPos_of_forall_ne {u v p : ℕ} (huv : u ≤ v)
     (hu : p ≤ (tm.runFrom cfg u).inputPos.val)
     (hno : ∀ t, u ≤ t → t < v → (tm.runFrom cfg t).inputPos.val ≠ p) :
-    p ≤ (tm.runFrom cfg v).inputPos.val := by
-  induction v, huv using Nat.le_induction with
-  | base => exact hu
-  | succ v huv ih =>
-    have hprev := ih fun t hut htv => hno t hut (by omega)
-    have := hno v huv (Nat.lt_succ_self _)
-    have hstep := (tm.inputPos_step_bounds (tm.runFrom cfg v)).2
-    rw [← runFrom_succ_eq_step'] at hstep
-    omega
+    p ≤ (tm.runFrom cfg v).inputPos.val :=
+  (inputPos_bounds_of_forall_ne huv hno).2 hu
 
 /-- If the work tape head is not at position `z`, then the tape does not change there. -/
 lemma step_workTapes_eq_of_ne
