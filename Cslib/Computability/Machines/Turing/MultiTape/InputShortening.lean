@@ -121,7 +121,9 @@ private lemma le_inputPos_of_covBy {cfg : Cfg k Symbol State input} {T p : ℕ}
       not_visit_between h (Nat.lt_of_succ_le hur) (hrt.trans_le htv)
 
 /-- An ordered pair of input-symbol indices. The cut deletes the symbols after the first
-through the second; equal endpoints give an empty deletion. -/
+through the second; equal endpoints give an empty deletion.
+`fst` and `snd` are zero-based list indices; `left` and `right` are the corresponding
+input-head positions, offset by one because position `0` is the left endmarker. -/
 abbrev InputCut (input : List Symbol) := NonemptyInterval (Fin input.length)
 
 namespace InputCut
@@ -141,11 +143,6 @@ def shortened : List Symbol :=
 /-- Collapse the deleted interval to its left endpoint and shift subsequent positions left. -/
 def position (p : ℕ) : ℕ :=
   min p cut.left + (p - cut.right)
-
-/-- Corresponding configurations have equal storage and input positions related by the cut. -/
-def Matches (c : Cfg k Symbol State input)
-    (c' : Cfg k Symbol State cut.shortened) : Prop :=
-  c'.inputPos.val = cut.position c.inputPos.val ∧ c'.storage = c.storage
 
 /-- Two input positions lie on the same retained side of the cut. -/
 def SameSide (p q : ℕ) : Prop :=
@@ -172,52 +169,78 @@ private lemma position_right {p : ℕ} (hp : cut.right ≤ p) :
   have := cut.fst_le_snd
   omega
 
+/-- The cut preserves the left endmarker and maps positive positions to positive positions. -/
+@[simp]
+lemma position_eq_zero {p : ℕ} : cut.position p = 0 ↔ p = 0 := by
+  simp only [position, left, right]
+  omega
+
+/-- Indexing the retained prefix is unchanged. -/
+lemma getElem?_left {i : ℕ} (hi : i < cut.left) : cut.shortened[i]? = input[i]? := by
+  have hle : cut.left ≤ input.length := cut.fst.isLt
+  simp [shortened, List.getElem?_append, hle, hi]
+
+/-- Indexing the retained suffix shifts by the number of deleted symbols. -/
+lemma getElem?_right (i : ℕ) :
+    cut.shortened[cut.left + i]? = input[cut.right + i]? := by
+  have hle : cut.left ≤ input.length := cut.fst.isLt
+  simp [shortened, List.getElem?_append, hle]
+
+/-- The removed right endpoint is represented by the retained left endpoint. -/
+lemma getElem?_boundary (hsym : input[cut.fst] = input[cut.snd]) :
+    cut.shortened[cut.left - 1]? = input[cut.right - 1]? := by
+  rw [cut.getElem?_left (Nat.sub_lt (Nat.succ_pos _) (by decide))]
+  simpa [left, right, Fin.getElem_fin] using congrArg some hsym
+
+/-- Outside the deleted interval, the position map preserves the indexed symbol. -/
+lemma getElem?_position (hsym : input[cut.fst] = input[cut.snd]) {p : ℕ}
+    (hp : p ≤ cut.left ∨ cut.right ≤ p) :
+    cut.shortened[cut.position p - 1]? = input[p - 1]? := by
+  have ha : 0 < cut.left := Nat.succ_pos _
+  have hab : cut.left ≤ cut.right := Nat.add_le_add_right cut.fst_le_snd 1
+  rcases hp with hp | hp
+  · rw [cut.position_left hp]
+    exact cut.getElem?_left (by omega)
+  · rw [cut.position_right hp]
+    by_cases heq : p = cut.right
+    · subst p
+      rw [Nat.sub_sub_self hab]
+      exact cut.getElem?_boundary hsym
+    · convert cut.getElem?_right (p - cut.right - 1) using 2 <;> omega
+
+/-- On either retained side, mapping positions commutes with an input-head move. -/
+lemma position_moveInputPos {p : Fin (input.length + 2)}
+    {p' : Fin (cut.shortened.length + 2)} (hp : p'.val = cut.position p.val) (m : SignType)
+    (hside : cut.SameSide p.val (moveInputPos p m).val) :
+    cut.position (moveInputPos p m).val = (moveInputPos p' m).val := by
+  have hlen := cut.length_shortened_add
+  have hbounds : 0 < cut.left ∧ cut.left ≤ cut.right ∧ cut.right ≤ input.length :=
+    ⟨Nat.succ_pos _, Nat.add_le_add_right cut.fst_le_snd 1, cut.snd.isLt⟩
+  rcases hside with ⟨hc, hn⟩ | ⟨hc, hn⟩
+  · rw [cut.position_left hc] at hp
+    rw [cut.position_left hn]
+    exact moveInputPos_same _ _ hp.symm (by omega) (by omega) m
+  · rw [cut.position_right hc] at hp
+    rw [cut.position_right hn]
+    have he := moveInputPos_shift p p' (by omega) hlen (by omega) m
+    omega
+
+/-- Corresponding configurations have equal storage and input positions related by the cut. -/
+def Matches (c : Cfg k Symbol State input)
+    (c' : Cfg k Symbol State cut.shortened) : Prop :=
+  c'.inputPos.val = cut.position c.inputPos.val ∧ c'.storage = c.storage
+
 namespace Matches
 
 variable {cut}
-
-/-- Matching positions on the left of the cut are equal. -/
-lemma inputPos_left {c : Cfg k Symbol State input}
-    {c' : Cfg k Symbol State cut.shortened} (h : cut.Matches c c')
-    (hp : c.inputPos.val ≤ cut.left) : c'.inputPos.val = c.inputPos.val :=
-  h.1.trans (cut.position_left hp)
-
-/-- Matching positions on the right differ by the number of deleted cells. -/
-lemma inputPos_right {c : Cfg k Symbol State input}
-    {c' : Cfg k Symbol State cut.shortened} (h : cut.Matches c c')
-    (hp : cut.right ≤ c.inputPos.val) :
-    c'.inputPos.val + (cut.right - cut.left) = c.inputPos.val := by
-  rw [h.1, cut.position_right hp]
-  exact Nat.sub_add_cancel ((Nat.sub_le ..).trans hp)
 
 /-- Matching configurations outside the cut scan the same symbol when its endpoints agree. -/
 lemma inputSymbol (hsym : input[cut.fst] = input[cut.snd])
     {c : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened}
     (h : cut.Matches c c') (hp : c.inputPos.val ≤ cut.left ∨ cut.right ≤ c.inputPos.val) :
     c.inputSymbol = c'.inputSymbol := by
-  rcases hp with hp | hp
-  · rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, h.inputPos_left hp]
-    split_ifs with h₀
-    · rfl
-    · have hi : c.inputPos.val - 1 < cut.left := by omega
-      have hle : cut.left ≤ input.length := cut.fst.isLt
-      simp [shortened, List.getElem?_append, hle, hi]
-  · have hpos := h.inputPos_right hp
-    have ha : 0 < cut.left := Nat.succ_pos _
-    have hab : cut.left ≤ cut.right := Nat.add_le_add_right cut.fst_le_snd 1
-    have hp₀ : c.inputPos.val ≠ 0 := by omega
-    have hp'₀ : c'.inputPos.val ≠ 0 := by omega
-    rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, ite_eq_right hp₀, ite_eq_right hp'₀]
-    have htake : (input.take cut.left).length = cut.left := by
-      rw [List.length_take]
-      exact Nat.min_eq_left cut.fst.isLt
-    by_cases heq : c.inputPos.val = cut.right
-    · have hpa : c'.inputPos.val = cut.left := by omega
-      simpa [shortened, hpa, heq, List.getElem?_append,
-        left, right, Fin.getElem_fin] using hsym.symm
-    · have hi : cut.left ≤ c'.inputPos.val - 1 := by omega
-      have he : cut.right + (c'.inputPos.val - 1 - cut.left) = c.inputPos.val - 1 := by omega
-      simp [shortened, List.getElem?_append, htake, not_lt.mpr hi, he]
+  simp only [inputSymbol_eq_getElem?, h.1, cut.position_eq_zero,
+    cut.getElem?_position hsym hp]
 
 /-- A step whose endpoints lie on the same retained side preserves matching configurations. -/
 lemma step (hsym : input[cut.fst] = input[cut.snd])
@@ -226,21 +249,10 @@ lemma step (hsym : input[cut.fst] = input[cut.snd])
     cut.Matches (tm.step c) (tm.step c') := by
   obtain ⟨m, hs, hm, hm'⟩ := tm.exists_step_move_of_storage_eq h.2.symm
     (h.inputSymbol hsym (hside.imp And.left And.left))
+  rw [hm] at hside
   refine ⟨?_, hs.symm⟩
-  rcases hside with ⟨hc, hn⟩ | ⟨hc, hn⟩
-  · have hp := h.inputPos_left hc
-    rw [hm', cut.position_left hn, hm]
-    exact (moveInputPos_same _ _ hp.symm (hc.trans cut.fst.isLt)
-      (by
-        have := cut.length_shortened_add
-        dsimp only [left, right] at *
-        have := cut.fst_le_snd
-        omega) m).symm
-  · have hp := h.inputPos_right hc
-    rw [hm', cut.position_right hn, hm]
-    have he := moveInputPos_shift c.inputPos c'.inputPos hp
-      cut.length_shortened_add (by dsimp only [left, right] at *; omega) m
-    omega
+  rw [hm, hm']
+  exact (cut.position_moveInputPos h.1 m hside).symm
 
 /-- Simulate a run segment in which every step stays on a retained side of the cut. -/
 lemma reaches_runFrom (hsym : input[cut.fst] = input[cut.snd])
