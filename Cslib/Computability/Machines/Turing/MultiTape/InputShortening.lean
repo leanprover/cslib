@@ -27,29 +27,6 @@ namespace Turing.MultiTapeTM
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 
-/-- Runs starting with the same core keep the same core. -/
-lemma core_runFrom_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input}
-    (h : c₁.core = c₂.core) (t : ℕ) :
-    (tm.runFrom c₁ t).core = (tm.runFrom c₂ t).core := by
-  induction t with
-  | zero => exact h
-  | succ t ih =>
-    simpa only [runFrom_succ_eq_step'] using core_step_eq_of_core_eq (tm := tm) ih
-
-/-- The cores up to and including the first halt are pairwise distinct. -/
-lemma core_runFrom_injOn {cfg : Cfg k Symbol State input} {T : ℕ}
-    (hhalt : (tm.runFrom cfg T).Halted)
-    (hfirst : ∀ t < T, ¬ (tm.runFrom cfg t).Halted) :
-    Set.InjOn (fun t => (tm.runFrom cfg t).core) (Set.Iic T) := by
-  intro a ha b hb heq
-  wlog hab : a ≤ b generalizing a b
-  · exact (this hb ha heq.symm (le_of_not_ge hab)).symm
-  by_contra hne
-  change b ≤ T at hb
-  have heq' := tm.core_runFrom_eq_of_core_eq heq (T - b)
-  rw [← runFrom_add, ← runFrom_add, Nat.add_sub_of_le hb] at heq'
-  exact hfirst (a + (T - b)) (by omega) ((congrArg (fun c => c.2.state) heq').trans hhalt)
-
 /-- Times up to `T` at which the input head is at `p`. -/
 def visitTimes (cfg : Cfg k Symbol State input) (T p : ℕ) : Finset ℕ :=
   (Finset.range (T + 1)).filter fun t => (tm.runFrom cfg t).inputPos.val = p
@@ -81,92 +58,7 @@ lemma visitSequence_nodup {cfg : Cfg k Symbol State input} {T : ℕ}
   apply tm.core_runFrom_injOn hhalt hfirst ha'.1 hb'.1
   exact Prod.ext (Fin.ext (ha'.2.trans hb'.2.symm)) h
 
-/-- If every work head stays in `[-R, R]`, the run visits at most `k * (2 * R + 1)` cells. -/
-lemma spaceUsed_le_of_workTapePos_natAbs_le (cfg : Cfg k Symbol State input) (T R : ℕ)
-    (h : ∀ t ≤ T, ∀ i, ((tm.runFrom cfg t).workTapePos i).natAbs ≤ R) :
-    tm.spaceUsed cfg T ≤ k * (2 * R + 1) := by
-  calc tm.spaceUsed cfg T
-    _ ≤ ∑ _ : Fin k, (window R).card := by
-      apply Finset.sum_le_sum
-      intro i _
-      apply Finset.card_le_card
-      intro z hz
-      obtain ⟨t, ht, rfl⟩ := tm.mem_visitedByTapeHead.mp hz
-      exact mem_window.mpr (h t (by omega) i)
-    _ = k * (2 * R + 1) := by simp
-
-private lemma step_congr_storage {input' : List Symbol}
-    {c : Cfg k Symbol State input} {c' : Cfg k Symbol State input'}
-    (hstore : c.storage = c'.storage) (hsym : c.inputSymbol = c'.inputSymbol)
-    (r : ℕ → ℕ → Prop) (hp : r c.inputPos.val c'.inputPos.val)
-    (hm : ∀ m, r (moveInputPos c.inputPos m).val (moveInputPos c'.inputPos m).val) :
-    (tm.step c).storage = (tm.step c').storage ∧
-      r (tm.step c).inputPos.val (tm.step c').inputPos.val := by
-  rcases c with ⟨state, pos, tapes, heads, out⟩
-  rcases c' with ⟨state', pos', tapes', heads', out'⟩
-  simp only [Cfg.storage, Storage.mk.injEq] at hstore
-  rcases hstore with ⟨rfl, rfl, rfl⟩
-  cases state with
-  | none => exact ⟨rfl, hp⟩
-  | some state =>
-    dsimp only [step]
-    unfold Cfg.workTapeSymbols
-    rw [hsym]
-    exact ⟨rfl, hm _⟩
-
-private lemma moveInputPos_val {n : ℕ} (p : Fin (n + 2)) (m : SignType) :
-    (moveInputPos p m).val = min (n + 1) ((p.val : ℤ) + (m.cast : ℤ)).toNat := by
-  simp only [moveInputPos]
-  split <;> simp_all <;> omega
-
-private lemma moveInputPos_bounds {n : ℕ} (p : Fin (n + 2)) (m : SignType) :
-    (moveInputPos p m).val ≤ p.val + 1 ∧ p.val ≤ (moveInputPos p m).val + 1 := by
-  rw [moveInputPos_val]
-  have := p.isLt
-  cases m <;> simp [SignType.cast] <;> omega
-
-/-- The input head moves by at most one cell at each step. -/
-lemma inputPos_step_bounds (cfg : Cfg k Symbol State input) :
-    (tm.step cfg).inputPos.val ≤ cfg.inputPos.val + 1 ∧
-      cfg.inputPos.val ≤ (tm.step cfg).inputPos.val + 1 := by
-  unfold step
-  cases cfg.state with
-  | none => simp
-  | some q => exact moveInputPos_bounds _ _
-
-private lemma moveInputPos_same {n n' : ℕ} (p : Fin (n + 2)) (p' : Fin (n' + 2))
-    (hp : p.val = p'.val) (hn : p.val ≤ n) (hn' : p'.val ≤ n') (m : SignType) :
-    (moveInputPos p m).val = (moveInputPos p' m).val := by
-  rw [moveInputPos_val, moveInputPos_val]
-  cases m <;> simp [SignType.cast] <;> omega
-
-private lemma moveInputPos_shift {n n' d : ℕ} (p : Fin (n + 2)) (p' : Fin (n' + 2))
-    (hp : p'.val + d = p.val) (hn : n' + d = n) (hp' : 0 < p'.val) (m : SignType) :
-    (moveInputPos p' m).val + d = (moveInputPos p m).val := by
-  rw [moveInputPos_val, moveInputPos_val]
-  have := p.isLt
-  have := p'.isLt
-  cases m <;> simp [SignType.cast] <;> omega
-
-private lemma moveInputPos_interior {n n' : ℕ}
-    (p : Fin (n + 2)) (p' : Fin (n' + 2))
-    (hp₀ : 0 < p.val) (hp : p.val ≤ n) (hp'₀ : 0 < p'.val) (hp' : p'.val ≤ n')
-    (m : SignType) :
-    (moveInputPos p m).val + p'.val = (moveInputPos p' m).val + p.val := by
-  rw [moveInputPos_val, moveInputPos_val]
-  cases m <;> simp [SignType.cast] <;> omega
-
-private lemma inputSymbol_eq_getElem? (cfg : Cfg k Symbol State input) :
-    cfg.inputSymbol = if cfg.inputPos.val = 0 then none else input[cfg.inputPos.val - 1]? := by
-  by_cases h₀ : cfg.inputPos = 0
-  · simp [Cfg.inputSymbol, h₀]
-  · have h₀' : cfg.inputPos.val ≠ 0 := fun h => h₀ (Fin.ext h)
-    rw [Cfg.inputSymbol, dite_eq_right h₀, ite_eq_right h₀']
-    split_ifs with hend
-    · simp [hend]
-    · have hi : cfg.inputPos.val - 1 < input.length := by have := cfg.inputPos.isLt; omega
-      simp [List.getElem?_eq_getElem hi]
-
+/-- Deleting the cells after `a` through `b` preserves symbols at positions at most `a`. -/
 private lemma inputSymbol_cut_left {a b : ℕ} (ha : a ≤ input.length)
     (c : Cfg k Symbol State input)
     (c' : Cfg k Symbol State (input.take a ++ input.drop b))
@@ -178,6 +70,8 @@ private lemma inputSymbol_cut_left {a b : ℕ} (ha : a ≤ input.length)
   · have hi : c.inputPos.val - 1 < a := by omega
     simp [List.getElem?_append, ha, hi]
 
+/-- After deleting the cells after `a` through `b`, symbols at positions at least `b`
+are preserved by shifting left by `b - a`, provided the symbols at `a` and `b` agree. -/
 private lemma inputSymbol_cut_right {a b : ℕ}
     (ha : 0 < a) (hab : a < b) (hb : b ≤ input.length)
     (hsym : input[a - 1]? = input[b - 1]?)
@@ -198,6 +92,7 @@ private lemma inputSymbol_cut_right {a b : ℕ}
     have he : b + (c'.inputPos.val - 1 - a) = c.inputPos.val - 1 := by omega
     simp [List.getElem?_append, htake, not_lt.mpr hi, he]
 
+/-- Propagate a predicate from `u` to `v` using steps within `[u, v]`. -/
 private lemma propagate {P : ℕ → Prop} {u v : ℕ} (huv : u ≤ v) (hu : P u)
     (hstep : ∀ t, u ≤ t → t < v → P t → P (t + 1)) : P v := by
   induction v, huv using Nat.le_induction with
@@ -205,6 +100,7 @@ private lemma propagate {P : ℕ → Prop} {u v : ℕ} (huv : u ≤ v) (hu : P u
   | succ v huv ih =>
     exact hstep v huv (Nat.lt_succ_self _) (ih fun t hut htv => hstep t hut (by omega))
 
+/-- After staying left of `a` for one step, a walk cannot cross `a` without revisiting it. -/
 private lemma walk_left {p : ℕ → ℕ} {u v a : ℕ}
     (hstep : ∀ t, u ≤ t → t < v → p (t + 1) ≤ p t + 1)
     (hu : p u ≤ a) (hu' : p (u + 1) ≤ a)
@@ -219,6 +115,7 @@ private lemma walk_left {p : ℕ → ℕ} {u v a : ℕ}
     have := hno r (by omega) (by omega)
     omega
 
+/-- After staying right of `b` for one step, a walk cannot cross `b` without revisiting it. -/
 private lemma walk_right {p : ℕ → ℕ} {u v b : ℕ}
     (hstep : ∀ t, u ≤ t → t < v → p t ≤ p (t + 1) + 1)
     (hu : b ≤ p u) (hu' : b ≤ p (u + 1))
@@ -233,8 +130,8 @@ private lemma walk_right {p : ℕ → ℕ} {u v b : ℕ}
     have := hno r (by omega) (by omega)
     omega
 
--- Gluing uses only the ordered visits and the fact that the head moves by at most one cell.
--- `R` describes reachability after the cells between `a` and `b` have been removed.
+/-- Matching ordered visits at `a` and `b` allow the portions of a walk outside `(a, b)`
+to be joined. Any predicate `R` preserved along those portions holds throughout the joined walk. -/
 private lemma glue_visits {S : Type*} (p : ℕ → ℕ) (q : ℕ → S) {T a b m : ℕ}
     (hab : a < b) (hp₀ : p 0 ≤ a)
     (hstep : ∀ t < T, p (t + 1) ≤ p t + 1 ∧ p t ≤ p (t + 1) + 1)
@@ -333,6 +230,7 @@ private lemma glue_visits {S : Type*} (p : ℕ → ℕ) (q : ℕ → S) {T a b m
         exact hright t (by omega) hprev hr (by
           simpa [hprev'] using ih (by omega) (Or.inr hprev))
 
+/-- The entry at index `i` is the storage at the `i`th visit time. -/
 private lemma visitSequence_get {cfg : Cfg k Symbol State input} {T p m : ℕ}
     (h : (tm.visitTimes cfg T p).card = m) (i : Fin m) :
     (tm.visitSequence cfg T p)[i.val]'(by rw [length_visitSequence, h]; exact i.isLt) =
