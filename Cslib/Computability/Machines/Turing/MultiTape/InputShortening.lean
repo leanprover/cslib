@@ -455,18 +455,20 @@ lemma length_visitSequence_le [Fintype Symbol] [Fintype State] {T s : ℕ}
   exact_mod_cast hle
 
 /-- A sufficiently long input to a halting space-bounded machine can be shortened while
-preserving any designated storage reached through its first halt. -/
-theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {T s : ℕ}
-    (hhalt : (tm.runFrom (tm.initCfg input) T).Halted)
-    (hfirst : ∀ t < T, ¬ (tm.runFrom (tm.initCfg input) t).Halted)
+preserving any designated storage reached by the run. -/
+theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
+    (hhalt : ∃ T, (tm.runFrom (tm.initCfg input) T).Halted)
     (hs : ∀ t, tm.spaceUsed (tm.initCfg input) t ≤ s)
     (hlen : 2 * Fintype.card Symbol *
       (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s < input.length)
-    {t : ℕ} (ht : t ≤ T) :
+    (t : ℕ) :
     ∃ input' : List Symbol, input'.length < input.length ∧
       ∃ u, (tm.runFrom (tm.initCfg input') u).storage =
         (tm.runFrom (tm.initCfg input) t).storage := by
   classical
+  obtain ⟨T, hT, hfirst⟩ := Nat.findX hhalt
+  wlog ht : t ≤ T generalizing t
+  · simpa only [tm.runFrom_eq_of_halt (Nat.le_of_not_ge ht) hT] using this T le_rfl
   let B := storageBound Symbol State k s
   let S := Set.range (fun u => (tm.runFrom (tm.initCfg input) u).storage)
   have hbound : S.encard ≤ B := tm.encard_storages_le hs
@@ -481,7 +483,7 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {T s : ℕ
   have henc (p : ℕ) : (enc p).map Subtype.val = seq p :=
     List.attachWith_map_subtype_val _
   have hlength (p : ℕ) : (enc p).length ≤ B := by
-    simpa only [enc, List.length_attachWith] using tm.length_visitSequence_le hhalt hfirst hs p
+    simpa only [enc, List.length_attachWith] using tm.length_visitSequence_le hT hfirst hs p
   let f (i : Fin input.length) : Symbol × (Fin B → Option S) :=
     (input[i], fun j => (enc (i.val + 1))[j.val]?)
   have heq {i j : Fin input.length} (h : f i = f j) :
