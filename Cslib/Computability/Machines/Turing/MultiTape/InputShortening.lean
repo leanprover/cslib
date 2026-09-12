@@ -16,8 +16,8 @@ A visit sequence records the storages seen at a fixed input position during a fi
 Up to the first halt, these storages are distinct: repeating a core would repeat the rest of the
 computation, regardless of the write-only output.
 
-The input-shortening argument follows Gadi Aleksandrowicz's account at
-<https://gadial.net/2009/10/04/sub_loglog_space_is_constant/>.
+`InputCut` describes a deletion between matching symbols. Its position map relates configurations
+on the original and shortened inputs, allowing the run segments on either side to be joined.
 -/
 
 @[expose] public section
@@ -95,60 +95,152 @@ lemma spaceUsed_le_of_workTapePos_natAbs_le (cfg : Cfg k Symbol State input) (T 
       exact mem_window.mpr (h t (by omega) i)
     _ = k * (2 * R + 1) := by simp
 
-/-- Equal storage and input symbols give equal storage after one step. A relation `r` between
-the input positions is also preserved if it holds after every common head move. -/
-lemma step_congr_storage {input' : List Symbol}
+/-- Equal storages and scanned input symbols give equal next storages, and both input heads
+execute the same move. For halted configurations, this is the stationary move. -/
+lemma exists_step_move_of_storage_eq {input' : List Symbol}
     {c : Cfg k Symbol State input} {c' : Cfg k Symbol State input'}
-    (hstore : c.storage = c'.storage) (hsym : c.inputSymbol = c'.inputSymbol)
-    (r : ℕ → ℕ → Prop)
-    (hm : ∀ m, r (moveInputPos c.inputPos m).val (moveInputPos c'.inputPos m).val) :
-    (tm.step c).storage = (tm.step c').storage ∧
-      r (tm.step c).inputPos.val (tm.step c').inputPos.val := by
+    (hstore : c.storage = c'.storage) (hsym : c.inputSymbol = c'.inputSymbol) :
+    ∃ m, (tm.step c).storage = (tm.step c').storage ∧
+      (tm.step c).inputPos = moveInputPos c.inputPos m ∧
+      (tm.step c').inputPos = moveInputPos c'.inputPos m := by
   rcases c with ⟨state, pos, tapes, heads, out⟩
   rcases c' with ⟨state', pos', tapes', heads', out'⟩
   simp only [Cfg.storage, Storage.mk.injEq] at hstore
   rcases hstore with ⟨rfl, rfl, rfl⟩
   cases state with
-  | none => exact ⟨rfl, by simpa only [moveInputPos_zero, step] using hm 0⟩
+  | none => exact ⟨0, rfl, (moveInputPos_zero _).symm, (moveInputPos_zero _).symm⟩
   | some state =>
     dsimp only [step]
     unfold Cfg.workTapeSymbols
     rw [hsym]
-    exact ⟨rfl, hm _⟩
+    exact ⟨_, rfl, rfl, rfl⟩
 
-/-- Deleting the cells after `a` through `b` preserves symbols at positions at most `a`. -/
-private lemma inputSymbol_cut_left {a b : ℕ} (ha : a ≤ input.length)
-    (c : Cfg k Symbol State input)
-    (c' : Cfg k Symbol State (input.take a ++ input.drop b))
-    (hc : c.inputPos.val ≤ a) (hp : c'.inputPos.val = c.inputPos.val) :
+/-- Two internal input positions with the same symbol. Cutting after `left` through `right`
+identifies these positions and deletes the intervening input. Positions are one-based. -/
+structure InputCut (input : List Symbol) where
+  /-- The position retained at the cut. -/
+  left : ℕ
+  /-- The last position deleted. -/
+  right : ℕ
+  /-- The left endpoint is past the left endmarker. -/
+  left_pos : 0 < left
+  /-- The cut deletes at least one cell. -/
+  lt : left < right
+  /-- The right endpoint is before the right endmarker. -/
+  right_le : right ≤ input.length
+  /-- The identified positions carry the same symbol. -/
+  symbol_eq : input[left - 1]? = input[right - 1]?
+
+/-- The input obtained by deleting the cells after `left` through `right`. -/
+def InputCut.shortened (cut : InputCut input) : List Symbol :=
+  input.take cut.left ++ input.drop cut.right
+
+/-- Collapse the deleted interval to its left endpoint and shift subsequent positions left. -/
+def InputCut.position (cut : InputCut input) (p : ℕ) : ℕ :=
+  min p cut.left + (p - cut.right)
+
+/-- Corresponding configurations have equal storage and input positions related by the cut. -/
+def InputCut.Matches (cut : InputCut input) (c : Cfg k Symbol State input)
+    (c' : Cfg k Symbol State cut.shortened) : Prop :=
+  c'.inputPos.val = cut.position c.inputPos.val ∧ c'.storage = c.storage
+
+/-- A corresponding configuration is reachable on the shortened input. -/
+def InputCut.Reachable (cut : InputCut input) (tm : MultiTapeTM k Symbol State)
+    (c : Cfg k Symbol State input) : Prop :=
+  ∃ t, cut.Matches c (tm.runFrom (tm.initCfg cut.shortened) t)
+
+namespace InputCut
+
+variable (cut : InputCut input)
+
+/-- Adding back the deleted cells recovers the original input length. -/
+private lemma length_shortened_add :
+    cut.shortened.length + (cut.right - cut.left) = input.length := by
+  simp only [InputCut.shortened, List.length_append, List.length_take, List.length_drop]
+  have := cut.lt
+  have := cut.right_le
+  omega
+
+/-- Positions at or left of the cut do not move. -/
+private lemma position_left {p : ℕ} (hp : p ≤ cut.left) : cut.position p = p := by
+  unfold position
+  have := cut.lt
+  omega
+
+/-- Positions at or right of the cut shift by the number of deleted cells. -/
+private lemma position_right {p : ℕ} (hp : cut.right ≤ p) :
+    cut.position p = p - (cut.right - cut.left) := by
+  unfold position
+  have := cut.lt
+  omega
+
+/-- Corresponding input positions on the left read the same symbol. -/
+private lemma inputSymbol_left (c : Cfg k Symbol State input)
+    (c' : Cfg k Symbol State cut.shortened)
+    (hc : c.inputPos.val ≤ cut.left) (hp : c'.inputPos.val = c.inputPos.val) :
     c.inputSymbol = c'.inputSymbol := by
   rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, hp]
   split_ifs with h
   · rfl
-  · have hi : c.inputPos.val - 1 < a := by omega
-    simp [List.getElem?_append, ha, hi]
+  · have hi : c.inputPos.val - 1 < cut.left := by omega
+    have hle : cut.left ≤ input.length := cut.lt.le.trans cut.right_le
+    simp [InputCut.shortened, List.getElem?_append, hle, hi]
 
-/-- After deleting the cells after `a` through `b`, symbols at positions at least `b`
-are preserved by shifting left by `b - a`, provided the symbols at `a` and `b` agree. -/
-private lemma inputSymbol_cut_right {a b : ℕ}
-    (ha : 0 < a) (hab : a < b) (hb : b ≤ input.length)
-    (hsym : input[a - 1]? = input[b - 1]?)
-    (c : Cfg k Symbol State input)
-    (c' : Cfg k Symbol State (input.take a ++ input.drop b))
-    (hc : b ≤ c.inputPos.val) (hp : c'.inputPos.val + (b - a) = c.inputPos.val) :
+/-- Corresponding input positions on the right read the same symbol, including at the cut. -/
+private lemma inputSymbol_right (c : Cfg k Symbol State input)
+    (c' : Cfg k Symbol State cut.shortened)
+    (hc : cut.right ≤ c.inputPos.val)
+    (hp : c'.inputPos.val + (cut.right - cut.left) = c.inputPos.val) :
     c.inputSymbol = c'.inputSymbol := by
+  have ha := cut.left_pos
+  have hab := cut.lt
+  have hb := cut.right_le
   have hp₀ : c.inputPos.val ≠ 0 := by omega
   have hp'₀ : c'.inputPos.val ≠ 0 := by omega
   rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, ite_eq_right hp₀,
     ite_eq_right hp'₀]
-  have htake : (input.take a).length = a := by simp; omega
-  by_cases heq : c.inputPos.val = b
-  · have hpa : c'.inputPos.val = a := by omega
-    simp [hpa, heq, List.getElem?_append, htake,
-      show a - 1 < a by omega, ← hsym]
-  · have hi : a ≤ c'.inputPos.val - 1 := by omega
-    have he : b + (c'.inputPos.val - 1 - a) = c.inputPos.val - 1 := by omega
-    simp [List.getElem?_append, htake, not_lt.mpr hi, he]
+  have htake : (input.take cut.left).length = cut.left := by simp; omega
+  by_cases heq : c.inputPos.val = cut.right
+  · have hpa : c'.inputPos.val = cut.left := by omega
+    simp [InputCut.shortened, hpa, heq, List.getElem?_append, htake,
+      show cut.left - 1 < cut.left by omega, ← cut.symbol_eq]
+  · have hi : cut.left ≤ c'.inputPos.val - 1 := by omega
+    have he : cut.right + (c'.inputPos.val - 1 - cut.left) = c.inputPos.val - 1 := by omega
+    simp [InputCut.shortened, List.getElem?_append, htake, not_lt.mpr hi, he]
+
+/-- A step staying on the left preserves reachability on the shortened input. -/
+private lemma reachable_step_left {c : Cfg k Symbol State input}
+    (hc : c.inputPos.val ≤ cut.left) (hc' : (tm.step c).inputPos.val ≤ cut.left)
+    (h : cut.Reachable tm c) : cut.Reachable tm (tm.step c) := by
+  obtain ⟨u, hp, hs⟩ := h
+  rw [cut.position_left hc] at hp
+  obtain ⟨m, hs', hm, hm'⟩ := tm.exists_step_move_of_storage_eq hs.symm
+    (cut.inputSymbol_left _ _ hc hp)
+  refine ⟨u + 1, ?_, ?_⟩
+  · rw [runFrom_succ_eq_step', hm', cut.position_left hc', hm]
+    exact (moveInputPos_same _ _ hp.symm (hc.trans (cut.lt.le.trans cut.right_le))
+      (by have := cut.length_shortened_add; have := cut.right_le; have := cut.lt; omega) m).symm
+  · simpa only [runFrom_succ_eq_step'] using hs'.symm
+
+/-- A step staying on the right preserves reachability on the shortened input. -/
+private lemma reachable_step_right {c : Cfg k Symbol State input}
+    (hc : cut.right ≤ c.inputPos.val) (hc' : cut.right ≤ (tm.step c).inputPos.val)
+    (h : cut.Reachable tm c) : cut.Reachable tm (tm.step c) := by
+  obtain ⟨u, hp, hs⟩ := h
+  rw [cut.position_right hc] at hp
+  have hpos : (tm.runFrom (tm.initCfg cut.shortened) u).inputPos.val +
+      (cut.right - cut.left) = c.inputPos.val := by have := cut.lt; omega
+  obtain ⟨m, hs', hm, hm'⟩ := tm.exists_step_move_of_storage_eq hs.symm
+    (cut.inputSymbol_right _ _ hc hpos)
+  refine ⟨u + 1, ?_, ?_⟩
+  · rw [runFrom_succ_eq_step', hm', cut.position_right hc', hm]
+    have he := moveInputPos_shift c.inputPos
+      (tm.runFrom (tm.initCfg cut.shortened) u).inputPos hpos cut.length_shortened_add
+      (by have := cut.left_pos; have := cut.lt; omega) m
+    omega
+  · simpa only [runFrom_succ_eq_step'] using hs'.symm
+
+end InputCut
 
 /-- Propagate a predicate from `u` to `v` using steps within `[u, v]`. -/
 private lemma propagate {P : ℕ → Prop} {u v : ℕ} (huv : u ≤ v) (hu : P u)
@@ -188,106 +280,6 @@ private lemma walk_right {p : ℕ → ℕ} {u v b : ℕ}
     have := hno r (by omega) (by omega)
     omega
 
-/-- Matching ordered visits at `a` and `b` allow the portions of a walk outside `(a, b)`
-to be joined. Any predicate `R` preserved along those portions holds throughout the joined walk. -/
-private lemma glue_visits {S : Type*} (p : ℕ → ℕ) (q : ℕ → S) {T a b m : ℕ}
-    (hab : a < b) (hp₀ : p 0 ≤ a)
-    (hstep : ∀ t < T, p (t + 1) ≤ p t + 1 ∧ p t ≤ p (t + 1) + 1)
-    (A B : Fin m ↪o ℕ)
-    (hA : ∀ i, A i ≤ T ∧ p (A i) = a)
-    (hB : ∀ i, B i ≤ T ∧ p (B i) = b)
-    (hAc : ∀ t ≤ T, p t = a → ∃ i, A i = t)
-    (hBc : ∀ t ≤ T, p t = b → ∃ i, B i = t)
-    (hq : ∀ i, q (A i) = q (B i))
-    (hmove : ∀ i, p (A i + 1) + b = p (B i + 1) + a)
-    (R : ℕ → S → Prop) (hR₀ : R (p 0) (q 0))
-    (hleft : ∀ t < T, p t ≤ a → p (t + 1) ≤ a →
-      R (p t) (q t) → R (p (t + 1)) (q (t + 1)))
-    (hright : ∀ t < T, b ≤ p t → b ≤ p (t + 1) →
-      R (p t - (b - a)) (q t) → R (p (t + 1) - (b - a)) (q (t + 1))) :
-    ∀ t ≤ T, p t ≤ a ∨ b ≤ p t →
-      R (if p t ≤ a then p t else p t - (b - a)) (q t) := by
-  have hba : b - (b - a) = a := by omega
-  have boundary : ∀ i, R a (q (A i)) := by
-    cases m with
-    | zero => exact fun i => Fin.elim0 i
-    | succ m =>
-      intro i
-      induction i using Fin.induction with
-      | zero =>
-        have hno : ∀ t < A 0, p t ≠ a := by
-          intro t ht hpt
-          obtain ⟨j, rfl⟩ := hAc t (ht.le.trans (hA 0).1) hpt
-          exact (not_lt_of_ge (A.monotone (Fin.zero_le j))) ht
-        have hside : ∀ t ≤ A 0, p t ≤ a := by
-          intro t ht
-          apply propagate (Nat.zero_le t) hp₀
-          intro r _ hrt hr
-          have := (hstep r (by have := (hA 0).1; omega)).1
-          have := hno r (by omega)
-          omega
-        have hr := propagate (Nat.zero_le (A 0)) hR₀ fun t _ ht =>
-          hleft t (ht.trans_le (hA 0).1) (hside t ht.le) (hside (t + 1) ht)
-        simpa [(hA 0).2] using hr
-      | succ i ih =>
-        have hAj := A.strictMono i.castSucc_lt_succ
-        have hBj := B.strictMono i.castSucc_lt_succ
-        have hnoA : ∀ t, A i.castSucc < t → t < A i.succ → p t ≠ a := by
-          intro t hjt hti hpt
-          obtain ⟨r, rfl⟩ := hAc t (hti.le.trans (hA i.succ).1) hpt
-          exact (not_lt_of_ge (Fin.le_castSucc_iff.mpr (A.lt_iff_lt.mp hti)))
-            (A.lt_iff_lt.mp hjt)
-        have hnoB : ∀ t, B i.castSucc < t → t < B i.succ → p t ≠ b := by
-          intro t hjt hti hpt
-          obtain ⟨r, rfl⟩ := hBc t (hti.le.trans (hB i.succ).1) hpt
-          exact (not_lt_of_ge (Fin.le_castSucc_iff.mpr (B.lt_iff_lt.mp hti)))
-            (B.lt_iff_lt.mp hjt)
-        by_cases hdir : p (A i.castSucc + 1) ≤ a
-        · have hside := walk_left
-            (fun t (_ : A i.castSucc ≤ t) (ht : t < A i.succ) =>
-              (hstep t (ht.trans_le (hA i.succ).1)).1)
-            (le_of_eq (hA i.castSucc).2) hdir hnoA
-          have hr := propagate hAj.le
-            (show R (p (A i.castSucc)) (q (A i.castSucc)) by
-              simpa [(hA i.castSucc).2] using ih) fun t hjt hti =>
-                hleft t (hti.trans_le (hA i.succ).1)
-                  (hside t hjt hti.le) (hside (t + 1) (by omega) hti)
-          simpa [(hA i.succ).2] using hr
-        · have hdir' : b ≤ p (B i.castSucc + 1) := by have := hmove i.castSucc; omega
-          have hside := walk_right
-            (fun t (_ : B i.castSucc ≤ t) (ht : t < B i.succ) =>
-              (hstep t (ht.trans_le (hB i.succ).1)).2)
-            (ge_of_eq (hB i.castSucc).2) hdir' hnoB
-          have hr := propagate hBj.le
-            (show R (p (B i.castSucc) - (b - a)) (q (B i.castSucc)) by
-              simpa [(hB i.castSucc).2, hba, ← hq i.castSucc] using ih) fun t hjt hti =>
-                hright t (hti.trans_le (hB i.succ).1)
-                  (hside t hjt hti.le) (hside (t + 1) (by omega) hti)
-          simpa [(hB i.succ).2, hba, ← hq i.succ] using hr
-  intro t
-  induction t with
-  | zero => intro _ _; simpa [hp₀] using hR₀
-  | succ t ih =>
-    intro ht hside
-    have hst := hstep t (by omega)
-    by_cases hl : p (t + 1) ≤ a
-    · rw [ite_eq_left hl]
-      by_cases heq : p (t + 1) = a
-      · obtain ⟨i, hi⟩ := hAc (t + 1) ht heq
-        simpa [hi, heq] using boundary i
-      · have hprev : p t ≤ a := by omega
-        exact hleft t (by omega) hprev hl (by
-          simpa [hprev] using ih (by omega) (Or.inl hprev))
-    · rw [ite_eq_right hl]
-      have hr : b ≤ p (t + 1) := hside.resolve_left hl
-      by_cases heq : p (t + 1) = b
-      · obtain ⟨i, hi⟩ := hBc (t + 1) ht heq
-        simpa [hq i, hi, heq, hba] using boundary i
-      · have hprev : b ≤ p t := by omega
-        have hprev' : ¬ p t ≤ a := by omega
-        exact hright t (by omega) hprev hr (by
-          simpa [hprev'] using ih (by omega) (Or.inr hprev))
-
 /-- The entry at index `i` is the storage at the `i`th visit time. -/
 private lemma visitSequence_get {cfg : Cfg k Symbol State input} {T p m : ℕ}
     (h : (tm.visitTimes cfg T p).card = m) (i : Fin m) :
@@ -295,36 +287,33 @@ private lemma visitSequence_get {cfg : Cfg k Symbol State input} {T p m : ℕ}
       (tm.runFrom cfg ((tm.visitTimes cfg T p).orderEmbOfFin h i)).storage := by
   simp [visitSequence, Finset.orderEmbOfFin_apply]
 
-/-- Deleting the cells after `a` through `b` preserves every storage reached outside the deleted
-interval, provided the symbols and visit sequences at `a` and `b` agree. Input positions are
-one-based, as in `Cfg.inputPos`; neither cut position is an endmarker. -/
-theorem exists_storage_cut {a b T : ℕ}
-    (ha : 0 < a) (hab : a < b) (hb : b ≤ input.length)
-    (hsym : input[a - 1]? = input[b - 1]?)
-    (hseq : tm.visitSequence (tm.initCfg input) T a =
-      tm.visitSequence (tm.initCfg input) T b)
+/-- Equal visit sequences allow the run segments on either side of the cut to be joined.
+Every configuration outside the cut through time `T` has a reachable counterpart. -/
+private lemma InputCut.reachable_of_visitSequence_eq (cut : InputCut input) {T : ℕ}
+    (hseq : tm.visitSequence (tm.initCfg input) T cut.left =
+      tm.visitSequence (tm.initCfg input) T cut.right)
     {t : ℕ} (ht : t ≤ T)
-    (hp : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ a ∨
-      b ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val) :
-    ∃ u, (tm.runFrom (tm.initCfg (input.take a ++ input.drop b)) u).storage =
-      (tm.runFrom (tm.initCfg input) t).storage := by
+    (hp : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ cut.left ∨
+      cut.right ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val) :
+    cut.Reachable tm (tm.runFrom (tm.initCfg input) t) := by
   let c := tm.runFrom (tm.initCfg input)
-  let c' := tm.runFrom (tm.initCfg (input.take a ++ input.drop b))
-  let m := (tm.visitTimes (tm.initCfg input) T a).card
-  have hcard : (tm.visitTimes (tm.initCfg input) T b).card = m := by
+  let p := fun u => (c u).inputPos.val
+  have hc (u) : c (u + 1) = tm.step (c u) := runFrom_succ_eq_step'
+  let m := (tm.visitTimes (tm.initCfg input) T cut.left).card
+  have hcard : (tm.visitTimes (tm.initCfg input) T cut.right).card = m := by
     simpa [m] using (congrArg List.length hseq).symm
-  let A := (tm.visitTimes (tm.initCfg input) T a).orderEmbOfFin rfl
-  let B := (tm.visitTimes (tm.initCfg input) T b).orderEmbOfFin hcard
-  have hA : ∀ i, A i ≤ T ∧ (c (A i)).inputPos.val = a := fun i =>
+  let A : Fin m ↪o ℕ := (tm.visitTimes (tm.initCfg input) T cut.left).orderEmbOfFin rfl
+  let B := (tm.visitTimes (tm.initCfg input) T cut.right).orderEmbOfFin hcard
+  have hA : ∀ i, A i ≤ T ∧ (c (A i)).inputPos.val = cut.left := fun i =>
     tm.mem_visitTimes.mp (Finset.orderEmbOfFin_mem _ _ i)
-  have hB : ∀ i, B i ≤ T ∧ (c (B i)).inputPos.val = b := fun i =>
+  have hB : ∀ i, B i ≤ T ∧ (c (B i)).inputPos.val = cut.right := fun i =>
     tm.mem_visitTimes.mp (Finset.orderEmbOfFin_mem _ _ i)
-  have hAc : ∀ u ≤ T, (c u).inputPos.val = a → ∃ i, A i = u := by
+  have hAc : ∀ u ≤ T, p u = cut.left → ∃ i, A i = u := by
     intro u hu hpu
     change u ∈ Set.range A
     simpa only [A, Finset.range_orderEmbOfFin, Finset.mem_coe] using
       tm.mem_visitTimes.mpr ⟨hu, hpu⟩
-  have hBc : ∀ u ≤ T, (c u).inputPos.val = b → ∃ i, B i = u := by
+  have hBc : ∀ u ≤ T, p u = cut.right → ∃ i, B i = u := by
     intro u hu hpu
     change u ∈ Set.range B
     simpa only [B, Finset.range_orderEmbOfFin, Finset.mem_coe] using
@@ -334,57 +323,119 @@ theorem exists_storage_cut {a b T : ℕ}
     have heq := List.getElem_of_eq hseq (i := i.val)
       (by rw [length_visitSequence]; exact i.isLt)
     exact (visitSequence_get rfl i).symm.trans (heq.trans (visitSequence_get hcard i))
-  have hmove : ∀ i,
-      (c (A i + 1)).inputPos.val + b = (c (B i + 1)).inputPos.val + a := by
-    intro i
+  have hmove (i) : p (A i + 1) + cut.right = p (B i + 1) + cut.left := by
     have hsy : (c (A i)).inputSymbol = (c (B i)).inputSymbol := by
       rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, (hA i).2, (hB i).2]
-      simpa [Nat.ne_of_gt ha, show b ≠ 0 by omega] using hsym
-    have hcong := step_congr_storage (tm := tm) (hq i) hsy
-      (fun p p' => p + b = p' + a) (fun dir => by
-        have hm := moveInputPos_interior (c (A i)).inputPos (c (B i)).inputPos
-          (by rw [(hA i).2]; exact ha) (by rw [(hA i).2]; omega)
-          (by rw [(hB i).2]; omega) (by rw [(hB i).2]; exact hb) dir
-        have := (hA i).2
-        have := (hB i).2
-        omega)
-    simpa only [c, runFrom_succ_eq_step'] using hcong.2
-  let R := fun p s => ∃ u, (c' u).inputPos.val = p ∧ (c' u).storage = s
-  have hR₀ : R (c 0).inputPos.val (c 0).storage := by
-    refine ⟨0, ?_, ?_⟩ <;> simp [c, c', Cfg.storage]
-  have hlen : (input.take a ++ input.drop b).length + (b - a) = input.length := by
-    simp only [List.length_append, List.length_take, List.length_drop]
-    omega
-  have hleft : ∀ u < T, (c u).inputPos.val ≤ a → (c (u + 1)).inputPos.val ≤ a →
-      R (c u).inputPos.val (c u).storage → R (c (u + 1)).inputPos.val (c (u + 1)).storage := by
-    rintro u _ hpu _ ⟨v, hpv, hsv⟩
-    have hsy := inputSymbol_cut_left (by omega : a ≤ input.length) (c u) (c' v) hpu hpv
-    have hcong := step_congr_storage (tm := tm) hsv.symm hsy Eq
-      (fun dir => moveInputPos_same (c u).inputPos (c' v).inputPos hpv.symm
-        (by omega) (by omega) dir)
-    refine ⟨v + 1, ?_, ?_⟩
-    · simpa only [c, c', runFrom_succ_eq_step'] using hcong.2.symm
-    · simpa only [c, c', runFrom_succ_eq_step'] using hcong.1.symm
-  have hright : ∀ u < T, b ≤ (c u).inputPos.val → b ≤ (c (u + 1)).inputPos.val →
-      R ((c u).inputPos.val - (b - a)) (c u).storage →
-      R ((c (u + 1)).inputPos.val - (b - a)) (c (u + 1)).storage := by
-    rintro u _ hpu _ ⟨v, hpv, hsv⟩
-    have hpv' : (c' v).inputPos.val + (b - a) = (c u).inputPos.val := by omega
-    have hsy := inputSymbol_cut_right ha hab hb hsym (c u) (c' v) hpu hpv'
-    have hcong := step_congr_storage (tm := tm) hsv.symm hsy
-      (fun p p' => p' + (b - a) = p)
-      (fun dir => moveInputPos_shift (c u).inputPos (c' v).inputPos hpv' hlen (by omega) dir)
-    refine ⟨v + 1, ?_, ?_⟩
-    · have hpos : (c' (v + 1)).inputPos.val + (b - a) = (c (u + 1)).inputPos.val := by
-        simpa only [c, c', runFrom_succ_eq_step'] using hcong.2
-      omega
-    · simpa only [c, c', runFrom_succ_eq_step'] using hcong.1.symm
-  have hglue := glue_visits (fun u => (c u).inputPos.val) (fun u => (c u).storage)
-    hab (by simp [c]; omega)
-    (fun u _ => by simpa only [c, runFrom_succ_eq_step'] using tm.inputPos_step_bounds (c u))
-    A B hA hB hAc hBc hq hmove R hR₀ hleft hright t ht hp
-  obtain ⟨u, _, hstore⟩ := hglue
-  exact ⟨u, hstore⟩
+      simpa [Nat.ne_of_gt cut.left_pos, show cut.right ≠ 0 by have := cut.lt; omega] using
+        cut.symbol_eq
+    obtain ⟨dir, _, hleft, hright⟩ := tm.exists_step_move_of_storage_eq (hq i) hsy
+    change (c (A i + 1)).inputPos.val + cut.right =
+      (c (B i + 1)).inputPos.val + cut.left
+    rw [hc, hc, hleft, hright]
+    simpa only [(hA i).2, (hB i).2] using
+      moveInputPos_interior (c (A i)).inputPos (c (B i)).inputPos
+        (by rw [(hA i).2]; exact cut.left_pos)
+        (by rw [(hA i).2]; exact cut.lt.le.trans cut.right_le)
+        (by rw [(hB i).2]; have := cut.left_pos; have := cut.lt; omega)
+        (by rw [(hB i).2]; exact cut.right_le) dir
+  have hmatch (i) : cut.Reachable tm (c (A i)) ↔ cut.Reachable tm (c (B i)) := by
+    have hba : cut.right - (cut.right - cut.left) = cut.left := by have := cut.lt; omega
+    simp only [InputCut.Reachable, InputCut.Matches, (hA i).2, (hB i).2,
+      cut.position_left le_rfl, cut.position_right le_rfl, hba, hq i]
+  have hstep (u) : p (u + 1) ≤ p u + 1 ∧ p u ≤ p (u + 1) + 1 := by
+    simpa only [p, c, runFrom_succ_eq_step'] using tm.inputPos_step_bounds (c u)
+  have hleft {u} (hu : p u ≤ cut.left) (hu' : p (u + 1) ≤ cut.left) :
+      cut.Reachable tm (c u) → cut.Reachable tm (c (u + 1)) := by
+    rw [hc]
+    exact cut.reachable_step_left hu (by simpa only [p, hc] using hu')
+  have hright {u} (hu : cut.right ≤ p u) (hu' : cut.right ≤ p (u + 1)) :
+      cut.Reachable tm (c u) → cut.Reachable tm (c (u + 1)) := by
+    rw [hc]
+    exact cut.reachable_step_right hu (by simpa only [p, hc] using hu')
+  have hp₀ : p 0 ≤ cut.left := by simpa [p, c] using (Nat.succ_le_iff.mpr cut.left_pos)
+  have hinit : cut.Reachable tm (c 0) := by
+    refine ⟨0, ?_, ?_⟩
+    · rw [cut.position_left hp₀]
+      rfl
+    · rfl
+  have boundary : ∀ i, cut.Reachable tm (c (A i)) := by
+    clear_value A B m
+    cases m with
+    | zero => exact fun i => Fin.elim0 i
+    | succ m =>
+      intro i
+      induction i using Fin.induction with
+      | zero =>
+        have hno : ∀ u < A 0, p u ≠ cut.left := by
+          intro u hu hpu
+          obtain ⟨j, rfl⟩ := hAc u (hu.le.trans (hA 0).1) hpu
+          exact (not_lt_of_ge (A.monotone (Fin.zero_le j))) hu
+        have hside : ∀ u ≤ A 0, p u ≤ cut.left := by
+          intro u hu
+          apply propagate (Nat.zero_le u) hp₀
+          intro r _ hru hr
+          have := (hstep r).1
+          have := hno r (by omega)
+          omega
+        exact propagate (P := fun u => cut.Reachable tm (c u)) (Nat.zero_le (A 0)) hinit
+          fun u _ hu => hleft (hside u hu.le) (hside (u + 1) hu)
+      | succ i ih =>
+        have hAj := A.strictMono i.castSucc_lt_succ
+        have hBj := B.strictMono i.castSucc_lt_succ
+        have hnoA : ∀ u, A i.castSucc < u → u < A i.succ → p u ≠ cut.left := by
+          intro u hju hui hpu
+          obtain ⟨r, rfl⟩ := hAc u (hui.le.trans (hA i.succ).1) hpu
+          exact (not_lt_of_ge (Fin.le_castSucc_iff.mpr (A.lt_iff_lt.mp hui)))
+            (A.lt_iff_lt.mp hju)
+        have hnoB : ∀ u, B i.castSucc < u → u < B i.succ → p u ≠ cut.right := by
+          intro u hju hui hpu
+          obtain ⟨r, rfl⟩ := hBc u (hui.le.trans (hB i.succ).1) hpu
+          exact (not_lt_of_ge (Fin.le_castSucc_iff.mpr (B.lt_iff_lt.mp hui)))
+            (B.lt_iff_lt.mp hju)
+        by_cases hdir : p (A i.castSucc + 1) ≤ cut.left
+        · have hside := walk_left (fun u _ _ => (hstep u).1)
+            (le_of_eq (hA i.castSucc).2) hdir hnoA
+          exact propagate (P := fun u => cut.Reachable tm (c u)) hAj.le ih fun u hju hui =>
+            hleft (hside u hju hui.le) (hside (u + 1) (by omega) hui)
+        · have hdir' : cut.right ≤ p (B i.castSucc + 1) := by
+            have := hmove i.castSucc
+            omega
+          have hside := walk_right (fun u _ _ => (hstep u).2)
+            (ge_of_eq (hB i.castSucc).2) hdir' hnoB
+          apply (hmatch i.succ).mpr
+          exact propagate (P := fun u => cut.Reachable tm (c u)) hBj.le
+            ((hmatch i.castSucc).mp ih) fun u hju hui =>
+              hright (hside u hju hui.le) (hside (u + 1) (by omega) hui)
+  change cut.Reachable tm (c t)
+  induction t with
+  | zero => exact hinit
+  | succ t ih =>
+    have hst := hstep t
+    by_cases hl : p (t + 1) ≤ cut.left
+    · by_cases heq : p (t + 1) = cut.left
+      · obtain ⟨i, hi⟩ := hAc (t + 1) ht heq
+        simpa only [hi] using boundary i
+      · have hprev : p t ≤ cut.left := by omega
+        exact hleft hprev hl (ih (by omega) (Or.inl hprev))
+    · have hr : cut.right ≤ p (t + 1) := hp.resolve_left hl
+      by_cases heq : p (t + 1) = cut.right
+      · obtain ⟨i, hi⟩ := hBc (t + 1) ht heq
+        simpa only [hi] using (hmatch i).mp (boundary i)
+      · have hprev : cut.right ≤ p t := by omega
+        exact hright hprev hr (ih (by omega) (Or.inr hprev))
+
+/-- Equal visit sequences at the endpoints of an input cut preserve every storage reached
+outside the deleted interval through time `T`. -/
+theorem exists_storage_cut (cut : InputCut input) {T : ℕ}
+    (hseq : tm.visitSequence (tm.initCfg input) T cut.left =
+      tm.visitSequence (tm.initCfg input) T cut.right)
+    {t : ℕ} (ht : t ≤ T)
+    (hp : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ cut.left ∨
+      cut.right ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val) :
+    ∃ u, (tm.runFrom (tm.initCfg cut.shortened) u).storage =
+      (tm.runFrom (tm.initCfg input) t).storage := by
+  obtain ⟨u, _, hs⟩ := cut.reachable_of_visitSequence_eq hseq ht hp
+  exact ⟨u, hs⟩
 
 /-- Every entry of a visit sequence is a storage reached by the run. -/
 lemma mem_range_of_mem_visitSequence {cfg : Cfg k Symbol State input} {T p : ℕ}
@@ -488,8 +539,9 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
       have := i.isLt
       have := j.isLt
       omega
-    · exact tm.exists_storage_cut (by omega) hij (by have := j.isLt; omega)
-        (by simpa [List.getElem?_eq_getElem i.isLt, List.getElem?_eq_getElem j.isLt] using hij'.1)
+    · exact tm.exists_storage_cut
+        ⟨i.val + 1, j.val + 1, by omega, hij, by have := j.isLt; omega,
+          by simpa [List.getElem?_eq_getElem i.isLt, List.getElem?_eq_getElem j.isLt] using hij'.1⟩
         hij'.2 ht hpos
   by_cases hpos : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ (e 0).val + 1 ∨
       (e 1).val + 1 ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val
