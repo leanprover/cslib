@@ -77,7 +77,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `ComputableInTimeAndSpaceOfLength`: the specialization to bounds on encoded input length.
 * `DecidableInTimeAndSpace`: a proof that a TM decides a language within a certain time
     and space bound.
-* `DecidableInSpace`: a binary language is decidable within a bound on space by input length.
+* `DecidableInSpace`: a language is decidable within a bound on space by input length.
 
 There are two ways to talk about the behaviour of a multi-tape Turing machine, and they are
 proven to be equivalent.
@@ -359,10 +359,15 @@ def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b => [b], by intro a b h; simpa using h⟩ t s
 
-/-- A binary language is decidable using at most `s n` work-tape cells on inputs of length `n`,
-with no restriction on time. -/
-def DecidableInSpace (L : Language Bool) (s : ℕ → ℕ) : Prop :=
-  ∃ t, DecidableInTimeAndSpace L (Function.Embedding.refl _) t (s ∘ List.length)
+/-- A language over a finite alphabet is decidable using at most `s n` work-tape cells on inputs
+of length `n`. The last state before halting records the decision: `.inr true` accepts and
+`.inr false` rejects. -/
+def DecidableInSpace {Symbol : Type*} [Finite Symbol] (L : Language Symbol) (s : ℕ → ℕ) : Prop :=
+  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Symbol (State ⊕ Bool)),
+    ∀ input, ∃ t,
+      (tm.runFrom (tm.initCfg input) t).state = some (.inr (indicator L input)) ∧
+      (tm.runFrom (tm.initCfg input) (t + 1)).Halted ∧
+      tm.spaceUsed (tm.initCfg input) (t + 1) ≤ s input.length
 
 /-- This lemma translates between the relational notion and the iterated step notion. The latter
 can be more convenient especially for deterministic machines as we have here. -/
