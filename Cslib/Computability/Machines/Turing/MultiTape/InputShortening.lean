@@ -27,6 +27,8 @@ to be joined.
 
 namespace Turing.MultiTapeTM
 
+open Relation
+
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 
@@ -126,10 +128,10 @@ namespace InputCut
 
 variable (cut : InputCut input)
 
-/-- The one-based input-head position of the retained endpoint. -/
+/-- The head position of the retained endpoint: position `0` is the left endmarker. -/
 def left : ℕ := cut.fst.val + 1
 
-/-- The one-based input-head position of the right endpoint. -/
+/-- The head position of the right endpoint: input symbol `i` is read at position `i + 1`. -/
 def right : ℕ := cut.snd.val + 1
 
 /-- The input obtained by deleting the cells after `left` through `right`. -/
@@ -170,57 +172,63 @@ private lemma position_right {p : ℕ} (hp : cut.right ≤ p) :
   have := cut.fst_le_snd
   omega
 
-/-- Corresponding input positions on the left read the same symbol. -/
-private lemma inputSymbol_left (c : Cfg k Symbol State input)
-    (c' : Cfg k Symbol State cut.shortened)
-    (hc : c.inputPos.val ≤ cut.left) (hp : c'.inputPos.val = c.inputPos.val) :
-    c.inputSymbol = c'.inputSymbol := by
-  rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, hp]
-  split_ifs with h
-  · rfl
-  · have hi : c.inputPos.val - 1 < cut.left := by omega
-    have hle : cut.left ≤ input.length := cut.fst.isLt
-    simp [shortened, List.getElem?_append, hle, hi]
+namespace Matches
 
-/-- Corresponding input positions on the right read the same symbol, including at the cut. -/
-private lemma inputSymbol_right (hsym : input[cut.fst] = input[cut.snd])
-    (c : Cfg k Symbol State input)
-    (c' : Cfg k Symbol State cut.shortened)
-    (hc : cut.right ≤ c.inputPos.val)
-    (hp : c'.inputPos.val + (cut.right - cut.left) = c.inputPos.val) :
-    c.inputSymbol = c'.inputSymbol := by
-  have ha : 0 < cut.left := Nat.succ_pos _
-  have hab : cut.left ≤ cut.right := Nat.add_le_add_right cut.fst_le_snd 1
-  have hb : cut.right ≤ input.length := cut.snd.isLt
-  have hp₀ : c.inputPos.val ≠ 0 := by omega
-  have hp'₀ : c'.inputPos.val ≠ 0 := by omega
-  rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, ite_eq_right hp₀,
-    ite_eq_right hp'₀]
-  have htake : (input.take cut.left).length = cut.left := by simp; omega
-  by_cases heq : c.inputPos.val = cut.right
-  · have hpa : c'.inputPos.val = cut.left := by omega
-    simpa [shortened, hpa, heq, List.getElem?_append,
-      left, right, Fin.getElem_fin] using hsym.symm
-  · have hi : cut.left ≤ c'.inputPos.val - 1 := by omega
-    have he : cut.right + (c'.inputPos.val - 1 - cut.left) = c.inputPos.val - 1 := by omega
-    simp [shortened, List.getElem?_append, htake, not_lt.mpr hi, he]
+variable {cut}
 
-variable {cut} in
+/-- Matching positions on the left of the cut are equal. -/
+lemma inputPos_left {c : Cfg k Symbol State input}
+    {c' : Cfg k Symbol State cut.shortened} (h : cut.Matches c c')
+    (hp : c.inputPos.val ≤ cut.left) : c'.inputPos.val = c.inputPos.val :=
+  h.1.trans (cut.position_left hp)
+
+/-- Matching positions on the right differ by the number of deleted cells. -/
+lemma inputPos_right {c : Cfg k Symbol State input}
+    {c' : Cfg k Symbol State cut.shortened} (h : cut.Matches c c')
+    (hp : cut.right ≤ c.inputPos.val) :
+    c'.inputPos.val + (cut.right - cut.left) = c.inputPos.val := by
+  rw [h.1, cut.position_right hp]
+  exact Nat.sub_add_cancel ((Nat.sub_le ..).trans hp)
+
+/-- Matching configurations outside the cut scan the same symbol when its endpoints agree. -/
+lemma inputSymbol (hsym : input[cut.fst] = input[cut.snd])
+    {c : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened}
+    (h : cut.Matches c c') (hp : c.inputPos.val ≤ cut.left ∨ cut.right ≤ c.inputPos.val) :
+    c.inputSymbol = c'.inputSymbol := by
+  rcases hp with hp | hp
+  · rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, h.inputPos_left hp]
+    split_ifs with h₀
+    · rfl
+    · have hi : c.inputPos.val - 1 < cut.left := by omega
+      have hle : cut.left ≤ input.length := cut.fst.isLt
+      simp [shortened, List.getElem?_append, hle, hi]
+  · have hpos := h.inputPos_right hp
+    have ha : 0 < cut.left := Nat.succ_pos _
+    have hab : cut.left ≤ cut.right := Nat.add_le_add_right cut.fst_le_snd 1
+    have hp₀ : c.inputPos.val ≠ 0 := by omega
+    have hp'₀ : c'.inputPos.val ≠ 0 := by omega
+    rw [inputSymbol_eq_getElem?, inputSymbol_eq_getElem?, ite_eq_right hp₀, ite_eq_right hp'₀]
+    have htake : (input.take cut.left).length = cut.left := by
+      rw [List.length_take]
+      exact Nat.min_eq_left cut.fst.isLt
+    by_cases heq : c.inputPos.val = cut.right
+    · have hpa : c'.inputPos.val = cut.left := by omega
+      simpa [shortened, hpa, heq, List.getElem?_append,
+        left, right, Fin.getElem_fin] using hsym.symm
+    · have hi : cut.left ≤ c'.inputPos.val - 1 := by omega
+      have he : cut.right + (c'.inputPos.val - 1 - cut.left) = c.inputPos.val - 1 := by omega
+      simp [shortened, List.getElem?_append, htake, not_lt.mpr hi, he]
+
 /-- A step whose endpoints lie on the same retained side preserves matching configurations. -/
-lemma Matches.step (hsym : input[cut.fst] = input[cut.snd])
+lemma step (hsym : input[cut.fst] = input[cut.snd])
     {c : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened}
     (h : cut.Matches c c') (hside : cut.SameSide c.inputPos.val (tm.step c).inputPos.val) :
     cut.Matches (tm.step c) (tm.step c') := by
-  obtain ⟨hp, hs⟩ := h
-  have hsym' : c.inputSymbol = c'.inputSymbol := by
-    rcases hside with ⟨hc, _⟩ | ⟨hc, _⟩
-    · exact cut.inputSymbol_left _ _ hc (hp.trans (cut.position_left hc))
-    · rw [cut.position_right hc] at hp
-      exact cut.inputSymbol_right hsym _ _ hc (by omega)
-  obtain ⟨m, hs', hm, hm'⟩ := tm.exists_step_move_of_storage_eq hs.symm hsym'
-  refine ⟨?_, hs'.symm⟩
+  obtain ⟨m, hs, hm, hm'⟩ := tm.exists_step_move_of_storage_eq h.2.symm
+    (h.inputSymbol hsym (hside.imp And.left And.left))
+  refine ⟨?_, hs.symm⟩
   rcases hside with ⟨hc, hn⟩ | ⟨hc, hn⟩
-  · rw [cut.position_left hc] at hp
+  · have hp := h.inputPos_left hc
     rw [hm', cut.position_left hn, hm]
     exact (moveInputPos_same _ _ hp.symm (hc.trans cut.fst.isLt)
       (by
@@ -228,20 +236,19 @@ lemma Matches.step (hsym : input[cut.fst] = input[cut.snd])
         dsimp only [left, right] at *
         have := cut.fst_le_snd
         omega) m).symm
-  · rw [cut.position_right hc] at hp
+  · have hp := h.inputPos_right hc
     rw [hm', cut.position_right hn, hm]
-    have he := moveInputPos_shift c.inputPos c'.inputPos (by omega)
+    have he := moveInputPos_shift c.inputPos c'.inputPos hp
       cut.length_shortened_add (by dsimp only [left, right] at *; omega) m
     omega
 
-variable {cut} in
 /-- Simulate a run segment in which every step stays on a retained side of the cut. -/
-lemma Matches.reaches_runFrom (hsym : input[cut.fst] = input[cut.snd])
+lemma reaches_runFrom (hsym : input[cut.fst] = input[cut.snd])
     {cfg : Cfg k Symbol State input} {c' : Cfg k Symbol State cut.shortened} {u v : ℕ}
     (h : cut.Matches (tm.runFrom cfg u) c') (huv : u ≤ v)
     (hside : ∀ t, u ≤ t → t < v →
       cut.SameSide (tm.runFrom cfg t).inputPos.val (tm.runFrom cfg (t + 1)).inputPos.val) :
-    ∃ d, tm.Reaches c' d ∧ cut.Matches (tm.runFrom cfg v) d := by
+    ∃ d, ReflTransGen tm.TransitionRelation c' d ∧ cut.Matches (tm.runFrom cfg v) d := by
   induction v, huv using Nat.le_induction with
   | base => exact ⟨c', .refl, h⟩
   | succ v huv ih =>
@@ -249,6 +256,8 @@ lemma Matches.reaches_runFrom (hsym : input[cut.fst] = input[cut.snd])
     refine ⟨tm.step d, hd.tail rfl, ?_⟩
     rw [runFrom_succ_eq_step']
     exact hm.step hsym (by simpa only [runFrom_succ_eq_step'] using hside v huv (by omega))
+
+end Matches
 
 /-- The initial configurations match because the cut retains the first input symbol. -/
 lemma matches_init : cut.Matches (tm.initCfg input) (tm.initCfg cut.shortened) := by
@@ -291,11 +300,12 @@ private lemma exists_matches_visit {T : ℕ}
     {t : ℕ} (ht : t ≤ T)
     (hp : (tm.runFrom (tm.initCfg input) t).inputPos.val = cut.left ∨
       (tm.runFrom (tm.initCfg input) t).inputPos.val = cut.right) :
-    ∃ c', tm.Reaches (tm.initCfg cut.shortened) c' ∧
+    ∃ c', ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧
       cut.Matches (tm.runFrom (tm.initCfg input) t) c' := by
   let c := tm.runFrom (tm.initCfg input)
   let p := fun u => (c u).inputPos.val
-  let P := fun u => ∃ c', tm.Reaches (tm.initCfg cut.shortened) c' ∧ cut.Matches (c u) c'
+  let P := fun u => ∃ c',
+    ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧ cut.Matches (c u) c'
   obtain ⟨e, hstore⟩ := tm.exists_visitTimes_orderIso hseq
   have hleft (u : tm.visitTimes (tm.initCfg input) T cut.left) :=
     (tm.mem_visitTimes.mp u.property).2
@@ -344,7 +354,7 @@ theorem exists_matches_of_visitSequence_eq {T : ℕ}
     {t : ℕ} (ht : t ≤ T)
     (hp : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ cut.left ∨
       cut.right ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val) :
-    ∃ c', tm.Reaches (tm.initCfg cut.shortened) c' ∧
+    ∃ c', ReflTransGen tm.TransitionRelation (tm.initCfg cut.shortened) c' ∧
       cut.Matches (tm.runFrom (tm.initCfg input) t) c' := by
   induction t with
   | zero => exact ⟨_, .refl, cut.matches_init⟩
@@ -377,8 +387,9 @@ theorem exists_storage_cut (cut : InputCut input) {T : ℕ}
     ∃ u, (tm.runFrom (tm.initCfg cut.shortened) u).storage =
       (tm.runFrom (tm.initCfg input) t).storage := by
   obtain ⟨c', hr, _, hs⟩ := cut.exists_matches_of_visitSequence_eq hsym hseq ht hp
-  obtain ⟨u, rfl⟩ := tm.reaches_iff_exists_runFrom.mp hr
-  exact ⟨u, hs⟩
+  obtain ⟨u, hu⟩ := hr.relatesInSteps
+  refine ⟨u, ?_⟩
+  rwa [(tm.relatesInSteps_iff_runFrom_eq _ _ _).mp hu]
 
 /-- Every entry of a visit sequence is a storage reached by the run. -/
 lemma mem_range_of_mem_visitSequence {cfg : Cfg k Symbol State input} {T p : ℕ}
