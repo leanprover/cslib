@@ -376,20 +376,6 @@ lemma relatesInSteps_iff_runFrom_eq
       use tm.step^[t] cfg₁
       grind
 
-/-- Reachability by zero or more transitions of the machine. -/
-abbrev Reaches (c₁ c₂ : Cfg k Symbol State input) : Prop :=
-  Relation.ReflTransGen tm.TransitionRelation c₁ c₂
-
-/-- Reachability is equivalent to appearing in the run from the starting configuration. -/
-lemma reaches_iff_exists_runFrom {c₁ c₂ : Cfg k Symbol State input} :
-    tm.Reaches c₁ c₂ ↔ ∃ t, tm.runFrom c₁ t = c₂ := by
-  constructor
-  · intro h
-    obtain ⟨t, ht⟩ := h.relatesInSteps
-    exact ⟨t, (tm.relatesInSteps_iff_runFrom_eq _ _ _).mp ht⟩
-  · rintro ⟨t, ht⟩
-    exact ((tm.relatesInSteps_iff_runFrom_eq _ _ _).mpr ht).reflTransGen
-
 /-- The Turing machine `tm` halts after exactly `t` steps on input `input`
 if its state is `none` at step `t` and non-none at step `t - 1`.
 Note that every Turing machine hast to perform at least one step to halt. -/
