@@ -61,44 +61,6 @@ lemma visitSequence_nodup {cfg : Cfg k Symbol State input} {T : ℕ}
   apply tm.core_runFrom_injOn hhalt hfirst ha'.1 hb'.1
   exact Prod.ext (Fin.ext (ha'.2.trans hb'.2.symm)) h
 
-/-- Propagate a predicate from `u` to `v` using steps within `[u, v]`. -/
-private lemma propagate {P : ℕ → Prop} {u v : ℕ} (huv : u ≤ v) (hu : P u)
-    (hstep : ∀ t, u ≤ t → t < v → P t → P (t + 1)) : P v := by
-  induction v, huv using Nat.le_induction with
-  | base => exact hu
-  | succ v huv ih =>
-    exact hstep v huv (Nat.lt_succ_self _) (ih fun t hut htv => hstep t hut (by omega))
-
-/-- After staying left of `a` for one step, a walk cannot cross `a` without revisiting it. -/
-private lemma walk_left {p : ℕ → ℕ} {u v a : ℕ}
-    (hstep : ∀ t, u ≤ t → t < v → p (t + 1) ≤ p t + 1)
-    (hu : p u ≤ a) (hu' : p (u + 1) ≤ a)
-    (hno : ∀ t, u < t → t < v → p t ≠ a) :
-    ∀ t, u ≤ t → t ≤ v → p t ≤ a := by
-  intro t hut htv
-  apply propagate hut hu
-  intro r hur hrt hr
-  by_cases heq : r = u
-  · simpa [heq] using hu'
-  · have := hstep r hur (by omega)
-    have := hno r (by omega) (by omega)
-    omega
-
-/-- After staying right of `b` for one step, a walk cannot cross `b` without revisiting it. -/
-private lemma walk_right {p : ℕ → ℕ} {u v b : ℕ}
-    (hstep : ∀ t, u ≤ t → t < v → p t ≤ p (t + 1) + 1)
-    (hu : b ≤ p u) (hu' : b ≤ p (u + 1))
-    (hno : ∀ t, u < t → t < v → p t ≠ b) :
-    ∀ t, u ≤ t → t ≤ v → b ≤ p t := by
-  intro t hut htv
-  apply propagate hut hu
-  intro r hur hrt hr
-  by_cases heq : r = u
-  · simpa [heq] using hu'
-  · have := hstep r hur (by omega)
-    have := hno r (by omega) (by omega)
-    omega
-
 /-- Equal visit sequences pair the visit times in order, with equal storage at each pair. -/
 lemma exists_visitTimes_orderIso {cfg : Cfg k Symbol State input} {T p q : ℕ}
     (hseq : tm.visitSequence cfg T p = tm.visitSequence cfg T q) :
@@ -133,6 +95,28 @@ private lemma not_visit_between {cfg : Cfg k Symbol State input} {T p t : ℕ}
   intro hp
   have hT := (tm.mem_visitTimes.mp v.property).1
   exact h.2 (c := ⟨t, tm.mem_visitTimes.mpr ⟨hhi.le.trans hT, hp⟩⟩) hlo hhi
+
+/-- Between consecutive visits, a first step to the left keeps the input head on the left. -/
+private lemma inputPos_le_of_covBy {cfg : Cfg k Symbol State input} {T p : ℕ}
+    {u v : tm.visitTimes cfg T p} (h : u ⋖ v)
+    (hdir : (tm.runFrom cfg (u.val + 1)).inputPos.val ≤ p) :
+    ∀ t, u.val ≤ t → t ≤ v.val → (tm.runFrom cfg t).inputPos.val ≤ p := by
+  intro t hut htv
+  rcases eq_or_lt_of_le hut with rfl | hut
+  · exact (tm.mem_visitTimes.mp u.property).2.le
+  · exact tm.inputPos_le_of_forall_ne hut hdir fun r hur hrt =>
+      not_visit_between h (Nat.lt_of_succ_le hur) (hrt.trans_le htv)
+
+/-- Between consecutive visits, a first step to the right keeps the input head on the right. -/
+private lemma le_inputPos_of_covBy {cfg : Cfg k Symbol State input} {T p : ℕ}
+    {u v : tm.visitTimes cfg T p} (h : u ⋖ v)
+    (hdir : p ≤ (tm.runFrom cfg (u.val + 1)).inputPos.val) :
+    ∀ t, u.val ≤ t → t ≤ v.val → p ≤ (tm.runFrom cfg t).inputPos.val := by
+  intro t hut htv
+  rcases eq_or_lt_of_le hut with rfl | hut
+  · exact (tm.mem_visitTimes.mp u.property).2.ge
+  · exact tm.le_inputPos_of_forall_ne hut hdir fun r hur hrt =>
+      not_visit_between h (Nat.lt_of_succ_le hur) (hrt.trans_le htv)
 
 /-- An ordered pair of input-symbol indices. The cut deletes the symbols after the first
 through the second; equal endpoints give an empty deletion. -/
@@ -258,12 +242,13 @@ lemma Matches.reaches_runFrom (hsym : input[cut.fst] = input[cut.snd])
     (hside : ∀ t, u ≤ t → t < v →
       cut.SameSide (tm.runFrom cfg t).inputPos.val (tm.runFrom cfg (t + 1)).inputPos.val) :
     ∃ d, tm.Reaches c' d ∧ cut.Matches (tm.runFrom cfg v) d := by
-  apply propagate (P := fun t => ∃ d, tm.Reaches c' d ∧ cut.Matches (tm.runFrom cfg t) d)
-    huv ⟨c', .refl, h⟩
-  rintro t hut htv ⟨d, hd, hm⟩
-  refine ⟨tm.step d, hd.tail rfl, ?_⟩
-  rw [runFrom_succ_eq_step']
-  exact hm.step hsym (by simpa only [runFrom_succ_eq_step'] using hside t hut htv)
+  induction v, huv using Nat.le_induction with
+  | base => exact ⟨c', .refl, h⟩
+  | succ v huv ih =>
+    obtain ⟨d, hd, hm⟩ := ih fun t hut htv => hside t hut (by omega)
+    refine ⟨tm.step d, hd.tail rfl, ?_⟩
+    rw [runFrom_succ_eq_step']
+    exact hm.step hsym (by simpa only [runFrom_succ_eq_step'] using hside v huv (by omega))
 
 /-- The initial configurations match because the cut retains the first input symbol. -/
 lemma matches_init : cut.Matches (tm.initCfg input) (tm.initCfg cut.shortened) := by
@@ -319,8 +304,6 @@ private lemma exists_matches_visit {T : ℕ}
   have hmatch (u : tm.visitTimes (tm.initCfg input) T cut.left) : P u ↔ P (e u) :=
     exists_congr fun c' => and_congr_right fun _ =>
       cut.matches_boundary_iff (hleft u) (hright (e u)) (hstore u)
-  have hstep (u) : p (u + 1) ≤ p u + 1 ∧ p u ≤ p (u + 1) + 1 := by
-    simpa only [p, c, runFrom_succ_eq_step'] using tm.inputPos_step_bounds (c u)
   have follow {u v} (huv : u ≤ v) (hu : P u)
       (hside : ∀ r, u ≤ r → r < v → cut.SameSide (p r) (p (r + 1))) : P v := by
     obtain ⟨c', hr, hm⟩ := hu
@@ -329,14 +312,10 @@ private lemma exists_matches_visit {T : ℕ}
   have boundary (u : tm.visitTimes (tm.initCfg input) T cut.left) : P u := by
     induction u using WellFoundedLT.induction with | ind u ih =>
     by_cases hu : IsMin u
-    · have hside : ∀ v ≤ u.val, p v ≤ cut.left := by
-        intro v hv
-        apply propagate (Nat.zero_le v) (show p 0 ≤ cut.left by simp [p, c, left])
-        intro r _ hrv hr
-        have := (hstep r).1
-        have := not_visit_before hu (show r < u.val by omega)
-        change p r ≠ cut.left at this
-        omega
+    · have hside (v) (hv : v ≤ u.val) : p v ≤ cut.left := by
+        apply tm.inputPos_le_of_forall_ne (Nat.zero_le v) (by simp [left])
+        intro r _ hrv
+        exact not_visit_before hu (hrv.trans_le hv)
       exact follow (Nat.zero_le _) ⟨_, .refl, cut.matches_init⟩ fun v _ hv =>
         Or.inl ⟨hside v hv.le, hside (v + 1) hv⟩
     · obtain ⟨v, hvu⟩ := exists_covBy_of_wellFoundedGT hu
@@ -344,13 +323,11 @@ private lemma exists_matches_visit {T : ℕ}
         (hstore v)
       simp only [← runFrom_succ_eq_step'] at hdir
       rcases hdir with hdir | hdir
-      · have hside := walk_left (fun r _ _ => (hstep r).1) (le_of_eq (hleft v))
-          hdir (fun _ => not_visit_between hvu)
+      · have hside := inputPos_le_of_covBy hvu hdir
         exact follow hvu.le (ih v hvu.lt) fun r hlo hhi =>
           Or.inl ⟨hside r hlo hhi.le, hside (r + 1) (hlo.trans (Nat.le_succ _)) hhi⟩
       · have he := (apply_covBy_apply_iff e).mpr hvu
-        have hside := walk_right (fun r _ _ => (hstep r).2) (ge_of_eq (hright (e v)))
-          hdir (fun _ => not_visit_between he)
+        have hside := le_inputPos_of_covBy he hdir
         exact (hmatch u).mpr (follow he.le ((hmatch v).mp (ih v hvu.lt)) fun r hlo hhi =>
           Or.inr ⟨hside r hlo hhi.le, hside (r + 1) (hlo.trans (Nat.le_succ _)) hhi⟩)
   rcases hp with hp | hp
