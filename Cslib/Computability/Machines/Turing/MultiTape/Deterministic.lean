@@ -191,6 +191,13 @@ lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n
     tm.runFrom cfg n = cfg :=
   Function.iterate_fixed (step_of_halt h) n
 
+/-- A run stays at the configuration in which it halts. -/
+lemma runFrom_eq_of_halt {cfg : Cfg k Symbol State input} {T t : ℕ} (hle : T ≤ t)
+    (hhalt : (tm.runFrom cfg T).Halted) :
+    tm.runFrom cfg t = tm.runFrom cfg T := by
+  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le hle
+  rw [runFrom_add, runFrom_of_halt _ hhalt]
+
 @[simp]
 lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
     tm.outputSymbol cfg = none := by

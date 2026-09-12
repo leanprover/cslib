@@ -171,4 +171,27 @@ lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
   exact ⟨Finset.univ.sup T, fun t i =>
     (hT i t).trans (tm.spaceUsedByTape_mono cfg i (Finset.le_sup (Finset.mem_univ i)))⟩
 
+/-- No further work-tape cells are visited after a machine halts. -/
+lemma spaceUsed_eq_of_halt {cfg : Cfg k Symbol State input} {T t : ℕ} (hle : T ≤ t)
+    (hhalt : (tm.runFrom cfg T).Halted) :
+    tm.spaceUsed cfg t = tm.spaceUsed cfg T := by
+  apply le_antisymm ?_ (tm.spaceUsed_mono cfg hle)
+  apply Finset.sum_le_sum
+  intro i _
+  apply Finset.card_le_card
+  intro z hz
+  obtain ⟨u, hu, rfl⟩ := tm.mem_visitedByTapeHead.mp hz
+  by_cases huT : u ≤ T
+  · exact tm.mem_visitedByTapeHead.mpr ⟨u, by omega, rfl⟩
+  · rw [tm.runFrom_eq_of_halt (by omega : T ≤ u) hhalt]
+    exact tm.mem_visitedByTapeHead_self cfg T i
+
+/-- A bound on space at a halting time bounds space throughout the run. -/
+lemma spaceUsed_le_of_halt {cfg : Cfg k Symbol State input} {T s : ℕ}
+    (hhalt : (tm.runFrom cfg T).Halted) (hs : tm.spaceUsed cfg T ≤ s) (t : ℕ) :
+    tm.spaceUsed cfg t ≤ s := by
+  rcases le_total t T with ht | ht
+  · exact (tm.spaceUsed_mono cfg ht).trans hs
+  · rwa [tm.spaceUsed_eq_of_halt ht hhalt]
+
 end Turing.MultiTapeTM
