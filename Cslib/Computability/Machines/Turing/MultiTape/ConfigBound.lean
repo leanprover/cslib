@@ -244,6 +244,33 @@ lemma storageBound_le_pow [Fintype Symbol] [Fintype State] :
     ∃ a c : ℕ, ∀ s : ℕ, storageBound Symbol State k s ≤ a * 2 ^ (c * s) :=
   ⟨_, _, storageBound_le_base_mul_pow⟩
 
+/-- A fixed multiple of `(storageBound + 1) ^ storageBound` grows at most doubly exponentially
+in the space. -/
+lemma storageBound_pow_le_pow_pow [Fintype Symbol] [Fintype State] (m : ℕ) :
+    ∃ a c : ℕ, ∀ s : ℕ,
+      m * (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s
+        ≤ 2 ^ (2 ^ (a + c * s)) := by
+  obtain ⟨a, c, hbound⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
+  refine ⟨m + 2 * a + 1, 2 * c, fun s => ?_⟩
+  let B := storageBound Symbol State k s
+  let E := m + 2 * a + 2 * c * s
+  have hB : B ≤ 2 ^ (a + c * s) := by
+    rw [pow_add]
+    exact (hbound s).trans (by gcongr; exact Nat.lt_two_pow_self.le)
+  have hsum : m + B * B ≤ 2 ^ (E + 1) := by
+    calc m + B * B
+      _ ≤ 2 ^ m + 2 ^ (a + c * s) * 2 ^ (a + c * s) := by
+        gcongr; exact Nat.lt_two_pow_self.le
+      _ = 2 ^ m + 2 ^ (2 * a + 2 * c * s) := by ring
+      _ ≤ 2 ^ E + 2 ^ E := by gcongr <;> omega
+      _ = 2 ^ (E + 1) := by ring
+  calc m * (B + 1) ^ B
+    _ ≤ 2 ^ m * (2 ^ B) ^ B := by
+      exact Nat.mul_le_mul Nat.lt_two_pow_self.le (Nat.pow_le_pow_left Nat.lt_two_pow_self B)
+    _ = 2 ^ (m + B * B) := by ring
+    _ ≤ 2 ^ (2 ^ (E + 1)) := by gcongr; omega
+    _ = _ := by dsimp [E]; ring
+
 /-! ## The storage and the core of a configuration
 
 Now we relate `Cfg` and `Storage` by giving the projection.
