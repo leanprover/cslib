@@ -16,9 +16,6 @@ an output is free: projections and duplicated outputs cost no gates. The size
 of a circuit is its gate count and its depth is the maximum depth of a
 designated output wire.
 
-A dependent pair `Σ gateCount, Circuit σ inputCount gateCount outputCount`
-hides the gate count for constructions that compute it along the way.
-
 For the standard Boolean circuit model, see [Arora and Barak, Section 6.1][AroraBarak09].
 Here a topological ordering is part of the representation, and the Boolean gate
 basis is generalized to an arbitrary `Signature` and `Interpretation`. Our size
