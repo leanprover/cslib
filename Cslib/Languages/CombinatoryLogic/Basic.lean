@@ -223,7 +223,7 @@ theorem Y_def (f : SKI) : (Y ⬝ f) ↠ H ⬝ f ⬝ (H ⬝ f) :=
   YPoly.toSKI_correct [f] (by simp)
 
 /-- The fixed-point property of the Y-combinator -/
-theorem Y_correct (f : SKI) : MJoin Red (Y ⬝ f) (f ⬝ (Y ⬝ f)) := by
+theorem Y_correct (f : SKI) : Join (ReflTransGen Red) (Y ⬝ f) (f ⬝ (Y ⬝ f)) := by
   use f ⬝ (H ⬝ f ⬝ (H ⬝ f))
   constructor
   · exact Trans.trans (Y_def f) (H_def f (H ⬝ f))

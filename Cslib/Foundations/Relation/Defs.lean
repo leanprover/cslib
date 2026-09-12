@@ -35,9 +35,17 @@ def dom (r : α → β → Prop) : Set α := {a | ∃ b, r a b}
 /-- Codomain of a relation, aka range. -/
 def cod (r : α → β → Prop) : Set β := {b | ∃ a, r a b}
 
+/-- Generalisation of `Join` to two relations. -/
+def Join₂ (r₁ r₂ : α → α → Prop) (a b : α) : Prop := ∃ c, r₁ a c ∧ r₂ b c
+
 /-- The join of the reflexive transitive closure. This is not named in Mathlib, but see
   `#loogle Relation.Join (Relation.ReflTransGen ?r)` -/
+@[deprecated "use `Join (ReflTrasnGen ·)` instead" (since := "2026-09-12")]
 abbrev MJoin (r : α → α → Prop) := Join (ReflTransGen r)
+
+/-- Generalisation of `MJoin` to two relations. -/
+@[deprecated "use Join₂ (ReflTransGen ·) (ReflTransGen ·) instead." (since := "2026-09-12")]
+abbrev MJoin₂ (r₁ r₂ : α → α → Prop) := Join₂ (ReflTransGen r₁) (ReflTransGen r₂)
 
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
@@ -51,8 +59,8 @@ def Preserves (r : α → α → Prop) (P : α → Prop) : Prop := ∀ ⦃a b⦄
 abbrev Diamond (r : α → α → Prop) := ∀ {a b c : α}, r a b → r a c → Join r b c
 
 /-- Generalization of `Diamond` to two relations. -/
-def DiamondCommute (r₁ r₂ : α → α → Prop) :=
-  ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → ∃ z, r₂ y₁ z ∧ r₁ y₂ z
+abbrev DiamondCommute (r₁ r₂ : α → α → Prop) :=
+  ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → Join₂ r₂ r₁ y₁ y₂
 
 /-- A relation is confluent when its reflexive transitive closure has the diamond property. -/
 abbrev Confluent (r : α → α → Prop) := Diamond (ReflTransGen r)
@@ -63,7 +71,11 @@ abbrev Commute (r₁ r₂ : α → α → Prop) := DiamondCommute (ReflTransGen 
 /-- A relation is semi-confluent when single and multiple steps with common origin
   are multi-joinable. -/
 abbrev SemiConfluent (r : α → α → Prop) :=
-  ∀ {x y₁ y₂}, ReflTransGen r x y₂ → r x y₁ → Join (ReflTransGen r) y₁ y₂
+  ∀ {x y₁ y₂}, r x y₁ → ReflTransGen r x y₂ → Join (ReflTransGen r) y₁ y₂
+
+/-- Generalisation of `SemiConfluent` to two relations. -/
+abbrev SemiCommute (r₁ r₂ : α → α → Prop) :=
+  ∀ {x y₁ y₂}, r₁ x y₁ → ReflTransGen r₂ x y₂ → Join₂ (ReflTransGen r₂) (ReflTransGen r₁) y₁ y₂
 
 /-- A relation has the Church Rosser property when equivalence implies multi-joinability. -/
 abbrev ChurchRosser (r : α → α → Prop) := ∀ {x y}, EqvGen r x y → Join (ReflTransGen r) x y
@@ -71,6 +83,10 @@ abbrev ChurchRosser (r : α → α → Prop) := ∀ {x y}, EqvGen r x y → Join
 /-- A relation is locally confluent when all reductions with a common origin are multi-joinable -/
 abbrev LocallyConfluent (r : α → α → Prop) :=
   ∀ {a b c : α}, r a b → r a c → Join (ReflTransGen r) b c
+
+/-- Generalization of `LocallyConfluent` to two relations. -/
+def LocallyCommute (r₁ r₂ : α → α → Prop) :=
+  ∀ {a b c : α}, r₁ a b → r₂ a c → Join₂ (ReflTransGen r₂) (ReflTransGen r₁) b c
 
 /-- A relation is strongly confluent when single steps are reflexive- and multi-joinable. -/
 abbrev StronglyConfluent (r : α → α → Prop) :=
