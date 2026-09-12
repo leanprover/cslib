@@ -6,7 +6,7 @@ Authors: Aviv Bar Natan
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
-public import Mathlib.Combinatorics.Pigeonhole
+public import Mathlib.Data.Fintype.Pigeonhole
 public import Mathlib.Data.Finset.Sort
 public import Mathlib.Order.Cover
 public import Mathlib.Order.Interval.Basic
@@ -489,9 +489,7 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
   have hbound : S.encard ≤ B := tm.encard_storages_le hs
   let : Fintype S := (Set.finite_of_encard_le_coe hbound).fintype
   have hcard : Fintype.card S ≤ B := by
-    have h := hbound
-    rw [← Set.coe_fintypeCard] at h
-    exact_mod_cast h
+    exact_mod_cast (Set.coe_fintypeCard (s := S)).le.trans hbound
   let seq := tm.visitSequence (tm.initCfg input) T
   let enc (p : ℕ) : List S := (seq p).attachWith (· ∈ S)
     (fun _ h => tm.mem_range_of_mem_visitSequence h)
@@ -499,60 +497,35 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     List.attachWith_map_subtype_val _
   have hlength (p : ℕ) : (enc p).length ≤ B := by
     simpa only [enc, List.length_attachWith] using tm.length_visitSequence_le hT hfirst hs p
-  let f (i : Fin input.length) : Symbol × (Fin B → Option S) :=
-    (input[i], fun j => (enc (i.val + 1))[j.val]?)
-  have heq {i j : Fin input.length} (h : f i = f j) :
-      input[i] = input[j] ∧ seq (i.val + 1) = seq (j.val + 1) := by
-    refine ⟨congrArg Prod.fst h, ?_⟩
-    have hh : enc (i.val + 1) = enc (j.val + 1) := by
-      apply List.ext_getElem?
-      intro r
-      by_cases hr : r < B
-      · exact congrFun (congrArg Prod.snd h) ⟨r, hr⟩
-      · rw [List.getElem?_eq_none (by have := hlength (i.val + 1); omega),
-          List.getElem?_eq_none (by have := hlength (j.val + 1); omega)]
-    simpa only [henc] using congrArg (List.map Subtype.val) hh
-  have hsig : Fintype.card (Symbol × (Fin B → Option S)) ≤
-      Fintype.card Symbol * (B + 1) ^ B := by
-    simp only [Fintype.card_prod, Fintype.card_fun, Fintype.card_fin, Fintype.card_option]
-    gcongr
+  let p := (tm.runFrom (tm.initCfg input) t).inputPos.val
+  -- Matching positions on the same side of `p` give a cut that avoids `p`.
+  let f (i : Fin input.length) : Bool × Symbol × (Fin B → Option S) :=
+    (decide (i.val + 1 < p), input[i], fun j => (enc (i.val + 1))[j.val]?)
+  have hsig : Fintype.card (Bool × Symbol × (Fin B → Option S)) < input.length := by
+    calc
+      _ = 2 * Fintype.card Symbol * (Fintype.card S + 1) ^ B := by
+        simp [mul_assoc]
+      _ ≤ 2 * Fintype.card Symbol * (B + 1) ^ B := by gcongr; omega
+      _ < input.length := hlen
+  obtain ⟨i, j, hij, hf⟩ : ∃ i j, i < j ∧ f i = f j := by
+    obtain ⟨i, j, hne, hf⟩ := Fintype.exists_ne_map_eq_of_card_lt f (by simpa using hsig)
+    grind
+  obtain ⟨hside, hsym, hseq⟩ := (by simpa only [f, Prod.mk.injEq, decide_eq_decide] using hf)
+  have hseq' : enc (i.val + 1) = enc (j.val + 1) := by
+    apply List.ext_getElem?
+    intro r
+    by_cases hr : r < B
+    · exact congrFun hseq ⟨r, hr⟩
+    · rw [List.getElem?_eq_none (by have := hlength (i.val + 1); omega),
+        List.getElem?_eq_none (by have := hlength (j.val + 1); omega)]
+  let cut : InputCut input := ⟨⟨i, j⟩, hij.le⟩
+  refine ⟨cut.shortened, ?_, tm.exists_storage_cut cut hsym ?_ ht ?_⟩
+  · have := cut.length_shortened_add
+    change cut.shortened.length + (j.val + 1 - (i.val + 1)) = input.length at this
     omega
-  obtain ⟨v, hv⟩ := Fintype.exists_lt_card_fiber_of_mul_lt_card f (n := 2) (by
-    rw [Fintype.card_fin]
-    change 2 * Fintype.card Symbol * (B + 1) ^ B < input.length at hlen
-    calc Fintype.card (Symbol × (Fin B → Option S)) * 2
-      _ ≤ (Fintype.card Symbol * (B + 1) ^ B) * 2 := Nat.mul_le_mul_right 2 hsig
-      _ = 2 * Fintype.card Symbol * (B + 1) ^ B := by ring
-      _ < input.length := hlen)
-  let e := (Finset.univ.filter (fun i => f i = v)).orderEmbOfCardLe
-    (show 3 ≤ (Finset.univ.filter (fun i => f i = v)).card by omega)
-  have he (i : Fin 3) : f (e i) = v := by
-    have hmem : e i ∈ Finset.univ.filter (fun i => f i = v) :=
-      Finset.orderEmbOfCardLe_mem _ _ i
-    exact (Finset.mem_filter.mp hmem).2
-  have hab : (e 0).val + 1 < (e 1).val + 1 :=
-    Nat.add_lt_add_right (e.strictMono (by decide)) 1
-  have hbc : (e 1).val + 1 < (e 2).val + 1 :=
-    Nat.add_lt_add_right (e.strictMono (by decide)) 1
-  have hab' := heq ((he 0).trans (he 1).symm)
-  have hbc' := heq ((he 1).trans (he 2).symm)
-  have cut {i j : Fin input.length} (hij : i.val + 1 < j.val + 1)
-      (hij' : input[i] = input[j] ∧ seq (i.val + 1) = seq (j.val + 1))
-      (hpos : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ i.val + 1 ∨
-        j.val + 1 ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val) :
-      ∃ input' : List Symbol, input'.length < input.length ∧
-        ∃ u, (tm.runFrom (tm.initCfg input') u).storage =
-          (tm.runFrom (tm.initCfg input) t).storage := by
-    refine ⟨input.take (i.val + 1) ++ input.drop (j.val + 1), ?_, ?_⟩
-    · simp only [List.length_append, List.length_take, List.length_drop]
-      have := i.isLt
-      have := j.isLt
-      omega
-    · exact tm.exists_storage_cut ⟨⟨i, j⟩, by change i.val ≤ j.val; omega⟩
-        hij'.1 hij'.2 ht hpos
-  by_cases hpos : (tm.runFrom (tm.initCfg input) t).inputPos.val ≤ (e 0).val + 1 ∨
-      (e 1).val + 1 ≤ (tm.runFrom (tm.initCfg input) t).inputPos.val
-  · exact cut hab hab' hpos
-  · exact cut hbc hbc' (Or.inl (by omega))
+  · change seq (i.val + 1) = seq (j.val + 1)
+    simpa only [henc] using congrArg (List.map Subtype.val) hseq'
+  · change p ≤ i.val + 1 ∨ j.val + 1 ≤ p
+    omega
 
 end Turing.MultiTapeTM
