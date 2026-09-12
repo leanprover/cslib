@@ -268,6 +268,7 @@ jobs:
         BUMP_VERSION: ${{ steps.bump_version.outputs.result }}
         BUMP_BRANCH: ${{ steps.latest_bump_branch.outputs.result }}
         SHA: ${{ env.SHA }}
+        ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
       run: |
         echo "Installing zulip CLI..."
         pip install zulip
@@ -278,7 +279,7 @@ jobs:
         {
           echo "[api]"
           echo "email=github-mathlib4-bot@leanprover.zulipchat.com"
-          echo "key=${{ secrets.ZULIP_API_KEY }}"
+          echo "key=$ZULIP_API_KEY"
           echo "site=https://leanprover.zulipchat.com"
         } > ~/.zuliprc
         chmod 600 ~/.zuliprc
