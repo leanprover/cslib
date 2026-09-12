@@ -20,9 +20,6 @@ large work-head displacement must therefore lie below a fixed length threshold.
 `exists_spaceUsed_le_of_isLittleO_log_log` bounds the space of the same machine on all inputs.
 `loglogn_equals_no_space` gives `SPACE(o(log log n)) = SPACE(1)` for binary words,
 using the existing `DecidableInTimeAndSpace` predicate with the identity encoding.
-
-The argument follows Gadi Aleksandrowicz's account at
-<https://gadial.net/2009/10/04/sub_loglog_space_is_constant/>.
 -/
 
 @[expose] public section
