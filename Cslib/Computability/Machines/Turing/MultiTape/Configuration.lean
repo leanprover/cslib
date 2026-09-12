@@ -128,6 +128,45 @@ lemma moveInputPos_pos_of_ne_right {n : ℕ} (p : Fin (n + 2)) (h : p.val ≠ n 
   · simp
     omega
 
+/-- Moving the input head adds the direction and clamps the result to the two endmarkers. -/
+lemma moveInputPos_val {n : ℕ} (p : Fin (n + 2)) (m : SignType) :
+    (moveInputPos p m).val = min (n + 1) ((p.val : ℤ) + (m.cast : ℤ)).toNat := by
+  simp only [moveInputPos]
+  split <;> simp_all <;> omega
+
+/-- An input-head move changes the position by at most one cell. -/
+lemma moveInputPos_bounds {n : ℕ} (p : Fin (n + 2)) (m : SignType) :
+    (moveInputPos p m).val ≤ p.val + 1 ∧ p.val ≤ (moveInputPos p m).val + 1 := by
+  rw [moveInputPos_val]
+  have := p.isLt
+  cases m <;> simp [SignType.cast] <;> omega
+
+/-- Equal input positions below the right endmarkers remain equal after the same move. -/
+lemma moveInputPos_same {n n' : ℕ} (p : Fin (n + 2)) (p' : Fin (n' + 2))
+    (hp : p.val = p'.val) (hn : p.val ≤ n) (hn' : p'.val ≤ n') (m : SignType) :
+    (moveInputPos p m).val = (moveInputPos p' m).val := by
+  rw [moveInputPos_val, moveInputPos_val]
+  cases m <;> simp [SignType.cast] <;> omega
+
+/-- Shifting a position and the right endmarker by the same amount commutes with a move,
+provided the smaller position is not the left endmarker. -/
+lemma moveInputPos_shift {n n' d : ℕ} (p : Fin (n + 2)) (p' : Fin (n' + 2))
+    (hp : p'.val + d = p.val) (hn : n' + d = n) (hp' : 0 < p'.val) (m : SignType) :
+    (moveInputPos p' m).val + d = (moveInputPos p m).val := by
+  rw [moveInputPos_val, moveInputPos_val]
+  have := p.isLt
+  have := p'.isLt
+  cases m <;> simp [SignType.cast] <;> omega
+
+/-- The same move gives the same displacement at any two positions inside the input. -/
+lemma moveInputPos_interior {n n' : ℕ}
+    (p : Fin (n + 2)) (p' : Fin (n' + 2))
+    (hp₀ : 0 < p.val) (hp : p.val ≤ n) (hp'₀ : 0 < p'.val) (hp' : p'.val ≤ n')
+    (m : SignType) :
+    (moveInputPos p m).val + p'.val = (moveInputPos p' m).val + p.val := by
+  rw [moveInputPos_val, moveInputPos_val]
+  cases m <;> simp [SignType.cast] <;> omega
+
 /-- The symbol currently under the input tape head. -/
 def Cfg.inputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   if h₁ : cfg.inputPos = 0 then none
@@ -140,6 +179,18 @@ lemma inputSymbolInner {cfg : Cfg k Symbol State input} (p : ℕ)
     (h₂ : p < input.length) :
     cfg.inputSymbol = some input[p] := by
   grind [Cfg.inputSymbol]
+
+/-- Read the input by zero-based optional indexing, returning `none` at either endmarker. -/
+lemma inputSymbol_eq_getElem? (cfg : Cfg k Symbol State input) :
+    cfg.inputSymbol = if cfg.inputPos.val = 0 then none else input[cfg.inputPos.val - 1]? := by
+  by_cases h₀ : cfg.inputPos = 0
+  · simp [Cfg.inputSymbol, h₀]
+  · have h₀' : cfg.inputPos.val ≠ 0 := fun h => h₀ (Fin.ext h)
+    rw [Cfg.inputSymbol, dite_eq_right h₀, ite_eq_right h₀']
+    split_ifs with hend
+    · simp [hend]
+    · have hi : cfg.inputPos.val - 1 < input.length := by have := cfg.inputPos.isLt; omega
+      simp [List.getElem?_eq_getElem hi]
 
 /-- The symbol read by work tape `i`. -/
 def Cfg.workTapeSymbols (cfg : Cfg k Symbol State input) (i : Fin k) : Option Symbol :=
