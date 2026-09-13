@@ -23,6 +23,5 @@ import CslibTests.Modal.Stlc
 import CslibTests.MultiTapeComplexity
 import CslibTests.PACLearning
 import CslibTests.Query
-import CslibTests.QueryMonadicStyle
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses

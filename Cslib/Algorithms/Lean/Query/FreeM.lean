@@ -125,6 +125,10 @@ This is deliberately a `def` with its own simp lemmas, rather than an abbreviati
     eval oracle (f <$> t) = f (eval oracle t) := by
   simp [eval]
 
+theorem isMonadHom_pure_eval (oracle : {ι : Type u} → F ι → ι) :
+    IsMonadHom (FreeM F) Id (fun x => pure (x.eval oracle)) :=
+  .mk' (eval_pure oracle) (eval_bind oracle)
+
 /-! ### Simp lemmas for `cost` -/
 
 @[simp] theorem cost_pure {T : Type t} [AddMonoid T] (oracle : {ι : Type u} → F ι → ι)

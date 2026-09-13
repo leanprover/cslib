@@ -24,6 +24,11 @@ operators when the structures are lawful.
 
 public section
 
+-- Missing from core
+
+theorem _root_.Id.pure_injective : Function.Injective (pure : α → Id α) :=
+  fun _ _ => Id.ext_iff.1
+
 namespace Cslib
 
 /-! ### Functor Homomorphisms -/

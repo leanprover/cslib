@@ -37,52 +37,8 @@ variable {α : Type}
 /-- Evaluating the query-based merge agrees with `List.merge` using the relation supplied
 by the oracle. -/
 @[simp] theorem eval_merge (oracle : {ι : Type} → LEQuery α ι → ι) (xs ys : List α) :
-    (merge xs ys).eval oracle = xs.merge ys (fun a b => oracle (.le a b)) := by
-  induction xs, ys using List.mergeM.induct with
-  | case1 ys => simp
-  | case2 xs => cases xs <;> simp
-  | case3 x xs' y ys' ih_true ih_false =>
-    rw [List.cons_merge_cons]
-    simp
-    split <;> simp_all
-
--- Proposed upstream as `List.mergeSort_append` in
--- https://github.com/leanprover/lean4/pull/14995; replace this private helper once the
--- toolchain includes it. Until then we derive it from the auto-generated equation lemma
--- `List.mergeSort.eq_3`, which is only visible here thanks to the (non-public)
--- `import all Init.Data.List.Sort.Basic` above.
-private theorem list_mergeSort_append {le : α → α → Bool} (l₁ l₂ : List α)
-    (h₁ : l₂.length ≤ l₁.length) (h₂ : l₁.length ≤ l₂.length + 1) :
-    (l₁ ++ l₂).mergeSort le = List.merge (l₁.mergeSort le) (l₂.mergeSort le) le := by
-  match l₁, l₂ with
-  | [], l₂ =>
-    obtain rfl : l₂ = [] := by simp_all
-    simp
-  | [a], [] => simp
-  | [a], [b] =>
-    simp only [List.mergeSort_singleton, List.singleton_append]
-    rw [List.mergeSort.eq_3]
-    simp
-  | [a], b :: c :: l₂ => simp at h₁
-  | a :: b :: l₁, l₂ =>
-    rw [List.cons_append, List.cons_append, List.mergeSort.eq_3]
-    have hlen : (l₁.length + l₂.length + 1 + 1 + 1) / 2 = l₁.length + 2 := by
-      simp only [List.length_cons] at h₁ h₂
-      omega
-    simp only [List.MergeSort.Internal.splitInTwo_fst, List.MergeSort.Internal.splitInTwo_snd,
-      List.length_cons, List.length_append, hlen]
-    congr 2 <;> simp
-
-private theorem list_mergeSort_cons_cons {le : α → α → Bool} (x y : α) (zs : List α) :
-    (x :: y :: zs).mergeSort le =
-      List.merge ((List.split (x :: y :: zs)).1.mergeSort le)
-        ((List.split (x :: y :: zs)).2.mergeSort le) le := by
-  conv_lhs => rw [← List.split_fst_append_split_snd (x :: y :: zs)]
-  rw [list_mergeSort_append]
-  · simp
-    omega
-  · simp
-    omega
+    (merge xs ys).eval oracle = xs.merge ys (fun a b => oracle (.le a b)) :=
+  Id.pure_injective <| by simp [FreeM.isMonadHom_pure_eval oracle |>.map_listMergeM xs ys]
 
 /-- Evaluating query-based merge sort agrees with `List.mergeSort` using the relation
 supplied by the oracle.
@@ -91,16 +47,8 @@ This is the essential correctness statement: it identifies the query program as 
 merge sort operation, so correctness properties (permutation, sortedness, stability)
 transfer directly from the `List.mergeSort` API rather than being restated here. -/
 @[simp] theorem eval_mergeSort (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
-    (mergeSort xs).eval oracle = xs.mergeSort (fun a b => oracle (.le a b)) := by
-  unfold mergeSort
-  fun_induction List.mergeSortM xs LEQuery.ask with
-  | case1 => simp
-  | case2 x => simp
-  | case3 x y zs halves ih_l ih_r =>
-    rw [list_mergeSort_cons_cons]
-    subst halves
-    simp only [List.splitInTwo_fst, List.splitInTwo_snd] at *
-    simp [ih_l, ih_r]
+    (mergeSort xs).eval oracle = xs.mergeSort (fun a b => oracle (.le a b)) :=
+  Id.pure_injective <| by simp [FreeM.isMonadHom_pure_eval oracle |>.map_listMergeSortM xs]
 
 /-! ## Correctness, transferred from the `List.mergeSort` API -/
 

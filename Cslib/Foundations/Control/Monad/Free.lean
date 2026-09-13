@@ -262,7 +262,7 @@ theorem isMonadHom_liftM [LawfulMonad m] (interp : {ι : Type u} → F ι → m 
 @[simp]
 lemma liftM_map [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (f : α → β) (x : FreeM F α) :
-    (f <$> x).liftM @interp = f <$> x.liftM @interp := by
+    (f <$> x).liftM @interp = f <$> x.liftM @interp :=
   isMonadHom_liftM interp |>.map_map _ _
 
 @[simp]

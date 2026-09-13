@@ -32,12 +32,8 @@ supplied by the oracle. -/
 @[simp] theorem eval_orderedInsert (oracle : {ι : Type} → LEQuery α ι → ι)
     (x : α) (xs : List α) :
     (orderedInsert x xs).eval oracle =
-      xs.orderedInsert (fun x y => oracle (.le x y)) x := by
-  induction xs with
-  | nil => simp
-  | cons y ys ih =>
-    simp
-    split <;> simp_all
+      xs.orderedInsert (fun x y => oracle (.le x y)) x :=
+  Id.pure_injective <| by simp [FreeM.isMonadHom_pure_eval oracle |>.map_orderedInsertM _ x xs]
 
 /-- Evaluating query-based insertion sort agrees with `List.insertionSort` using the relation
 supplied by the oracle.
@@ -47,10 +43,8 @@ insertion sort operation, so correctness properties (permutation, sortedness) tr
 directly from the `List.insertionSort` API rather than being restated here. -/
 @[simp] theorem eval_insertionSort (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
     (insertionSort xs).eval oracle =
-      xs.insertionSort (fun x y => oracle (.le x y)) := by
-  induction xs with
-  | nil => simp
-  | cons x xs ih => simp [ih]
+      xs.insertionSort (fun x y => oracle (.le x y)) :=
+  Id.pure_injective <| by simp [FreeM.isMonadHom_pure_eval oracle |>.map_listInsertionSortM _ xs]
 
 /-! ## Query count proofs -/
 
