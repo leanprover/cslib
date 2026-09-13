@@ -154,8 +154,7 @@ theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State]
     apply hne
     simpa using Quotient.sound h
   have h1 := dfa_num_state_ge hws rfl
-  rw [Nat.card_congr (Equiv.ofInjective _ Quotient.out_injective).symm] at h1
-  assumption
+  rwa [Nat.card_congr (Equiv.ofInjective _ Quotient.out_injective).symm] at h1
 
 end Language
 

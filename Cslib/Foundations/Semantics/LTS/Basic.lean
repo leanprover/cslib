@@ -221,16 +221,25 @@ section Classes
 
 variable {State : Type u} {Label : Type v} (lts : LTS State Label)
 
-/-- An lts is deterministic if a state cannot reach different states with the same transition
-label. -/
+/-- A state `s` is deterministic for a label `μ` if `s` has at most one `μ`-derivative. -/
+@[scoped grind =]
+def DeterministicStateLabel (s : State) (μ : Label) : Prop :=
+  ∀ s₁ s₂, lts.Tr s μ s₁ → lts.Tr s μ s₂ → s₁ = s₂
+
+/-- A state `s` is deterministic if it is deterministic for all labels. -/
+@[scoped grind =]
+def DeterministicState (s : State) : Prop := ∀ μ, lts.DeterministicStateLabel s μ
+
+/-- An lts is deterministic if it is deterministic at every state. -/
 @[scoped grind]
 class Deterministic (lts : LTS State Label) where
-  deterministic (s1 : State) (μ : Label) (s2 s3 : State) :
-    lts.Tr s1 μ s2 → lts.Tr s1 μ s3 → s2 = s3
+  /-- For all states and labels, there is at most one state reachable from a given state
+  with a given label. -/
+  deterministic : ∀ s, lts.DeterministicState s
 
-theorem Deterministic.eq_of_tr {lts : LTS State Label} [lts.Deterministic]
+theorem Deterministic.eq_of_tr {lts : LTS State Label} [h : lts.Deterministic]
     (htr : lts.Tr s1 μ s2) (htr' : lts.Tr s1 μ s2') : s2 = s2' :=
-  Deterministic.deterministic s1 μ s2 s2' htr htr'
+  h.deterministic s1 μ s2 s2' htr htr'
 
 /-- In a deterministic lts, multistep transitions with a given start state and trace reach a unique
 end state. -/
@@ -312,24 +321,29 @@ abbrev ImageFinite := ∀ s μ, Finite (lts.image s μ)
 
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
-@[scoped grind .]
-theorem deterministic_not_lto [h : lts.Deterministic] :
-  ∀ s μ s' s'', s' ≠ s'' → lts.Tr s μ s' → ¬lts.Tr s μ s'' := by grind
+@[scoped grind ⇒]
+theorem DeterministicStateLabel.not_tr_of_ne (hdet : lts.DeterministicStateLabel s μ)
+    (hne : s₁ ≠ s₂) (htr₁ : lts.Tr s μ s₁) : ¬lts.Tr s μ s₂ := by
+  grind
 
-@[scoped grind _=_]
-theorem deterministic_tr_image_singleton [lts.Deterministic] :
+@[scoped grind ⇒]
+theorem DeterministicStateLabel.image_singleton_iff_tr (h : lts.DeterministicStateLabel s μ) :
     lts.image s μ = {s'} ↔ lts.Tr s μ s' := by
   have := (lts.image s μ).eq_singleton_iff_unique_mem (a := s')
   grind
 
-/-- In a deterministic LTS, any image is either a singleton or the empty set. -/
-@[scoped grind .]
-theorem deterministic_image_char [lts.Deterministic] (s : State) (μ : Label) :
-    (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
+/-- If `s` is deterministic for `μ`, then the `μ`-image of `s` is either a singleton or the empty
+set. -/
+@[scoped grind →]
+theorem DeterministicStateLabel.image_char (h : lts.DeterministicStateLabel s μ) :
+    (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by
+  grind [=_ image_singleton_iff_tr]
 
-/-- In a deterministic LTS, the image of any state-label combination is finite. -/
-instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) := by
-  have hDet := deterministic_image_char lts s μ
+/-- If `s` is deterministic at `μ`, then the `μ`-image of `s` is finite. -/
+@[scoped grind →]
+theorem DeterministicStateLabel.finite_image (h : lts.DeterministicStateLabel s μ) :
+    Finite (lts.image s μ) := by
+  have hDet := image_char lts h
   cases hDet
   case inl hDet =>
     obtain ⟨s', hDet'⟩ := hDet
@@ -338,6 +352,9 @@ instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) 
   case inr hDet =>
     simp only [hDet]
     apply Set.finite_empty
+
+instance [h : lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) :=
+  DeterministicStateLabel.finite_image lts (h.deterministic s μ)
 
 /-- Every deterministic LTS is also image-finite. -/
 instance deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := inferInstance

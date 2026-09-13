@@ -205,7 +205,7 @@ theorem parallel_diamond : Diamond ((· ⭢ₚ ·) : Term Var → Term Var → P
 
 /-- Parallel reduction is confluent. -/
 theorem confluent_parallel : Confluent ((· ⭢ₚ ·) : Term Var → Term Var → Prop) :=
-  parallel_diamond.toConfluent
+  parallel_diamond.to_confluent
 
 /-- β-reduction is confluent. -/
 @[wikidata Q1308502]

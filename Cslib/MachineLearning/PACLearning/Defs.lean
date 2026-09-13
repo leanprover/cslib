@@ -7,7 +7,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Init
-public import Mathlib.MeasureTheory.Measure.MeasureSpace
+public import Mathlib.MeasureTheory.Measure.Basic
 public import Mathlib.MeasureTheory.Constructions.Pi
 public import Mathlib.Order.SymmDiff
 
