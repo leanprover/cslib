@@ -109,48 +109,33 @@ projections are not reducible. -/
 section add
 
 /-- The sum of two polynomial functors `P` and `Q`, written as `P + Q`,
-defined as the sum of the head types and the dependent sum recursor for the child types.
-The recursor is written explicitly so that nested sum directions normalize at implicit
-transparency.
-
-This is kept as a `def` alongside the `HAdd` instance below, even though that instance is
-exactly as universe-general as `add` itself: the `binop%` elaborator behind `+` eagerly
-unifies the types of both operands with the expected type, so when the expected type carries
-universe metavariables (e.g. inside `PFunctor.W (P.add (.C α))` with `α : Type v`),
-`P + Q` can fail to elaborate where `P.add Q` succeeds; see `CslibTests/PFunctor.lean`. -/
-@[simps, implicit_reducible] def add (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
+defined as the sum of the head types and the dependent sum recursor for the child types. -/
+@[implicit_reducible] def add (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
     PFunctor.{max uA₁ uA₂, uB} :=
   ⟨P.A ⊕ Q.A, @Sum.rec P.A Q.A (fun _ => Type uB) P.B Q.B⟩
 
-/-- Addition of polynomial functors, defined as the sum construction. -/
-instance instHAddPFunctor :
+@[simps!] instance instHAddPFunctor :
     HAdd PFunctor.{uA₁, uB} PFunctor.{uA₂, uB} PFunctor.{max uA₁ uA₂, uB} where
   hAdd := add
 
-/-- Normalize addition of `PFunctor`s to avoid `simp` mismatches between the notations. -/
-@[simp] lemma add_def (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
-    P + Q = P.add Q := rfl
+@[simp] lemma add_eq_add (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
+    P.add Q = P + Q := rfl
 
 end add
 
 section prod
 
 /-- The product of two polynomial functors `P` and `Q`, written as `P * Q`,
-defined as the product of the head types and the sum of the child types.
-Unlike `add`, the child types of `P` and `Q` may live in different universes,
-since they are combined with `⊕` rather than `Sum.elim`. -/
-@[simps] def prod (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) :
+defined as the product of the head types and the sum of the child types. -/
+@[implicit_reducible] def prod (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) :
     PFunctor.{max uA₁ uA₂, max uB₁ uB₂} := ⟨P.A × Q.A, fun ab => P.B ab.1 ⊕ Q.B ab.2⟩
 
-/-- Multiplication of polynomial functors, defined as the product construction.
-As with addition, we deliberately do not add a homogeneous `Mul` instance. -/
-instance instHMulPFunctor :
+@[simps!] instance instHMulPFunctor :
     HMul PFunctor.{uA₁, uB₁} PFunctor.{uA₂, uB₂} PFunctor.{max uA₁ uA₂, max uB₁ uB₂} where
   hMul := prod
 
-/-- Normalize multiplication of `PFunctor`s to avoid `simp` mismatches between the notations. -/
-@[simp] lemma mul_def (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) :
-    P * Q = P.prod Q := rfl
+@[simp] lemma prod_eq_mul (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) :
+    P.prod Q = P * Q := rfl
 
 end prod
 
