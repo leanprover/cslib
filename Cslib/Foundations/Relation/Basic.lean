@@ -93,6 +93,27 @@ theorem _root_.Equivalence.eqvGen_le (h : Equivalence r₂) (hle : r₁ ≤ r₂
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
   SymmGen.to_eqvGen
 
+theorem Join.single [Std.Refl r] (h : r a b) : Join r a b := ⟨b, h, refl b⟩
+
+@[simp, scoped grind =] theorem join₂_eq_join : Join₂ r r = Join r := rfl
+
+theorem join₂_eq_comp_swap : Join₂ r₁ r₂ = Comp r₁ (swap r₂) := rfl
+
+instance [Std.Refl r₁] [Std.Refl r₂] : Std.Refl (Join₂ r₁ r₂) where
+  refl a := ⟨a, refl a, refl a⟩
+
+theorem Join₂.single_left [Std.Refl r₂] (h : r₁ a b) : Join₂ r₁ r₂ a b := ⟨b, h, refl b⟩
+
+theorem Join₂.single_right [Std.Refl r₁] (h : r₂ a b) : Join₂ r₁ r₂ b a := ⟨b, refl b, h⟩
+
+theorem Join₂.join₂_le [IsTrans α r] (h₁ : r₁ ≤ r) (h₂ : swap r₂ ≤ r) : Join₂ r₁ r₂ ≤ r :=
+  (comp_le_comp h₁ h₂).trans (comp_self_le r)
+
+theorem Join₂.swap_iff {a b : α} : Join₂ r₁ r₂ b a ↔ Join₂ r₂ r₁ a b := by grind [Join₂]
+
+protected theorem Join₂.mono (h₁ : r₁ ≤ r₁') (h₂ : r₂ ≤ r₂') : Join₂ r₁ r₂ ≤ Join₂ r₁' r₂' :=
+  fun x y ⟨z, hxz, hyz⟩ => ⟨z, h₁ x z hxz, h₂ y z hyz⟩
+
 @[deprecated _root_.refl +typeChanged (since := "2026-09-07")]
 theorem MJoin.refl (a : α) : MJoin r a a := _root_.refl a
 
