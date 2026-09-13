@@ -46,12 +46,6 @@ private theorem Function.Injective.extend_of_disjoint {α β γ : Type*}
   · rw [Function.extend_apply' _ _ _ hx, Function.extend_apply' _ _ _ hy] at h
     exact hj h
 
-private theorem Function.Injective.extend_sum_inl_inr {α β : Type*} {f : α → β}
-    (hf : Function.Injective f) :
-    Function.Injective (Function.extend f (Sum.inl : α → α ⊕ β) (Sum.inr : β → α ⊕ β)) :=
-  hf.extend_of_disjoint Sum.inl_injective Sum.inr_injective
-    Set.isCompl_range_inl_range_inr.disjoint
-
 -- Proposed upstream in https://github.com/leanprover-community/mathlib4/pull/43326;
 -- remove once cslib's Mathlib includes it.
 private instance [Std.Total r] : Std.Total (InvImage r f) where
@@ -79,7 +73,8 @@ private noncomputable def finPrefix (h : ↑n ≤ #α) : α → Fin n ⊕ α :=
 
 private theorem finPrefix_injective (h : ↑n ≤ #α) :
     Function.Injective (finPrefix h) :=
-  (finEmbedding h).injective.extend_sum_inl_inr
+  (finEmbedding h).injective.extend_of_disjoint Sum.inl_injective Sum.inr_injective
+    Set.isCompl_range_inl_range_inr.disjoint
 
 /-- A total order on an type `α` with at least `n` elements, that orders `n` embedded elements
     (via `finEmbedding) according to `σ⁻¹`, with embedded elements
