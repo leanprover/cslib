@@ -21,6 +21,7 @@ import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
 import CslibTests.MultiTapeComplexity
+import CslibTests.PACLearning
 import CslibTests.PFunctor
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
