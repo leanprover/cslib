@@ -6,7 +6,8 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Boolean.Synthesis
-public import Mathlib.Data.Fintype.BigOperators
+
+import Mathlib.Algebra.BigOperators.Fin
 
 /-!
 # Lupanov's block construction
@@ -70,7 +71,6 @@ For the parameters chosen in `Lupanov.lean` the remaining terms are of lower ord
 
 namespace Cslib.Circuits.Boolean.Lupanov
 
-noncomputable section
 variable {k d s : ℕ}
 
 /-! ### Minterms -/
@@ -79,10 +79,10 @@ variable {k d s : ℕ}
 table and data assignments index its columns. -/
 private abbrev Assignment (k : ℕ) := Fin k → Bool
 
-/-- Number the address assignments as rows `0, …, 2 ^ k - 1`. Any bijection will do, so we
-take an arbitrary one; this is what makes the section noncomputable. -/
+/-- Number the address assignments as rows `0, …, 2 ^ k - 1`, interpreting the bits as
+binary digits with the least significant bit first. -/
 private def index (k : ℕ) : Assignment k ≃ Fin (2 ^ k) :=
-  Fintype.equivOfCardEq (by simp)
+  (Equiv.arrowCongr (Equiv.refl (Fin k)) finTwoEquiv.symm).trans finFunctionFinEquiv
 
 /-- The minterm testing that the address bits equal `a` (`.inl a`) or that the data bits
 equal `b` (`.inr b`). Both kinds are built once and shared by every block. -/
@@ -285,5 +285,4 @@ theorem synthesis (f : BooleanFunction (k + d)) (hs : 0 < s) :
   simpa [bound, Nat.add_assoc] using minterms_synthesis.comp
     (h.mono Set.subset_union_right Set.Subset.rfl le_rfl)
 
-end
 end Cslib.Circuits.Boolean.Lupanov
