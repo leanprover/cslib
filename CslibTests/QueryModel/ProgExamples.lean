@@ -7,6 +7,8 @@ Authors: Shreyas Srinivas
 module
 
 public import Cslib.AlgorithmsTheory.QueryModel
+meta import Cslib.AlgorithmsTheory.Algorithms.MergeSort
+meta import Cslib.AlgorithmsTheory.QueryModel
 public import Mathlib.Algebra.Ring.Defs
 
 @[expose] public section
@@ -123,6 +125,28 @@ def linearSearchAux (v : Vector α n)
 open VecSearch in
 def linearSearch (v : Vector α n) (x : α) : Prog (VecSearch α) Bool:=
   linearSearchAux v x false 0
+
+section MergeSort
+
+set_option linter.hashCommand false
+
+-- Empty and singleton inputs need no comparisons.
+#guard (mergeSort ([] : List Nat)).eval (sortModelNat (· ≤ ·)) == []
+#guard (mergeSort ([] : List Nat)).time (sortModelNat (· ≤ ·)) == 0
+#guard (mergeSort [7]).eval (sortModelNat (· ≤ ·)) == [7]
+#guard (mergeSort [7]).time (sortModelNat (· ≤ ·)) == 0
+
+-- Odd lengths use Lean's split, with the larger half on the left.
+#guard (mergeSort [1, 2, 3]).time (sortModelNat (· ≤ ·)) == 3
+#guard (mergeSort [5, 3, 1, 4, 2]).eval (sortModelNat (· ≤ ·)) == [1, 2, 3, 4, 5]
+#guard (mergeSort [1, 2, 3]).eval (sortModelNat (fun _ _ => false)) == [3, 2, 1]
+
+-- Equal keys retain their original order across the two halves.
+#guard (mergeSort [(2, 0), (1, 1), (2, 2), (1, 3), (2, 4)]).eval
+  (sortModelNat (fun x y : Nat × Nat => x.1 ≤ y.1)) =
+    [(1, 1), (1, 3), (2, 0), (2, 2), (2, 4)]
+
+end MergeSort
 
 end ProgExamples
 

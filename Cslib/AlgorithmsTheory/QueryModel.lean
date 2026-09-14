@@ -76,6 +76,11 @@ def Prog.eval
     (P : Prog Q α) (M : Model Q Cost) : α :=
   Id.run <| P.liftM fun x => pure (M.evalQuery x)
 
+/-- Evaluation, viewed as an `Id` interpreter, preserves monadic operations. -/
+theorem Prog.isMonadHom_pure_eval (M : Model Q Cost) :
+    IsMonadHom (Prog Q) Id (fun p => pure (p.eval M)) :=
+  FreeM.isMonadHom_liftM (fun q => pure (M.evalQuery q))
+
 @[grind =]
 theorem Prog.eval_pure (a : α) (M : Model Q Cost) :
     Prog.eval (FreeM.pure a) M = a :=

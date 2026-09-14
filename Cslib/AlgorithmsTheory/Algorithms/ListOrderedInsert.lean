@@ -6,6 +6,7 @@ Authors: Shreyas Srinivas, Eric Wieser
 
 module
 
+public import Cslib.Algorithms.Lean.Sort.Insertion
 public import Cslib.AlgorithmsTheory.QueryModel
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
 public import Mathlib.Algebra.Order.Group.Nat
@@ -56,16 +57,23 @@ def insertOrd (x : α) (l : List α) : Prog (SortOpsInsertHead α) (List α) := 
         let res ← insertOrd x as
         insertHead a res
 
+/-- Interpreting head insertion as `List.cons` turns `insertOrd` into `List.orderedInsertM`. -/
+theorem _root_.Cslib.IsMonadHom.map_insertOrd
+    {m : Type → Type*} [Monad m] {f : {β : Type} → Prog (SortOpsInsertHead α) β → m β}
+    (hf : IsMonadHom (Prog (SortOpsInsertHead α)) m f)
+    (hinsert : ∀ a xs, f (FreeM.lift (insertHead a xs)) = pure (a :: xs))
+    (x : α) (l : List α) :
+    f (insertOrd x l) = List.orderedInsertM (fun a b => f (FreeM.lift (cmpLE a b))) x l := by
+  induction l with
+  | nil => simp [insertOrd, hinsert]
+  | cons a xs ih =>
+    simp [insertOrd, hf.map_bind, hinsert, apply_ite f, ih]
+
 @[simp]
 lemma insertOrd_eval (x : α) (l : List α) (le : α → α → Bool) :
     (insertOrd x l).eval (sortModel le) = l.orderedInsert (fun x y => le x y = true) x := by
-  induction l with
-  | nil =>
-    simp [insertOrd, sortModel]
-  | cons head tail ih =>
-    by_cases h_head : le x head
-    · simp [insertOrd, h_head]
-    · simp [insertOrd, h_head, ih]
+  simpa using Id.ext_iff.1 <|
+    (Prog.isMonadHom_pure_eval (sortModel le)).map_insertOrd (by intros; simp) x l
 
 -- TODO : to upstream
 @[simp]

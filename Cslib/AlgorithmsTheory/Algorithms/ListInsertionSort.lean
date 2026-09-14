@@ -8,6 +8,9 @@ module
 public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
 public import Mathlib.Tactic.NormNum
 
+import Cslib.Foundations.Control.Monad.IsMonadHom.List
+import all Mathlib.Data.List.Sort
+
 /-!
 # Insertion sort in a list
 
@@ -39,16 +42,19 @@ open Prog
 
 /-- The insertionSort algorithms on lists with the `SortOps` query. -/
 def insertionSort (l : List α) : Prog (SortOpsInsertHead α) (List α) :=
-  match l with
-  | [] => return []
-  | x :: xs => do
-      let rest ← insertionSort xs
-      insertOrd x rest
+  l.foldrM insertOrd []
+
+@[simp] theorem insertionSort_nil : insertionSort ([] : List α) = pure [] := rfl
+
+@[simp] theorem insertionSort_cons (x : α) (xs : List α) :
+    insertionSort (x :: xs) = (do insertOrd x (← insertionSort xs)) :=
+  List.foldrM_cons
 
 @[simp]
 theorem insertionSort_eval (l : List α) (le : α → α → Bool) :
     (insertionSort l).eval (sortModel le) = l.insertionSort (fun x y => le x y = true) := by
-  induction l with simp_all [insertionSort]
+  simpa [insertionSort, List.insertionSort] using Id.ext_iff.1 <|
+    (Prog.isMonadHom_pure_eval (sortModel le)).map_listFoldrM insertOrd [] l
 
 theorem insertionSort_permutation (l : List α) (le : α → α → Bool) :
     ((insertionSort l).eval (sortModel le)).Perm l := by
@@ -69,21 +75,21 @@ lemma insertionSort_time_compares (head : α) (tail : List α) (le : α → α �
       ((insertionSort tail).time (sortModel le)).compares +
         ((insertOrd head (tail.insertionSort (fun x y => le x y = true))).time
           (sortModel le)).compares := by
-  simp [insertionSort]
+  simp
 
 lemma insertionSort_time_inserts (head : α) (tail : List α) (le : α → α → Bool) :
     ((insertionSort (head :: tail)).time (sortModel le)).inserts =
       ((insertionSort tail).time (sortModel le)).inserts +
         ((insertOrd head (tail.insertionSort (fun x y => le x y = true))).time
           (sortModel le)).inserts := by
-  simp [insertionSort]
+  simp
 
 theorem insertionSort_complexity (l : List α) (le : α → α → Bool) :
     ((insertionSort l).time (sortModel le))
       ≤ ⟨l.length * (l.length + 1), (l.length + 1) * (l.length + 2)⟩ := by
   induction l with
   | nil =>
-    simp [insertionSort]
+    simp
   | cons head tail ih =>
     grind [insertOrd_complexity_upper_bound, List.length_insertionSort, SortOpsCost.le_def,
       insertionSort_time_compares, insertionSort_time_inserts]

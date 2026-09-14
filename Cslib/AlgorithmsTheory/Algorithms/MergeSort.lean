@@ -1,22 +1,24 @@
 /-
-Copyright (c) 2026 Shreyas Srinivas. All rights reserved.
+Copyright (c) 2026 Shreyas Srinivas, Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Shreyas Srinivas, Eric Wieser
+Authors: Shreyas Srinivas, Eric Wieser, Kim Morrison, Sorrachai Yingchareonthawornchai
 -/
 
 module
 
 public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
 public import Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
-import all Cslib.AlgorithmsTheory.Lean.MergeSort.MergeSort
+import all Cslib.Algorithms.Lean.Sort.Merge
 import all Init.Data.List.Sort.Basic
 
 /-!
 # Merge sort in a list
 
 In this file we state and prove the correctness and complexity of merge sort in lists under
-the `SortOps` model.
---
+the `SortOps` model. The implementation and proofs are adapted from Kim Morrison's
+[PR #401](https://github.com/leanprover/cslib/pull/401), using `List.mergeM` and
+`List.mergeSortM` with explicit comparison queries. Evaluation agrees exactly with
+`List.mergeSort`, including its stable ordering of ties.
 
 ## Main Definitions
 - `merge` : Merge algorithm for merging two sorted lists in the `SortOps` query model
@@ -24,8 +26,7 @@ the `SortOps` model.
 
 ## Main results
 
-- `mergeSort_eval`: `mergeSort` evaluates identically to the private reference
-  implementation `mergeSortNaive`.
+- `mergeSort_eval`: `mergeSort` evaluates identically to `List.mergeSort`.
 - `mergeSort_sorted` :  `mergeSort` outputs a sorted list.
 - `mergeSort_perm` : The output of `mergeSort` is a permutation of the input list
 - `mergeSort_complexity` : `mergeSort` takes at most n * ⌈log n⌉ comparisons.
@@ -38,104 +39,46 @@ namespace Cslib.Algorithms
 open SortOps
 
 /-- Merge two sorted lists using comparisons in the query monad. -/
-@[simp]
-def merge (x y : List α) : Prog (SortOps α) (List α) := do
-  match x,y with
-  | [], ys => return ys
-  | xs, [] => return xs
-  | x :: xs', y :: ys' => do
-      let cmp : Bool ← cmpLE x y
-      if cmp then
-        let rest ← merge xs' (y :: ys')
-        return (x :: rest)
-      else
-        let rest ← merge (x :: xs') ys'
-        return (y :: rest)
+abbrev merge (xs ys : List α) : Prog (SortOps α) (List α) :=
+  List.mergeM xs ys fun x y => FreeM.lift (cmpLE x y)
 
-lemma merge_timeComplexity (x y : List α) (le : α → α → Bool) :
-    (merge x y).time (sortModelNat le) ≤ x.length + y.length := by
-  fun_induction List.merge x y (le · ·) with
-  | case1 => simp
-  | case2 => simp
-  | case3 x xs y ys hxy ihx =>
-    suffices 1 + (merge xs (y :: ys)).time (sortModelNat le) ≤ xs.length + 1 + (ys.length + 1) by
-      simpa [hxy]
-    grind
-  | case4 x xs y ys hxy ihy =>
-    suffices 1 + (merge (x :: xs) ys).time (sortModelNat le) ≤ xs.length + 1 + (ys.length + 1) by
-      simpa [hxy]
-    grind
+lemma merge_timeComplexity (xs ys : List α) (le : α → α → Bool) :
+    (merge xs ys).time (sortModelNat le) ≤ xs.length + ys.length := by
+  unfold merge
+  fun_induction List.mergeM with
+  | case1 | case2 => simp
+  | case3 x xs y ys ihx ihy =>
+    simp only [Prog.time_bind', Prog.eval_lift, sortModelNat_evalQuery_cmpLE,
+      Prog.time_lift, sortModelNat_cost, List.length_cons]
+    split <;> simp_all <;> omega
 
 @[simp]
-lemma merge_eval (x y : List α) (le : α → α → Bool) :
-    (merge x y).eval (sortModelNat le) = List.merge x y (le · ·) := by
-  fun_induction List.merge with simp_all [merge]
+lemma merge_eval (xs ys : List α) (le : α → α → Bool) :
+    (merge xs ys).eval (sortModelNat le) = List.merge xs ys le := by
+  simpa using Id.ext_iff.1 <|
+    (Prog.isMonadHom_pure_eval (sortModelNat le)).map_listMergeM xs ys
+      (fun x y => FreeM.lift (cmpLE x y))
 
 lemma merge_length (x y : List α) (le : α → α → Bool) :
     ((merge x y).eval (sortModelNat le)).length = x.length + y.length := by
   rw [merge_eval]
   apply List.length_merge
 
-/--
-The `mergeSort` algorithm in the `SortOps` query model. It sorts the input list
-according to the mergeSort algorithm.
--/
-def mergeSort (xs : List α) : Prog (SortOps α) (List α) :=  do
-  if xs.length < 2 then return xs
-  else
-    let half  := xs.length / 2
-    let left  := xs.take half
-    let right := xs.drop half
-    let sortedLeft  ← mergeSort left
-    let sortedRight ← mergeSort right
-    merge sortedLeft sortedRight
+/-- Sort a list using merge sort with comparison queries, as in PR #401. -/
+abbrev mergeSort (xs : List α) : Prog (SortOps α) (List α) :=
+  List.mergeSortM xs fun x y => FreeM.lift (cmpLE x y)
 
-/--
-The vanilla-lean version of `mergeSortNaive` that is extensionally equal to `mergeSort`
--/
-private def mergeSortNaive (xs : List α) (le : α → α → Bool) : List α :=
-  if xs.length < 2 then xs
-  else
-    let sortedLeft  := mergeSortNaive (xs.take (xs.length/2)) le
-    let sortedRight := mergeSortNaive (xs.drop (xs.length/2)) le
-    List.merge sortedLeft sortedRight (le · ·)
-
-private proof_wanted mergeSortNaive_eq_mergeSort
-    (xs : List α) (le : α → α → Bool) :
-    mergeSortNaive xs le = xs.mergeSort le
-
-private lemma mergeSortNaive_Perm (xs : List α) (le : α → α → Bool) :
-  (mergeSortNaive xs le).Perm xs := by
-  fun_induction mergeSortNaive with
-  | case1 => simp
-  | case2 x _ _ _ ih2 ih1 => grw [←List.take_append_drop _ x, List.merge_perm_append, ← ih1, ← ih2]
-
+/-- Evaluating query-based merge sort agrees with Lean's stable `List.mergeSort`. -/
 @[simp]
-private lemma mergeSort_eval (xs : List α) (le : α → α → Bool) :
-    (mergeSort xs).eval (sortModelNat le) = mergeSortNaive xs le := by
-  fun_induction mergeSort with
-  | case1 xs h =>
-    simp [h, mergeSortNaive, Prog.eval]
-  | case2 xs h n left right ihl ihr =>
-    rw [mergeSortNaive, ite_eq_right h]
-    simp [ihl, ihr, merge_eval]
-    rfl
-
-private lemma mergeSortNaive_length (xs : List α) (le : α → α → Bool) :
-    (mergeSortNaive xs le).length = xs.length := by
-  fun_induction mergeSortNaive with
-  | case1 xs h =>
-    simp
-  | case2 xs h left right ihl ihr =>
-    rw [List.length_merge]
-    convert congr($ihl + $ihr)
-    rw [← List.length_append]
-    simp
+lemma mergeSort_eval (xs : List α) (le : α → α → Bool) :
+    (mergeSort xs).eval (sortModelNat le) = List.mergeSort xs le := by
+  simpa using Id.ext_iff.1 <|
+    (Prog.isMonadHom_pure_eval (sortModelNat le)).map_listMergeSortM xs
+      (fun x y => FreeM.lift (cmpLE x y))
 
 lemma mergeSort_length (xs : List α) (le : α → α → Bool) :
     ((mergeSort xs).eval (sortModelNat le)).length = xs.length := by
-  rw [mergeSort_eval]
-  apply mergeSortNaive_length
+  simp
 
 lemma merge_sorted_sorted
     (xs ys : List α) (le : α → α → Bool) [Std.Total (fun x y => le x y)]
@@ -146,46 +89,52 @@ lemma merge_sorted_sorted
   rw [merge_eval]
   simpa using hxs_mono.merge hys_mono
 
-private lemma mergeSortNaive_sorted
-    (xs : List α) (le : α → α → Bool) [Std.Total ((fun x y => le x y = true))]
-    [IsTrans _ ((fun x y => le x y = true))] :
-    (mergeSortNaive xs le).Pairwise ((fun x y => le x y = true)) := by
-  fun_induction mergeSortNaive with
-  | case1 xs h =>
-    match xs with | [] | [x] => simp
-  | case2 xs h left right ihl ihr =>
-    simpa using ihl.merge ihr
-
 theorem mergeSort_sorted
     (xs : List α) (le : α → α → Bool) [Std.Total (fun x y => le x y = true)]
     [IsTrans _ (fun x y => le x y = true)] :
     ((mergeSort xs).eval (sortModelNat le)).Pairwise ((fun x y => le x y = true)) := by
   rw [mergeSort_eval]
-  apply mergeSortNaive_sorted
+  simpa using List.pairwise_mergeSort' (fun x y => le x y = true) xs
 
 theorem mergeSort_perm (xs : List α) (le : α → α → Bool) :
     ((mergeSort xs).eval (sortModelNat le)).Perm xs := by
   rw [mergeSort_eval]
-  apply mergeSortNaive_Perm
+  exact List.mergeSort_perm xs le
 
 section TimeComplexity
 
 open Cslib.Algorithms.Lean.TimeM
 
--- TODO: reuse the work in `mergeSort_time_le`?
+/-- The arithmetic inequality for the merge sort recurrence, from PR #401. -/
+private theorem mergeSort_bound (n : ℕ) (hn : 2 ≤ n) :
+    ((n + 1) / 2) * Nat.clog 2 ((n + 1) / 2) +
+      (n / 2 * Nat.clog 2 (n / 2) + ((n + 1) / 2 + n / 2)) ≤
+      n * Nat.clog 2 n := by
+  have hclog := Nat.clog_of_one_lt (by omega : (1 : Nat) < 2) hn
+  have hceil : Nat.clog 2 ((n + 1) / 2) + 1 ≤ Nat.clog 2 n := le_of_eq hclog.symm
+  have hfloor : Nat.clog 2 (n / 2) + 1 ≤ Nat.clog 2 n :=
+    (Nat.add_le_add_right (Nat.clog_mono_right 2 (by omega)) 1).trans hceil
+  have hsum : (n + 1) / 2 + n / 2 = n := by omega
+  have h1 := Nat.mul_le_mul_left ((n + 1) / 2) hceil
+  have h2 := Nat.mul_le_mul_left (n / 2) hfloor
+  rw [Nat.mul_succ] at h1 h2
+  calc _ = ((n + 1) / 2 * Nat.clog 2 ((n + 1) / 2) + (n + 1) / 2) +
+           (n / 2 * Nat.clog 2 (n / 2) + n / 2) := by omega
+    _ ≤ (n + 1) / 2 * Nat.clog 2 n + n / 2 * Nat.clog 2 n := Nat.add_le_add h1 h2
+    _ = ((n + 1) / 2 + n / 2) * Nat.clog 2 n := (Nat.add_mul ..).symm
+    _ = n * Nat.clog 2 n := by rw [hsum]
+
 theorem mergeSort_complexity (xs : List α) (le : α → α → Bool) :
-    (mergeSort xs).time (sortModelNat le) ≤ T (xs.length) := by
-  fun_induction mergeSort with
-  | case1 => simp [T]
-  | case2 x _ _ left right ih2 ih1 =>
-    calc
-      _ ≤ T left.length + T right.length + (left.length + right.length) := by
-        simp only [Prog.time_bind']
-        grw [ih2, ih1, merge_timeComplexity ((mergeSort left).eval (sortModelNat le))
-          ((mergeSort right).eval (sortModelNat le)) le]
-        simp [mergeSort_eval, mergeSortNaive_length, Nat.add_assoc]
-      _ ≤ T x.length := by
-        grind [some_algebra (x.length - 2)]
+    (mergeSort xs).time (sortModelNat le) ≤ T xs.length := by
+  unfold mergeSort
+  fun_induction List.mergeSortM with
+  | case1 | case2 => simp
+  | case3 x y zs halves ihl ihr =>
+    simp only [Prog.time_bind']
+    grw [merge_timeComplexity, ihl, ihr]
+    simp only [mergeSort_length]
+    rw [halves.1.property, halves.2.property]
+    exact mergeSort_bound _ (by simp)
 
 end TimeComplexity
 

@@ -12,6 +12,8 @@ public import Batteries.Data.List
 public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Tactic.Set
 
+import all Init.Data.List.Control
+
 /-!
 # Linear search in a list
 
@@ -52,10 +54,27 @@ def listLinearSearch (l : List α) (x : α) : Prog (ListSearch α) Bool := do
     else
       listLinearSearch ls x
 
+/-- An interpreter whose comparisons depend only on the head turns linear search into `anyM`. -/
+theorem _root_.Cslib.IsMonadHom.map_listLinearSearch
+    {m : Type → Type*} [Monad m] {f : {β : Type} → Prog (ListSearch α) β → m β}
+    (hf : IsMonadHom (Prog (ListSearch α)) m f) (p : α → m Bool) (x : α)
+    (hcompare : ∀ a xs, f (FreeM.lift (ListSearch.compare (a :: xs) x)) = p a)
+    (l : List α) : f (listLinearSearch l x) = l.anyM p := by
+  induction l with
+  | nil => simp [listLinearSearch, hf.map_pure, List.anyM]
+  | cons a xs ih =>
+    simp only [listLinearSearch, hf.map_bind, hcompare, apply_ite f, hf.map_pure, ih,
+      List.anyM]
+    congr 1
+    funext b
+    cases b <;> rfl
+
 @[simp, grind =]
 lemma listLinearSearch_eval [BEq α] (l : List α) (x : α) :
     (listLinearSearch l x).eval ListSearch.natCost = l.contains x := by
-  fun_induction l.elem x with simp_all [listLinearSearch]
+  simpa [List.any_beq] using Id.ext_iff.1 <|
+    (Prog.isMonadHom_pure_eval ListSearch.natCost).map_listLinearSearch
+      (fun a => pure (x == a)) x (by intros; simp) l
 
 lemma listLinearSearch_correct_true [BEq α] [LawfulBEq α] (l : List α)
     {x : α} (x_mem_l : x ∈ l) : (listLinearSearch l x).eval ListSearch.natCost = true := by
