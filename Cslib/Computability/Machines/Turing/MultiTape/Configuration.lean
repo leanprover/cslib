@@ -141,6 +141,12 @@ lemma inputSymbolInner {cfg : Cfg k Symbol State input} (p : ℕ)
     cfg.inputSymbol = some input[p] := by
   grind [Cfg.inputSymbol]
 
+/-- At either boundary of the input, the head reads a blank. -/
+lemma inputSymbol_eq_none_of_boundary {cfg : Cfg k Symbol State input}
+    (h : cfg.inputPos.val = 0 ∨ cfg.inputPos.val = input.length + 1) :
+    cfg.inputSymbol = none := by
+  grind [Cfg.inputSymbol]
+
 /-- The symbol read by work tape `i`. -/
 def Cfg.workTapeSymbols (cfg : Cfg k Symbol State input) (i : Fin k) : Option Symbol :=
   cfg.workTapes i (cfg.workTapePos i)
