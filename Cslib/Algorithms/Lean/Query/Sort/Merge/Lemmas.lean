@@ -74,13 +74,13 @@ theorem mergeSort_sorted
 
 /-! ## Query count simp lemmas -/
 
-@[simp] theorem countQueries_merge_nil_left (oracle : {ι : Type} → LEQuery α ι → ι) (ys : List α) :
+theorem countQueries_merge_nil_left (oracle : {ι : Type} → LEQuery α ι → ι) (ys : List α) :
     (merge ([] : List α) ys).countQueries oracle = 0 := by
   simp
 
-@[simp] theorem countQueries_merge_nil_right (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
+theorem countQueries_merge_nil_right (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
     (merge xs ([] : List α)).countQueries oracle = 0 := by
-  cases xs <;> simp
+  simp
 
 @[simp] theorem countQueries_merge_cons_cons (oracle : {ι : Type} → LEQuery α ι → ι)
     (x : α) (xs' : List α) (y : α) (ys' : List α) :
@@ -89,13 +89,12 @@ theorem mergeSort_sorted
       then (merge xs' (y :: ys')).countQueries oracle
       else (merge (x :: xs') ys').countQueries oracle := by
   simp
-  split <;> simp_all
 
-@[simp] theorem countQueries_mergeSort_nil (oracle : {ι : Type} → LEQuery α ι → ι) :
+theorem countQueries_mergeSort_nil (oracle : {ι : Type} → LEQuery α ι → ι) :
     (mergeSort (α := α) []).countQueries oracle = 0 := by
   simp
 
-@[simp] theorem countQueries_mergeSort_singleton (oracle : {ι : Type} → LEQuery α ι → ι) (x : α) :
+theorem countQueries_mergeSort_singleton (oracle : {ι : Type} → LEQuery α ι → ι) (x : α) :
     (mergeSort [x]).countQueries oracle = 0 := by
   simp
 
