@@ -3,6 +3,7 @@ import CslibTests.CCS
 import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
 import CslibTests.Circuits
+import CslibTests.Cobham
 import CslibTests.Commitment
 import CslibTests.Congruence
 import CslibTests.DFA
