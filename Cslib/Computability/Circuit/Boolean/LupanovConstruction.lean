@@ -93,10 +93,10 @@ private def minterm : Assignment k ⊕ Assignment d → BooleanFunction (k + d)
 /-- Build every address and data minterm from the inputs. Each costs `2 (k + d) + 1` gates
 by `synthesis_minterm`. -/
 private theorem minterms_synthesis :
-    Synthesis (inputs (k + d)) (Set.range (minterm (k := k) (d := d)))
+    Synthesis interpretation (inputs (k + d)) (Set.range (minterm (k := k) (d := d)))
       ((2 ^ k + 2 ^ d) * (2 * (k + d) + 1)) := by
   have h (a : Assignment k ⊕ Assignment d) :
-      Synthesis (inputs (k + d)) {minterm a} (2 * (k + d) + 1) := by
+      Synthesis interpretation (inputs (k + d)) {minterm a} (2 * (k + d) + 1) := by
     cases a with
     | inl a =>
         exact (synthesis_minterm (Fin.castAdd d) a).mono
@@ -108,7 +108,7 @@ private theorem minterms_synthesis :
 
 /-- Once the minterms have been built, each of them is free. -/
 private theorem minterm_available (a : Assignment k ⊕ Assignment d) :
-    Synthesis (Set.range minterm) {minterm a} 0 :=
+    Synthesis interpretation (Set.range minterm) {minterm a} 0 :=
   Synthesis.of_subset (by rintro _ rfl; exact ⟨a, rfl⟩)
 
 /-! ### The block decomposition
@@ -183,9 +183,11 @@ private theorem support_card_sum (f : BooleanFunction (k + d)) (block : ℕ) :
 row (a shared minterm costs nothing, a padding row needs a constant), one OR per row, and one
 constant for the empty disjunction. -/
 private theorem left_synthesis (block : ℕ) (pattern : Assignment s) :
-    Synthesis (Set.range (minterm (k := k) (d := d))) {left block pattern} (2 * s + 1) := by
+    Synthesis interpretation (Set.range (minterm (k := k) (d := d)))
+      {left block pattern} (2 * s + 1) := by
   have h (offset : Fin s) :
-      Synthesis (Set.range (minterm (k := k) (d := d))) {leftRow block pattern offset} 1 := by
+      Synthesis interpretation (Set.range (minterm (k := k) (d := d)))
+        {leftRow block pattern offset} 1 := by
     unfold leftRow
     split
     · split
@@ -193,7 +195,7 @@ private theorem left_synthesis (block : ℕ) (pattern : Assignment s) :
           Set.Subset.rfl Set.Subset.rfl (by omega : 0 ≤ 1)
       · exact Synthesis.const false
     · exact Synthesis.const false
-  change Synthesis (Set.range (minterm (k := k) (d := d)))
+  change Synthesis interpretation (Set.range (minterm (k := k) (d := d)))
     {fun x => decide (∃ offset, leftRow block pattern offset x = true)} (2 * s + 1)
   simpa [Nat.mul_comm] using Synthesis.exists_mem Finset.univ
     (leftRow (d := d) block pattern) (fun _ => 1) (fun i _ => h i)
@@ -202,8 +204,9 @@ private theorem left_synthesis (block : ℕ) (pattern : Assignment s) :
 disjunction, once the minterms are available. -/
 private theorem right_synthesis (f : BooleanFunction (k + d)) (block : ℕ)
     (pattern : Assignment s) :
-    Synthesis (Set.range minterm) {right f block pattern} ((support f block pattern).card + 1) := by
-  change Synthesis (Set.range (minterm (k := k) (d := d)))
+    Synthesis interpretation (Set.range minterm) {right f block pattern}
+      ((support f block pattern).card + 1) := by
+  change Synthesis interpretation (Set.range (minterm (k := k) (d := d)))
     {fun x => decide (∃ data ∈ support f block pattern, minterm (.inr data) x = true)} _
   simpa using Synthesis.exists_mem (support f block pattern)
     (fun data => minterm (.inr data)) (fun _ => 0)
@@ -262,7 +265,7 @@ def bound (k d s : ℕ) : ℕ :=
 `bound k d s` gates: build all minterms, then the disjunction over block-pattern pairs of
 `left ∧ right`, which equals `f` by `table_eq`. -/
 theorem synthesis (f : BooleanFunction (k + d)) (hs : 0 < s) :
-    Synthesis (inputs (k + d)) {f} (bound k d s) := by
+    Synthesis interpretation (inputs (k + d)) {f} (bound k d s) := by
   have hpair (pair : Fin (2 ^ k / s + 1) × Assignment s) :=
     (left_synthesis (d := d) pair.1.val pair.2).and (right_synthesis f pair.1.val pair.2)
   have h := Synthesis.exists_mem Finset.univ
@@ -277,7 +280,7 @@ theorem synthesis (f : BooleanFunction (k + d)) (hs : 0 < s) :
     simp [Fintype.sum_prod_type, Finset.sum_add_distrib, support_card_sum, Nat.mul_add,
       Nat.mul_assoc]
   simp only [Finset.mem_univ, true_and, hsum] at h
-  change Synthesis _ {table f s} _ at h
+  change Synthesis interpretation _ {table f s} _ at h
   rw [table_eq f hs] at h
   simpa [bound, Nat.add_assoc] using minterms_synthesis.comp
     (h.mono Set.subset_union_right Set.Subset.rfl le_rfl)

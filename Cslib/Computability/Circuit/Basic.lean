@@ -84,6 +84,11 @@ def Circuit.eval
     (x : Fin inputCount → U) : Fin outputCount → U :=
   c.program.trace i x ∘ c.outputs
 
+/-- A single-output circuit computes `f` when its output agrees with `f` on every input. -/
+def Circuit.Computes (c : Circuit σ inputCount gateCount 1)
+    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → U) : Prop :=
+  ∀ x, c.eval interpretation x 0 = f x
+
 @[simp] theorem Circuit.eval_id
     (interpretation : Interpretation σ U)
     (input : Fin inputCount → U) :

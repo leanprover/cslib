@@ -65,9 +65,4 @@ theorem Circuit.fanInAtMost_two {n g o : ℕ} (c : Circuit Boolean.signature n g
     c.FanInAtMost 2 :=
   c.program.fanInAtMost_two
 
-/-- A single-output De Morgan circuit computes `f` if its output agrees with `f` on every input. -/
-def Circuit.Computes {n g : ℕ} (c : Circuit Boolean.signature n g 1)
-    (f : Boolean.BooleanFunction n) : Prop :=
-  ∀ x, c.eval Boolean.interpretation x 0 = f x
-
 end Cslib.Circuits

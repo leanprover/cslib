@@ -194,7 +194,7 @@ private theorem eventually_bound_le (P : ℕ) :
 /-- Transport `synthesis` along `k + d = n`. -/
 private theorem exists_circuit_of_split {n k d s : ℕ} (h : k + d = n) (hs : 0 < s)
     (f : BooleanFunction n) : ∃ g ≤ bound k d s, ∃ c : Circuit signature n g 1,
-      c.Computes f := by
+      c.Computes interpretation f := by
   subst n
   exact (synthesis f hs).exists_circuit
 
@@ -206,7 +206,7 @@ comes from `eventually_bound_le P`. -/
 theorem exists_circuit (ε : ℝ) (hε : 0 < ε) :
     ∃ N : ℕ, ∀ n ≥ N, ∀ f : BooleanFunction n,
       ∃ g, ∃ c : Circuit signature n g 1,
-        c.Computes f ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
+        c.Computes interpretation f ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
   apply eventually_atTop.mp
   obtain ⟨P, hP⟩ := exists_nat_gt (1 / ε)
   have hP0 : (0 : ℝ) < P := lt_trans (by positivity) hP

@@ -26,3 +26,4 @@ import CslibTests.MultiTapeComplexity
 import CslibTests.PACLearning
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
+import CslibTests.Synthesis
