@@ -13,7 +13,7 @@ import Mathlib.Tactic.DeriveFintype
 
 These tests exercise computable syntax enumeration, semantic counting on an infinite carrier,
 normalization of distinct symbols with the same interpretation, and empty or nullary signatures.
-The Shannon theorem is also instantiated on the single-operation NAND basis.
+The Shannon theorem is also instantiated on the NAND basis and a three-valued carrier.
 -/
 
 namespace CslibTests.CircuitCounting
@@ -97,15 +97,24 @@ example (s : ℕ) : (computableFunctions nullaryInterpretation 0 s).card * s.fac
   simpa using card_computableFunctions_mul_factorial_le_of_arity_le nullaryInterpretation
     0 s 0 (fun _ => le_rfl)
 
-abbrev nandSignature : Signature where
+abbrev binarySignature : Signature where
   Op := Unit
   Arity := fun _ => 2
 
-def nandInterpretation : Interpretation nandSignature Bool := fun _ x => !(x 0 && x 1)
+def nandInterpretation : Interpretation binarySignature Bool := fun _ x => !(x 0 && x 1)
 
 example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Bool) → Bool,
-    ∀ {g} (c : Circuit nandSignature n g 1),
-      c.Computes nandInterpretation f → 2 ^ n / (n : ℝ) < (c.size : ℝ) :=
-  Shannon.exists_hard_function nandInterpretation (fun _ => le_rfl)
+    ∀ {g} (c : Circuit binarySignature n g 1),
+      c.Computes nandInterpretation f → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
+  simpa [Nat.card_eq_fintype_card] using
+    Shannon.exists_hard_function nandInterpretation (fun _ => le_rfl)
+
+def ternaryInterpretation : Interpretation binarySignature (Fin 3) := fun _ x => x 0 + x 1
+
+example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Fin 3) → Fin 3,
+    ∀ {g} (c : Circuit binarySignature n g 1),
+      c.Computes ternaryInterpretation f → 3 ^ n / (n : ℝ) < (c.size : ℝ) := by
+  simpa [Nat.card_eq_fintype_card] using
+    Shannon.exists_hard_function ternaryInterpretation (fun _ => le_rfl)
 
 end CslibTests.CircuitCounting
