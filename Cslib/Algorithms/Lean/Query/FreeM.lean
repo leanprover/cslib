@@ -64,10 +64,8 @@ variable {F : Type u → Type v} {α β : Type u}
 @[simp]
 theorem timeMRet_liftM {T : Type t} [AddMonoid T] (interp : {ι : Type u} → F ι → TimeM T ι)
     (p : FreeM F α) :
-    (p.liftM interp).ret = Id.run (p.liftM fun i => pure (interp i).ret) := by
-  induction p with
-  | pure => simp only [liftM_pure, TimeM.ret_pure, Id.run_pure]
-  | lift_bind op h ih => simp [ih]
+    (p.liftM interp).ret = Id.run (p.liftM fun i => pure (interp i).ret) :=
+  Algorithms.Lean.TimeM.isMonadHom_pure_ret.map_freeMLiftM _ _
 
 /-! ## Interpreters
 
