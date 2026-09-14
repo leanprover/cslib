@@ -41,7 +41,7 @@ inductive Tr : Process Name Constant → Act Name → Process Name Constant → 
   | choiceL : Tr p μ p' → Tr (choice p q) μ p'
   | choiceR : Tr q μ q' → Tr (choice p q) μ q'
   | res : μ ≠ Act.name a → μ ≠ Act.coname a → Tr p μ p' → Tr (res a p) μ (res a p')
-  | const : defs k = some p → Tr p μ p' → Tr (const k) μ p'
+  | const : defs k = some p → Tr p μ p' → Tr («const» k) μ p'
 
 instance : HasTau (Act Name) where
   τ := Act.τ
@@ -69,10 +69,10 @@ theorem pre_tr (h : (lts (defs := defs)).Tr (pre μ p) μ' p') : μ = μ' ∧ p 
 
 /-- Inversion lemma for constant transitions. -/
 @[scoped grind →]
-theorem const_tr (h : (lts (defs := defs)).Tr (const k) μ p') :
+theorem const_tr (h : (lts (defs := defs)).Tr («const» k) μ p') :
     ∃ p, defs k = some p ∧ (lts (defs := defs)).Tr p μ p' := by
   cases h
-  case const p hdef htr =>
+  case «const» p hdef htr =>
     exists p
 
 /-- Prefixes are deterministic. -/
@@ -84,7 +84,7 @@ theorem pre_deterministicState : DeterministicState (lts (defs := defs)) (pre μ
 @[scoped grind .]
 theorem const_deterministicStateLabel (hdef : defs k = some p)
     (h : DeterministicStateLabel (lts (defs := defs)) p μ) :
-    DeterministicStateLabel (lts (defs := defs)) (const k) μ := by
+    DeterministicStateLabel (lts (defs := defs)) («const» k) μ := by
   intro p₁ p₂ h₁ h₂
   cases h₁
   cases h₂
