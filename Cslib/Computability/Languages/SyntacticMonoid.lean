@@ -38,11 +38,7 @@ def Congruence.toCon [c : Congruence α] : Con (FreeMonoid α) where
 
 /-- The syntactic monoid of a language `l` is the quotient of the free monoid
 by the Myhill congruence of `l`. -/
-def SyntacticMonoid (l : Language α) := l.MyhillCongruence.toCon.Quotient
-
-/-- The syntactic monoid of a language `l` is indeed a monoid. -/
-instance (l : Language α) : Monoid l.SyntacticMonoid := by
-  exact Con.monoid l.MyhillCongruence.toCon
+abbrev SyntacticMonoid (l : Language α) := l.MyhillCongruence.toCon.Quotient
 
 /-- A language `l` is regular if and only if its syntactic monoid is finite. -/
 theorem IsRegular.iff_finite_syntacticMonoid (l : Language α) :
