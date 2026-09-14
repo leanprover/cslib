@@ -60,9 +60,9 @@ example : (fun x : Fin 1 → Bool => x 0) ∈ computableFunctions 1 0 := by
 example (ε : ℝ) (hε : 0 < ε) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n,
       (∀ {g} (c : Circuit signature n g 1),
-        c.Computes f → 2 ^ n / (n : ℝ) < (c.size : ℝ)) ∧
+        c.Computes interpretation f → 2 ^ n / (n : ℝ) < (c.size : ℝ)) ∧
       ∃ g, ∃ c : Circuit signature n g 1,
-        c.Computes f ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
+        c.Computes interpretation f ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
   obtain ⟨N, hN⟩ := Shannon.exists_hard_function
   obtain ⟨M, hM⟩ := Lupanov.exists_circuit ε hε
   refine ⟨max N M, fun n hn => ?_⟩
