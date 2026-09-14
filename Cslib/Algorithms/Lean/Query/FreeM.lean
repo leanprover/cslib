@@ -186,6 +186,20 @@ theorem isMonadHom_pure_eval (oracle : {ι : Type u} → F ι → ι) :
 theorem countQueries_eq_cost_one (oracle : {ι : Type u} → F ι → ι) (p : FreeM F α) :
     countQueries oracle p = cost oracle (fun _ => 1) p := rfl
 
+@[simp↓]
+theorem countQueries_ite (oracle : {ι : Type u} → F ι → ι) (P : Prop) [Decidable P]
+    (p q : FreeM F α) :
+    (if P then p else q).countQueries oracle =
+      if P then p.countQueries oracle else q.countQueries oracle :=
+  apply_ite (countQueries oracle) P p q
+
+@[simp↓]
+theorem countQueries_dite (oracle : {ι : Type u} → F ι → ι) (P : Prop) [Decidable P]
+    (p : P → FreeM F α) (q : ¬P → FreeM F α) :
+    (if h : P then p h else q h).countQueries oracle =
+      if h : P then (p h).countQueries oracle else (q h).countQueries oracle :=
+  apply_dite (countQueries oracle) P p q
+
 /-! ## Combinatorial lower bound -/
 
 section LowerBound

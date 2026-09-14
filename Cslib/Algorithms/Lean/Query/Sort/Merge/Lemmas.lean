@@ -82,7 +82,7 @@ theorem countQueries_merge_nil_right (oracle : {ι : Type} → LEQuery α ι →
     (merge xs ([] : List α)).countQueries oracle = 0 := by
   simp
 
-@[simp] theorem countQueries_merge_cons_cons (oracle : {ι : Type} → LEQuery α ι → ι)
+theorem countQueries_merge_cons_cons (oracle : {ι : Type} → LEQuery α ι → ι)
     (x : α) (xs' : List α) (y : α) (ys' : List α) :
     (merge (x :: xs') (y :: ys')).countQueries oracle =
       1 + if oracle (.le x y)
