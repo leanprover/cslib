@@ -80,7 +80,7 @@ jobs:
     # Now post a success message to zulip, if the last message there is not a success message.
     # https://chat.openai.com/share/87656d2c-c804-4583-91aa-426d4f1537b3
     - name: Install Zulip API client
-      run: pip install zulip
+      run: pip install -r .github/requirements.txt
 
     - name: Check last message and post if necessary
       env:
@@ -270,7 +270,7 @@ jobs:
         SHA: ${{ env.SHA }}
       run: |
         echo "Installing zulip CLI..."
-        pip install zulip
+        pip install -r .github/requirements.txt
         echo "Configuring git identity for mathlib4-bot..."
         git config --global user.name "mathlib4-bot"
         git config --global user.email "github-mathlib4-bot@leanprover.zulipchat.com"
