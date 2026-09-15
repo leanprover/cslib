@@ -9,6 +9,11 @@ on:
   merge_group:
   workflow_dispatch:
 
+# Cancel superseded runs on PR branches, but never on main or nightly-testing.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/nightly-testing' }}
+
 jobs:
   ci-checks:
     runs-on: ubuntu-latest
