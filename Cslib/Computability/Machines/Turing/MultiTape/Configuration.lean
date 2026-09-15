@@ -81,6 +81,14 @@ structure Cfg (k : ℕ) (Symbol State : Type*) (input : List Symbol) where
   output : List Symbol
 deriving Inhabited
 
+/-- Two configurations of a machine without work tapes are equal if their states, input head
+positions and outputs are equal. -/
+lemma Cfg.ext_zero_tapes {Symbol State : Type*} {input : List Symbol}
+    {cfg₁ cfg₂ : Cfg 0 Symbol State input} (state : cfg₁.state = cfg₂.state)
+    (inputPos : cfg₁.inputPos = cfg₂.inputPos) (output : cfg₁.output = cfg₂.output) :
+    cfg₁ = cfg₂ :=
+  Cfg.ext state inputPos (funext fun i => i.elim0) (funext fun i => i.elim0) output
+
 /-- Attempt to move the input tape head.
 The machine can only read one empty cell outside of the input,
 any attempted movement beyond that results in no movement.
