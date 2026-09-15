@@ -69,7 +69,11 @@ namespace LTS
 
 /-- The unlabelled transition relation underlying an LTS. -/
 def UnlabelledTr (lts : LTS State Label) : State → State → Prop :=
-  fun s1 s2 => ∃ μ, lts.Tr s1 μ s2
+  fun s₁ s₂ => ∃ μ, lts.Tr s₁ μ s₂
+
+/-- A state is terminal if it has no outgoing transitions. -/
+def IsTerminal (lts : LTS State Label) (s : State) : Prop :=
+  ∀ μ s', ¬lts.Tr s μ s'
 
 section MultiStep
 
@@ -213,6 +217,39 @@ def generatedBy (s : State) : LTS {s' : State // lts.CanReach s s'} Label where
   Tr := fun s1 μ s2 => lts.CanReach s s1 ∧ lts.CanReach s s2 ∧ lts.Tr s1 μ s2
 
 end MultiStep
+
+section Traces
+
+variable {lts : LTS State Label}
+
+/-- The traces of a state `s` is the set of all lists of labels `μs` such that there is a multi-step
+transition labelled by `μs` originating from `s`. -/
+def traces (s : State) := { μs : List Label | ∃ s', lts.MTr s μs s' }
+
+/-- The complete traces of a state `s` is the set of all lists of labels `μs` such that there is a
+multi-step transition labelled by `μs` from `s` to a state with no outgoing transitions. -/
+def completeTraces (s : State) := { μs : List Label | ∃ s', lts.IsTerminal s' ∧ lts.MTr s μs s' }
+
+/-- Definition of `LTS.traces` for general label sequences, ... -/
+theorem mem_traces_iff {lts : LTS State Label} (μs : List Label) :
+  μs ∈ lts.traces s ↔ ∃ s', lts.MTr s μs s' := Iff.rfl
+
+/-- ... singleton sequences, ... -/
+theorem mem_traces_singleton_iff {lts : LTS State Label} (μ : Label) :
+    [μ] ∈ lts.traces s ↔ ∃ s', lts.Tr s μ s' := by
+  simp_rw [mem_traces_iff, MTr.singleton_iff lts s μ]
+
+/-- ... and sequences extended with a single transition. -/
+theorem mem_traces_cons_iff {lts : LTS State Label} (μ : Label) (μs : List Label) :
+    (μ :: μs) ∈ lts.traces s ↔ ∃ s', lts.Tr s μ s' ∧ μs ∈ lts.traces s' := by
+  simp_rw [mem_traces_iff, MTr.cons_iff]
+  grind
+
+/-- If there is a multi-step transition from `s` labelled by `μs`, then `μs` is in the traces of
+`s`. -/
+theorem traces_in {lts : LTS State Label} (h : lts.MTr s μs s') : μs ∈ lts.traces s := by exists s'
+
+end Traces
 
 section Classes
 /-!
@@ -400,6 +437,31 @@ class Acyclic (lts : LTS State Label) where
   [acyclic : Relation.Acyclic lts.UnlabelledTr]
 
 attribute [instance] Acyclic.acyclic
+
+/-- In a deterministic lts, a state's traces are determined by any of its predecessors. -/
+theorem Deterministic.traces_of_tr {lts : LTS State Label} [lts.Deterministic]
+    (h : lts.Tr s μ s') : lts.traces s' = {μs | μ :: μs ∈ lts.traces s} := by
+  ext μs
+  constructor
+  · intro ⟨s'', hmtr⟩
+    use s'', MTr.stepL h hmtr
+  · intro ⟨s'', hmtr⟩
+    rcases hmtr with (_ | ⟨htr, hmtr⟩)
+    rw [←deterministic _ _ _ _ h htr] at hmtr
+    exact ⟨s'', hmtr⟩
+
+/-- In a deterministic lts, a state's traces are determined by any of its multi-step predecessors.
+-/
+theorem Deterministic.traces_of_mTr {lts : LTS State Label} [lts.Deterministic]
+    (h : lts.MTr s μs s') : lts.traces s' = {μs' | μs ++ μs' ∈ lts.traces s} := by
+  ext μs'
+  constructor
+  · intro ⟨s'', hmtr⟩
+    use s'', h.comp _ hmtr
+  · intro ⟨s'', hmtr⟩
+    obtain ⟨smid, hmid, hmid'⟩ := hmtr.split
+    rw [Deterministic.eq_of_mTr h hmid]
+    use s'', hmid'
 
 end Classes
 
