@@ -161,7 +161,7 @@ end Language
 namespace Cslib.Automata.DA.FinAcc
 
 open Cslib Cslib.Language Automata DA FinAcc Acceptor
-open scoped RightCongruence
+open _root_.Language RightCongruence
 
 /-- The minimal DFA accepting `l` has the same number of states as the number of equivalence classes
 of the Nerode congruence on `l`. -/
