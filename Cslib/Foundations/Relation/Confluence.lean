@@ -151,7 +151,7 @@ theorem semiConfluent_iff_churchRosser : SemiConfluent r ↔ ChurchRosser r :=
 theorem confluent_iff_churchRosser : Confluent r ↔ ChurchRosser r :=
   List.TFAE.out confluent_equivalents 3 1
 
-alias ⟨_, Confluent.to_churchRosser⟩ := confluent_iff_churchRosser
+alias ⟨Confluent.to_churchRosser, _⟩ := confluent_iff_churchRosser
 
 @[deprecated (since := "2026-09-03")] alias Confluent_iff_ChurchRosser := confluent_iff_churchRosser
 
