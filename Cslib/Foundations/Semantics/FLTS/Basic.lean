@@ -53,6 +53,11 @@ theorem mtr_concat_eq {flts : FLTS State Label} {s : State} {μs : List Label} {
     flts.mtr s (μs ++ [μ]) = flts.tr (flts.mtr s μs) μ := by
   grind
 
+@[scoped grind =]
+def execution (flts : FLTS State Label) (s : State) : List Label → List State
+  | [] => [s]
+  | μ :: μs => s :: flts.execution (flts.tr s μ) μs
+
 end FLTS
 
 end Cslib
