@@ -149,9 +149,8 @@ switches to the state that holds the encoded output, which it then emits one sym
 before halting. -/
 noncomputable def almostConstTM (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (f : α → β)
     (S : Finset α) (out : List Bool) :
-    MultiTapeTM 0 Bool (AlmostConstState encIn encOut f S out) where
-  q₀ := Sum.inl ⟨[], by simp [encPrefixes]⟩
-  tr q input _ :=
+    MultiTapeTM 0 Bool (AlmostConstState encIn encOut f S out) :=
+  ofTr (Sum.inl ⟨[], by simp [encPrefixes]⟩) fun q input _ =>
     match q with
     | Sum.inl p =>
       match input with
@@ -182,8 +181,8 @@ lemma runFrom_read (a : α) {j : ℕ} (hj : j ≤ (encIn a).length)
         output := [] } := by
   induction j with
   | zero =>
-    simp only [runFrom_zero, initCfg, List.take_zero]
-    ext <;> simp [almostConstTM]
+    simp only [runFrom_zero, MultiTapeNTM.initCfg, List.take_zero]
+    ext <;> simp [almostConstTM, ofTr]
   | succ j ih =>
     have hprefix : (encIn a).take j <+: (encIn a).take (j + 1) := by
       simp
@@ -197,8 +196,8 @@ lemma runFrom_read (a : α) {j : ℕ} (hj : j ≤ (encIn a).length)
     have hend : 1 + j ≠ (encIn a).length + 1 := by omega
     have hprev : 1 + j - 1 = j := by omega
     rw [runFrom_succ_eq_step', ih (by omega) hmem']
-    simp only [step, Action.apply, almostConstTM, Cfg.inputSymbol, Fin.ext_iff, Fin.val_zero,
-      hstart, hend, hprev, reduceDIte, hcat]
+    simp only [step, Action.apply, almostConstTM, tr_ofTr, Cfg.inputSymbol, Fin.ext_iff,
+      Fin.val_zero, hstart, hend, hprev, reduceDIte, hcat]
     exact Cfg.ext_zero_tapes (by grind [List.take_concat_get']) hmove (by simp)
 
 /-- The configuration reached after having emitted the first `i` symbols of `w`, starting from a
@@ -220,7 +219,7 @@ lemma runFrom_write {input : List Bool} (pos : Fin (input.length + 2)) (o : List
     have htake := List.take_concat_get' w i hilt
     have hnotdone : ¬ (w.length ≤ i) := by omega
     rw [runFrom_succ_eq_step', ih (by omega)]
-    simp only [step, Action.apply, almostConstTM, List.head?_drop,
+    simp only [step, Action.apply, almostConstTM, tr_ofTr, List.head?_drop,
       List.getElem?_eq_getElem hilt, List.drop_eq_nil_iff, hnotdone, reduceIte, List.tail_drop,
       moveInputPos_zero, Option.toList_some]
     exact Cfg.ext_zero_tapes rfl rfl (by grind)
@@ -238,8 +237,8 @@ lemma runFrom_write_halted {input : List Bool} (pos : Fin (input.length + 2)) (o
         workTapePos := fun _ => 0,
         output := o ++ w } := by
   rw [runFrom_succ_eq_step', runFrom_write pos o hw le_rfl]
-  simp only [step, Action.apply, almostConstTM, List.drop_length, reduceIte, List.head?_nil,
-    moveInputPos_zero, Option.toList_none, List.append_nil, List.take_length]
+  simp only [step, Action.apply, almostConstTM, tr_ofTr, List.drop_length, reduceIte,
+    List.head?_nil, moveInputPos_zero, Option.toList_none, List.append_nil, List.take_length]
   exact Cfg.ext_zero_tapes rfl rfl (by simp)
 
 /-- A constant time bound for the machine `almostConstTM`. -/
@@ -298,7 +297,7 @@ lemma reaches_write (h : ∀ a ∉ S, encOut (f a) = out) (a : α) :
       by_cases ha : a ∈ S
       · exact encodedFun_enc ha
       · rw [encodedFun_enc_of_notMem ha, h a ha]
-    simp only [step, almostConstTM, Cfg.inputSymbol, Fin.ext_iff, Fin.val_zero, hend,
+    simp only [step, almostConstTM, tr_ofTr, Cfg.inputSymbol, Fin.ext_iff, Fin.val_zero, hend,
       reduceDIte, dite_eq_ite, ite_self, hdec]
     exact Cfg.ext_zero_tapes rfl (by simp) (by simp)
   · -- the prefix read so far cannot be extended, so the machine emits the default output
@@ -310,15 +309,15 @@ lemma reaches_write (h : ∀ a ∉ S, encOut (f a) = out) (a : α) :
       grind [List.take_concat_get']
     have ha : a ∉ S := fun ha => hnotmem (mem_encPrefixes ha ((encIn a).take_prefix _))
     have hstart : 1 + j ≠ 0 := by omega
-    simp only [step, Action.apply, almostConstTM, Cfg.inputSymbol, Fin.ext_iff, Fin.val_zero,
-      hstart, hend, hprev, reduceDIte, hcat, moveInputPos_zero]
+    simp only [step, Action.apply, almostConstTM, tr_ofTr, Cfg.inputSymbol, Fin.ext_iff,
+      Fin.val_zero, hstart, hend, hprev, reduceDIte, hcat, moveInputPos_zero]
     refine Cfg.ext_zero_tapes ?_ (by simp) (by simp)
     simp only [Option.some.injEq, Sum.inr.injEq, Subtype.mk.injEq]
     exact (h a ha).symm
 
 /-- The machine `almostConstTM` computes `f` in at most `almostConstTime` steps and no space. -/
 lemma computesFunInTimeAndSpace_almostConstTM (h : ∀ a ∉ S, encOut (f a) = out) :
-    ComputesFunInTimeAndSpace (almostConstTM encIn encOut f S out) encIn encOut f
+    (almostConstTM encIn encOut f S out).ComputesFunInTimeAndSpace encIn encOut f
       (fun _ => almostConstTime encIn encOut f S out) (fun _ => 0) := by
   intro a
   obtain ⟨j, hjle, hj, hrun⟩ := reaches_write h a
@@ -330,7 +329,7 @@ lemma computesFunInTimeAndSpace_almostConstTM (h : ∀ a ∉ S, encOut (f a) = o
   · change j + 1 + ((encOut (f a)).length + 1) ≤ almostConstTime encIn encOut f S out
     rw [almostConstTime]
     omega
-  · unfold ComputesInTimeAndSpace
+  · apply computesInExactTimeAndSpace_iff_runFrom.mpr
     rw [hhalt]
     simp
 
