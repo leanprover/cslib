@@ -45,7 +45,7 @@ jobs:
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
         # Extract date from RELEASE_TAG (format: nightly-YYYY-MM-DD)
-        DATE_PART=$(echo "$RELEASE_TAG" | sed 's/nightly-//')
+        DATE_PART="${RELEASE_TAG#nightly-}"
         NIGHTLY_TESTING_TAG="nightly-testing-${DATE_PART}"
         echo "NIGHTLY_TESTING_TAG=$NIGHTLY_TESTING_TAG" >> "${GITHUB_ENV}"
 
