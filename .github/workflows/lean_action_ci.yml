@@ -9,10 +9,12 @@ on:
   merge_group:
   workflow_dispatch:
 
-# Cancel superseded runs on PR branches, but never on main or nightly-testing.
+# Label each run; only the latest run carrying a given label is kept. Pushes to
+# main and nightly-testing get the run id in their label, making it unique, so
+# those runs are never cancelled.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/nightly-testing' }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/nightly-testing') && github.run_id) || '' }}
+  cancel-in-progress: true
 
 jobs:
   ci-checks:
