@@ -84,6 +84,15 @@ theorem IsChain.isChainFromTo_of_ne_nil
 lemma isChainFromTo_singleton : List.IsChainFromTo r [a] a a :=
   ⟨List.IsChain.singleton a, by simp, rfl, rfl⟩
 
+/-- Mapping a chain maps its endpoints and transports its relation along the function. -/
+lemma IsChainFromTo.map {β : Type*} {s : β → β → Prop} (f : α → β)
+    (hc : chain.IsChainFromTo (fun a b => s (f a) (f b)) a b) :
+    (chain.map f).IsChainFromTo s (f a) (f b) where
+  isChain := (List.isChain_map f).mpr hc.isChain
+  ne_nil := by simpa using hc.ne_nil
+  head_eq := by simp [List.head_map, hc.head_eq]
+  getLast_eq := by simp [List.getLast_map, hc.getLast_eq]
+
 /-- Prepend an `r`-related element to the start of the chain. -/
 lemma IsChainFromTo.cons (h : r a b) (hc : chain.IsChainFromTo r b c) :
     (a :: chain).IsChainFromTo r a c where
