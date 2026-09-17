@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.DA.Basic
+public import Cslib.Computability.Automata.NA.Basic
 public import Mathlib.Computability.Language
 public import Mathlib.Computability.RegularExpressions
 
@@ -15,113 +16,67 @@ public import Mathlib.Computability.RegularExpressions
 # Kleene's Algorithm
 
 Kleene's algorithm constructs a regular expresssion by induction on a bound `k` that restricts
-which interior states a run may pass through.
+which interior states an execution may pass through.
 It is used to prove `Cslib.Language.IsRegular.iff_regex`, that every language accepted by
 a DFA comprised of finite states is the language of a regular expression.
-The special case where the DFA has only one accepting state is proved in
-`regex_of_dfa_singleton_accept` in this file.
+We implement Kleene's algorithm for the more general case of an NFA instead of DFA,
+since `Execution` is developed for `LTS` but not `FLTS`
+The special case where the NFA has only one start state and one accept state is proved in
+`regex_of_nfa_singleton_start_accept` in this file.
 
 ## Main definitions
-- `PathSupp`: The interior states of a run
-- `BddPathFLTS`: A transition system containing a start state, finish state, and a specific bound on
-all interior states
-- `Regex flts i j k`: The regular expression for the paths from state `i` to state `j`,
+- `BddPathLTS`: A labelled transition system containing a start state, last state, and
+a specific bound on all interior states
+- `Regex lts i j k`: The regular expression for the executions from state `i` to state `j`,
 whose interior states are all under a specific bound `k`
 
 ## Main results
-- `regex_of_dfa_singleton_accept`: DFAs with one accepting state have a matching regular
-  expression
-- `language_bddpath_eq_dfa`: A bound that has reached the total number of states no longer
+- `regex_of_nfa_singleton_start_accept`: NFA with one start state and one accept state have
+a matching regular expression
+- `language_bddpath_eq_nfa`: A bound that has reached the total number of states no longer
   constrains anything
-- `language_bddpath_eq_regex`: `Regex flts i j k` matches exactly the same paths from `i` to `j`
-  with interior states below `k`
+- `language_bddpath_eq_regex`: `Regex lts i j k` matches the language of the NFA with
+start state `i`, accept state `j`, and interior states below `k`
 
 ## References
 
 * [J. E. Hopcroft, R. Motwani, J. D. Ullman,
-  *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
+  *InTroduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
 
 @[expose] public section
 
 namespace Cslib.Language
 
-open scoped FLTS
+open scoped LTS
 
 variable {Symbol : Type*}
-
-section PathSupp
-
-variable {State : Type*}
-
-/-- `PathSupp s xs` is the set of states that can be reached from state `s` by reading
-the string `xs`, not including the starting state and the ending state. -/
-def PathSupp (flts : FLTS State Symbol) : State → List Symbol → Set State
-  | _, [] | _, [_] => ∅
-  | s, a :: x => {flts.tr s a} ∪ PathSupp flts (flts.tr s a) x
-
-theorem pathSupp_empty_iff_empty_or_char {flts : FLTS State Symbol} {s : State} {xs : List Symbol} :
-    PathSupp flts s xs = ∅ ↔ xs = [] ∨ (∃ a : Symbol, xs = [a]) := by
-  match xs with
-  | [] | [_] => grind [PathSupp]
-  | x :: y :: ys =>
-    have : flts.tr s x ∈ PathSupp flts s (x :: y :: ys) := by grind [PathSupp]
-    grind
-
-/-- If `xs` is nonempty, then the interior states of the run that starts at `s` and reads `a :: xs`
-consist of the state reached after reading `a` as well as the interior states of the run that starts
-at `flts.tr s a` and reads `xs`. -/
-theorem pathSupp_head {flts : FLTS State Symbol} {s : State} {a : Symbol} {xs : List Symbol}
-    (hxs : xs ≠ []) : PathSupp flts s (a :: xs) =
-    {flts.tr s a} ∪ PathSupp flts (flts.tr s a) xs := by
-  grind [PathSupp]
-
-theorem pathSupp_append {flts : FLTS State Symbol} {s : State} {xs ys : List Symbol}
-    (hxs : xs ≠ [] ∧ ys ≠ []) : PathSupp flts s (xs ++ ys) =
-    {flts.mtr s xs} ∪ PathSupp flts s xs ∪ PathSupp flts (flts.mtr s xs) ys := by
-  induction xs generalizing s with
-  | nil => grind [PathSupp]
-  | cons a xs ih =>
-  rw [List.cons_append, pathSupp_head (by simp [hxs.2])]
-  by_cases hx : xs = []
-  · grind [PathSupp]
-  · grind [pathSupp_head hx]
-
-end PathSupp
 
 open Automata Acceptor
 
 variable {n : ℕ}
 
-/-- A Bounded Path (`BddPathFLTS`) has states `Fin n` and accepts strings (lists of symbols)
-starting with state `start` and ending with state `finish`
+/-- A Bounded Path (`BddPathLTS`) has states `Fin n` and accepts strings (lists of symbols)
+starting with state `start` and ending with state `last`
 with the interior states less than `bound`. -/
-structure BddPathFLTS (n : ℕ) (Symbol : Type*) extends FLTS (Fin n) Symbol where
-  /-- The starting state of the path. -/
+structure BddPathLTS (n : ℕ) (Symbol : Type*) extends LTS (Fin n) Symbol where
+  /-- The start state of the path. -/
   start : Fin n
-  /-- The finishing state of the path. -/
-  finish : Fin n
+  /-- The last state of the path. -/
+  last : Fin n
   /-- The bound for interior states of the path. -/
   bound : ℕ
 
-instance : Acceptor (BddPathFLTS n Symbol) Symbol where
-  Accepts (p : BddPathFLTS n Symbol) (xs : List Symbol) :=
-    -- let ss := p.toFLTS.execution p.start xs
-    -- p.mtr p.start xs = p.finish ∧ ∀ i ∈ ss, i < p.bound
-    p.mtr p.start xs = p.finish ∧ (∀ i ∈ PathSupp p.toFLTS p.start xs, i < p.bound)
+instance : Acceptor (BddPathLTS n Symbol) Symbol where
+  Accepts (p : BddPathLTS n Symbol) (xs : List Symbol) :=
+    ∃ ss : List (Fin n),
+    p.toLTS.Execution p.start xs p.last ss ∧
+    ∀ idx, ∀ _ : 0 < idx ∧ idx + 1 < ss.length, ss[idx] < p.bound
+    -- ∀ s ∈ ss.tail.dropLast, s < p.bound
 
-theorem language_bddpath_head_iff {flts : FLTS (Fin n) Symbol} {i j : Fin n} {k : ℕ}
-    {a : Symbol} {xs : List Symbol} :
-    a :: xs ∈ language (BddPathFLTS.mk flts i j k) ↔
-    xs ∈ language (BddPathFLTS.mk flts (flts.tr i a) j k) ∧ (flts.tr i a < k ∨ xs = []) := by
-  simp only [mem_language, Accepts]
-  by_cases hxs : xs = []
-  · grind [PathSupp]
-  grind [pathSupp_head hxs]
-
-theorem language_bddpath_eq_dfa (flts : FLTS (Fin n) Symbol) (i j : Fin n) {k : ℕ} (hk : n ≤ k) :
-    language (BddPathFLTS.mk flts i j k) =
-    language (DA.FinAcc.mk {tr := flts.tr, start := i} {j}) := by
+theorem language_bddpath_eq_nfa (lts : LTS (Fin n) Symbol) (i j : Fin n) {k : ℕ} (hk : n ≤ k) :
+    language (BddPathLTS.mk lts i j k) =
+    language (NA.FinAcc.mk {Tr := lts.Tr, start := {i}} {j}) := by
   simp [language, Accepts]
   grind
 
@@ -130,291 +85,142 @@ open List
 section splitLast
 
 /-- Starting at state `i`, the function `splitLast` sends a string to its longest prefix
-ending at state `k`.
-If the string ends at state `k`, then `splitLast` returns the original string.
-If the string never passes through state `k` (starting state can be `k`),
-then `splitLast` returns the empty string. -/
-def splitLast (flts : FLTS (Fin n) Symbol) (i k : Fin n) : List Symbol → List Symbol
-  | [] => []
-  | a :: x => if (splitLast flts (flts.tr i a) k x = []) ∧ flts.tr i a ≠ k then []
-  else a :: splitLast flts (flts.tr i a) k x
-
-theorem isPrefix_splitLast (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
-    IsPrefix (splitLast flts i k xs) xs := by
-  induction xs generalizing i with
-  | nil => simp [splitLast]
-  | cons a xs ih => grind [splitLast]
+ending at state `k`. -/
+def splitLast {lts : LTS (Fin n) Symbol} {i j : Fin n} {xs : List Symbol} {ss : List (Fin n)}
+    (_ : LTS.Execution lts i xs j ss) (k : Fin n) : List Symbol :=
+    xs.take (xs.length - (ss.reverse.tail.findIdx (· = k) + 1))
 
 /-- Starting at state `i`, the function `splitLastCompl` sends a string to its shortest suffix
-starting at state `k`.
-If the string ends at state `k`, then `splitLastCompl` returns the empty string.
-If the string never passes through state `k` (starting state can be `k`),
-then `splitLastCompl` returns the original string. -/
-noncomputable def splitLastCompl (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
-    List Symbol := (isPrefix_splitLast flts i k xs).choose
+starting at state `k`. -/
+def splitLastCompl {lts : LTS (Fin n) Symbol} {i j : Fin n} {xs : List Symbol} {ss : List (Fin n)}
+    (_ : LTS.Execution lts i xs j ss) (k : Fin n) : List Symbol :=
+    xs.drop (xs.length - (ss.reverse.tail.findIdx (· = k) + 1))
 
-theorem splitLast_append (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
-    splitLast flts i k xs ++ splitLastCompl flts i k xs = xs := by
-  grind [splitLastCompl]
+/-- If the execution of `xs` from `i` to `j` has `k` as the largest interior state, then
+`splitLast flts i k xs` is a path from `i` to `k` whose interior states are all below `k + 1`. -/
+theorem splitLast_mem {lts : LTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
+    {ss : List (Fin n)} (hex : lts.Execution i xs j ss)
+    (hbdd : ∀ idx, ∀ _ : 0 < idx ∧ idx + 1 < ss.length, ss[idx] < k.val + 1)
+    (hbdd' : ¬(∀ idx, ∀ _ : 0 < idx ∧ idx + 1 < ss.length, ss[idx] < k)) :
+    splitLast hex k ∈ language (BddPathLTS.mk lts i k (k + 1)) := by sorry
 
-theorem splitLastCompl_head (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol)
-    (a : Symbol) : splitLastCompl flts i k (a :: xs) =
-    (if splitLast flts (flts.tr i a) k xs = [] ∧ flts.tr i a ≠ k then a :: xs
-    else splitLastCompl flts (flts.tr i a) k xs) := by grind [splitLastCompl, splitLast]
-
-theorem splitLast_eq {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
-    (h : k ∉ PathSupp flts i xs) (h' : k = flts.mtr i xs) : splitLast flts i k xs = xs := by
-  induction xs generalizing i with
-  | nil => grind [splitLast, PathSupp]
-  | cons a xs ih =>
-  by_cases hxs : xs = []
-  · grind [splitLast, PathSupp]
-  grind [pathSupp_head hxs, splitLast,
-    (isPrefix_splitLast flts (flts.tr i a) k xs).length_le]
-
-theorem splitLastCompl_eq {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
-    (h : k ∉ PathSupp flts i xs) (h' : k = flts.mtr i xs) : splitLastCompl flts i k xs = [] := by
-  simpa [splitLast_eq h h'] using splitLast_append flts i k xs
-
-/-- `splitLast flts i k xs` is non-empty exclusively when the run from `i` over `xs`
-visits `k` at some step AFTER the start. -/
-theorem splitLast_nonempty_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : Fin n}
-    {xs : List Symbol} (hxs : xs ≠ []) :
-    ¬(splitLast flts i k xs = []) ↔ k ∈ PathSupp flts i xs ∨ k = flts.mtr i xs := by
-  induction xs generalizing i with
-  | nil => contradiction
-  | cons a xs ih =>
-  by_cases hxs' : xs = []
-  · grind [splitLast, PathSupp]
-  grind [pathSupp_head hxs', splitLast,
-    (isPrefix_splitLast flts (flts.tr i a) k xs).length_le]
-
-/-- `splitLastCompl flts i k xs` is not all of `xs` exclusively when the run from `i` over `xs`
-visits `k` at some step AFTER the start. -/
-theorem splitLastCompl_neq_iff_mem_PathSupp {flts : FLTS (Fin n) Symbol} {i k : Fin n}
-    {xs : List Symbol} (hxs : xs ≠ []) :
-    ¬(splitLastCompl flts i k xs = xs) ↔ k ∈ PathSupp flts i xs ∨ k = flts.mtr i xs := by
-  rw [← splitLast_nonempty_iff_mem_PathSupp hxs, not_iff_not]
-  nth_rw 2 [← splitLast_append flts i k xs]
-  simp
-
-/-- The run of `a :: xs` from `i` to `j` having `k` as the largest interior state and
-no prefix of `a :: xs` (of length 1 or more) ending at state `k` cannot both be true. -/
-theorem splitLast_aux {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
-    {a : Symbol} (h : a :: xs ∈ language (BddPathFLTS.mk flts i j (k + 1)))
-    (h' : a :: xs ∉ language (BddPathFLTS.mk flts i j k))
-    (hc : splitLast flts (flts.tr i a) k xs = [] ∧ flts.tr i a ≠ k) : False := by
-  simp only [mem_language, Accepts, Order.lt_add_one_iff, Fin.val_fin_le, not_and,
-      not_forall, not_lt] at *
-  simp only [h, forall_const] at h'
-  obtain ⟨x, ⟨hx, hxk⟩⟩ := h'
-  have eq := le_antisymm (h.2 x hx) hxk
-  rw [eq] at hx
-  by_cases hxs : xs = []
-  · grind [PathSupp]
-  rw [pathSupp_head hxs] at hx h
-  rcases hx with hx1 | hx2
-  · have := hc.2
-    simp only [Set.mem_singleton_iff] at hx1
-    symm at hx1
-    contradiction
-  · grind [(splitLast_nonempty_iff_mem_PathSupp hxs).mpr (Or.inl hx2)]
-
-/-- If the run of `xs` from `i` to `j` has `k` as the largest interior state, then
-`splitLast flts i k xs` (the longest prefix of `xs` ending at `k`)
-is a path from `i` to `k` whose interior states are all below `k + 1`. -/
-theorem splitLast_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
-    (h : xs ∈ language (BddPathFLTS.mk flts i j (k + 1)))
-    (h' : xs ∉ language (BddPathFLTS.mk flts i j k)) :
-    splitLast flts i k xs ∈ language (BddPathFLTS.mk flts i k (k + 1)) := by
-  induction xs generalizing i with
-  | nil =>
-  simp [Accepts, PathSupp] at h h'
-  contradiction
-  | cons a xs ih =>
-  simp only [splitLast]
-  split_ifs with hc
-  · exfalso; exact splitLast_aux h h' hc
-  · rw [not_and_or, not_not] at hc
-    -- The last `k` is later than `flts.tr i a` or equal to it.
-    by_cases hc1 : ¬splitLast flts (flts.tr i a) k xs = []
-    · by_cases hxs : xs = []
-      · grind [splitLast]
-      have haux := language_bddpath_head_iff.mp h
-      simp only [hxs, or_false] at haux
-      refine language_bddpath_head_iff.mpr ⟨?_, Or.inl haux.2⟩
-      by_cases hk : k ∈ PathSupp flts (flts.tr i a) xs
-      · apply ih haux.1
-        simp [Accepts]
-        grind
-      · have eq : k = flts.mtr (flts.tr i a) xs := by
-          simpa [hk] using (splitLast_nonempty_iff_mem_PathSupp hxs).mp hc1
-        grind [splitLast_eq, h.1]
-    · rw [not_not] at hc1
-      simpa [hc1, Accepts, PathSupp, FLTS.mtr] using hc
-
-/-- If the run of `xs` from `i` to `j` has `k` as the largest interior state, then
-`splitLastCompl flts i k xs` (the shortest suffix of `xs` starting at `k`)
-is a path from `k` to `j` whose interior states are all below `k`. -/
-theorem splitLastCompl_mem {flts : FLTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
-    (h : xs ∈ language (BddPathFLTS.mk flts i j (k + 1)))
-    (h' : xs ∉ language (BddPathFLTS.mk flts i j k)) :
-    splitLastCompl flts i k xs ∈ language (BddPathFLTS.mk flts k j k) := by
-  induction xs generalizing i with
-  | nil =>
-  simp [Accepts, PathSupp] at h h'
-  contradiction
-  | cons a xs ih =>
-  have h'' := splitLast_mem h h'
-  rw [splitLastCompl_head]
-  split_ifs with hc
-  · exfalso; exact splitLast_aux h h' hc
-  · rw [not_and_or, not_not] at hc
-    -- The last `k` is later than `flts.tr i a` or equal to it.
-    by_cases hc1 : ¬splitLast flts (flts.tr i a) k xs = []
-    · by_cases hxs : xs = []
-      · grind [splitLastCompl]
-      -- First hypothesis of `ih` is implied by `h`
-      have haux := language_bddpath_head_iff.mp h
-      -- Assumptions `h` and `h'` combined says that `k ∈ PathSupp flts i (a :: xs)`
-      by_cases hk : k ∈ PathSupp flts (flts.tr i a) xs
-      · -- `k` appears in PathSupp
-        apply ih haux.1
-        simp [Accepts]
-        grind
-      · -- `k` only appears at the end state
-        -- `hk` should contradict with `h` and `h'`
-        apply (splitLast_nonempty_iff_mem_PathSupp hxs).mp at hc1
-        simp_all [Accepts, PathSupp, splitLastCompl_eq]
-    · -- The last `k` is equal to `flts.tr i a`
-      -- Cannot apply ih
-      -- Directly prove the goal from definition
-      simp only [mem_language, Accepts] at h ⊢
-      by_cases hxs : xs = []
-      · grind [splitLastCompl_eq, PathSupp]
-      grind [splitLast_append, splitLast_nonempty_iff_mem_PathSupp, pathSupp_head]
+/-- If the execution of `xs` from `i` to `j` has `k` as the largest interior state, then
+`splitLastCompl flts i k xs` is a path from `k` to `j` whose interior states are all below `k`. -/
+theorem splitLastCompl_mem {lts : LTS (Fin n) Symbol} {i j k : Fin n} {xs : List Symbol}
+    {ss : List (Fin n)} (hex : lts.Execution i xs j ss)
+    (hbdd : ∀ idx, ∀ _ : 0 < idx ∧ idx + 1 < ss.length, ss[idx] < k.val + 1)
+    (hbdd' : ¬(∀ idx, ∀ _ : 0 < idx ∧ idx + 1 < ss.length, ss[idx] < k)) :
+    splitLastCompl hex k ∈ language (BddPathLTS.mk lts k j k) := by sorry
 
 /-- Part of the recursion step of Kleene's algorithm.
-A run from `i` to `j` whose interior states are all at most `k` either has no interior state equal
-to `k`, or it splits at its last visit to `k` into a run from `i` to `k` with interior states
-below `k + 1`, followed by a run from `k` to `j` with interior states below `k`. -/
-theorem language_bddpath_splitLast (flts : FLTS (Fin n) Symbol) (i j k : Fin n) :
-    language (BddPathFLTS.mk flts i j (k + 1)) = language (BddPathFLTS.mk flts i j k) +
-    (language (BddPathFLTS.mk flts i k (k + 1)) * language (BddPathFLTS.mk flts k j k)) := by
-  ext xs
-  rw [Language.mem_add, Language.mem_mul]
-  constructor
-  · intro h
-    by_cases h' : xs ∈ language (BddPathFLTS.mk flts i j k)
-    · left; exact h'
-    right
-    use splitLast flts i k xs, splitLast_mem h h',
-    splitLastCompl flts i k xs, splitLastCompl_mem h h',
-    splitLast_append flts _ _ _
-  · rintro (h_left | ⟨ys, ⟨⟨hys, hsuppys⟩, ⟨zs, ⟨⟨hzs, hsuppzs⟩, happend⟩⟩⟩⟩)
-    · simp only [mem_language, Accepts] at h_left ⊢
-      grind
-    · refine ⟨by grind, ?_⟩
-      by_cases ys = [] ∨ zs = []
-      · grind
-      grind [pathSupp_append]
+An execution from `i` to `j` whose interior states are all at below `k + 1` either
+has no interior state equal to `k`, or it splits at its last visit to `k` into
+an execution from `i` to `k` with interior states below `k + 1`,
+followed by an execution from `k` to `j` with interior states below `k`. -/
+theorem language_bddpath_splitLast (lts : LTS (Fin n) Symbol) (i j k : Fin n) :
+    language (BddPathLTS.mk lts i j (k + 1)) = language (BddPathLTS.mk lts i j k) +
+    (language (BddPathLTS.mk lts i k (k + 1)) * language (BddPathLTS.mk lts k j k)) := by sorry
 
 end splitLast
 
 section splitFirst
 
-/-- Starting from a state `i`, the function `splitFirst` sends a string to its shortest prefix
-ending at state `k`.
-The string is empty if and only if its `splitFirst` is empty.
-If the string never passes through state `k` (starting state can be `k`),
-then `splitFirst` returns the original string. -/
-def splitFirst (flts : FLTS (Fin n) Symbol) (i k : Fin n) : List Symbol → List Symbol
-  | [] => []
-  | a :: x => if flts.tr i a = k then [a] else a :: splitFirst flts (flts.tr i a) k x
-
-theorem isPrefix_splitFirst (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
-    IsPrefix (splitFirst flts i k xs) xs := by
-  induction xs generalizing i with
-  | nil => simp [splitFirst]
-  | cons a xs ih => grind [splitFirst]
+/-- Starting at state `i`, the function `splitFirst` sends a string to its shortest prefix
+ending at state `k`. -/
+def splitFirst {lts : LTS (Fin n) Symbol} {i j : Fin n} {xs : List Symbol} {ss : List (Fin n)}
+    (_ : LTS.Execution lts i xs j ss) (k : Fin n) : List Symbol :=
+    xs.take (ss.tail.findIdx (· = k) + 1)
 
 /-- Starting at state `i`, the function `splitFirstCompl` sends a string to its longest suffix
-starting at state `k`.
-The string is empty if and only if `splitFirstCompl` is the original string.
-If the string never passes through state `k` (starting state can be `k`),
-then `splitFirstCompl` returns empty string. -/
-noncomputable def splitFirstCompl (flts : FLTS (Fin n) Symbol) (i k : Fin n)
-    (xs : List Symbol) : List Symbol := (isPrefix_splitFirst flts i k xs).choose
+starting at state `k`. -/
+def splitFirstCompl {lts : LTS (Fin n) Symbol} {i j : Fin n} {xs : List Symbol} {ss : List (Fin n)}
+    (_ : LTS.Execution lts i xs j ss) (k : Fin n) : List Symbol :=
+    xs.drop (ss.tail.findIdx (· = k) + 1)
 
-theorem splitFirst_append (flts : FLTS (Fin n) Symbol) (i k : Fin n) (xs : List Symbol) :
-    splitFirst flts i k xs ++ splitFirstCompl flts i k xs = xs := by
-  grind [splitFirstCompl]
+theorem splitFirst_mem {lts : LTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
+    {ss : List (Fin n)} (hex : lts.Execution i xs k ss)
+    (hbdd : ∀ idx, ∀ _ : 0 < idx ∧ idx + 1 < ss.length, ss[idx] < k.val + 1) :
+    splitFirst hex k ∈ language (BddPathLTS.mk lts i k k) := by
+  use ss.take (ss.tail.findIdx (· = k) + 1 + 1)
+  by_cases hss : ss.tail = []
+  · simp only [splitFirst, hss, findIdx_nil, zero_add, Nat.reduceAdd, length_take, lt_min_iff,
+    Order.lt_two_iff, add_le_iff_nonpos_left, nonpos_iff_eq_zero, getElem_take, Fin.val_fin_lt,
+    forall_and_index]
+    have : ss.length ≤ ss.tail.length + 1 := by rw [List.length_tail]; omega
+    grind
+  have t : (ss.tail.findIdx (· = k)) < ss.tail.length :=
+    findIdx_lt_length.mpr ⟨ss.tail.getLast hss, by grind⟩
+  simp only [splitFirst]
+  obtain ⟨hspec, hmin⟩ := (List.findIdx_eq t).mp rfl
+  constructor
+  · convert (LTS.Execution.split hex (ss.tail.findIdx (· = k) + 1) (by grind)).1
+    grind
+  · simp only [length_take, lt_min_iff, getElem_take, Fin.val_fin_lt]
+    intro idx ⟨hidx1, ⟨hidx2, hlength⟩⟩
+    have hidx2' : idx - 1 < (ss.tail.findIdx (· = k)) := by grind
+    simp only [Order.lt_add_one_iff, Fin.val_fin_le] at hbdd
+    apply lt_of_le_of_ne (hbdd idx ⟨hidx1, hlength⟩)
+    simpa [Nat.sub_add_cancel hidx1] using hmin (idx - 1) hidx2'
 
-/-- If the run of `xs` from `i` to `k` has all interior states below `k + 1`, then
-`splitFirst flts i k xs` (the shortest prefix of `xs`)
-is a path whose interior states are all below `k`. -/
-theorem splitFirst_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
-    (h : xs ∈ (language (BddPathFLTS.mk flts i k (k + 1)))) :
-    splitFirst flts i k xs ∈ language (BddPathFLTS.mk flts i k k) := by
-  induction xs generalizing i with
-  | nil => simpa [Accepts, splitFirst, PathSupp] using h
-  | cons a xs ih =>
-  simp only [mem_language, Accepts, splitFirst] at ih h ⊢
-  obtain ⟨h1, h2⟩ := h
-  split_ifs with ha
-  · refine ⟨by grind, ?_⟩
-    have : PathSupp flts i [a] = ∅ := by grind [PathSupp]
-    simp [this]
-  · by_cases hxs : xs = []
-    · grind
-    rw [pathSupp_head hxs] at h2
-    by_cases hPath : splitFirst flts (flts.tr i a) k xs = []
-    · grind
-    grind [pathSupp_head]
-
-theorem splitFirst_mem_nonempty {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
-    (hxs : xs ≠ []) (h : xs ∈ (language (BddPathFLTS.mk flts i k (k + 1)))) :
-    splitFirst flts i k xs ∈ language (BddPathFLTS.mk flts i k k) - 1 := by
-  rw [Language.mem_sub]
-  refine ⟨splitFirst_mem h, ?_⟩
-  simp only [Language.mem_one]
-  induction xs with
-  | nil => contradiction
-  | cons a xs ih => grind [splitFirst]
-
-/-- If the run of `xs` from `i` to `k` has all interior states below `k + 1`, then
-  `splitFirstCompl flts i k xs` (the longest suffix of `xs` starting at `k`)
-  is a path from `k` to `k` whose interior states are all below `k + 1`. -/
-theorem splitFirstCompl_mem {flts : FLTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
-    (h : xs ∈ (language (BddPathFLTS.mk flts i k (k + 1)))) :
-    splitFirstCompl flts i k xs ∈ language (BddPathFLTS.mk flts k k (k + 1)) := by
-  have h' := splitFirst_mem h
-  simp only [mem_language, Accepts] at h h' ⊢
-  rw [← splitFirst_append flts i k xs] at h
-  refine ⟨by grind, ?_⟩
-  by_cases splitFirst flts i k xs = [] ∨ splitFirstCompl flts i k xs = []
-  · grind [PathSupp]
-  grind [pathSupp_append]
+theorem splitFirstCompl_mem {lts : LTS (Fin n) Symbol} {i k : Fin n} {xs : List Symbol}
+    {ss : List (Fin n)} (hex : lts.Execution i xs k ss)
+    (hbdd : ∀ idx, ∀ _ : 0 < idx ∧ idx + 1 < ss.length, ss[idx] < k.val + 1) :
+    splitFirstCompl hex k ∈ language (BddPathLTS.mk lts k k (k + 1)) := by
+  by_cases hss : ss.tail = []
+  · use ss
+    have : ss.length ≤ ss.tail.length + 1 := by rw [List.length_tail]; omega
+    have : xs = [] := by grind
+    simp only [this, splitFirstCompl, drop_nil, Order.lt_add_one_iff, Fin.val_fin_le,
+      forall_and_index] at hex ⊢
+    grind
+  use ss.drop (ss.tail.findIdx (· = k) + 1)
+  have t : (ss.tail.findIdx (· = k)) < ss.tail.length :=
+    findIdx_lt_length.mpr ⟨ss.tail.getLast hss, by grind⟩
+  simp only [splitFirstCompl]
+  obtain ⟨hspec, hmin⟩ := (List.findIdx_eq t).mp rfl
+  constructor
+  · convert (LTS.Execution.split hex (ss.tail.findIdx (· = k) + 1) (by grind)).2
+    grind
+  · simp only [length_drop, getElem_drop]
+    intro idx hidx
+    exact hbdd (ss.tail.findIdx (· = k) + 1 + idx) (by grind)
 
 /-- Part of the recursion step of Kleene's algorithm.
-A run from `i` to `j` whose interior states are all at most `k` splits upon first reaching `k`.
-The part before the visit is a run from `i` to `k` with interior states below `k`.
-The part after it is a run from `k` to `k` with interior states below `k + 1`. -/
-theorem language_bddpath_splitFirst (flts : FLTS (Fin n) Symbol) (i k : Fin n) :
-    language (BddPathFLTS.mk flts i k (k + 1)) =
-    language (BddPathFLTS.mk flts i k k) * language (BddPathFLTS.mk flts k k (k + 1)) := by
+An execution from `i` to `j` whose interior states are all below `k + 1` splits upon
+first reaching `k`.
+The part before is an executionfrom `i` to `k` with interior states below `k`.
+The part after is an exection from `k` to `k` with interior states below `k + 1`. -/
+theorem language_bddpath_splitFirst (lts : LTS (Fin n) Symbol) (i k : Fin n) :
+    language (BddPathLTS.mk lts i k (k + 1)) =
+    language (BddPathLTS.mk lts i k k) * language (BddPathLTS.mk lts k k (k + 1)) := by
   ext xs
   rw [Language.mem_mul]
   constructor
-  · intro h
-    use splitFirst flts i k xs, splitFirst_mem h,
-      splitFirstCompl flts i k xs, splitFirstCompl_mem h,
-      splitFirst_append flts _ _ _
-  · intro ⟨ys, ⟨⟨hys, hsuppys⟩, ⟨zs, ⟨⟨hzs, hsuppzs⟩, happend⟩⟩⟩⟩
-    refine ⟨by grind, ?_⟩
-    by_cases ys = [] ∨ zs = []
-    · grind
-    grind [pathSupp_append]
+  · intro ⟨ss, ⟨hex, hbdd⟩⟩
+    use splitFirst hex k, splitFirst_mem hex hbdd,
+      splitFirstCompl hex k, splitFirstCompl_mem hex hbdd,
+      take_append_drop _ _
+  · intro ⟨ys, ⟨⟨ssy, ⟨hyex, hybdd⟩⟩, ⟨zs, ⟨⟨ssz, ⟨hzex, hzbdd⟩⟩, happend⟩⟩⟩⟩
+    use ssy ++ ssz.tail
+    constructor
+    · simpa [happend] using LTS.Execution.comp hyex hzex
+    · simp only [Fin.val_fin_lt, forall_and_index, Order.lt_add_one_iff, Fin.val_fin_le,
+      length_append, length_tail] at hybdd hzbdd ⊢
+      intro idx hidx1 hidx2
+      rw [List.getElem_append]
+      rcases lt_trichotomy (idx + 1) ssy.length with h | h | h
+      · simp only [(by omega : idx < ssy.length), ↓reduceDIte]
+        apply le_of_lt
+        exact hybdd idx hidx1 h
+      · simp only [(by omega : idx < ssy.length), ↓reduceDIte]
+        have eq : idx = ssy.length - 1 := by omega
+        subst idx
+        exact le_of_eq hyex.last
+      · have hlength : ¬idx < ssy.length := by omega
+        simp only [hlength, ↓reduceDIte, getElem_tail]
+        have hidx1' : 0 < idx - ssy.length + 1 := by omega
+        have hidx2' : idx - ssy.length + 1 + 1 < ssz.length := by omega
+        exact hzbdd (idx - ssy.length + 1) hidx1' hidx2'
 
 end splitFirst
 
@@ -429,31 +235,10 @@ theorem kstar_eq {α : Type*} (l : Language α) : l∗ = (l - 1)∗ := by
     fun ⟨S, ⟨hx, h⟩⟩ => ⟨S, hx, fun y ys => h y ys⟩⟩
 
 /-- Part of the recursion step of Kleene's algorithm.
-A run from `k` to `k` whose interior states are all at most `k` is a concatenation of runs from
-`k` to `k` whose interior states are all below `k`.
-In Kleene's algorithm, this is the "star" in the recursion. -/
-theorem language_bddpath_kstar (flts : FLTS (Fin n) Symbol) (k : Fin n) :
-    language (BddPathFLTS.mk flts k k (k + 1)) = (language (BddPathFLTS.mk flts k k k))∗ := by
-  rw [← mul_one (language (BddPathFLTS.mk flts k k ↑k))∗, kstar_eq]
-  refine (Language.self_eq_mul_add_iff (by simp [Language.mem_sub])).mp ?_
-  ext xs
-  simp only [Language.mem_add, Language.mem_mul, Language.mem_sub]
-  constructor
-  · intro h
-    by_cases h' : xs ∈ (1 : Language Symbol)
-    · grind
-    left
-    use splitFirst flts k k xs, splitFirst_mem_nonempty h' h,
-      splitFirstCompl flts k k xs, splitFirstCompl_mem h,
-      splitFirst_append flts _ _ _
-  · rintro (⟨ys, ⟨⟨⟨hys, hsuppys⟩, hysnotempty⟩, ⟨zs, ⟨⟨hzs, hsuppzs⟩, happend⟩⟩⟩⟩ | hempty)
-    · refine ⟨by grind, ?_⟩
-      by_cases zs = []
-      · grind
-      grind [pathSupp_append, Language.mem_one]
-    · rw [Language.mem_one] at hempty
-      simp only [mem_language, Accepts]
-      grind [PathSupp]
+An execution from `k` to `k` whose interior states are all below `k + 1` is a concatenation of
+executions from `k` to `k` whose interior states are all below `k`. -/
+theorem language_bddpath_kstar (lts : LTS (Fin n) Symbol) (k : Fin n) :
+    language (BddPathLTS.mk lts k k (k + 1)) = (language (BddPathLTS.mk lts k k k))∗ := by sorry
 
 end kstar
 
@@ -475,68 +260,75 @@ When k = 0, i = j, the regex is ε union all characters from state i to state i.
 When k = 0, i ≠ j, the regex is all characters from state i to state j.
 For k + 1, the regex is the union of Regex i j k and
 (Regex i k k) (Regex k k k)∗ (Regex k j k). -/
-noncomputable def Regex (flts : FLTS (Fin n) Symbol) (i j : Fin n) : ℕ → RegularExpression Symbol
+noncomputable def Regex (lts : LTS (Fin n) Symbol) [∀ i j, DecidablePred fun x => lts.Tr i x j]
+    (i j : Fin n) : ℕ → RegularExpression Symbol
   | 0 =>
     let chars := (Finset.univ.filter
-      (fun x : Symbol ↦ flts.tr i x = j)).toList.map RegularExpression.char
+      (fun x : Symbol ↦ lts.Tr i x j)).toList.map RegularExpression.char
     if i = j then 1 + chars.sum else chars.sum
   | k + 1 =>
-    if h : n ≤ k then Regex flts i j k
+    if h : n ≤ k then Regex lts i j k
     else
       let kFin : Fin n := ⟨k, by omega⟩
-      Regex flts i j k + Regex flts i kFin k * (Regex flts kFin kFin k).star * Regex flts kFin j k
+      Regex lts i j k + Regex lts i kFin k * (Regex lts kFin kFin k).star * Regex lts kFin j k
 
 /-- The correctness of Kleene's algorithm.
-`Regex flts i j k` exactly matches the strings that have a run starting
+`Regex lts i j k` exactly matches the sTrings that have a run starting
 at `i`, ending at `j`, and having all interior states below `k`. -/
-theorem language_bddpath_eq_regex {k : ℕ} {flts : FLTS (Fin n) Symbol} {i j : Fin n} :
-    language (BddPathFLTS.mk flts i j k) = (Regex flts i j k).matches' := by
+theorem language_bddpath_eq_regex {k : ℕ} {lts : LTS (Fin n) Symbol}
+    [∀ i j, DecidablePred fun x => lts.Tr i x j] {i j : Fin n} :
+    language (BddPathLTS.mk lts i j k) = (Regex lts i j k).matches' := by
   induction k generalizing i j with
   | zero =>
     ext xs
-    simp only [mem_language, Accepts, not_lt_zero, Regex]
-    rw [(by grind : (∀ i_1 ∈ PathSupp flts i xs, False) ↔ PathSupp flts i xs = ∅)]
-    split_ifs with heq
-    · -- The case of i = j, k = 0
-      simp only [matches', Language.mem_add, mem_sum_matches'_iff, pathSupp_empty_iff_empty_or_char]
-      aesop
-    · -- The case of i ≠ j, k = 0
-      rw [mem_sum_matches'_iff, pathSupp_empty_iff_empty_or_char]
-      aesop
+    simp only [mem_language, Accepts, Regex] -- not_lt_zero,
+    refine ⟨fun ⟨ss, ⟨hex, hbdd⟩⟩ ↦ ?_, fun h ↦  ?_⟩
+    · split_ifs with heq
+      · simp only [matches', Language.mem_add, mem_sum_matches'_iff]
+        sorry
+      · rw [mem_sum_matches'_iff]
+        sorry
+    · split_ifs at h with heq
+      · simp only [matches', Language.mem_add, mem_sum_matches'_iff] at h
+        sorry
+      · rw [mem_sum_matches'_iff] at h
+        sorry
   | succ k ih =>
     simp only [Regex]
     split_ifs with hk
-    · rw [← ih, language_bddpath_eq_dfa flts i j hk, language_bddpath_eq_dfa flts i j (by omega)]
+    · rw [← ih, language_bddpath_eq_nfa lts i j hk, language_bddpath_eq_nfa lts i j (by omega)]
     rw [language_bddpath_splitLast (k := ⟨k, by omega⟩), language_bddpath_splitFirst,
       language_bddpath_kstar]
     grind [matches'_add, matches'_mul, matches'_star]
 
-theorem language_dfa_eq_regex_of_singleton_accept {dfa : DA.FinAcc (Fin n) Symbol} {s : Fin n}
-    (h : dfa.accept = {s}) : language dfa = (Regex dfa.toFLTS dfa.start s n).matches' := by
-  simp [← language_bddpath_eq_regex, language, Accepts, h]
+theorem language_nfa_eq_regex_of_singleton_start_accept {nfa : NA.FinAcc (Fin n) Symbol}
+    [∀ i j, DecidablePred fun x => nfa.toLTS.Tr i x j] {s t : Fin n}
+    (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
+    language nfa = (Regex nfa.toLTS s t n).matches' := by
+  simp [← language_bddpath_eq_regex, language, Accepts, hstart, haccept, LTS.mTr_iff_execution]
   rfl
 
 end Regex
 
-/-- A DFA with exactly one accepting state has a matching regular expression. -/
-theorem regex_of_dfa_singleton_accept [Finite Symbol] {State : Type*} [Finite State]
-    (dfa : DA.FinAcc State Symbol) (h : ∃ s, dfa.accept = {s}) :
-    ∃ r : RegularExpression Symbol, language dfa = r.matches' := by
+/-- An NFA with exactly one accepting state has a matching regular expression. -/
+theorem regex_of_nfa_singleton_start_accept [Finite Symbol] {State : Type*} [Finite State]
+    (nfa : NA.FinAcc State Symbol)
+    (hstart : ∃ s, nfa.start = {s}) (haccept : ∃ t, nfa.accept = {t}) :
+    ∃ r : RegularExpression Symbol, language nfa = r.matches' := by
   have : Fintype State := Fintype.ofFinite State
   let e := Fintype.equivFin State
-  obtain ⟨s, h⟩ := h
-  set dfa' := DA.FinAcc.mk {tr := fun s a => e (dfa.tr (e.symm s) a), start := (e dfa.start)} {e s}
-    with hdfa'
-  have language_eq : language dfa = language dfa' := by
+  obtain ⟨s, hs⟩ := hstart
+  obtain ⟨t, ht⟩ := haccept
+  set nfa' := NA.FinAcc.mk
+    {Tr := fun s1 a s2 => nfa.Tr (e.symm s1) a (e.symm s2), start := {e s}} {e t} with hnfa'
+  have language_eq : language nfa = language nfa' := by
     ext xs
-    have dfa_eq : dfa'.mtr dfa'.start xs = e (dfa.mtr dfa.start xs) := by
-      induction xs using List.reverseRec with
-      | nil => grind
-      | append_singleton xs x ih => grind
-    simp only [mem_language, Accepts, h, hdfa']
-    rw [dfa_eq]
-    simp
+    have nfa_eq : nfa'.MTr (e s) xs (e t) ↔ nfa.MTr s xs t := by sorry
+    simp only [mem_language, Accepts, hs, Set.mem_singleton_iff, ht, exists_eq_left, hnfa']
+    rw [nfa_eq]
   have : Fintype Symbol := Fintype.ofFinite Symbol
-  simpa [language_eq] using  ⟨_, language_dfa_eq_regex_of_singleton_accept (by dsimp)⟩
+  classical
+  simpa [language_eq] using
+    ⟨_, language_nfa_eq_regex_of_singleton_start_accept (by dsimp) (by dsimp)⟩
 
 end Cslib.Language
