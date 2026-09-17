@@ -6,9 +6,9 @@ Authors: Shreyas Srinivas
 
 module
 
-public import Cslib.AlgorithmsTheory.QueryModel
-meta import Cslib.AlgorithmsTheory.Algorithms.MergeSort
-meta import Cslib.AlgorithmsTheory.QueryModel
+public import Cslib.Algorithms.QueryModel
+meta import Cslib.Algorithms.Algorithms.MergeSort
+meta import Cslib.Algorithms.QueryModel
 public import Mathlib.Algebra.Ring.Defs
 
 @[expose] public section
