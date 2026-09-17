@@ -69,29 +69,29 @@ theorem haswellformed_def (Γ : Context α β) : Γ✓ = Γ.NodupKeys := by rfl
 def mapVal (f : β → β) (Γ : Context α β) : Context α β :=
   Γ.map (fun ⟨var, ty⟩ => ⟨var, f ty⟩)
 
-variable {Γ : Context α β}
+variable {Γ : Context α β} (f : β → β)
 
 omit [DecidableEq α] in
-lemma mapVal_def (f : β → β) : Γ.mapVal f = Γ.map (Sigma.map id fun _ => f) := rfl
+lemma mapVal_def : Γ.mapVal f = Γ.map (Sigma.map id fun _ => f) := rfl
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves keys. -/
 @[scoped grind .]
-lemma mapVal_keys (f : β → β) : Γ.keys = (Γ.mapVal f).keys := by
+lemma mapVal_keys : Γ.keys = (Γ.mapVal f).keys := by
   rw [mapVal_def, ← map₂_keys]
 
 /-- Lookup commutes with a mapping of values. -/
 @[scoped grind =]
-lemma mapVal_dlookup (f : β → β) (x : α) : (Γ.mapVal f).dlookup x = (Γ.dlookup x).map f := by
+lemma mapVal_dlookup (x : α) : (Γ.mapVal f).dlookup x = (Γ.dlookup x).map f := by
   rw [mapVal_def, dlookup_map₂]
 
 /-- A mapping of values maps lookups. -/
-lemma mapVal_mem {x : α} {σ : β} (mem : σ ∈ Γ.dlookup x) (f : β → β) :
-    f σ ∈ (Γ.mapVal f).dlookup x := by grind
+lemma mapVal_mem {x : α} {σ : β} (mem : σ ∈ Γ.dlookup x) : f σ ∈ (Γ.mapVal f).dlookup x := by
+  grind
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves well-formedness. -/
-lemma mapVal_wf (f : β → β) (nd : Γ✓) : (Γ.mapVal f)✓ := by
+lemma mapVal_wf (nd : Γ✓) : (Γ.mapVal f)✓ := by
   rw [haswellformed_def, mapVal_def]
   exact NodupKeys.map₂ _ Γ nd
 
