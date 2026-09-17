@@ -7,8 +7,8 @@ Authors: Shreyas Srinivas, Eric Wieser
 module
 
 public import Cslib.Algorithms.Lean.Sort.Insertion
-public import Cslib.AlgorithmsTheory.QueryModel
-public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
+public import Cslib.Algorithms.QueryModel
+public import Cslib.Algorithms.Models.ListComparisonSort
 public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Data.Int.ConditionallyCompleteOrder
 public import Mathlib.Data.List.Sort

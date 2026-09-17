@@ -6,7 +6,7 @@ Authors: Shreyas Srinivas, Samuel Schlesinger
 
 module
 
-public import Cslib.AlgorithmsTheory.Models.ListComparisonSort
+public import Cslib.Algorithms.Models.ListComparisonSort
 public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Algebra.Ring.Nat
 public import Mathlib.Data.Fintype.BigOperators

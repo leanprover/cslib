@@ -7,7 +7,7 @@ Authors: Tanner Duve, Shreyas Srinivas, Eric Wieser
 module
 
 public import Cslib.Foundations.Control.Monad.Free
-public import Cslib.AlgorithmsTheory.Lean.TimeM
+public import Cslib.Algorithms.TimeM
 
 /-!
 # Query model

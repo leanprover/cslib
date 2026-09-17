@@ -6,7 +6,7 @@ Authors: Shreyas Srinivas, Eric Wieser, Samuel Schlesinger
 
 module
 
-public import Cslib.AlgorithmsTheory.QueryModel
+public import Cslib.Algorithms.QueryModel
 public import Mathlib.Algebra.Group.Nat.Defs
 public import Mathlib.Algebra.Group.Prod
 public import Mathlib.Data.Nat.Basic

@@ -6,8 +6,8 @@ Authors: Shreyas Srinivas, Eric Wieser
 
 module
 
-public import Cslib.AlgorithmsTheory.QueryModel
-public import Cslib.AlgorithmsTheory.Models.ListComparisonSearch
+public import Cslib.Algorithms.QueryModel
+public import Cslib.Algorithms.Models.ListComparisonSearch
 public import Batteries.Data.List
 public import Mathlib.Algebra.Order.Group.Nat
 public import Mathlib.Tactic.Set

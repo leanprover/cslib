@@ -6,7 +6,7 @@ Authors: Shreyas Srinivas
 
 module
 
-public import Cslib.AlgorithmsTheory.QueryModel
+public import Cslib.Algorithms.QueryModel
 
 /-!
 # Query Type for Comparison Search in Lists

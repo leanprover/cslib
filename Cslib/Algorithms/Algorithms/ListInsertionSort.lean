@@ -5,7 +5,7 @@ Authors: Shreyas Srinivas, Eric Wieser
 -/
 module
 
-public import Cslib.AlgorithmsTheory.Algorithms.ListOrderedInsert
+public import Cslib.Algorithms.Algorithms.ListOrderedInsert
 public import Mathlib.Tactic.NormNum
 
 import Cslib.Foundations.Control.Monad.IsMonadHom.List
