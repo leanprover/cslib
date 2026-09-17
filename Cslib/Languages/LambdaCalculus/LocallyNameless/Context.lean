@@ -92,9 +92,9 @@ lemma mapVal_mem {x : α} {σ : β} (mem : σ ∈ Γ.dlookup x) : f σ ∈ (Γ.m
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves well-formedness. -/
-lemma mapVal_wf (nd : Γ✓) : (Γ.mapVal f)✓ := by
+lemma mapVal_wf (Γ_wf : Γ✓) : (Γ.mapVal f)✓ := by
   rw [haswellformed_def, mapVal_def]
-  exact NodupKeys.map₂ _ Γ nd
+  exact NodupKeys.map₂ _ Γ Γ_wf
 
 end LambdaCalculus.LocallyNameless.Context
 
