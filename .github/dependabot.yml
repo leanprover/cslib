@@ -1,8 +1,6 @@
 version: 2
 updates:
-  # Keep action pins fresh. Grouped by semver impact: routine bumps land together
-  # in a single low-risk weekly PR, while breaking bumps arrive on their own so
-  # each gets a dedicated review and CI run.
+  # Grouped by semver impact so major bumps arrive on their own.
   - package-ecosystem: github-actions
     directory: /
     schedule:
