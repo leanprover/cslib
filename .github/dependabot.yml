@@ -1,8 +1,6 @@
 version: 2
 updates:
-  # Keep action pins fresh. Grouped by semver impact: routine bumps land together
-  # in a single low-risk weekly PR, while breaking bumps arrive on their own so
-  # each gets a dedicated review and CI run.
+  # Grouped by semver impact so major bumps arrive on their own.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -17,9 +15,7 @@ updates:
     commit-message:
       prefix: ci
 
-  # Python packages installed by workflows (see requirements.txt in this directory).
-  # Split the same way, so major bumps are visible as their own PR rather than
-  # silently skipped.
+  # Python packages installed by workflows (see requirements.txt here), split the same way.
   - package-ecosystem: pip
     directory: /.github
     schedule:
