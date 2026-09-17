@@ -72,6 +72,7 @@ def mapVal (f : β → β) (Γ : Context α β) : Context α β :=
 variable {Γ : Context α β} (f : β → β)
 
 omit [DecidableEq α] in
+/-- `mapVal` can be written as `List.map (Sigma.map id _)`. -/
 lemma mapVal_def : Γ.mapVal f = Γ.map (Sigma.map id fun _ => f) := rfl
 
 omit [DecidableEq α] in
