@@ -77,9 +77,9 @@ lemma mapVal_def : Γ.mapVal f = Γ.map (Sigma.map id fun _ => f) := rfl
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves keys. -/
-@[scoped grind .]
-lemma mapVal_keys : Γ.keys = (Γ.mapVal f).keys := by
-  rw [mapVal_def, ← map₂_keys]
+@[scoped grind =]
+lemma mapVal_keys : (Γ.mapVal f).keys = Γ.keys := by
+  rw [mapVal_def, map₂_keys]
 
 /-- Lookup commutes with a mapping of values. -/
 @[scoped grind =]
