@@ -5,14 +5,14 @@ public import Cslib.Algorithms.Algorithms.ListLinearSearch
 public import Cslib.Algorithms.Algorithms.ListOrderedInsert
 public import Cslib.Algorithms.Algorithms.MergeSort
 public import Cslib.Algorithms.CCS.VendingMachine
+public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 public import Cslib.Algorithms.Lean.Sort.Insertion
 public import Cslib.Algorithms.Lean.Sort.Merge
+public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Algorithms.LowerBounds.ComparisonSort
-public import Cslib.Algorithms.MergeSort.MergeSort
 public import Cslib.Algorithms.Models.ListComparisonSearch
 public import Cslib.Algorithms.Models.ListComparisonSort
 public import Cslib.Algorithms.QueryModel
-public import Cslib.Algorithms.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Computability.Automata.DA.Basic

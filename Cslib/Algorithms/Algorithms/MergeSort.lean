@@ -7,7 +7,7 @@ Authors: Shreyas Srinivas, Eric Wieser, Kim Morrison, Sorrachai Yingchareonthawo
 module
 
 public import Cslib.Algorithms.Models.ListComparisonSort
-public import Cslib.Algorithms.MergeSort.MergeSort
+public import Cslib.Algorithms.Lean.MergeSort.MergeSort
 import all Cslib.Algorithms.Lean.Sort.Merge
 import all Init.Data.List.Sort.Basic
 

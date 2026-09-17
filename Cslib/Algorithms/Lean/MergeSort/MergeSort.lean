@@ -6,7 +6,7 @@ Authors: Sorrachai Yingchareonthawornhcai
 
 module
 
-public import Cslib.Algorithms.TimeM
+public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Algorithms.Lean.Sort.Merge
 import all Cslib.Algorithms.Lean.Sort.Merge
 public import Mathlib.Data.Nat.Cast.Order.Ring
