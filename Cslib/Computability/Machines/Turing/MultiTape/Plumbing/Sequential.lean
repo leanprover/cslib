@@ -124,11 +124,11 @@ theorem transformsTapes_seq
       (fun input ws ws'' => ∃ ws', Q₀ input ws ws' ∧ Q₁ input ws' ws'')
       (t₀ + t₁) (s₀ + s₁) := by
   intro input ws out hP₀
-  obtain ⟨τ₀, hτ₀, ws', hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
-  obtain ⟨τ₁, hτ₁, ws'', hrun₁, hQ₁, hspace₁⟩ := h₁ input ws' out (hmid input ws ws' hP₀ hQ₀)
-  -- the first halting time of the first machine
+  obtain ⟨ws', hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
+  obtain ⟨ws'', hrun₁, hQ₁, hspace₁⟩ := h₁ input ws' out (hmid input ws ws' hP₀ hQ₀)
+  -- the first halting time of the first machine, which may be earlier than `t₀`
   obtain ⟨u, hu, huhalt, huactive⟩ := exists_minimal_halting_time tm₀
-    (wordsCfg input (some tm₀.q₀) ws out) τ₀ (by simp [hrun₀])
+    (wordsCfg input (some tm₀.q₀) ws out) t₀ (by simp [hrun₀])
   have hu_run : tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) u =
       wordsCfg input none ws' out := by
     rw [← runFrom_eq_of_halt tm₀ _ hu huhalt, hrun₀]
@@ -141,21 +141,36 @@ theorem transformsTapes_seq
     rw [this, runFrom_leftCfg _ m fun r hr =>
       huactive r (by omega)]
   -- the handoff configuration is the second machine's start, seen through the right embedding
-  have hhandoff : leftCfg tm₁ (tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) u) =
+  have hhandoff : (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out) u =
       rightCfg (wordsCfg input (some tm₁.q₀) ws' out) := by
-    rw [hu_run]
+    rw [hleft u le_rfl, hu_run]
     rfl
-  refine ⟨u + τ₁, by omega, ws'', ?_, ⟨ws', hQ₀, hQ₁⟩, ?_⟩
-  · rw [runFrom_add, hleft u le_rfl, hhandoff, runFrom_rightCfg, hrun₁]
+  -- the second phase mirrors the second machine
+  have hright : ∀ n, (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out) (u + n)
+      = rightCfg (tm₁.runFrom (wordsCfg input (some tm₁.q₀) ws' out) n) := by
+    intro n
+    rw [runFrom_add, hhandoff, runFrom_rightCfg]
+  -- the composition is done after `u + t₁` steps and then simply stays put until `t₀ + t₁`
+  have hrun : (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out) (u + t₁)
+      = wordsCfg input none ws'' out := by
+    rw [hright t₁, hrun₁]
     rfl
-  · refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
+  have hhalt : ((tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
+      (u + t₁)).state = none := by
+    rw [hrun]
+    rfl
+  have hle : u + t₁ ≤ t₀ + t₁ := by omega
+  refine ⟨ws'', ?_, ⟨ws', hQ₀, hQ₁⟩, ?_⟩
+  · rw [runFrom_eq_of_halt _ _ hle hhalt, hrun]
+  · rw [spaceUsed_eq_of_halt _ hle hhalt]
+    refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
     · -- the first phase visits what the first machine visits
       refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ u fun m hm => ?_))
         (le_trans (spaceUsed_mono tm₀ _ hu) hspace₀)
       rw [hleft m hm, workTapePos_leftCfg]
     · -- the second phase visits what the second machine visits
-      rw [hleft u le_rfl, hhandoff]
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ τ₁ fun m hm => ?_)) hspace₁
+      rw [hhandoff]
+      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ t₁ fun m hm => ?_)) hspace₁
       rw [runFrom_rightCfg, workTapePos_rightCfg]
 
 end Turing.MultiTapeTM

@@ -208,6 +208,25 @@ lemma spaceUsed_eq_of_workTapePos {State' : Type*} {input' : List Symbol}
   refine Finset.sum_congr rfl fun i _ => congrArg Finset.card (Finset.image_congr fun m hm => ?_)
   exact congrFun (h m (Nat.lt_succ_iff.mp (Finset.mem_range.mp hm))) i
 
+/-- After the machine has halted the heads no longer move, so the visited set stops growing. -/
+lemma visitedByTapeHead_eq_of_halt (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
+    (hhalt : (tm.runFrom cfg τ).state = none) (i : Fin k) :
+    tm.visitedByTapeHead cfg t i = tm.visitedByTapeHead cfg τ i := by
+  apply Finset.Subset.antisymm _ (tm.visitedByTapeHead_mono cfg i hle)
+  intro z hz
+  obtain ⟨m, hm, rfl⟩ := mem_visitedByTapeHead.mp hz
+  rcases Nat.le_total m τ with h | h
+  · exact mem_visitedByTapeHead.mpr ⟨m, by omega, rfl⟩
+  · rw [runFrom_eq_of_halt tm cfg h hhalt]
+    exact tm.mem_visitedByTapeHead_self cfg τ i
+
+/-- After the machine has halted the heads no longer move, so the space usage stops growing. -/
+lemma spaceUsed_eq_of_halt (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
+    (hhalt : (tm.runFrom cfg τ).state = none) :
+    tm.spaceUsed cfg t = tm.spaceUsed cfg τ :=
+  Finset.sum_congr rfl fun i _ =>
+    congrArg Finset.card (tm.visitedByTapeHead_eq_of_halt cfg hle hhalt i)
+
 /-- The cells a head visits between two moments of one run all lie in the visited set. -/
 lemma uIcc_workTapePos_subset_visitedByTapeHead_of_le (cfg : Cfg k Symbol State input)
     (i : Fin k) {t₁ t₂ t : ℕ} (h₁ : t₁ ≤ t₂) (h₂ : t₂ ≤ t) :
