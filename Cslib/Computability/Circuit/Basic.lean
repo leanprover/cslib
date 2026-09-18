@@ -50,6 +50,15 @@ structure Circuit (σ : Signature) (inputCount gateCount outputCount : Nat) wher
   /-- The input or internal-gate wire carrying each output. -/
   outputs : Fin outputCount → Wire inputCount gateCount
 
+/-- A circuit consists of its program and its tuple of output wires. -/
+def Circuit.equiv (σ : Signature) (inputCount gateCount outputCount : Nat) :
+    Circuit σ inputCount gateCount outputCount ≃
+      Program σ inputCount gateCount × (Fin outputCount → Wire inputCount gateCount) where
+  toFun c := (c.program, c.outputs)
+  invFun c := ⟨c.1, c.2⟩
+  left_inv _ := rfl
+  right_inv _ := rfl
+
 /-- The zero-gate identity circuit, whose outputs are its inputs. -/
 def Circuit.id (σ : Signature) (inputCount : Nat) : Circuit σ inputCount 0 inputCount where
   program := .empty
