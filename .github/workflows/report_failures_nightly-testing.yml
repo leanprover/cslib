@@ -147,14 +147,13 @@ jobs:
           }
         result-encoding: string
 
-    - name: Exit if matching branch exists
-      if: steps.check_branch.outputs.result == 'true'
-      run: |
-        echo "Matching bump/nightly-YYYY-MM-DD branch found, no further action needed."
-        exit 0
+    # If the matching bump/nightly-YYYY-MM-DD branch already exists there is nothing left
+    # to do, so every step from here on is guarded on the check above. (A step that runs
+    # `exit 0` would only end that step, not the job.)
 
     - name: Fetch latest bump branch name
       id: latest_bump_branch
+      if: steps.check_branch.outputs.result == 'false'
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       with:
         result-encoding: string
@@ -168,13 +167,14 @@ jobs:
             .filter(name => name.match(/^bump\/v4\.\d+\.0$/))
             .sort((a, b) => b.localeCompare(a, undefined, {numeric: true, sensitivity: 'base'}));
           if (!bumpBranches.length) {
-            throw new Exception("Did not find any bump/v4.x.0 branch")
+            throw new Error("Did not find any bump/v4.x.0 branch")
           }
           const latestBranch = bumpBranches[0];
           return latestBranch;
 
     - name: Fetch lean-toolchain from latest bump branch
       id: bump_version
+      if: steps.check_branch.outputs.result == 'false'
       uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
       with:
         script: |
@@ -243,8 +243,23 @@ jobs:
           }
           return match[1];
 
+    - name: Send warning message on Zulip if no bump/v4.x.0 branch exists
+      if: failure() && steps.latest_bump_branch.outcome == 'failure'
+      uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5 # v1.0.2
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY }}
+        email: 'github-mathlib4-bot@leanprover.zulipchat.com'
+        organization-url: 'https://leanprover.zulipchat.com'
+        to: 'nightly-testing-cslib'
+        type: 'stream'
+        topic: 'Cslib status updates'
+        content: |
+          ⚠️ Warning: Did not find any `bump/v4.x.0` branch, so there is nothing to open a `bump/nightly-${{ env.NIGHTLY }}` PR against.
+
+          **Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
     - name: Send warning message on Zulip if pattern doesn't match
-      if: failure()
+      if: failure() && steps.bump_version.outcome == 'failure'
       uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5 # v1.0.2
       with:
         api-key: ${{ secrets.ZULIP_API_KEY }}
