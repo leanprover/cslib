@@ -103,7 +103,7 @@ example : pointSensitivity maj3 ![true, true, true] = 0 := by decide
 /-- A split input is sensitive in the two agreeing coordinates, but not the third. -/
 example : sensitiveCoords maj3 ![true, true, false] = {0, 1} := by decide
 
-/-- Two agreeing bits are a certificate, so `C(f, x) = 2` everywhere. -/
+/-- Two agreeing bits are a certificate, so `Cₓ(f) = 2` everywhere. -/
 example : pointCertificateComplexity maj3 ![true, true, false] = 2 := by decide
 
 /-! ## Constant functions

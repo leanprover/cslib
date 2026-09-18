@@ -65,19 +65,19 @@ lemma mem_sensitiveCoords {f : BoolFunc n} {x : Cube n} {i : Fin n} :
     i ∈ sensitiveCoords f x ↔ IsSensitiveCoord f x i := by
   simp [sensitiveCoords]
 
-/-- `s(f, x)` is the number of sensitive coordinates in input `x`. -/
+/-- `sₓ(f)` is the number of sensitive coordinates in input `x`. -/
 def pointSensitivity (f : BoolFunc n) (x : Cube n) : ℕ := (sensitiveCoords f x).card
 
 /-- `s(f)`. -/
 def sensitivity (f : BoolFunc n) : ℕ := Finset.univ.sup (pointSensitivity f)
 
-/-- Lower-bound rule for `s(f, x)`: exhibit a set of sensitive coordinates. -/
+/-- Lower-bound rule for `sₓ(f)`: exhibit a set of sensitive coordinates. -/
 lemma card_le_pointSensitivity {f : BoolFunc n} {x : Cube n} {S : Finset (Fin n)}
     (h : ∀ i ∈ S, IsSensitiveCoord f x i) : S.card ≤ pointSensitivity f x := by
   apply Finset.card_le_card
   simpa [Finset.subset_iff] using h
 
-/-- `s(f, x) ≤ s(f)`. -/
+/-- `sₓ(f) ≤ s(f)`. -/
 lemma pointSensitivity_le_sensitivity (f : BoolFunc n) (x : Cube n) :
     pointSensitivity f x ≤ sensitivity f :=
   Finset.le_sup (Finset.mem_univ x)
@@ -114,19 +114,19 @@ lemma mem_sensitiveFamilies {f : BoolFunc n} {x : Cube n} {F : Finset (Block n)}
     F ∈ sensitiveFamilies f x ↔ IsSensitiveFamily f x F := by
   simp [sensitiveFamilies]
 
-/-- `bs(f, x)`. -/
+/-- `bsₓ(f)`. -/
 def pointBlockSensitivity (f : BoolFunc n) (x : Cube n) : ℕ :=
   (sensitiveFamilies f x).sup Finset.card
 
 /-- `bs(f)`. -/
 def blockSensitivity (f : BoolFunc n) : ℕ := Finset.univ.sup (pointBlockSensitivity f)
 
-/-- Lower-bound rule for `bs(f, x)`: exhibit one sensitive family. -/
+/-- Lower-bound rule for `bsₓ(f)`: exhibit one sensitive family. -/
 lemma card_le_pointBlockSensitivity {f : BoolFunc n} {x : Cube n} {F : Finset (Block n)}
     (h : IsSensitiveFamily f x F) : F.card ≤ pointBlockSensitivity f x :=
   Finset.le_sup (mem_sensitiveFamilies.mpr h)
 
-/-- `bs(f, x) ≤ bs(f)`. -/
+/-- `bsₓ(f) ≤ bs(f)`. -/
 lemma pointBlockSensitivity_le_blockSensitivity (f : BoolFunc n) (x : Cube n) :
     pointBlockSensitivity f x ≤ blockSensitivity f :=
   Finset.le_sup (Finset.mem_univ x)
@@ -156,7 +156,7 @@ lemma mem_singletonFamily {f : BoolFunc n} {x : Cube n} {B : Block n} :
     B ∈ singletonFamily f x ↔ ∃ i, IsSensitiveCoord f x i ∧ {i} = B := by
   simp [singletonFamily]
 
-/-- The singleton family has one block per sensitive coordinate, so `s(f, x)` of them. -/
+/-- The singleton family has one block per sensitive coordinate, so `sₓ(f)` of them. -/
 @[simp]
 lemma card_singletonFamily {f : BoolFunc n} {x : Cube n} :
     (singletonFamily f x).card = pointSensitivity f x :=
@@ -175,7 +175,7 @@ lemma isSensitiveFamily_singletonFamily {f : BoolFunc n} {x : Cube n} :
     obtain ⟨j, -, rfl⟩ := mem_singletonFamily.mp hQ
     exact Finset.disjoint_singleton.mpr fun h => hPQ (by rw [h])
 
-/-- Pointwise: `s(f, x) ≤ bs(f, x)`. -/
+/-- Pointwise: `sₓ(f) ≤ bsₓ(f)`. -/
 theorem pointSensitivity_le_pointBlockSensitivity (f : BoolFunc n) (x : Cube n) :
     pointSensitivity f x ≤ pointBlockSensitivity f x :=
   card_singletonFamily ▸ card_le_pointBlockSensitivity isSensitiveFamily_singletonFamily
@@ -241,15 +241,15 @@ lemma ofCube_mem_certificates (f : BoolFunc n) (x : Cube n) : ofCube x ∈ certi
   mem_certificates.mpr ⟨agrees_ofCube_iff.mpr rfl, fun _ hy => by
     rw [agrees_ofCube_iff.mp hy]⟩
 
-/-- There is always a certificate, so `C(f, x)` is a minimum over a non-empty set. -/
+/-- There is always a certificate, so `Cₓ(f)` is a minimum over a non-empty set. -/
 lemma certificates_nonempty (f : BoolFunc n) (x : Cube n) : (certificates f x).Nonempty :=
   ⟨ofCube x, ofCube_mem_certificates f x⟩
 
-/-- `C(f, x)`: the size of the smallest certificate. -/
+/-- `Cₓ(f)`: the size of the smallest certificate. -/
 def pointCertificateComplexity (f : BoolFunc n) (x : Cube n) : ℕ :=
   (certificates f x).inf' (certificates_nonempty f x) size
 
-/-- Upper-bound rule for `C(f, x)`: exhibit one certificate. -/
+/-- Upper-bound rule for `Cₓ(f)`: exhibit one certificate. -/
 lemma pointCertificateComplexity_le {f : BoolFunc n} {x : Cube n} {C : Assignment n}
     (h : C ∈ certificates f x) : pointCertificateComplexity f x ≤ size C :=
   Finset.inf'_le _ h
@@ -258,12 +258,12 @@ lemma pointCertificateComplexity_le {f : BoolFunc n} {x : Cube n} {C : Assignmen
 def certificateComplexity (f : BoolFunc n) : ℕ :=
   Finset.univ.sup (pointCertificateComplexity f)
 
-/-- `C(f, x) ≤ C(f)`. -/
+/-- `Cₓ(f) ≤ C(f)`. -/
 lemma pointCertificateComplexity_le_certificateComplexity (f : BoolFunc n) (x : Cube n) :
     pointCertificateComplexity f x ≤ certificateComplexity f :=
   Finset.le_sup (Finset.mem_univ x)
 
-/-- `C(f, x) ≤ n`: reading off the whole input is a certificate. -/
+/-- `Cₓ(f) ≤ n`: reading off the whole input is a certificate. -/
 theorem pointCertificateComplexity_le_card (f : BoolFunc n) (x : Cube n) :
     pointCertificateComplexity f x ≤ n :=
   (pointCertificateComplexity_le (ofCube_mem_certificates f x)).trans_eq (size_ofCube x)
@@ -296,7 +296,7 @@ lemma card_le_size_of_isSensitiveFamily {f : BoolFunc n} {x : Cube n}
       (fun B hB => sensitiveBlock_inter_support_nonempty x B (hF.1 B hB) C hC)).trans
     (Finset.card_le_card (Finset.biUnion_subset.mpr fun _ _ => Finset.inter_subset_right))
 
-/-- Pointwise: `bs(f, x) ≤ C(f, x)`. -/
+/-- Pointwise: `bsₓ(f) ≤ Cₓ(f)`. -/
 theorem pointBlockSensitivity_le_pointCertificateComplexity
     (f : BoolFunc n) (x : Cube n) :
     pointBlockSensitivity f x ≤ pointCertificateComplexity f x :=
