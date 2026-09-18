@@ -27,8 +27,6 @@ namespace Cslib
 
 universe u
 
-variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
-
 namespace LambdaCalculus.LocallyNameless.Untyped
 
 /-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
@@ -45,16 +43,22 @@ deriving DecidableEq
 
 namespace Term
 
+variable {Var : Type u}
+
+section Opening
+
 /-- Variable opening of the ith bound variable. -/
 @[scoped grind =]
-def openRec (i : ℕ) (sub : Term Var) : Term Var → Term Var
+def openRec {Var : Type u} (i : ℕ) (sub : Term Var) : Term Var → Term Var
 | bvar i' => if i = i' then sub else bvar i'
 | fvar x  => fvar x
 | app l r => app (openRec i sub l) (openRec i sub r)
 | abs M   => abs <| openRec (i+1) sub M
 
 @[inherit_doc]
-scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec i sub e
+scoped notation:68 e "⟦" i " ↝ " sub "⟧" => Term.openRec i sub e
+
+variable {i i' : ℕ} {x : Var} {s l r M : Term Var}
 
 lemma openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else bvar i' := by rfl
 
@@ -66,10 +70,16 @@ lemma openRec_abs : M.abs⟦i ↝ s⟧ = M⟦i + 1 ↝ s⟧.abs := by rfl
 
 /-- Variable opening of the closest binding. -/
 @[scoped grind =]
-def open' {X} (e u):= @Term.openRec X 0 u e
+def open' (e u : Term Var) := e⟦0 ↝ u⟧
 
 @[inherit_doc]
 scoped infixr:80 " ^ " => Term.open'
+
+end Opening
+
+section Closing
+
+variable [DecidableEq Var]
 
 /-- Variable closing, replacing a free `fvar x` with `bvar k` -/
 @[scoped grind =]
@@ -80,16 +90,30 @@ def closeRec (k : ℕ) (x : Var) : Term Var → Term Var
 | abs t   => abs <| closeRec (k+1) x t
 
 @[inherit_doc]
-scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.closeRec k x e
-
-variable {x : Var}
+scoped notation:68 e "⟦" k " ↜ " x "⟧" => Term.closeRec k x e
 
 /-- Variable closing of the closest binding. -/
 @[scoped grind =]
-def close {Var} [DecidableEq Var] (e u):= @Term.closeRec Var _ 0 u e
+def close (e : Term Var) (u : Var) := e⟦0 ↜ u⟧
 
 @[inherit_doc]
 scoped infixr:80 " ^* " => Term.close
+
+variable {i k : ℕ} {x x' : Var} {l r M : Term Var}
+
+lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := by rfl
+
+lemma closeRec_fvar : (fvar x')⟦k ↜ x⟧ = if x = x' then bvar k else fvar x' := by rfl
+
+lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x⟧) := by rfl
+
+lemma closeRec_abs : M.abs⟦k ↜ x⟧ = M⟦k + 1 ↜ x⟧.abs := by rfl
+
+end Closing
+
+section Substitution
+
+variable [DecidableEq Var]
 
 /-- Substitution of a free variable to a term. -/
 @[scoped grind =]
@@ -112,33 +136,21 @@ def fv : Term Var → Finset Var
 | abs e1 => e1.fv
 | app l r => l.fv ∪ r.fv
 
-section
+variable {i : ℕ} {x x' : Var} {s l r M : Term Var}
 
-omit [HasFresh Var]
+lemma subst_bvar : (bvar i : Term Var)[x := s] = bvar i := by rfl
 
-lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := by rfl
+lemma subst_fvar : (fvar x')[x := s] = if x = x' then s else fvar x' := by rfl
 
-lemma closeRec_fvar : (fvar x')⟦k ↜ x⟧ = if x = x' then bvar k else fvar x' := by rfl
+lemma subst_app {l r : Term Var} : (app l r)[x := s] = app (l[x := s]) (r[x := s]) := by rfl
 
-lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x⟧) := by rfl
+lemma subst_abs {M : Term Var} : M.abs[x := s] = M[x := s].abs := by rfl
 
-lemma closeRec_abs : t.abs⟦k ↜ x⟧ = t⟦k + 1 ↜ x⟧.abs := by rfl
-
-variable {x : Var} {n : Term Var}
-
-lemma subst_bvar : (bvar i : Term Var)[x := n] = bvar i := by rfl
-
-lemma subst_fvar : (fvar x')[x := n] = if x = x' then n else fvar x' := by rfl
-
-lemma subst_app {l r : Term Var} : (app l r)[x := n] = app (l[x := n]) (r[x := n]) := by rfl
-
-lemma subst_abs {M : Term Var} : M.abs[x := n] = M[x := n].abs := by rfl
-
-lemma subst_def (m : Term Var) (x : Var) (n : Term Var) : m.subst x n = m[x := n] := by rfl
+lemma subst_def (m : Term Var) (x : Var) (s : Term Var) : m.subst x s = m[x := s] := by rfl
 
 attribute [scoped grind =] subst_bvar subst_fvar subst_app subst_abs subst_def
 
-end
+end Substitution
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
