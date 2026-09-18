@@ -15,7 +15,7 @@ jobs:
     if: github.repository == 'leanprover/cslib'
     steps:
     - name: Checkout Mathlib actions
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 1
         repository: leanprover-community/mathlib4
@@ -25,7 +25,7 @@ jobs:
     - name: Get mathlib-ci
       uses: ./workflow-actions/.github/actions/get-mathlib-ci
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         path: ${{ env.CSLIB }}
 
@@ -68,7 +68,7 @@ jobs:
           "${CI_SCRIPTS_DIR}/reporting/zulip_build_report.sh" "${lean_outfile}" > "${GITHUB_OUTPUT}"
 
     - name: Post output to Zulip
-      uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5
+      uses: zulip/github-actions-zulip/send-message@f675f2b4eb2a95fae974215476dcb7ad8dfeff6b
       with:
         api-key: ${{ secrets.ZULIP_API_KEY }}
         email: 'github-mathlib4-bot@leanprover.zulipchat.com'
