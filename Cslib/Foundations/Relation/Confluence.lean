@@ -321,4 +321,10 @@ theorem RightUnique.to_confluent (hr : Relator.RightUnique r) : Confluent r := b
 
 @[deprecated (since := "2026-09-03")] alias RightUnique.toConfluent := RightUnique.to_confluent
 
+theorem Reducible.sup_iff (x : α) : Reducible (r₁ ⊔ r₂) x ↔ Reducible r₁ x ∨ Reducible r₂ x :=
+  exists_or
+
+theorem Normal.sup_iff (x : α) : Normal (r₁ ⊔ r₂) x ↔ Normal r₁ x ∧ Normal r₂ x :=
+  (not_iff_not.mpr <| Reducible.sup_iff x).trans not_or
+
 end Relation
