@@ -255,21 +255,5 @@ lemma spaceUsed_le_of_workTapePos_const (cfg : Cfg k Symbol State input) (u : �
     fun i _ => tm.spaceUsedByTape_le_one cfg fun m hm => congrFun (h m hm) i
   simpa [spaceUsed] using Finset.sum_le_card_nsmul _ _ 1 hcard
 
-/-- Space bound for a run in which one head stays inside an interval and every other head is
-fixed: the moving tape contributes the interval, each other tape a single cell. -/
-lemma spaceUsed_le_of_one_moving (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) (lo hi : ℤ)
-    (hmove : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos i ∈ Finset.Icc lo hi)
-    (hfixed : ∀ m ≤ t, ∀ j ≠ i, (tm.runFrom cfg m).workTapePos j = cfg.workTapePos j) :
-    tm.spaceUsed cfg t ≤ (hi + 1 - lo).toNat + k := by
-  have hmove' : tm.spaceUsedByTape cfg t i ≤ (hi + 1 - lo).toNat := by
-    simpa [Int.card_Icc] using tm.spaceUsedByTape_le_card cfg hmove
-  have hfixed' : ∀ j ∈ Finset.univ.erase i, tm.spaceUsedByTape cfg t j ≤ 1 :=
-    fun j hj => tm.spaceUsedByTape_le_one cfg fun m hm =>
-      hfixed m hm j (Finset.ne_of_mem_erase hj)
-  have hsum : ∑ j ∈ Finset.univ.erase i, tm.spaceUsedByTape cfg t j ≤ k - 1 := by
-    simpa using Finset.sum_le_card_nsmul _ _ 1 hfixed'
-  rw [spaceUsed, ← Finset.add_sum_erase _ _ (Finset.mem_univ i)]
-  have hk : 0 < k := i.pos
-  omega
 
 end Turing.MultiTapeTM
