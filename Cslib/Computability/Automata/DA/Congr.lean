@@ -7,17 +7,17 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.DA.Basic
-public import Cslib.Computability.Languages.Congruences.RightCongruence
+public import Cslib.Computability.Languages.Congruences.Basic
 
 /-! # Deterministic automaton corresponding to a right congruence. -/
 
 @[expose] public section
 
-namespace Cslib
-
-open scoped FLTS RightCongruence
-
 variable {Symbol : Type*}
+
+namespace Language
+
+open Cslib
 
 /-- Every right congruence gives rise to a DA whose states are the equivalence classes of
 the right congruence, whose start state is the empty word, and whose transition functiuon
@@ -28,11 +28,16 @@ def RightCongruence.toDA [c : RightCongruence Symbol] : Automata.DA (Quotient c.
   tr s x := Quotient.lift (fun u ↦ ⟦ u ++ [x] ⟧) (by
     intro u v h_eq
     apply Quotient.sound
-    exact right_cov.elim [x] h_eq
+    exact c.right_cov.elim [x] h_eq
   ) s
   start := ⟦ [] ⟧
 
-namespace Automata.DA
+end Language
+
+namespace Cslib.Automata.DA
+
+open Language
+open scoped FLTS RightCongruence
 
 variable [c : RightCongruence Symbol]
 
@@ -48,6 +53,14 @@ theorem congr_mtr_eq {xs : List Symbol} :
     obtain ⟨rfl⟩ := List.reverse_eq_cons_iff.mp h_rev
     specialize h_ind (xs := ys.reverse) (by grind)
     grind [Quotient.lift_mk]
+
+/-- After consuming a finite word `ys` from the state `⟦ xs ⟧`, `c.toDA` reaches
+the state `⟦ xs ++ ys ⟧`. -/
+@[simp, scoped grind =]
+theorem congr_mtr_append {xs ys : List Symbol} :
+    c.toDA.mtr ⟦ xs ⟧ ys = ⟦ xs ++ ys ⟧ := by
+  nth_rewrite 1 [← congr_mtr_eq, ← FLTS.mtr_append_eq]
+  rw [congr_mtr_eq]
 
 namespace FinAcc
 
@@ -66,6 +79,4 @@ theorem congr_language_eq {a : Quotient c.eq} : language (FinAcc.mk c.toDA {a}) 
 
 end FinAcc
 
-end Automata.DA
-
-end Cslib
+end Cslib.Automata.DA
