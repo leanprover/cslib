@@ -6,13 +6,13 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
-public import Cslib.Logics.Modal.Basic
+public import Cslib.Logics.Modal.Unimodal.Basic
 public import Cslib.Foundations.Relation.Euclidean
 
 /-! # Modal Logic Cube
 
-This module formalises the Modal Cube, including all the 15 foundational modal logics and their
-relationships.
+This module formalises the Modal Cube for basic modal logic, including all the 15 foundational modal
+logics and their relationships.
 
 ## References
 
@@ -22,7 +22,7 @@ relationships.
 
 @[expose] public section
 
-namespace Cslib.Logic.Modal
+namespace Cslib.Logic.Modal.Unimodal
 
 /-- The modal logic K. -/
 @[scoped grind =]
@@ -30,70 +30,70 @@ def K World Atom := logic (Set.univ (α := Model World Atom))
 
 /-- The modal logic T. -/
 @[scoped grind =]
-def T World Atom := logic {m : Model World Atom | Std.Refl m.r}
+def T World Atom := logic {m : Model World Atom | Std.Refl m.rel}
 
 /-- The modal logic B. -/
 @[scoped grind =]
-def B World Atom := logic {m : Model World Atom | Std.Symm m.r}
+def B World Atom := logic {m : Model World Atom | Std.Symm m.rel}
 
 /-- The modal logic 4. -/
 @[scoped grind =]
-def Four World Atom := logic {m : Model World Atom | IsTrans World m.r}
+def Four World Atom := logic {m : Model World Atom | IsTrans World m.rel}
 
 /-- The modal logic 5. -/
 @[scoped grind =]
-def Five World Atom := logic {m : Model World Atom | Relation.RightEuclidean m.r}
+def Five World Atom := logic {m : Model World Atom | Relation.RightEuclidean m.rel}
 
 /-- The modal logic K45. -/
 @[scoped grind =]
 def K45 World Atom :=
-  logic {m : Model World Atom | IsTrans World m.r ∧ Relation.RightEuclidean m.r}
+  logic {m : Model World Atom | IsTrans World m.rel ∧ Relation.RightEuclidean m.rel}
 
 /-- The modal logic D. -/
 @[scoped grind =]
-def D World Atom := logic {m : Model World Atom | Relation.Serial m.r}
+def D World Atom := logic {m : Model World Atom | Relation.Serial m.rel}
 
 /-- The modal logic D4. -/
 @[scoped grind =]
 def D4 World Atom :=
-  logic {m : Model World Atom | Relation.Serial m.r ∧ IsTrans World m.r}
+  logic {m : Model World Atom | Relation.Serial m.rel ∧ IsTrans World m.rel}
 
 /-- The modal logic D5. -/
 @[scoped grind =]
 def D5 World Atom :=
-  logic {m : Model World Atom | Relation.Serial m.r ∧ Relation.RightEuclidean m.r}
+  logic {m : Model World Atom | Relation.Serial m.rel ∧ Relation.RightEuclidean m.rel}
 
 /-- The modal logic D45. -/
 @[scoped grind =]
 def D45 World Atom :=
   logic {m : Model World Atom |
-    Relation.Serial m.r ∧ IsTrans World m.r ∧ Relation.RightEuclidean m.r}
+    Relation.Serial m.rel ∧ IsTrans World m.rel ∧ Relation.RightEuclidean m.rel}
 
 /-- The modal logic DB. -/
 @[scoped grind =]
 def DB World Atom :=
-  logic {m : Model World Atom | Relation.Serial m.r ∧ Std.Symm m.r}
+  logic {m : Model World Atom | Relation.Serial m.rel ∧ Std.Symm m.rel}
 
 /-- The modal logic TB. -/
 @[scoped grind =]
 def TB World Atom :=
-  logic {m : Model World Atom | Std.Refl m.r ∧ Std.Symm m.r}
+  logic {m : Model World Atom | Std.Refl m.rel ∧ Std.Symm m.rel}
 
 /-- The modal logic KB5. -/
 @[scoped grind =]
 def KB5 World Atom :=
-  logic {m : Model World Atom | Std.Symm m.r ∧ Relation.RightEuclidean m.r}
+  logic {m : Model World Atom | Std.Symm m.rel ∧ Relation.RightEuclidean m.rel}
 
 /-- The modal logic S4. -/
 @[scoped grind =]
 def S4 World Atom :=
-  logic {m : Model World Atom | Std.Refl m.r ∧ IsTrans World m.r}
+  logic {m : Model World Atom | Std.Refl m.rel ∧ IsTrans World m.rel}
 
 /-- The modal logic S5. -/
 @[scoped grind =]
 def S5 World Atom :=
   logic {m : Model World Atom |
-    Std.Refl m.r ∧ IsTrans World m.r ∧ Relation.RightEuclidean m.r}
+    Std.Refl m.rel ∧ IsTrans World m.rel ∧ Relation.RightEuclidean m.rel}
 
 section Order
 
@@ -147,8 +147,8 @@ theorem K.k_valid : (□(φ₁ → φ₂) → (□φ₁ → □φ₂) : Proposit
 /-- The axiom T is valid in the logic T. -/
 theorem T.t_valid : (φ → ◇φ : Proposition Atom) ∈ T World Atom := by
   intro _ h
-  grind [Satisfies.t (instRefl := h)]
+  grind [Satisfies.unimodal_t (instRefl := h)]
 
 end Validity
 
-end Cslib.Logic.Modal
+end Cslib.Logic.Modal.Unimodal
