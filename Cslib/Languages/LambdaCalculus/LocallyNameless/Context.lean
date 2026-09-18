@@ -64,21 +64,22 @@ omit [DecidableEq α] in
 @[scoped grind _=_]
 theorem haswellformed_def (Γ : Context α β) : Γ✓ = Γ.NodupKeys := by rfl
 
-variable {Γ Δ : Context α β}
+variable {Γ : Context α β}
 
 /-- A mapping of values within a context. -/
 @[simp, scoped grind]
 def mapVal (f : β → β) (Γ : Context α β) : Context α β :=
-  Γ.map (fun ⟨var,ty⟩ => ⟨var,f ty⟩)
+  Γ.map (fun ⟨var, ty⟩ => ⟨var, f ty⟩)
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves keys. -/
 @[scoped grind .]
-lemma mapVal_keys (f) : Γ.keys = (Γ.mapVal f).keys := by
+lemma mapVal_keys (f : β → β) : Γ.keys = (Γ.mapVal f).keys := by
   induction Γ <;> grind
 
 /-- A mapping of values maps lookups. -/
-lemma mapVal_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.mapVal f).dlookup x := by
+lemma mapVal_mem {x : α} {σ : β} (mem : σ ∈ Γ.dlookup x) (f : β → β) :
+    f σ ∈ (Γ.mapVal f).dlookup x := by
   induction Γ <;> grind
 
 end LambdaCalculus.LocallyNameless.Context
