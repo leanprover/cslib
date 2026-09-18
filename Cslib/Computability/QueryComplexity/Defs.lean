@@ -27,7 +27,7 @@ flips, and partial assignments. The complexity measures are built in
 
 ## References
 
-* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak2009],
+* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09],
   Chapter 12 (Decision Trees); the notions defined here underpin Sections 12.2 and 12.5.1.
 * [H. Buhrman, R. de Wolf, *Complexity measures and decision tree complexity:
   a survey*][BuhrmanDeWolf2002]

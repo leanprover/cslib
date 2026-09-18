@@ -34,7 +34,7 @@ the chain `s(f) ≤ bs(f) ≤ C(f)`.
 
 ## References
 
-* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak2009],
+* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09],
   Section 12.2 (Certificate Complexity) and Section 12.5.1 (Sensitivity).
 * [H. Buhrman, R. de Wolf, *Complexity measures and decision tree complexity:
   a survey*][BuhrmanDeWolf2002]
