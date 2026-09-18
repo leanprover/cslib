@@ -37,9 +37,8 @@ witness.
 * `ComputationPath`: a run of the machine: a series of configurations from the initial one, each
     reached from the previous by a step
 * `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
-* `Computes`, `ComputesInExactTime`, `ComputesInExactSpace`, `ComputesInExactTimeAndSpace`:
-    its instances, whose
-    bounds all refer to a single computation
+* `Computes`, `ComputesInTime`, `ComputesInSpace`, `ComputesInTimeAndSpace`:
+    denote existence of a computation path adhering to the given ressource bounds.
 
 ## References
 
@@ -113,8 +112,8 @@ def space (p : ntm.ComputationPath input) : ℕ := spaceUsedOfCfgs p.cfgs
 end ComputationPath
 
 /-- `ntm` has a computation on `input` that starts at the initial configuration, halts, emits
-`output` and satisfies `P`. The notions below are its instances, so their constraints all refer to
-a single computation. -/
+`output` and satisfies `P`. "Computation" refers to one `ComputationPath`, i.e. the constraints
+refer to one specific instance of a computation, not globally to all paths through `ntm`. -/
 def ComputesSuchThat (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
     (P : ntm.ComputationPath input → Prop) : Prop :=
   ∃ p : ntm.ComputationPath input, p.last.Halted ∧ p.last.output = output ∧ P p
@@ -123,21 +122,21 @@ def ComputesSuchThat (ntm : MultiTapeNTM k Symbol State) (input output : List Sy
 def Computes (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) : Prop :=
   ntm.ComputesSuchThat input output fun _ => True
 
-/-- `ntm` computes `output` from `input` in exactly `t` steps. -/
-def ComputesInExactTime (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (t : ℕ) :
+/-- `ntm` computes `output` from `input` in at most `t` steps. -/
+def ComputesInTime (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (t : ℕ) :
     Prop :=
-  ntm.ComputesSuchThat input output fun p => p.time = t
+  ntm.ComputesSuchThat input output fun p => p.time ≤ t
 
-/-- `ntm` computes `output` from `input` touching exactly `s` work tape cells. -/
-def ComputesInExactSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (s : ℕ) :
+/-- `ntm` computes `output` from `input`, touching exactly `s` work tape cells. -/
+def ComputesInSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (s : ℕ) :
     Prop :=
   ntm.ComputesSuchThat input output fun p => p.space = s
 
-/-- `ntm` computes `output` from `input` in `t` steps and `s` work tape cells, by a single
-computation. Nondeterministic analogue of `MultiTapeTM.ComputesInTimeAndSpace`. -/
-def ComputesInExactTimeAndSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
+/-- `ntm` computes `output` from `input` in at most `t` steps and exactly `s` work tape cells, by a
+single computation. Nondeterministic analogue of `MultiTapeTM.ComputesInTimeAndSpace`. -/
+def ComputesInTimeAndSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
     (t s : ℕ) : Prop :=
-  ntm.ComputesSuchThat input output fun p => p.time = t ∧ p.space = s
+  ntm.ComputesSuchThat input output fun p => p.time ≤ t ∧ p.space = s
 
 end MultiTapeNTM
 
