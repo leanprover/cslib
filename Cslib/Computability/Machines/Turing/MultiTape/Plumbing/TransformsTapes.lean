@@ -31,13 +31,14 @@ by cell.
 * `Turing.MultiTapeTM.tapeOfList`: the tape holding exactly a given word.
 * `Turing.MultiTapeTM.wordsCfg`: the configuration whose tapes hold given words.
 * `Turing.MultiTapeTM.TransformsTapes`: the specification format described above.
+* `Turing.MultiTapeTM.nop`: the machine that does nothing.
 
 ## Main results
 
 * `Turing.MultiTapeTM.TransformsTapes.imp`: strengthen the precondition, weaken the postcondition
   and raise the bounds.
-* `Turing.MultiTapeTM.exists_transformsTapes_nop`: the machine that does nothing, the first
-  machine of the interface and the check that the format is inhabited as intended.
+* `Turing.MultiTapeTM.transformsTapes_nop`: `nop` leaves every word as it was, the first machine of
+  the interface and the check that the format is inhabited as intended.
 -/
 
 @[expose] public section
@@ -132,30 +133,35 @@ section Nop
 
 /-- The machine that does nothing: it halts on its first step, leaving the configuration
 unchanged. -/
-private def nop (k : ℕ) (Symbol : Type*) : MultiTapeTM k Symbol Unit where
+def nop (k : ℕ) (Symbol : Type*) : MultiTapeTM k Symbol Unit where
   q₀ := ()
   tr _ _ _ := { inputTape := 0, workTapes := fun _ => (none, 0), output := none, state := none }
 
-private lemma step_nop (ws : Fin k → List Symbol) (out : List Symbol) :
+/-- A single step of `nop` halts and leaves the words alone. -/
+@[simp]
+lemma step_nop (ws : Fin k → List Symbol) (out : List Symbol) :
     (nop k Symbol).step (wordsCfg input (some ()) ws out) = wordsCfg input none ws out := by
   refine Cfg.ext rfl ?_ ?_ ?_ ?_ <;>
     simp [step, nop, Action.apply, wordsCfg, SignType.cast]
 
-/-- The machine that does nothing: it halts in one step, leaving every word as it was. Its
-heads never move, so it visits one cell per tape. This is the first machine of the interface: it
-checks that the specification format is inhabited exactly as intended. -/
-theorem exists_transformsTapes_nop (k : ℕ) (Symbol : Type*) :
-    ∃ (State : Type) (_ : Finite State) (tm : MultiTapeTM k Symbol State),
-      TransformsTapes tm (fun _ _ => True) (fun _ ws ws' => ws' = ws) 1 k := by
-  refine ⟨Unit, inferInstance, nop k Symbol, fun input ws out _ => ?_⟩
-  have hrun : (nop k Symbol).runFrom (wordsCfg input (some ()) ws out) 1 =
-      wordsCfg input none ws out := by
-    rw [runFrom_succ_eq_step', runFrom_zero, step_nop]
+/-- `nop` reaches its halting configuration after exactly one step. -/
+@[simp]
+lemma runFrom_nop_one (ws : Fin k → List Symbol) (out : List Symbol) :
+    (nop k Symbol).runFrom (wordsCfg input (some ()) ws out) 1 = wordsCfg input none ws out := by
+  rw [runFrom_succ_eq_step', runFrom_zero, step_nop]
+
+/-- **The machine that does nothing** halts in one step, leaving every word as it was. Its heads
+never move, so it visits one cell per tape. This is the first machine of the interface: it checks
+that the specification format is inhabited exactly as intended. -/
+theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
+    TransformsTapes (nop k Symbol) (fun _ _ => True) (fun _ ws ws' => ws' = ws) 1 k := by
+  intro input ws out _
   -- the heads never move, so each tape touches only the single cell `0`
-  refine ⟨1, le_rfl, ws, hrun, rfl, spaceUsed_le_of_workTapePos_const _ 1 fun m hm => ?_⟩
+  refine ⟨1, le_rfl, ws, runFrom_nop_one ws out, rfl,
+    spaceUsed_le_of_workTapePos_const _ 1 fun m hm => ?_⟩
   rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
   · rw [runFrom_zero]
-  · rw [hrun]; funext i; simp only [wordsCfg_workTapePos]
+  · rw [runFrom_nop_one]; funext i; simp only [wordsCfg_workTapePos]
 
 end Nop
 
