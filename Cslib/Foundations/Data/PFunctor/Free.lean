@@ -88,7 +88,6 @@ variable {P : PFunctor.{uA, uB}} {α β γ : Type*}
 
 instance : Pure (P.FreeM) where pure := .pure
 
-@[simp]
 theorem pure_eq_pure : (FreeM.pure : α → P.FreeM α) = pure := rfl
 
 /-- Lift a shape of the base polynomial functor into the free monad. -/
@@ -109,8 +108,7 @@ protected def bind : P.FreeM α → (α → P.FreeM β) → P.FreeM β
 
 instance : Bind (P.FreeM) where bind := .bind
 
-/-- Note that this lemma does not always apply, as it is universe-constrained by `Bind.bind`. -/
-@[simp]
+/-- Not marked `simp` since it is not universe level generic. -/
 theorem bind_eq_bind {α β : Type v} :
     (FreeM.bind : P.FreeM α → _ → P.FreeM β) = Bind.bind := rfl
 
