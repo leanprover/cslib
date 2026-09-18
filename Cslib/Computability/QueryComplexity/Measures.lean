@@ -17,7 +17,7 @@ public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 # Boolean function complexity measures
 
 Sensitivity `s(f)`, block sensitivity `bs(f)` and certificate complexity `C(f)`, together with
-the chain `s(f) ≤ bs(f) ≤ C(f)`.
+the chain `s(f) ≤ bs(f) ≤ C(f)`. Notation follows [AroraBarak09].
 
 ## Main definitions
 
@@ -65,10 +65,10 @@ lemma mem_sensitiveCoords {f : BoolFunc n} {x : Cube n} {i : Fin n} :
     i ∈ sensitiveCoords f x ↔ IsSensitiveCoord f x i := by
   simp [sensitiveCoords]
 
-/-- `sₓ(f)` is the number of sensitive coordinates in input `x`. -/
+/-- The number of sensitive coordinates in input `x`, usually denoted `sₓ(f)`. -/
 def pointSensitivity (f : BoolFunc n) (x : Cube n) : ℕ := (sensitiveCoords f x).card
 
-/-- `s(f)`. -/
+/-- The maximum sensitivity over all inputs, denoted `s(f)`. -/
 def sensitivity (f : BoolFunc n) : ℕ := Finset.univ.sup (pointSensitivity f)
 
 /-- Lower-bound rule for `sₓ(f)`: exhibit a set of sensitive coordinates. -/
@@ -77,7 +77,7 @@ lemma card_le_pointSensitivity {f : BoolFunc n} {x : Cube n} {S : Finset (Fin n)
   apply Finset.card_le_card
   simpa [Finset.subset_iff] using h
 
-/-- `sₓ(f) ≤ s(f)`. -/
+/-- The sensitivity at a single input is at most the sensitivity of `f`: `sₓ(f) ≤ s(f)`. -/
 lemma pointSensitivity_le_sensitivity (f : BoolFunc n) (x : Cube n) :
     pointSensitivity f x ≤ sensitivity f :=
   Finset.le_sup (Finset.mem_univ x)
@@ -114,11 +114,13 @@ lemma mem_sensitiveFamilies {f : BoolFunc n} {x : Cube n} {F : Finset (Block n)}
     F ∈ sensitiveFamilies f x ↔ IsSensitiveFamily f x F := by
   simp [sensitiveFamilies]
 
-/-- `bsₓ(f)`. -/
+/-- The block sensitivity of `f` at `x`: the largest number of pairwise disjoint blocks of
+coordinates such that flipping every coordinate of any one block flips `f`. Usually denoted
+`bsₓ(f)`. -/
 def pointBlockSensitivity (f : BoolFunc n) (x : Cube n) : ℕ :=
   (sensitiveFamilies f x).sup Finset.card
 
-/-- `bs(f)`. -/
+/-- The maximum block sensitivity over all inputs, denoted `bs(f)`. -/
 def blockSensitivity (f : BoolFunc n) : ℕ := Finset.univ.sup (pointBlockSensitivity f)
 
 /-- Lower-bound rule for `bsₓ(f)`: exhibit one sensitive family. -/
@@ -126,7 +128,7 @@ lemma card_le_pointBlockSensitivity {f : BoolFunc n} {x : Cube n} {F : Finset (B
     (h : IsSensitiveFamily f x F) : F.card ≤ pointBlockSensitivity f x :=
   Finset.le_sup (mem_sensitiveFamilies.mpr h)
 
-/-- `bsₓ(f) ≤ bs(f)`. -/
+/-- The block sensitivity at a single input is at most that of `f`: `bsₓ(f) ≤ bs(f)`. -/
 lemma pointBlockSensitivity_le_blockSensitivity (f : BoolFunc n) (x : Cube n) :
     pointBlockSensitivity f x ≤ blockSensitivity f :=
   Finset.le_sup (Finset.mem_univ x)
@@ -180,7 +182,7 @@ theorem pointSensitivity_le_pointBlockSensitivity (f : BoolFunc n) (x : Cube n) 
     pointSensitivity f x ≤ pointBlockSensitivity f x :=
   card_singletonFamily ▸ card_le_pointBlockSensitivity isSensitiveFamily_singletonFamily
 
-/-- `s(f) ≤ bs(f)`. -/
+/-- Every sensitive coordinate is a sensitive block of size one, so `s(f) ≤ bs(f)`. -/
 theorem sensitivity_le_blockSensitivity (f : BoolFunc n) :
     sensitivity f ≤ blockSensitivity f :=
   Finset.sup_mono_fun fun x _ => pointSensitivity_le_pointBlockSensitivity f x
@@ -245,7 +247,7 @@ lemma ofCube_mem_certificates (f : BoolFunc n) (x : Cube n) : ofCube x ∈ certi
 lemma certificates_nonempty (f : BoolFunc n) (x : Cube n) : (certificates f x).Nonempty :=
   ⟨ofCube x, ofCube_mem_certificates f x⟩
 
-/-- `Cₓ(f)`: the size of the smallest certificate. -/
+/-- The size of the smallest certificate for the input `x`, denoted `Cₓ(f)`. -/
 def pointCertificateComplexity (f : BoolFunc n) (x : Cube n) : ℕ :=
   (certificates f x).inf' (certificates_nonempty f x) size
 
@@ -254,11 +256,11 @@ lemma pointCertificateComplexity_le {f : BoolFunc n} {x : Cube n} {C : Assignmen
     (h : C ∈ certificates f x) : pointCertificateComplexity f x ≤ size C :=
   Finset.inf'_le _ h
 
-/-- `C(f)`. -/
+/-- The maximum over all inputs of the smallest certificate size, denoted `C(f)`. -/
 def certificateComplexity (f : BoolFunc n) : ℕ :=
   Finset.univ.sup (pointCertificateComplexity f)
 
-/-- `Cₓ(f) ≤ C(f)`. -/
+/-- The certificate complexity at a single input is at most that of `f`: `Cₓ(f) ≤ C(f)`. -/
 lemma pointCertificateComplexity_le_certificateComplexity (f : BoolFunc n) (x : Cube n) :
     pointCertificateComplexity f x ≤ certificateComplexity f :=
   Finset.le_sup (Finset.mem_univ x)
@@ -303,7 +305,8 @@ theorem pointBlockSensitivity_le_pointCertificateComplexity
   Finset.sup_le fun _ hF => Finset.le_inf' _ _ fun _ hC =>
     card_le_size_of_isSensitiveFamily (mem_sensitiveFamilies.mp hF) hC
 
-/-- `bs(f) ≤ C(f)`. -/
+/-- Every block of a sensitive family meets the support of any certificate, so
+`bs(f) ≤ C(f)`. -/
 theorem blockSensitivity_le_certificateComplexity (f : BoolFunc n) :
     blockSensitivity f ≤ certificateComplexity f :=
   Finset.sup_mono_fun fun x _ =>

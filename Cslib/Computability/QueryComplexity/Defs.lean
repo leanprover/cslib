@@ -42,7 +42,8 @@ variable {n : ℕ}
 /-- Bit string of length `n`. -/
 abbrev Cube (n : ℕ) : Type := Fin n → Bool
 
-/-- `f : {0,1}ⁿ → {0,1}`. -/
+/-- A Boolean function on `n` inputs: a map from bit strings of length `n` to a single bit,
+`f : {0,1}ⁿ → {0,1}`. -/
 abbrev BoolFunc (n : ℕ) : Type := Cube n → Bool
 
 /-- A block: a set of coordinates. -/
@@ -52,16 +53,6 @@ abbrev Block (n : ℕ) : Type := Finset (Fin n)
 whole `Function.update` simp set (`update_self`, `update_of_ne`, `update_idem`,
 `update_eq_self`, …) applies to it. -/
 def flipBit (x : Cube n) (i : Fin n) : Cube n := Function.update x i (!x i)
-
-/-- The flipped coordinate reads back negated. -/
-@[simp]
-lemma flipBit_self (x : Cube n) (i : Fin n) : flipBit x i i = !x i :=
-  Function.update_self ..
-
-/-- Every other coordinate is left alone. -/
-@[simp]
-lemma flipBit_of_ne {x : Cube n} {i j : Fin n} (h : j ≠ i) : flipBit x i j = x j :=
-  Function.update_of_ne h ..
 
 /-- `x` with every coordinate of `B` flipped. -/
 def flipBlock (x : Cube n) (B : Block n) : Cube n :=
