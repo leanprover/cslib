@@ -13,7 +13,8 @@ public import Mathlib.Order.Lattice.Nat
 /-!
 # Tape head visitation and space-usage lemmas
 
-This file collects lemmas about the set of positions visited by a work-tape head
+The input head cannot cross a cell without visiting it.
+This file also collects lemmas about the set of positions visited by a work-tape head
 (`MultiTapeTM.visitedByTapeHead`) and the resulting space-usage measures
 (`MultiTapeTM.spaceUsedByTape`, `MultiTapeTM.spaceUsed`) and how the tape head positions
 influence the cells that are modified on a tape.
@@ -33,6 +34,36 @@ variable {State Symbol : Type*}
 variable {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 variable {cfg : Cfg k Symbol State input}
+
+/-- Avoiding a cell preserves both possible bounds relative to that cell. -/
+private lemma inputPos_bounds_of_forall_ne {u v p : ℕ} (huv : u ≤ v)
+    (hno : ∀ t, u ≤ t → t < v → (tm.runFrom cfg t).inputPos.val ≠ p) :
+    ((tm.runFrom cfg u).inputPos.val ≤ p → (tm.runFrom cfg v).inputPos.val ≤ p) ∧
+      (p ≤ (tm.runFrom cfg u).inputPos.val → p ≤ (tm.runFrom cfg v).inputPos.val) := by
+  induction v, huv using Nat.le_induction with
+  | base => exact ⟨id, id⟩
+  | succ v huv ih =>
+    have hprev := ih fun t hut htv => hno t hut (by omega)
+    have := hno v huv (Nat.lt_succ_self _)
+    have hstep := tm.inputPos_step_bounds (tm.runFrom cfg v)
+    rw [← runFrom_succ_eq_step'] at hstep
+    constructor <;> intro h <;> omega
+
+/-- An input head at or left of `p` at time `u` is still at or left of `p` at time `v`
+if it does not visit `p` during `[u, v)`. -/
+lemma inputPos_le_of_forall_ne {u v p : ℕ} (huv : u ≤ v)
+    (hu : (tm.runFrom cfg u).inputPos.val ≤ p)
+    (hno : ∀ t, u ≤ t → t < v → (tm.runFrom cfg t).inputPos.val ≠ p) :
+    (tm.runFrom cfg v).inputPos.val ≤ p :=
+  (inputPos_bounds_of_forall_ne huv hno).1 hu
+
+/-- An input head at or right of `p` at time `u` is still at or right of `p` at time `v`
+if it does not visit `p` during `[u, v)`. -/
+lemma le_inputPos_of_forall_ne {u v p : ℕ} (huv : u ≤ v)
+    (hu : p ≤ (tm.runFrom cfg u).inputPos.val)
+    (hno : ∀ t, u ≤ t → t < v → (tm.runFrom cfg t).inputPos.val ≠ p) :
+    p ≤ (tm.runFrom cfg v).inputPos.val :=
+  (inputPos_bounds_of_forall_ne huv hno).2 hu
 
 /-- If the work tape head is not at position `z`, then the tape does not change there. -/
 lemma step_workTapes_eq_of_ne
@@ -170,5 +201,28 @@ lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
   -- Monotonicity lets us use a single step that is late enough for every tape.
   exact ⟨Finset.univ.sup T, fun t i =>
     (hT i t).trans (tm.spaceUsedByTape_mono cfg i (Finset.le_sup (Finset.mem_univ i)))⟩
+
+/-- No further work-tape cells are visited after a machine halts. -/
+lemma spaceUsed_eq_of_halt {cfg : Cfg k Symbol State input} {T t : ℕ} (hle : T ≤ t)
+    (hhalt : (tm.runFrom cfg T).Halted) :
+    tm.spaceUsed cfg t = tm.spaceUsed cfg T := by
+  apply le_antisymm ?_ (tm.spaceUsed_mono cfg hle)
+  apply Finset.sum_le_sum
+  intro i _
+  apply Finset.card_le_card
+  intro z hz
+  obtain ⟨u, hu, rfl⟩ := tm.mem_visitedByTapeHead.mp hz
+  by_cases huT : u ≤ T
+  · exact tm.mem_visitedByTapeHead.mpr ⟨u, by omega, rfl⟩
+  · rw [tm.runFrom_eq_of_halt (by omega : T ≤ u) hhalt]
+    exact tm.mem_visitedByTapeHead_self cfg T i
+
+/-- A bound on space at a halting time bounds space throughout the run. -/
+lemma spaceUsed_le_of_halt {cfg : Cfg k Symbol State input} {T s : ℕ}
+    (hhalt : (tm.runFrom cfg T).Halted) (hs : tm.spaceUsed cfg T ≤ s) (t : ℕ) :
+    tm.spaceUsed cfg t ≤ s := by
+  rcases le_total t T with ht | ht
+  · exact (tm.spaceUsed_mono cfg ht).trans hs
+  · rwa [tm.spaceUsed_eq_of_halt ht hhalt]
 
 end Turing.MultiTapeTM
