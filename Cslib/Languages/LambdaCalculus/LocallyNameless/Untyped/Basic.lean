@@ -77,9 +77,9 @@ scoped infixr:80 " ^ " => Term.open'
 
 end Opening
 
-section Closing
-
 variable [DecidableEq Var]
+
+section Closing
 
 /-- Variable closing, replacing a free `fvar x` with `bvar k` -/
 @[scoped grind =]
@@ -113,8 +113,6 @@ end Closing
 
 section Substitution
 
-variable [DecidableEq Var]
-
 /-- Substitution of a free variable to a term. -/
 @[scoped grind =]
 def subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
@@ -127,14 +125,6 @@ def subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
 instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var (Term Var) where
   subst := Term.subst
-
-/-- Free variables of a term. -/
-@[simp, scoped grind =]
-def fv : Term Var → Finset Var
-| bvar _ => {}
-| fvar x => {x}
-| abs e1 => e1.fv
-| app l r => l.fv ∪ r.fv
 
 variable {i : ℕ} {x x' : Var} {s l r M : Term Var}
 
@@ -151,6 +141,18 @@ lemma subst_def (m : Term Var) (x : Var) (s : Term Var) : m.subst x s = m[x := s
 attribute [scoped grind =] subst_bvar subst_fvar subst_app subst_abs subst_def
 
 end Substitution
+
+section FreeVariables
+
+/-- Free variables of a term. -/
+@[simp, scoped grind =]
+def fv : Term Var → Finset Var
+| bvar _ => {}
+| fvar x => {x}
+| abs e1 => e1.fv
+| app l r => l.fv ∪ r.fv
+
+end FreeVariables
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
