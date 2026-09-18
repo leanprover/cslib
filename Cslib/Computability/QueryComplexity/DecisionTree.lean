@@ -38,7 +38,7 @@ that input. Together with `Measures.lean` that gives the chain
 
 ## References
 
-* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak2009],
+* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09],
   Section 12.1 (Decision trees and decision tree complexity) and Section 12.2
   (Certificate Complexity).
 * [H. Buhrman, R. de Wolf, *Complexity measures and decision tree complexity:
@@ -55,8 +55,7 @@ variable {n : ℕ}
 
 /-- A decision tree over `n` Boolean variables: either a leaf holding the output
 bit, or a node querying one coordinate. The left child is taken when the answer is
-`false`, the right child when it is `true`. Nothing forbids querying the same
-coordinate twice on a route. -/
+`false`, the right child when it is `true`. -/
 inductive DecisionTree (n : Nat) where
   | leaf (output : Bool) : DecisionTree n
   | node (i : Fin n) : DecisionTree n → DecisionTree n → DecisionTree n
@@ -85,7 +84,6 @@ def depth : DecisionTree n → ℕ
   | .leaf _ => 0
   | .node _ l r => max l.depth r.depth + 1
 
-/-- A leaf asks nothing. -/
 @[simp]
 lemma depth_leaf (b : Bool) : (leaf b : DecisionTree n).depth = 0 := rfl
 
@@ -102,13 +100,11 @@ leaf if a valid certificate for it.
 -/
 
 /-- The cost of running `t` on `x`: the number of queries actually made, i.e.
-the length of the single root-to-leaf path that `x` follows. Always at most
-`depth`, with equality when `x` takes a longest path. -/
+the length of the single root-to-leaf path that `x` follows. -/
 def cost : DecisionTree n → Cube n → ℕ
   | .leaf _, _ => 0
   | .node i l r, x => (if x i then r.cost x else l.cost x) + 1
 
-/-- A leaf asks nothing, whatever the input. -/
 @[simp]
 lemma cost_leaf (b : Bool) (x : Cube n) : (leaf b : DecisionTree n).cost x = 0 := rfl
 
@@ -136,8 +132,7 @@ then reads off the answer. This proves the set in the `complexity` definition is
 
 /-- Query each coordinate of `is` in turn, then answer `f` on the accumulated
 input. `acc` records the answers so far; coordinates not yet queried keep whatever
-value `acc` came in with. The recursion is on the list rather than on `n`, which
-keeps every subtree over the same coordinate type. -/
+value `acc` came in with. -/
 def bruteForce (f : BoolFunc n) : List (Fin n) → Cube n → DecisionTree n
   | [], acc => .leaf (f acc)
   | i :: is, acc =>
@@ -152,26 +147,21 @@ theorem depth_bruteForce (is : List (Fin n)) (acc : Cube n) (f : BoolFunc n) :
   | cons head tail tail_ih =>
     simp [bruteForce, tail_ih]
 
-/-- Correctness, in the generalised form the induction needs. -/
+/-- Correctness in the generalized form. -/
 theorem eval_bruteForce (is : List (Fin n)) (acc : Cube n) (f : BoolFunc n) (x : Cube n)
     (h : ∀ j, j ∉ is → x j = acc j) : (bruteForce f is acc).eval x = f x := by
   induction is generalizing acc with
   | nil =>
-    -- Nothing left to query, so `h` says `acc` and `x` agree at *every* coordinate.
     have hacc : acc = x := by grind
     simp [bruteForce, eval, hacc]
   | cons i is ih =>
-    -- Whichever branch `x` takes, the accumulator now records `x i` correctly, so the
-    -- invariant survives and the induction hypothesis applies to that subtree.
     have key : ∀ b : Bool, x i = b →
         (bruteForce f is (Function.update acc i b)).eval x = f x := by
       intro b hb
       refine ih _ fun j hj => ?_
       by_cases hji : j = i
-      · -- the coordinate just answered: the update wrote exactly `x i`
-        subst hji; simp [hb]
-      · -- any other coordinate is untouched, so the old agreement carries over
-        rw [Function.update_of_ne hji]
+      · subst hji; simp [hb]
+      · rw [Function.update_of_ne hji]
         exact h j (by simp [hji, hj])
     simp only [bruteForce, eval]
     by_cases hxi : x i = true
@@ -199,14 +189,13 @@ theorem depth_fullTree (f : BoolFunc n) : (fullTree f).depth = n := by
 noncomputable def complexity (f : BoolFunc n) : ℕ :=
   sInf {k | ∃ t : DecisionTree n, t.Computes f ∧ t.depth = k}
 
-/-- Upper-bound rule for `D(f)`: exhibit a single tree computing `f`. -/
+/-- Upper-bound rule for `D(f)`. -/
 theorem complexity_le_depth {t : DecisionTree n} {f : BoolFunc n} (h : t.Computes f) :
   complexity f ≤ t.depth := by
   apply Nat.sInf_le
   exact ⟨t, h, rfl⟩
 
-/-- The set of achievable depths is non-empty — `fullTree` lives in it. Everything
-below needs this; without it `complexity f` could be `sInf ∅ = 0` for all we know. -/
+/-- The set of achievable depths is non-empty. -/
 theorem depths_nonempty (f : BoolFunc n) :
     {k | ∃ t : DecisionTree n, t.Computes f ∧ t.depth = k}.Nonempty :=
   ⟨n, fullTree f, fullTree_computes f, depth_fullTree f⟩
@@ -215,30 +204,25 @@ theorem depths_nonempty (f : BoolFunc n) :
 theorem complexity_le_card (f : BoolFunc n) : complexity f ≤ n :=
   (complexity_le_depth (fullTree_computes f)).trans_eq (depth_fullTree f)
 
-/-- An optimal tree exists. A non-empty set of naturals attains its infimum
-(`Nat.sInf_mem`), so the minimum in `complexity` is realised by an actual tree.
-Every argument that begins "take an optimal decision tree for `f`" needs this. -/
+/-- An optimal tree exists. This follows from `Nat.sInf_mem`. -/
 theorem exists_computes_depth_eq_complexity (f : BoolFunc n) :
     ∃ t : DecisionTree n, t.Computes f ∧ t.depth = complexity f :=
   Nat.sInf_mem (depths_nonempty f)
 
-/-- Lower-bound rule for `D(f)`: to bound `D(f)` from below, bound the depth of
-every tree computing `f`. The counterpart of `complexity_le_depth`. -/
 theorem le_complexity {f : BoolFunc n} {k : ℕ}
     (h : ∀ t : DecisionTree n, t.Computes f → k ≤ t.depth) : k ≤ complexity f :=
   le_csInf (depths_nonempty f) fun _ hb => by
     obtain ⟨t, ht, rfl⟩ := hb
     exact h t ht
 
-/-- The path of `x` through `t`is the partial assignment recording every query
+/-- The path of `x` through `t` is the partial assignment recording every query
 made along the route `x` takes, together with the answer given. -/
 def path : DecisionTree n → Cube n → Assignment n
   | .leaf _, _ => fun _ => none
   | .node i l r, x =>
     if x i then Function.update (path r x) i (x i) else Function.update (path l x) i (x i)
 
-/-- Everything a path records about `x` is `x`'s own value. Needed before `routing`,
-because a coordinate may be queried twice on one route. -/
+/-- The path partial assignment of x agrees with x. -/
 theorem agrees_path {t : DecisionTree n} {x : Cube n} : Agrees (path t x) x := by
   induction t with
   | leaf _ => simp [Agrees, path]
@@ -259,9 +243,8 @@ lemma agrees_of_agrees_update {C : Assignment n} {x y : Cube n} {j : Fin n}
     rw [hy, hC k c hk]
   · exact h k c (by rwa [Function.update_of_ne hkj])
 
-/-- The routing lemma. If `y` answers every query the tree asked of `x` the same
-way, the tree cannot tell them apart. This is the formal content of "the adversary
-answers consistently", and the engine of `C(f) ≤ D(f)`. -/
+/-- If y agrees with the path partial assignment of x, then they both follow the
+same route from root to leaf. -/
 theorem routing {t : DecisionTree n} {x : Cube n} {y : Cube n} :
     Agrees (path t x) y → t.eval y = t.eval x := by
   induction t with
@@ -290,8 +273,8 @@ lemma support_update_subset (C : Assignment n) (j : Fin n) (b : Bool) :
   · rw [mem_support, Function.update_of_ne hij] at hi
     exact Finset.mem_insert_of_mem (mem_support.mpr hi)
 
-/-- A path fixes no more coordinates than the tree made queries. The inequality can
-be strict: a re-queried coordinate is charged twice but occupies one slot. -/
+/-- The size of the path is at most the number of queries made. The inequality is not
+strict because making duplicate queries is allowed. -/
 theorem size_path_le_cost (t : DecisionTree n) (x : Cube n) : size (path t x) ≤ cost t x := by
   induction t with
   | leaf b => simp [path, size, support]
@@ -311,14 +294,13 @@ theorem size_path_le_cost (t : DecisionTree n) (x : Cube n) : size (path t x) �
         _ ≤ (support (path l x)).card + 1 := Finset.card_insert_le _ _
         _ ≤ cost l x + 1 := Nat.add_le_add_right l_ih 1
 
-/-- The path is a certificate. Anything agreeing with the route `x` took reaches
-the same leaf (`routing`), so `f` is pinned to `f x` on the whole subcube. -/
+/-- The path is a certificate. -/
 theorem path_mem_certificates {f : BoolFunc n} {t : DecisionTree n} (ht : t.Computes f)
     (x : Cube n) : path t x ∈ certificates f x :=
   mem_certificates.mpr ⟨agrees_path, fun y hy => (ht y).symm.trans ((routing hy).trans (ht x))⟩
 
-/-- Pointwise: `C(f, x) ≤ D(f)`, by running the chain
-`C(f, x) ≤ size (path t x) ≤ cost t x ≤ depth t` over every tree computing `f`. -/
+/-- Pointwise: `Cₓ(f) ≤ D(f)`, by running the chain
+`Cₓ(f) ≤ size (path t x) ≤ cost t x ≤ depth t` over every tree computing `f`. -/
 theorem pointCertificateComplexity_le_complexity (f : BoolFunc n) (x : Cube n) :
     pointCertificateComplexity f x ≤ complexity f := by
   apply le_complexity
