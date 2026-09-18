@@ -8,6 +8,11 @@ on:
     - cron: '30 */3 * * *'  # At minute 30 past every 3rd hour.
   workflow_dispatch:
 
+# Runs every step under `bash --noprofile --norc -eo pipefail`
+defaults:
+  run:
+    shell: bash
+
 jobs:
   merge-to-nightly-testing:
     if: github.repository == 'leanprover/cslib'

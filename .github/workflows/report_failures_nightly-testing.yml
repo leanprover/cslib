@@ -6,6 +6,11 @@ on:
     types:
       - completed
 
+# Runs every step under `bash --noprofile --norc -eo pipefail`
+defaults:
+  run:
+    shell: bash
+
 jobs:
   handle_failure:
 
