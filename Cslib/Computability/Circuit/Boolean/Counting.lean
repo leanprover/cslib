@@ -23,7 +23,7 @@ namespace Cslib.Circuits.Boolean
 
 variable {n s : ℕ}
 
-/-- Boolean functions computable with at most `s` De Morgan gates. -/
+/-- Boolean functions on `n` inputs computable with at most `s` De Morgan gates. -/
 noncomputable abbrev computableFunctions (n s : ℕ) : Finset (BooleanFunction n) :=
   Circuits.computableFunctions interpretation n s
 
