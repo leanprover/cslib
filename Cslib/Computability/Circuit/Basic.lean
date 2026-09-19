@@ -16,9 +16,6 @@ an output is free: projections and duplicated outputs cost no gates. The size
 of a circuit is its gate count and its depth is the maximum depth of a
 designated output wire.
 
-A dependent pair `Σ gateCount, Circuit σ inputCount gateCount outputCount`
-hides the gate count for constructions that compute it along the way.
-
 For the standard Boolean circuit model, see [Arora and Barak, Section 6.1][AroraBarak09].
 Here a topological ordering is part of the representation, and the Boolean gate
 basis is generalized to an arbitrary `Signature` and `Interpretation`. Our size
@@ -86,6 +83,11 @@ def Circuit.eval
     (i : Interpretation σ U)
     (x : Fin inputCount → U) : Fin outputCount → U :=
   c.program.trace i x ∘ c.outputs
+
+/-- A single-output circuit computes `f` when its output agrees with `f` on every input. -/
+def Circuit.Computes (c : Circuit σ inputCount gateCount 1)
+    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → U) : Prop :=
+  ∀ x, c.eval interpretation x 0 = f x
 
 @[simp] theorem Circuit.eval_id
     (interpretation : Interpretation σ U)
