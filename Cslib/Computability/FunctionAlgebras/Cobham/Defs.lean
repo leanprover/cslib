@@ -7,6 +7,7 @@ module
 
 public import Cslib.Init
 public import Mathlib.Data.Fin.Tuple.Basic
+import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
 
 /-!
@@ -43,6 +44,9 @@ recursion on notation inherently produces functions of higher arity.
   polynomial time: over the binary alphabet, the functions denoted by limited unary terms are
   exactly the polynomial-time computable functions
   (`Cslib.Turing.SingleTapeTM.PolyTimeComputable`). Proof wanted.
+- `Cslib.Cobham.exists_limited_iff_multiTapePolyTimeComputable` — the same characterization
+  against the multi-tape model
+  (`Cslib.Turing.MultiTapeTM.ComputableInTimeAndSpaceOfLength`). Proof wanted.
 
 ## Design notes
 
@@ -76,10 +80,9 @@ Implementing this version is a TODO.
 
 In `Cobham.boundedRec`, while we provide a bound, we do not actually enforce this bound always holds
 either in the syntax or in the evaluation.
-This avoids mutual recursion.
+We do this to avoid mutual recursion.
 Instead, we add a predicate `Limited` which checks that the bound always holds, which we can use
 to examine the class of functions that are actually bounded.
-
 
 ## References
 
@@ -211,12 +214,24 @@ def Limited {n : ℕ} : Cobham Symbol n → Prop
           (bound.eval (Fin.cons x v)).length := Iff.rfl
 
 open Turing.SingleTapeTM in
-/-- **Cobham's characterization of polynomial time** [Cobham1965]: a binary string function
+/-- **Cobham's characterization of polynomial time**: a binary string function
 is denoted by a limited unary term if and only if it is computable in polynomial time by a
 single-tape Turing machine. -/
 proof_wanted exists_limited_iff_polyTimeComputable (f : List Bool → List Bool) :
     (∃ c : Cobham Bool 1, c.Limited ∧ ∀ x, c.eval (fun _ => x) = f x) ↔
       Nonempty (PolyTimeComputable f)
+
+open Turing.MultiTapeTM in
+/-- **Cobham's characterization of polynomial time, multi-tape version**: a binary
+string function is denoted by a limited unary term if and only if it is computable in polynomial
+time by a multi-tape Turing machine. The number of tapes is existentially quantified by
+`ComputableInTimeAndSpace`. The space bound is a separate polynomial, which is no extra
+assumption: a machine running for `t` steps visits at most `t + 1` cells per tape. -/
+proof_wanted exists_limited_iff_multiTapePolyTimeComputable (f : List Bool → List Bool) :
+    (∃ c : Cobham Bool 1, c.Limited ∧ ∀ x, c.eval (fun _ => x) = f x) ↔
+      ∃ time space : Polynomial ℕ,
+        ComputableInTimeAndSpaceOfLength f (Function.Embedding.refl _)
+          (Function.Embedding.refl _) (fun n => time.eval n) (fun n => space.eval n)
 
 end Cobham
 
