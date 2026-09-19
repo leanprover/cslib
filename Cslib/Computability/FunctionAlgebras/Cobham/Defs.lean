@@ -46,7 +46,7 @@ recursion on notation inherently produces functions of higher arity.
   (`Cslib.Turing.SingleTapeTM.PolyTimeComputable`). Proof wanted.
 - `Cslib.Cobham.exists_limited_iff_multiTapePolyTimeComputable` — the same characterization
   against the multi-tape model
-  (`Cslib.Turing.MultiTapeTM.ComputableInTimeAndSpaceOfLength`). Proof wanted.
+  (`Turing.MultiTapeTM.ComputableInTimeAndSpaceOfLength`). Proof wanted.
 
 ## Design notes
 
@@ -65,14 +65,14 @@ In Cobham's original formulation, a function is allowed in the set of
 recursive constructions that allows us to obtain outputs whose length is a multiplication of
 lengths of input. This type of function seems to be known as a "smash function".
 Originally this smash function was `x ^ length y`, but `c^(length x * length y)` for a 1-character
-string `c` is also possible (e.g. [BBFMT16]).
+string `c` is also possible (e.g. [Beckmann2016]).
 The presence of a smash function ensures we can create functions of polynomial blowup of any degree.
 The limited recursion is then length-bounded by another function of the class.
 
 The alternative is to bound the recursion not by another function of the class,
 but by a generic multivariable polynomial in the lengths of the inputs.
 This obviates the need for a smash function.
-Proof that this is equivalent to FP can be found in [Clote] Lemma 3.90, where it is called
+Proof that this is equivalent to FP can be found in [Clote1999] Lemma 3.90, where it is called
 "polynomially bounded recursion on notation".
 Implementing this version is a TODO.
 
@@ -88,9 +88,9 @@ to examine the class of functions that are actually bounded.
 
 * [A. Cobham, *The intrinsic computational difficulty of functions*][Cobham1965]
   [Link](https://www.cs.toronto.edu/~sacook/homepage/cobham_intrinsic.pdf)
-* [Beckmann et al., "Cobham Recursive Set Functions"][BBFMT16]
+* [Beckmann et al., "Cobham Recursive Set Functions"][Beckmann2016]
   [Link](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/CRSF_paperone/paperoneRevisedAPALNov2015.pdf)
-* [Clote, *Computational Models and Function Algebras*][Clote]
+* [Clote, *Computation Models and Function Algebras*][Clote1999]
   [Link](https://bioinformatics.bc.edu/clotelab/pub/cloteHandbookRecTheory.pdf)
 -/
 
