@@ -45,8 +45,7 @@ recursion on notation inherently produces functions of higher arity.
   exactly the polynomial-time computable functions
   (`Cslib.Turing.SingleTapeTM.PolyTimeComputable`). Proof wanted.
 - `Cslib.Cobham.exists_limited_iff_multiTapePolyTimeComputable` — the same characterization
-  against the multi-tape model
-  (`Turing.MultiTapeTM.ComputableInTimeAndSpaceOfLength`). Proof wanted.
+  against the multi-tape model. Proof wanted.
 
 ## Design notes
 
@@ -59,11 +58,12 @@ rather than naturals.
 ### Length bounding syntax approaches
 
 There are essentially two slightly different ways of handling the part of the definition that
-ensures the recursions are bounded are bounded.
+ensures the recursions are bounded.
 
-In Cobham's original formulation, a function is allowed in the set of
-recursive constructions that allows us to obtain outputs whose length is a multiplication of
-lengths of input. This type of function seems to be known as a "smash function".
+In Cobham's original formulation, a function is included in the set of
+recursive constructions that allows us to obtain an output
+the length of which is a multiplication of lengths of input.
+This type of function seems to be known as a "smash function".
 Originally this smash function was `x ^ length y`, but `c^(length x * length y)` for a 1-character
 string `c` is also possible (e.g. [Beckmann2016]).
 The presence of a smash function ensures we can create functions of polynomial blowup of any degree.

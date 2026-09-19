@@ -21,7 +21,7 @@ open Cslib Cslib.Cobham
 /-! ## Evaluation -/
 
 /-- Recursion on notation counting the symbols of its argument in unary, bounded by the
-successor `x ↦ true :: x`. -/
+cons `x ↦ true :: x`. -/
 private def unaryLength : Cobham Bool 1 :=
   boundedRec empty (fun _ => comp (cons true) fun _ => proj 1) (cons true)
 
