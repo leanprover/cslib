@@ -28,9 +28,8 @@ This is the smallest class of functions `(Fin n → List Symbol) → List Symbol
 
 The algebra is presented as a syntax `Cobham Symbol n` of terms denoting `n`-ary string functions,
 with semantics given by `Cobham.eval`.
-Cobham's side condition on recursion — that the recursively defined
-function be length-bounded by another function of the class — is not part of the syntax:
-it is the structural predicate `Cobham.Limited`.
+Cobham's condition that the recursively defined functions obey their length bounds is enforced by
+the predicate `Cobham.Limited`.
 
 The functions are multi-arity (indexed by `Fin n` argument vectors) because limited
 recursion on notation inherently produces functions of higher arity.
@@ -43,7 +42,7 @@ recursion on notation inherently produces functions of higher arity.
 - `Cslib.Cobham.Limited` — the side condition that every recursion in a term is bounded
   by its bounding term
 
-## Main statements
+## Proofs Wanted
 
 - `Cslib.Cobham.exists_limited_iff_polyTimeComputable` — Cobham's characterization of
   polynomial time: over the binary alphabet, the functions denoted by limited unary terms are
@@ -83,7 +82,7 @@ Implementing this version is a TODO.
 
 ### Enforcing the bounding condition
 
-In `Cobham.boundedRec`, while we provide a bound, we do not actually enforce this bound always holds
+In `Cobham.boundedRec`, while we provide a bound, we do not enforce this bound always holds
 either in the syntax or in the evaluation.
 We do this to avoid mutual recursion.
 Instead, we add a predicate `Limited` which checks that the bound always holds, which we can use
@@ -110,7 +109,8 @@ variable {Symbol : Type u}
 /--
 **Terms of Cobham's function algebra** over the alphabet `Symbol`. A term of type
 `Cobham Symbol n` denotes an `n`-ary function on strings `List Symbol` (see
-`Cobham.eval`): the projections, the empty string, the cons operation for each symbol `x ↦ a :: x`,
+`Cobham.eval`):
+the projections, the empty string, the cons operation for each symbol `x ↦ a :: x`,
 and the smash function, closed under composition and recursion on notation.
 -/
 inductive Cobham (Symbol : Type u) : ℕ → Type u
