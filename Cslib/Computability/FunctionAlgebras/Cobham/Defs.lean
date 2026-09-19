@@ -17,7 +17,7 @@ of the polynomial-time computable functions
 [Cobham, *The intrinsic computational difficulty of functions*][Cobham1965],
 as a model of computation on strings `List Symbol` over an arbitrary alphabet `Symbol`:
 the smallest class of functions `(Fin n → List Symbol) → List Symbol` containing
-the projections, the empty string, the symbol successors, and the smash functions,
+the projections, the empty string, the symbol conses, and the smash functions,
 and closed under composition and limited recursion on notation.
 
 The algebra is presented as a syntax `Cobham Symbol n` of terms denoting `n`-ary string functions,
@@ -52,7 +52,7 @@ In light of this, and for the convenience in recursive definitions,
 we modify Cobham's definition slightly to work over strings of arbitrary `Symbol` type,
 rather than naturals.
 
-### Length bounding
+### Length bounding syntax approaches
 
 There are essentially two slightly different ways of handling the part of the definition that
 ensures the recursions are bounded are bounded.
@@ -72,6 +72,15 @@ Proof that this is equivalent to FP can be found in [Clote] Lemma 3.90, where it
 "polynomially bounded recursion on notation".
 Implementing this version is a TODO.
 
+### Enforcing the bounding condition
+
+In `Cobham.boundedRec`, while we provide a bound, we do not actually enforce this bound always holds
+either in the syntax or in the evaluation.
+This avoids mutual recursion.
+Instead, we add a predicate `Limited` which checks that the bound always holds, which we can use
+to examine the class of functions that are actually bounded.
+
+
 ## References
 
 * [A. Cobham, *The intrinsic computational difficulty of functions*][Cobham1965]
@@ -90,20 +99,18 @@ namespace Cslib
 
 variable {Symbol : Type u}
 
-/-- **Terms of Cobham's function algebra** over the alphabet `Symbol`. A term of type
+/--
+**Terms of Cobham's function algebra** over the alphabet `Symbol`. A term of type
 `Cobham Symbol n` denotes an `n`-ary function on strings `List Symbol` (see
-`Cobham.eval`): the projections, the empty string, the symbol successors `x ↦ a :: x`,
-and the smash functions, closed under composition and recursion on notation.
-
-In `boundedRec base step bound`, Cobham's side condition that the recursion be
-length-bounded by `bound` is not enforced by the syntax; it is the predicate
-`Cobham.Limited`. -/
+`Cobham.eval`): the projections, the empty string, the cons operation for each symbol `x ↦ a :: x`,
+and the smash function, closed under composition and recursion on notation.
+-/
 inductive Cobham (Symbol : Type u) : ℕ → Type u
   /-- The `i`-th projection. -/
   | proj {n : ℕ} (i : Fin n) : Cobham Symbol n
   /-- The empty-string constant (at every arity). -/
   | empty {n : ℕ} : Cobham Symbol n
-  /-- The successor `x ↦ a :: x` for the symbol `a`. -/
+  /-- The cons function `x ↦ a :: x` for the symbol `a`. -/
   | cons (a : Symbol) : Cobham Symbol 1
   /-- The smash function returning a list of `a` of length |x₀| * |x₁|. -/
   | smash (a : Symbol) : Cobham Symbol 2
