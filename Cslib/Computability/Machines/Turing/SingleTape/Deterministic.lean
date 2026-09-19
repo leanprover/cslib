@@ -7,7 +7,7 @@ Authors: Bolton Bailey, Pim Spelier, Daan van Gent
 module
 
 public import Cslib.Foundations.Data.BiTape
-public import Cslib.Foundations.Data.RelatesInSteps
+public import Cslib.Foundations.Relation.RelatesInSteps
 public import Mathlib.Algebra.Polynomial.Eval.Defs
 
 /-!
