@@ -81,6 +81,14 @@ structure Cfg (k : ℕ) (Symbol State : Type*) (input : List Symbol) where
   output : List Symbol
 deriving Inhabited
 
+/-- Two configurations of a machine without work tapes are equal if their states, input head
+positions and outputs are equal. -/
+lemma Cfg.ext_zero_tapes {Symbol State : Type*} {input : List Symbol}
+    {cfg₁ cfg₂ : Cfg 0 Symbol State input} (state : cfg₁.state = cfg₂.state)
+    (inputPos : cfg₁.inputPos = cfg₂.inputPos) (output : cfg₁.output = cfg₂.output) :
+    cfg₁ = cfg₂ :=
+  Cfg.ext state inputPos (funext fun i => i.elim0) (funext fun i => i.elim0) output
+
 /-- Attempt to move the input tape head.
 The machine can only read one empty cell outside of the input,
 any attempted movement beyond that results in no movement.
@@ -147,6 +155,18 @@ def Cfg.workTapeSymbols (cfg : Cfg k Symbol State input) (i : Fin k) : Option Sy
 
 /-- A configuration is halted when it has no state to continue from. -/
 abbrev Cfg.Halted (cfg : Cfg k Symbol State input) : Prop := cfg.state = none
+
+/-- The same configuration in a different control state, possibly of a different state type. -/
+@[simps] def Cfg.withState (cfg : Cfg k Symbol State input)
+    {State' : Type*} (q : Option State') : Cfg k Symbol State' input :=
+  ⟨q, cfg.inputPos, cfg.workTapes, cfg.workTapePos, cfg.output⟩
+
+/-- Remap the (optional) state of a configuration through `φ`, leaving the input head, the work
+tapes, the work-tape heads and the output alone. This is the shape of embedding used to place a
+sub-machine's configurations into a larger machine built from it. -/
+@[simps] def Cfg.mapState {State' : Type*} (φ : Option State → Option State')
+    (c : Cfg k Symbol State input) : Cfg k Symbol State' input :=
+  ⟨φ c.state, c.inputPos, c.workTapes, c.workTapePos, c.output⟩
 
 /-- The initial configuration for a starting state and an input string. -/
 @[simp]
