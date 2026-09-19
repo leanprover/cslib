@@ -28,11 +28,6 @@ open Cslib Cslib.Query
 
 public section
 
--- Proposed upstream in https://github.com/leanprover-community/mathlib4/pull/43326;
--- remove once cslib's Mathlib includes it.
-private instance [Std.Total r] : Std.Total (InvImage r f) where
-  total x y := Std.Total.total (f x) (f y)
-
 namespace Cslib.Query
 
 /-! ## PrefixPermOrder: constructing n! distinct total orders -/
