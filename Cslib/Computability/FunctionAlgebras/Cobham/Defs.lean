@@ -17,9 +17,14 @@ This file defines Cobham's machine-independent characterization
 of the polynomial-time computable functions
 [Cobham, *The intrinsic computational difficulty of functions*][Cobham1965],
 as a model of computation on strings `List Symbol` over an arbitrary alphabet `Symbol`:
-the smallest class of functions `(Fin n → List Symbol) → List Symbol` containing
-the projections, the empty string, the symbol conses, and the smash functions,
-and closed under composition and limited recursion on notation.
+This is the smallest class of functions `(Fin n → List Symbol) → List Symbol` that
+
+* contains projections,
+* contains the constant empty string function,
+* contains the symbol consing functions,
+* contains the smash functions,
+* is closed under composition,
+* and is closed under "limited" or "bounded" recursion on notation.
 
 The algebra is presented as a syntax `Cobham Symbol n` of terms denoting `n`-ary string functions,
 with semantics given by `Cobham.eval`.
