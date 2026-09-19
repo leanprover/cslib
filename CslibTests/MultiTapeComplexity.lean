@@ -10,9 +10,8 @@ namespace CslibTests.MultiTapeComplexity
 
 open Turing.MultiTapeTM
 
-private def finish (move : SignType) (symbol : Bool) : Turing.MultiTapeTM 0 Bool Unit where
-  q₀ := ()
-  tr _ _ _ := ⟨move, Fin.elim0, some symbol, none⟩
+private def finish (move : SignType) (symbol : Bool) : Turing.MultiTapeTM 0 Bool Unit :=
+  ofTr () fun _ _ _ => ⟨move, Fin.elim0, some symbol, none⟩
 
 private def bit : Bool ↪ List Bool := ⟨fun b => [b], by intro a b h; simpa using h⟩
 
@@ -22,6 +21,8 @@ private lemma constant_computable :
       (fun b => if b then 1 else 2) (fun _ => 0) := by
   refine ⟨0, Unit, inferInstance, finish 0 true, fun b => ⟨1, ?_, 0, le_rfl, ?_⟩⟩
   · cases b <;> decide
-  · exact ⟨rfl, rfl, spaceUsed_zero_tapes_eq_zero _ _ rfl⟩
+  · apply computesInExactTimeAndSpace_iff_runFrom.mpr
+    simp [runFrom, step, finish, bit, Turing.MultiTapeNTM.initCfg]
+    rfl
 
 end CslibTests.MultiTapeComplexity

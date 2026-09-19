@@ -65,7 +65,6 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostCo
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
-public import Cslib.Computability.Machines.Turing.MultiTape.DeterministicToNondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
