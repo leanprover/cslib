@@ -46,17 +46,40 @@ recursion on notation inherently produces functions of higher arity.
 
 ## Design notes
 
-We work over strings of arbitrary `Symbol` type, rather than binary natural numbers.
+Cobham's paper operates over natural numbers,
+but essentially only manipulates these numbers through operations on the list of digits.
+In light of this, and for the convenience in recursive definitions,
+we modify Cobham's definition slightly to work over strings of arbitrary `Symbol` type,
+rather than naturals.
 
-The bound in `Cobham.boundedRec` follows Cobham's original formulation: the recursively
-defined function must be length-bounded by another function of the class
-(rather than by an external polynomial).
-Together with `smash` and the successors this realizes exactly the polynomial length bounds,
-which is what makes the class no larger than the polynomial-time computable functions.
+### Length bounding
+
+There are essentially two slightly different ways of handling the part of the definition that
+ensures the recursions are bounded are bounded.
+
+In Cobham's original formulation, a function is allowed in the set of
+recursive constructions that allows us to obtain outputs whose length is a multiplication of
+lengths of input. This type of function seems to be known as a "smash function".
+Originally this smash function was `x ^ length y`, but `c^(length x * length y)` for a 1-character
+string `c` is also possible (e.g. [BBFMT16]).
+The presence of a smash function ensures we can create functions of polynomial blowup of any degree.
+The limited recursion is then length-bounded by another function of the class.
+
+The alternative is to bound the recursion not by another function of the class,
+but by a generic multivariable polynomial in the lengths of the inputs.
+This obviates the need for a smash function.
+Proof that this is equivalent to FP can be found in [Clote] Lemma 3.90, where it is called
+"polynomially bounded recursion on notation".
+Implementing this version is a TODO.
 
 ## References
 
 * [A. Cobham, *The intrinsic computational difficulty of functions*][Cobham1965]
+  [Link](https://www.cs.toronto.edu/~sacook/homepage/cobham_intrinsic.pdf)
+* [Beckmann et al., "Cobham Recursive Set Functions"][BBFMT16]
+  [Link](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/CRSF_paperone/paperoneRevisedAPALNov2015.pdf)
+* [Clote, *Computational Models and Function Algebras*][Clote]
+  [Link](https://bioinformatics.bc.edu/clotelab/pub/cloteHandbookRecTheory.pdf)
 -/
 
 @[expose] public section
