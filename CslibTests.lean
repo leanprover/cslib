@@ -1,3 +1,4 @@
+import CslibTests.BTL
 import CslibTests.Bisimulation
 import CslibTests.BooleanCircuits
 import CslibTests.CCS
@@ -22,6 +23,7 @@ import CslibTests.MLL
 import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
+import CslibTests.Modal.UnimodalCube
 import CslibTests.MultiTapeComplexity
 import CslibTests.PACLearning
 import CslibTests.Reduction
