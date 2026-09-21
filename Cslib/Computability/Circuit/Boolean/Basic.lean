@@ -6,6 +6,9 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Basic
+public import Mathlib.Data.Fintype.Card
+public import Mathlib.Data.Fintype.Sum
+public import Mathlib.Tactic.DeriveFintype
 
 /-!
 # Boolean circuits
@@ -34,7 +37,10 @@ inductive Op where
   | and
   /-- Binary disjunction. -/
   | or
-  deriving DecidableEq
+  deriving DecidableEq, Fintype
+
+/-- The De Morgan basis has five operation symbols, counting its two constants. -/
+@[simp] theorem Op.card : Fintype.card Op = 5 := rfl
 
 /-- The De Morgan signature. -/
 abbrev signature : Signature where
