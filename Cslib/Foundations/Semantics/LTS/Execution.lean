@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Ching-Tsun Chou
 module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
+public import Cslib.Foundations.Data.List.IsChainFromTo
 
 /-!
 # Finite executions of LTS
@@ -84,10 +85,16 @@ theorem Execution.to_mTr (hexec : lts.Execution s1 μs s2 ss) :
         apply this
       · grind
 
+/-- The states visited by an execution form a chain from the initial to the final state
+in the underlying unlabelled relation. -/
+theorem Execution.isChainFromTo (hexec : lts.Execution s1 μs s2 ss) :
+    ss.IsChainFromTo lts.UnlabelledTr s1 s2 := by
+  grind [List.IsChainFromTo, Execution, List.isChain_iff_getElem, UnlabelledTr]
+
 /-- The states visited by an execution form a chain in the underlying unlabelled relation. -/
 theorem Execution.isChain (hexec : lts.Execution s1 μs s2 ss) :
-    ss.IsChain lts.UnlabelledTr := by
-  grind [Execution, List.isChain_iff_getElem, UnlabelledTr]
+    ss.IsChain lts.UnlabelledTr :=
+  (Execution.isChainFromTo hexec).isChain
 
 open scoped Execution
 /-- Correspondence of multistep transitions and executions. -/
@@ -96,6 +103,8 @@ theorem mTr_iff_execution :
     lts.MTr s1 μs s2 ↔ ∃ ss : List State, lts.Execution s1 μs s2 ss := by
   grind
 
+-- Merging the `have` into `grind` triples this file's compile time.
+set_option linter.tacticAnalysis.mergeWithGrind false in
 private lemma Execution.comp_helper
     {lts : LTS State Label} {s r t : State} {μs1 μs2 : List Label} {ss1 ss2 : List State}
     (h1 : lts.Execution s μs1 r ss1) (h2 : lts.Execution r μs2 t ss2)

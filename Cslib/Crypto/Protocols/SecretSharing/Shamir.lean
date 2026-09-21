@@ -63,6 +63,8 @@ noncomputable section
 
 namespace Cslib.Crypto.Protocols.SecretSharing.Shamir
 
+open Cslib.Probability.PMF
+
 variable {F Party : Type*} [Field F] [Fintype Party]
 
 /-- Public parameters for a finite Shamir secret-sharing instance. The threshold
@@ -116,21 +118,12 @@ structure TailSampler (params : Params F Party) where
   /-- Translating the coefficients does not change the distribution. -/
   map_add_eq_self : ∀ δ : Randomness params, gen.map (fun coeffs => coeffs + δ) = gen
 
-private def coeffTranslate {params : Params F Party} (δ : Randomness params) :
-    Randomness params ≃ Randomness params where
-  toFun coeffs := coeffs + δ
-  invFun coeffs := coeffs - δ
-  left_inv coeffs := by simp
-  right_inv coeffs := by simp
-
 /-- Uniform tail coefficients form the canonical privacy-compatible sampler. -/
 noncomputable def uniformTailSampler (params : Params F Party)
     [Fintype F] [Nonempty F] : TailSampler params where
   gen := PMF.uniformOfFintype (Randomness params)
   map_add_eq_self δ := by
-    simpa [coeffTranslate] using
-      (Cslib.Probability.PMF.uniformOfFintype_map_equiv
-        (coeffTranslate (params := params) δ))
+    simpa using uniformOfFintype_map_equiv (Equiv.addRight δ)
 
 private noncomputable def privacyCorrectionPolynomial
     (params : Params F Party) (s : Finset Party)
@@ -255,9 +248,7 @@ noncomputable def schemeWith (params : Params F Party) (sampler : TailSampler pa
     share := share params
     reconstruct := reconstruct params
     authorized := authorized params
-    authorized_mono := by
-      intro s u hsu hs
-      exact le_trans hs (Finset.card_le_card hsu)
+    authorized_mono := fun _ _ hsu hs => le_trans hs (Finset.card_le_card hsu)
     correct := by
       intro coeffs secretValue s hs
       have hdeg₀ :

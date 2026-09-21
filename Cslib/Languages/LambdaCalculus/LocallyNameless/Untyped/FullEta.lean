@@ -40,9 +40,7 @@ variable {M M' N N' : Term Var}
 
 /-- The right side of an η-reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := by
-  refine Xi.step_lc_r ?_ step
-  grind
+lemma step_lc_r (step : M ⭢ηᶠ M') : LC M' := Xi.step_lc_r (by grind) step
 
 /-- The left side of an η-reduction is locally closed. -/
 @[scoped grind →]
