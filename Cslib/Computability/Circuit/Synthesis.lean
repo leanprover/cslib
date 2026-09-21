@@ -229,19 +229,19 @@ theorem finset_fold (op : U → U → U) [Std.Commutative op] [Std.Associative o
 repeated outputs or an empty family, requires no additional gates. -/
 theorem exists_circuit_family {m cost : ℕ} {f : Fin m → (Fin n → U) → U}
     (h : Synthesis I (inputs n) (Set.range f) cost) :
-    ∃ g ≤ cost, ∃ c : Circuit σ n g m, ∀ x j, c.eval I x j = f j x := by
+    ∃ c : Circuit σ n m, c.ComputesFamily I f ∧ c.size ≤ cost := by
   classical
   obtain ⟨g, p, hg, _, hout⟩ := h 0 .empty (inputs_subset_available _)
   choose wires hw using fun j => mem_available.mp (hout ⟨j, rfl⟩)
-  exact ⟨g, by simpa using hg, ⟨p, wires⟩, fun x j => hw j x⟩
+  exact ⟨⟨p, wires⟩, fun x j => hw j x, by simpa using hg⟩
 
 /-- Extract a single-output circuit from a synthesis bound on the input projections. -/
 theorem exists_circuit {cost : ℕ} (h : Synthesis I (inputs n) {f} cost) :
-    ∃ g ≤ cost, ∃ c : Circuit σ n g 1, c.Computes I f := by
+    ∃ c : Circuit σ n 1, c.Computes I f ∧ c.size ≤ cost := by
   have h' : Synthesis I (inputs n) (Set.range fun _ : Fin 1 => f) cost := by
     simpa using h
-  obtain ⟨g, hg, c, hc⟩ := h'.exists_circuit_family
-  exact ⟨g, hg, c, fun x => hc x 0⟩
+  obtain ⟨c, hf, hc⟩ := h'.exists_circuit_family
+  exact ⟨c, (c.computes_iff_computesFamily I f).mpr hf, hc⟩
 
 end Synthesis
 end Cslib.Circuits

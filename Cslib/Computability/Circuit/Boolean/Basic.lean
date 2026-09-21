@@ -67,7 +67,7 @@ theorem Program.fanInAtMost_two {n g : ℕ} (p : Program Boolean.signature n g) 
   | gate p line ih => exact And.intro ih (by cases line.op <;> simp)
 
 /-- Every De Morgan circuit has fan-in at most two. -/
-theorem Circuit.fanInAtMost_two {n g o : ℕ} (c : Circuit Boolean.signature n g o) :
+theorem Circuit.fanInAtMost_two {n o : ℕ} (c : Circuit Boolean.signature n o) :
     c.FanInAtMost 2 :=
   c.program.fanInAtMost_two
 

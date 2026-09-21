@@ -38,7 +38,7 @@ def andProgram : Program nandSignature 2 2 :=
   .gate (.gate .empty nandInputs) nandResultTwice
 
 /-- The first output is AND and the second is NAND. Both reuse the first gate. -/
-def andNandCircuit : Circuit nandSignature 2 2 2 where
+def andNandCircuit : Circuit nandSignature 2 2 where
   program := andProgram
   outputs := Fin.cases (Wire.gate 1) fun _ => Wire.gate 0
 
@@ -79,9 +79,7 @@ example : andNandCircuit.trace nandInterpretation allTrue 3 = true := rfl
 example : andNandCircuit.trace nandInterpretation allTrue 4 = true := rfl
 
 /-- A zero-gate circuit can permute inputs without introducing artificial gates. -/
-def swap : Circuit nandSignature 2 0 2 where
-  program := .empty
-  outputs := Fin.cases (Wire.input 1) fun _ => Wire.input 0
+def swap : Circuit nandSignature 2 2 := Circuit.wiring nandSignature (Fin.cases 1 fun _ => 0)
 
 example : swap.eval nandInterpretation trueFalse 0 = false := rfl
 
@@ -91,10 +89,15 @@ example : swap.size = 0 := rfl
 
 example : swap.depth = 0 := rfl
 
+example (select : Fin 3 → Fin 2) : (Circuit.wiring nandSignature select).depth = 0 := by simp
+
+example (select : Fin 3 → Fin 2) : (Circuit.wiring nandSignature select).FanInAtMost 0 := by
+  simp
+
+example (x : Fin 2 → Bool) : swap.eval nandInterpretation x 0 = x 1 := by simp [swap]
+
 /-- Duplicating an output wire is also free. -/
-def duplicateFirst : Circuit nandSignature 2 0 2 where
-  program := .empty
-  outputs := fun _ => Wire.input 0
+def duplicateFirst : Circuit nandSignature 2 2 := Circuit.wiring nandSignature fun _ => 0
 
 example : duplicateFirst.eval nandInterpretation trueFalse 0 = true := rfl
 
@@ -102,9 +105,17 @@ example : duplicateFirst.eval nandInterpretation trueFalse 1 = true := rfl
 
 example : duplicateFirst.size = 0 := rfl
 
-def noOutputs : Circuit nandSignature 2 2 0 where
-  program := andProgram
-  outputs := Fin.elim0
+example : duplicateFirst.ComputesFamily nandInterpretation fun _ x => x 0 :=
+  Circuit.wiring_computesFamily _ _
+
+example : (Circuit.id nandSignature 2).ComputesFamily nandInterpretation fun i x => x i := by
+  intro x i
+  simp
+
+def noOutputs : Circuit nandSignature 2 0 := ⟨andProgram, Fin.elim0⟩
+
+-- The size is determined by the program's type.
+example : noOutputs.size = 2 := rfl
 
 example : noOutputs.depth = 0 := rfl
 
@@ -125,7 +136,7 @@ def truthLine : Line constantSignature 0 0 where
 def truthProgram : Program constantSignature 0 1 :=
   .gate .empty truthLine
 
-def truthCircuit : Circuit constantSignature 0 1 1 where
+def truthCircuit : Circuit constantSignature 0 1 where
   program := truthProgram
   outputs := fun _ => Wire.gate 0
 
