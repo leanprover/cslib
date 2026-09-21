@@ -45,7 +45,7 @@ private lemma diamond_par : Diamond Par := by
 theorem churchRosser_beta : Confluent Beta := by
   -- Confluence of Par from diamond
   have hPar : Confluent Par :=
-    Diamond.toConfluent (r := Par) diamond_par
+    Diamond.to_confluent (r := Par) diamond_par
   -- Identify BetaStar and ParStar via sandwich
   have hEq {a b : Term} : a ↠β b ↔ a ↠∥ b := by
     have hRel : ReflTransGen Beta = ReflTransGen Par :=
