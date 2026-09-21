@@ -154,7 +154,7 @@ instance : SetLike (Fact P) P where
   coe := Fact.carrier
   coe_injective _ _ _ := by grind only [cases Fact]
 
-instance : PartialOrder (Fact P) := PartialOrder.ofSetLike (Fact P) P
+instance : PartialOrder (Fact P) := PartialOrder.ofSetLike (Fact P)
 
 instance : HasSubset (Fact P) :=
   ⟨fun A B => (A : Set P) ⊆ (B : Set P)⟩
