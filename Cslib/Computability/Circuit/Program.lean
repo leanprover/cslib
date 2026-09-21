@@ -46,6 +46,14 @@ structure Line (σ : Signature) (inputCount gateCount : Nat) where
   /-- The wire supplying each argument of the operation. -/
   wires : Fin (σ.Arity op) → Wire inputCount gateCount
 
+/-- A line is an operation symbol together with a tuple of argument wires. -/
+def Line.equiv (σ : Signature) (inputCount gateCount : Nat) :
+    Line σ inputCount gateCount ≃ Σ op : σ.Op, Fin (σ.Arity op) → Wire inputCount gateCount where
+  toFun line := ⟨line.op, line.wires⟩
+  invFun line := ⟨line.1, line.2⟩
+  left_inv _ := rfl
+  right_inv _ := rfl
+
 /-- Apply a function to every wire read by a line. -/
 def Line.mapWires
     (line : Line σ sourceInputCount sourceGateCount)
@@ -71,6 +79,22 @@ inductive Program (σ : Signature.{v}) (inputCount : Nat) : Nat → Type v where
   | gate {gateCount : Nat} :
       Program σ inputCount gateCount → Line σ inputCount gateCount →
         Program σ inputCount (gateCount + 1)
+
+/-- The empty program is the only program with no gates. -/
+def Program.emptyEquiv (σ : Signature) (inputCount : Nat) : Program σ inputCount 0 ≃ PUnit.{1} where
+  toFun _ := PUnit.unit
+  invFun _ := .empty
+  left_inv p := by cases p; rfl
+  right_inv x := by cases x; rfl
+
+/-- A nonempty program is a prefix followed by its last gate. -/
+def Program.gateEquiv (σ : Signature) (inputCount gateCount : Nat) :
+    Program σ inputCount (gateCount + 1) ≃
+      Program σ inputCount gateCount × Line σ inputCount gateCount where
+  toFun | .gate p line => (p, line)
+  invFun p := p.1.gate p.2
+  left_inv p := by cases p; rfl
+  right_inv _ := rfl
 
 /-- Every gate in a program has at most `r` arguments. -/
 def Program.FanInAtMost {gateCount : Nat} : (program : Program σ inputCount gateCount) → Nat → Prop
@@ -402,5 +426,28 @@ theorem Program.lines_eval
           evalWidened line
       · simp only [Program.lines_gate_castSucc, Program.eval_gate_castSucc]
         exact (evalWidened (program.lines priorGate)).trans (ih priorGate)
+
+/-- A valuation satisfying every gate equation is the program's evaluation. -/
+theorem Program.eq_eval_of_forall_lines_eval
+    (p : Program σ inputCount gateCount) (i : Interpretation σ U) (x : Fin inputCount → U)
+    (values : Fin gateCount → U)
+    (h : ∀ gate, (p.lines gate).eval i x values = values gate) :
+    values = p.eval i x := by
+  induction p with
+  | empty => exact Subsingleton.elim _ _
+  | @gate g p line ih =>
+      have hmap (l : Line σ inputCount g) :
+          (l.mapWires Wire.Renaming.castSucc).eval i x values =
+            l.eval i x (values ∘ Fin.castSucc) := by
+        apply Line.eval_mapWires
+        intro w
+        refine Fin.addCases (fun a => ?_) (fun b => ?_) w <;>
+          simp [Wire.Renaming.castSucc, Function.comp_def]
+      have hp : values ∘ Fin.castSucc = p.eval i x :=
+        ih _ (fun gate => by simpa [hmap] using h gate.castSucc)
+      funext gate
+      refine Fin.lastCases ?_ (fun gate => ?_) gate
+      · simpa [hmap, hp] using (h (Fin.last g)).symm
+      · simpa using congrFun hp gate
 
 end Cslib.Circuits
