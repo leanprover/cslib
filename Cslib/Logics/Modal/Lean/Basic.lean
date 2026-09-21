@@ -6,6 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
+public import Cslib.Foundations.Relation.Preserves
 public import Cslib.Logics.Modal.Denotation
 
 /-! # Modal Logic for Lean
@@ -53,7 +54,7 @@ open scoped InferenceSystem Satisfies
 /-! ## Models of Lean predicates -/
 
 /-- Under `Model.ofPredicates r`, an atomic proposition `P` holds at `a` iff `P a`. -/
-@[scoped grind =]
+@[scoped grind =, modal =]
 theorem Satisfies.ofPredicates_atom_iff {P : α → Prop} (r : α → α → Prop) :
     ⇓Modal[ofPredicates r, a ⊨ P] ↔ P a := Iff.rfl
 
@@ -103,5 +104,14 @@ membership in both containers, then atomic infimum is logically equivalent to mo
 theorem Proposition.ofContainers_inf_equiv [Membership α β] [Min β] (r : α → α → Prop) (p q : β)
     (h : ∀ x, x ∈ p ⊓ q ↔ x ∈ p ∧ x ∈ q) :
     (↑(p ⊓ q) : Proposition β) ≡[Equiv.OfContainers r] (p ∧ q) := by grind
+
+/-- Invariants are preserved by the reflexive and transitive closure of the accessibility relation.
+-/
+@[scoped grind ., modal .]
+theorem Satisfies.ofPredicates_preserves_reflTransGen {r : α → α → Prop} {P : α → Prop}
+    (h : ∀ a, ⇓Modal[Model.ofPredicates r,a ⊨ P → □P]) :
+    ∀ a, ⇓Modal[Model.ofPredicates (Relation.ReflTransGen r),a ⊨ P → □P] :=
+  (Satisfies.ofPredicates_preserves_iff (Relation.ReflTransGen r)).mpr
+    (preserves_reflTransGen_iff.mpr ((Satisfies.ofPredicates_preserves_iff r).mp h))
 
 end Cslib.Logic.Modal

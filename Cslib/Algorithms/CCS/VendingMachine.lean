@@ -48,27 +48,27 @@ inductive Constant
   | vm
 
 /-- The vending machine process. -/
-def vm : Process String Constant := const .vm
+def vm : Process String Constant := `(CCS| const .vm)
 
 /-! ## Deterministic vending machine -/
 
 /-- Constant definitions: vm = coin.(tea.VM + coffee.VM) -/
 @[local grind =]
 def vendingDefs : Constant → Option (Process String Constant)
-  | .vm => some <| pre Coin (choice (pre Tea (const .vm)) (pre Coffee (const .vm)))
+  | .vm => some <| `(CCS| Coin. ((Tea. const .vm) + (Coffee. const .vm)))
 
 /-- The LTS of CCS for the deterministic vending machine. -/
 abbrev ltsD := CCS.lts (defs := vendingDefs)
 
 /-- VM can perform a coin action. -/
-example : ltsD.Tr vm Coin (choice (pre Tea (const .vm)) (pre Coffee (const .vm))) :=
+example : ltsD.Tr vm Coin `(CCS| (Tea. (const .vm)) + (Coffee. (const .vm))) :=
   Tr.const rfl Tr.pre
 
 /-! ## Nondeterministic vending machine -/
 
 /-- vm = coin.tea.VM + coin.coffee.VM -/
 def vendingDefsND : Constant → Option (Process String Constant)
-  | .vm => some <| (choice (pre Coin (pre Tea (const .vm))) (pre Coin (pre Coffee (const .vm))))
+  | .vm => some <| `(CCS| (Coin. Tea. const .vm) + (Coin. Coffee. const .vm))
 
 /-- The LTS of CCS for the nondeterministic vending machine. -/
 abbrev ltsND := CCS.lts (defs := vendingDefsND)
@@ -78,8 +78,8 @@ open LTS LTS.IsBisimulation LTS.Bisimilarity
 /-- The deterministic and nondeterministic vending machines are not bisimilar. -/
 theorem vm_ltsD_ltsND_not_bisim : ¬(vm ~[ltsD, ltsND] vm) := by
   rintro ⟨r, hr, hbisim⟩
-  let p₁ := (choice (pre Tea (const Constant.vm)) (pre Coffee (const Constant.vm)))
-  let q₁ := (pre Tea (const Constant.vm))
+  let p₁ := `(CCS| (Tea. const Constant.vm) + (Coffee. const Constant.vm))
+  let q₁ := `(CCS| Tea. const Constant.vm)
   have ltsD_vm_deterministic : ltsD.DeterministicStateLabel vm Coin := by
     intro _ _ htr₁ htr₂
     grind [const_tr htr₁, const_tr htr₂]
@@ -90,7 +90,7 @@ theorem vm_ltsD_ltsND_not_bisim : ¬(vm ~[ltsD, ltsND] vm) := by
       (.const rfl .pre)
       (.const rfl (.choiceL .pre))
   have hp₁q₁ : p₁ ~[ltsD, ltsND] q₁ := by grind
-  have hp₁coffee : ltsD.Tr p₁ Coffee (const Constant.vm) := .choiceR .pre
+  have hp₁coffee : ltsD.Tr p₁ Coffee (.const .vm) := .choiceR .pre
   grind [hp₁q₁.follow_fst]
 
 end Cslib.Algorithms.CCS.VendingMachine

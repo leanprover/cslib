@@ -129,14 +129,14 @@ open scoped InferenceSystem Proposition
 theorem derivation_def {m : Model World Atom} {w : World} {φ : Proposition Atom} :
   Satisfies m w φ = ⇓Modal[m,w ⊨ φ] := rfl
 
-@[simp, scoped grind =]
+@[simp, scoped grind =, modal =]
 theorem Satisfies.atom_iff {a : Atom} : ⇓Modal[m,w ⊨ a] ↔ m.v w a := by rfl
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
-@[scoped grind =]
+@[scoped grind =, modal =]
 theorem Satisfies.not_iff_not : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by rfl
 
-@[scoped grind =]
+@[scoped grind =, modal =]
 theorem Satisfies.and_iff_and {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ ∧ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∧ ⇓Modal[m,w ⊨ φ₂] := by rfl
 
@@ -148,7 +148,7 @@ theorem Satisfies.diamond_iff_exists {m : Model World Atom} :
 
 Disjunction is defined in terms of the more primitive connectives given in `Proposition`.
 This result proves that the definition is correct. -/
-@[scoped grind =]
+@[scoped grind =, modal =]
 theorem Satisfies.or_iff_or {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by
   grind [=_ Proposition.or_def, Proposition.or]
@@ -158,7 +158,7 @@ theorem Satisfies.or_iff_or {m : Model World Atom} :
 Implication is defined in terms of the more primitive connectives given in `Proposition`.
 This result proves that the definition is correct.
 -/
-@[scoped grind =]
+@[scoped grind =, modal =]
 theorem Satisfies.imp_iff_imp {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by
   grind [=_ Proposition.imp_def, Proposition.imp]
@@ -167,7 +167,7 @@ theorem Satisfies.imp_iff_imp {m : Model World Atom} :
 
 Bi-implication is defined in terms of the more primitive connectives given in `Proposition`.
 This result proves that the definition is correct. -/
-@[scoped grind =]
+@[scoped grind =, modal =]
 theorem Satisfies.iff_iff_iff {m : Model World Atom} :
     ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
   simp only [HasIff.iff, Proposition.iff]
@@ -221,12 +221,16 @@ instance (r : World → World → Prop) : InferenceSystem (Axiom r) (Proposition
 theorem Satisfies.axiom_def (r : World → World → Prop) :
     (∀ v w, ⇓Modal[⟨r,v⟩,w ⊨ φ]) ↔ Axiom r⇓φ := by rfl
 
+@[modal .]
+theorem Satisfies.der_of_axiom (h : Axiom m.r⇓φ) : ⇓Modal[m,w ⊨ φ] := h m.v w
+
 /-- If a proposition is an axiom under the relation of a model, it is satisfied by every world. -/
 @[scoped grind .]
 theorem Satisfies.of_axiom (m : Model World Atom) (φ : Proposition Atom) (h : Axiom m.r⇓φ)
     (w : World) : ⇓Modal[m,w ⊨ φ] := h m.v w
 
 /-- The K axiom, valid for all models. -/
+@[scoped grind ., modal .]
 theorem Satisfies.k (r : World → World → Prop) (φ₁ φ₂ : Proposition Atom) :
     Axiom r⇓(□(φ₁ → φ₂) → (□φ₁ → □φ₂)) := by grind
 
@@ -240,12 +244,19 @@ theorem Satisfies.dual (r : World → World → Prop) (φ : Proposition Atom) :
   · grind only [= not_iff_not, = diamond_iff_exists, = box_iff_forall]
 
 /-- Possibility preserves conjunction in all models. -/
+@[modal .]
 theorem Satisfies.diamond_and (r : World → World → Prop) (φ₁ φ₂ : Proposition Atom) :
     Axiom r⇓(◇(φ₁ ∧ φ₂) → (◇φ₁ ∧ ◇φ₂)) := by grind
 
 /-- Possibility can be combined with necessity. -/
+@[modal .]
 theorem Satisfies.diamond_and_box (r : World → World → Prop) (φ₁ φ₂ : Proposition Atom) :
     Axiom r⇓((◇φ₁ ∧ □φ₂) → ◇(φ₁ ∧ φ₂)) := by grind
+
+/-- If `φ₁` is necessary and some successor exists, then some successor satisfies `φ₁`. -/
+@[scoped grind ., modal .]
+theorem Satisfies.diamond_of_box {φ₁ φ₂ : Proposition Atom} :
+    Axiom r⇓(□φ₁ ∧ ◇φ₂ → ◇φ₁) := by grind
 
 /-- The T axiom, valid for all reflexive models. -/
 theorem Satisfies.t (r : World → World → Prop) [instRefl : Std.Refl r] (φ : Proposition Atom)
@@ -334,7 +345,7 @@ theorem Satisfies.d_serial (r : World → World → Prop) [Nonempty Atom]
 
 /-- The L axiom, or Löb's theorem, valid for all transitive and converse well-founded models. -/
 theorem Satisfies.l (r : World → World → Prop) [IsTrans World r]
-    (hwf : WellFounded (flip r)) (φ : Proposition Atom) : Axiom r⇓(□(□φ → φ) → □φ) := by
+    (hwf : Relation.Terminating r) (φ : Proposition Atom) : Axiom r⇓(□(□φ → φ) → □φ) := by
   intro v w
   let m := Model.mk r v
   simp_rw [Satisfies.imp_iff_imp, Satisfies.box_iff_forall]
@@ -347,6 +358,15 @@ theorem Satisfies.l (r : World → World → Prop) [IsTrans World r]
   intro w'' hw'w''
   apply ih _ hw'w''
   exact IsTrans.trans _ _ _ hww' hw'w''
+
+/-- Löb induction, via the L axiom. -/
+theorem Satisfies.l_induction (m : Model World Atom) [IsTrans World m.r]
+    (hwf : Relation.Terminating m.r) (hstep : ∀ w, ⇓Modal[m,w ⊨ □φ → φ]) (w : World) :
+    ⇓Modal[m, w ⊨ φ] := by
+  have hl := Satisfies.of_axiom m _ (Satisfies.l m.r hwf φ) w
+  /- We use `grind only` here as a memo and test that the `modal` grind set should be able to derive
+    (the modal part of) this proof. -/
+  grind only [modal, = box_iff_forall]
 
 open Relation in
 /-- Axiom .2, valid for all frames with the diamond property. -/
