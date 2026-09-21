@@ -483,7 +483,7 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
   classical
   obtain ⟨T, hT, hfirst⟩ := Nat.findX hhalt
   wlog ht : t ≤ T generalizing t
-  · simpa only [tm.runFrom_eq_of_halt (Nat.le_of_not_ge ht) hT] using this T le_rfl
+  · simpa only [tm.runFrom_eq_of_halt _ (Nat.le_of_not_ge ht) hT] using this T le_rfl
   let B := storageBound Symbol State k s
   let S := Set.range (fun u => (tm.runFrom (tm.initCfg input) u).storage)
   have hbound : S.encard ≤ B := tm.encard_storages_le hs
