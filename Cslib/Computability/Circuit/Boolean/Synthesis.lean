@@ -34,6 +34,30 @@ variable {s : Set (BooleanFunction n)} {a b : ℕ} {f g : BooleanFunction n}
 theorem const (value : Bool) : Synthesis interpretation s {fun _ => value} 1 :=
   nullary (I := interpretation) (.const value) rfl
 
+/-- Negate an available function with one gate. -/
+theorem not_of_mem (hf : f ∈ s) : Synthesis interpretation s {fun x => !f x} 1 :=
+  unary_of_mem (I := interpretation) hf .not
+
+/-- Conjoin two available functions with one gate. -/
+theorem and_of_mem (hf : f ∈ s) (hg : g ∈ s) :
+    Synthesis interpretation s {fun x => f x && g x} 1 := by
+  simpa [interpretation] using binary_of_mem (I := interpretation) hf hg .and
+
+/-- Disjoin two available functions with one gate. -/
+theorem or_of_mem (hf : f ∈ s) (hg : g ∈ s) :
+    Synthesis interpretation s {fun x => f x || g x} 1 := by
+  simpa [interpretation] using binary_of_mem (I := interpretation) hf hg .or
+
+/-- Conjoin a pair of functions with one gate: the combining step for `forall_mem`. -/
+theorem and_pair (f g : BooleanFunction n) :
+    Synthesis interpretation {f, g} {fun x => f x && g x} 1 :=
+  and_of_mem (by simp) (by simp)
+
+/-- Disjoin a pair of functions with one gate: the combining step for `exists_mem`. -/
+theorem or_pair (f g : BooleanFunction n) :
+    Synthesis interpretation {f, g} {fun x => f x || g x} 1 :=
+  or_of_mem (by simp) (by simp)
+
 /-- Apply negation to a synthesized function. -/
 theorem not (h : Synthesis interpretation s {f} a) :
     Synthesis interpretation s {fun x => !f x} (a + 1) :=
@@ -54,10 +78,6 @@ theorem exists_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : 
     (h : ∀ i ∈ indices, Synthesis interpretation s {f i} (cost i)) :
     Synthesis interpretation s {fun x => decide (∃ i ∈ indices, f i x = true)}
       ((∑ i ∈ indices, (cost i + 1)) + 1) := by
-  have hop (f g : BooleanFunction n) :
-      Synthesis interpretation {f, g} {fun x => f x || g x} 1 := by
-    simpa [interpretation] using gate (I := interpretation) (s := {f, g}) .or
-      (fun i => if i.val = 0 then f else g) (fun i => by split <;> simp)
   have heq : (fun x => indices.fold Bool.or false (fun i => f i x)) =
       (fun x => decide (∃ i ∈ indices, f i x = true)) := by
     funext x
@@ -65,18 +85,13 @@ theorem exists_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : 
     simpa using Finset.fold_op_rel_iff_or (op := Bool.or)
       (r := fun _ v : Bool => v = true) (by simp) (c := true)
       (s := indices) (f := fun i => f i x) (b := false)
-  simpa only [heq] using finset_fold Bool.or 1 hop indices f cost
-    (fun _ => false) (const false) h
+  simpa only [heq] using finset_fold Bool.or 1 or_pair indices (const false) h
 
 /-- Conjoin a finite family of functions. The extra gate supplies the empty conjunction. -/
 theorem forall_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : ι → ℕ)
     (h : ∀ i ∈ indices, Synthesis interpretation s {f i} (cost i)) :
     Synthesis interpretation s {fun x => decide (∀ i ∈ indices, f i x = true)}
       ((∑ i ∈ indices, (cost i + 1)) + 1) := by
-  have hop (f g : BooleanFunction n) :
-      Synthesis interpretation {f, g} {fun x => f x && g x} 1 := by
-    simpa [interpretation] using gate (I := interpretation) (s := {f, g}) .and
-      (fun i => if i.val = 0 then f else g) (fun i => by split <;> simp)
   have heq : (fun x => indices.fold Bool.and true (fun i => f i x)) =
       (fun x => decide (∀ i ∈ indices, f i x = true)) := by
     funext x
@@ -84,8 +99,7 @@ theorem forall_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : 
     simpa using Finset.fold_op_rel_iff_and (op := Bool.and)
       (r := fun _ v : Bool => v = true) (by simp) (c := true)
       (s := indices) (f := fun i => f i x) (b := true)
-  simpa only [heq] using finset_fold Bool.and 1 hop indices f cost
-    (fun _ => true) (const true) h
+  simpa only [heq] using finset_fold Bool.and 1 and_pair indices (const true) h
 
 end Synthesis
 
