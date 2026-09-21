@@ -297,6 +297,15 @@ jobs:
         fetch-depth: 0 # checkout all branches
         token: ${{ steps.app-token.outputs.token }}
 
+    # create-adaptation-pr.sh runs `lake update` after merging main into the bump branch.
+    - name: Configure Lean
+      if: steps.check_branch.outputs.result == 'false'
+      uses: leanprover/lean-action@v1
+      with:
+        auto-config: false
+        use-github-cache: false
+        use-mathlib-cache: false
+
     - name: Attempt automatic PR creation
       id: auto_pr
       if: steps.check_branch.outputs.result == 'false'
