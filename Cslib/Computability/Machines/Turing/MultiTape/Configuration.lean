@@ -9,9 +9,9 @@ module
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
+public import Mathlib.Algebra.Ring.Int.Defs
 public import Mathlib.Data.Finset.Dedup
-public import Mathlib.Data.Finset.Max
-public import Mathlib.Data.Int.Interval
+public import Mathlib.Data.Nat.Cast.Basic
 public import Mathlib.Basic.Sign.Defs
 public import Cslib.Init
 
@@ -32,6 +32,45 @@ configuration.
 The output tape is part of the configuration, so the string emitted along a run can be read off
 the configuration the run ends in.
 
+## Tape conventions
+
+The multi-tape Turing machine uses a read-only input tape, `k` work tapes and a write-only output
+tape.
+The input head can move freely on the input, but any move attempt beyond one cell outside the input
+results in no movement.
+An action can optionally output one symbol, which models the write-only output tape.
+Because of these restrictions, we ignore the input and output tapes for space usage of the machine.
+The space usage is defined as the total number of cells the work tape heads visited during
+execution.
+
+Restricting the movement of the input head is not essential, but useful because it allows
+us to easily bound the number of possible configurations of a space-bounded machine. Most textbooks
+have this restriction.
+
+Instead of considering the cells _visited_ by the work tape heads, some textbooks
+(including [AroraBarak09]) only consider the number of cells that contain
+a non-blank symbol at some point in the execution or the number of cells written to. This allows
+work tape heads to freely move at no cost as long as they do not write. It is
+important to note that this causes `DSPACE(1)` to include `DSPACE(log log n)`, a class that
+contains e.g. the non-regular language `{0^n 1^n | n ∈ ℕ}` (it is accepted by a TM that writes a
+single marker on the work tape and then counts the number of symbols by work tape head movement
+without writing).
+Defining space usage via "cells visited" thus yields the more fine-grained "complexity world" in
+which `DSPACE(1)` is exactly the class of regular languages.
+
+This definition is adapted from the one in [Papadimitriou94], chapter 2.3 including
+the sub-linear space modifications from chapter 2.5 with the following changes:
+- We allow Turing machines to choose to not write on a tape. This is equivalent to
+  writing the read symbol again but makes it easier to reason about the semantics.
+- Our tapes are infinite in both directions instead of just to the right. This definition is
+  equivalent (see [AroraBarak09], Claim 1.4). It saves us from having to add a "start marker" to
+  the alphabet.
+- We only have a single halting state. The different ways to halt (accepting, rejecting, etc) can
+  be distinguished based on the output.
+- The way to prevent the input head to move outside the input is enforced by the interpretation
+  and not by a restriction on the transition function. The two definitions are equivalent, but
+  not restricting the transition function makes it easier to define a universal machine.
+
 ## Important Declarations
 
 * `Cfg`: the configuration: the internal state, the tape contents and head positions, and the
@@ -40,6 +79,12 @@ the configuration the run ends in.
 * `Action.apply`: the effect of one action on a configuration
 * `Cfg.Halted`, `Cfg.init`: halting, and the configuration a machine starts in
 * `spaceUsedOfCfgs`: work tape cells touched along a list of configurations
+
+## References
+
+* [C. Papadimitriou, *Computational Complexity*][Papadimitriou94]
+* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09]
+* [M. Sipser, *Introduction to the Theory of Computation*][Sipser2013]
 -/
 
 @[expose] public section
@@ -196,6 +241,13 @@ lemma workTapePos_apply_le (action : Action k Symbol State)
   simp only [Action.apply, add_sub_cancel_left, abs_le, SignType.cast]
   grind
 
+/-- Applying an action can only change a cell under its work tape head. -/
+lemma Action.apply_workTapes_eq_of_ne (action : Action k Symbol State)
+    (cfg : Cfg k Symbol State input) (i : Fin k) (z : ℤ)
+    (hz : z ≠ cfg.workTapePos i) :
+    (action.apply cfg).workTapes i z = cfg.workTapes i z := by
+  cases h : (action.workTapes i).1 <;> simp [Action.apply, h, hz]
+
 /-- The work tape cells visited by the head of tape `i` along a list of configurations. -/
 def visitedOfCfgs (cfgs : List (Cfg k Symbol State input)) (i : Fin k) : Finset ℤ :=
   (cfgs.map (·.workTapePos i)).toFinset
@@ -203,5 +255,76 @@ def visitedOfCfgs (cfgs : List (Cfg k Symbol State input)) (i : Fin k) : Finset 
 /-- The number of work tape cells touched by the heads along a list of configurations. -/
 def spaceUsedOfCfgs (cfgs : List (Cfg k Symbol State input)) : ℕ :=
   ∑ i, (visitedOfCfgs cfgs i).card
+
+/-- Including more configurations can only increase the visited set. -/
+lemma visitedOfCfgs_mono {cfgs cfgs' : List (Cfg k Symbol State input)}
+    (h : cfgs ⊆ cfgs') (i : Fin k) : visitedOfCfgs cfgs i ⊆ visitedOfCfgs cfgs' i := by
+  intro z hz
+  simp only [visitedOfCfgs, List.mem_toFinset, List.mem_map] at hz ⊢
+  obtain ⟨c, hc, rfl⟩ := hz
+  exact ⟨c, h hc, rfl⟩
+
+/-- A work tape head visits at most one position per configuration. -/
+lemma card_visitedOfCfgs_le (cfgs : List (Cfg k Symbol State input)) (i : Fin k) :
+    (visitedOfCfgs cfgs i).card ≤ cfgs.length := by
+  simpa [visitedOfCfgs] using List.toFinset_card_le (cfgs.map (·.workTapePos i))
+
+/-- Space usage is monotone under inclusion of configuration lists. -/
+lemma spaceUsedOfCfgs_mono {cfgs cfgs' : List (Cfg k Symbol State input)}
+    (h : cfgs ⊆ cfgs') : spaceUsedOfCfgs cfgs ≤ spaceUsedOfCfgs cfgs' :=
+  Finset.sum_le_sum fun i _ => Finset.card_le_card (visitedOfCfgs_mono h i)
+
+/-- Each configuration contributes at most one visited cell per tape. -/
+lemma spaceUsedOfCfgs_le (cfgs : List (Cfg k Symbol State input)) :
+    spaceUsedOfCfgs cfgs ≤ k * cfgs.length := by
+  calc
+    spaceUsedOfCfgs cfgs ≤ ∑ i : Fin k, cfgs.length :=
+      Finset.sum_le_sum fun i _ => card_visitedOfCfgs_le cfgs i
+    _ = k * cfgs.length := by simp
+
+/-- A tape containing exactly the symbols of `xs` at positions `0, ..., xs.length - 1`. -/
+def tapeOfList (xs : List Symbol) : ℤ → Option Symbol
+  | .ofNat n => xs[n]?
+  | .negSucc _ => none
+
+@[simp]
+lemma tapeOfList_ofNat (xs : List Symbol) (n : ℕ) : tapeOfList xs n = xs[n]? := rfl
+
+@[simp]
+lemma tapeOfList_negSucc (xs : List Symbol) (n : ℕ) :
+    tapeOfList xs (.negSucc n) = none := rfl
+
+/-- Appending one symbol writes precisely the cell after the existing word. -/
+lemma tapeOfList_append_single (xs : List Symbol) (x : Symbol) :
+    tapeOfList (xs ++ [x]) = Function.update (tapeOfList xs) (xs.length : ℤ) (some x) := by
+  funext z
+  cases z with
+  | negSucc n => simp [tapeOfList]
+  | ofNat n => grind [tapeOfList]
+
+/-- The blank tape holds the empty word. -/
+@[simp]
+lemma tapeOfList_nil : tapeOfList ([] : List Symbol) = fun _ => none := by
+  funext z
+  cases z <;> simp
+
+/-- The cell at position `0` holds the first symbol of the word. -/
+lemma tapeOfList_zero (xs : List Symbol) : tapeOfList xs 0 = xs.head? := by
+  have h : (0 : ℤ) = ((0 : ℕ) : ℤ) := rfl
+  rw [h, tapeOfList_ofNat]
+  cases xs <;> rfl
+
+/-- The configuration whose work tape `i` holds exactly the word `ws i` with its head at the
+start, whose input head is at the start of the input, in state `q` with output `out`. -/
+@[simps]
+def wordsCfg (input : List Symbol) (q : Option State)
+    (ws : Fin k → List Symbol) (out : List Symbol) : Cfg k Symbol State input :=
+  ⟨q, 1, fun i => tapeOfList (ws i), fun _ => 0, out⟩
+
+/-- Remapping the state of a `wordsCfg` remaps its state and leaves the words alone. -/
+@[simp]
+lemma mapState_wordsCfg {State' : Type*} (φ : Option State → Option State')
+    (input : List Symbol) (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol) :
+    (wordsCfg input q ws out).mapState φ = wordsCfg input (φ q) ws out := rfl
 
 end Turing

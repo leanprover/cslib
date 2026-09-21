@@ -1,259 +1,256 @@
 /-
-Copyright (c) 2026 Christian Reitwiessner. All rights reserved.
+Copyright (c) 2026 Christian Reitwiessner and Samuel Schlesinger. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Christian Reitwiessner
+Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 -/
 
 module
 
-public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Mathlib.Data.Int.Interval
-public import Mathlib.Order.Lattice.Nat
 
 /-!
 # Tape head visitation and space-usage lemmas
 
-This file collects lemmas about the set of positions visited by a work-tape head
-(`MultiTapeTM.visitedByTapeHead`) and the resulting space-usage measures
-(`MultiTapeTM.spaceUsedByTape`, `MultiTapeTM.spaceUsed`) and how the tape head positions
-influence the cells that are modified on a tape.
-
-`MultiTapeTM.exists_spaceUsedByTape_max` shows that a computation whose space usage is bounded
-attains its per-tape space usage at a single step, which makes a bound that holds at every point
-in time usable as a bound for the whole run.
-
+Work tape heads move by at most one cell per step, and a cell can change only when visited.
+The `RunPath` lemmas relate visited positions and changed cells to the space used along a path.
+Space depends on the configurations of a chosen path. Inclusion of configuration lists gives
+monotonicity; splitting a path gives subadditivity; repeating its halted endpoint preserves space.
+These facts also apply to paths of deterministic machines.
 -/
 
 @[expose] public section
 
-namespace Turing.MultiTapeTM
+namespace Turing.MultiTapeNTM
 
-variable {k : ℕ}
-variable {State Symbol : Type*}
-variable {input : List Symbol}
-variable {tm : MultiTapeTM k Symbol State}
-variable {cfg : Cfg k Symbol State input}
+variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
+variable {ntm : MultiTapeNTM k Symbol State} {start : Cfg k Symbol State input}
 
-/-- If the work tape head is not at position `z`, then the tape does not change there. -/
-lemma step_workTapes_eq_of_ne
-    (cfg : Cfg k Symbol State input)
-    (j : Fin k)
-    (z : ℤ)
-    (hz : z ≠ cfg.workTapePos j) :
-    (tm.step cfg).workTapes j z = cfg.workTapes j z := by
-  unfold step
-  cases hst : cfg.state with
-  | none => simp_all
+/-- A work tape head moves by at most one cell in a step. -/
+lemma Step.workTapePos_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') (i : Fin k) :
+    |c'.workTapePos i - c.workTapePos i| ≤ 1 := by
+  cases hs : c.state with
+  | none => obtain rfl := (step_of_halt hs).mp h; simp
   | some q =>
-    rcases hw : ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes j).1 <;> simp_all
+    obtain ⟨action, _, rfl⟩ := (show ∃ action, ntm.Tr q c.inputSymbol c.workTapeSymbols action ∧
+      c' = action.apply c from by simpa [Step, hs] using h)
+    exact workTapePos_apply_le action c i
 
-lemma mem_visitedByTapeHead {t : ℕ} {i : Fin k} {z : ℤ} :
-    z ∈ tm.visitedByTapeHead cfg t i ↔ ∃ t' < t + 1, (tm.runFrom cfg t').workTapePos i = z := by
-  simp [visitedByTapeHead]
+/-- A step preserves every work tape cell away from its head. -/
+lemma Step.workTapes_eq_of_ne {c c' : Cfg k Symbol State input} (h : ntm.Step c c')
+    (i : Fin k) (z : ℤ) (hz : z ≠ c.workTapePos i) : c'.workTapes i z = c.workTapes i z := by
+  cases hs : c.state with
+  | none => obtain rfl := (step_of_halt hs).mp h; rfl
+  | some q =>
+    obtain ⟨action, _, rfl⟩ := (show ∃ action, ntm.Tr q c.inputSymbol c.workTapeSymbols action ∧
+      c' = action.apply c from by simpa [Step, hs] using h)
+    exact action.apply_workTapes_eq_of_ne c i z hz
 
-lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    (tm.runFrom cfg t).workTapePos i ∈ tm.visitedByTapeHead cfg t i :=
-  tm.mem_visitedByTapeHead.mpr ⟨t, by omega, rfl⟩
+namespace RunPath
 
-/-- The set of positions visited by a tape head is monotone in the number of steps. -/
-lemma visitedByTapeHead_mono (cfg : Cfg k Symbol State input) (i : Fin k) {t t' : ℕ} (h : t ≤ t') :
-    tm.visitedByTapeHead cfg t i ⊆ tm.visitedByTapeHead cfg t' i := by
-  apply Finset.image_subset_image
+/-- Membership in the visited set is witnessed by a configuration on the path. -/
+lemma mem_visited (p : ntm.RunPath start) {i : Fin k} {z : ℤ} :
+    z ∈ p.visited i ↔ ∃ n, ∃ hn : n < p.cfgs.length, p.cfgs[n].workTapePos i = z := by
+  simp only [visited, visitedOfCfgs, List.mem_toFinset, List.mem_iff_getElem]
   grind
 
-/-- Starting from configuration `cfg`, every position between the initial head position of tape
-`i` and the one after `t` steps is part of the "visited set" at step `t`. -/
-lemma uIcc_workTapePos_subset_visitedByTapeHead
-    (cfg : Cfg k Symbol State input) (i : Fin k) (t : ℕ) :
-    Finset.uIcc (cfg.workTapePos i) ((tm.runFrom cfg t).workTapePos i)
-      ⊆ tm.visitedByTapeHead cfg t i := by
-  induction t with
-  | zero => simpa [runFrom] using tm.mem_visitedByTapeHead_self cfg 0 i
-  | succ t ih =>
+/-- Every final head position belongs to the visited set. -/
+lemma last_workTapePos_mem_visited (p : ntm.RunPath start) (i : Fin k) :
+    p.last.workTapePos i ∈ p.visited i :=
+  p.mem_visited.mpr ⟨p.time, by rw [p.length_eq_time_add_one]; omega, by simp⟩
+
+/-- Every position between the starting head and any later head position is visited. -/
+lemma uIcc_workTapePos_getElem_subset_visited (p : ntm.RunPath start)
+    (i : Fin k) (n : ℕ) (h : n < p.cfgs.length) :
+    Finset.uIcc (start.workTapePos i) (p.cfgs[n].workTapePos i) ⊆ p.visited i := by
+  induction n with
+  | zero => simpa using (p.mem_visited (i := i)).mpr ⟨0, h, rfl⟩
+  | succ n ih =>
+    have hprev := ih (by omega)
+    have hstep := (p.step_getElem n h).workTapePos_le i
+    have hself : p.cfgs[n + 1].workTapePos i ∈ p.visited i :=
+      p.mem_visited.mpr ⟨n + 1, h, rfl⟩
     intro z hz
-    have hstep : |(tm.runFrom cfg (t + 1)).workTapePos i - (tm.runFrom cfg t).workTapePos i| ≤ 1 :=
-      runFrom_succ_eq_step' (tm := tm) ▸ tm.workTapePos_step_le _ i
-    have hmono := tm.visitedByTapeHead_mono cfg i (Nat.le_succ t)
-    have hself := tm.mem_visitedByTapeHead_self cfg (t + 1) i
     grind [Finset.mem_uIcc]
 
-/-- If a work tape cell is changed after `t` steps, it must have been visited by the tape head. -/
-lemma mem_visitedByTapeHead_of_workTapes_ne
-    (j : Fin k)
-    (t : ℕ)
-    (z : ℤ)
-    (h : (tm.runFrom cfg t).workTapes j z ≠ cfg.workTapes j z) :
-    z ∈ tm.visitedByTapeHead cfg t j := by
-  induction t with
-  | zero => exact absurd (by simp [runFrom]) h
-  | succ t ih =>
-    rw [runFrom_succ_eq_step'] at h
-    by_cases hz : z = (tm.runFrom cfg t).workTapePos j
-    · exact hz ▸ tm.visitedByTapeHead_mono cfg j (Nat.le_succ t)
-        (tm.mem_visitedByTapeHead_self cfg t j)
-    · rw [tm.step_workTapes_eq_of_ne _ j z hz] at h
-      exact tm.visitedByTapeHead_mono cfg j (Nat.le_succ t) (ih h)
+/-- Any cell whose final contents differ from its initial contents has been visited. -/
+lemma mem_visited_of_workTapes_ne (p : ntm.RunPath start) (i : Fin k) (z : ℤ)
+    (h : p.last.workTapes i z ≠ start.workTapes i z) : z ∈ p.visited i := by
+  have visited (n : ℕ) (hn : n < p.cfgs.length)
+      (h : p.cfgs[n].workTapes i z ≠ start.workTapes i z) : z ∈ p.visited i := by
+    induction n with
+    | zero => simp at h
+    | succ n ih =>
+      by_cases hz : z = p.cfgs[n].workTapePos i
+      · exact p.mem_visited.mpr ⟨n, by omega, hz.symm⟩
+      · rw [(p.step_getElem n hn).workTapes_eq_of_ne i z hz] at h
+        exact ih (by omega) h
+  exact visited p.time (by rw [p.length_eq_time_add_one]; omega) (by simpa using h)
 
-/-- Every position visited by the head of tape `i` lies within `spaceUsedByTape … i` of the
-head's starting position. -/
-lemma natAbs_le_spaceUsedByTape_of_mem_visited
-    {i : Fin k}
-    {z : ℤ}
-    {t : ℕ}
-    (hz : z ∈ tm.visitedByTapeHead cfg t i) :
-    (z - cfg.workTapePos i).natAbs ≤ tm.spaceUsedByTape cfg t i := by
-  obtain ⟨t', ht', rfl⟩ := tm.mem_visitedByTapeHead.mp hz
-  have h1 := Finset.card_le_card
-    ((tm.uIcc_workTapePos_subset_visitedByTapeHead cfg i t').trans
-      (tm.visitedByTapeHead_mono cfg i (show t' ≤ t by omega)))
-  rw [Int.card_uIcc] at h1
-  unfold spaceUsedByTape
-  omega
+/-- The displacement of a visited cell is bounded by the tape's space usage. -/
+lemma natAbs_le_spaceByTape_of_mem_visited (p : ntm.RunPath start)
+    (i : Fin k) {z : ℤ} (hz : z ∈ p.visited i) :
+    (z - start.workTapePos i).natAbs ≤ p.spaceByTape i := by
+  obtain ⟨n, hn, rfl⟩ := p.mem_visited.mp hz
+  have h := Finset.card_le_card (p.uIcc_workTapePos_getElem_subset_visited i n hn)
+  rw [Int.card_uIcc] at h
+  exact (Nat.le_succ _).trans h
 
-/-- Every non-blank cell on work tape `i` lies within `spaceUsedByTape … i t` of the origin. -/
-lemma content_natAbs_le_spaceUsedByTape
-    {i : Fin k}
-    (t : ℕ)
-    (z : ℤ)
-    (h : (tm.runFrom (tm.initCfg input) t).workTapes i z ≠ none) :
-    z.natAbs ≤ tm.spaceUsedByTape (tm.initCfg input) t i := by
-  -- The work tapes start out blank, so any non-blank cell has been visited by the head; the
-  -- initial head position is `0`, so the displacement bound is a bound on the position itself.
-  simpa using tm.natAbs_le_spaceUsedByTape_of_mem_visited
-    (tm.mem_visitedByTapeHead_of_workTapes_ne i t z h)
+/-- Each tape visits at most one additional cell per step. -/
+lemma spaceByTape_le (p : ntm.RunPath start) (i : Fin k) :
+    p.spaceByTape i ≤ p.time + 1 := by
+  simpa only [spaceByTape, visited, ← p.length_eq_time_add_one] using
+    card_visitedOfCfgs_le p.cfgs i
 
-/-- The number of cells touched by a single work tape grows by at most one each step. -/
-lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    tm.spaceUsedByTape cfg t i ≤ t + 1 := by
-  calc
-    tm.spaceUsedByTape cfg t i
-    _ ≤ (Finset.range (t + 1)).card := Finset.card_image_le
-    _ = t + 1 := Finset.card_range _
+/-- Total space is at most the number of configurations times the number of tapes. -/
+lemma space_le (p : ntm.RunPath start) : p.space ≤ k * p.time + k := by
+  simpa only [space, p.length_eq_time_add_one, Nat.mul_succ] using spaceUsedOfCfgs_le p.cfgs
 
-/-- The space used by a computation is bounded linearly by the number of steps. -/
-lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t ≤ k * t + k := by
-  calc tm.spaceUsed cfg t
-      = ∑ i, (tm.spaceUsedByTape cfg t i) := by rfl
-    _ ≤ ∑ i, (t + 1) := Finset.sum_le_sum (fun i _ => tm.spaceUsedByTape_le cfg t i)
-    _ = k * t + k := by simp [Nat.mul_succ]
+/-- A path of a zero-work-tape machine uses no work space. -/
+@[simp]
+lemma space_zero_tapes (p : ntm.RunPath start) (h : k = 0) : p.space = 0 := by
+  subst k
+  simp [space, spaceUsedOfCfgs]
 
-/-- The space used by a single tape is monotone in the number of steps. -/
-lemma spaceUsedByTape_mono
-    (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input)
-    (i : Fin k) :
-    Monotone (tm.spaceUsedByTape cfg · i) := by
-  intro t t' h
-  exact Finset.card_le_card (tm.visitedByTapeHead_mono cfg i h)
+/-- Including configurations includes their visited positions. -/
+lemma visited_mono {start' : Cfg k Symbol State input}
+    (p : ntm.RunPath start) (q : ntm.RunPath start') (h : p.cfgs ⊆ q.cfgs) (i : Fin k) :
+    p.visited i ⊆ q.visited i := visitedOfCfgs_mono h i
 
-/-- The total space used is monotone in the number of steps. -/
-lemma spaceUsed_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
-    Monotone (tm.spaceUsed cfg ·) := by
-  intro t t' h
-  exact Finset.sum_le_sum (fun i _ => spaceUsedByTape_mono tm cfg i h)
+/-- Including configurations cannot decrease the space used on any tape. -/
+lemma spaceByTape_mono {start' : Cfg k Symbol State input}
+    (p : ntm.RunPath start) (q : ntm.RunPath start') (h : p.cfgs ⊆ q.cfgs) (i : Fin k) :
+    p.spaceByTape i ≤ q.spaceByTape i := Finset.card_le_card (p.visited_mono q h i)
 
-/-- A computation whose total space usage stays below a bound reaches a step `T` at which the space
-usage of *every* tape is maximal. This turns a bound that holds at every point in time into a
-bound for the whole run. -/
-lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
-    (hs : ∀ t, tm.spaceUsed cfg t ≤ s) :
-    ∃ T, ∀ t i, tm.spaceUsedByTape cfg t i ≤ tm.spaceUsedByTape cfg T i := by
-  -- The space usage of a single tape is bounded, so it attains its supremum at some step `T i`.
-  have h : ∀ i, ∃ Ti, ∀ t, tm.spaceUsedByTape cfg t i ≤ tm.spaceUsedByTape cfg Ti i := by
-    intro i
-    have hbdd : BddAbove (Set.range (tm.spaceUsedByTape cfg · i)) :=
-      ⟨s, by rintro _ ⟨t, rfl⟩; exact (tm.spaceUsedByTape_le_spaceUsed cfg t i).trans (hs t)⟩
-    obtain ⟨Ti, hTi⟩ := Nat.sSup_mem (Set.range_nonempty (tm.spaceUsedByTape cfg · i)) hbdd
-    exact ⟨Ti, fun t => (le_csSup hbdd ⟨t, rfl⟩).trans hTi.ge⟩
-  choose T hT using h
-  -- Monotonicity lets us use a single step that is late enough for every tape.
-  exact ⟨Finset.univ.sup T, fun t i =>
-    (hT i t).trans (tm.spaceUsedByTape_mono cfg i (Finset.le_sup (Finset.mem_univ i)))⟩
+/-- Including configurations cannot decrease total space. -/
+lemma space_mono {start' : Cfg k Symbol State input}
+    (p : ntm.RunPath start) (q : ntm.RunPath start') (h : p.cfgs ⊆ q.cfgs) :
+    p.space ≤ q.space := spaceUsedOfCfgs_mono h
 
+/-- Every nonblank cell of a computation lies within its tape's space bound of the origin. -/
+lemma content_natAbs_le_spaceByTape (p : ntm.ComputationPath input) (i : Fin k) (z : ℤ)
+    (h : p.last.workTapes i z ≠ none) : z.natAbs ≤ p.spaceByTape i := by
+  simpa using p.natAbs_le_spaceByTape_of_mem_visited i (p.mem_visited_of_workTapes_ne i z h)
 
-/-- Every position the head takes up to step `t` lies in `S`, so the whole visited set does. This
-is `Finset.image_subset_iff` for the visited set, and the workhorse behind the space bounds
-below. -/
-lemma visitedByTapeHead_subset (cfg : Cfg k Symbol State input) {t : ℕ} {i : Fin k} {S : Finset ℤ}
-    (h : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos i ∈ S) :
-    tm.visitedByTapeHead cfg t i ⊆ S :=
-  Finset.image_subset_iff.mpr fun m hm => h m (Nat.lt_succ_iff.mp (Finset.mem_range.mp hm))
+/-- A set containing every head position contains the visited set. -/
+lemma visited_subset (p : ntm.RunPath start) {i : Fin k} {S : Finset ℤ}
+    (h : ∀ n (hn : n < p.cfgs.length), p.cfgs[n].workTapePos i ∈ S) : p.visited i ⊆ S := by
+  intro z hz
+  obtain ⟨n, hn, rfl⟩ := p.mem_visited.mp hz
+  exact h n hn
 
-/-- A set containing every position of a head bounds the space used by its tape. -/
-lemma spaceUsedByTape_le_card (cfg : Cfg k Symbol State input) {t : ℕ} {i : Fin k} {S : Finset ℤ}
-    (h : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos i ∈ S) :
-    tm.spaceUsedByTape cfg t i ≤ S.card :=
-  Finset.card_le_card (tm.visitedByTapeHead_subset cfg h)
+/-- A finite set of possible head positions bounds the space of a tape. -/
+lemma spaceByTape_le_card (p : ntm.RunPath start) {i : Fin k} {S : Finset ℤ}
+    (h : ∀ n (hn : n < p.cfgs.length), p.cfgs[n].workTapePos i ∈ S) :
+    p.spaceByTape i ≤ S.card := Finset.card_le_card (p.visited_subset h)
 
-/-- A head that never moves uses a single cell. -/
-lemma spaceUsedByTape_le_one (cfg : Cfg k Symbol State input) {t : ℕ} {i : Fin k}
-    (h : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos i = cfg.workTapePos i) :
-    tm.spaceUsedByTape cfg t i ≤ 1 := by
-  simpa using tm.spaceUsedByTape_le_card cfg (S := {cfg.workTapePos i})
-    fun m hm => by simp [h m hm]
+/-- A stationary head uses at most one cell. -/
+lemma spaceByTape_le_one (p : ntm.RunPath start) {i : Fin k}
+    (h : ∀ n (hn : n < p.cfgs.length), p.cfgs[n].workTapePos i = start.workTapePos i) :
+    p.spaceByTape i ≤ 1 := by
+  simpa using p.spaceByTape_le_card (S := {start.workTapePos i}) fun n hn => by simp [h n hn]
 
-/-- The cells a run visits are the ones visited by its two halves. -/
-lemma visitedByTapeHead_add (cfg : Cfg k Symbol State input) (a b : ℕ) (i : Fin k) :
-    tm.visitedByTapeHead cfg (a + b) i =
-      tm.visitedByTapeHead cfg a i ∪ tm.visitedByTapeHead (tm.runFrom cfg a) b i := by
+/-- Stationary work tape heads use at most one cell per tape. -/
+lemma space_le_of_workTapePos_const (p : ntm.RunPath start)
+    (h : ∀ n (hn : n < p.cfgs.length), p.cfgs[n].workTapePos = start.workTapePos) :
+    p.space ≤ k := by
+  simpa [space_eq_sum] using Finset.sum_le_card_nsmul Finset.univ _ 1
+    (fun i _ => p.spaceByTape_le_one fun n hn => congrFun (h n hn) i)
+
+/-- Splitting a path splits its visited set into the union of the two parts. -/
+lemma visited_take_union_drop (p : ntm.RunPath start) (n : ℕ) (hn : n < p.cfgs.length)
+    (i : Fin k) : p.visited i = (p.take n hn).visited i ∪ (p.drop n hn).visited i := by
   ext z
-  simp only [mem_visitedByTapeHead, Finset.mem_union]
+  simp only [mem_visited, take_cfgs, drop_cfgs, List.length_take, List.length_drop,
+    List.getElem_take, List.getElem_drop, Finset.mem_union]
   constructor
-  · rintro ⟨r, hr, rfl⟩
-    rcases Nat.lt_or_ge r (a + 1) with h | h
-    · exact Or.inl ⟨r, h, rfl⟩
-    · exact Or.inr ⟨r - a, by omega,
-        by rw [← runFrom_add, show a + (r - a) = r from by omega]⟩
-  · rintro (⟨r, hr, rfl⟩ | ⟨r, hr, rfl⟩)
-    · exact ⟨r, by omega, rfl⟩
-    · exact ⟨a + r, by omega, by rw [runFrom_add]⟩
+  · rintro ⟨m, hm, hz⟩
+    by_cases hmn : m ≤ n
+    · exact Or.inl ⟨m, by omega, hz⟩
+    · exact Or.inr ⟨m - n, by omega, by simpa [Nat.add_sub_cancel' (by omega : n ≤ m)] using hz⟩
+  · rintro (⟨m, hm, hz⟩ | ⟨m, hm, hz⟩)
+    · exact ⟨m, by omega, hz⟩
+    · exact ⟨n + m, by omega, hz⟩
 
-/-- Splitting a run into two phases can only overcount the cells it visits, since the two phases
-may revisit each other's cells. -/
-lemma spaceUsed_add_le (cfg : Cfg k Symbol State input) (a b : ℕ) :
-    tm.spaceUsed cfg (a + b) ≤ tm.spaceUsed cfg a + tm.spaceUsed (tm.runFrom cfg a) b := by
-  rw [spaceUsed, spaceUsed, spaceUsed, ← Finset.sum_add_distrib]
-  refine Finset.sum_le_sum fun i _ => ?_
-  rw [spaceUsedByTape, visitedByTapeHead_add]
-  exact Finset.card_union_le _ _
+/-- The sum of the spaces of two parts bounds the space of the whole path. -/
+lemma space_le_take_add_drop (p : ntm.RunPath start) (n : ℕ) (hn : n < p.cfgs.length) :
+    p.space ≤ (p.take n hn).space + (p.drop n hn).space := by
+  simp only [space_eq_sum, ← Finset.sum_add_distrib, spaceByTape]
+  exact Finset.sum_le_sum fun i _ => by
+    rw [p.visited_take_union_drop n hn i]
+    exact Finset.card_union_le _ _
 
-/-- Space usage only depends on where the work-tape heads are at each step, so two runs whose head
-positions agree use the same space. This is what lets a machine be replaced by a simulation of
-it. -/
-lemma spaceUsed_eq_of_workTapePos {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k Symbol State'} (cfg : Cfg k Symbol State input)
-    (cfg' : Cfg k Symbol State' input') (t : ℕ)
-    (h : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos = (tm'.runFrom cfg' m).workTapePos) :
-    tm.spaceUsed cfg t = tm'.spaceUsed cfg' t := by
-  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card (Finset.image_congr fun m hm => ?_)
-  exact congrFun (h m (Nat.lt_succ_iff.mp (Finset.mem_range.mp hm))) i
+/-- Paths with the same work tape head positions use the same space, even in different machines. -/
+lemma space_eq_of_workTapePos {State' : Type*} {input' : List Symbol}
+    {ntm' : MultiTapeNTM k Symbol State'} {start' : Cfg k Symbol State' input'}
+    (p : ntm.RunPath start) (q : ntm'.RunPath start') (hlen : p.time = q.time)
+    (h : ∀ n (hn : n < p.cfgs.length) (hn' : n < q.cfgs.length),
+      p.cfgs[n].workTapePos = q.cfgs[n].workTapePos) : p.space = q.space := by
+  simp only [space_eq_sum, spaceByTape]
+  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card (Finset.ext fun z => ?_)
+  simp only [mem_visited]
+  have hlen' : p.cfgs.length = q.cfgs.length := by
+    rw [p.length_eq_time_add_one, q.length_eq_time_add_one, hlen]
+  constructor <;> rintro ⟨n, hn, hz⟩
+  · exact ⟨n, by omega, by rw [← h n hn (by omega)]; exact hz⟩
+  · exact ⟨n, by omega, by rw [h n (by omega) hn]; exact hz⟩
 
-/-- After the machine has halted the heads no longer move, so the visited set stops growing. -/
-lemma visitedByTapeHead_eq_of_halt (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
-    (hhalt : (tm.runFrom cfg τ).state = none) (i : Fin k) :
-    tm.visitedByTapeHead cfg t i = tm.visitedByTapeHead cfg τ i := by
-  refine Finset.Subset.antisymm (visitedByTapeHead_subset cfg fun m hm => ?_)
-    (tm.visitedByTapeHead_mono cfg i hle)
-  rcases Nat.le_total m τ with h | h
-  · exact mem_visitedByTapeHead.mpr ⟨m, by omega, rfl⟩
-  · rw [runFrom_eq_of_halt tm cfg h hhalt]
-    exact tm.mem_visitedByTapeHead_self cfg τ i
+/-- A simulation preserving head positions preserves space. -/
+@[simp]
+lemma space_map {State' : Type*} {input' : List Symbol} {ntm' : MultiTapeNTM k Symbol State'}
+    (p : ntm.RunPath start) (f : Cfg k Symbol State input → Cfg k Symbol State' input')
+    (h : ∀ n (hn : n + 1 < p.cfgs.length), ntm'.Step (f p.cfgs[n]) (f p.cfgs[n + 1]))
+    (hpos : ∀ c, (f c).workTapePos = c.workTapePos) : (p.map f h).space = p.space := by
+  simp [space, spaceUsedOfCfgs, visitedOfCfgs, map, List.map_map, Function.comp_def, hpos]
 
-/-- After the machine has halted the heads no longer move, so the space usage stops growing. -/
-lemma spaceUsed_eq_of_halt (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
-    (hhalt : (tm.runFrom cfg τ).state = none) :
-    tm.spaceUsed cfg t = tm.spaceUsed cfg τ :=
-  Finset.sum_congr rfl fun i _ =>
-    congrArg Finset.card (tm.visitedByTapeHead_eq_of_halt cfg hle hhalt i)
+/-- Joining two paths uses at most the sum of their spaces. -/
+lemma space_append_le {middle : Cfg k Symbol State input}
+    (p : ntm.RunPath start) (q : ntm.RunPath middle) (h : p.last = middle) :
+    (p.append q h).space ≤ p.space + q.space := by
+  calc (p.append q h).space ≤ spaceUsedOfCfgs (p.cfgs ++ q.cfgs) := by
+        apply spaceUsedOfCfgs_mono
+        intro c hc
+        rcases List.mem_append.mp hc with hc | hc
+        · exact List.mem_append_left _ hc
+        · exact List.mem_append_right _ (List.mem_of_mem_tail hc)
+    _ ≤ p.space + q.space := by
+        simp only [space, spaceUsedOfCfgs, visitedOfCfgs, List.map_append,
+          List.toFinset_append, ← Finset.sum_add_distrib]
+        exact Finset.sum_le_sum fun i _ => Finset.card_union_le _ _
 
-/-- A run that never moves a work-tape head visits one cell per tape. -/
-lemma spaceUsed_le_of_workTapePos_const (cfg : Cfg k Symbol State input) (u : ℕ)
-    (h : ∀ m ≤ u, (tm.runFrom cfg m).workTapePos = cfg.workTapePos) :
-    tm.spaceUsed cfg u ≤ k := by
-  have hcard : ∀ i ∈ Finset.univ, tm.spaceUsedByTape cfg u i ≤ 1 :=
-    fun i _ => tm.spaceUsedByTape_le_one cfg fun m hm => congrFun (h m hm) i
-  simpa [spaceUsed] using Finset.sum_le_card_nsmul _ _ 1 hcard
+/-- A halted prefix has already visited every position of the full path. -/
+lemma visited_take_eq_of_halt (p : ntm.RunPath start) (n : ℕ) (hn : n < p.cfgs.length)
+    (hhalt : p.cfgs[n].Halted) (i : Fin k) : p.visited i = (p.take n hn).visited i := by
+  apply Finset.Subset.antisymm _ (visitedOfCfgs_mono (List.take_subset _ _) i)
+  apply p.visited_subset
+  intro m hm
+  by_cases hmn : m ≤ n
+  · exact (p.take n hn).mem_visited.mpr ⟨m, by simp; omega, by simp⟩
+  · rw [p.getElem_eq_of_halt (by omega : n ≤ m) hm hhalt]
+    exact (p.take n hn).last_workTapePos_mem_visited i
 
+/-- A halted prefix uses the same space as the full path. -/
+lemma space_take_eq_of_halt (p : ntm.RunPath start) (n : ℕ) (hn : n < p.cfgs.length)
+    (hhalt : p.cfgs[n].Halted) : p.space = (p.take n hn).space := by
+  simp only [space_eq_sum, spaceByTape, p.visited_take_eq_of_halt n hn hhalt]
 
-end Turing.MultiTapeTM
+/-- Padding a halted path visits no new cells. -/
+@[simp]
+lemma visited_pad (p : ntm.RunPath start) (n : ℕ) (hhalt : p.last.Halted) (i : Fin k) :
+    (p.pad n hhalt).visited i = p.visited i := by
+  simp only [visited, visitedOfCfgs, pad_cfgs, List.map_append, List.map_replicate,
+    List.toFinset_append]
+  apply Finset.union_eq_left.mpr
+  intro z hz
+  simp only [List.mem_toFinset, List.mem_replicate] at hz
+  obtain ⟨_, rfl⟩ := hz
+  exact p.last_workTapePos_mem_visited i
+
+/-- Padding a halted path preserves its space. -/
+@[simp]
+lemma space_pad (p : ntm.RunPath start) (n : ℕ) (hhalt : p.last.Halted) :
+    (p.pad n hhalt).space = p.space := by simp [space_eq_sum, spaceByTape]
+
+end RunPath
+
+end Turing.MultiTapeNTM
