@@ -193,12 +193,25 @@ lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n
     tm.runFrom cfg n = cfg :=
   Function.iterate_fixed (step_of_halt h) n
 
-/-- A run stays at the configuration in which it halts. -/
-lemma runFrom_eq_of_halt {cfg : Cfg k Symbol State input} {T t : ℕ} (hle : T ≤ t)
-    (hhalt : (tm.runFrom cfg T).Halted) :
-    tm.runFrom cfg t = tm.runFrom cfg T := by
-  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le hle
+/-- Nothing changes after the machine has halted. -/
+lemma runFrom_eq_of_halt
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
+    (hhalt : (tm.runFrom cfg τ).state = none) :
+    tm.runFrom cfg t = tm.runFrom cfg τ := by
+  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
   rw [runFrom_add, runFrom_of_halt _ hhalt]
+
+/-- Every halted run has a first halting time no later than the supplied one. -/
+lemma exists_minimal_halting_time
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ)
+    (hhalt : (tm.runFrom cfg t).state = none) :
+    ∃ u ≤ t, (tm.runFrom cfg u).state = none ∧ ∀ s < u, (tm.runFrom cfg s).state ≠ none := by
+  classical
+  have hex : ∃ n, (tm.runFrom cfg n).state = none := ⟨t, hhalt⟩
+  exact ⟨Nat.find hex, Nat.find_min' hex hhalt, Nat.find_spec hex,
+    fun s hs => Nat.find_min hex hs⟩
 
 @[simp]
 lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
@@ -291,7 +304,7 @@ lemma runFrom_output_eq_of_halt
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
     (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output :=
-  congrArg Cfg.output (tm.runFrom_eq_of_halt hle hhalt)
+  congrArg Cfg.output (tm.runFrom_eq_of_halt cfg hle hhalt)
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
