@@ -154,15 +154,14 @@ theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State]
     apply hne
     simpa using Quotient.sound h
   have h1 := dfa_num_state_ge hws rfl
-  rw [Nat.card_congr (Equiv.ofInjective _ Quotient.out_injective).symm] at h1
-  assumption
+  rwa [Nat.card_congr (Equiv.ofInjective _ Quotient.out_injective).symm] at h1
 
 end Language
 
 namespace Cslib.Automata.DA.FinAcc
 
 open Cslib Cslib.Language Automata DA FinAcc Acceptor
-open scoped RightCongruence
+open _root_.Language RightCongruence
 
 /-- The minimal DFA accepting `l` has the same number of states as the number of equivalence classes
 of the Nerode congruence on `l`. -/

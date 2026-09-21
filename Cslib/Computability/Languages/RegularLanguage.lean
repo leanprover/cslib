@@ -6,16 +6,19 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Automata.DA.Congr
-public import Cslib.Computability.Automata.DA.Prod
-public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.NA.Concat
+public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.NA.Loop
+public import Cslib.Computability.Automata.NA.Preimage
+public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
+public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.TwoWayNA.OfNA
+public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
-public import Mathlib.Data.Finite.Sum
+public import Mathlib.Basic.Finite.Sum
 public import Mathlib.Data.Set.Card
 
 /-!
@@ -26,10 +29,10 @@ public import Mathlib.Data.Set.Card
 
 namespace Cslib.Language
 
-open Set List Prod Automata Acceptor RightCongruence
+open Set List Prod Automata Acceptor
 open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
-variable {Symbol : Type*}
+variable {Symbol Symbol' : Type*}
 
 /-- A characterization of `Language.IsRegular` in terms of `DA`. This is the only theorem in Cslib
 in which Mathlib's definition of `Language.IsRegular` is used. -/
@@ -68,6 +71,23 @@ theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegul
   ext
   simp only [language, Accepts]
   rfl
+
+/-- A language is regular if and only if it is accepted by some two-way nondeterministic
+automaton with finitely many states. -/
+theorem IsRegular.iff_twoWayNA {l : Language Symbol} :
+    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
+      ∃ a : TwoWayNA State Symbol, language a = l := by
+  constructor
+  · intro h
+    rw [IsRegular.iff_nfa] at h
+    obtain ⟨State, hfin, na, rfl⟩ := h
+    exact ⟨State, hfin, NA.FinAcc.toTwoWayNA na, TwoWayNA.language_toTwoWayNA na⟩
+  · rintro ⟨State, hfin, a, rfl⟩
+    have := hfin
+    have hc : (language a)ᶜ.IsRegular := by
+      rw [IsRegular.iff_nfa]
+      exact ⟨Set State × Set State, inferInstance, a.complToNA, a.language_complToNA⟩
+    simpa using hc.compl
 
 /-- The empty language is regular. -/
 @[simp]
@@ -182,6 +202,7 @@ theorem IsRegular.kstar {l : Language Symbol}
       obtain ⟨State, h_fin, nfa, rfl⟩ := h
       use Unit ⊕ Option State, inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
+open _root_.Language RightCongruence in
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
 theorem IsRegular.congr_fin_index {Symbol : Type}
@@ -196,7 +217,7 @@ open NA in
 theorem IsRegular.reverse {l : Language Symbol} (h : l.IsRegular) : l.reverse.IsRegular := by
   rw [IsRegular.iff_nfa] at h ⊢
   obtain ⟨State, h_fin, nfa, rfl⟩ := h
-  use State, inferInstance, nfa.reverse, FinAcc.reverse_language_eq nfa
+  use State, inferInstance, nfa.reverse, nfa.reverse_language_eq
 
 /-- A language is regular iff its reversal is regular. -/
 @[simp]
@@ -205,6 +226,14 @@ theorem IsRegular.reverse_iff {l : Language Symbol} : l.reverse.IsRegular ↔ l.
   · intro h
     simpa using IsRegular.reverse h
   · exact IsRegular.reverse
+
+open NA _root_.Language in
+/-- The preimage of a regular languge under a language homomorphism is regular. -/
+theorem IsRegular.preimage (f : Hom Symbol' Symbol) {l : Language Symbol} (h : l.IsRegular) :
+    (l.preimage f).IsRegular := by
+  rw [IsRegular.iff_nfa] at h ⊢
+  obtain ⟨State, h_fin, nfa, rfl⟩ := h
+  use State, inferInstance, nfa.preimage f, nfa.preimage_language_eq f
 
 /-- The language containing only the one character string `a` is regular. -/
 @[simp]

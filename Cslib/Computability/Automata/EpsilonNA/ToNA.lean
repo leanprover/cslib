@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
-public import Cslib.Foundations.Semantics.LTS.MapLabel
+public import Cslib.Foundations.Semantics.LTS.MapHom
 
 /-! # Translation of εNA into NA -/
 
