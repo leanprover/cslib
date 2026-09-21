@@ -45,6 +45,7 @@ Area maintainers are trusted contributors who take ownership of specific areas o
 - Chris Henson (@chenson2018), Drexel University. Areas: Lambda calculus, metaprogramming.
 - Kim Morrison (@kim-em), Lean FRO. Areas: Continuous Integration and Deployment (CI/CD) with upstream (Lean, mathlib).
 - Alexandre Rademaker (@arademaker), Renaissance Philanthropy and Getulio Vargas Foundation. Areas: logic.
+- Samuel Schlesinger (@SamuelSchlesinger), Google. Areas: complexity, cryptography, and learning theory.
 - Sorrachai Yingchareonthawornchai (@sorrachai), ETH Zurich. Areas: algorithms and data structures.
 
 ## Reviewers
@@ -53,7 +54,6 @@ Reviewers are trusted contributors who provide regular reviewing and technical g
 
 - Ching-Tsun Chou (@ctchou).
 - Christian Reitwiessner (@crei).
-- Samuel Schlesinger (@SamuelSchlesinger).
 - Thomas Waring (@thomaskwaring).
 - Eric Wieser (@eric-wieser), Google DeepMind.
 - Xueying Qin (@XYUnknown), FORM, University of Southern Denmark.
