@@ -1,0 +1,22 @@
+{
+  "name": "CSLib Devcontainer",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "postCreateCommand": "lake exe cache get && lake build",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=cslib-elan-toolchains,target=/home/vscode/.elan/toolchains,type=volume",
+    "source=cslib-cache,target=/home/vscode/.cache,type=volume"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "leanprover.lean4"
+      ]
+    }
+  }
+}
