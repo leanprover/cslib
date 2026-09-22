@@ -29,17 +29,7 @@ resolve_config_file() {
     return
   fi
 
-  if [ -f "$HOME/.config/mistral/config.toml" ]; then
-    echo "$HOME/.config/mistral/config.toml"
-    return
-  fi
-
-  if [ -f "$HOME/.mistral/config.toml" ]; then
-    echo "$HOME/.mistral/config.toml"
-    return
-  fi
-
-  echo "$HOME/.config/mistral/config.toml"
+  echo "$HOME/.vibe/config.toml"
 }
 
 install_vibe_vscode_extension_if_missing() {
