@@ -88,7 +88,7 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
         | refl => grind [open_close]
         | single => exact .single (Xi.abs {w} (by grind [FullBeta.redex_subst_cong]))
       · rw [open_close w N 0 (by grind)]
-        exact FullEta.redex_abs_close h_eta (FullBeta.step_lc_r (st_body_beta w (by grind)))
+        exact FullEta.redex_abs_close h_eta
 
 open Commute in
 /-- βη-reduction is confluent. -/
@@ -96,9 +96,9 @@ open Commute in
 theorem confluent_beta_eta : Confluent (@FullBetaEta Var) := by
   apply join_confluent
   · exact confluent_fullBeta
-  · exact stronglyConfluent_eta.toConfluent
+  · exact stronglyConfluent_eta.to_confluent
   apply symm
-  exact stronglyCommute_eta_beta.toCommute
+  exact stronglyCommute_eta_beta.to_commute
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 

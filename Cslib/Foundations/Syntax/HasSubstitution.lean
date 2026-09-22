@@ -38,4 +38,11 @@ meta def unexpandHasSubstitutionSubst : Lean.PrettyPrinter.Unexpander
   | `($_ $t $x $s) => `($t[$x := $s])
   | _ => throw ()
 
+namespace HasSubstitution
+
+instance [DecidableEq α] : HasSubstitution (α → β) α β where
+  subst := Function.update
+
+end HasSubstitution
+
 end Cslib

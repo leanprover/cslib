@@ -13,7 +13,7 @@ open Cslib
 open CCS Process
 
 @[lts ltsNat "ₙ"]
-def TrNat := @CCS.Tr ℕ ℕ (fun _ _ => False)
+def TrNat := @CCS.Tr ℕ ℕ (fun _ => none)
 
 def p : Process ℕ ℕ := (pre Act.τ (pre (Act.name 1) nil))
 

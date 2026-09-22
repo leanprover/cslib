@@ -22,6 +22,7 @@ of ω-regular languages under complementation.
 namespace Cslib.Automata.NA.Buchi
 
 open Function Set Filter ωAcceptor ωLanguage ωSequence
+open _root_.Language RightCongruence
 
 variable {Symbol : Type*} {State : Type}
 
@@ -186,14 +187,14 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
   obtain ⟨ss, ⟨h_init, h_exec⟩, h_acc⟩ := h_lang
   let f (k : ℕ) := xl.length + xls.cumLen k
   let ts := ωSequence.mk (fun k ↦ ss (f k))
-  have (k : ℕ) : xls k ≠ [] := by grind [Language.mem_sub_one]
+  have (k : ℕ) : xls k ≠ [] := by grind
   have h_xls_p (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
   have h_xls_e (k : ℕ) : xls k ∈ na.pairLang (ts k) (ts (k + 1)) := by
     grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : f k ≤ f (k + 1)), LTS.mem_pairLang,
       extract_append_right_right, add_tsub_cancel_left]
   have h_yls (k : ℕ) := buchiCongruence_transfer ((h_xls_c k).left) ((h_yls_c k).left) (h_xls_e k)
   choose sls h_yls_e h_yls_a using h_yls
-  have (k : ℕ) : yls k ≠ [] := by grind [Language.mem_sub_one]
+  have (k : ℕ) : yls k ≠ [] := by grind
   have h_yls_p (k : ℕ) : (yls k).length > 0 := List.length_pos_iff.mpr (this k)
   obtain ⟨ss1, h_ss1_run, h_ss1_seg⟩ := LTS.OmegaExecution.flatten_execution h_yls_e h_yls_p
   suffices ∃ᶠ (k : ℕ) in atTop, ss1 k ∈ na.accept by
@@ -207,7 +208,7 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
       have : sls 0 ≠ [] := by grind
       have : 0 < (sls 0).length := List.length_pos_iff.mpr this
       have : ss1 0 = (sls 0)[0] := by grind [get_extract (xs := ss1) h]
-      have : (sls 0)[0] = ts 0 := h_yls_e 0 |>.choose_spec |>.1
+      have : (sls 0)[0] = ts 0 := (h_yls_e 0).start
       grind
     obtain ⟨ss2, _, _, _, _⟩ := LTS.OmegaExecution.append h_yl_e h_ss1_run h_ss1_ts
     use ss2
