@@ -52,6 +52,28 @@ variable {k k' : ℕ} {Symbol State : Type*} {input : List Symbol}
       (existsUnique_of_exists_of_unique h fun _ _ ha hb => e.injective (ha.trans hb.symm)))
   else none
 
+lemma partialInv_isPartialInv (e : Fin k ↪ Fin k') :
+    Function.IsPartialInv e (partialInv e) := by
+  intro j l
+  constructor
+  · intro h
+    unfold partialInv at h
+    split at h
+    · next hl =>
+      injection h with hchoose
+      rw [← hchoose]
+      exact Fintype.choose_spec (fun j' => e j' = l)
+        (existsUnique_of_exists_of_unique hl fun _ _ ha hb => e.injective (ha.trans hb.symm))
+    · simp_all
+  · intro h
+    subst l
+    unfold partialInv
+    rw [dite_eq_left ⟨j, rfl⟩]
+    congr 1
+    exact e.injective (Fintype.choose_spec (fun j' => e j' = e j)
+      (existsUnique_of_exists_of_unique ⟨j, rfl⟩
+        fun _ _ ha hb => e.injective (ha.trans hb.symm)))
+
 /-- `tm` run on the tapes selected by the embedding `e`, leaving other tapes untouched: work tape
 `e j` plays the role of `tm`'s tape `j`, and any tape outside `range e` is never written and never
 moves. -/
@@ -87,30 +109,19 @@ variable {tm : MultiTapeTM k Symbol State} {e : Fin k ↪ Fin k'}
 /-- The partial inverse recovers the source tape of an embedded tape. -/
 @[simp]
 public lemma partialInv_embed (e : Fin k ↪ Fin k') (j : Fin k) : partialInv e (e j) = some j := by
-  have hex : ∃ j', e j' = e j := ⟨j, rfl⟩
-  have hpi : partialInv e (e j) = some (Fintype.choose (fun j' => e j' = e j)
-      (existsUnique_of_exists_of_unique hex fun _ _ ha hb => e.injective (ha.trans hb.symm))) :=
-    dite_eq_left hex
-  rw [hpi]
-  congr 1
-  exact e.injective (Fintype.choose_spec (fun j' => e j' = e j) _)
+  exact (partialInv_isPartialInv e).eq j
 
 /-- Outside the range of `e`, the partial inverse is undefined. -/
 public lemma partialInv_eq_none (e : Fin k ↪ Fin k') {l : Fin k'} (hl : ¬ ∃ j, e j = l) :
-    partialInv e l = none :=
-  dite_eq_right hl
+    partialInv e l = none := by
+  by_contra h
+  obtain ⟨j, hj⟩ := Option.ne_none_iff_exists'.mp h
+  exact hl ⟨j, (partialInv_isPartialInv e j l).mp hj⟩
 
 /-- If the partial inverse is `some j`, then `e j = l`. -/
 public lemma partialInv_eq_some (e : Fin k ↪ Fin k') {l : Fin k'} {j : Fin k}
-    (h : partialInv e l = some j) : e j = l := by
-  unfold partialInv at h
-  by_cases hl : ∃ j, e j = l
-  · rw [dite_eq_left hl] at h
-    have hspec := Fintype.choose_spec (fun j' => e j' = l)
-      (existsUnique_of_exists_of_unique hl fun _ _ ha hb => e.injective (ha.trans hb.symm))
-    rw [Option.some_inj] at h
-    rw [← h]; exact hspec
-  · rw [dite_eq_right hl] at h; exact absurd h (by simp)
+    (h : partialInv e l = some j) : e j = l :=
+  (partialInv_isPartialInv e j l).mp h
 
 @[simp]
 public lemma embed_workTapes_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
