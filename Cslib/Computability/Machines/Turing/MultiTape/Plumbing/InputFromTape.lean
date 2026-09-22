@@ -19,15 +19,14 @@ lives at cell `p - 1` when the simulated input head is at position `p`, so the w
 at cells `-1` and `len`.
 
 The one thing a blank cell cannot tell the machine is *which* boundary it is at — and it must
-know, because the input head clamps there. Redirecting the input through a work tape is due to
-Samuel Schlesinger (leanprover/cslib#872), who resolves the ambiguity by tracking a boundary
-classification in the finite control. Here a *flag tape* is used instead, in the spirit of the
-footprint anchors of the tidy normal form: a second fresh tape, whose head moves in lockstep with
-the virtual input head, carries a single `mark` at cell `-1` — placed by a two-step prologue — so
-the left boundary is recognised by reading the flag. Reading blank on both tapes then means the
-right boundary. With the classification on a tape rather than in the control, the simulated
-configuration determines the simulating one, and the redirection is an unconditional
-step-semiconjugation: one `Turing.MultiTapeTM.runFrom_comm_of_step`, no bisimulation.
+know, because the input head clamps there. This ambiguity is resolved by tracking a boundary
+classification. A second fresh work tape, the *flag tape*, moves in lockstep with the virtual input
+head and carries a single `mark` at cell `-1`, so the left boundary is recognised by reading the
+flag. Reading blank on both the virtual input tape and the flag tape means the right boundary.
+
+The configuration map `inCfg` places the simulated input on the virtual input tape, places the
+marker on the flag tape, and leaves the real input tape unused. The main lemmas show that one step
+and an entire run of the redirected machine mirror the corresponding step and run of `tm`.
 -/
 
 namespace Turing.MultiTapeTM

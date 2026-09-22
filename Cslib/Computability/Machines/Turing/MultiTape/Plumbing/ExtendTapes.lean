@@ -20,9 +20,8 @@ tape `j`. The remaining tapes are left unchanged.
 The configuration map `embed e cfg extraTapes extraPos` places `cfg` on the selected tapes and
 initialises the remaining tapes from `extraTapes` and `extraPos`.
 
-The construction gives a step-semiconjugation: `step_embed` states that one step commutes with
-`embed`, and `runFrom_embed` is its run-level consequence via
-`Turing.MultiTapeTM.runFrom_comm_of_step`.
+The main lemmas show that one step and an entire run of the larger machine mirror the corresponding
+step and run of `tm`.
 
 ## Main definitions
 
@@ -32,8 +31,8 @@ The construction gives a step-semiconjugation: `step_embed` states that one step
 
 ## Main results
 
-* `Turing.MultiTapeTM.step_embed` and `Turing.MultiTapeTM.runFrom_embed`: the
-  step-semiconjugation and its consequence for runs.
+* `Turing.MultiTapeTM.step_embed` and `Turing.MultiTapeTM.runFrom_embed`: the one-step and run-level
+  mirroring lemmas.
 * `Turing.MultiTapeTM.visitedByTapeHead_embed_embed` and
   `Turing.MultiTapeTM.workTapePos_embed_of_not_range`: behavior of embedded and extra tapes.
 * `Turing.MultiTapeTM.spaceUsed_embed_le`: the resulting space bound.
@@ -186,8 +185,8 @@ public lemma workTapePos_embed_of_not_range (tm : MultiTapeTM k Symbol State) (e
   rw [runFrom_embed]
   simp only [embed, partialInv_eq_none e hl]
 
-/-- **Space bound for a reindexed run.** The embedded tapes use exactly the space `tm` uses; each
-of the remaining `k' - k` tapes never moves, so it contributes at most one cell. -/
+/-- **Space bound for a reindexed run.** The embedded tapes contribute the space used by `tm`, while
+each of the remaining `k' - k` tapes never moves and contributes at most one cell. -/
 public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
     (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
     (extraPos : Fin k' → ℤ) (n : ℕ) :

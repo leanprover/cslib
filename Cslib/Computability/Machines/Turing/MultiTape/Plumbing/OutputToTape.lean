@@ -14,12 +14,12 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsT
 
 `outputToTape tm` behaves like `tm`, except that whatever `tm` would append to the write-only
 output tape is written on a fresh work tape instead, whose head always stands at the write
-frontier. The design is due to Samuel Schlesinger (leanprover/cslib#872).
+frontier.
 
 Since the output is append-only, the frontier position is a *function of the configuration* —
 the length of the output so far — so the redirected machine mirrors the original through the
-configuration map `outCfg`, an unconditional step-semiconjugation: the run lemma is one
-application of `Turing.MultiTapeTM.runFrom_comm_of_step`, with no induction.
+configuration map `outCfg`. The main lemmas show that one step and an entire run of the redirected
+machine mirror the corresponding step and run of `tm`.
 -/
 
 namespace Turing.MultiTapeTM
