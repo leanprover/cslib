@@ -43,7 +43,7 @@ example : ∃ g ≤ 2, ∃ c : Circuit signature 2 g 2,
     ∀ x, c.eval interpretation x 0 = conjunction x ∧
       c.eval interpretation x 1 = !conjunction x := by
   have h := conjunction_synthesis.comp
-    (Synthesis.not_of_mem (Set.mem_union_right _ (Set.mem_singleton conjunction)))
+    (Synthesis.of_mem (Set.mem_union_right _ (Set.mem_singleton conjunction))).not
   have hout : Synthesis interpretation (inputs 2)
       (Set.range fun i : Fin 2 => if i = 0 then conjunction else fun x => !conjunction x) 2 :=
     h.mono Set.Subset.rfl (by rintro _ ⟨i, rfl⟩; dsimp only; split <;> simp) le_rfl

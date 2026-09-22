@@ -81,6 +81,10 @@ variable {s t t₁ : Set ((Fin n → U) → U)} {a b : ℕ} {f g : (Fin n → U)
 theorem of_subset (h : t ⊆ s) : Synthesis I s t 0 :=
   fun g p hp => ⟨g, p, by omega, Set.Subset.rfl, h.trans hp⟩
 
+/-- An available function requires no additional gates. -/
+theorem of_mem (hf : f ∈ s) : Synthesis I s {f} 0 :=
+  of_subset (Set.singleton_subset_iff.mpr hf)
+
 /-- Enlarge the source family, narrow the target family, or increase the budget. -/
 theorem mono (h : Synthesis I s t a) {s' t' : Set ((Fin n → U) → U)}
     (hs : s ⊆ s') (ht : t' ⊆ t) (hab : a ≤ b) : Synthesis I s' t' b := by
@@ -160,35 +164,19 @@ theorem nullary (op : σ.Op) (arity : σ.Arity op = 0) :
     Synthesis I s {fun _ => I op (fun i => Fin.elim0 (Fin.cast arity i))} 1 :=
   gate op (fun i _ => Fin.elim0 (Fin.cast arity i)) (fun i => Fin.elim0 (Fin.cast arity i))
 
-/-- Feed an available function to every argument of an operation, using one gate. In
-particular, this applies a unary operation. -/
-theorem unary_of_mem (hf : f ∈ s) (op : σ.Op) :
-    Synthesis I s {fun x => I op (fun _ => f x)} 1 :=
-  gate op (fun _ => f) (fun _ => hf)
-
-/-- Feed a synthesized function to every argument of an operation, using one further gate. -/
+/-- Feed a synthesized function to every argument of an operation, using one further gate.
+In particular, this applies a unary operation. -/
 theorem unary (h : Synthesis I s {f} a) (op : σ.Op) :
     Synthesis I s {fun x => I op (fun _ => f x)} (a + 1) :=
-  h.trans (unary_of_mem (Set.mem_union_right _ (Set.mem_singleton f)) op)
+  h.trans (gate op (fun _ => f) (by simp))
 
-/-- Feed available `f` to argument zero and `g` to the remaining arguments, using one gate.
+/-- Feed `f` to argument zero and `g` to the remaining arguments, using one further gate.
 For a binary operation, these are its two arguments. -/
-theorem binary_of_mem (hf : f ∈ s) (hg : g ∈ s) (op : σ.Op) :
-    Synthesis I s {fun x => I op (fun i => if i.val = 0 then f x else g x)} 1 := by
-  simpa only [ite_apply] using
-    gate op (fun i => if i.val = 0 then f else g) (fun i => by split <;> assumption)
-
-/-- Apply an operation to a pair of functions with one gate, `f` at argument zero and `g`
-elsewhere. This is the shape of the combining step in `foldr` and `finset_fold`. -/
-theorem binary_pair (op : σ.Op) (f g : (Fin n → U) → U) :
-    Synthesis I {f, g} {fun x => I op (fun i => if i.val = 0 then f x else g x)} 1 :=
-  binary_of_mem (by simp) (by simp) op
-
-/-- Feed `f` to argument zero and `g` to the remaining arguments, using one further gate. -/
 theorem binary (hf : Synthesis I s {f} a) (hg : Synthesis I s {g} b) (op : σ.Op) :
     Synthesis I s {fun x => I op (fun i => if i.val = 0 then f x else g x)}
-      (a + b + 1) :=
-  (hf.union hg).trans (binary_of_mem (by simp) (by simp) op)
+      (a + b + 1) := by
+  simpa only [ite_apply] using (hf.union hg).trans
+    (gate op (fun i => if i.val = 0 then f else g) (fun i => by split <;> simp))
 
 /-- Apply a synthesis bound to two previously synthesized arguments. The combining
 construction can use several gates and can reuse either argument. -/

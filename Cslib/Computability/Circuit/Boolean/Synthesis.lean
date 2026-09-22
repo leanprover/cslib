@@ -34,30 +34,6 @@ variable {s : Set (BooleanFunction n)} {a b : ℕ} {f g : BooleanFunction n}
 theorem const (value : Bool) : Synthesis interpretation s {fun _ => value} 1 :=
   nullary (I := interpretation) (.const value) rfl
 
-/-- Negate an available function with one gate. -/
-theorem not_of_mem (hf : f ∈ s) : Synthesis interpretation s {fun x => !f x} 1 :=
-  unary_of_mem (I := interpretation) hf .not
-
-/-- Conjoin two available functions with one gate. -/
-theorem and_of_mem (hf : f ∈ s) (hg : g ∈ s) :
-    Synthesis interpretation s {fun x => f x && g x} 1 := by
-  simpa [interpretation] using binary_of_mem (I := interpretation) hf hg .and
-
-/-- Disjoin two available functions with one gate. -/
-theorem or_of_mem (hf : f ∈ s) (hg : g ∈ s) :
-    Synthesis interpretation s {fun x => f x || g x} 1 := by
-  simpa [interpretation] using binary_of_mem (I := interpretation) hf hg .or
-
-/-- Conjoin a pair of functions with one gate: the combining step for `forall_mem`. -/
-theorem and_pair (f g : BooleanFunction n) :
-    Synthesis interpretation {f, g} {fun x => f x && g x} 1 :=
-  and_of_mem (by simp) (by simp)
-
-/-- Disjoin a pair of functions with one gate: the combining step for `exists_mem`. -/
-theorem or_pair (f g : BooleanFunction n) :
-    Synthesis interpretation {f, g} {fun x => f x || g x} 1 :=
-  or_of_mem (by simp) (by simp)
-
 /-- Apply negation to a synthesized function. -/
 theorem not (h : Synthesis interpretation s {f} a) :
     Synthesis interpretation s {fun x => !f x} (a + 1) :=
@@ -85,7 +61,8 @@ theorem exists_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : 
     simpa using Finset.fold_op_rel_iff_or (op := Bool.or)
       (r := fun _ v : Bool => v = true) (by simp) (c := true)
       (s := indices) (f := fun i => f i x) (b := false)
-  simpa only [heq] using finset_fold Bool.or 1 or_pair indices (const false) h
+  simpa only [heq] using finset_fold Bool.or 1
+    (fun _ _ => (of_mem (by simp)).or (of_mem (by simp))) indices (const false) h
 
 /-- Conjoin a finite family of functions. The extra gate supplies the empty conjunction. -/
 theorem forall_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : ι → ℕ)
@@ -99,7 +76,8 @@ theorem forall_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : 
     simpa using Finset.fold_op_rel_iff_and (op := Bool.and)
       (r := fun _ v : Bool => v = true) (by simp) (c := true)
       (s := indices) (f := fun i => f i x) (b := true)
-  simpa only [heq] using finset_fold Bool.and 1 and_pair indices (const true) h
+  simpa only [heq] using finset_fold Bool.and 1
+    (fun _ _ => (of_mem (by simp)).and (of_mem (by simp))) indices (const true) h
 
 end Synthesis
 
@@ -112,7 +90,7 @@ theorem synthesis_minterm {k : ℕ} (wires : Fin k → Fin n) (value : Fin k →
   have literal (i : Fin k) :
       Synthesis interpretation (inputs n) {fun x => decide (x (wires i) = value i)} 1 := by
     have h : Synthesis interpretation (inputs n) {fun x => x (wires i)} 0 :=
-      Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨wires i, rfl⟩)
+      Synthesis.of_mem ⟨wires i, rfl⟩
     cases hv : value i
     · simpa [hv] using h.not
     · simpa [hv] using h.mono Set.Subset.rfl Set.Subset.rfl (by omega : 0 ≤ 1)

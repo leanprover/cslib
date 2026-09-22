@@ -23,7 +23,7 @@ universe v u
 example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) {n : ℕ} (i : Fin n) :
     ∃ g ≤ 0, ∃ c : Circuit σ n g 1, c.Computes I (fun x => x i) := by
   have h : Synthesis I (inputs n) {fun x => x i} 0 :=
-    Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨i, rfl⟩)
+    Synthesis.of_mem ⟨i, rfl⟩
   exact h.exists_circuit
 
 example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) :
@@ -55,15 +55,17 @@ def interpretation : Interpretation signature ℕ
 
 private theorem projection {n : ℕ} (i : Fin n) :
     Synthesis interpretation (inputs n) {fun x => x i} 0 :=
-  Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨i, rfl⟩)
+  Synthesis.of_mem ⟨i, rfl⟩
 
 private theorem add_available {n : ℕ} (f g : (Fin n → ℕ) → ℕ) :
     Synthesis interpretation {f, g} {fun x => f x + g x} 1 := by
-  simpa [interpretation] using Synthesis.binary_pair (I := interpretation) .add f g
+  exact Synthesis.binary (I := interpretation)
+    (Synthesis.of_mem (by simp)) (Synthesis.of_mem (by simp)) .add
 
 private theorem sub_available {n : ℕ} (f g : (Fin n → ℕ) → ℕ) :
     Synthesis interpretation {f, g} {fun x => f x - g x} 1 := by
-  simpa [interpretation] using Synthesis.binary_pair (I := interpretation) .sub f g
+  exact Synthesis.binary (I := interpretation)
+    (Synthesis.of_mem (by simp)) (Synthesis.of_mem (by simp)) .sub
 
 example (value : ℕ) :
     ∃ g ≤ 1, ∃ c : Circuit signature 0 g 1, c.Computes interpretation (fun _ => value) :=
@@ -87,9 +89,9 @@ example : ∃ g ≤ 2, ∃ c : Circuit signature 2 g 3,
   have hproduct : Synthesis interpretation (inputs 2) {product} 1 :=
     Synthesis.gate (I := interpretation) .mul (fun i x => x i) (fun i => ⟨i, rfl⟩)
   have hsum : Synthesis interpretation (inputs 2 ∪ {product}) {fun x => product x + x 0} 1 := by
-    simpa [interpretation] using Synthesis.binary_of_mem (I := interpretation)
-      (s := inputs 2 ∪ {product}) (Set.mem_union_right _ (Set.mem_singleton product))
-      (Set.mem_union_left _ ⟨0, rfl⟩) .add
+    exact Synthesis.binary (I := interpretation) (s := inputs 2 ∪ {product})
+      (Synthesis.of_mem (Set.mem_union_right _ (Set.mem_singleton product)))
+      (Synthesis.of_mem (Set.mem_union_left _ ⟨0, rfl⟩)) .add
   have h := hproduct.comp hsum
   have hout : Synthesis interpretation (inputs 2) (Set.range sharedOutputs) 2 :=
     h.mono Set.Subset.rfl (by rintro _ ⟨i, rfl⟩; unfold sharedOutputs; split <;> simp) le_rfl
