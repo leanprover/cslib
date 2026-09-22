@@ -127,16 +127,16 @@ def ComputesInTime (ntm : MultiTapeNTM k Symbol State) (input output : List Symb
     Prop :=
   ntm.ComputesSuchThat input output fun p => p.time ≤ t
 
-/-- `ntm` computes `output` from `input`, touching exactly `s` work tape cells. -/
+/-- `ntm` computes `output` from `input`, touching at most `s` work tape cells. -/
 def ComputesInSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (s : ℕ) :
     Prop :=
-  ntm.ComputesSuchThat input output fun p => p.space = s
+  ntm.ComputesSuchThat input output fun p => p.space ≤ s
 
-/-- `ntm` computes `output` from `input` in at most `t` steps and exactly `s` work tape cells, by a
+/-- `ntm` computes `output` from `input` in at most `t` steps and `s` work tape cells, by a
 single computation. Nondeterministic analogue of `MultiTapeTM.ComputesInTimeAndSpace`. -/
 def ComputesInTimeAndSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
     (t s : ℕ) : Prop :=
-  ntm.ComputesSuchThat input output fun p => p.time ≤ t ∧ p.space = s
+  ntm.ComputesSuchThat input output fun p => p.time ≤ t ∧ p.space ≤ s
 
 end MultiTapeNTM
 

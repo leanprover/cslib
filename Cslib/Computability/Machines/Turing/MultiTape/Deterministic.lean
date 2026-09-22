@@ -297,7 +297,7 @@ lemma runFrom_output_eq_of_halt
   rw [runFrom_add, runFrom_of_halt _ hhalt]
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
-and uses exactly `s` space.
+and using at most `s` space.
 Note that this does not require the alphabet or state set to be finite. -/
 def ComputesInTimeAndSpace
     (tm : MultiTapeTM k Symbol State)
@@ -305,7 +305,7 @@ def ComputesInTimeAndSpace
     (t s : ℕ) : Prop :=
   (tm.runFrom (tm.initCfg input) t).state = none ∧
   (tm.runFrom (tm.initCfg input) t).output = output ∧
-  tm.spaceUsed (tm.initCfg input) t = s
+  tm.spaceUsed (tm.initCfg input) t ≤ s
 
 /-- A machine computes `f` between the supplied encodings, with bounds depending on the input.
 The machine's alphabet and state type need not be finite. -/
