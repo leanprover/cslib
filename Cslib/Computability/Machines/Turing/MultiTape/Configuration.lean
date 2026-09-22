@@ -139,18 +139,7 @@ lemma moveInputPos_pos_of_ne_right {n : ℕ} (p : Fin (n + 2)) (h : p.val ≠ n 
 /-- The value of the input head after a move, as a clamped integer. `omega`-friendly. -/
 lemma val_moveInputPos_eq {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
     ((moveInputPos pos m).val : ℤ) = min ((n : ℤ) + 1) (max 0 ((pos.val : ℤ) + (m.cast : ℤ))) := by
-  simp only [moveInputPos]
-  have hmc : (m.cast : ℤ) = -1 ∨ (m.cast : ℤ) = 0 ∨ (m.cast : ℤ) = 1 := by
-    rcases m with _ | _ | _ <;> simp [SignType.cast]
-  by_cases h : (((pos.val : ℤ) + (m.cast : ℤ)).toNat) < n + 2
-  · rw [dite_eq_left h]
-    have := pos.isLt
-    push_cast
-    omega
-  · rw [dite_eq_right h]
-    have := pos.isLt
-    push_cast
-    omega
+  grind
 
 /-- The input head moves by at most one position. -/
 lemma val_moveInputPos_le {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
