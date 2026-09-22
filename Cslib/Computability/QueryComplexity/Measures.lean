@@ -223,18 +223,18 @@ end IsMinimalSensitiveBlock
 /-! ## Certificates -/
 
 /-- `C` forces the value `b`: everything consistent with `C` has `f = b`. -/
-def IsCertificate (f : BoolFunc n) (C : Assignment n) (b : Bool) : Prop :=
+def IsCertificate (f : BoolFunc n) (C : PartialAssignment n) (b : Bool) : Prop :=
   ∀ x, Agrees C x → f x = b
 
-instance (f : BoolFunc n) (C : Assignment n) (b : Bool) : Decidable (IsCertificate f C b) :=
+instance (f : BoolFunc n) (C : PartialAssignment n) (b : Bool) : Decidable (IsCertificate f C b) :=
   inferInstanceAs (Decidable (∀ x, Agrees C x → f x = b))
 
 /-- Assignments consistent with `x` that already force `f x`. -/
-def certificates (f : BoolFunc n) (x : Cube n) : Finset (Assignment n) :=
+def certificates (f : BoolFunc n) (x : Cube n) : Finset (PartialAssignment n) :=
   Finset.univ.filter (fun C => Agrees C x ∧ IsCertificate f C (f x))
 
 @[simp]
-lemma mem_certificates {f : BoolFunc n} {x : Cube n} {C : Assignment n} :
+lemma mem_certificates {f : BoolFunc n} {x : Cube n} {C : PartialAssignment n} :
     C ∈ certificates f x ↔ Agrees C x ∧ IsCertificate f C (f x) := by
   simp [certificates]
 
@@ -252,7 +252,7 @@ def pointCertificateComplexity (f : BoolFunc n) (x : Cube n) : ℕ :=
   (certificates f x).inf' (certificates_nonempty f x) size
 
 /-- Upper-bound rule for `Cₓ(f)`: exhibit one certificate. -/
-lemma pointCertificateComplexity_le {f : BoolFunc n} {x : Cube n} {C : Assignment n}
+lemma pointCertificateComplexity_le {f : BoolFunc n} {x : Cube n} {C : PartialAssignment n}
     (h : C ∈ certificates f x) : pointCertificateComplexity f x ≤ size C :=
   Finset.inf'_le _ h
 
@@ -278,7 +278,7 @@ sensitive family.
 
 /-- A certificate must fix at least one coordinate of every sensitive block. -/
 theorem sensitiveBlock_inter_support_nonempty {f : BoolFunc n} (x : Cube n) (B : Block n)
-    (hB : IsSensitiveBlock f x B) (C : Assignment n) (hC : C ∈ certificates f x) :
+    (hB : IsSensitiveBlock f x B) (C : PartialAssignment n) (hC : C ∈ certificates f x) :
     (B ∩ support C).Nonempty := by
   obtain ⟨hAgr, hCert⟩ := mem_certificates.mp hC
   by_contra h
@@ -290,7 +290,7 @@ theorem sensitiveBlock_inter_support_nonempty {f : BoolFunc n} (x : Cube n) (B :
 
 /-- A certificate is at least as large as any sensitive family. -/
 lemma card_le_size_of_isSensitiveFamily {f : BoolFunc n} {x : Cube n}
-    {F : Finset (Block n)} {C : Assignment n}
+    {F : Finset (Block n)} {C : PartialAssignment n}
     (hF : IsSensitiveFamily f x F) (hC : C ∈ certificates f x) : F.card ≤ size C :=
   (Finset.card_le_card_biUnion
       (fun _ hP _ hQ hPQ => Disjoint.mono Finset.inter_subset_left Finset.inter_subset_left

@@ -22,7 +22,7 @@ flips, and partial assignments. The complexity measures are built in
 - `BoolFunc n`: Boolean functions `Cube n → Bool`.
 - `Block n`: a set of coordinates.
 - `flipBit`, `flipBlock`: flipping one coordinate, or every coordinate of a block.
-- `Assignment n`: a partial assignment, fixing some coordinates and leaving others free.
+- `PartialAssignment n`: a partial assignment, fixing some coordinates and leaving others free.
 - `Agrees`: An input is consistent with a partial assignment.
 
 ## References
@@ -42,8 +42,7 @@ variable {n : ℕ}
 /-- Bit string of length `n`. -/
 abbrev Cube (n : ℕ) : Type := Fin n → Bool
 
-/-- A Boolean function on `n` inputs: a map from bit strings of length `n` to a single bit,
-`f : {0,1}ⁿ → {0,1}`. -/
+/-- `f : {0,1}ⁿ → {0,1}`. -/
 abbrev BoolFunc (n : ℕ) : Type := Cube n → Bool
 
 /-- A block: a set of coordinates. -/
@@ -93,28 +92,28 @@ lemma flipBlock_erase (x : Cube n) (B : Block n) {i : Fin n} (hi : i ∈ B) :
 /-! ## Partial assignments -/
 
 /-- `C i = some b` fixes coordinate `i` to `b`; `C i = none` leaves it free. -/
-abbrev Assignment (n : ℕ) : Type := Fin n → Option Bool
+abbrev PartialAssignment (n : ℕ) : Type := Fin n → Option Bool
 
-/-- The coordinates the assignment fixes. -/
-def support (C : Assignment n) : Finset (Fin n) :=
+/-- The coordinates the partial assignment fixes. -/
+def support (C : PartialAssignment n) : Finset (Fin n) :=
   Finset.univ.filter (fun i => (C i).isSome)
 
-/-- A coordinate lies in the support exactly when the assignment fixes it. -/
+/-- A coordinate lies in the support exactly when the partial assignment fixes it. -/
 @[simp]
-lemma mem_support {C : Assignment n} {i : Fin n} :
+lemma mem_support {C : PartialAssignment n} {i : Fin n} :
     i ∈ support C ↔ (C i).isSome := by simp [support]
 
-/-- How many coordinates the assignment fixes. -/
-def size (C : Assignment n) : ℕ := (support C).card
+/-- How many coordinates the partial assignment fixes. -/
+def size (C : PartialAssignment n) : ℕ := (support C).card
 
 /-- `x` agrees with `C` when it matches `C` on every fixed coordinate. -/
-def Agrees (C : Assignment n) (x : Cube n) : Prop := ∀ i b, C i = some b → x i = b
+def Agrees (C : PartialAssignment n) (x : Cube n) : Prop := ∀ i b, C i = some b → x i = b
 
-instance (C : Assignment n) (x : Cube n) : Decidable (Agrees C x) :=
+instance (C : PartialAssignment n) (x : Cube n) : Decidable (Agrees C x) :=
   inferInstanceAs (Decidable (∀ i b, C i = some b → x i = b))
 
 /-- The total assignment reading off every coordinate of `x`. -/
-def ofCube (x : Cube n) : Assignment n := fun i => some (x i)
+def ofCube (x : Cube n) : PartialAssignment n := fun i => some (x i)
 
 /-- A total assignment read off `x` is agreed with by `x` alone. -/
 @[simp]
