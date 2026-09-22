@@ -127,19 +127,19 @@ public lemma partialInv_eq_some (e : Fin k ↪ Fin k') {l : Fin k'} {j : Fin k}
 public lemma embed_workTapes_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
     (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) (j : Fin k) :
     (embed e cfg extraTapes extraPos).workTapes (e j) = cfg.workTapes j := by
-  simp only [embed, partialInv_embed]
+  simp [embed]
 
 @[simp]
 public lemma embed_workTapePos_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
     (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) (j : Fin k) :
     (embed e cfg extraTapes extraPos).workTapePos (e j) = cfg.workTapePos j := by
-  simp only [embed, partialInv_embed]
+  simp [embed]
 
 @[simp]
 public lemma embed_workTapeSymbols_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
     (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) (j : Fin k) :
     (embed e cfg extraTapes extraPos).workTapeSymbols (e j) = cfg.workTapeSymbols j := by
-  simp only [Cfg.workTapeSymbols, embed_workTapes_embed, embed_workTapePos_embed]
+  simp [Cfg.workTapeSymbols]
 
 /-- Reindexing is a step-semiconjugation: the reindexed machine acts on the embedded tapes exactly
 as `tm` does, and never touches the extra tapes. -/
