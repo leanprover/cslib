@@ -136,17 +136,6 @@ lemma moveInputPos_pos_of_ne_right {n : ℕ} (p : Fin (n + 2)) (h : p.val ≠ n 
   · simp
     omega
 
-/-- The input head moves by at most one position. -/
-lemma val_moveInputPos_le {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
-    (moveInputPos pos m).val ≤ pos.val + 1 := by
-  simp only [moveInputPos]
-  by_cases h : (((pos.val : ℤ) + m.cast).toNat) < n + 2
-  · rw [dite_eq_left h]
-    rcases m <;> (simp only [SignType.cast]; omega)
-  · rw [dite_eq_right h]
-    have := pos.isLt
-    rcases m <;> (simp only [SignType.cast] at h; omega)
-
 /-- The value of the input head after a move, as a clamped integer. `omega`-friendly. -/
 lemma val_moveInputPos_eq {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
     ((moveInputPos pos m).val : ℤ) = min ((n : ℤ) + 1) (max 0 ((pos.val : ℤ) + (m.cast : ℤ))) := by
@@ -162,6 +151,14 @@ lemma val_moveInputPos_eq {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
     have := pos.isLt
     push_cast
     omega
+
+/-- The input head moves by at most one position. -/
+lemma val_moveInputPos_le {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
+    (moveInputPos pos m).val ≤ pos.val + 1 := by
+  have h := val_moveInputPos_eq pos m
+  have hmc : (m.cast : ℤ) = -1 ∨ (m.cast : ℤ) = 0 ∨ (m.cast : ℤ) = 1 := by
+    rcases m with _ | _ | _ <;> simp [SignType.cast]
+  omega
 
 /-- The symbol currently under the input tape head. -/
 def Cfg.inputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
@@ -200,9 +197,8 @@ abbrev Cfg.Halted (cfg : Cfg k Symbol State input) : Prop := cfg.state = none
   ⟨q, cfg.inputPos, cfg.workTapes, cfg.workTapePos, cfg.output⟩
 
 /-- Remap the (optional) state of a configuration through `φ`, leaving the input head, the work
-tapes, the work-tape heads and the output alone. The control-flow combinators (`seq`, `branch`,
-`repeat`) embed a sub-machine's configurations into the combined machine by exactly such a state
-remap. -/
+tapes, the work-tape heads and the output alone. Control-flow combinators such as `seq` embed a
+sub-machine's configurations into the combined machine by exactly such a state remap. -/
 @[simps] def Cfg.mapState {State' : Type*} (φ : Option State → Option State')
     (c : Cfg k Symbol State input) : Cfg k Symbol State' input :=
   ⟨φ c.state, c.inputPos, c.workTapes, c.workTapePos, c.output⟩
@@ -217,7 +213,6 @@ The effect of an action on a configuration: move the input head, write and move 
 append the emitted symbol to the output tape, and go to the successor state. This is the part of a
 step that does not depend on how the action was chosen.
 -/
-@[simp]
 def Action.apply (action : Action k Symbol State) (cfg : Cfg k Symbol State input) :
     Cfg k Symbol State input where
   state := action.state
@@ -227,6 +222,27 @@ def Action.apply (action : Action k Symbol State) (cfg : Cfg k Symbol State inpu
     | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s
   workTapePos i := cfg.workTapePos i + (action.workTapes i).2
   output := cfg.output ++ action.output.toList
+
+@[simp] lemma Action.apply_state (a : Action k Symbol State)
+    (cfg : Cfg k Symbol State input) : (a.apply cfg).state = a.state := rfl
+
+@[simp] lemma Action.apply_inputPos (a : Action k Symbol State)
+    (cfg : Cfg k Symbol State input) :
+    (a.apply cfg).inputPos = moveInputPos cfg.inputPos a.inputTape := rfl
+
+@[simp] lemma Action.apply_output (a : Action k Symbol State)
+    (cfg : Cfg k Symbol State input) :
+    (a.apply cfg).output = cfg.output ++ a.output.toList := rfl
+
+@[simp] lemma Action.apply_workTapePos (a : Action k Symbol State)
+    (cfg : Cfg k Symbol State input) (i : Fin k) :
+    (a.apply cfg).workTapePos i = cfg.workTapePos i + (a.workTapes i).2 := rfl
+
+@[simp] lemma Action.apply_workTapes (a : Action k Symbol State)
+    (cfg : Cfg k Symbol State input) (i : Fin k) :
+    (a.apply cfg).workTapes i = match (a.workTapes i).1 with
+      | none => cfg.workTapes i
+      | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s := rfl
 
 /-- A work tape head moves by at most one cell when an action is applied. -/
 lemma workTapePos_apply_le (action : Action k Symbol State)

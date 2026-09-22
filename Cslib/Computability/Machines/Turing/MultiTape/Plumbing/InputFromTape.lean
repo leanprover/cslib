@@ -7,7 +7,6 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 module
 
 public import Mathlib.Algebra.BigOperators.Fin
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.StepLemmas
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 
 /-!
@@ -84,44 +83,33 @@ public lemma inCfg_inputPos (c : Cfg k Symbol State I) :
 @[simp]
 public lemma inCfg_workTapes_castAdd (c : Cfg k Symbol State I) (j : Fin k) :
     (inCfg mark c outerInput).workTapes (j.castAdd 2) = c.workTapes j := by
-  have h : (j.castAdd 2).val < k := j.isLt
-  change (if h : (j.castAdd 2).val < k then c.workTapes ⟨(j.castAdd 2).val, h⟩ else _) = _
-  rw [dite_eq_left h]
-  exact congrArg _ (Fin.ext (by simp))
+  simp [inCfg]
 
 @[simp]
 public lemma inCfg_workTapes_vip (c : Cfg k Symbol State I) :
     (inCfg mark c outerInput).workTapes ⟨k, by omega⟩ = tapeOfList I := by
-  change (if h : k < k then _ else if (k : ℕ) = k then tapeOfList I else _) = _
-  rw [dite_eq_right (by omega), ite_eq_left rfl]
+  simp [inCfg]
 
 @[simp]
 public lemma inCfg_workTapes_flag (c : Cfg k Symbol State I) :
     (inCfg mark c outerInput).workTapes ⟨k + 1, by omega⟩ =
       Function.update (fun _ => none) (-1) (some mark) := by
-  change (if h : k + 1 < k then _ else if k + 1 = k then _ else
-    Function.update (fun _ => none) (-1) (some mark)) = _
-  rw [dite_eq_right (by omega), ite_eq_right (by omega)]
+  simp [inCfg]
 
 @[simp]
 public lemma inCfg_workTapePos_castAdd (c : Cfg k Symbol State I) (j : Fin k) :
     (inCfg mark c outerInput).workTapePos (j.castAdd 2) = c.workTapePos j := by
-  have h : (j.castAdd 2).val < k := j.isLt
-  change (if h : (j.castAdd 2).val < k then c.workTapePos ⟨(j.castAdd 2).val, h⟩ else _) = _
-  rw [dite_eq_left h]
-  exact congrArg _ (Fin.ext (by simp))
+  simp [inCfg]
 
 @[simp]
 public lemma inCfg_workTapePos_vip (c : Cfg k Symbol State I) :
     (inCfg mark c outerInput).workTapePos ⟨k, by omega⟩ = ((c.inputPos.val : ℤ) - 1) := by
-  change (if h : k < k then _ else ((c.inputPos.val : ℤ) - 1)) = _
-  rw [dite_eq_right (by omega)]
+  simp [inCfg]
 
 @[simp]
 public lemma inCfg_workTapePos_flag (c : Cfg k Symbol State I) :
     (inCfg mark c outerInput).workTapePos ⟨k + 1, by omega⟩ = ((c.inputPos.val : ℤ) - 1) := by
-  change (if h : k + 1 < k then _ else ((c.inputPos.val : ℤ) - 1)) = _
-  rw [dite_eq_right (by omega)]
+  simp [inCfg]
 
 @[simp]
 public lemma inCfg_workTapeSymbols_castAdd (c : Cfg k Symbol State I) (j : Fin k) :
@@ -138,11 +126,8 @@ public lemma vip_read (c : Cfg k Symbol State I) :
   · rw [show ((c.inputPos.val : ℤ) - 1) = ((c.inputPos.val - 1 : ℕ) : ℤ) from by omega,
       tapeOfList_ofNat]
     rcases Nat.lt_or_ge (c.inputPos.val) (I.length + 1) with hlt | hge
-    · rw [Cfg.inputSymbol, dite_eq_right (fun he => by rw [he] at h1; simp at h1),
-        dite_eq_right (fun he => by
-          have hv : c.inputPos.val = I.length + 1 := by rw [he]
-          omega)]
-      rw [List.getElem?_eq_getElem (by omega)]
+    · rw [inputSymbolInner (c.inputPos.val - 1) (by omega) (by omega),
+        List.getElem?_eq_getElem (by omega)]
     · have hv : c.inputPos.val = I.length + 1 := by have := c.inputPos.isLt; omega
       rw [List.getElem?_eq_none (by omega), inputSymbol_eq_none_of_boundary (Or.inr hv)]
 
@@ -168,13 +153,7 @@ public lemma clampMove_correct (mark : Symbol) (c : Cfg k Symbol State I) (m : S
       split_ifs <;> omega
   · rcases Nat.lt_or_ge (c.inputPos.val) (I.length + 1) with hlt | hge
     · -- inside the input: virtual head nonblank
-      obtain ⟨b, hb⟩ : ∃ b, c.inputSymbol = some b := by
-        rw [Cfg.inputSymbol, dite_eq_right (fun he => by rw [he] at h1; simp at h1),
-          dite_eq_right (fun he => by
-            have hv : c.inputPos.val = I.length + 1 := by rw [he]
-            omega)]
-        exact ⟨_, rfl⟩
-      rw [hb]
+      rw [inputSymbolInner (c.inputPos.val - 1) (by omega) (by omega)]
       rcases m with _ | _ | _ <;>
         simp only [clampMove, val_moveInputPos_eq, min_def, max_def, SignType.cast] <;>
         split_ifs <;> omega

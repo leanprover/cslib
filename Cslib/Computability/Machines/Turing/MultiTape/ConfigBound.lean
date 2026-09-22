@@ -270,8 +270,28 @@ lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.c
   have hws : c₁.workTapeSymbols = c₂.workTapeSymbols := by
     funext i
     simp [Cfg.workTapeSymbols, hwt, hwp]
-  simp only [Cfg.core, Cfg.storage, MultiTapeTM.step, hstate, hsym, hws]
-  cases c₂.state <;> simp [hpos, hstate, hwt, hwp]
+  cases hst : c₂.state with
+  | none =>
+    have hst₁ : c₁.state = none := by rw [hstate, hst]
+    simp [Cfg.core, Cfg.storage, MultiTapeTM.step, hst, hst₁, hpos, hwt, hwp]
+  | some q =>
+    have hst₁ : c₁.state = some q := by rw [hstate, hst]
+    apply Prod.ext
+    · simp only [Cfg.core, MultiTapeTM.step, hst₁, hst, hsym, hws, Action.apply_inputPos]
+      exact congrArg (fun p =>
+        moveInputPos p (tm.tr q c₂.inputSymbol c₂.workTapeSymbols).inputTape) hpos
+    · apply Storage.ext
+      · simp only [Cfg.core, Cfg.storage, MultiTapeTM.step, hst₁, hst, hsym, hws,
+          Action.apply_state]
+      · funext i z
+        simp only [Cfg.core, Cfg.storage, MultiTapeTM.step, hst₁, hst, hsym, hws,
+          Action.apply_workTapes]
+        rcases hw : ((tm.tr q c₂.inputSymbol c₂.workTapeSymbols).workTapes i).1 <;>
+          simp [hwt, hwp]
+      · funext i
+        simp only [Cfg.core, Cfg.storage, MultiTapeTM.step, hst₁, hst, hsym, hws,
+          Action.apply_workTapePos]
+        rw [hwp]
 
 /-! ## The storages and cores of a space-bounded run
 

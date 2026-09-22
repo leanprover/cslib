@@ -7,7 +7,6 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 module
 
 public import Mathlib.Algebra.BigOperators.Fin
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.StepLemmas
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 
 /-!
@@ -59,30 +58,22 @@ public lemma outCfg_inputSymbol (c : Cfg k Symbol State input) :
 @[simp]
 public lemma outCfg_workTapes_last (c : Cfg k Symbol State input) :
     (outCfg c).workTapes (Fin.last k) = tapeOfList c.output := by
-  change Fin.lastCases (motive := fun _ => ℤ → Option Symbol) (tapeOfList c.output)
-    (fun j => c.workTapes j) (Fin.last k) = _
-  exact Fin.lastCases_last
+  simp [outCfg]
 
 @[simp]
 public lemma outCfg_workTapes_castSucc (c : Cfg k Symbol State input) (j : Fin k) :
     (outCfg c).workTapes j.castSucc = c.workTapes j := by
-  change Fin.lastCases (motive := fun _ => ℤ → Option Symbol) (tapeOfList c.output)
-    (fun j => c.workTapes j) j.castSucc = _
-  exact Fin.lastCases_castSucc j
+  simp [outCfg]
 
 @[simp]
 public lemma outCfg_workTapePos_last (c : Cfg k Symbol State input) :
     (outCfg c).workTapePos (Fin.last k) = (c.output.length : ℤ) := by
-  change Fin.lastCases (motive := fun _ => ℤ) ((c.output.length : ℤ))
-    (fun j => c.workTapePos j) (Fin.last k) = _
-  exact Fin.lastCases_last
+  simp [outCfg]
 
 @[simp]
 public lemma outCfg_workTapePos_castSucc (c : Cfg k Symbol State input) (j : Fin k) :
     (outCfg c).workTapePos j.castSucc = c.workTapePos j := by
-  change Fin.lastCases (motive := fun _ => ℤ) ((c.output.length : ℤ))
-    (fun j => c.workTapePos j) j.castSucc = _
-  exact Fin.lastCases_castSucc j
+  simp [outCfg]
 
 @[simp]
 public lemma outCfg_workTapeSymbols_castSucc (c : Cfg k Symbol State input) (j : Fin k) :
@@ -145,8 +136,11 @@ public lemma step_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
       simp [outputToTape]
     rw [step_apply_of_state h1, step_apply_of_state hq, hin, hws]
     refine Cfg.ext rfl rfl ?_ ?_ ?_
-    · funext l z; simp [Cfg.withOutput]
-    · funext l; simp [Cfg.withOutput]
+    · funext l z
+      simp only [Action.apply_workTapes, Cfg.withOutput_workTapes, Cfg.withOutput_workTapePos]
+      simp [Cfg.withOutput]
+    · funext l
+      simp only [Action.apply_workTapePos, Cfg.withOutput_workTapePos]
     · simp only [Action.apply_output, Cfg.withOutput_output, hout, Option.toList_none,
         List.append_nil]
 
@@ -178,16 +172,6 @@ public lemma initCfg_outputToTape (tm : MultiTapeTM k Symbol State) (input : Lis
     induction l using Fin.lastCases with
     | last => simp [initCfg, Cfg.init]
     | cast j => simp [initCfg, Cfg.init]
-
-/-- The output can only grow. -/
-public lemma length_output_mono (tm : MultiTapeTM k Symbol State)
-    (c : Cfg k Symbol State input) (d : ℕ) :
-    c.output.length ≤ (tm.runFrom c d).output.length := by
-  induction d with
-  | zero => simp
-  | succ d ih =>
-    rw [runFrom_succ_eq_step', step_output, List.length_append]
-    omega
 
 /-- Redirecting the output costs the length of the output, and nothing else: the frontier head
 walks over exactly the cells of the written output. -/

@@ -41,10 +41,10 @@ lemma step_workTapes_eq_of_ne
     (z : ℤ)
     (hz : z ≠ cfg.workTapePos j) :
     (tm.step cfg).workTapes j z = cfg.workTapes j z := by
-  unfold step
   cases hst : cfg.state with
   | none => simp_all
   | some q =>
+    rw [step_apply_of_state hst, Action.apply_workTapes]
     rcases hw : ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes j).1 <;> simp_all
 
 lemma mem_visitedByTapeHead {t : ℕ} {i : Fin k} {z : ℤ} :

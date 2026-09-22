@@ -8,7 +8,6 @@ module
 
 public import Mathlib.Algebra.BigOperators.Fin
 public import Mathlib.Data.Fintype.Inv
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.StepLemmas
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
 /-!
@@ -44,8 +43,9 @@ namespace Turing.MultiTapeTM
 
 variable {k k' : ℕ} {Symbol State : Type*} {input : List Symbol}
 
-/-- The computable partial inverse of the embedding `e`: `partialInv e l = some j` when `e j = l`
-(such `j` is unique by injectivity), and `none` when `l` lies outside the range of `e`. -/
+/-- The computable analogue of `Function.partialInv` for an embedding `e`: `partialInv e l = some j`
+when `e j = l` (such `j` is unique by injectivity), and `none` when `l` lies outside the range of
+`e`. -/
 @[expose] public def partialInv (e : Fin k ↪ Fin k') (l : Fin k') : Option (Fin k) :=
   if h : ∃ j, e j = l then
     some (Fintype.choose (fun j => e j = l)
@@ -55,24 +55,14 @@ variable {k k' : ℕ} {Symbol State : Type*} {input : List Symbol}
 lemma partialInv_isPartialInv (e : Fin k ↪ Fin k') :
     Function.IsPartialInv e (partialInv e) := by
   intro j l
-  constructor
-  · intro h
-    unfold partialInv at h
-    split at h
-    · next hl =>
-      injection h with hchoose
-      rw [← hchoose]
-      exact Fintype.choose_spec (fun j' => e j' = l)
-        (existsUnique_of_exists_of_unique hl fun _ _ ha hb => e.injective (ha.trans hb.symm))
-    · simp_all
-  · intro h
-    subst l
-    unfold partialInv
-    rw [dite_eq_left ⟨j, rfl⟩]
-    congr 1
-    exact e.injective (Fintype.choose_spec (fun j' => e j' = e j)
-      (existsUnique_of_exists_of_unique ⟨j, rfl⟩
-        fun _ _ ha hb => e.injective (ha.trans hb.symm)))
+  rw [partialInv]
+  split
+  · next h =>
+    have hspec := Fintype.choose_spec (fun j' => e j' = l)
+      (existsUnique_of_exists_of_unique h fun _ _ ha hb => e.injective (ha.trans hb.symm))
+    rw [Option.some_inj]
+    exact ⟨fun hj => hj ▸ hspec, fun hj => e.injective (hspec.trans hj.symm)⟩
+  · next h => exact ⟨fun hs => by simp at hs, fun hl => absurd ⟨j, hl⟩ h⟩
 
 /-- `tm` run on the tapes selected by the embedding `e`, leaving other tapes untouched: work tape
 `e j` plays the role of `tm`'s tape `j`, and any tape outside `range e` is never written and never
@@ -113,10 +103,8 @@ public lemma partialInv_embed (e : Fin k ↪ Fin k') (j : Fin k) : partialInv e 
 
 /-- Outside the range of `e`, the partial inverse is undefined. -/
 public lemma partialInv_eq_none (e : Fin k ↪ Fin k') {l : Fin k'} (hl : ¬ ∃ j, e j = l) :
-    partialInv e l = none := by
-  by_contra h
-  obtain ⟨j, hj⟩ := Option.ne_none_iff_exists'.mp h
-  exact hl ⟨j, (partialInv_isPartialInv e j l).mp hj⟩
+    partialInv e l = none :=
+  dite_eq_right hl
 
 /-- If the partial inverse is `some j`, then `e j = l`. -/
 public lemma partialInv_eq_some (e : Fin k ↪ Fin k') {l : Fin k'} {j : Fin k}

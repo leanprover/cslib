@@ -136,11 +136,41 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   | none => cfg
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg
 
+/-- One step at a live state is the transition's action applied to the configuration. -/
+public lemma step_apply_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) :
+    tm.step cfg = (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg := by
+  rw [step, h]
+
 /-- The symbol (optionally) output when executing one step starting from configuration `cfg`. -/
 def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   match cfg.state with
   | none => none
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).output
+
+/-- The input head after a live step. -/
+public lemma step_inputPos_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) :
+    (tm.step cfg).inputPos =
+      moveInputPos cfg.inputPos (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).inputTape := by
+  rw [step_apply_of_state h, Action.apply_inputPos]
+
+/-- A work tape after a live step. -/
+public lemma step_workTapes_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) (i : Fin k) :
+    (tm.step cfg).workTapes i =
+      match (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i |>.1 with
+      | none => cfg.workTapes i
+      | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s := by
+  rw [step_apply_of_state h]
+  exact Action.apply_workTapes _ _ i
+
+/-- A work tape head after a live step. -/
+public lemma step_workTapePos_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) (i : Fin k) :
+    (tm.step cfg).workTapePos i =
+      cfg.workTapePos i + ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i).2 := by
+  rw [step_apply_of_state h, Action.apply_workTapePos]
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
@@ -301,7 +331,7 @@ lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
     · obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp hq
       have h : ((tm.step (tm.runFrom cfg t)).inputPos : ℕ) ≤
           ((tm.runFrom cfg t).inputPos : ℕ) + 1 := by
-        simp only [step, hq, Action.apply]
+        rw [step_inputPos_of_state hq]
         exact val_moveInputPos_le _ _
       omega
 
@@ -313,6 +343,28 @@ lemma runFrom_output_eq_of_halt
     (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output := by
   conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
   rw [runFrom_add, runFrom_of_halt _ hhalt]
+
+/-- The output can only grow during a run. -/
+public lemma length_output_mono (tm : MultiTapeTM k Symbol State)
+    (c : Cfg k Symbol State input) (d : ℕ) :
+    c.output.length ≤ (tm.runFrom c d).output.length := by
+  induction d with
+  | zero => simp
+  | succ d ih =>
+    rw [runFrom_succ_eq_step', step_output, List.length_append]
+    omega
+
+/-- A machine emits at most one symbol per step. -/
+theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
+  induction t with
+  | zero => simp
+  | succ t ih =>
+    rw [runFrom_succ_eq_step', step_output, List.length_append]
+    have : (tm.outputSymbol (tm.runFrom cfg t)).toList.length ≤ 1 := by
+      cases tm.outputSymbol (tm.runFrom cfg t) <;> simp
+    omega
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
@@ -369,17 +421,6 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
     ComputableInTimeAndSpace f encIn encOut t' s' := by
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
-
-theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input) (t : ℕ) :
-    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
-  induction t with
-  | zero => simp
-  | succ t ih =>
-    rw [runFrom_succ_eq_step', step_output, List.length_append]
-    have : (tm.outputSymbol (tm.runFrom cfg t)).toList.length ≤ 1 := by
-      cases tm.outputSymbol (tm.runFrom cfg t) <;> simp
-    omega
 
 /-- A machine emits at most one symbol per step, so the encoded result of a computation is no
 longer than its time bound. This is the only bound available on the length of an intermediate
