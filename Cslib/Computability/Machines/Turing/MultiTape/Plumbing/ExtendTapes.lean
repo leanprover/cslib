@@ -206,20 +206,6 @@ public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪
     (tm.extendTapes e).spaceUsed (embed e cfg extraTapes extraPos) n
       ≤ tm.spaceUsed cfg n + (k' - k) := by
   classical
-  -- an embedded tape `e j` uses exactly the space of `tm`'s tape `j`
-  have key : ∀ j : Fin k,
-      (tm.extendTapes e).spaceUsedByTape (embed e cfg extraTapes extraPos) n (e j)
-        = tm.spaceUsedByTape cfg n j :=
-    fun j => congrArg Finset.card (visitedByTapeHead_embed_embed tm e cfg extraTapes extraPos n j)
-  -- a tape outside `range e` never moves, so it uses at most one cell
-  have bound1 : ∀ l, ¬ (∃ j, e j = l) →
-      (tm.extendTapes e).spaceUsedByTape (embed e cfg extraTapes extraPos) n l ≤ 1 := by
-    intro l hl
-    refine le_trans (Finset.card_le_card ?_) (le_of_eq (Finset.card_singleton (extraPos l)))
-    intro z hz
-    obtain ⟨m, _, rfl⟩ := mem_visitedByTapeHead.mp hz
-    rw [workTapePos_embed_of_not_range tm e cfg extraTapes extraPos m hl]
-    exact Finset.mem_singleton_self _
   calc (tm.extendTapes e).spaceUsed (embed e cfg extraTapes extraPos) n
       = (∑ l ∈ Finset.univ \ Finset.univ.image e,
             (tm.extendTapes e).spaceUsedByTape (embed e cfg extraTapes extraPos) n l)
@@ -231,10 +217,14 @@ public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪
         · calc (∑ l ∈ Finset.univ \ Finset.univ.image e,
                   (tm.extendTapes e).spaceUsedByTape (embed e cfg extraTapes extraPos) n l)
               ≤ ∑ _l ∈ Finset.univ \ Finset.univ.image e, 1 := by
-                refine Finset.sum_le_sum fun l hl => bound1 l ?_
+                refine Finset.sum_le_sum fun l hl => ?_
                 rw [Finset.mem_sdiff] at hl
-                rintro ⟨j, rfl⟩
-                exact hl.2 (Finset.mem_image_of_mem e (Finset.mem_univ j))
+                have hl' : ¬ ∃ j, e j = l := by
+                  rintro ⟨j, rfl⟩
+                  exact hl.2 (Finset.mem_image_of_mem e (Finset.mem_univ j))
+                exact spaceUsedByTape_le_one _ fun m _ => by
+                  rw [workTapePos_embed_of_not_range tm e cfg extraTapes extraPos m hl']
+                  simp only [embed, partialInv_eq_none e hl']
             _ = k' - k := by
                 rw [Finset.sum_const, smul_eq_mul, mul_one,
                   Finset.card_sdiff_of_subset (Finset.subset_univ _), Finset.card_univ,
@@ -242,7 +232,8 @@ public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪
                   Fintype.card_fin]
         · rw [Finset.sum_image fun x _ y _ h => e.injective h]
           simp only [spaceUsed]
-          exact Finset.sum_congr rfl fun j _ => key j
+          exact Finset.sum_congr rfl fun j _ =>
+            congrArg Finset.card (visitedByTapeHead_embed_embed tm e cfg extraTapes extraPos n j)
     _ = tm.spaceUsed cfg n + (k' - k) := Nat.add_comm _ _
 
 end Space
