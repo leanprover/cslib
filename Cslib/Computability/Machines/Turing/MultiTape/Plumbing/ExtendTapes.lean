@@ -150,10 +150,10 @@ public lemma step_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
       = embed e (tm.step cfg) extraTapes extraPos := by
   cases hq : cfg.state with
   | none =>
-    have h1 : (embed e cfg extraTapes extraPos).state = none := hq
-    rw [step_of_halt h1, step_of_halt hq]
+    simp [embed, hq, step_of_halt]
   | some q =>
-    have h1 : (embed e cfg extraTapes extraPos).state = some q := hq
+    have h1 : (embed e cfg extraTapes extraPos).state = some q := by
+      simpa [embed] using hq
     have hin : (embed e cfg extraTapes extraPos).inputSymbol = cfg.inputSymbol := rfl
     have hargs : (fun j : Fin k => (embed e cfg extraTapes extraPos).workTapeSymbols (e j))
         = cfg.workTapeSymbols :=
