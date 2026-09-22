@@ -12,23 +12,32 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.StepLemmas
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
 /-!
-# Reindexing a machine's work tapes along an embedding
+# Extending a machine with additional work tapes
 
-`extendTapes tm e`, for an embedding `e : Fin k ↪ Fin k'`, runs `tm` inside a machine with `k'`
-work tapes, using the tapes selected by `e`: work tape `e j` plays the role of `tm`'s tape `j`,
-and every tape outside the range of `e` is never written and never moves.
+`extendTapes tm e`, for an embedding `e : Fin k ↪ Fin k'`, runs `tm` inside a machine with more
+work tapes. The tapes selected by `e` are used by `tm`: target tape `e j` plays the role of source
+tape `j`. The remaining tapes are left unchanged.
 
-The construction is a step-semiconjugation. The configuration map `embed e cfg extraTapes extraPos`
-places `cfg` on the tapes in the range of `e` and fills the others with fixed contents `extraTapes`
-and head positions `extraPos`; `step` commutes with it unconditionally, so the reindexed run
-mirrors the original by `Turing.MultiTapeTM.runFrom_comm_of_step` — no induction. Since the extra
-tapes never move, the reindexed run uses the same space on the embedded tapes as `tm` does, plus at
-most one cell for each of the remaining tapes.
+The configuration map `embed e cfg extraTapes extraPos` places `cfg` on the selected tapes and
+initialises the remaining tapes from `extraTapes` and `extraPos`.
 
-Both the machine and the configuration map route each target tape `l` through the computable
-partial inverse `partialInv e l : Option (Fin k)`, which is `some j` exactly when `e j = l`. Since
-they share this scrutinee, the semiconjugation splits tape by tape into a source tape (`some j`) or
-an untouched extra tape (`none`).
+The construction gives a step-semiconjugation: `step_embed` states that one step commutes with
+`embed`, and `runFrom_embed` is its run-level consequence via
+`Turing.MultiTapeTM.runFrom_comm_of_step`.
+
+## Main definitions
+
+* `Turing.MultiTapeTM.partialInv`: the partial inverse of the tape embedding.
+* `Turing.MultiTapeTM.extendTapes`: the machine with reindexed work tapes.
+* `Turing.MultiTapeTM.embed`: the corresponding configuration map.
+
+## Main results
+
+* `Turing.MultiTapeTM.step_embed` and `Turing.MultiTapeTM.runFrom_embed`: the
+  step-semiconjugation and its consequence for runs.
+* `Turing.MultiTapeTM.visitedByTapeHead_embed_embed` and
+  `Turing.MultiTapeTM.workTapePos_embed_of_not_range`: behavior of embedded and extra tapes.
+* `Turing.MultiTapeTM.spaceUsed_embed_le`: the resulting space bound.
 -/
 
 namespace Turing.MultiTapeTM
