@@ -5,7 +5,7 @@ Authors: Fabrizio Montesi
 -/
 
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Safety
-import Cslib.Logics.Modal.Lean.Basic
+import Cslib.Logics.Modal.Unimodal.Lean.Basic
 import Cslib.Foundations.Relation.Preserves
 
 /-! # Modal logic for type safety (exemplified on the simply typed λ-calculus)
@@ -38,8 +38,8 @@ judgements.
    full β-reduction).
 3. We stratify the multistep model on top of the single step model by means of an atomic
    proposition, `IsSingleStepSafe τ t`, defined as
-   `⇓Modal[singleStepModel,t ⊨ IsValue ∨ ◇HasType τ]`. (This would not be necessary with multimodal
-   logic, as we could use different modalities for single- and multistep reductions.)
+   `⇓Modal[singleStepModel,t ⊨ IsValue ∨ ◇HasType τ]`. (This is necessary because we use unimodal
+   logic; alternatively, we could use different modalities for single- and multistep reductions.)
 4. Using the above and Axiom K, we derive type safety in the multistep model:
    `HasType τ → □IsSingleStepSafe τ`.
 5. The standard type safety statement is trivially extracted by unfolding the semantics of step (4).
@@ -52,7 +52,7 @@ judgements.
 namespace CslibTests.LambdaCalculus.Stlc.Modal
 
 open Cslib Logic Modal LambdaCalculus LocallyNameless Stlc Untyped Term Relation
-open scoped Satisfies Term InferenceSystem
+open scoped Satisfies Term InferenceSystem Frame
 
 variable {Var : Type*} [HasFresh Var]
 
@@ -62,13 +62,27 @@ variable {Var : Type*} [HasFresh Var]
 abbrev LAtom Var := Term Var → Prop
 
 /-- Modal propositions over predicates on λ-terms. -/
-abbrev LProposition Var := Proposition (LAtom Var)
+abbrev LProposition (Var : Type u) := Proposition (τUnimodal (Term Var)) (LAtom Var)
 
 /-- The single step model of full β-reduction. -/
-abbrev singleStepModel : Model (Term Var) (LAtom Var) := Model.ofPredicates (· ⭢βᶠ ·)
+def singleStepModel : Model (Term Var) (τ := τUnimodal (Term Var)) (LAtom Var) :=
+  Model.unimodalOfPredicates (· ⭢βᶠ ·)
+
+omit [HasFresh Var] in
+theorem singleStepModel_rel_iff (t t' : Term Var) : singleStepModel.rel t t' ↔ t ⭢βᶠ t' := by
+  grind only [singleStepModel, = Frame.ofRelation_rel_iff]
+
+attribute [local grind _=_] singleStepModel_rel_iff
 
 /-- The multistep model of full β-reduction. -/
-abbrev multiStepModel : Model (Term Var) (LAtom Var) := Model.ofPredicates (· ↠βᶠ ·)
+def multiStepModel {Var : Type u} : Model (Term Var) (τUnimodal (Term Var)) (LAtom Var) :=
+  Model.unimodalOfPredicates (· ↠βᶠ ·)
+
+omit [HasFresh Var] in
+theorem multiStepModel_rel_iff (t t' : Term Var) : multiStepModel.rel t t' ↔ t ↠βᶠ t' := by
+  grind only [multiStepModel, = Frame.ofRelation_rel_iff]
+
+attribute [local grind _=_] multiStepModel_rel_iff
 
 /-! ## Atomic modal propositions on terms -/
 
@@ -95,8 +109,10 @@ Suppose that whenever `φ₁` holds:
 
 Then either `φ₃` already holds or some successor satisfies `φ₂`.
 -/
-theorem safety_of_preservation_progress (hpres : ⇓Modal[m,w ⊨ φ₁ → □φ₂])
-    (hprog : ⇓Modal[m,w ⊨ φ₁ → φ₃ ∨ ◇φ₄]) : ⇓Modal[m,w ⊨ φ₁ → φ₃ ∨ ◇φ₂] := by
+theorem safety_of_preservation_progress
+    {φ₁ φ₂ φ₃ φ₄ : Proposition (τUnimodal α) Atom}
+    (hpres : ⇓Modal[m,w ⊨ φ₁ → □φ₂]) (hprog : ⇓Modal[m,w ⊨ φ₁ → φ₃ ∨ ◇φ₄]) :
+    ⇓Modal[m,w ⊨ φ₁ → φ₃ ∨ ◇φ₂] := by
   have : ⇓Modal[m, w ⊨ □φ₂ ∧ ◇φ₄ → ◇φ₂] := by grind only [modal]
   grind only [modal]
 
@@ -106,15 +122,16 @@ theorem safety_of_preservation_progress (hpres : ⇓Modal[m,w ⊨ φ₁ → □�
 theorem preservation_singleStepModel_modal (τ : Ty Base) (t : Term Var) :
     ⇓Modal[singleStepModel, t ⊨ HasType τ → □HasType τ] := by
   classical
-  exact ((Satisfies.ofPredicates_preserves_iff (· ⭢βᶠ ·)).mpr (FullBeta.preservation (τ := τ))) t
+  exact ((Satisfies.unimodalOfPredicates_preserves_iff (τ := (τUnimodal (Term Var))) (· ⭢βᶠ ·)).mpr
+    (FullBeta.preservation (τ := τ))) t
 
 omit [HasFresh Var] in
 /-- Modal view of single step progress. -/
 theorem progress_modal (τ : Ty Base) (t : Term Var) :
-    ⇓Modal[singleStepModel, t ⊨ HasType τ → IsValue ∨ ◇IsTerm] := by
+    ⇓Modal[singleStepModel,t ⊨ HasType τ → IsValue ∨ ◇IsTerm] := by
   rw [Satisfies.imp_iff_imp]
   intro ht
-  rcases FullBeta.progress ht <;> grind only [modal, = Satisfies.diamond_iff_exists]
+  rcases FullBeta.progress ht <;> grind [singleStepModel]
 
 /-! ## Modal development of type safety
 
@@ -125,7 +142,7 @@ STLC-specific reasoning is required.
 /-- Modal view of multistep typing preservation. -/
 theorem preservation_multiStep_modal (τ : Ty Base) (t : Term Var) :
     ⇓Modal[multiStepModel, t ⊨ HasType τ → □HasType τ] :=
-  Satisfies.ofPredicates_preserves_reflTransGen (preservation_singleStepModel_modal τ ·) t
+  Satisfies.unimodalOfPredicates_preserves_reflTransGen (preservation_singleStepModel_modal τ ·) t
 
 /-- Modal view that preservation and progress give single step safety. -/
 theorem type_safety_singleStep_modal (τ : Ty Base) (t : Term Var) :
@@ -145,20 +162,30 @@ theorem type_safety_modal (τ : Ty Base) (t : Term Var) :
     ⇓Modal[multiStepModel,t ⊨ HasType τ → □IsSingleStepSafe τ] := by
   have hpres := preservation_multiStep_modal (Var := Var) τ t
   have hsafety : ⇓Modal[multiStepModel,t ⊨ □(HasType τ → IsSingleStepSafe τ)] := by
-    rw [Satisfies.box_iff_forall]
+    rw [Satisfies.box_iff_forall (τ := τUnimodal (Term Var))]
     intro t'
-    grind only [modal, type_safety_singleStep_modal (Var := Var) τ t']
+    grind only [singleStepModel, multiStepModel, modal,
+      type_safety_singleStep_modal (Var := Var) τ t']
   -- Axiom K instantiated for single step type safety
   have hk : ⇓Modal[multiStepModel,t ⊨
         □(HasType τ → IsSingleStepSafe τ) → (□HasType τ → □IsSingleStepSafe τ)] :=
-    Satisfies.der_of_axiom (Satisfies.k multiStepModel.r _ _)
+    Satisfies.der_of_axiom (Satisfies.unimodal_k multiStepModel.toFrame _ _)
   grind only [modal]
 
 /-- Type safety: if a term is well-typed, any term it can reach is either a value or can progress.
 -/
 theorem type_safety {t t' : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶ τ)
     (hsteps : t ↠βᶠ t') : t'.Value ∨ ∃ t'', t' ⭢βᶠ t'' ∧ [] ⊢ t'' ∶ τ := by
-  grind only [modal, type_safety_modal (Var := Var) τ t, Satisfies.box_iff_forall,
-    Satisfies.diamond_iff_exists]
+  -- We use `grind only` on purpose to test that the passed theorems are sufficient.
+  grind only [
+    _=_ singleStepModel_rel_iff,
+    _=_ multiStepModel_rel_iff,
+    singleStepModel,
+    multiStepModel,
+    modal,
+    type_safety_modal (Var := Var) τ t,
+    Satisfies.box_iff_forall,
+    Satisfies.diamond_iff_exists
+  ]
 
 end CslibTests.LambdaCalculus.Stlc.Modal
