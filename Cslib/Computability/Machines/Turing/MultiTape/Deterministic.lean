@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Basic.Sign.Defs
+public import Mathlib.Computability.Language
 public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
@@ -76,6 +77,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `ComputableInTimeAndSpaceOfLength`: the specialization to bounds on encoded input length.
 * `DecidableInTimeAndSpace`: a proof that a TM decides a language within a certain time
     and space bound.
+* `DecidableInSpace`: a language is decidable within a bound on space by input length.
 
 There are two ways to talk about the behaviour of a multi-tape Turing machine, and they are
 proven to be equivalent.
@@ -216,6 +218,15 @@ lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state 
     tm.outputSymbol cfg = none := by
   simp [outputSymbol, h_halt]
 
+/-- The input head moves by at most one cell at each step. -/
+lemma inputPos_step_bounds (cfg : Cfg k Symbol State input) :
+    (tm.step cfg).inputPos.val ≤ cfg.inputPos.val + 1 ∧
+      cfg.inputPos.val ≤ (tm.step cfg).inputPos.val + 1 := by
+  unfold step
+  cases cfg.state with
+  | none => simp
+  | some q => exact moveInputPos_bounds _ _
+
 /-- The work-tape head moves by at most one cell in a single step. -/
 lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
     |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 := by
@@ -292,9 +303,8 @@ lemma runFrom_output_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
-    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output := by
-  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
-  rw [runFrom_add, runFrom_of_halt _ hhalt]
+    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output :=
+  congrArg Cfg.output (tm.runFrom_eq_of_halt cfg hle hhalt)
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
@@ -361,6 +371,16 @@ noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
 def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b => [b], by intro a b h; simpa using h⟩ t s
+
+/-- A language is decidable using at most `s n` work-tape cells on inputs of length `n`.
+The last state before halting records the decision: `.inr true` accepts and
+`.inr false` rejects. -/
+def DecidableInSpace {Symbol : Type*} (L : Language Symbol) (s : ℕ → ℕ) : Prop :=
+  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Symbol (State ⊕ Bool)),
+    ∀ input, ∃ t,
+      (tm.runFrom (tm.initCfg input) t).state = some (.inr (indicator L input)) ∧
+      (tm.runFrom (tm.initCfg input) (t + 1)).Halted ∧
+      tm.spaceUsed (tm.initCfg input) (t + 1) ≤ s input.length
 
 /-- This lemma translates between the relational notion and the iterated step notion. The latter
 can be more convenient especially for deterministic machines as we have here. -/
