@@ -212,6 +212,18 @@ instance : HasInferenceSystem (Sequent Atom) := ⟨Proof⟩
 @[scoped grind =]
 def Proof.rwConclusion {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : ⇓Γ) := InferenceSystem.rwConclusion h p
 
+/-- Height of a proof. -/
+def Proof.height {Γ : Sequent Atom} : ⇓Γ → ℕ
+  | .ax | .one | .top => 1
+  | .bot p | .parr p | .oplus₁ p | .oplus₂ p
+    | .quest p | .weaken p | .contract p | .bang _ p => p.height + 1
+  | .cut p q | .tensor p q | .with p q => max p.height q.height + 1
+
+/-- Transporting a conclusion preserves proof height. -/
+@[simp, scoped grind =]
+theorem Proof.rwConclusion_height {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : ⇓Γ) :
+    (p.rwConclusion h).height = p.height := by grind
+
 /-- The axiom, but where the order of propositions is reversed. -/
 @[scoped grind <=]
 def Proof.ax' {a : Proposition Atom} : ⇓({a⫠, a} : Sequent Atom) :=
@@ -695,13 +707,5 @@ def withIdem {a : Proposition Atom} : a & a ≡⇓ a :=
 end Proposition
 
 end LogicalEquiv
-
-/-- A proof is cut-free if it does not contain any applications of rule cut. -/
-def Proof.cutFree {Γ : Sequent Atom} : ⇓Γ → Bool
-  | ax | one | top => true
-  | bot p | parr p | oplus₁ p | oplus₂ p
-    | quest p | weaken p | contract p | bang _ p => p.cutFree
-  | tensor p q | .with p q => p.cutFree && q.cutFree
-  | cut _ _ => false
 
 end Cslib.Logic.CLL
