@@ -88,16 +88,18 @@ lemma step_rightCfg (cfg : Cfg k Symbol State₁ input) :
 /-- The second phase of `seq` mirrors the run of `tm₁`. -/
 lemma runFrom_rightCfg (cfg : Cfg k Symbol State₁ input) (n : ℕ) :
     (tm₀.seq tm₁).runFrom (rightCfg cfg) n = rightCfg (tm₁.runFrom cfg n) :=
-  runFrom_comm_of_step rightCfg (fun c => step_rightCfg c) cfg n
+  (Function.Semiconj.iterate_right (fun c => (step_rightCfg c).symm) n cfg).symm
 
 /-- While `tm₀` is running, `seq` mirrors it. -/
 lemma runFrom_leftCfg (cfg : Cfg k Symbol State₀ input) (n : ℕ)
     (h : ∀ m < n, (tm₀.runFrom cfg m).state ≠ none) :
     (tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) n = leftCfg tm₁ (tm₀.runFrom cfg n) := by
+  simp only [runFrom] at h ⊢
   induction n with
   | zero => rfl
   | succ n ih =>
-    rw [runFrom_succ_eq_step', runFrom_succ_eq_step', ih fun m hm => h m (by omega),
+    rw [Function.iterate_succ_apply', Function.iterate_succ_apply',
+      ih fun m hm => h m (by omega),
       step_leftCfg _ (h n (by omega))]
 
 @[simp]
@@ -149,7 +151,9 @@ theorem transformsTapes_seq
   have hright : ∀ n, (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out) (u + n)
       = rightCfg (tm₁.runFrom (wordsCfg input (some tm₁.q₀) ws' out) n) := by
     intro n
-    rw [runFrom_add, hhandoff, runFrom_rightCfg]
+    simp only [runFrom] at hhandoff ⊢
+    rw [Nat.add_comm u n, Function.iterate_add_apply, hhandoff]
+    exact runFrom_rightCfg _ n
   -- the composition is done after `u + t₁` steps and then simply stays put until `t₀ + t₁`
   have hrun : (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out) (u + t₁)
       = wordsCfg input none ws'' out := by

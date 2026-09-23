@@ -120,7 +120,6 @@ public import Cslib.Foundations.Data.OmegaSequence.Init
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.OmegaSequence.Topology
 public import Cslib.Foundations.Data.PFunctor.Free
-public import Cslib.Foundations.Data.RelatesInSteps
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
@@ -134,6 +133,7 @@ public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Relation.Euclidean
 public import Cslib.Foundations.Relation.Preserves
+public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
 public import Cslib.Foundations.Semantics.FLTS.Basic
