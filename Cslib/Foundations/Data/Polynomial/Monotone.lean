@@ -24,7 +24,7 @@ reasoning about polynomial time bounds.
 
 namespace Polynomial
 
-variable {R : Type*} [CommSemiring R] [PartialOrder R] [IsOrderedRing R]
+variable {R : Type*} [Semiring R] [PartialOrder R] [IsOrderedRing R]
   [CanonicallyOrderedAdd R] (p : R[X])
 
 /-- Over a canonically ordered semiring, evaluation of a polynomial is monotone. -/
@@ -35,7 +35,8 @@ theorem monotone_eval : Monotone (fun x : R => p.eval x) := by
   exact mul_le_mul_of_nonneg_left (pow_le_pow_left₀ (zero_le (a := a)) hab i) (zero_le (a := _))
 
 /-- Over a canonically ordered semiring, evaluation of a polynomial preserves `≤`. -/
-theorem eval_le_eval_of_le {a b : R} (hab : a ≤ b) : p.eval a ≤ p.eval b :=
+@[gcongr]
+theorem eval_mono {a b : R} (hab : a ≤ b) : p.eval a ≤ p.eval b :=
   p.monotone_eval hab
 
 end Polynomial
