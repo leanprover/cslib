@@ -5,6 +5,7 @@ import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
 import CslibTests.CircuitComplexity
 import CslibTests.CircuitCounting
+import CslibTests.CircuitFamilies
 import CslibTests.Circuits
 import CslibTests.Commitment
 import CslibTests.Complexity.Combinators
