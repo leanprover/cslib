@@ -197,7 +197,7 @@ section Space
 /-- The set of positions visited by the head of work tape `i` in the computation starting from
 configuration `cfg` up to step `t`. -/
 def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : Finset ℤ :=
-  (Finset.range (t + 1)).image fun t' => (tm.runFrom cfg t').workTapePos i
+  Finset.univ.image fun n : Fin (t + 1) => (tm.runFrom cfg n).workTapePos i
 
 /--
 The number of work tape cells touched by the head of tape `i` in the computation starting from
@@ -224,14 +224,6 @@ lemma spaceUsed_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h
 lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     tm.spaceUsedByTape cfg t i ≤ tm.spaceUsed cfg t :=
   Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
-
-/-- The space used up to step `t` is the space touched by the configurations up to step `t`. -/
-lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t = spaceUsedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) := by
-  unfold spaceUsed spaceUsedByTape spaceUsedOfCfgs
-  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card ?_
-  ext z
-  simp [visitedByTapeHead, visitedOfCfgs]
 
 end Space
 

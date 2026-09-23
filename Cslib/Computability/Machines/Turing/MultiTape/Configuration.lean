@@ -6,21 +6,20 @@ Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 
 module
 
-public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
-public import Mathlib.Data.Finset.Dedup
-public import Mathlib.Data.Finset.Max
-public import Mathlib.Data.Int.Interval
+public import Mathlib.Algebra.Order.Group.Nat
+public import Mathlib.Algebra.Ring.Int.Defs
+public import Mathlib.Algebra.Ring.Nat
 public import Mathlib.Basic.Sign.Defs
+public import Mathlib.Data.Fin.Basic
 public import Cslib.Init
 
 /-!
 # Configurations of Multi-Tape Turing Machines
 
 Configurations of a multi-tape Turing machine with a read-only input tape, `k` work tapes and one
-write-only output tape, together with what a single transition does to one and the space measure
-read off a list of them.
+write-only output tape, together with what a single transition does to a configuration.
 
 ## Design
 
@@ -40,7 +39,6 @@ the configuration the run ends in.
 * `Action.apply`: the effect of one action on a configuration
 * `Cfg.Halted`, `Cfg.init`: halting, and the configuration a machine starts in
 * `tapeOfList`, `wordsCfg`: tapes and configurations holding given words
-* `spaceUsedOfCfgs`: work tape cells touched along a list of configurations
 -/
 
 @[expose] public section
@@ -248,13 +246,5 @@ lemma workTapePos_apply_le (action : Action k Symbol State)
     |(action.apply cfg).workTapePos i - cfg.workTapePos i| ≤ 1 := by
   simp only [Action.apply, add_sub_cancel_left, abs_le, SignType.cast]
   grind
-
-/-- The work tape cells visited by the head of tape `i` along a list of configurations. -/
-def visitedOfCfgs (cfgs : List (Cfg k Symbol State input)) (i : Fin k) : Finset ℤ :=
-  (cfgs.map (·.workTapePos i)).toFinset
-
-/-- The number of work tape cells touched by the heads along a list of configurations. -/
-def spaceUsedOfCfgs (cfgs : List (Cfg k Symbol State input)) : ℕ :=
-  ∑ i, (visitedOfCfgs cfgs i).card
 
 end Turing
