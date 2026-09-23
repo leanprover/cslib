@@ -186,12 +186,6 @@ def Proof.rwConclusion {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : CF⇓Γ) : CF�
 theorem Proof.rwConclusion_val {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : CF⇓Γ) :
     (p.rwConclusion h).val = CLL.Proof.rwConclusion h p.val := rfl
 
-/-- Rewriting the conclusion of a cut-free proof preserves proof height. -/
-@[simp, scoped grind =]
-theorem Proof.rwConclusion_height {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : CF⇓Γ) :
-    (p.rwConclusion h).val.height = p.val.height := by
-  simp
-
 /-- Axiom for CF. -/
 def Proof.ax {a : Proposition Atom} : CF⇓({a, a⫠} : Sequent Atom) := ⟨CLL.Proof.ax, isCutFree_ax⟩
 
