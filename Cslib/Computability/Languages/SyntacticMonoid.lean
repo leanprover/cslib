@@ -10,8 +10,11 @@ public import Cslib.Computability.Languages.Congruences.MyhillCongruence
 
 /-! # Syntactic monoid
 
-This file defines the syntactic monoid of a language `l` and shows that
-`l` is regular if and only if its syntactic monoid is finite.
+This file has two main results:
+(1) We define the syntactic monoid of a language `l` and show that `l` is regular
+if and only if its syntactic monoid is finite.
+(2) Using (1), we show that a language is regular if and only if it is the preimage of a subset
+of a finite monoid `M` under a monoid homomorphism from the free monoid on its alphabet to `M`
 
 ## References
 
@@ -49,12 +52,12 @@ theorem IsRegular.iff_finite_syntacticMonoid (l : Language α) :
     l.IsRegular ↔ Finite (l.SyntacticMonoid) :=
   IsRegular.iff_finite_myhillQuotient l
 
-/-- The congruence induced by `homSyntacticMonoid` is the Myhill congruence. -/
-theorem homSyntacticMonoid_myhillCongruence {l : Language α} {x y : List α}
-    (h : l.homSyntacticMonoid (ofList x) = l.homSyntacticMonoid (ofList y)) :
+/-- The congruence induced by `homSyntacticMonoid` is exactly the Myhill congruence. -/
+theorem homSyntacticMonoid_iff_myhillCongruence {l : Language α} {x y : List α} :
+    l.homSyntacticMonoid (ofList x) = l.homSyntacticMonoid (ofList y) ↔
     l.MyhillCongruence.eq x y := by
-  simp only [Con.coe_mk', Con.eq] at h
-  assumption
+  simp only [Con.coe_mk', Con.eq]
+  rfl
 
 /-- Any regular language is the preimage of a subset of a finite monoid `M`
 under a monoid homomorphism from the free monoid on its alphabet to `M`. -/
@@ -65,7 +68,7 @@ theorem IsRegular.exists_finite_monoid {l : Language α} (h : l.IsRegular) :
     l.homSyntacticMonoid, (l.homSyntacticMonoid ∘ ofList) '' l
   apply le_antisymm
   · rintro x ⟨y, hy, heq⟩
-    have heq := homSyntacticMonoid_myhillCongruence heq
+    have heq := homSyntacticMonoid_iff_myhillCongruence.mp heq
     specialize heq [] []
     simp only [List.nil_append, List.append_nil] at heq
     exact heq.mp hy
@@ -75,7 +78,7 @@ section FiniteMonoid
 
 variable {M : Type*} [Monoid M] (f : FreeMonoid α →* M)
 
-/-- Given a a monoid homomorphism `f` from `FreeMonoid α` to another monoid `M`,
+/-- Given a monoid homomorphism `f` from `FreeMonoid α` to another monoid `M`,
 `inducedCongr f` is the language congruence induced by `f`. -/
 -- NOTE: This is in fact a two-sided congruence, but we need only the `RightCongruence` part here.
 @[implicit_reducible]
@@ -86,15 +89,16 @@ def inducedCongr : RightCongruence α where
     simp only [Setoid.ker_def, Function.comp_apply, ofList_append, map_mul]
     grind
 
-instance [h : Finite M] :
-    Finite (Quotient (inducedCongr f).eq) :=
-  Finite.of_equiv _ (Setoid.quotientKerEquivRange f).symm
+instance [Finite M] : Finite (Quotient (inducedCongr f).eq) :=
+  Finite.of_equiv _ (Setoid.quotientKerEquivRange (f ∘ ofList)).symm
 
 theorem inducedCongr_ofList (x : List α) :
     (f ∘ ofList) ⁻¹' {(f ∘ ofList) x} = (inducedCongr f).eqvCls ⟦ x ⟧ := by
   ext y
   simp [Quotient.eq]
 
+/-- The preimage of a singleton in a finite monoid `M` under a monoid homomorphism
+from the free monoid to `M` is regular. -/
 theorem IsRegular.of_finite_monoid_singleton [Finite M]
     (m : M) : IsRegular ((f ∘ ofList) ⁻¹' {m}) := by
   by_cases h : (f ∘ ofList) ⁻¹' {m} = ∅
