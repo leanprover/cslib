@@ -25,6 +25,9 @@ designated output wires are free.
 namespace Cslib.Circuits
 namespace Boolean
 
+/-- The original qualified name for Boolean functions. -/
+protected abbrev BooleanFunction (n : ℕ) : Type := Cslib.BooleanFunction n
+
 /-- Operations of the De Morgan basis, including constants. -/
 inductive Op where
   /-- A Boolean constant. -/
