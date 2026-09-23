@@ -1,0 +1,72 @@
+/-
+Copyright (c) 2026 Samuel Schlesinger. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Samuel Schlesinger
+-/
+
+import Cslib.Computability.Circuit.Boolean.Complexity
+import Cslib.Computability.Circuit.Boolean.Synthesis
+import Cslib.Computability.Circuit.RelativeComplexity
+
+/-!
+# Circuit complexity tests
+
+Composing De Morgan circuits, and the calculus of support and relative complexity.
+-/
+
+namespace CslibTests.CircuitComplexity
+
+open Cslib Cslib.Circuits Cslib.Circuits.Boolean
+
+private theorem and_circuit : ∃ c : Circuit signature 2 1,
+    c.Computes interpretation (fun x _ => x 0 && x 1) ∧ c.size ≤ 1 := by
+  have h := (Synthesis.of_mem (I := interpretation) (s := inputs 2) ⟨0, rfl⟩).and
+    (Synthesis.of_mem (I := interpretation) (s := inputs 2) ⟨1, rfl⟩)
+  exact h.exists_circuit
+
+private theorem not_circuit : ∃ c : Circuit signature 1 1,
+    c.Computes interpretation (fun x _ => !x 0) ∧ c.size ≤ 1 := by
+  have h := (Synthesis.of_mem (I := interpretation) (s := inputs 1) ⟨0, rfl⟩).not
+  exact h.exists_circuit
+
+-- Feeding AND into NOT computes NAND with the two gates.
+example : ∃ c : Circuit signature 2 1,
+    c.Computes interpretation (fun x _ => !(x 0 && x 1)) ∧ c.size ≤ 2 := by
+  obtain ⟨c, hc, hcs⟩ := and_circuit
+  obtain ⟨d, hd, hds⟩ := not_circuit
+  exact ⟨d.comp c, hc.comp hd, by simp only [Circuit.size_comp]; omega⟩
+
+-- AND and its negation side by side, from separate circuits.
+example : ∃ c : Circuit signature 2 (1 + 1),
+    c.Computes interpretation
+      (fun x => Fin.append (fun _ : Fin 1 => x 0 && x 1) fun _ : Fin 1 => !(x 0 && x 1)) ∧
+      c.size ≤ 3 := by
+  obtain ⟨c, hc, hcs⟩ := and_circuit
+  obtain ⟨d, hd, hds⟩ := not_circuit
+  exact ⟨c.append (d.comp c), hc.append (hc.comp hd),
+    by simp only [Circuit.size_append, Circuit.size_comp]; omega⟩
+
+variable {n m k : ℕ}
+
+example (S : Set (BitString n)) (F : BitString n → BitString m) :
+    complexityOn interpretation S F ≤ complexity interpretation F :=
+  complexityOn_mono (Set.subset_univ S)
+
+-- Relative complexity is complexity on the graph.
+example (F : BitString n → BitString m) (G : BitString n → BitString k) :
+    ecomplexityGiven interpretation F G =
+      ecomplexityOn interpretation (graph G) (fun z => F (z ∘ Fin.castAdd k)) :=
+  ecomplexityGiven_eq_ecomplexityOn_graph F G
+
+example (F : BitString n → BitString m) (G : BitString n → BitString k) :
+    complexityGiven interpretation F G ≤ complexity interpretation F ∧
+      complexity interpretation F ≤
+        complexity interpretation G + complexityGiven interpretation F G :=
+  ⟨complexityGiven_le_complexity F G, complexity_le_add_complexityGiven F G⟩
+
+-- Given `F` together with more information, `F` itself is free.
+example (F : BitString n → BitString m) (G : BitString n → BitString k) :
+    complexityGiven interpretation F (fun x => Fin.append (F x) (G x)) = 0 :=
+  Nat.le_zero.mp ((complexityGiven_append_le F F G).trans_eq (complexityGiven_self F))
+
+end CslibTests.CircuitComplexity
