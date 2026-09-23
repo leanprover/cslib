@@ -158,15 +158,22 @@ jobs:
       with:
         result-encoding: string
         script: |
-          const branches = await github.paginate(github.rest.repos.listBranches, {
-            owner: 'leanprover',
-            repo: 'cslib'
-          });
+          let branches;
+          try {
+            branches = await github.paginate(github.rest.repos.listBranches, {
+              owner: 'leanprover',
+              repo: 'cslib'
+            });
+          } catch (error) {
+            core.setOutput('reason', `Listing branches failed: ${error.message}`);
+            throw error;
+          }
           const bumpBranches = branches
             .map(branch => branch.name)
             .filter(name => name.match(/^bump\/v4\.\d+\.0$/))
             .sort((a, b) => b.localeCompare(a, undefined, {numeric: true, sensitivity: 'base'}));
           if (!bumpBranches.length) {
+            core.setOutput('reason', 'Did not find any bump/v4.x.0 branch');
             throw new Error("Did not find any bump/v4.x.0 branch")
           }
           const latestBranch = bumpBranches[0];
@@ -193,6 +200,7 @@ jobs:
             core.setOutput('branch_sha', sha);
           } catch (error) {
             core.setFailed(`Failed to get branch SHA for ${branchName}: ${error.message}`);
+            core.setOutput('reason', `Failed to get branch SHA for ${branchName}: ${error.message}`);
             core.setOutput('branch_name', branchName);
             return null;
           }
@@ -218,6 +226,7 @@ jobs:
             } catch (error) {
               if (attempt === maxRetries) {
                 core.setFailed(`Failed to fetch lean-toolchain from ${branchName} after ${maxRetries} attempts: ${error.message}`);
+                core.setOutput('reason', `Failed to fetch lean-toolchain from ${branchName} after ${maxRetries} attempts: ${error.message}`);
                 core.setOutput('branch_name', branchName);
                 return null;
               }
@@ -228,6 +237,7 @@ jobs:
 
           if (!content) {
             core.setFailed(`lean-toolchain content is empty after ${maxRetries} attempts from branch ${branchName}`);
+            core.setOutput('reason', `lean-toolchain content is empty after ${maxRetries} attempts from branch ${branchName}`);
             core.setOutput('toolchain_content', '(empty)');
             core.setOutput('branch_name', branchName);
             return null;
@@ -239,11 +249,15 @@ jobs:
           const match = content.match(/leanprover\/lean4:nightly-(\d{4}-\d{2}-\d{2})/);
           if (!match) {
             core.setFailed('Toolchain pattern did not match');
+            core.setOutput('reason', "The lean-toolchain file does not match the expected pattern 'leanprover/lean4:nightly-YYYY-MM-DD'");
             return null;
           }
           return match[1];
 
-    - name: Send warning message on Zulip if no bump/v4.x.0 branch exists
+    # Each of the two steps above can fail for more than one reason, so the warnings below
+    # report the reason the script recorded rather than guessing at a single cause.
+
+    - name: Send warning message on Zulip if the latest bump/v4.x.0 branch could not be determined
       if: failure() && steps.latest_bump_branch.outcome == 'failure'
       uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5 # v1.0.2
       with:
@@ -254,11 +268,12 @@ jobs:
         type: 'stream'
         topic: 'Cslib status updates'
         content: |
-          ⚠️ Warning: Did not find any `bump/v4.x.0` branch, so there is nothing to open a `bump/nightly-${{ env.NIGHTLY }}` PR against.
+          ⚠️ Warning: Could not determine the latest `bump/v4.x.0` branch, so no `bump/nightly-${{ env.NIGHTLY }}` PR was opened.
 
+          **Reason:** ${{ steps.latest_bump_branch.outputs.reason || 'unknown (see the run log)' }}
           **Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-    - name: Send warning message on Zulip if pattern doesn't match
+    - name: Send warning message on Zulip if the bump branch toolchain could not be read
       if: failure() && steps.bump_version.outcome == 'failure'
       uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5 # v1.0.2
       with:
@@ -269,11 +284,13 @@ jobs:
         type: 'stream'
         topic: 'Cslib status updates'
         content: |
-          ⚠️ Warning: The lean-toolchain file in bump branch `${{ steps.bump_version.outputs.branch_name }}` does not match the expected pattern 'leanprover/lean4:nightly-YYYY-MM-DD'.
+          ⚠️ Warning: Could not read a nightly toolchain from bump branch `${{ steps.bump_version.outputs.branch_name }}`, so no `bump/nightly-${{ env.NIGHTLY }}` PR was opened.
 
+          **Reason:** ${{ steps.bump_version.outputs.reason || 'unknown (see the run log)' }}
           **Branch:** `${{ steps.bump_version.outputs.branch_name }}`
           **File URL:** https://github.com/${{ github.repository }}/blob/${{ steps.bump_version.outputs.branch_sha }}/lean-toolchain
           **Current content:** `${{ steps.bump_version.outputs.toolchain_content }}`
+          **Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
           This needs to be fixed for the nightly testing process to work correctly.
 
@@ -411,3 +428,26 @@ jobs:
                 print(result)
         else:
             print('No action needed.')
+
+    # Catch-all for every other failure in this job: the steps before the branch check
+    # (app token, checkout, tag update, Zulip status post) and the steps after the two
+    # warnings above. Without this they would fail silently, since the two warnings above
+    # only fire for their own step. A skipped step's outcome is 'skipped', so the two
+    # comparisons below hold whenever those steps did not run.
+    - name: Send warning message on Zulip on any other failure
+      if: >-
+        (failure() || cancelled())
+        && steps.latest_bump_branch.outcome != 'failure'
+        && steps.bump_version.outcome != 'failure'
+      uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5 # v1.0.2
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY }}
+        email: 'github-mathlib4-bot@leanprover.zulipchat.com'
+        organization-url: 'https://leanprover.zulipchat.com'
+        to: 'nightly-testing-cslib'
+        type: 'stream'
+        topic: 'Cslib status updates'
+        content: |
+          ⚠️ Warning: The job that checks whether a `bump/nightly-YYYY-MM-DD` PR is needed failed or was cancelled at a step that has no dedicated warning, so it may not have reached PR creation.
+
+          **Run:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
