@@ -57,8 +57,7 @@ lemma isChain_map_range (cfg : Cfg k Symbol State input) (t : ℕ) :
   rw [List.isChain_iff_getElem]
   intro i hi
   simp only [List.getElem_map, List.getElem_range]
-  rw [runFrom_succ_eq_step']
-  exact toNTM_step _
+  simpa only [runFrom, Function.iterate_succ_apply'] using toNTM_step (tm.runFrom cfg i)
 
 /-- The machine's own run for `t` steps, as a computation of its nondeterministic reading: the
 configuration reached after each step. -/
@@ -71,7 +70,7 @@ def toNTMComputationPath (tm : MultiTapeTM k Symbol State) (input : List Symbol)
       ne_nil := by simp
       head_eq := by
         rw [List.head_map]
-        simp [toNTM]
+        simp [toNTM, runFrom]
       getLast_eq := by
         rw [← Option.some_inj, ← List.getLast?_eq_some_getLast, List.range_succ, List.map_append]
         simp }

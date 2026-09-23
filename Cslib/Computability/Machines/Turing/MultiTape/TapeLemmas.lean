@@ -71,8 +71,10 @@ lemma uIcc_workTapePos_subset_visitedByTapeHead
   | zero => simpa [runFrom] using tm.mem_visitedByTapeHead_self cfg 0 i
   | succ t ih =>
     intro z hz
-    have hstep : |(tm.runFrom cfg (t + 1)).workTapePos i - (tm.runFrom cfg t).workTapePos i| ≤ 1 :=
-      runFrom_succ_eq_step' (tm := tm) ▸ tm.workTapePos_step_le _ i
+    have hstep :
+        |(tm.runFrom cfg (t + 1)).workTapePos i - (tm.runFrom cfg t).workTapePos i| ≤ 1 := by
+      simpa only [runFrom, Function.iterate_succ_apply'] using
+        tm.workTapePos_step_le (tm.runFrom cfg t) i
     have hmono := tm.visitedByTapeHead_mono cfg i (Nat.le_succ t)
     have hself := tm.mem_visitedByTapeHead_self cfg (t + 1) i
     grind [Finset.mem_uIcc]
@@ -87,7 +89,7 @@ lemma mem_visitedByTapeHead_of_workTapes_ne
   induction t with
   | zero => exact absurd (by simp [runFrom]) h
   | succ t ih =>
-    rw [runFrom_succ_eq_step'] at h
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom] at h
     by_cases hz : z = (tm.runFrom cfg t).workTapePos j
     · exact hz ▸ tm.visitedByTapeHead_mono cfg j (Nat.le_succ t)
         (tm.mem_visitedByTapeHead_self cfg t j)
@@ -204,10 +206,12 @@ lemma visitedByTapeHead_add (cfg : Cfg k Symbol State input) (a b : ℕ) (i : Fi
     rcases Nat.lt_or_ge r (a + 1) with h | h
     · exact Or.inl ⟨r, h, rfl⟩
     · exact Or.inr ⟨r - a, by omega,
-        by rw [← runFrom_add, show a + (r - a) = r from by omega]⟩
+        by simp only [runFrom, ← Function.iterate_add_apply,
+          Nat.sub_add_cancel (by omega : a ≤ r)]⟩
   · rintro (⟨r, hr, rfl⟩ | ⟨r, hr, rfl⟩)
     · exact ⟨r, by omega, rfl⟩
-    · exact ⟨a + r, by omega, by rw [runFrom_add]⟩
+    · exact ⟨a + r, by omega,
+        by simp only [runFrom, ← Function.iterate_add_apply, Nat.add_comm]⟩
 
 /-- Splitting a run into two phases can only overcount the cells it visits, since the two phases
 may revisit each other's cells. -/
