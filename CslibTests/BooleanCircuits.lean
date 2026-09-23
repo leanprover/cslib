@@ -17,7 +17,7 @@ the Shannon and Lupanov bounds.
 
 namespace CslibTests.BooleanCircuits
 
-open Cslib.Circuits Cslib.Circuits.Boolean
+open Cslib Cslib.Circuits Cslib.Circuits.Boolean
 
 example (value : Bool) :
     ∃ c : Circuit signature 0 1, c.Computes interpretation (fun _ => value) ∧ c.size ≤ 1 :=
