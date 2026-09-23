@@ -23,7 +23,7 @@ universe v u
 example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) {n : ℕ} (i : Fin n) :
     ∃ g ≤ 0, ∃ c : Circuit σ n g 1, c.Computes I (fun x => x i) := by
   have h : Synthesis I (inputs n) {fun x => x i} 0 :=
-    Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨i, rfl⟩)
+    Synthesis.of_mem ⟨i, rfl⟩
   exact h.exists_circuit
 
 example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) :
@@ -55,17 +55,17 @@ def interpretation : Interpretation signature ℕ
 
 private theorem projection {n : ℕ} (i : Fin n) :
     Synthesis interpretation (inputs n) {fun x => x i} 0 :=
-  Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨i, rfl⟩)
+  Synthesis.of_mem ⟨i, rfl⟩
 
 private theorem add_available {n : ℕ} (f g : (Fin n → ℕ) → ℕ) :
     Synthesis interpretation {f, g} {fun x => f x + g x} 1 := by
-  simpa [interpretation] using Synthesis.gate (I := interpretation) (s := {f, g}) .add
-    (fun i => if i.val = 0 then f else g) (fun i => by split <;> simp)
+  exact Synthesis.binary (I := interpretation)
+    (Synthesis.of_mem (by simp)) (Synthesis.of_mem (by simp)) .add
 
 private theorem sub_available {n : ℕ} (f g : (Fin n → ℕ) → ℕ) :
     Synthesis interpretation {f, g} {fun x => f x - g x} 1 := by
-  simpa [interpretation] using Synthesis.gate (I := interpretation) (s := {f, g}) .sub
-    (fun i => if i.val = 0 then f else g) (fun i => by split <;> simp)
+  exact Synthesis.binary (I := interpretation)
+    (Synthesis.of_mem (by simp)) (Synthesis.of_mem (by simp)) .sub
 
 example (value : ℕ) :
     ∃ g ≤ 1, ∃ c : Circuit signature 0 g 1, c.Computes interpretation (fun _ => value) :=
@@ -88,13 +88,11 @@ example : ∃ g ≤ 2, ∃ c : Circuit signature 2 g 3,
     ∀ x i, c.eval interpretation x i = sharedOutputs i x := by
   have hproduct : Synthesis interpretation (inputs 2) {product} 1 :=
     Synthesis.gate (I := interpretation) .mul (fun i x => x i) (fun i => ⟨i, rfl⟩)
-  have hkeep : Synthesis interpretation (inputs 2 ∪ {product}) {product} 0 :=
-    Synthesis.of_subset Set.subset_union_right
-  have hinput : Synthesis interpretation (inputs 2 ∪ {product}) {fun x => x 0} 0 :=
-    (projection 0).mono Set.subset_union_left Set.Subset.rfl le_rfl
   have hsum : Synthesis interpretation (inputs 2 ∪ {product}) {fun x => product x + x 0} 1 := by
-    simpa [interpretation] using hkeep.binary hinput .add
-  have h := hproduct.comp (hkeep.union hsum)
+    exact Synthesis.binary (I := interpretation) (s := inputs 2 ∪ {product})
+      (Synthesis.of_mem (Set.mem_union_right _ (Set.mem_singleton product)))
+      (Synthesis.of_mem (Set.mem_union_left _ ⟨0, rfl⟩)) .add
+  have h := hproduct.comp hsum
   have hout : Synthesis interpretation (inputs 2) (Set.range sharedOutputs) 2 :=
     h.mono Set.Subset.rfl (by rintro _ ⟨i, rfl⟩; unfold sharedOutputs; split <;> simp) le_rfl
   exact hout.exists_circuit_family
@@ -103,8 +101,7 @@ example : ∃ g ≤ 2, ∃ c : Circuit signature 2 g 3,
 example : ∃ g ≤ 2, ∃ c : Circuit signature 2 g 1,
     c.Computes interpretation (fun x => x 0 - (x 1 - x 0)) := by
   have h := Synthesis.foldr (I := interpretation) (· - ·) 1 sub_available
-    ([0, 1] : List (Fin 2)) (fun i x => x i) (fun _ => 0)
-    (fun x => x 0) (projection 0) (fun i _ => projection i)
+    ([0, 1] : List (Fin 2)) (projection 0) (fun i _ => projection i)
   simpa using h.exists_circuit
 
 -- A finite-set fold may start from an available, nonconstant seed.
@@ -112,15 +109,13 @@ example : ∃ g ≤ 2, ∃ c : Circuit signature 2 g 1,
     c.Computes interpretation
       (fun x => Finset.univ.fold (· + ·) (x 0) (fun i : Fin 2 => x i)) := by
   have h := Synthesis.finset_fold (I := interpretation) (· + ·) 1 add_available
-    (Finset.univ : Finset (Fin 2)) (fun i x => x i) (fun _ => 0)
-    (fun x => x 0) (projection 0) (fun i _ => projection i)
+    (Finset.univ : Finset (Fin 2)) (projection 0) (fun i _ => projection i)
   simpa using h.exists_circuit
 
 example : ∃ g ≤ 0, ∃ c : Circuit signature 1 g 1,
     c.Computes interpretation (fun x => x 0) := by
   have h := Synthesis.finset_fold (I := interpretation) (· + ·) 1 add_available
-    (∅ : Finset (Fin 1)) (fun i x => x i) (fun _ => 0)
-    (fun x => x 0) (projection 0) (fun i _ => projection i)
+    (∅ : Finset (Fin 1)) (projection 0) (fun i _ => projection i)
   simpa using h.exists_circuit
 
 end CslibTests.Synthesis
