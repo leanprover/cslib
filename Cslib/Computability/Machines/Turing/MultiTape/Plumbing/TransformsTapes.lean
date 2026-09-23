@@ -30,8 +30,8 @@ is read off the equation, not re-established cell by cell.
 
 ## Main definitions
 
-* `Turing.MultiTapeTM.tapeOfList`: the tape holding exactly a given word.
-* `Turing.MultiTapeTM.wordsCfg`: the configuration whose tapes hold given words.
+* `Turing.tapeOfList`: the tape holding exactly a given word.
+* `Turing.wordsCfg`: the configuration whose tapes hold given words.
 * `Turing.MultiTapeTM.TransformsTapes`: the specification format described above.
 * `Turing.MultiTapeTM.nop`: the machine that does nothing.
 
@@ -48,58 +48,6 @@ is read off the equation, not re-established cell by cell.
 namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
-
-/-- A tape containing exactly the symbols of `xs` at positions `0, ..., xs.length - 1`. -/
-def tapeOfList (xs : List Symbol) : ℤ → Option Symbol
-  | .ofNat n => xs[n]?
-  | .negSucc _ => none
-
-@[simp]
-lemma tapeOfList_ofNat (xs : List Symbol) (n : ℕ) : tapeOfList xs n = xs[n]? := rfl
-
-@[simp]
-lemma tapeOfList_negSucc (xs : List Symbol) (n : ℕ) :
-    tapeOfList xs (.negSucc n) = none := rfl
-
-/-- Appending one symbol writes precisely the cell after the existing word. -/
-lemma tapeOfList_append_single (xs : List Symbol) (x : Symbol) :
-    tapeOfList (xs ++ [x]) = Function.update (tapeOfList xs) (xs.length : ℤ) (some x) := by
-  funext z
-  cases z with
-  | negSucc n => simp [tapeOfList]
-  | ofNat n => grind [tapeOfList]
-
-/-- The blank tape holds the empty word. -/
-@[simp]
-lemma tapeOfList_nil : tapeOfList ([] : List Symbol) = fun _ => none := by
-  funext z
-  cases z <;> simp
-
-/-- The cell at position `0` holds the first symbol of the word. -/
-lemma tapeOfList_zero (xs : List Symbol) : tapeOfList xs 0 = xs.head? := by
-  have h : (0 : ℤ) = ((0 : ℕ) : ℤ) := rfl
-  rw [h, tapeOfList_ofNat]
-  cases xs <;> rfl
-
-/-- The configuration whose work tape `i` holds exactly the word `ws i` with its head at the
-start, whose input head is at the start of the input, in state `q` with output `out`. -/
-@[simps]
-def wordsCfg (input : List Symbol) (q : Option State)
-    (ws : Fin k → List Symbol) (out : List Symbol) : Cfg k Symbol State input :=
-  ⟨q, 1, fun i => tapeOfList (ws i), fun _ => 0, out⟩
-
-/-- Remapping the state of a `wordsCfg` remaps its state and leaves the words alone. -/
-@[simp]
-lemma mapState_wordsCfg {State' : Type*} (φ : Option State → Option State')
-    (input : List Symbol) (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol) :
-    (wordsCfg input q ws out).mapState φ = wordsCfg input (φ q) ws out := rfl
-
-/-- The initial configuration is the word configuration with blank tapes and no output. -/
-lemma initCfg_eq_wordsCfg (tm : MultiTapeTM k Symbol State) (input : List Symbol) :
-    tm.initCfg input = wordsCfg input (some tm.q₀) (fun _ => []) [] := by
-  refine Cfg.ext rfl rfl ?_ rfl rfl
-  funext i
-  simp [Cfg.init, wordsCfg]
 
 /-- `TransformsTapes tm P Q t s`: started in its initial state on tapes holding words `ws` that
 satisfy the precondition `P`, the machine is halted after exactly `t` steps in the configuration
