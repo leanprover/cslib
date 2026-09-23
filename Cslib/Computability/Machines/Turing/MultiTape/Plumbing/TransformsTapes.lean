@@ -158,7 +158,7 @@ lemma step_nop (ws : Fin k → List Symbol) (out : List Symbol) :
 @[simp]
 lemma runFrom_nop_one (ws : Fin k → List Symbol) (out : List Symbol) :
     (nop k Symbol).runFrom (wordsCfg input (some ()) ws out) 1 = wordsCfg input none ws out := by
-  rw [runFrom_succ_eq_step', runFrom_zero, step_nop]
+  simpa only [runFrom, Function.iterate_one] using step_nop ws out
 
 /-- **The machine that does nothing** halts in one step, leaving every word as it was. Its heads
 never move, so it visits one cell per tape. This is the first machine of the interface: it checks
@@ -170,7 +170,7 @@ theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
   refine ⟨ws, runFrom_nop_one ws out, rfl,
     spaceUsed_le_of_workTapePos_const _ 1 fun m hm => ?_⟩
   rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
-  · rw [runFrom_zero]
+  · rfl
   · rw [runFrom_nop_one]; funext i; simp only [wordsCfg_workTapePos]
 
 end Nop
