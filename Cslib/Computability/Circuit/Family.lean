@@ -76,7 +76,7 @@ theorem CircuitFamily.decides_iff {F : CircuitFamily σ} {I : Interpretation σ 
     F.Decides I L ↔ ∀ n (x : BitString n), (F n).eval I x 0 = true ↔ List.ofFn x ∈ L := by
   unfold CircuitFamily.Decides
   refine forall_congr' fun n => ?_
-  rw [Circuit.computes_iff_eval_zero]
+  simp only [Circuit.Computes, funext_iff, Fin.forall_fin_one]
   refine forall_congr' fun x => ?_
   rw [← Language.slice_eq_true_iff]
   exact Bool.eq_iff_iff
