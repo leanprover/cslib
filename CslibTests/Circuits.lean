@@ -105,11 +105,11 @@ example : duplicateFirst.eval nandInterpretation trueFalse 1 = true := rfl
 
 example : duplicateFirst.size = 0 := rfl
 
-example : duplicateFirst.ComputesFamily nandInterpretation fun _ x => x 0 :=
-  Circuit.wiring_computesFamily _ _
+example : duplicateFirst.Computes nandInterpretation fun x _ => x 0 :=
+  Circuit.wiring_computes _ _
 
-example : (Circuit.id nandSignature 2).ComputesFamily nandInterpretation fun i x => x i := by
-  intro x i
+example : (Circuit.id nandSignature 2).Computes nandInterpretation fun x => x := by
+  intro x
   simp
 
 def noOutputs : Circuit nandSignature 2 0 := ⟨andProgram, Fin.elim0⟩

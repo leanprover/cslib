@@ -43,7 +43,7 @@ variable {σ : Signature.{v}} [Fintype σ.Op] {U : Type u}
 variable {I : Interpretation σ U} {n g s : ℕ}
 
 /-- Scalar functions computable with at most `s` gates. Enumerating the programs of each size
-with an output wire makes this family finite without requiring a finite carrier. -/
+with an output wire makes this set finite without requiring a finite carrier. -/
 noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
     Finset ((Fin n → U) → U) :=
   open scoped Classical in
@@ -51,7 +51,8 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
     Finset.univ.image fun p : Program σ n g × Wire n g => fun x => p.1.trace I x p.2
 
 @[simp] theorem mem_computableFunctions {f : (Fin n → U) → U} :
-    f ∈ computableFunctions I n s ↔ ∃ c : Circuit σ n 1, c.Computes I f ∧ c.size ≤ s := by
+    f ∈ computableFunctions I n s ↔
+      ∃ c : Circuit σ n 1, c.Computes I (fun x _ => f x) ∧ c.size ≤ s := by
   classical
   simp only [computableFunctions, Finset.mem_biUnion, Finset.mem_range, Finset.mem_image,
     Finset.mem_univ, true_and, Nat.lt_succ_iff, Prod.exists]
@@ -59,11 +60,11 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
   · rintro ⟨g, hg, p, w, rfl⟩
     exact ⟨⟨p, fun _ => w⟩, fun _ => rfl, hg⟩
   · rintro ⟨c, hc, hs⟩
-    exact ⟨c.size, hs, c.program, c.outputs 0, funext hc⟩
+    exact ⟨c.size, hs, c.program, c.outputs 0, funext fun x => congrFun (hc x) 0⟩
 
-/-- Functions computed by programs with exactly `g` pairwise semantically distinct gates and
-an output wire. Each such function has `g!` distinct presentations obtained by relabeling the
-gates of its chosen program. -/
+/-- Functions computed at an output wire of a program whose `g` gates compute pairwise distinct
+functions. Permuting the gates of such a program, ignoring their order, gives `g!` distinct gate
+lists; this is the factorial saving in the counting bound. -/
 noncomputable def irredundantFunctions (I : Interpretation σ U) (n g : ℕ) :
     Finset ((Fin n → U) → U) :=
   open scoped Classical in
@@ -78,13 +79,13 @@ private theorem mem_irredundantFunctions_iff {f : (Fin n → U) → U} :
 
 @[simp] theorem mem_irredundantFunctions {f : (Fin n → U) → U} :
     f ∈ irredundantFunctions I n g ↔
-      ∃ c : Circuit σ n 1, c.Computes I f ∧ c.Irredundant I ∧ c.size = g := by
+      ∃ c : Circuit σ n 1, c.Computes I (fun x _ => f x) ∧ c.Irredundant I ∧ c.size = g := by
   rw [mem_irredundantFunctions_iff]
   constructor
   · rintro ⟨⟨p, w⟩, hf, hi⟩
-    exact ⟨⟨p, fun _ => w⟩, hf, hi, rfl⟩
+    exact ⟨⟨p, fun _ => w⟩, fun x => funext fun _ => hf x, hi, rfl⟩
   · rintro ⟨c, hf, hi, rfl⟩
-    exact ⟨(c.program, c.outputs 0), hf, hi⟩
+    exact ⟨(c.program, c.outputs 0), fun x => congrFun (hf x) 0, hi⟩
 
 section Relabeling
 
@@ -171,7 +172,8 @@ theorem card_irredundantFunctions_mul_factorial_le (I : Interpretation σ U) (n 
   simpa only [Fintype.card_prod, Fintype.card_coe, Fintype.card_perm, Fintype.card_fin,
     Fintype.card_fun] using h
 
-/-- Normalizing a circuit places its function in one of the irredundant families. -/
+/-- Normalizing a circuit with at most `s` gates leaves an irredundant program with at most `s`
+gates computing the same function. -/
 theorem card_computableFunctions_le_sum (I : Interpretation σ U) (n s : ℕ) :
     (computableFunctions I n s).card ≤
       ∑ g ∈ Finset.range (s + 1), (irredundantFunctions I n g).card := by
@@ -184,7 +186,7 @@ theorem card_computableFunctions_le_sum (I : Interpretation σ U) (n s : ℕ) :
   apply Finset.mem_biUnion.mpr
   refine ⟨d.size, Finset.mem_range.mpr (by omega),
     mem_irredundantFunctions.mpr ⟨d, fun x => ?_, hinj, rfl⟩⟩
-  exact (congrFun (congrFun hd x) 0).trans (hc x)
+  exact (congrFun hd x).trans (hc x)
 
 /-- Bound the number of computable functions using a uniform line count `B`. The condition
 `s ≤ B` absorbs the extra factorial factors from circuits with fewer than `s` gates. -/

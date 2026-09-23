@@ -22,12 +22,9 @@ basis is generalized to an arbitrary `Signature` and `Interpretation`. Our size
 counts only operation gates; Arora and Barak count all nodes, including inputs.
 An output wire may also supply a later gate.
 
-This file defines evaluation (`Circuit.eval`) and the predicates `Circuit.Computes`
-and `Circuit.ComputesFamily`, the flattened views `Circuit.computation` and
-`Circuit.trace`, the zero-gate circuits `Circuit.wiring` that select, permute, or
-duplicate inputs, with `Circuit.id` the identity among them, and the structural
-bounded-fan-in predicate `Circuit.FanInAtMost`. Evaluation commutes with
-homomorphisms (`Circuit.map_eval`).
+A circuit computes a function with as many values as it has outputs when its designated
+outputs agree with the function on every input; a single-valued function is computed by a
+circuit with one output. Evaluation commutes with homomorphisms of interpretations.
 
 ## References
 
@@ -46,7 +43,7 @@ variable {U : Type u} {U₁ : Type u₁} {U₂ : Type u₂}
 
 /-- A straight-line program with designated output wires. -/
 structure Circuit (σ : Signature) (inputCount outputCount : Nat) where
-  /-- The number of internal gates of the circuit, determined by the program. -/
+  /-- The number of gates in the program; inputs and designated outputs cost nothing. -/
   {size : Nat}
   /-- The internal gates of the circuit. -/
   program : Program σ inputCount size
@@ -115,36 +112,24 @@ def Circuit.eval
     (x : Fin inputCount → U) : Fin outputCount → U :=
   c.program.trace i x ∘ c.outputs
 
-/-- A wiring circuit reads its inputs through the selection. -/
+/-- Output `j` of a wiring circuit is input `select j`. -/
 @[simp] theorem Circuit.eval_wiring (select : Fin outputCount → Fin inputCount)
     (interpretation : Interpretation σ U) (input : Fin inputCount → U) :
     (Circuit.wiring σ select).eval interpretation input = input ∘ select := by
   funext output
   exact Program.trace_input .empty interpretation input (select output)
 
-/-- A circuit computes the family `f` when its `j`-th output agrees with `f j` on every
-input. -/
-def Circuit.ComputesFamily (c : Circuit σ inputCount outputCount)
-    (interpretation : Interpretation σ U)
-    (f : Fin outputCount → (Fin inputCount → U) → U) : Prop :=
-  ∀ x j, c.eval interpretation x j = f j x
+/-- A circuit computes `F` when its outputs agree with `F` on every input. -/
+def Circuit.Computes (c : Circuit σ inputCount outputCount)
+    (interpretation : Interpretation σ U) (F : (Fin inputCount → U) → Fin outputCount → U) :
+    Prop :=
+  ∀ x, c.eval interpretation x = F x
 
-/-- A single-output circuit computes `f` when its output agrees with `f` on every input. -/
-def Circuit.Computes (c : Circuit σ inputCount 1)
-    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → U) : Prop :=
-  ∀ x, c.eval interpretation x 0 = f x
-
-/-- Computing a single function is computing the constant family at it. -/
-theorem Circuit.computes_iff_computesFamily (c : Circuit σ inputCount 1)
-    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → U) :
-    c.Computes interpretation f ↔ c.ComputesFamily interpretation (fun _ => f) := by
-  simp [Circuit.Computes, Circuit.ComputesFamily, Fin.forall_fin_one]
-
-/-- A wiring circuit computes the selected input projections. -/
-theorem Circuit.wiring_computesFamily (select : Fin outputCount → Fin inputCount)
+/-- A wiring circuit computes the selection of its inputs. -/
+theorem Circuit.wiring_computes (select : Fin outputCount → Fin inputCount)
     (interpretation : Interpretation σ U) :
-    (Circuit.wiring σ select).ComputesFamily interpretation fun output x => x (select output) := by
-  intro x output
+    (Circuit.wiring σ select).Computes interpretation fun x => x ∘ select := by
+  intro x
   simp
 
 /-- Evaluating a circuit commutes with a homomorphism. -/

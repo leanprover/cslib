@@ -128,7 +128,8 @@ private theorem eventually_card_lt [Fintype σ.Op] [Fintype U] [Nontrivial U]
 theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
-      ∀ c : Circuit σ n 1, c.Computes I f → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
+      ∀ c : Circuit σ n 1,
+        c.Computes I (fun x _ => f x) → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
   classical
   let := Fintype.ofFinite σ.Op
   let := Fintype.ofFinite U

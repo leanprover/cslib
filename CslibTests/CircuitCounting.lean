@@ -77,7 +77,8 @@ example : Fintype.card (Program emptySignature 1 1) = 0 := by decide
 
 example : (fun x : Fin 1 → ℕ => x 0) ∈ computableFunctions emptyInterpretation 1 0 :=
   (mem_computableFunctions (I := emptyInterpretation)).mpr
-    ⟨Circuit.id emptySignature 1, fun _ => rfl, le_rfl⟩
+    ⟨Circuit.id emptySignature 1, by simp [Circuit.Computes, funext_iff, Fin.forall_fin_one],
+      le_rfl⟩
 
 example (s : ℕ) : (computableFunctions emptyInterpretation 0 s).card * s.factorial ≤
     (s + 1) * s ^ s * s := by
@@ -103,7 +104,7 @@ def nandInterpretation : Interpretation binarySignature Bool := fun _ x => !(x 0
 
 example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Bool) → Bool,
     ∀ c : Circuit binarySignature n 1,
-      c.Computes nandInterpretation f → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
+      c.Computes nandInterpretation (fun x _ => f x) → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Shannon.exists_hard_function nandInterpretation (fun _ => le_rfl)
 
@@ -111,7 +112,7 @@ def ternaryInterpretation : Interpretation binarySignature (Fin 3) := fun _ x =>
 
 example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Fin 3) → Fin 3,
     ∀ c : Circuit binarySignature n 1,
-      c.Computes ternaryInterpretation f → 3 ^ n / (n : ℝ) < (c.size : ℝ) := by
+      c.Computes ternaryInterpretation (fun x _ => f x) → 3 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Shannon.exists_hard_function ternaryInterpretation (fun _ => le_rfl)
 
