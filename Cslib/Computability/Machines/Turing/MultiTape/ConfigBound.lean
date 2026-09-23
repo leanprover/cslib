@@ -244,6 +244,33 @@ lemma storageBound_le_pow [Fintype Symbol] [Fintype State] :
     ∃ a c : ℕ, ∀ s : ℕ, storageBound Symbol State k s ≤ a * 2 ^ (c * s) :=
   ⟨_, _, storageBound_le_base_mul_pow⟩
 
+/-- A fixed multiple of `(storageBound + 1) ^ storageBound` grows at most doubly exponentially
+in the space. -/
+lemma storageBound_pow_le_pow_pow [Fintype Symbol] [Fintype State] (m : ℕ) :
+    ∃ a c : ℕ, ∀ s : ℕ,
+      m * (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s
+        ≤ 2 ^ (2 ^ (a + c * s)) := by
+  obtain ⟨a, c, hbound⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
+  refine ⟨m + 2 * a + 1, 2 * c, fun s => ?_⟩
+  let B := storageBound Symbol State k s
+  let E := m + 2 * a + 2 * c * s
+  have hB : B ≤ 2 ^ (a + c * s) := by
+    rw [pow_add]
+    exact (hbound s).trans (by gcongr; exact Nat.lt_two_pow_self.le)
+  have hsum : m + B * B ≤ 2 ^ (E + 1) := by
+    calc m + B * B
+      _ ≤ 2 ^ m + 2 ^ (a + c * s) * 2 ^ (a + c * s) := by
+        gcongr; exact Nat.lt_two_pow_self.le
+      _ = 2 ^ m + 2 ^ (2 * a + 2 * c * s) := by ring
+      _ ≤ 2 ^ E + 2 ^ E := by gcongr <;> omega
+      _ = 2 ^ (E + 1) := by ring
+  calc m * (B + 1) ^ B
+    _ ≤ 2 ^ m * (2 ^ B) ^ B := by
+      exact Nat.mul_le_mul Nat.lt_two_pow_self.le (Nat.pow_le_pow_left Nat.lt_two_pow_self B)
+    _ = 2 ^ (m + B * B) := by ring
+    _ ≤ 2 ^ (2 ^ (E + 1)) := by gcongr; omega
+    _ = _ := by dsimp [E]; ring
+
 /-! ## The storage and the core of a configuration
 
 Now we relate `Cfg` and `Storage` by giving the projection.
@@ -273,13 +300,70 @@ lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.c
   simp only [Cfg.core, Cfg.storage, MultiTapeTM.step, hstate, hsym, hws]
   cases c₂.state <;> simp [hpos, hstate, hwt, hwp]
 
+namespace MultiTapeTM
+
+/-- Equal storages and scanned input symbols give equal next storages, and both input heads
+execute the same move. For halted configurations, this is the stationary move. -/
+lemma exists_step_move_of_storage_eq {input' : List Symbol}
+    {c : Cfg k Symbol State input} {c' : Cfg k Symbol State input'}
+    (hstore : c.storage = c'.storage) (hsym : c.inputSymbol = c'.inputSymbol) :
+    ∃ m, (tm.step c).storage = (tm.step c').storage ∧
+      (tm.step c).inputPos = moveInputPos c.inputPos m ∧
+      (tm.step c').inputPos = moveInputPos c'.inputPos m := by
+  rcases c with ⟨state, pos, tapes, heads, out⟩
+  rcases c' with ⟨state', pos', tapes', heads', out'⟩
+  simp only [Cfg.storage, Storage.mk.injEq] at hstore
+  rcases hstore with ⟨rfl, rfl, rfl⟩
+  cases state with
+  | none => exact ⟨0, rfl, (moveInputPos_zero _).symm, (moveInputPos_zero _).symm⟩
+  | some state =>
+    dsimp only [step]
+    unfold Cfg.workTapeSymbols
+    rw [hsym]
+    exact ⟨_, rfl, rfl, rfl⟩
+
+/-- Runs starting with the same core keep the same core. -/
+lemma core_runFrom_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input}
+    (h : c₁.core = c₂.core) (t : ℕ) :
+    (tm.runFrom c₁ t).core = (tm.runFrom c₂ t).core := by
+  induction t with
+  | zero => exact h
+  | succ t ih =>
+    simpa only [runFrom_succ_eq_step'] using core_step_eq_of_core_eq (tm := tm) ih
+
+/-- The cores up to and including the first halt are pairwise distinct. -/
+lemma core_runFrom_injOn {cfg : Cfg k Symbol State input} {T : ℕ}
+    (hhalt : (tm.runFrom cfg T).Halted)
+    (hfirst : ∀ t < T, ¬ (tm.runFrom cfg t).Halted) :
+    Set.InjOn (fun t => (tm.runFrom cfg t).core) (Set.Iic T) := by
+  intro a ha b hb heq
+  wlog hab : a ≤ b generalizing a b
+  · exact (this hb ha heq.symm (le_of_not_ge hab)).symm
+  by_contra hne
+  change b ≤ T at hb
+  have heq' := tm.core_runFrom_eq_of_core_eq heq (T - b)
+  rw [← runFrom_add, ← runFrom_add, Nat.add_sub_of_le hb] at heq'
+  exact hfirst (a + (T - b)) (by omega) ((congrArg (fun c => c.2.state) heq').trans hhalt)
+
 /-! ## The storages and cores of a space-bounded run
 
 These are the main results giving upper bounds on the number of storages and configuration cores
 reachable in bounded space.
 -/
 
-namespace MultiTapeTM
+/-- If every work head stays in `[-R, R]`, the run visits at most `k * (2 * R + 1)` cells. -/
+lemma spaceUsed_le_of_workTapePos_natAbs_le (cfg : Cfg k Symbol State input) (T R : ℕ)
+    (h : ∀ t ≤ T, ∀ i, ((tm.runFrom cfg t).workTapePos i).natAbs ≤ R) :
+    tm.spaceUsed cfg T ≤ k * (2 * R + 1) := by
+  calc tm.spaceUsed cfg T
+    _ ≤ ∑ _ : Fin k, (window R).card := by
+      apply Finset.sum_le_sum
+      intro i _
+      apply Finset.card_le_card
+      intro z hz
+      obtain ⟨t, ht, rfl⟩ := tm.mem_visitedByTapeHead.mp hz
+      exact mem_window.mpr (h t (by omega) i)
+    _ = k * (2 * R + 1) := by simp
 
 /-- The storage reached after `t` steps fits in the windows given by the per-tape space usage up
 to step `t`. -/
