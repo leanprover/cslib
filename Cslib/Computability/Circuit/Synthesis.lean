@@ -228,15 +228,15 @@ theorem finset_fold (op : U → U → U) [Std.Commutative op] [Std.Associative o
 outputs or none at all, requires no additional gates. -/
 theorem exists_circuit_outputs {m cost : ℕ} {f : Fin m → (Fin n → U) → U}
     (h : Synthesis I (inputs n) (Set.range f) cost) :
-    ∃ g ≤ cost, ∃ c : Circuit σ n g m, c.Computes I (fun x j => f j x) := by
+    ∃ c : Circuit σ n m, c.Computes I (fun x j => f j x) ∧ c.size ≤ cost := by
   classical
   obtain ⟨g, p, hg, _, hout⟩ := h 0 .empty (inputs_subset_available _)
   choose wires hw using fun j => mem_available.mp (hout ⟨j, rfl⟩)
-  exact ⟨g, by simpa using hg, ⟨p, wires⟩, fun x => funext fun j => hw j x⟩
+  exact ⟨⟨p, wires⟩, fun x => funext fun j => hw j x, by simpa using hg⟩
 
 /-- Extract a single-output circuit from a synthesis bound on the input projections. -/
 theorem exists_circuit {cost : ℕ} (h : Synthesis I (inputs n) {f} cost) :
-    ∃ g ≤ cost, ∃ c : Circuit σ n g 1, c.Computes I (fun x _ => f x) := by
+    ∃ c : Circuit σ n 1, c.Computes I (fun x _ => f x) ∧ c.size ≤ cost := by
   have h' : Synthesis I (inputs n) (Set.range fun _ : Fin 1 => f) cost := by
     simpa using h
   exact h'.exists_circuit_outputs

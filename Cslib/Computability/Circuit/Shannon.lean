@@ -128,7 +128,7 @@ private theorem eventually_card_lt [Fintype σ.Op] [Fintype U] [Nontrivial U]
 theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
-      ∀ {g} (c : Circuit σ n g 1),
+      ∀ c : Circuit σ n 1,
         c.Computes I (fun x _ => f x) → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
   classical
   let := Fintype.ofFinite σ.Op
@@ -139,9 +139,9 @@ theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
   obtain ⟨f, _, hf⟩ := Finset.exists_mem_notMem_of_card_lt_card
     (s := computableFunctions I n (Fintype.card U ^ n / n)) (t := Finset.univ)
     (by simpa only [Fintype.card_fun, Fintype.card_fin, Finset.card_univ] using hn)
-  refine ⟨f, fun {g} c hc => ?_⟩
-  have hg : Fintype.card U ^ n / n < g := lt_of_not_ge fun hg =>
-    hf (mem_computableFunctions.mpr ⟨g, hg, c, hc⟩)
+  refine ⟨f, fun c hc => ?_⟩
+  have hg : Fintype.card U ^ n / n < c.size := lt_of_not_ge fun hg =>
+    hf (mem_computableFunctions.mpr ⟨c, hc, hg⟩)
   apply (div_lt_iff₀ (by exact_mod_cast (by omega : 0 < n) : (0 : ℝ) < n)).mpr
   exact_mod_cast (Nat.div_lt_iff_lt_mul (by omega : 0 < n)).mp hg
 
