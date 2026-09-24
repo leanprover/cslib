@@ -25,7 +25,7 @@ jobs:
         type: 'stream'
         topic: 'Cslib status updates'
         content: |
-          ❌ The latest CI for Cslib's [nightly-testing branch](https://github.com/leanprover/cslib/tree/nightly-testing) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}) ([${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})).
+          ❌ The latest CI for Cslib's [nightly-testing branch](https://github.com/leanprover/cslib/tree/nightly-testing) has [failed](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}) ([${{ github.event.workflow_run.head_sha }}](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }})).
           You can `git fetch; git checkout nightly-testing` and push a fix.
 
   handle_success:

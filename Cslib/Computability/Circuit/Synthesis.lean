@@ -20,8 +20,10 @@ public import Mathlib.Data.Set.Lattice.Bounded
 starting program remains available, so successive constructions can share intermediate results.
 The signature and its carrier are arbitrary; neither needs to be finite or decidable.
 
-The core rules compose bounds, combine finite families, and apply operations of the signature.
-The fold rules accept a bound for combining two arguments, which may itself use several gates.
+The core rules compose bounds, combine finite families, and apply operations of the signature,
+either to functions that are already available or to functions synthesized in turn. Composition
+keeps everything built along the way available to later steps. The fold rules accept a bound
+for combining two arguments, which may itself use several gates.
 `Synthesis.exists_circuit_family` selects any finite family of outputs without adding gates;
 `Synthesis.exists_circuit` specializes this to a single output.
 -/
@@ -79,6 +81,10 @@ variable {s t t₁ : Set ((Fin n → U) → U)} {a b : ℕ} {f g : (Fin n → U)
 theorem of_subset (h : t ⊆ s) : Synthesis I s t 0 :=
   fun g p hp => ⟨g, p, by omega, Set.Subset.rfl, h.trans hp⟩
 
+/-- An available function requires no additional gates. -/
+theorem of_mem (hf : f ∈ s) : Synthesis I s {f} 0 :=
+  of_subset (Set.singleton_subset_iff.mpr hf)
+
 /-- Enlarge the source family, narrow the target family, or increase the budget. -/
 theorem mono (h : Synthesis I s t a) {s' t' : Set ((Fin n → U) → U)}
     (hs : s ⊆ s') (ht : t' ⊆ t) (hab : a ≤ b) : Synthesis I s' t' b := by
@@ -86,21 +92,24 @@ theorem mono (h : Synthesis I s t a) {s' t' : Set ((Fin n → U) → U)}
   obtain ⟨g₂, q, hq, hkeep, hout⟩ := h g₁ p (hs.trans hp)
   exact ⟨g₂, q, by omega, hkeep, ht.trans hout⟩
 
-/-- Successive constructions add their gate budgets. -/
+/-- Successive constructions add their gate budgets. The second construction may use the
+targets of the first, and both target families remain available. -/
 theorem comp (h : Synthesis I s t a) (h' : Synthesis I (s ∪ t) t₁ b) :
-    Synthesis I s t₁ (a + b) := by
-  intro g₁ p hp
-  obtain ⟨g₂, q, hq, hpq, ht⟩ := h g₁ p hp
-  obtain ⟨g₃, r, hr, hqr, hu⟩ := h' g₂ q (Set.union_subset (hp.trans hpq) ht)
-  exact ⟨g₃, r, by omega, hpq.trans hqr, hu⟩
-
-/-- Combine two target families, preserving the first while constructing the second. -/
-theorem union (h : Synthesis I s t a) (h' : Synthesis I s t₁ b) :
     Synthesis I s (t ∪ t₁) (a + b) := by
   intro g₁ p hp
   obtain ⟨g₂, q, hq, hpq, ht⟩ := h g₁ p hp
-  obtain ⟨g₃, r, hr, hqr, hu⟩ := h' g₂ q (hp.trans hpq)
+  obtain ⟨g₃, r, hr, hqr, hu⟩ := h' g₂ q (Set.union_subset (hp.trans hpq) ht)
   exact ⟨g₃, r, by omega, hpq.trans hqr, Set.union_subset (ht.trans hqr) hu⟩
+
+/-- Successive constructions, keeping only the final targets. -/
+theorem trans (h : Synthesis I s t a) (h' : Synthesis I (s ∪ t) t₁ b) :
+    Synthesis I s t₁ (a + b) :=
+  (h.comp h').mono Set.Subset.rfl Set.subset_union_right le_rfl
+
+/-- Combine two target families, preserving the first while constructing the second. -/
+theorem union (h : Synthesis I s t a) (h' : Synthesis I s t₁ b) :
+    Synthesis I s (t ∪ t₁) (a + b) :=
+  h.comp (h'.mono Set.subset_union_left Set.Subset.rfl le_rfl)
 
 /-- Synthesize an operation whose arguments are already available. -/
 theorem gate (op : σ.Op) (args : Fin (σ.Arity op) → (Fin n → U) → U)
@@ -148,7 +157,7 @@ theorem family [Fintype ι] (f : ι → (Fin n → U) → U) (cost : ι → ℕ)
 theorem gate_of_syntheses (op : σ.Op) (args : Fin (σ.Arity op) → (Fin n → U) → U)
     (cost : Fin (σ.Arity op) → ℕ) (h : ∀ i, Synthesis I s {args i} (cost i)) :
     Synthesis I s {fun x => I op (fun i => args i x)} ((∑ i, cost i) + 1) :=
-  (family args cost h).comp (gate op args (fun i => Set.mem_union_right _ ⟨i, rfl⟩))
+  (family args cost h).trans (gate op args (fun i => Set.mem_union_right _ ⟨i, rfl⟩))
 
 /-- A nullary operation supplies its interpreted constant with one gate. -/
 theorem nullary (op : σ.Op) (arity : σ.Arity op = 0) :
@@ -159,14 +168,14 @@ theorem nullary (op : σ.Op) (arity : σ.Arity op = 0) :
 In particular, this applies a unary operation. -/
 theorem unary (h : Synthesis I s {f} a) (op : σ.Op) :
     Synthesis I s {fun x => I op (fun _ => f x)} (a + 1) :=
-  h.comp (gate op (fun _ => f) (by simp))
+  h.trans (gate op (fun _ => f) (by simp))
 
 /-- Feed `f` to argument zero and `g` to the remaining arguments, using one further gate.
 For a binary operation, these are its two arguments. -/
 theorem binary (hf : Synthesis I s {f} a) (hg : Synthesis I s {g} b) (op : σ.Op) :
     Synthesis I s {fun x => I op (fun i => if i.val = 0 then f x else g x)}
       (a + b + 1) := by
-  simpa only [ite_apply] using (hf.union hg).comp
+  simpa only [ite_apply] using (hf.union hg).trans
     (gate op (fun i => if i.val = 0 then f else g) (fun i => by split <;> simp))
 
 /-- Apply a synthesis bound to two previously synthesized arguments. The combining
@@ -174,7 +183,7 @@ construction can use several gates and can reuse either argument. -/
 theorem combine {result : (Fin n → U) → U} {c : ℕ}
     (hf : Synthesis I s {f} a) (hg : Synthesis I s {g} b)
     (h : Synthesis I {f, g} {result} c) : Synthesis I s {result} (a + b + c) := by
-  apply (hf.union hg).comp
+  apply (hf.union hg).trans
   apply h.mono ?_ Set.Subset.rfl le_rfl
   intro k hk
   exact Set.mem_union_right _ (by simpa [or_comm] using hk)
@@ -184,8 +193,8 @@ combining operation. The seed and the combining construction have their own gate
 theorem foldr (op : U → U → U) (combineCost : ℕ)
     (hop : ∀ f g : (Fin n → U) → U,
       Synthesis I {f, g} {fun x => op (f x) (g x)} combineCost)
-    (indices : List ι) (f : ι → (Fin n → U) → U) (cost : ι → ℕ)
-    (seed : (Fin n → U) → U) (hseed : Synthesis I s {seed} a)
+    (indices : List ι) {f : ι → (Fin n → U) → U} {cost : ι → ℕ}
+    {seed : (Fin n → U) → U} (hseed : Synthesis I s {seed} a)
     (h : ∀ i ∈ indices, Synthesis I s {f i} (cost i)) :
     Synthesis I s {fun x => indices.foldr (fun i acc => op (f i x) acc) (seed x)}
       ((indices.map fun i => cost i + combineCost).sum + a) := by
@@ -202,8 +211,8 @@ several gates. -/
 theorem finset_fold (op : U → U → U) [Std.Commutative op] [Std.Associative op]
     (combineCost : ℕ) (hop : ∀ f g : (Fin n → U) → U,
       Synthesis I {f, g} {fun x => op (f x) (g x)} combineCost)
-    (indices : Finset ι) (f : ι → (Fin n → U) → U) (cost : ι → ℕ)
-    (seed : (Fin n → U) → U) (hseed : Synthesis I s {seed} a)
+    (indices : Finset ι) {f : ι → (Fin n → U) → U} {cost : ι → ℕ}
+    {seed : (Fin n → U) → U} (hseed : Synthesis I s {seed} a)
     (h : ∀ i ∈ indices, Synthesis I s {f i} (cost i)) :
     Synthesis I s {fun x => indices.fold op (seed x) (fun i => f i x)}
       ((∑ i ∈ indices, (cost i + combineCost)) + a) := by

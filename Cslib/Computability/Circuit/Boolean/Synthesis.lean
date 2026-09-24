@@ -54,10 +54,6 @@ theorem exists_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : 
     (h : ∀ i ∈ indices, Synthesis interpretation s {f i} (cost i)) :
     Synthesis interpretation s {fun x => decide (∃ i ∈ indices, f i x = true)}
       ((∑ i ∈ indices, (cost i + 1)) + 1) := by
-  have hop (f g : BooleanFunction n) :
-      Synthesis interpretation {f, g} {fun x => f x || g x} 1 := by
-    simpa [interpretation] using gate (I := interpretation) (s := {f, g}) .or
-      (fun i => if i.val = 0 then f else g) (fun i => by split <;> simp)
   have heq : (fun x => indices.fold Bool.or false (fun i => f i x)) =
       (fun x => decide (∃ i ∈ indices, f i x = true)) := by
     funext x
@@ -65,18 +61,14 @@ theorem exists_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : 
     simpa using Finset.fold_op_rel_iff_or (op := Bool.or)
       (r := fun _ v : Bool => v = true) (by simp) (c := true)
       (s := indices) (f := fun i => f i x) (b := false)
-  simpa only [heq] using finset_fold Bool.or 1 hop indices f cost
-    (fun _ => false) (const false) h
+  simpa only [heq] using finset_fold Bool.or 1
+    (fun _ _ => (of_mem (by simp)).or (of_mem (by simp))) indices (const false) h
 
 /-- Conjoin a finite family of functions. The extra gate supplies the empty conjunction. -/
 theorem forall_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : ι → ℕ)
     (h : ∀ i ∈ indices, Synthesis interpretation s {f i} (cost i)) :
     Synthesis interpretation s {fun x => decide (∀ i ∈ indices, f i x = true)}
       ((∑ i ∈ indices, (cost i + 1)) + 1) := by
-  have hop (f g : BooleanFunction n) :
-      Synthesis interpretation {f, g} {fun x => f x && g x} 1 := by
-    simpa [interpretation] using gate (I := interpretation) (s := {f, g}) .and
-      (fun i => if i.val = 0 then f else g) (fun i => by split <;> simp)
   have heq : (fun x => indices.fold Bool.and true (fun i => f i x)) =
       (fun x => decide (∀ i ∈ indices, f i x = true)) := by
     funext x
@@ -84,8 +76,8 @@ theorem forall_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : 
     simpa using Finset.fold_op_rel_iff_and (op := Bool.and)
       (r := fun _ v : Bool => v = true) (by simp) (c := true)
       (s := indices) (f := fun i => f i x) (b := true)
-  simpa only [heq] using finset_fold Bool.and 1 hop indices f cost
-    (fun _ => true) (const true) h
+  simpa only [heq] using finset_fold Bool.and 1
+    (fun _ _ => (of_mem (by simp)).and (of_mem (by simp))) indices (const true) h
 
 end Synthesis
 
@@ -98,7 +90,7 @@ theorem synthesis_minterm {k : ℕ} (wires : Fin k → Fin n) (value : Fin k →
   have literal (i : Fin k) :
       Synthesis interpretation (inputs n) {fun x => decide (x (wires i) = value i)} 1 := by
     have h : Synthesis interpretation (inputs n) {fun x => x (wires i)} 0 :=
-      Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨wires i, rfl⟩)
+      Synthesis.of_mem ⟨wires i, rfl⟩
     cases hv : value i
     · simpa [hv] using h.not
     · simpa [hv] using h.mono Set.Subset.rfl Set.Subset.rfl (by omega : 0 ≤ 1)
