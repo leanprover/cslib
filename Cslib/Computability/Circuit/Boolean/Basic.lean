@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Basic
+public import Cslib.Foundations.Data.BitString
 public import Mathlib.Data.Fintype.Card
 public import Mathlib.Data.Fintype.Sum
 public import Mathlib.Tactic.DeriveFintype
@@ -23,9 +24,6 @@ designated output wires are free.
 
 namespace Cslib.Circuits
 namespace Boolean
-
-/-- Boolean functions on `n` inputs. -/
-abbrev BooleanFunction (n : ℕ) := (Fin n → Bool) → Bool
 
 /-- Operations of the De Morgan basis, including constants. -/
 inductive Op where
