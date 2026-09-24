@@ -179,7 +179,7 @@ theorem Satisfies.unimodal_five (f : Frame World τ) [Relation.RightEuclidean f.
   have := @Relation.RightEuclidean.rightEuclidean (r := f.rel)
   grind
 
-/-- Any frame that admits 5 is Euclidean. -/
+/-- Any frame that admits 5 is right Euclidean. -/
 theorem Satisfies.unimodal_five_rightEuclidean (f : Frame World τ) [Nonempty Atom]
     (h : ∀ φ : Proposition τ Atom, Axiom f⇓(◇φ → □◇φ)) :
     Relation.RightEuclidean f.rel where
