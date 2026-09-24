@@ -47,7 +47,7 @@ attribute [modal =] PFunctor.const_apply
 namespace Cslib.Logic.Modal
 
 /-- A modal proposition. -/
-inductive Proposition (τ : PFunctor) Atom where
+inductive Proposition (τ : PFunctor) (Atom : Type u) where
   /-- Atomic proposition. -/
   | atom (p : Atom)
   /-- Falsehood. -/
@@ -175,7 +175,8 @@ instance {τ : PFunctor} {Atom : Type*} : HasNabla (Proposition τ Atom) τ := �
 lemma Proposition.nabla_def {τ : PFunctor} (op : τ.A)
     (φs : τ.B op → Proposition τ Atom) : Proposition.nabla op φs = (∇[op]φs) := rfl
 
-/-- The constant proposition map for `op`. -/
+/-- The constant proposition map for the operator `op`, used for applying a modality uniformly. This
+supplies the same proposition `φ` to every argument position of `op`. -/
 abbrev PropositionMap.const {τ : PFunctor} (op : τ.A) (φ : Proposition τ Atom) :
     PropositionMap τ op Atom := PFunctor.const op φ
 
