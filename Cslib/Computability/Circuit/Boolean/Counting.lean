@@ -29,7 +29,7 @@ noncomputable abbrev computableFunctions (n s : ℕ) : Finset (BooleanFunction n
 
 theorem mem_computableFunctions {f : BooleanFunction n} :
     f ∈ computableFunctions n s ↔ ∃ g ≤ s, ∃ c : Circuit signature n g 1,
-      c.Computes interpretation f :=
+      c.Computes interpretation (fun x _ => f x) :=
   Circuits.mem_computableFunctions
 
 /-- The De Morgan counting bound, accounting for gate relabelings. -/
