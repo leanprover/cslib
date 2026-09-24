@@ -87,8 +87,6 @@ theorem OmegaExecution.flatten_execution [Inhabited Label]
     have := segment_lower_bound h_mono h_zero n
     by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
     · have := segment_range_val h_mono (by grind) h_n
-      have : n + 1 - segs.cumLen (segment segs.cumLen n) < (μls (segment segs.cumLen n)).length :=
-        by grind
       grind
     · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
         grind [segment_upper_bound h_mono h_zero n]

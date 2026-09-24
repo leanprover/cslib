@@ -160,10 +160,7 @@ theorem loop_language_eq [Inhabited Symbol] :
     use ss, h_run
     apply frequently_iff_strictMono.mpr
     use xls.cumLen, ?_, by grind
-    apply cumLen_strictMono
-    intro k
-    apply List.length_pos_iff.mpr
-    grind
+    grind [cumLen_strictMono, List.length_pos_iff]
 
 end Buchi
 
@@ -195,9 +192,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
         use s0
       obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.extend_omegaExecution h_mtr
       have h_run : na.finLoop.Run (xl ++ω xs) ss := by grind [Run]
-      obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by
-        simp only [mem_singleton_iff] at h_acc
-        grind
+      obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by grind
       obtain ⟨n, h_n, h_take, h_drop, h_ωtr'⟩ := loop_run_one_iter h_run h1 h2
       left; refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
       · #adaptation_note

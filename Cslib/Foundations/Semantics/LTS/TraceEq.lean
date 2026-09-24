@@ -115,7 +115,6 @@ scoped notation s:max " ~tr[" lts "] " s':max => HomTraceEq lts s s'
 @[refl] theorem HomTraceEq.refl (s : State) : s ~tr[lts] s := rfl
 
 @[simp] theorem TraceEq.flip_eq : flip (TraceEq lts₁ lts₂) = TraceEq lts₂ lts₁ := by
-  ext s₁ s₂
   grind [flip, TraceEq]
 
 /-- Trace equivalence is symmetric. -/

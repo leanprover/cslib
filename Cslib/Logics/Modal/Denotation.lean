@@ -53,8 +53,7 @@ theorem Proposition.equiv_iff_denotation_eq :
     (φ₁ ≡[Equiv m] φ₂) ↔ φ₁.denotation m = φ₂.denotation m := by
   constructor <;> intro h
   case mp =>
-    ext w
-    grind [h w]
+    grind
   case mpr =>
     intro w
     rw [Set.ext_iff] at h

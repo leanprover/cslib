@@ -46,11 +46,11 @@ denote languages (namely, sets of finite sequences of type `List α`).
 ## Main theorems
 
 * Many algebraic properties of the above operations.
-* omegaPow_seq_prop: an alternative characterization of `l^ω`.
-* omegaPow_coind: a "coinductive" rule for proving `p` is a subset of `l^ω`.
-* hmul_omegaPow_eq_omegaPow: `l * l^ω = l^ω`.
-* kstar_omegaPow_eq_omegaPow: `(l∗)^ω = l^ω`.
-* kstar_hmul_omegaPow_eq_omegaPow: `l∗ * l^ω = l^ω`.
+* `omegaPow_seq_prop`: an alternative characterization of `l^ω`.
+* `omegaPow_coind`: a "coinductive" rule for proving `p` is a subset of `l^ω`.
+* `hmul_omegaPow_eq_omegaPow`: `l * l^ω = l^ω`.
+* `kstar_omegaPow_eq_omegaPow`: `(l∗)^ω = l^ω`.
+* `kstar_hmul_omegaPow_eq_omegaPow`: `l∗ * l^ω = l^ω`.
 
 ## TODO
 

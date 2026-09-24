@@ -59,8 +59,7 @@ structure Scheme (Secret Randomness Party Share : Type*) where
   /-- Authorized coalitions. -/
   authorized : Finset Party → Prop
   /-- Authorization is monotone in the coalition. -/
-  authorized_mono :
-    ∀ {s t : Finset Party}, s ⊆ t → authorized s → authorized t
+  authorized_mono : Monotone authorized
   /-- Authorized coalitions reconstruct the secret from the restricted view. -/
   correct :
     ∀ (r : Randomness) (secret : Secret) (s : Finset Party),
@@ -98,9 +97,8 @@ theorem not_authorized_of_subset
     (scheme : Scheme Secret Randomness Party Share)
     {s t : Finset Party} (hst : s ⊆ t)
     (ht : ¬ scheme.authorized t) :
-    ¬ scheme.authorized s := by
-  intro hs
-  exact ht (scheme.authorized_mono hst hs)
+    ¬ scheme.authorized s :=
+  mt (scheme.authorized_mono hst) ht
 
 end Scheme
 

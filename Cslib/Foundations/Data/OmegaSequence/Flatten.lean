@@ -129,8 +129,8 @@ theorem map_length_take_sum {ls : ωSequence (List α)} (n : ℕ) :
     (List.map List.length (take n ls)).sum = ls.cumLen n := by
   induction n <;> grind [take_succ']
 
-/-- `In fact, (ls.take n).flatten` is `ls.flatten.take (ls.cumLen n)`
-and (ls.drop n).flatten` is `ls.flatten.drop (ls.cumLen n)`. -/
+/-- In fact, `(ls.take n).flatten` is `ls.flatten.take (ls.cumLen n)`
+and `(ls.drop n).flatten` is `ls.flatten.drop (ls.cumLen n)`. -/
 theorem flatten_take_drop [Inhabited α]
     {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0) (n : ℕ) :
     (ls.take n).flatten = ls.flatten.take (ls.cumLen n) ∧
