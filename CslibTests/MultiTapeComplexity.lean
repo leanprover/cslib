@@ -22,6 +22,6 @@ private lemma constant_computable :
       (fun b => if b then 1 else 2) (fun _ => 0) := by
   refine ⟨0, Unit, inferInstance, finish 0 true, fun b => ⟨1, ?_, 0, le_rfl, ?_⟩⟩
   · cases b <;> decide
-  · exact ⟨rfl, rfl, spaceUsed_zero_tapes_eq_zero _ _ rfl⟩
+  · exact ⟨rfl, rfl, by simp only [spaceUsed_zero_tapes_eq_zero _ _ rfl, le_rfl]⟩
 
 end CslibTests.MultiTapeComplexity

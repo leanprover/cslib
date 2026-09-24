@@ -97,9 +97,9 @@ lemma toNTMComputationPath_space :
 run. -/
 theorem toNTM_computes {output : List Symbol} {t s : ℕ}
     (h : tm.ComputesInTimeAndSpace input output t s) :
-    tm.toNTM.ComputesInExactTimeAndSpace input output t s :=
+    tm.toNTM.ComputesInTimeAndSpace input output t s :=
   ⟨tm.toNTMComputationPath input t, by simpa using h.1, by simpa using h.2.1,
-    toNTMComputationPath_time, toNTMComputationPath_space.trans h.2.2⟩
+    by simp [toNTMComputationPath_time], by simpa using h.2.2⟩
 
 end MultiTapeTM
 
