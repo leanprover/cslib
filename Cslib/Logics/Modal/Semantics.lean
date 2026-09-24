@@ -16,7 +16,7 @@ public import Cslib.Foundations.Semantics.Frame.Basic
 namespace Cslib.Logic.Modal
 
 /-- A model is a frame equipped with a valuation of atoms at worlds. -/
-structure Model (World : Type u) (τ : PFunctor) Atom extends Frame World τ where
+structure Model (World : Type u) (τ : PFunctor) (Atom : Type v) extends Frame World τ where
   /-- Valuation of atoms at a world. -/
   v : World → Atom → Prop
 
