@@ -123,11 +123,11 @@ def Circuit.eval
     (x : Fin inputCount → U) : Fin outputCount → U :=
   c.program.trace i x ∘ c.outputs
 
-/-- A circuit computes `F` when its outputs agree with `F` on every input. -/
+/-- A circuit computes `f` when its outputs agree with `f` on every input. -/
 def Circuit.Computes (c : Circuit σ inputCount gateCount outputCount)
-    (interpretation : Interpretation σ U) (F : (Fin inputCount → U) → Fin outputCount → U) :
+    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → Fin outputCount → U) :
     Prop :=
-  ∀ x, c.eval interpretation x = F x
+  ∀ x, c.eval interpretation x = f x
 
 @[simp] theorem Circuit.eval_wiring (select : Fin outputCount → Fin inputCount)
     (interpretation : Interpretation σ U) (input : Fin inputCount → U) :
