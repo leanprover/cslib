@@ -70,6 +70,7 @@ whenever `w` accesses `ws₁` and `ws₁ i` accesses `ws₂`, then `w` accesses 
 class Trans (f : Frame World τ) (op : τ.A) where
   trans w ws₁ i ws₂ : f.r op w ws₁ → f.r op (ws₁ i) ws₂ → f.r op w ws₂
 
+/-- Frame transitivity at `op` implies transitivity of all its projected binary relations. -/
 instance (f : Frame World τ) [f.Trans op] (i : τ.B op) :
     IsTrans World (f.project op i) where
   trans w₁ w₂ w₃ h₁ h₂ := by
