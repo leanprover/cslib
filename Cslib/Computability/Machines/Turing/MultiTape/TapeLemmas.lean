@@ -49,7 +49,7 @@ lemma step_workTapes_eq_of_ne
 
 lemma mem_visitedByTapeHead {t : ℕ} {i : Fin k} {z : ℤ} :
     z ∈ tm.visitedByTapeHead cfg t i ↔ ∃ t' < t + 1, (tm.runFrom cfg t').workTapePos i = z := by
-  simp [visitedByTapeHead]
+  simp [visitedByTapeHead, Fin.exists_iff]
 
 lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     (tm.runFrom cfg t).workTapePos i ∈ tm.visitedByTapeHead cfg t i :=
@@ -58,8 +58,9 @@ lemma mem_visitedByTapeHead_self (cfg : Cfg k Symbol State input) (t : ℕ) (i :
 /-- The set of positions visited by a tape head is monotone in the number of steps. -/
 lemma visitedByTapeHead_mono (cfg : Cfg k Symbol State input) (i : Fin k) {t t' : ℕ} (h : t ≤ t') :
     tm.visitedByTapeHead cfg t i ⊆ tm.visitedByTapeHead cfg t' i := by
-  apply Finset.image_subset_image
-  grind
+  intro z hz
+  obtain ⟨n, hn, hz⟩ := tm.mem_visitedByTapeHead.mp hz
+  exact tm.mem_visitedByTapeHead.mpr ⟨n, by omega, hz⟩
 
 /-- Starting from configuration `cfg`, every position between the initial head position of tape
 `i` and the one after `t` steps is part of the "visited set" at step `t`. -/
@@ -126,11 +127,8 @@ lemma content_natAbs_le_spaceUsedByTape
 
 /-- The number of cells touched by a single work tape grows by at most one each step. -/
 lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    tm.spaceUsedByTape cfg t i ≤ t + 1 := by
-  calc
-    tm.spaceUsedByTape cfg t i
-    _ ≤ (Finset.range (t + 1)).card := Finset.card_image_le
-    _ = t + 1 := Finset.card_range _
+    tm.spaceUsedByTape cfg t i ≤ t + 1 :=
+  Finset.card_image_le.trans_eq (by simp)
 
 /-- The space used by a computation is bounded linearly by the number of steps. -/
 lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
@@ -180,7 +178,7 @@ below. -/
 lemma visitedByTapeHead_subset (cfg : Cfg k Symbol State input) {t : ℕ} {i : Fin k} {S : Finset ℤ}
     (h : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos i ∈ S) :
     tm.visitedByTapeHead cfg t i ⊆ S :=
-  Finset.image_subset_iff.mpr fun m hm => h m (Nat.lt_succ_iff.mp (Finset.mem_range.mp hm))
+  Finset.image_subset_iff.mpr fun m _ => h m (Nat.lt_succ_iff.mp m.isLt)
 
 /-- A set containing every position of a head bounds the space used by its tape. -/
 lemma spaceUsedByTape_le_card (cfg : Cfg k Symbol State input) {t : ℕ} {i : Fin k} {S : Finset ℤ}
@@ -230,8 +228,8 @@ lemma spaceUsed_eq_of_workTapePos {State' : Type*} {input' : List Symbol}
     (cfg' : Cfg k Symbol State' input') (t : ℕ)
     (h : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos = (tm'.runFrom cfg' m).workTapePos) :
     tm.spaceUsed cfg t = tm'.spaceUsed cfg' t := by
-  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card (Finset.image_congr fun m hm => ?_)
-  exact congrFun (h m (Nat.lt_succ_iff.mp (Finset.mem_range.mp hm))) i
+  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card (Finset.image_congr fun m _ => ?_)
+  exact congrFun (h m (Nat.lt_succ_iff.mp m.isLt)) i
 
 /-- After the machine has halted the heads no longer move, so the visited set stops growing. -/
 lemma visitedByTapeHead_eq_of_halt (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
