@@ -101,7 +101,7 @@ private theorem relabel_unique (c : Circuit σ n g 1) (π : Equiv.Perm (Fin g))
 
 private theorem relabel_output (c : Circuit σ n g 1) (π : Equiv.Perm (Fin g))
     (x : Fin n → U) :
-    Fin.addCases x (c.program.eval I x ∘ π.symm) (relabel c π).2 =
+    Wire.elim x (c.program.eval I x ∘ π.symm) (relabel c π).2 =
       c.eval I x 0 := by
   apply Wire.Renaming.value_apply
   intro gate
@@ -157,7 +157,7 @@ theorem card_irredundantFunctions_mul_factorial_le (I : Interpretation σ U) (n 
   classical
   have h := Fintype.card_le_of_injective _ (relabel_injective (I := I) (n := n) (g := g))
   simpa only [Fintype.card_prod, Fintype.card_coe, Fintype.card_perm, Fintype.card_fin,
-    Fintype.card_fun] using h
+    Fintype.card_fun, Wire.card] using h
 
 /-- Normalizing a circuit places its function in one of the irredundant families. -/
 theorem card_computableFunctions_le_sum (I : Interpretation σ U) (n s : ℕ) :
