@@ -15,6 +15,10 @@ A language over `Bool` is the union of its slices, one for each word length. The
 `n` is a Boolean function of `n` bits, so it can be handled by models of computation with a fixed
 number of inputs, such as circuits. Conversely, a Boolean function for each length assembles into
 a language, and slicing that language recovers the functions.
+
+Membership in an arbitrary language is not decidable, so a slice is defined classically. This is
+what lets notions defined for Boolean functions, such as circuit complexity, apply to every
+language rather than only to decidable ones.
 -/
 
 @[expose] public section
