@@ -62,7 +62,7 @@ instance : HasWellFormed (Context α β) :=
 
 omit [DecidableEq α] in
 @[scoped grind _=_]
-theorem haswellformed_def (Γ : Context α β) : Γ✓ = Γ.NodupKeys := by rfl
+theorem haswellformed_def (Γ : Context α β) : Γ✓ ↔ Γ.NodupKeys := by rfl
 
 /-- A mapping of values within a context. -/
 @[simp, scoped grind]
