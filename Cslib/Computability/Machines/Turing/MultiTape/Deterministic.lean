@@ -279,9 +279,10 @@ lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) (t : ℕ) :
     ((tm.runFrom cfg t).inputPos : ℕ) ≤ (cfg.inputPos : ℕ) + t := by
   induction t with
-  | zero => simp
+  | zero => simp [runFrom]
   | succ t ih =>
-    rw [runFrom_succ_eq_step']
+    rw [show tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) from
+      Function.iterate_succ_apply' ..]
     by_cases hq : (tm.runFrom cfg t).state = none
     · rw [step_of_halt hq]
       omega
@@ -305,9 +306,10 @@ public lemma length_output_mono (tm : MultiTapeTM k Symbol State)
     (c : Cfg k Symbol State input) (d : ℕ) :
     c.output.length ≤ (tm.runFrom c d).output.length := by
   induction d with
-  | zero => simp
+  | zero => simp [runFrom]
   | succ d ih =>
-    rw [runFrom_succ_eq_step', step_output, List.length_append]
+    rw [show tm.runFrom c (d + 1) = tm.step (tm.runFrom c d) from
+      Function.iterate_succ_apply' .., step_output, List.length_append]
     omega
 
 /-- A machine emits at most one symbol per step. -/
@@ -315,9 +317,10 @@ theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) (t : ℕ) :
     (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
   induction t with
-  | zero => simp
+  | zero => simp [runFrom]
   | succ t ih =>
-    rw [runFrom_succ_eq_step', step_output, List.length_append]
+    rw [show tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) from
+      Function.iterate_succ_apply' .., step_output, List.length_append]
     have : (tm.outputSymbol (tm.runFrom cfg t)).toList.length ≤ 1 := by
       cases tm.outputSymbol (tm.runFrom cfg t) <;> simp
     omega

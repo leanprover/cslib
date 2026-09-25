@@ -116,7 +116,9 @@ public lemma step_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol Sta
 public lemma runFrom_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input)
     (n : ℕ) :
     tm.outputToTape.runFrom (outCfg c) n = outCfg (tm.runFrom c n) :=
-  runFrom_comm_of_step outCfg (step_outCfg tm) c n
+  (Function.Semiconj.iterate_right
+    (f := outCfg) (ga := tm.step) (gb := tm.outputToTape.step)
+    (fun c => (step_outCfg tm c).symm) n c).symm
 
 section WithOutput
 
@@ -148,8 +150,9 @@ public lemma step_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
 public lemma runFrom_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
     (c : Cfg (k + 1) Symbol State input) (out : List Symbol) (n : ℕ) :
     tm.outputToTape.runFrom (c.withOutput out) n = (tm.outputToTape.runFrom c n).withOutput out :=
-  runFrom_comm_of_step (fun c => c.withOutput out)
-    (fun c => step_outputToTape_withOutput tm c out) c n
+  (Function.Semiconj.iterate_right
+    (f := fun c => Cfg.withOutput c out) (ga := tm.outputToTape.step) (gb := tm.outputToTape.step)
+    (fun c' => (step_outputToTape_withOutput tm c' out).symm) n c).symm
 
 /-- `outputToTape`'s space does not depend on the real output already present. -/
 public lemma spaceUsed_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
@@ -194,7 +197,9 @@ public lemma spaceUsed_outputToTape (tm : MultiTapeTM k Symbol State)
     have h1 := length_output_mono tm c m
     have h2 : (tm.runFrom c m).output.length ≤ (tm.runFrom c u).output.length := by
       have h := length_output_mono tm (tm.runFrom c m) (u - m)
-      rw [← runFrom_add, show m + (u - m) = u from by omega] at h
+      rw [show tm.runFrom (tm.runFrom c m) (u - m) = tm.runFrom c (m + (u - m)) by
+        simp only [runFrom, ← Function.iterate_add_apply, Nat.add_comm],
+        show m + (u - m) = u from by omega] at h
       exact h
     exact Finset.mem_Icc.mpr ⟨by omega, by omega⟩
   calc tm.outputToTape.spaceUsed (outCfg c) u

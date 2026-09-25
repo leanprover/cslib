@@ -161,8 +161,9 @@ public lemma runFrom_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin 
     (extraPos : Fin k' → ℤ) (n : ℕ) :
     (tm.extendTapes e).runFrom (embed e cfg extraTapes extraPos) n
       = embed e (tm.runFrom cfg n) extraTapes extraPos :=
-  runFrom_comm_of_step (fun c => embed e c extraTapes extraPos)
-    (fun c => step_embed tm e c extraTapes extraPos) cfg n
+  (Function.Semiconj.iterate_right
+    (f := fun c => embed e c extraTapes extraPos) (ga := tm.step) (gb := (tm.extendTapes e).step)
+    (fun c => (step_embed tm e c extraTapes extraPos).symm) n cfg).symm
 
 section Space
 

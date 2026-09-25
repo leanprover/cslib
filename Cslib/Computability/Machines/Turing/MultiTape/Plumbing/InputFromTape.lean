@@ -244,8 +244,9 @@ public lemma runFrom_inCfg (tm : MultiTapeTM k Symbol State) (mark : Symbol)
     (c : Cfg k Symbol State input) (outerInput : List Symbol) (n : ℕ) :
     tm.inputFromTape.runFrom (inCfg mark c outerInput) n =
       inCfg mark (tm.runFrom c n) outerInput :=
-  runFrom_comm_of_step (fun c => inCfg mark c outerInput)
-    (fun c => step_inCfg tm mark c outerInput) c n
+  (Function.Semiconj.iterate_right
+    (f := fun c' => inCfg mark c' outerInput) (ga := tm.step) (gb := tm.inputFromTape.step)
+    (fun c' => (step_inCfg tm mark c' outerInput).symm) n c).symm
 
 /-- **Space of the input-redirected machine.** The `k` inner tapes visit exactly what the original
 does; the two extra tapes (virtual input, flag) each move only with the simulated input head,
