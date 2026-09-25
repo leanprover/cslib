@@ -50,26 +50,25 @@ marking the cell left of the input. The real input tape is never read and never 
     MultiTapeTM (k + 2) Symbol State where
   q₀ := tm.q₀
   tr q _ work :=
-    let a := tm.tr q (work ⟨k, by omega⟩) fun j => work (j.castAdd 2)
-    let m := clampMove (work ⟨k, by omega⟩) (work ⟨k + 1, by omega⟩) a.inputTape
-    { inputTape := 0
+    let a := tm.tr q (work (Fin.natAdd k 0)) fun j => work (j.castAdd 2)
+    let m := clampMove (work (Fin.natAdd k 0)) (work (Fin.natAdd k 1)) a.inputTape
+    { a with
+      inputTape := 0
       workTapes := fun l =>
-        if h : l.val < k then a.workTapes ⟨l.val, h⟩ else (none, m)
-      output := a.output
-      state := a.state }
+        if h : l.val < k then a.workTapes ⟨l.val, h⟩ else (none, m) }
 
 /-- A configuration of `tm` on `input`, as the redirecting machine sees it, over an arbitrary
 ambient input: `input` sits on the virtual input tape with the head at cell `inputPos - 1`, the flag
 tape carries its mark at `-1` with its head in lockstep, and the ambient input head rests at
 `1`. -/
 @[expose] public def inCfg (mark : Symbol) {input : List Symbol} (c : Cfg k Symbol State input)
-    (outerInput : List Symbol) : Cfg (k + 2) Symbol State outerInput :=
-  ⟨c.state, 1,
-    fun l => if h : l.val < k then c.workTapes ⟨l.val, h⟩
-      else if l.val = k then tapeOfList input
-      else Function.update (fun _ => none) (-1) (some mark),
-    fun l => if h : l.val < k then c.workTapePos ⟨l.val, h⟩ else ((c.inputPos.val : ℤ) - 1),
-    c.output⟩
+    (outerInput : List Symbol) : Cfg (k + 2) Symbol State outerInput where
+  state := c.state
+  inputPos := 1
+  workTapes := Fin.append c.workTapes
+    ![tapeOfList input, Function.update (fun _ ↦ none) (-1) (some mark)]
+  workTapePos := Fin.append c.workTapePos (fun _ : Fin 2 ↦ (c.inputPos : ℤ) - 1)
+  output := c.output
 
 section Projections
 
@@ -86,12 +85,12 @@ public lemma inCfg_workTapes_castAdd (c : Cfg k Symbol State input) (j : Fin k) 
 
 @[simp]
 public lemma inCfg_workTapes_vip (c : Cfg k Symbol State input) :
-    (inCfg mark c outerInput).workTapes ⟨k, by omega⟩ = tapeOfList input := by
+    (inCfg mark c outerInput).workTapes (Fin.natAdd k 0) = tapeOfList input := by
   simp [inCfg]
 
 @[simp]
 public lemma inCfg_workTapes_flag (c : Cfg k Symbol State input) :
-    (inCfg mark c outerInput).workTapes ⟨k + 1, by omega⟩ =
+    (inCfg mark c outerInput).workTapes (Fin.natAdd k 1) =
       Function.update (fun _ => none) (-1) (some mark) := by
   simp [inCfg]
 
@@ -102,12 +101,12 @@ public lemma inCfg_workTapePos_castAdd (c : Cfg k Symbol State input) (j : Fin k
 
 @[simp]
 public lemma inCfg_workTapePos_vip (c : Cfg k Symbol State input) :
-    (inCfg mark c outerInput).workTapePos ⟨k, by omega⟩ = ((c.inputPos.val : ℤ) - 1) := by
+    (inCfg mark c outerInput).workTapePos (Fin.natAdd k 0) = ((c.inputPos.val : ℤ) - 1) := by
   simp [inCfg]
 
 @[simp]
 public lemma inCfg_workTapePos_flag (c : Cfg k Symbol State input) :
-    (inCfg mark c outerInput).workTapePos ⟨k + 1, by omega⟩ = ((c.inputPos.val : ℤ) - 1) := by
+    (inCfg mark c outerInput).workTapePos (Fin.natAdd k 1) = ((c.inputPos.val : ℤ) - 1) := by
   simp [inCfg]
 
 @[simp]
@@ -165,20 +164,20 @@ public lemma clampMove_correct (mark : Symbol) (c : Cfg k Symbol State input) (m
 input head reads. -/
 private lemma inCfg_vip_symbol (mark : Symbol) (c : Cfg k Symbol State input)
     (outerInput : List Symbol) :
-    (inCfg mark c outerInput).workTapeSymbols ⟨k, by omega⟩ = c.inputSymbol := by
+    (inCfg mark c outerInput).workTapeSymbols (Fin.natAdd k 0) = c.inputSymbol := by
   rw [Cfg.workTapeSymbols, inCfg_workTapes_vip, inCfg_workTapePos_vip, vip_read]
 
 /-- Reading the sim machine's flag: marked exactly at the left boundary. -/
 private lemma inCfg_flag_symbol (mark : Symbol) (c : Cfg k Symbol State input)
     (outerInput : List Symbol) :
-    (inCfg mark c outerInput).workTapeSymbols ⟨k + 1, by omega⟩ =
+    (inCfg mark c outerInput).workTapeSymbols (Fin.natAdd k 1) =
       (if c.inputPos.val = 0 then some mark else none) := by
   rw [Cfg.workTapeSymbols, inCfg_workTapes_flag, inCfg_workTapePos_flag, flag_read]
 
 /-- Decompose a tape index of the redirecting machine: an original work tape, the virtual input
 tape, or the flag tape. -/
 private lemma tape_cases (l : Fin (k + 2)) :
-    (∃ j : Fin k, l = j.castAdd 2 ∧ l.val < k) ∨ l = ⟨k, by omega⟩ ∨ l = ⟨k + 1, by omega⟩ := by
+    (∃ j : Fin k, l = j.castAdd 2 ∧ l.val < k) ∨ l = Fin.natAdd k 0 ∨ l = Fin.natAdd k 1 := by
   rcases Nat.lt_trichotomy l.val k with h | h | h
   · refine Or.inl ⟨⟨l.val, h⟩, ?_, h⟩
     apply Fin.ext
@@ -222,19 +221,19 @@ public lemma step_inCfg (tm : MultiTapeTM k Symbol State) (mark : Symbol)
       rcases tape_cases l with ⟨j, rfl, hjk⟩ | rfl | rfl
       · simp only [Action.apply_workTapes, Fin.val_castAdd, dite_eq_left j.isLt, Fin.eta,
           inCfg_workTapes_castAdd, inCfg_workTapePos_castAdd]
-      · have hnk : ¬ ((⟨k, by omega⟩ : Fin (k + 2)).val < k) := by simp
+      · have hnk : ¬ ((Fin.natAdd k 0 : Fin (k + 2)).val < k) := by simp
         simp only [Action.apply_workTapes, dite_eq_right hnk, inCfg_workTapes_vip]
-      · have hnk1 : ¬ ((⟨k + 1, by omega⟩ : Fin (k + 2)).val < k) := by simp
+      · have hnk1 : ¬ ((Fin.natAdd k 1 : Fin (k + 2)).val < k) := by simp
         simp only [Action.apply_workTapes, dite_eq_right hnk1, inCfg_workTapes_flag]
     · funext l
       rcases tape_cases l with ⟨j, rfl, hjk⟩ | rfl | rfl
       · simp only [Action.apply_workTapePos, Fin.val_castAdd, dite_eq_left j.isLt, Fin.eta,
           inCfg_workTapePos_castAdd]
-      · have hnk : ¬ ((⟨k, by omega⟩ : Fin (k + 2)).val < k) := by simp
+      · have hnk : ¬ ((Fin.natAdd k 0 : Fin (k + 2)).val < k) := by simp
         simp only [Action.apply_workTapePos, dite_eq_right hnk, inCfg_workTapePos_vip,
           Action.apply_inputPos]
         omega
-      · have hnk1 : ¬ ((⟨k + 1, by omega⟩ : Fin (k + 2)).val < k) := by simp
+      · have hnk1 : ¬ ((Fin.natAdd k 1 : Fin (k + 2)).val < k) := by simp
         simp only [Action.apply_workTapePos, dite_eq_right hnk1, inCfg_workTapePos_flag,
           Action.apply_inputPos]
         omega
@@ -265,7 +264,7 @@ public lemma spaceUsed_inputFromTape (tm : MultiTapeTM k Symbol State) (mark : S
     refine Finset.image_congr fun m _ => ?_
     rw [hmir m, inCfg_workTapePos_castAdd]
   -- an extra tape's head lies in `[-1, input.length]` at every step
-  have hextra : ∀ l : Fin (k + 2), l = ⟨k, by omega⟩ ∨ l = ⟨k + 1, by omega⟩ →
+  have hextra : ∀ l : Fin (k + 2), l = Fin.natAdd k 0 ∨ l = Fin.natAdd k 1 →
       tm.inputFromTape.visitedByTapeHead (inCfg mark c outerInput) n l ⊆
         Finset.Icc (-1 : ℤ) (input.length : ℤ) := by
     intro l hl z hz
@@ -275,7 +274,7 @@ public lemma spaceUsed_inputFromTape (tm : MultiTapeTM k Symbol State) (mark : S
     rcases hl with rfl | rfl
     · rw [inCfg_workTapePos_vip]; exact Finset.mem_Icc.mpr ⟨by omega, by omega⟩
     · rw [inCfg_workTapePos_flag]; exact Finset.mem_Icc.mpr ⟨by omega, by omega⟩
-  have hextra_card : ∀ l : Fin (k + 2), l = ⟨k, by omega⟩ ∨ l = ⟨k + 1, by omega⟩ →
+  have hextra_card : ∀ l : Fin (k + 2), l = Fin.natAdd k 0 ∨ l = Fin.natAdd k 1 →
       tm.inputFromTape.spaceUsedByTape (inCfg mark c outerInput) n l ≤ input.length + 2 := by
     intro l hl
     refine le_trans (Finset.card_le_card (hextra l hl)) ?_

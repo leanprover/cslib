@@ -46,10 +46,7 @@ variable {k k' : ℕ} {Symbol State : Type*} {input : List Symbol}
 when `e j = l` (such `j` is unique by injectivity), and `none` when `l` lies outside the range of
 `e`. -/
 @[expose] public def partialInv (e : Fin k ↪ Fin k') (l : Fin k') : Option (Fin k) :=
-  if h : ∃ j, e j = l then
-    some (Fintype.choose (fun j => e j = l)
-      (existsUnique_of_exists_of_unique h fun _ _ ha hb => e.injective (ha.trans hb.symm)))
-  else none
+  if h : l ∈ Set.range e then some (e.invOfMemRange ⟨l, h⟩) else none
 
 lemma partialInv_isPartialInv (e : Fin k ↪ Fin k') :
     Function.IsPartialInv e (partialInv e) := by
@@ -57,10 +54,9 @@ lemma partialInv_isPartialInv (e : Fin k ↪ Fin k') :
   rw [partialInv]
   split
   · next h =>
-    have hspec := Fintype.choose_spec (fun j' => e j' = l)
-      (existsUnique_of_exists_of_unique h fun _ _ ha hb => e.injective (ha.trans hb.symm))
     rw [Option.some_inj]
-    exact ⟨fun hj => hj ▸ hspec, fun hj => e.injective (hspec.trans hj.symm)⟩
+    exact ⟨fun hj => hj ▸ e.left_inv_of_invOfMemRange ⟨l, h⟩,
+      fun hj => hj ▸ e.right_inv_of_invOfMemRange j⟩
   · next h => exact ⟨fun hs => by simp at hs, fun hl => absurd ⟨j, hl⟩ h⟩
 
 /-- `tm` run on the tapes selected by the embedding `e`, leaving other tapes untouched: work tape
