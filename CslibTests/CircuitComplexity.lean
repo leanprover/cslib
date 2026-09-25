@@ -30,8 +30,8 @@ example {n : ℕ} (i : Fin n) : complexity interpretation (fun x (_ : Fin 1) => 
 
 variable {n m : ℕ}
 
-example (S : Set (BitString n)) (F : BitString n → BitString m) :
-    ecomplexityOn interpretation S F ≤ ecomplexity interpretation F :=
+example (S : Set (BitString n)) (f : BitString n → BitString m) :
+    ecomplexityOn interpretation S f ≤ ecomplexity interpretation f :=
   ecomplexityOn_le_ecomplexity
 
 end CslibTests.CircuitComplexity
