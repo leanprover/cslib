@@ -44,10 +44,11 @@ namespace Cslib.Circuits
 universe v u
 variable {σ : Signature.{v}} {U : Type u} {n m p : ℕ}
 
-/-- An interpretation is complete when every single-valued function, on every number of inputs,
-is computed by some circuit. Since this includes functions of zero inputs, the basis must contain
-constants: NAND alone is functionally complete but not complete in this sense. Functions with
-several values then have circuits too, built by running circuits for their values side by side. -/
+/-- Following [Jukna, Section 1.1][Jukna2012], a basis is complete when every single-valued
+function, on every number of inputs, is computed by some circuit over it. Circuits here have no
+constant inputs, so this includes the constants, which is why NAND alone is not complete in this
+sense. Functions with several values then have circuits too, built by running circuits for their
+values side by side. -/
 class Interpretation.IsComplete (I : Interpretation σ U) : Prop where
   /-- Every single-valued function has a circuit. -/
   exists_computes_single :
