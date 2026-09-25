@@ -17,7 +17,7 @@ Shannon and Lupanov bounds.
 
 namespace CslibTests.BooleanCircuits
 
-open Cslib.Circuits Cslib.Circuits.Boolean
+open Cslib Cslib.Circuits Cslib.Circuits.Boolean
 
 example (value : Bool) :
     ∃ g ≤ 1, ∃ c : Circuit signature 0 g 1, c.Computes interpretation (fun _ => value) :=
@@ -36,14 +36,14 @@ example : ¬ (Circuit.id signature 1).Computes interpretation (fun x => !x 0) :=
 
 private def conjunction : BooleanFunction 2 := fun x => x 0 && x 1
 
+private theorem conjunction_synthesis : Synthesis interpretation (inputs 2) {conjunction} 1 :=
+  Synthesis.gate (I := interpretation) .and (fun i x => x i) (fun i => ⟨i, rfl⟩)
+
 example : ∃ g ≤ 2, ∃ c : Circuit signature 2 g 2,
     ∀ x, c.eval interpretation x 0 = conjunction x ∧
       c.eval interpretation x 1 = !conjunction x := by
-  have hand : Synthesis interpretation (inputs 2) {conjunction} 1 :=
-    Synthesis.gate (I := interpretation) .and (fun i x => x i) (fun i => ⟨i, rfl⟩)
-  have hkeep : Synthesis interpretation (inputs 2 ∪ {conjunction}) {conjunction} 0 :=
-    Synthesis.of_subset Set.subset_union_right
-  have h := hand.comp (hkeep.union hkeep.not)
+  have h := conjunction_synthesis.comp
+    (Synthesis.of_mem (Set.mem_union_right _ (Set.mem_singleton conjunction))).not
   have hout : Synthesis interpretation (inputs 2)
       (Set.range fun i : Fin 2 => if i = 0 then conjunction else fun x => !conjunction x) 2 :=
     h.mono Set.Subset.rfl (by rintro _ ⟨i, rfl⟩; dsimp only; split <;> simp) le_rfl

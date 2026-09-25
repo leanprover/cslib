@@ -1,26 +1,25 @@
 /-
 Copyright (c) 2026 Christian Reitwiessner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Christian Reitwiessner, Aviv Bar Natan
+Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 -/
 
 module
 
-public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
-public import Mathlib.Data.Finset.Dedup
-public import Mathlib.Data.Finset.Max
-public import Mathlib.Data.Int.Interval
+public import Mathlib.Algebra.Order.Group.Nat
+public import Mathlib.Algebra.Ring.Int.Defs
+public import Mathlib.Algebra.Ring.Nat
 public import Mathlib.Basic.Sign.Defs
+public import Mathlib.Data.Fin.Basic
 public import Cslib.Init
 
 /-!
 # Configurations of Multi-Tape Turing Machines
 
 Configurations of a multi-tape Turing machine with a read-only input tape, `k` work tapes and one
-write-only output tape, together with what a single transition does to one and the space measure
-read off a list of them.
+write-only output tape, together with what a single transition does to a configuration.
 
 ## Design
 
@@ -39,7 +38,7 @@ the configuration the run ends in.
 * `Action`: what a machine does in one step
 * `Action.apply`: the effect of one action on a configuration
 * `Cfg.Halted`, `Cfg.init`: halting, and the configuration a machine starts in
-* `spaceUsedOfCfgs`: work tape cells touched along a list of configurations
+* `tapeOfList`, `wordsCfg`: tapes and configurations holding given words
 -/
 
 @[expose] public section
@@ -197,6 +196,58 @@ sub-machine's configurations into the combined machine by exactly such a state r
 def Cfg.init (q₀ : State) (input : List Symbol) : Cfg k Symbol State input :=
   ⟨some q₀, 1, fun _ _ => none, fun _ => 0, []⟩
 
+/-- A tape containing exactly the symbols of `xs` at positions `0, ..., xs.length - 1`. -/
+def tapeOfList (xs : List Symbol) : ℤ → Option Symbol
+  | .ofNat n => xs[n]?
+  | .negSucc _ => none
+
+@[simp]
+lemma tapeOfList_ofNat (xs : List Symbol) (n : ℕ) : tapeOfList xs n = xs[n]? := rfl
+
+@[simp]
+lemma tapeOfList_negSucc (xs : List Symbol) (n : ℕ) :
+    tapeOfList xs (.negSucc n) = none := rfl
+
+/-- Appending one symbol writes precisely the cell after the existing word. -/
+lemma tapeOfList_append_single (xs : List Symbol) (x : Symbol) :
+    tapeOfList (xs ++ [x]) = Function.update (tapeOfList xs) (xs.length : ℤ) (some x) := by
+  funext z
+  cases z with
+  | negSucc n => simp [tapeOfList]
+  | ofNat n => grind [tapeOfList]
+
+/-- The blank tape holds the empty word. -/
+@[simp]
+lemma tapeOfList_nil : tapeOfList ([] : List Symbol) = fun _ => none := by
+  funext z
+  cases z <;> simp
+
+/-- The cell at position `0` holds the first symbol of the word. -/
+lemma tapeOfList_zero (xs : List Symbol) : tapeOfList xs 0 = xs.head? := by
+  have h : (0 : ℤ) = ((0 : ℕ) : ℤ) := rfl
+  rw [h, tapeOfList_ofNat]
+  cases xs <;> rfl
+
+/-- The configuration whose work tape `i` holds exactly the word `ws i` with its head at the
+start, whose input head is at the start of the input, in state `q` with output `out`. -/
+@[simps]
+def wordsCfg (input : List Symbol) (q : Option State)
+    (ws : Fin k → List Symbol) (out : List Symbol) : Cfg k Symbol State input :=
+  ⟨q, 1, fun i => tapeOfList (ws i), fun _ => 0, out⟩
+
+/-- Remapping the state of a `wordsCfg` remaps its state and leaves the words alone. -/
+@[simp]
+lemma mapState_wordsCfg {State' : Type*} (φ : Option State → Option State')
+    (input : List Symbol) (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol) :
+    (wordsCfg input q ws out).mapState φ = wordsCfg input (φ q) ws out := rfl
+
+/-- The initial configuration is the word configuration with blank tapes and no output. -/
+lemma Cfg.init_eq_wordsCfg (q₀ : State) (input : List Symbol) :
+    Cfg.init (k := k) q₀ input = wordsCfg input (some q₀) (fun _ => []) [] := by
+  refine Cfg.ext rfl rfl ?_ rfl rfl
+  funext i
+  simp [Cfg.init, wordsCfg]
+
 /--
 The effect of an action on a configuration: move the input head, write and move on the work tapes,
 append the emitted symbol to the output tape, and go to the successor state. This is the part of a
@@ -239,13 +290,5 @@ lemma workTapePos_apply_le (action : Action k Symbol State)
     |(action.apply cfg).workTapePos i - cfg.workTapePos i| ≤ 1 := by
   simp only [Action.apply, add_sub_cancel_left, abs_le, SignType.cast]
   grind
-
-/-- The work tape cells visited by the head of tape `i` along a list of configurations. -/
-def visitedOfCfgs (cfgs : List (Cfg k Symbol State input)) (i : Fin k) : Finset ℤ :=
-  (cfgs.map (·.workTapePos i)).toFinset
-
-/-- The number of work tape cells touched by the heads along a list of configurations. -/
-def spaceUsedOfCfgs (cfgs : List (Cfg k Symbol State input)) : ℕ :=
-  ∑ i, (visitedOfCfgs cfgs i).card
 
 end Turing

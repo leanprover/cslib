@@ -10,7 +10,7 @@ public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Basic.Sign.Defs
-public import Cslib.Foundations.Data.RelatesInSteps
+public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
 /-!
@@ -186,49 +186,14 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
 If the Turing machine halts, it will stay at the halting configuration. -/
 def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input := tm.step^[t] cfg
 
-@[simp]
-lemma runFrom_zero {cfg : Cfg k Symbol State input} :
-    tm.runFrom cfg 0 = cfg := by
-  simp [runFrom]
-
-lemma runFrom_succ_eq_step {cfg : Cfg k Symbol State input} {t : ℕ} :
-    tm.runFrom cfg (t + 1) = tm.runFrom (tm.step cfg) t := by
-  simp [runFrom, Function.iterate_succ_apply]
-
-lemma runFrom_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
-    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := by
-  simp [runFrom, Function.iterate_succ_apply']
-
-/-- Running `a + b` steps equals running `b` steps from the configuration reached after `a`. -/
-lemma runFrom_add (cfg : Cfg k Symbol State input) (a b : ℕ) :
-    tm.runFrom cfg (a + b) = tm.runFrom (tm.runFrom cfg a) b := by
-  unfold runFrom
-  rw [Nat.add_comm, Function.iterate_add_apply]
-
-/-- If a function `f` that maps the configurations of one TM to those of another one commutes with
-their `step` function, then it also commutes with their `runFrom` function. -/
-lemma runFrom_comm_of_step {k' : ℕ} {State' : Type*} {input input' : List Symbol}
-    {tm : MultiTapeTM k Symbol State} {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (hstep : ∀ cfg, tm'.step (f cfg) = f (tm.step cfg))
-    (cfg : Cfg k Symbol State input) (n : ℕ) :
-    tm'.runFrom (f cfg) n = f (tm.runFrom cfg n) :=
-  (Function.Semiconj.iterate_right (fun c => (hstep c).symm) n cfg).symm
-
-/-- Running from a halting configuration stays at that configuration. -/
-@[simp]
-lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
-    tm.runFrom cfg n = cfg :=
-  Function.iterate_fixed (step_of_halt h) n
-
 /-- Nothing changes after the machine has halted. -/
 lemma runFrom_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
     tm.runFrom cfg t = tm.runFrom cfg τ := by
-  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
-  rw [runFrom_add, runFrom_of_halt _ hhalt]
+  rw [runFrom, ← Nat.sub_add_cancel hle, Function.iterate_add_apply]
+  exact Function.iterate_fixed (step_of_halt hhalt) _
 
 /-- Every halted run has a first halting time no later than the supplied one. -/
 lemma exists_minimal_halting_time
@@ -262,7 +227,7 @@ section Space
 /-- The set of positions visited by the head of work tape `i` in the computation starting from
 configuration `cfg` up to step `t`. -/
 def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : Finset ℤ :=
-  (Finset.range (t + 1)).image fun t' => (tm.runFrom cfg t').workTapePos i
+  Finset.univ.image fun n : Fin (t + 1) => (tm.runFrom cfg n).workTapePos i
 
 /--
 The number of work tape cells touched by the head of tape `i` in the computation starting from
@@ -289,14 +254,6 @@ lemma spaceUsed_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h
 lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     tm.spaceUsedByTape cfg t i ≤ tm.spaceUsed cfg t :=
   Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
-
-/-- The space used up to step `t` is the space touched by the configurations up to step `t`. -/
-lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t = spaceUsedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) := by
-  unfold spaceUsed spaceUsedByTape spaceUsedOfCfgs
-  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card ?_
-  ext z
-  simp [visitedByTapeHead, visitedOfCfgs]
 
 end Space
 
@@ -340,9 +297,8 @@ lemma runFrom_output_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
-    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output := by
-  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
-  rw [runFrom_add, runFrom_of_halt _ hhalt]
+    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output :=
+  congrArg Cfg.output (tm.runFrom_eq_of_halt cfg hle hhalt)
 
 /-- The output can only grow during a run. -/
 public lemma length_output_mono (tm : MultiTapeTM k Symbol State)
@@ -492,13 +448,14 @@ lemma halting_step_unique
     have halts₂ : (tm.runFrom (tm.initCfg input) (d + t₁)).state ≠ none := by
       grind [haltsAtStep, runFrom]
     refine absurd ?_ halts₂
-    rw [Nat.add_comm, runFrom_add, tm.runFrom_of_halt _ halts₁]
-    exact halts₁
+    rw [runFrom, Function.iterate_add_apply]
+    exact (congrArg Cfg.state
+      (Function.iterate_fixed (step_of_halt (tm := tm) halts₁) d)).trans halts₁
 
 /-- If a deterministic machine repeats a non-halting configuration, it never halts,
 because the sequence between the two configurations will loop forever.
 Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `tm.runFrom_add`. -/
+using `Function.iterate_add_apply`. -/
 lemma not_halts_of_repeat_nonhalt
     (cfg : Cfg k Symbol State input)
     (h_not_halt : cfg.state ≠ none)
@@ -516,9 +473,7 @@ lemma not_halts_of_repeat_nonhalt
   -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
   have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
     have hle : t' ≤ t' * (t + 1) := by grind
-    obtain ⟨tΔ , htΔ⟩ := Nat.exists_eq_add_of_le hle
-    rw [htΔ, tm.runFrom_add]
-    simp [hnh]
+    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
   simp [hloop t', h_not_halt] at h₁
 
 end MultiTapeTM
