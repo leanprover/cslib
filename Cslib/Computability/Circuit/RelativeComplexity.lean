@@ -62,7 +62,7 @@ theorem ecomplexityGiven_eq_ecomplexityOn_graph (F : (Fin n → U) → Fin m →
     · rintro hc _ ⟨x, rfl⟩
       simpa using hc x
     · intro hc x
-      simpa using hc _ ⟨x, rfl⟩
+      simpa using hc ⟨x, rfl⟩
   apply le_antisymm
   · exact le_iInf fun c => iInf_le_of_le ⟨c.1, (h c.1).mpr c.2⟩ le_rfl
   · exact le_iInf fun c => iInf_le_of_le ⟨c.1, (h c.1).mp c.2⟩ le_rfl
