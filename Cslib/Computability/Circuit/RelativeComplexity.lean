@@ -37,29 +37,42 @@ def graph (g : (Fin n → U) → Fin k → U) : Set (Fin (n + k) → U) :=
 
 /-- The complexity `C(f | g)` of `f` relative to `g`: the least size of a circuit that, reading
 an input followed by the values of `g` on it, outputs the values of `f` on that input; `⊤` if
-there is none. -/
+there is none. Such a circuit only ever sees inputs on the graph of `g`, so this is the complexity
+of `f` of the first `n` inputs on that graph. -/
 noncomputable def ecomplexityGiven (I : Interpretation σ U) (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : ℕ∞ :=
-  ⨅ c : {c : Circuit σ (n + k) m // ∀ x, c.eval I (Fin.append x (g x)) = f x}, (c.1.size : ℕ∞)
+  ecomplexityOn I (graph g) (fun z => f (z ∘ Fin.castAdd k))
 
-variable {I : Interpretation σ U}
+variable {I : Interpretation σ U} {s : ℕ}
 
 /-- Relative complexity is complexity on the graph: computing `f` given `g` is computing `f` of
 the first `n` inputs on the graph of `g`. -/
 theorem ecomplexityGiven_eq_ecomplexityOn_graph (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) :
-    ecomplexityGiven I f g = ecomplexityOn I (graph g) (fun z => f (z ∘ Fin.castAdd k)) := by
-  have h (c : Circuit σ (n + k) m) :
-      (∀ x, c.eval I (Fin.append x (g x)) = f x) ↔
-        c.ComputesOn I (graph g) (fun z => f (z ∘ Fin.castAdd k)) := by
-    constructor
-    · rintro hc _ ⟨x, rfl⟩
-      simpa using hc x
-    · intro hc x
-      simpa using hc ⟨x, rfl⟩
-  apply le_antisymm
-  · exact le_iInf fun c => iInf_le_of_le ⟨c.1, (h c.1).mpr c.2⟩ le_rfl
-  · exact le_iInf fun c => iInf_le_of_le ⟨c.1, (h c.1).mp c.2⟩ le_rfl
+    ecomplexityGiven I f g = ecomplexityOn I (graph g) (fun z => f (z ∘ Fin.castAdd k)) :=
+  rfl
+
+/-- A circuit computes `f` of the first `n` inputs on the graph of `g` exactly when, reading an
+input followed by the values of `g` on it, it outputs the values of `f` on that input. -/
+theorem Circuit.computesOn_graph_iff {f : (Fin n → U) → Fin m → U} {g : (Fin n → U) → Fin k → U}
+    (c : Circuit σ (n + k) m) :
+    c.ComputesOn I (graph g) (fun z => f (z ∘ Fin.castAdd k)) ↔
+      ∀ x, c.eval I (Fin.append x (g x)) = f x := by
+  constructor
+  · intro hc x
+    simpa using hc ⟨x, rfl⟩
+  · rintro hc _ ⟨x, rfl⟩
+    simpa using hc x
+
+theorem ecomplexityGiven_le_of_eval (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U)
+    (c : Circuit σ (n + k) m) (hc : ∀ x, c.eval I (Fin.append x (g x)) = f x) :
+    ecomplexityGiven I f g ≤ c.size :=
+  ecomplexityOn_le_of_computesOn c (c.computesOn_graph_iff.mpr hc)
+
+theorem ecomplexityGiven_le_iff (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U) :
+    ecomplexityGiven I f g ≤ s ↔
+      ∃ c : Circuit σ (n + k) m, (∀ x, c.eval I (Fin.append x (g x)) = f x) ∧ c.size ≤ s := by
+  simp only [ecomplexityGiven, ecomplexityOn_le_iff, Circuit.computesOn_graph_iff]
 
 /-- Keeping the input while computing `g` costs no more than computing `g`. -/
 theorem ecomplexity_append_self_le (g : (Fin n → U) → Fin k → U) :
@@ -180,19 +193,19 @@ section Complete
 
 theorem ecomplexityGiven_ne_top [I.IsComplete] (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : ecomplexityGiven I f g ≠ ⊤ :=
-  ne_top_of_le_ne_top ecomplexity_ne_top (ecomplexityGiven_le_ecomplexity f g)
+  ecomplexityOn_ne_top
 
 /-- The complexity `C(f | g)` of `f` relative to `g` over a complete basis, as a natural
 number. -/
 noncomputable def complexityGiven (I : Interpretation σ U) [I.IsComplete]
     (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U) : ℕ :=
-  (ecomplexityGiven I f g).untop (ecomplexityGiven_ne_top f g)
+  complexityOn I (graph g) (fun z => f (z ∘ Fin.castAdd k))
 
 variable [I.IsComplete]
 
 @[simp] theorem natCast_complexityGiven (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : (complexityGiven I f g : ℕ∞) = ecomplexityGiven I f g :=
-  WithTop.coe_untop _ _
+  natCast_complexityOn
 
 @[simp] theorem complexityGiven_self (f : (Fin n → U) → Fin m → U) :
     complexityGiven I f f = 0 := by
