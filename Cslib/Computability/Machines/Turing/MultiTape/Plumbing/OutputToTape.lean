@@ -116,9 +116,7 @@ public lemma step_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol Sta
 public lemma runFrom_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input)
     (n : ℕ) :
     tm.outputToTape.runFrom (outCfg c) n = outCfg (tm.runFrom c n) :=
-  (Function.Semiconj.iterate_right
-    (f := outCfg) (ga := tm.step) (gb := tm.outputToTape.step)
-    (fun c => (step_outCfg tm c).symm) n c).symm
+  (Function.Semiconj.iterate_right (fun c => (step_outCfg tm c).symm) n c).symm
 
 section WithOutput
 
