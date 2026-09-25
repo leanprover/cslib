@@ -24,7 +24,7 @@ more than `2ⁿ/n` De Morgan gates, counting constants and negations. -/
 theorem exists_hard_function :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n,
       ∀ {g} (c : Circuit signature n g 1),
-        c.Computes interpretation f → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
+        c.Computes interpretation (fun x _ => f x) → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Circuits.Shannon.exists_hard_function interpretation (fun op => by cases op <;> simp)
 

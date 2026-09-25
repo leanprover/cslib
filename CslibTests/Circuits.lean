@@ -79,9 +79,8 @@ example : andNandCircuit.trace nandInterpretation allTrue 3 = true := rfl
 example : andNandCircuit.trace nandInterpretation allTrue 4 = true := rfl
 
 /-- A zero-gate circuit can permute inputs without introducing artificial gates. -/
-def swap : Circuit nandSignature 2 0 2 where
-  program := .empty
-  outputs := Fin.cases (Wire.input 1) fun _ => Wire.input 0
+def swap : Circuit nandSignature 2 0 2 :=
+  Circuit.wiring nandSignature (Fin.cases 1 fun _ => 0)
 
 example : swap.eval nandInterpretation trueFalse 0 = false := rfl
 
@@ -92,15 +91,21 @@ example : swap.size = 0 := rfl
 example : swap.depth = 0 := rfl
 
 /-- Duplicating an output wire is also free. -/
-def duplicateFirst : Circuit nandSignature 2 0 2 where
-  program := .empty
-  outputs := fun _ => Wire.input 0
+def duplicateFirst : Circuit nandSignature 2 0 2 :=
+  Circuit.wiring nandSignature fun _ => 0
 
 example : duplicateFirst.eval nandInterpretation trueFalse 0 = true := rfl
 
 example : duplicateFirst.eval nandInterpretation trueFalse 1 = true := rfl
 
 example : duplicateFirst.size = 0 := rfl
+
+example : duplicateFirst.Computes nandInterpretation fun x _ => x 0 :=
+  Circuit.wiring_computes _ _
+
+example : (Circuit.id nandSignature 2).Computes nandInterpretation fun x => x := by
+  intro x
+  simp
 
 def noOutputs : Circuit nandSignature 2 2 0 where
   program := andProgram
