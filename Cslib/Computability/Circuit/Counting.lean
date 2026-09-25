@@ -84,10 +84,8 @@ private def relabel (c : Circuit σ n g 1) (π : Equiv.Perm (Fin g)) :
 private theorem relabel_line_eval (c : Circuit σ n g 1) (π : Equiv.Perm (Fin g))
     (x : Fin n → U) (v : Fin g → U) (a : Fin g) :
     ((relabel c π).1 a).eval I x v =
-      (c.program.lines (π.symm a)).eval I x (v ∘ π) := by
-  apply Line.eval_mapRenaming
-  intro gate
-  simp [Wire.Renaming.ofPermutation]
+      (c.program.lines (π.symm a)).eval I x (v ∘ π) :=
+  Line.eval_mapRenaming _ _ _ _ _ _ fun _ => rfl
 
 private theorem relabel_unique (c : Circuit σ n g 1) (π : Equiv.Perm (Fin g))
     (x : Fin n → U) (v : Fin g → U)

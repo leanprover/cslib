@@ -48,18 +48,19 @@ def elim (inputs : Fin inputCount → α) (gates : Fin gateCount → α) :
 @[simp] theorem elim_gate (inputs : Fin inputCount → α) (gates : Fin gateCount → α)
     (j : Fin gateCount) : elim inputs gates (gate j) = gates j := rfl
 
-/-- Wires are inputs or gates. -/
-def equivSum : Wire inputCount gateCount ≃ Fin inputCount ⊕ Fin gateCount where
+/-- A wire is an input or a gate. -/
+def equiv (inputCount gateCount : Nat) :
+    Wire inputCount gateCount ≃ Fin inputCount ⊕ Fin gateCount where
   toFun := elim Sum.inl Sum.inr
   invFun := Sum.elim input gate
   left_inv wire := by cases wire <;> rfl
   right_inv wire := by cases wire <;> rfl
 
 instance : Fintype (Wire inputCount gateCount) :=
-  Fintype.ofEquiv _ equivSum.symm
+  Fintype.ofEquiv _ (equiv inputCount gateCount).symm
 
 @[simp] theorem card : Fintype.card (Wire inputCount gateCount) = inputCount + gateCount := by
-  simp [Fintype.card_congr equivSum]
+  simp [Fintype.card_congr (equiv inputCount gateCount)]
 
 /-- Regard a wire as a wire in a namespace with one additional gate. -/
 def castSucc : Wire inputCount gateCount → Wire inputCount (gateCount + 1)

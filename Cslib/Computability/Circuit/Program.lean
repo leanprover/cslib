@@ -272,15 +272,6 @@ def Program.trace
       program.trace interpretation input wire := by
   cases wire <;> simp [Program.trace]
 
-@[simp] theorem Program.trace_gate_last
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (input : Fin inputCount → U) :
-    (program.gate line).trace interpretation input (Wire.gate (Fin.last gateCount)) =
-      line.eval interpretation input (program.eval interpretation input) :=
-  Program.eval_gate_last program line interpretation input
-
 /-- Evaluating every input and gate wire commutes with a homomorphism. -/
 theorem Program.map_trace
     {i₁ : Interpretation σ U₁}

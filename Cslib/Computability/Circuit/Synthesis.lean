@@ -125,8 +125,7 @@ theorem gate (op : σ.Op) (args : Fin (σ.Arity op) → (Fin n → U) → U)
     exact mem_available.mpr
       ⟨w.castSucc, fun x => (Program.trace_gate_castSucc _ _ _ _ _).trans (hw' x)⟩
   · rw [Set.singleton_subset_iff, mem_available]
-    refine ⟨.gate (Fin.last g₁), fun x => ?_⟩
-    rw [Program.trace_gate_last]
+    refine ⟨.gate (Fin.last g₁), fun x => (Program.eval_gate_last p line I x).trans ?_⟩
     change I op (fun i => p.trace I x (wires i)) = _
     simp only [hw]
 
