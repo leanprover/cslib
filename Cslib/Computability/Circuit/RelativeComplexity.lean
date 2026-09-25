@@ -161,10 +161,6 @@ theorem ecomplexityGiven_le_add (f : (Fin n → U) → Fin m → U) (g : (Fin n 
   rintro _ ⟨x, rfl⟩
   simp
 
-@[simp] theorem complexityGiven_self (f : (Fin n → U) → Fin m → U) :
-    complexityGiven I f f = 0 := by
-  simp [complexityGiven]
-
 /-- Knowing more never makes `f` harder: `C(f | g, g') ≤ C(f | g)`. -/
 theorem ecomplexityGiven_append_le (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U)
     (g' : (Fin n → U) → Fin l → U) :
@@ -197,6 +193,12 @@ variable [I.IsComplete]
 @[simp] theorem natCast_complexityGiven (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : (complexityGiven I f g : ℕ∞) = ecomplexityGiven I f g :=
   WithTop.coe_untop _ _
+
+@[simp] theorem complexityGiven_self (f : (Fin n → U) → Fin m → U) :
+    complexityGiven I f f = 0 := by
+  have := ecomplexityGiven_self (I := I) f
+  rw [← natCast_complexityGiven] at this
+  exact_mod_cast this
 
 theorem complexityGiven_le_complexity (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : complexityGiven I f g ≤ complexity I f := by
