@@ -35,20 +35,20 @@ example (S : Set (BitString n)) (f : BitString n → BitString m) :
   ecomplexityOn_le_ecomplexity
 
 -- Relative complexity is complexity on the graph.
-example (F : BitString n → BitString m) (G : BitString n → BitString k) :
-    ecomplexityGiven interpretation F G =
-      ecomplexityOn interpretation (graph G) (fun z => F (z ∘ Fin.castAdd k)) :=
-  ecomplexityGiven_eq_ecomplexityOn_graph F G
+example (f : BitString n → BitString m) (g : BitString n → BitString k) :
+    ecomplexityGiven interpretation f g =
+      ecomplexityOn interpretation (graph g) (fun z => f (z ∘ Fin.castAdd k)) :=
+  ecomplexityGiven_eq_ecomplexityOn_graph f g
 
-example (F : BitString n → BitString m) (G : BitString n → BitString k) :
-    ecomplexityGiven interpretation F G ≤ ecomplexity interpretation F ∧
-      ecomplexity interpretation F ≤
-        ecomplexity interpretation G + ecomplexityGiven interpretation F G :=
-  ⟨ecomplexityGiven_le_ecomplexity F G, ecomplexity_le_add_ecomplexityGiven F G⟩
+example (f : BitString n → BitString m) (g : BitString n → BitString k) :
+    ecomplexityGiven interpretation f g ≤ ecomplexity interpretation f ∧
+      ecomplexity interpretation f ≤
+        ecomplexity interpretation g + ecomplexityGiven interpretation f g :=
+  ⟨ecomplexityGiven_le_ecomplexity f g, ecomplexity_le_add_ecomplexityGiven f g⟩
 
--- Given `F` together with more information, `F` itself is free.
-example (F : BitString n → BitString m) (G : BitString n → BitString k) :
-    ecomplexityGiven interpretation F (fun x => Fin.append (F x) (G x)) = 0 :=
-  nonpos_iff_eq_zero.mp ((ecomplexityGiven_append_le F F G).trans_eq (ecomplexityGiven_self F))
+-- Given `f` together with more information, `f` itself is free.
+example (f : BitString n → BitString m) (g : BitString n → BitString k) :
+    ecomplexityGiven interpretation f (fun x => Fin.append (f x) (g x)) = 0 :=
+  nonpos_iff_eq_zero.mp ((ecomplexityGiven_append_le f f g).trans_eq (ecomplexityGiven_self f))
 
 end CslibTests.CircuitComplexity
