@@ -56,12 +56,12 @@ example : ∃ c : Circuit signature 2 1,
     c.Computes interpretation (fun x _ => conjunction x) ∧ c.size ≤ 1 :=
   complexity_le_iff.mp conjunction_synthesis.complexity_le
 
-example {n m : ℕ} (F : BitString n → BitString m) : ecomplexity interpretation F ≠ ⊤ :=
+example {n m : ℕ} (f : BitString n → BitString m) : ecomplexity interpretation f ≠ ⊤ :=
   ecomplexity_ne_top
 
-example {n m : ℕ} (F : BitString n → BitString m) :
+example {n m : ℕ} (f : BitString n → BitString m) :
     ∃ c : Circuit signature n m,
-      c.Computes interpretation F ∧ c.size = complexity interpretation F :=
+      c.Computes interpretation f ∧ c.size = complexity interpretation f :=
   exists_computes_size_eq_complexity
 
 -- Lower bounds are statements about every circuit: a zero-gate circuit only reads an

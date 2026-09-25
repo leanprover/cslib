@@ -38,7 +38,7 @@ theorem lt_complexity :
   refine ⟨N, fun n hn => ?_⟩
   obtain ⟨f, hf⟩ := hN n hn
   obtain ⟨c, hc, hsize⟩ :=
-    exists_computes_size_eq_complexity (I := interpretation) (F := fun x (_ : Fin 1) => f x)
+    exists_computes_size_eq_complexity (I := interpretation) (f := fun x (_ : Fin 1) => f x)
   exact ⟨f, by rw [← hsize]; exact hf c hc⟩
 
 end Cslib.Circuits.Boolean.Shannon
