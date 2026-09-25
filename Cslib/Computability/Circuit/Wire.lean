@@ -86,6 +86,11 @@ def lastCases {motive : Wire inputCount (gateCount + 1) → Sort*}
 
 end Wire
 
+/-- Regard a wire as a wire of the same program continued by `extra` further gates. -/
+abbrev Wire.castAdd {inputCount gateCount : Nat} (extra : Nat) (wire : Wire inputCount gateCount) :
+    Wire inputCount (gateCount + extra) :=
+  Fin.castLE (Nat.add_le_add_left (Nat.le_add_right gateCount extra) inputCount) wire
+
 /-- A renaming of gate wires that fixes every original input. Gate wires may be
 sent to either inputs or gates in the target namespace. -/
 structure Wire.Renaming (inputCount sourceGateCount targetGateCount : Nat) where
