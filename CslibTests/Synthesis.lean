@@ -125,10 +125,10 @@ example : ∃ c : Circuit signature 1 1,
     (∅ : Finset (Fin 1)) (projection 0) (fun i _ => projection i)
   simpa using h.exists_circuit
 
--- Upper bounds on `complexity` need no completeness: the circuit witnesses finiteness.
-example : complexity interpretation (fun (x : Fin 2 → ℕ) (_ : Fin 1) => x 0 + x 1) ≤ 1 := by
+-- Upper bounds on `ecomplexity` need no completeness: the circuit witnesses finiteness.
+example : ecomplexity interpretation (fun (x : Fin 2 → ℕ) (_ : Fin 1) => x 0 + x 1) ≤ 1 := by
   have h := Synthesis.gate (I := interpretation) (s := inputs 2) .add
     (fun i x => x i) (fun i => ⟨i, rfl⟩)
-  simpa [interpretation] using h.complexity_le
+  simpa [interpretation] using h.ecomplexity_le
 
 end CslibTests.Synthesis

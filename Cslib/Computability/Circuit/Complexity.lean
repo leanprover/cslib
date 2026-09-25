@@ -20,9 +20,9 @@ complexity on all inputs, and the complexity of `f` relative to a function `g`, 
 `Cslib.Computability.Circuit.RelativeComplexity`, is a complexity on the graph of `g`.
 
 Over an arbitrary signature and interpretation some functions have no circuit at all, so
-`ecomplexityOn I S f` takes values in `ℕ∞`, with `⊤` when no circuit computes `f` on `S`. The
-natural number `complexityOn I S f` truncates it, as `Set.ncard` truncates `Set.encard`, and is
-the notion of interest over a complete basis, one over which every function has a circuit.
+`ecomplexityOn I S f` takes values in `ℕ∞`, with `⊤` when no circuit computes `f` on `S`. Over a
+complete basis, one over which every function has a circuit, the complexity is a natural number,
+`complexityOn I S f`, and this is the notion of interest in the Boolean case.
 
 Support complexity obeys a small calculus from which the rules for complexity and relative
 complexity follow. It grows with the support and ignores the function outside the support.
@@ -74,19 +74,9 @@ noncomputable def ecomplexityOn (I : Interpretation σ U) (S : Set (Fin n → U)
     (f : (Fin n → U) → Fin m → U) : ℕ∞ :=
   ⨅ c : {c : Circuit σ n m // c.ComputesOn I S f}, (c.1.size : ℕ∞)
 
-/-- The complexity of `f` on the support `S` as a natural number, which is `0` when no circuit
-computes `f` on `S`. -/
-noncomputable def complexityOn (I : Interpretation σ U) (S : Set (Fin n → U))
-    (f : (Fin n → U) → Fin m → U) : ℕ :=
-  (ecomplexityOn I S f).toNat
-
 /-- The complexity `C(f)` of `f`: its complexity on all inputs. -/
 noncomputable def ecomplexity (I : Interpretation σ U) (f : (Fin n → U) → Fin m → U) : ℕ∞ :=
   ecomplexityOn I Set.univ f
-
-/-- The complexity of `f` as a natural number, which is `0` when no circuit computes `f`. -/
-noncomputable def complexity (I : Interpretation σ U) (f : (Fin n → U) → Fin m → U) : ℕ :=
-  complexityOn I Set.univ f
 
 variable {I : Interpretation σ U} {S T : Set (Fin n → U)} {f f' : (Fin n → U) → Fin m → U}
   {k : ℕ}
@@ -200,19 +190,6 @@ theorem ecomplexity_le_iff :
     ecomplexity I f ≤ k ↔ ∃ c : Circuit σ n m, c.Computes I f ∧ c.size ≤ k := by
   simp [ecomplexity, ecomplexityOn_le_iff]
 
-theorem natCast_complexity_of_exists (h : ∃ c : Circuit σ n m, c.Computes I f) :
-    (complexity I f : ℕ∞) = ecomplexity I f :=
-  ENat.natCast_toNat (ecomplexity_ne_top_iff.mpr h)
-
-theorem complexity_le_of_computes (c : Circuit σ n m) (hc : c.Computes I f) :
-    complexity I f ≤ c.size :=
-  ENat.toNat_le_of_le_natCast (ecomplexity_le_of_computes c hc)
-
-/-- A lower bound on the complexity is a lower bound on the size of every circuit. -/
-theorem le_size_of_le_complexity (h : k ≤ complexity I f) {c : Circuit σ n m}
-    (hc : c.Computes I f) : k ≤ c.size :=
-  h.trans (complexity_le_of_computes c hc)
-
 theorem ecomplexity_comp_le (f : (Fin n → U) → Fin m → U) (g : (Fin m → U) → Fin p → U) :
     ecomplexity I (g ∘ f) ≤ ecomplexity I f + ecomplexity I g :=
   (ecomplexityOn_comp_le f g).trans (add_le_add le_rfl ecomplexityOn_le_ecomplexity)
@@ -244,30 +221,46 @@ theorem Synthesis.ecomplexity_le {f : (Fin n → U) → U} {cost : ℕ}
     (h : Synthesis I (inputs n) {f} cost) : ecomplexity I (fun x (_ : Fin 1) => f x) ≤ cost :=
   ecomplexity_le_iff.mpr h.exists_circuit
 
-/-- A synthesis bound on the input projections bounds the complexity, with no completeness
-assumption. -/
-theorem Synthesis.complexity_le {f : (Fin n → U) → U} {cost : ℕ}
-    (h : Synthesis I (inputs n) {f} cost) : complexity I (fun x (_ : Fin 1) => f x) ≤ cost :=
-  ENat.toNat_le_of_le_natCast h.ecomplexity_le
-
 /-! ### Over a complete basis -/
 
 section Complete
 
-variable [I.IsComplete]
-
-theorem ecomplexityOn_ne_top : ecomplexityOn I S f ≠ ⊤ :=
+theorem ecomplexityOn_ne_top [I.IsComplete] : ecomplexityOn I S f ≠ ⊤ :=
   ecomplexityOn_ne_top_iff.mpr <|
     (Interpretation.IsComplete.exists_computes f).imp fun _ hc => hc.computesOn S
 
-@[simp] theorem natCast_complexityOn : (complexityOn I S f : ℕ∞) = ecomplexityOn I S f :=
-  ENat.natCast_toNat ecomplexityOn_ne_top
-
-theorem ecomplexity_ne_top : ecomplexity I f ≠ ⊤ :=
+theorem ecomplexity_ne_top [I.IsComplete] : ecomplexity I f ≠ ⊤ :=
   ecomplexityOn_ne_top
+
+/-- The complexity `C^S(f)` of `f` on the support `S` over a complete basis, as a natural
+number. -/
+noncomputable def complexityOn (I : Interpretation σ U) [I.IsComplete] (S : Set (Fin n → U))
+    (f : (Fin n → U) → Fin m → U) : ℕ :=
+  (ecomplexityOn I S f).untop ecomplexityOn_ne_top
+
+/-- The complexity `C(f)` of `f` over a complete basis, as a natural number. -/
+noncomputable def complexity (I : Interpretation σ U) [I.IsComplete]
+    (f : (Fin n → U) → Fin m → U) : ℕ :=
+  complexityOn I Set.univ f
+
+variable [I.IsComplete]
+
+@[simp] theorem natCast_complexityOn : (complexityOn I S f : ℕ∞) = ecomplexityOn I S f :=
+  WithTop.coe_untop _ _
 
 @[simp] theorem natCast_complexity : (complexity I f : ℕ∞) = ecomplexity I f :=
   natCast_complexityOn
+
+theorem complexity_le_of_computes (c : Circuit σ n m) (hc : c.Computes I f) :
+    complexity I f ≤ c.size := by
+  have := ecomplexity_le_of_computes c hc
+  rw [← natCast_complexity] at this
+  exact_mod_cast this
+
+/-- A lower bound on the complexity is a lower bound on the size of every circuit. -/
+theorem le_size_of_le_complexity (h : k ≤ complexity I f) {c : Circuit σ n m}
+    (hc : c.Computes I f) : k ≤ c.size :=
+  h.trans (complexity_le_of_computes c hc)
 
 /-- Over a complete basis the least size is attained. -/
 theorem exists_computes_size_eq_complexity :
@@ -306,6 +299,11 @@ theorem complexityOn_append_le (f : (Fin n → U) → Fin m → U) (g : (Fin n �
   have := ecomplexityOn_append_le (I := I) (S := S) f g
   rw [← natCast_complexityOn, ← natCast_complexityOn, ← natCast_complexityOn] at this
   exact_mod_cast this
+
+/-- A synthesis bound on the input projections bounds the complexity. -/
+theorem Synthesis.complexity_le {f : (Fin n → U) → U} {cost : ℕ}
+    (h : Synthesis I (inputs n) {f} cost) : complexity I (fun x (_ : Fin 1) => f x) ≤ cost :=
+  complexity_le_iff.mpr h.exists_circuit
 
 end Complete
 
