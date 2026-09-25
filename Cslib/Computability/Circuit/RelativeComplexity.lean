@@ -14,9 +14,9 @@ The complexity `C(f | g)` of `f` relative to `g` is the least number of gates ne
 `f` when the values of `g` come for free: the circuit reads an input `x` followed by the values
 `g x`. Such a circuit only ever sees inputs of this form, which make up the graph of `g`, so
 computing `f` given `g` is computing `f` of the first part of the input, on the graph of `g`.
-Relative complexity is defined as this complexity on a support,
-`C(f | g) = C^Γ(f ∘ π)` where `Γ` is the graph of `g` and `π` forgets the values of `g`, and the
-reading in terms of circuits on `x` and `g x` is recovered by `ecomplexityGiven_le_iff`.
+Relative complexity is defined as this complexity on a support, `C(f | g) = C^Γ(f ∘ π)` where
+`Γ` is the graph of `g` and `π` forgets the values of `g`, and the reading in terms of circuits
+on `x` and `g x` is recovered by `ecomplexityGiven_le_iff`.
 
 The rules of relative complexity follow from the calculus of support complexity. Knowing `g` never makes `f` harder, and knowing more never makes it harder either.
 Computing `g` and then `f` from it gives the chain rule `C(f) ≤ C(g) + C(f | g)`, and its
