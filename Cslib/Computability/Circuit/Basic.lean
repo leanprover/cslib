@@ -129,6 +129,26 @@ def single (f : (Fin inputCount → U) → U) : (Fin inputCount → U) → Fin 1
     (i : Fin 1) : single f x i = f x :=
   rfl
 
+/-- A circuit computes `F` on the support `S` when its outputs agree with `F` on every input in
+`S`; what `F` does outside `S` does not matter. -/
+def Circuit.ComputesOn (c : Circuit σ inputCount outputCount)
+    (interpretation : Interpretation σ U) (S : Set (Fin inputCount → U))
+    (F : (Fin inputCount → U) → Fin outputCount → U) : Prop :=
+  ∀ x ∈ S, c.eval interpretation x = F x
+
+/-- Computing on every input is computing. -/
+@[simp] theorem Circuit.computesOn_univ_iff (c : Circuit σ inputCount outputCount)
+    (interpretation : Interpretation σ U) (F : (Fin inputCount → U) → Fin outputCount → U) :
+    c.ComputesOn interpretation Set.univ F ↔ c.Computes interpretation F := by
+  simp [Circuit.ComputesOn, Circuit.Computes]
+
+/-- A circuit that computes `F` computes it on every support. -/
+theorem Circuit.Computes.computesOn {c : Circuit σ inputCount outputCount}
+    {interpretation : Interpretation σ U} {F : (Fin inputCount → U) → Fin outputCount → U}
+    (h : c.Computes interpretation F) (S : Set (Fin inputCount → U)) :
+    c.ComputesOn interpretation S F :=
+  fun x _ => h x
+
 /-- A wiring circuit computes the selection of its inputs. -/
 theorem Circuit.wiring_computes (select : Fin outputCount → Fin inputCount)
     (interpretation : Interpretation σ U) :
