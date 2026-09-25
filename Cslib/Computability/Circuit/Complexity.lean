@@ -121,15 +121,12 @@ theorem ecomplexityOn_le_iff :
 
 /-- A larger support is harder to compute on. -/
 theorem ecomplexityOn_mono (h : S ⊆ T) : ecomplexityOn I S F ≤ ecomplexityOn I T F :=
-  le_iInf fun c => iInf_le_of_le ⟨c.1, fun x hx => c.2 x (h hx)⟩ le_rfl
+  le_iInf fun c => iInf_le_of_le ⟨c.1, c.2.mono h⟩ le_rfl
 
 /-- Complexity on a support depends only on the values of the function on the support. -/
-theorem ecomplexityOn_congr (h : Set.EqOn F F' S) : ecomplexityOn I S F = ecomplexityOn I S F' := by
-  have hc (c : Circuit σ n m) : c.ComputesOn I S F ↔ c.ComputesOn I S F' :=
-    forall₂_congr fun x hx => by rw [h hx]
-  apply le_antisymm
-  · exact le_iInf fun c => iInf_le_of_le ⟨c.1, (hc c.1).mpr c.2⟩ le_rfl
-  · exact le_iInf fun c => iInf_le_of_le ⟨c.1, (hc c.1).mp c.2⟩ le_rfl
+theorem ecomplexityOn_congr (h : Set.EqOn F F' S) : ecomplexityOn I S F = ecomplexityOn I S F' :=
+  le_antisymm (le_iInf fun c => iInf_le_of_le ⟨c.1, c.2.trans h.symm⟩ le_rfl)
+    (le_iInf fun c => iInf_le_of_le ⟨c.1, c.2.trans h⟩ le_rfl)
 
 theorem ecomplexityOn_le_ecomplexity : ecomplexityOn I S F ≤ ecomplexity I F :=
   ecomplexityOn_mono (Set.subset_univ S)
