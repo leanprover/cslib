@@ -5,8 +5,8 @@ Authors: Samuel Schlesinger
 -/
 module
 
+public import Cslib.Computability.Circuit.Boolean.Complexity
 public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
-public import Cslib.Computability.Circuit.Complexity
 public import Mathlib.Basic.Real.Basic
 import Cslib.Foundations.Data.Nat.Asymptotics
 import Mathlib.Algebra.Order.Archimedean.Real.Basic
