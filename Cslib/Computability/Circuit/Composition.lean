@@ -176,15 +176,15 @@ theorem ComputesOn.comp {c : Circuit σ n m} {d : Circuit σ m p} {S : Set (Fin 
     {F : (Fin n → U) → Fin m → U} {H : (Fin m → U) → Fin p → U}
     (hc : c.ComputesOn I S F) (hd : d.ComputesOn I (F '' S) H) :
     (d.comp c).ComputesOn I S (H ∘ F) := fun x hx => by
-  rw [eval_comp, hc x hx]
-  exact hd _ ⟨x, hx, rfl⟩
+  rw [eval_comp, hc hx]
+  exact hd ⟨x, hx, rfl⟩
 
 /-- Circuits computing `F` and `G` on `S`, run side by side, compute their outputs together. -/
 theorem ComputesOn.append {c : Circuit σ n m} {d : Circuit σ n p} {S : Set (Fin n → U)}
     {F : (Fin n → U) → Fin m → U} {G : (Fin n → U) → Fin p → U}
     (hc : c.ComputesOn I S F) (hd : d.ComputesOn I S G) :
     (c.append d).ComputesOn I S (fun x => Fin.append (F x) (G x)) := fun x hx => by
-  rw [eval_append, hc x hx, hd x hx]
+  rw [eval_append, hc hx, hd hx]
 
 end Circuit
 

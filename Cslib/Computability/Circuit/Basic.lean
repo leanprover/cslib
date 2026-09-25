@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Program
+public import Mathlib.Data.Set.Function
 
 /-!
 # Circuits
@@ -134,13 +135,14 @@ def single (f : (Fin inputCount → U) → U) : (Fin inputCount → U) → Fin 1
 def Circuit.ComputesOn (c : Circuit σ inputCount outputCount)
     (interpretation : Interpretation σ U) (S : Set (Fin inputCount → U))
     (F : (Fin inputCount → U) → Fin outputCount → U) : Prop :=
-  ∀ x ∈ S, c.eval interpretation x = F x
+  Set.EqOn (c.eval interpretation) F S
 
 /-- Computing on every input is computing. -/
 @[simp] theorem Circuit.computesOn_univ_iff (c : Circuit σ inputCount outputCount)
     (interpretation : Interpretation σ U) (F : (Fin inputCount → U) → Fin outputCount → U) :
     c.ComputesOn interpretation Set.univ F ↔ c.Computes interpretation F := by
-  simp [Circuit.ComputesOn, Circuit.Computes]
+  rw [Circuit.ComputesOn, Set.eqOn_univ, funext_iff]
+  rfl
 
 /-- A circuit that computes `F` computes it on every support. -/
 theorem Circuit.Computes.computesOn {c : Circuit σ inputCount outputCount}
