@@ -46,6 +46,12 @@ example (f : BitString n → BitString m) (g : BitString n → BitString k) :
         ecomplexity interpretation g + ecomplexityGiven interpretation f g :=
   ⟨ecomplexityGiven_le_ecomplexity f g, ecomplexity_le_add_ecomplexityGiven f g⟩
 
+-- A circuit reading `x` and `g x` that outputs `f x` bounds the relative complexity.
+example (f : BitString n → BitString m) (g : BitString n → BitString k)
+    (c : Circuit signature (n + k) m) (hc : ∀ x, c.eval interpretation (Fin.append x (g x)) = f x) :
+    ecomplexityGiven interpretation f g ≤ c.size :=
+  (ecomplexityGiven_le_iff f g).mpr ⟨c, hc, le_rfl⟩
+
 -- Given `f` together with more information, `f` itself is free.
 example (f : BitString n → BitString m) (g : BitString n → BitString k) :
     ecomplexityGiven interpretation f (fun x => Fin.append (f x) (g x)) = 0 :=
