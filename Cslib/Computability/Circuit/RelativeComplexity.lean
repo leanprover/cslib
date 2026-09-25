@@ -42,12 +42,6 @@ noncomputable def ecomplexityGiven (I : Interpretation σ U) (f : (Fin n → U) 
     (g : (Fin n → U) → Fin k → U) : ℕ∞ :=
   ⨅ c : {c : Circuit σ (n + k) m // ∀ x, c.eval I (Fin.append x (g x)) = f x}, (c.1.size : ℕ∞)
 
-/-- The complexity of `f` relative to `g` as a natural number, which is `0` when no circuit
-computes `f` given `g`. -/
-noncomputable def complexityGiven (I : Interpretation σ U) (f : (Fin n → U) → Fin m → U)
-    (g : (Fin n → U) → Fin k → U) : ℕ :=
-  (ecomplexityGiven I f g).toNat
-
 variable {I : Interpretation σ U}
 
 /-- Relative complexity is complexity on the graph: computing `f` given `g` is computing `f` of
@@ -188,15 +182,21 @@ theorem ecomplexityGiven_append_le (f : (Fin n → U) → Fin m → U) (g : (Fin
 
 section Complete
 
-variable [I.IsComplete]
-
-theorem ecomplexityGiven_ne_top (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U) :
-    ecomplexityGiven I f g ≠ ⊤ :=
+theorem ecomplexityGiven_ne_top [I.IsComplete] (f : (Fin n → U) → Fin m → U)
+    (g : (Fin n → U) → Fin k → U) : ecomplexityGiven I f g ≠ ⊤ :=
   ne_top_of_le_ne_top ecomplexity_ne_top (ecomplexityGiven_le_ecomplexity f g)
+
+/-- The complexity `C(f | g)` of `f` relative to `g` over a complete basis, as a natural
+number. -/
+noncomputable def complexityGiven (I : Interpretation σ U) [I.IsComplete]
+    (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U) : ℕ :=
+  (ecomplexityGiven I f g).untop (ecomplexityGiven_ne_top f g)
+
+variable [I.IsComplete]
 
 @[simp] theorem natCast_complexityGiven (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : (complexityGiven I f g : ℕ∞) = ecomplexityGiven I f g :=
-  ENat.natCast_toNat (ecomplexityGiven_ne_top f g)
+  WithTop.coe_untop _ _
 
 theorem complexityGiven_le_complexity (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : complexityGiven I f g ≤ complexity I f := by
