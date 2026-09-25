@@ -126,25 +126,25 @@ def Circuit.Computes (c : Circuit σ inputCount outputCount)
     Prop :=
   ∀ x, c.eval interpretation x = f x
 
-/-- A circuit computes `F` on the support `S` when its outputs agree with `F` on every input in
-`S`; what `F` does outside `S` does not matter. -/
+/-- A circuit computes `f` on the support `S` when its outputs agree with `f` on every input in
+`S`; what `f` does outside `S` does not matter. -/
 def Circuit.ComputesOn (c : Circuit σ inputCount outputCount)
     (interpretation : Interpretation σ U) (S : Set (Fin inputCount → U))
-    (F : (Fin inputCount → U) → Fin outputCount → U) : Prop :=
-  Set.EqOn (c.eval interpretation) F S
+    (f : (Fin inputCount → U) → Fin outputCount → U) : Prop :=
+  Set.EqOn (c.eval interpretation) f S
 
 /-- Computing on every input is computing. -/
 @[simp] theorem Circuit.computesOn_univ_iff (c : Circuit σ inputCount outputCount)
-    (interpretation : Interpretation σ U) (F : (Fin inputCount → U) → Fin outputCount → U) :
-    c.ComputesOn interpretation Set.univ F ↔ c.Computes interpretation F := by
+    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → Fin outputCount → U) :
+    c.ComputesOn interpretation Set.univ f ↔ c.Computes interpretation f := by
   rw [Circuit.ComputesOn, Set.eqOn_univ, funext_iff]
   rfl
 
-/-- A circuit that computes `F` computes it on every support. -/
+/-- A circuit that computes `f` computes it on every support. -/
 theorem Circuit.Computes.computesOn {c : Circuit σ inputCount outputCount}
-    {interpretation : Interpretation σ U} {F : (Fin inputCount → U) → Fin outputCount → U}
-    (h : c.Computes interpretation F) (S : Set (Fin inputCount → U)) :
-    c.ComputesOn interpretation S F :=
+    {interpretation : Interpretation σ U} {f : (Fin inputCount → U) → Fin outputCount → U}
+    (h : c.Computes interpretation f) (S : Set (Fin inputCount → U)) :
+    c.ComputesOn interpretation S f :=
   fun x _ => h x
 
 /-- A wiring circuit computes the selection of its inputs. -/
