@@ -50,7 +50,8 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
     Finset.univ.image fun c : Circuit σ n g 1 => fun x => c.eval I x 0
 
 @[simp] theorem mem_computableFunctions {f : (Fin n → U) → U} :
-    f ∈ computableFunctions I n s ↔ ∃ g ≤ s, ∃ c : Circuit σ n g 1, c.Computes I f := by
+    f ∈ computableFunctions I n s ↔
+      ∃ g ≤ s, ∃ c : Circuit σ n g 1, c.Computes I (fun x _ => f x) := by
   classical
   simp [computableFunctions, Circuit.Computes, funext_iff, Nat.lt_succ_iff]
 
@@ -64,7 +65,7 @@ noncomputable def irredundantFunctions (I : Interpretation σ U) (n g : ℕ) :
 
 @[simp] theorem mem_irredundantFunctions {f : (Fin n → U) → U} :
     f ∈ irredundantFunctions I n g ↔ ∃ c : Circuit σ n g 1,
-      c.Computes I f ∧ c.Irredundant I := by
+      c.Computes I (fun x _ => f x) ∧ c.Irredundant I := by
   classical
   simp [irredundantFunctions, Circuit.Computes, funext_iff, and_comm]
 
@@ -113,7 +114,7 @@ private noncomputable def representative (f : irredundantFunctions I n g) :
   (mem_irredundantFunctions.mp f.property).choose
 
 private theorem representative_spec (f : irredundantFunctions I n g) :
-    (representative f).Computes I f ∧
+    (representative f).Computes I (fun x _ => f.1 x) ∧
       (representative f).Irredundant I :=
   (mem_irredundantFunctions.mp f.property).choose_spec
 
@@ -134,7 +135,11 @@ private theorem relabel_injective : Function.Injective
   have hfunction : f = f' := by
     apply Subtype.ext
     funext x
-    rw [← (representative_spec f).1 x, ← (representative_spec f').1 x,
+    have hf : (representative f).eval I x 0 = f.1 x :=
+      congrFun ((representative_spec f).1 x) 0
+    have hf' : (representative f').eval I x 0 = f'.1 x :=
+      congrFun ((representative_spec f').1 x) 0
+    rw [← hf, ← hf',
       ← relabel_output _ π, ← relabel_output _ τ, heq, hvalues]
   subst f'
   have hpermutation : π.symm = τ.symm := by
