@@ -62,11 +62,8 @@ theorem Interpretation.IsComplete.exists_computes {I : Interpretation σ U} [I.I
     obtain ⟨c, hc⟩ := exists_computes (I := I) fun x => f x ∘ Fin.castSucc
     obtain ⟨d, hd⟩ := exists_computes_single (I := I) fun x => f x (Fin.last m)
     refine ⟨c.append d, fun x => ?_⟩
-    rw [Circuit.eval_append, hc x, hd x]
-    funext i
-    induction i using Fin.lastCases with
-    | last => exact Fin.append_right _ _ 0
-    | cast j => exact Fin.append_left _ _ j
+    rw [Circuit.eval_append, hc x, hd x, Fin.append_right_eq_snoc]
+    exact Fin.snoc_init_self (f x)
 
 /-- The complexity `C^S(f)` of `f` on the support `S`: the least size of a circuit computing `f`
 on `S` under `I`, or `⊤` if there is none. -/
