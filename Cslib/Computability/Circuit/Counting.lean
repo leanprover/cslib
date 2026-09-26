@@ -5,6 +5,7 @@ Authors: Samuel Schlesinger
 -/
 module
 
+public import Cslib.Computability.Circuit.Complexity
 public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Normalization
 public import Mathlib.Data.Finset.Card
@@ -23,8 +24,9 @@ import Mathlib.Tactic.NormNum
 
 For a finite signature, only finitely many functions can be computed with a fixed gate budget,
 even when the carrier is infinite. We enumerate the programs of each size together with an
-output wire and collect the scalar functions they compute. Semantic equality and normalization
-use classical reasoning; the syntax enumeration is computable.
+output wire and collect the scalar functions they compute, so that `computableFunctions I n s`
+is the finite set of functions whose `ecomplexity` is at most `s`. Semantic equality and
+normalization use classical reasoning; the syntax enumeration is computable.
 
 After merging gates that compute the same function, a circuit with `g` gates has `g!` distinct
 labeled presentations. This factorial correction sharpens the count used in Shannon's lower bound.
@@ -61,6 +63,11 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
     exact ⟨⟨p, fun _ => w⟩, fun _ => rfl, hg⟩
   · rintro ⟨c, hc, hs⟩
     exact ⟨c.size, hs, c.program, c.outputs 0, funext fun x => congrFun (hc x) 0⟩
+
+/-- The functions computable with at most `s` gates are those of complexity at most `s`. -/
+theorem mem_computableFunctions_iff_ecomplexity_le {f : (Fin n → U) → U} :
+    f ∈ computableFunctions I n s ↔ ecomplexity I (single f) ≤ s := by
+  rw [mem_computableFunctions, ecomplexity_le_iff]
 
 /-- Functions computed at an output wire of a program whose `g` gates compute pairwise distinct
 functions. Permuting the gates of such a program, ignoring their order, gives `g!` distinct gate
