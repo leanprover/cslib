@@ -102,10 +102,7 @@ def Circuit.depth (c : Circuit σ inputCount gateCount outputCount) : Nat :=
   Fin.foldl outputCount (fun depth k => max depth (c.outputDepths k)) 0
 
 @[simp] theorem Circuit.outputDepths_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).outputDepths = fun _ => 0 := by
-  funext output
-  simp only [Circuit.outputDepths, Circuit.program_wiring, Circuit.outputs_wiring,
-    Function.comp_apply, Program.wireDepths, Wire.input, Fin.addCases_left]
+    (Circuit.wiring σ select).outputDepths = fun _ => 0 := rfl
 
 @[simp] theorem Circuit.depth_wiring (select : Fin outputCount → Fin inputCount) :
     (Circuit.wiring σ select).depth = 0 := by
@@ -131,9 +128,7 @@ def Circuit.Computes (c : Circuit σ inputCount gateCount outputCount)
 
 @[simp] theorem Circuit.eval_wiring (select : Fin outputCount → Fin inputCount)
     (interpretation : Interpretation σ U) (input : Fin inputCount → U) :
-    (Circuit.wiring σ select).eval interpretation input = input ∘ select := by
-  funext output
-  exact Program.trace_input .empty interpretation input (select output)
+    (Circuit.wiring σ select).eval interpretation input = input ∘ select := rfl
 
 /-- A wiring circuit computes the selection of its inputs. -/
 theorem Circuit.wiring_computes (select : Fin outputCount → Fin inputCount)
@@ -165,6 +160,6 @@ def Circuit.trace
     (c : Circuit σ inputCount gateCount outputCount)
     (i : Interpretation σ U)
     (x : Fin inputCount → U) : Fin (inputCount + gateCount + outputCount) → U :=
-  Fin.addCases (c.program.trace i x) (c.eval i x)
+  Fin.addCases (Fin.addCases x (c.program.eval i x)) (c.eval i x)
 
 end Cslib.Circuits

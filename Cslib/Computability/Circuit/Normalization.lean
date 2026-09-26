@@ -48,12 +48,12 @@ theorem Program.exists_irredundant (p : Program σ n g) (i : Interpretation σ U
       · obtain ⟨w, hw⟩ := h
         refine ⟨k, by omega, q, ρ.skipLast (Wire.gate w), ?_, hq⟩
         intro x v
-        refine Fin.lastCases ?_ (fun v => ?_) v
+        refine Wire.lastCases ?_ (fun v => ?_) v
         · simpa using (congrFun hw x).trans (hl x)
         · simpa using hρ x v
       · refine ⟨k + 1, by omega, q.gate l, ρ.appendLast, ?_, ?_⟩
         · intro x v
-          refine Fin.lastCases ?_ (fun v => ?_) v
+          refine Wire.lastCases ?_ (fun v => ?_) v
           · simpa using hl x
           · simpa using hρ x v
         · change Function.Injective ((q.gate l).gateFunction i)
