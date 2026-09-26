@@ -137,7 +137,7 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg
 
 /-- One step at a live state is the transition's action applied to the configuration. -/
-lemma step_apply_of_state {cfg : Cfg k Symbol State input} {q : State}
+public lemma step_apply_of_state {cfg : Cfg k Symbol State input} {q : State}
     (h : cfg.state = some q) :
     tm.step cfg = (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg := by
   rw [step, h]
@@ -147,6 +147,31 @@ def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   match cfg.state with
   | none => none
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).output
+
+/-- The input head after a live step. -/
+public lemma step_inputPos_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) :
+    (tm.step cfg).inputPos =
+      moveInputPos cfg.inputPos (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).inputTape := by
+  rw [step_apply_of_state h, Action.apply_inputPos]
+
+/-- A work tape after a live step. -/
+public lemma step_workTapes_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) (i : Fin k) :
+    (tm.step cfg).workTapes i =
+      match (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i |>.1 with
+      | none => cfg.workTapes i
+      | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s := by
+  rw [step_apply_of_state h]
+  rfl
+
+/-- A work tape head after a live step. -/
+public lemma step_workTapePos_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) (i : Fin k) :
+    (tm.step cfg).workTapePos i =
+      cfg.workTapePos i + ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i).2 := by
+  rw [step_apply_of_state h]
+  rfl
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
@@ -170,14 +195,6 @@ lemma runFrom_eq_of_halt
     tm.runFrom cfg t = tm.runFrom cfg τ := by
   rw [runFrom, ← Nat.sub_add_cancel hle, Function.iterate_add_apply]
   exact Function.iterate_fixed (step_of_halt hhalt) _
-
-/-- A configuration map that commutes with a single step commutes with whole runs. -/
-lemma runFrom_comm {k' : ℕ} {State' : Type*} {input input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'}
-    {f : Cfg k Symbol State input → Cfg k' Symbol State' input'}
-    (h : ∀ c, tm'.step (f c) = f (tm.step c)) (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm'.runFrom (f cfg) t = f (tm.runFrom cfg t) :=
-  (Function.Semiconj.iterate_right (fun c => (h c).symm) t cfg).symm
 
 /-- Every halted run has a first halting time no later than the supplied one. -/
 lemma exists_minimal_halting_time
@@ -258,6 +275,24 @@ lemma step_output (cfg : Cfg k Symbol State input) :
   unfold step outputSymbol Action.apply
   cases cfg.state <;> simp
 
+/-- In `t` steps the input head moves at most `t` positions to the right. -/
+lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    ((tm.runFrom cfg t).inputPos : ℕ) ≤ (cfg.inputPos : ℕ) + t := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
+    by_cases hq : (tm.runFrom cfg t).state = none
+    · rw [step_of_halt hq]
+      omega
+    · obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp hq
+      have h : ((tm.step (tm.runFrom cfg t)).inputPos : ℕ) ≤
+          ((tm.runFrom cfg t).inputPos : ℕ) + 1 := by
+        rw [step_inputPos_of_state hq]
+        exact val_moveInputPos_le _ _
+      omega
+
 /-- The output does not change after the machine has halted. -/
 lemma runFrom_output_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
@@ -267,7 +302,7 @@ lemma runFrom_output_eq_of_halt
   congrArg Cfg.output (tm.runFrom_eq_of_halt cfg hle hhalt)
 
 /-- The output only grows during a run. -/
-lemma length_output_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
+public lemma length_output_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
     Monotone fun t => (tm.runFrom cfg t).output.length :=
   monotone_nat_of_le_succ fun t => by simp [runFrom, Function.iterate_succ_apply']
 

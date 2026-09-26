@@ -47,6 +47,7 @@ when `e j = l` (such `j` is unique by injectivity), and `none` when `l` lies out
 @[expose] public def partialInv (e : Fin k ↪ Fin k') (l : Fin k') : Option (Fin k) :=
   if h : l ∈ Set.range e then some (e.invOfMemRange ⟨l, h⟩) else none
 
+/-- `partialInv e` is a partial inverse of `e`. -/
 public lemma partialInv_isPartialInv (e : Fin k ↪ Fin k') :
     Function.IsPartialInv e (partialInv e) := fun j l => by
   grind [partialInv, Function.Embedding.left_inv_of_invOfMemRange,
@@ -140,7 +141,8 @@ public lemma runFrom_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin 
     (extraPos : Fin k' → ℤ) (n : ℕ) :
     (tm.extendTapes e).runFrom (embed e cfg extraTapes extraPos) n
       = embed e (tm.runFrom cfg n) extraTapes extraPos :=
-  runFrom_comm (step_embed tm e · extraTapes extraPos) cfg n
+  (Function.Semiconj.iterate_right (f := (embed e · extraTapes extraPos))
+    (fun c => (step_embed tm e c extraTapes extraPos).symm) n cfg).symm
 
 section Space
 
@@ -160,11 +162,11 @@ public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪
     (extraPos : Fin k' → ℤ) (n : ℕ) :
     (tm.extendTapes e).spaceUsed (embed e cfg extraTapes extraPos) n
       ≤ tm.spaceUsed cfg n + (k' - k) := by
-  simpa using spaceUsed_le_of_workTapePos_embedding (tm := tm) e cfg _ 1
+  simpa using tm.spaceUsed_le_of_workTapePos_embedding e cfg _ 1
     (fun m _ j => by rw [runFrom_embed, embed_workTapePos_embed])
-    fun l hl => spaceUsedByTape_le_one _ fun m _ =>
-      have h := (workTapePos_embed_of_not_range tm e cfg extraTapes extraPos · hl)
-      (h m).trans (h 0).symm
+    fun l hl => spaceUsedByTape_le_one _ fun m _ => by
+      rw [workTapePos_embed_of_not_range tm e cfg extraTapes extraPos m hl]
+      simp only [embed, partialInv_eq_none e hl]
 
 end Space
 

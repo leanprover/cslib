@@ -45,8 +45,9 @@ are. -/
     | some _ => (match m with | SignType.neg => SignType.zero | _ => m)
     | none => (match m with | SignType.pos => SignType.zero | _ => m)
 
-/-- `tm`, reading its input from the virtual input tape `⟨k, _⟩`, with the flag tape `⟨k + 1, _⟩`
-marking the cell left of the input. The real input tape is never read and never moved. -/
+/-- `tm`, reading its input from the virtual input tape `Fin.natAdd k 0`, with the flag tape
+`Fin.natAdd k 1` marking the cell left of the input. The real input tape is never read and never
+moved. -/
 @[expose] public def inputFromTape (tm : MultiTapeTM k Symbol State) :
     MultiTapeTM (k + 2) Symbol State where
   q₀ := tm.q₀
@@ -55,8 +56,7 @@ marking the cell left of the input. The real input tape is never read and never 
     let m := clampMove (work (Fin.natAdd k 0)) (work (Fin.natAdd k 1)) a.inputTape
     { a with
       inputTape := 0
-      workTapes := fun l =>
-        if h : l.val < k then a.workTapes ⟨l.val, h⟩ else (none, m) }
+      workTapes := Fin.append a.workTapes fun _ => (none, m) }
 
 /-- A configuration of `tm` on `input`, as the redirecting machine sees it, over an arbitrary
 ambient input: `input` sits on the virtual input tape with the head at cell `inputPos - 1`, the flag
@@ -120,7 +120,8 @@ public lemma inCfg_workTapeSymbols_vip (c : Cfg k Symbol State input) :
   rw [Cfg.workTapeSymbols, inCfg_workTapes_vip, inCfg_workTapePos_natAdd]
   obtain h | h | h : c.inputPos.val = 0 ∨ c.inputPos.val = input.length + 1 ∨
       (0 < c.inputPos.val ∧ c.inputPos.val < input.length + 1) := by omega
-  · rw [inputSymbol_eq_none_of_boundary (.inl h), h]; rfl
+  · rw [inputSymbol_eq_none_of_boundary (.inl h), h]
+    exact tapeOfList_negSucc input 0
   · rw [inputSymbol_eq_none_of_boundary (.inr h), h]; simp
   · rw [inputSymbolInner (c.inputPos.val - 1) (by omega) (by omega),
       show (c.inputPos.val : ℤ) - 1 = (c.inputPos.val - 1 : ℕ) by omega, tapeOfList_ofNat,
@@ -134,7 +135,7 @@ public lemma inCfg_workTapeSymbols_flag (c : Cfg k Symbol State input) :
   simp [Cfg.workTapeSymbols, Function.update_apply]
 
 /-- The clamped move of the virtual input head tracks the simulated input head exactly. -/
-public lemma val_moveInputPos_sub_one (mark : Symbol) (c : Cfg k Symbol State input)
+public lemma val_moveInputPos_sub_one_eq_clampMove (mark : Symbol) (c : Cfg k Symbol State input)
     (m : SignType) :
     ((moveInputPos c.inputPos m).val : ℤ) - 1 =
       ((c.inputPos.val : ℤ) - 1) +
@@ -166,14 +167,15 @@ public lemma step_inCfg (tm : MultiTapeTM k Symbol State) (mark : Symbol)
     simp only [inputFromTape, inCfg_workTapeSymbols_vip, inCfg_workTapeSymbols_flag,
       inCfg_workTapeSymbols_castAdd]
     refine Cfg.ext rfl (by simp [inCfg]) ?_ ?_ rfl <;> funext l <;>
-      induction l using Fin.addCases <;> simp [inCfg, val_moveInputPos_sub_one mark]
+      induction l using Fin.addCases <;> simp [inCfg, val_moveInputPos_sub_one_eq_clampMove mark]
 
 /-- The redirected run mirrors the original. -/
 public lemma runFrom_inCfg (tm : MultiTapeTM k Symbol State) (mark : Symbol)
     (c : Cfg k Symbol State input) (outerInput : List Symbol) (n : ℕ) :
     tm.inputFromTape.runFrom (inCfg mark c outerInput) n =
       inCfg mark (tm.runFrom c n) outerInput :=
-  runFrom_comm (step_inCfg tm mark · outerInput) c n
+  (Function.Semiconj.iterate_right (f := (inCfg mark · outerInput))
+    (fun c => (step_inCfg tm mark c outerInput).symm) n c).symm
 
 /-- **Space of the input-redirected machine.** The `k` inner tapes visit exactly what the original
 does; the two extra tapes (virtual input, flag) each move only with the simulated input head,
@@ -182,14 +184,14 @@ public lemma spaceUsed_inputFromTape (tm : MultiTapeTM k Symbol State) (mark : S
     (c : Cfg k Symbol State input) (outerInput : List Symbol) (n : ℕ) :
     tm.inputFromTape.spaceUsed (inCfg mark c outerInput) n ≤
       tm.spaceUsed c n + 2 * (input.length + 2) := by
-  simpa using spaceUsed_le_of_workTapePos_embedding (tm := tm) (Fin.castAddEmb 2) c
+  simpa using tm.spaceUsed_le_of_workTapePos_embedding (Fin.castAddEmb 2) c
     (inCfg mark c outerInput) (input.length + 2) (fun m _ j => by simp [runFrom_inCfg])
     fun l hl => by
       induction l using Fin.addCases with
       | left j => exact absurd ⟨j, rfl⟩ hl
       | right i =>
         refine (spaceUsedByTape_le_card _ (S := .Icc (-1) input.length) fun m _ => ?_).trans
-          (by simp; omega)
+          (by rw [Int.card_Icc]; omega)
         have := (tm.runFrom c m).inputPos.isLt
         simp only [runFrom_inCfg, inCfg_workTapePos_natAdd, Finset.mem_Icc]
         omega

@@ -140,6 +140,14 @@ lemma val_moveInputPos_eq {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
     ((moveInputPos pos m).val : ℤ) = min ((n : ℤ) + 1) (max 0 ((pos.val : ℤ) + (m.cast : ℤ))) := by
   grind
 
+/-- The input head moves by at most one position. -/
+lemma val_moveInputPos_le {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
+    (moveInputPos pos m).val ≤ pos.val + 1 := by
+  have h := val_moveInputPos_eq pos m
+  have hmc : (m.cast : ℤ) = -1 ∨ (m.cast : ℤ) = 0 ∨ (m.cast : ℤ) = 1 := by
+    rcases m with _ | _ | _ <;> simp [SignType.cast]
+  omega
+
 /-- The symbol currently under the input tape head. -/
 def Cfg.inputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   if h₁ : cfg.inputPos = 0 then none

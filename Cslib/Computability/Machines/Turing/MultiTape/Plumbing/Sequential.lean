@@ -88,7 +88,7 @@ lemma step_rightCfg (cfg : Cfg k Symbol State₁ input) :
 /-- The second phase of `seq` mirrors the run of `tm₁`. -/
 lemma runFrom_rightCfg (cfg : Cfg k Symbol State₁ input) (n : ℕ) :
     (tm₀.seq tm₁).runFrom (rightCfg cfg) n = rightCfg (tm₁.runFrom cfg n) :=
-  runFrom_comm step_rightCfg cfg n
+  (Function.Semiconj.iterate_right (fun c => (step_rightCfg c).symm) n cfg).symm
 
 /-- While `tm₀` is running, `seq` mirrors it. -/
 lemma runFrom_leftCfg (cfg : Cfg k Symbol State₀ input) (n : ℕ)

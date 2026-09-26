@@ -88,15 +88,17 @@ public lemma step_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol Sta
   | some q =>
     rw [step_apply_of_state (cfg := outCfg c) hq, step_apply_of_state hq]
     simp only [outputToTape, outCfg_inputSymbol, outCfg_workTapeSymbols_castSucc]
-    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
+    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases with
+    | cast j => simp
+    | last =>
       cases h : (tm.tr q c.inputSymbol c.workTapeSymbols).output <;>
-      simp [h, tapeOfList_append_single, SignType.cast]
+        simp [h, tapeOfList_append_single, SignType.cast]
 
 /-- The redirected run mirrors the original. -/
 public lemma runFrom_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input)
     (n : ℕ) :
     tm.outputToTape.runFrom (outCfg c) n = outCfg (tm.runFrom c n) :=
-  runFrom_comm (step_outCfg tm) c n
+  (Function.Semiconj.iterate_right (fun c => (step_outCfg tm c).symm) n c).symm
 
 section WithOutput
 
@@ -114,7 +116,8 @@ public lemma step_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
 public lemma runFrom_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
     (c : Cfg (k + 1) Symbol State input) (out : List Symbol) (n : ℕ) :
     tm.outputToTape.runFrom (c.withOutput out) n = (tm.outputToTape.runFrom c n).withOutput out :=
-  runFrom_comm (step_outputToTape_withOutput tm · out) c n
+  (Function.Semiconj.iterate_right (f := (Cfg.withOutput · out))
+    (fun c => (step_outputToTape_withOutput tm c out).symm) n c).symm
 
 /-- `outputToTape`'s space does not depend on the real output already present. -/
 public lemma spaceUsed_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
@@ -138,7 +141,7 @@ public lemma spaceUsed_outputToTape (tm : MultiTapeTM k Symbol State)
     (c : Cfg k Symbol State input) (u : ℕ) :
     tm.outputToTape.spaceUsed (outCfg c) u ≤
       tm.spaceUsed c u + ((tm.runFrom c u).output.length + 1) := by
-  simpa using spaceUsed_le_of_workTapePos_embedding (tm := tm) Fin.castSuccEmb c (outCfg c)
+  simpa using tm.spaceUsed_le_of_workTapePos_embedding Fin.castSuccEmb c (outCfg c)
     ((tm.runFrom c u).output.length + 1) (fun m _ j => by simp [runFrom_outCfg])
     fun l hl => by
       induction l using Fin.lastCases with
@@ -146,8 +149,8 @@ public lemma spaceUsed_outputToTape (tm : MultiTapeTM k Symbol State)
         refine (spaceUsedByTape_le_card _
           (S := .Icc (c.output.length : ℤ) (tm.runFrom c u).output.length) fun m hm => ?_).trans
           (by simp)
-        have h0 : c.output.length ≤ (tm.runFrom c m).output.length :=
-          tm.length_output_mono c (Nat.zero_le m)
+        have h0 : c.output.length ≤ (tm.runFrom c m).output.length := by
+          simpa [runFrom] using tm.length_output_mono c (Nat.zero_le m)
         have hu : (tm.runFrom c m).output.length ≤ (tm.runFrom c u).output.length :=
           tm.length_output_mono c hm
         simp only [runFrom_outCfg, outCfg_workTapePos_last, Finset.mem_Icc]
