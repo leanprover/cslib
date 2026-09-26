@@ -52,7 +52,7 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
 
 @[simp] theorem mem_computableFunctions {f : (Fin n → U) → U} :
     f ∈ computableFunctions I n s ↔
-      ∃ c : Circuit σ n 1, c.Computes I (fun x _ => f x) ∧ c.size ≤ s := by
+      ∃ c : Circuit σ n 1, c.Computes I (single f) ∧ c.size ≤ s := by
   classical
   simp only [computableFunctions, Finset.mem_biUnion, Finset.mem_range, Finset.mem_image,
     Finset.mem_univ, true_and, Nat.lt_succ_iff, Prod.exists]
@@ -79,7 +79,7 @@ private theorem mem_irredundantFunctions_iff {f : (Fin n → U) → U} :
 
 @[simp] theorem mem_irredundantFunctions {f : (Fin n → U) → U} :
     f ∈ irredundantFunctions I n g ↔
-      ∃ c : Circuit σ n 1, c.Computes I (fun x _ => f x) ∧ c.Irredundant I ∧ c.size = g := by
+      ∃ c : Circuit σ n 1, c.Computes I (single f) ∧ c.Irredundant I ∧ c.size = g := by
   rw [mem_irredundantFunctions_iff]
   constructor
   · rintro ⟨⟨p, w⟩, hf, hi⟩

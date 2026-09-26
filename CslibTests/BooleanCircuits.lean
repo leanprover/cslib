@@ -24,12 +24,12 @@ example (value : Bool) :
   (Synthesis.const (s := inputs 0) value).exists_circuit
 
 example {n : ℕ} (i : Fin n) :
-    ∃ c : Circuit signature n 1, c.Computes interpretation (fun x _ => x i) ∧ c.size ≤ 0 := by
+    ∃ c : Circuit signature n 1, c.Computes interpretation (single fun x => x i) ∧ c.size ≤ 0 := by
   have h : Synthesis interpretation (inputs n) {fun x => x i} 0 :=
     Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨i, rfl⟩)
   exact h.exists_circuit
 
-example : ¬ (Circuit.id signature 1).Computes interpretation (fun x _ => !x 0) := by
+example : ¬ (Circuit.id signature 1).Computes interpretation (single fun x => !x 0) := by
   intro h
   have := congrFun (h fun _ => true) 0
   simp at this
@@ -61,9 +61,9 @@ example : (fun x : Fin 1 → Bool => x 0) ∈ computableFunctions 1 0 :=
 example (ε : ℝ) (hε : 0 < ε) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n,
       (∀ c : Circuit signature n 1,
-        c.Computes interpretation (fun x _ => f x) → 2 ^ n / (n : ℝ) < (c.size : ℝ)) ∧
+        c.Computes interpretation (single f) → 2 ^ n / (n : ℝ) < (c.size : ℝ)) ∧
       ∃ c : Circuit signature n 1,
-        c.Computes interpretation (fun x _ => f x) ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
+        c.Computes interpretation (single f) ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
   obtain ⟨N, hN⟩ := Shannon.exists_hard_function
   obtain ⟨M, hM⟩ := Lupanov.exists_circuit ε hε
   refine ⟨max N M, fun n hn => ?_⟩

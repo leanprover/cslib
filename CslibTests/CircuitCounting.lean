@@ -104,7 +104,7 @@ def nandInterpretation : Interpretation binarySignature Bool := fun _ x => !(x 0
 
 example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Bool) → Bool,
     ∀ c : Circuit binarySignature n 1,
-      c.Computes nandInterpretation (fun x _ => f x) → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
+      c.Computes nandInterpretation (single f) → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Shannon.exists_hard_function nandInterpretation (fun _ => le_rfl)
 
@@ -112,7 +112,7 @@ def ternaryInterpretation : Interpretation binarySignature (Fin 3) := fun _ x =>
 
 example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Fin 3) → Fin 3,
     ∀ c : Circuit binarySignature n 1,
-      c.Computes ternaryInterpretation (fun x _ => f x) → 3 ^ n / (n : ℝ) < (c.size : ℝ) := by
+      c.Computes ternaryInterpretation (single f) → 3 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Shannon.exists_hard_function ternaryInterpretation (fun _ => le_rfl)
 
