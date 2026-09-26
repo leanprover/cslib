@@ -136,11 +136,42 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   | none => cfg
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg
 
+/-- One step at a live state is the transition's action applied to the configuration. -/
+public lemma step_apply_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) :
+    tm.step cfg = (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg := by
+  rw [step, h]
+
 /-- The symbol (optionally) output when executing one step starting from configuration `cfg`. -/
 def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   match cfg.state with
   | none => none
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).output
+
+/-- The input head after a live step. -/
+public lemma step_inputPos_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) :
+    (tm.step cfg).inputPos =
+      moveInputPos cfg.inputPos (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).inputTape := by
+  rw [step_apply_of_state h, Action.apply_inputPos]
+
+/-- A work tape after a live step. -/
+public lemma step_workTapes_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) (i : Fin k) :
+    (tm.step cfg).workTapes i =
+      match (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i |>.1 with
+      | none => cfg.workTapes i
+      | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s := by
+  rw [step_apply_of_state h]
+  rfl
+
+/-- A work tape head after a live step. -/
+public lemma step_workTapePos_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) (i : Fin k) :
+    (tm.step cfg).workTapePos i =
+      cfg.workTapePos i + ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i).2 := by
+  rw [step_apply_of_state h]
+  rfl
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
@@ -244,6 +275,24 @@ lemma step_output (cfg : Cfg k Symbol State input) :
   unfold step outputSymbol Action.apply
   cases cfg.state <;> simp
 
+/-- In `t` steps the input head moves at most `t` positions to the right. -/
+lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    ((tm.runFrom cfg t).inputPos : ℕ) ≤ (cfg.inputPos : ℕ) + t := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
+    by_cases hq : (tm.runFrom cfg t).state = none
+    · rw [step_of_halt hq]
+      omega
+    · obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp hq
+      have h : ((tm.step (tm.runFrom cfg t)).inputPos : ℕ) ≤
+          ((tm.runFrom cfg t).inputPos : ℕ) + 1 := by
+        rw [step_inputPos_of_state hq]
+        exact val_moveInputPos_le _ _
+      omega
+
 /-- The output does not change after the machine has halted. -/
 lemma runFrom_output_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
@@ -251,6 +300,22 @@ lemma runFrom_output_eq_of_halt
     (hhalt : (tm.runFrom cfg τ).state = none) :
     (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output :=
   congrArg Cfg.output (tm.runFrom_eq_of_halt cfg hle hhalt)
+
+/-- The output only grows during a run. -/
+public lemma length_output_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
+    Monotone fun t => (tm.runFrom cfg t).output.length :=
+  monotone_nat_of_le_succ fun t => by simp [runFrom, Function.iterate_succ_apply']
+
+/-- A machine emits at most one symbol per step. -/
+theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom, step_output, List.length_append]
+    have := (tm.outputSymbol (tm.runFrom cfg t)).length_toList_le
+    omega
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
@@ -307,6 +372,20 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
     ComputableInTimeAndSpace f encIn encOut t' s' := by
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
+
+/-- A machine emits at most one symbol per step, so the encoded result of a computation is no
+longer than its time bound. This is the only bound available on the length of an intermediate
+result: a machine can produce an output much longer than the space it uses. -/
+theorem ComputableInTimeAndSpace.length_encOut_le {α β : Type*}
+    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β} {t s : α → ℕ}
+    (h : ComputableInTimeAndSpace f encIn encOut t s) (a : α) :
+    (encOut (f a)).length ≤ t a := by
+  obtain ⟨k, State, _, tm, htm⟩ := h
+  obtain ⟨t', ht', s', _, _, hout, _⟩ := htm a
+  have hlen := length_output_runFrom_le tm (tm.initCfg (encIn a)) t'
+  rw [hout] at hlen
+  have h0 : (tm.initCfg (encIn a)).output.length = 0 := rfl
+  omega
 
 open Classical in
 /-- The Boolean indicator function of a set. -/
