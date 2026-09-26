@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Program
+public import Mathlib.Data.Set.Function
 
 /-!
 # Circuits
@@ -128,6 +129,27 @@ def single (f : (Fin inputCount → U) → U) : (Fin inputCount → U) → Fin 1
 @[simp] theorem single_apply (f : (Fin inputCount → U) → U) (x : Fin inputCount → U)
     (i : Fin 1) : single f x i = f x :=
   rfl
+
+/-- A circuit computes `f` on the support `S` when its outputs agree with `f` on every input in
+`S`; what `f` does outside `S` does not matter. -/
+def Circuit.ComputesOn (c : Circuit σ inputCount outputCount)
+    (interpretation : Interpretation σ U) (S : Set (Fin inputCount → U))
+    (f : (Fin inputCount → U) → Fin outputCount → U) : Prop :=
+  Set.EqOn (c.eval interpretation) f S
+
+/-- Computing on every input is computing. -/
+@[simp] theorem Circuit.computesOn_univ_iff (c : Circuit σ inputCount outputCount)
+    (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → Fin outputCount → U) :
+    c.ComputesOn interpretation Set.univ f ↔ c.Computes interpretation f := by
+  rw [Circuit.ComputesOn, Set.eqOn_univ, funext_iff]
+  rfl
+
+/-- A circuit that computes `f` computes it on every support. -/
+theorem Circuit.Computes.computesOn {c : Circuit σ inputCount outputCount}
+    {interpretation : Interpretation σ U} {f : (Fin inputCount → U) → Fin outputCount → U}
+    (h : c.Computes interpretation f) (S : Set (Fin inputCount → U)) :
+    c.ComputesOn interpretation S f :=
+  fun x _ => h x
 
 /-- A wiring circuit computes the selection of its inputs. -/
 theorem Circuit.wiring_computes (select : Fin outputCount → Fin inputCount)
