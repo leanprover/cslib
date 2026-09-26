@@ -28,7 +28,7 @@ example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) {n : ℕ} (i
   exact h.exists_circuit
 
 example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) {n : ℕ} (i : Fin n) :
-    ecomplexity I (fun x (_ : Fin 1) => x i) = 0 := by
+    ecomplexity I (single fun x => x i) = 0 := by
   have h : Synthesis I (inputs n) {fun x => x i} 0 :=
     Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨i, rfl⟩)
   simpa using h.ecomplexity_le
@@ -126,7 +126,7 @@ example : ∃ c : Circuit signature 1 1,
   simpa using h.exists_circuit
 
 -- Upper bounds on `ecomplexity` need no completeness: the circuit witnesses finiteness.
-example : ecomplexity interpretation (fun (x : Fin 2 → ℕ) (_ : Fin 1) => x 0 + x 1) ≤ 1 := by
+example : ecomplexity interpretation (single fun x : Fin 2 → ℕ => x 0 + x 1) ≤ 1 := by
   have h := Synthesis.gate (I := interpretation) (s := inputs 2) .add
     (fun i x => x i) (fun i => ⟨i, rfl⟩)
   simpa [interpretation] using h.ecomplexity_le
