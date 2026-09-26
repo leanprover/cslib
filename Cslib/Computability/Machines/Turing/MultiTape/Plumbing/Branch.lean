@@ -41,12 +41,6 @@ variable {k : ℕ} {S₁ S₂ : Type*} {input : List Bool}
 
 namespace Branch
 
-private lemma runFrom_add {State : Type*} (tm : MultiTapeTM k Bool State)
-    (cfg : Cfg k Bool State input) (a b : ℕ) :
-    tm.runFrom cfg (a + b) = tm.runFrom (tm.runFrom cfg a) b := by
-  change tm.step^[a + b] cfg = tm.step^[b] (tm.step^[a] cfg)
-  rw [Nat.add_comm a b, Function.iterate_add_apply]
-
 /-- The shared branching machine, parameterised by a dispatch decision `d`. State `none` is a fresh
 dispatch state: it reads the input symbol and the work-tape symbols and, in one step that writes
 nothing and moves no head, jumps to the sub-machine's initial state chosen by `d`. Thereafter it
@@ -104,42 +98,20 @@ every dispatch `d`, since it only touches the live `Sum.inl` states, whose trans
 independent of `d`. -/
 private lemma step_leftCfg (cfg : Cfg k Bool S₁ input) :
     (armed d tm₁ tm₂).step (leftCfg cfg) = leftCfg (tm₁.step cfg) := by
-  cases hq : cfg.state with
-  | none =>
-    rw [step_of_halt (by simp [leftCfg, hq]), step_of_halt hq]
-  | some q =>
-    have h1 : (leftCfg (S₂ := S₂) cfg).state = some (some (Sum.inl q)) := by simp [leftCfg, hq]
-    simp only [step, h1, hq]
-    rfl
+  rcases cfg with ⟨_ | q, inputPos, workTapes, workTapePos, output⟩ <;> rfl
 
 /-- On `tm₂`'s configurations, the branching machine mirrors `tm₂` step for step. -/
 private lemma step_rightCfg (cfg : Cfg k Bool S₂ input) :
     (armed d tm₁ tm₂).step (rightCfg cfg) = rightCfg (tm₂.step cfg) := by
-  cases hq : cfg.state with
-  | none =>
-    rw [step_of_halt (by simp [rightCfg, hq]), step_of_halt hq]
-  | some q =>
-    have h1 : (rightCfg (S₁ := S₁) cfg).state = some (some (Sum.inr q)) := by simp [rightCfg, hq]
-    simp only [step, h1, hq]
-    rfl
+  rcases cfg with ⟨_ | q, inputPos, workTapes, workTapePos, output⟩ <;> rfl
 
 private lemma runFrom_leftCfg (cfg : Cfg k Bool S₁ input) (n : ℕ) :
-    (armed d tm₁ tm₂).runFrom (leftCfg cfg) n = leftCfg (tm₁.runFrom cfg n) := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    simp only [runFrom] at ih ⊢
-    rw [Function.iterate_succ_apply', Function.iterate_succ_apply']
-    rw [ih, step_leftCfg]
+    (armed d tm₁ tm₂).runFrom (leftCfg cfg) n = leftCfg (tm₁.runFrom cfg n) :=
+  (Function.Semiconj.iterate_right (fun c => (step_leftCfg c).symm) n cfg).symm
 
 private lemma runFrom_rightCfg (cfg : Cfg k Bool S₂ input) (n : ℕ) :
-    (armed d tm₁ tm₂).runFrom (rightCfg cfg) n = rightCfg (tm₂.runFrom cfg n) := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    simp only [runFrom] at ih ⊢
-    rw [Function.iterate_succ_apply', Function.iterate_succ_apply']
-    rw [ih, step_rightCfg]
+    (armed d tm₁ tm₂).runFrom (rightCfg cfg) n = rightCfg (tm₂.runFrom cfg n) :=
+  (Function.Semiconj.iterate_right (fun c => (step_rightCfg c).symm) n cfg).symm
 
 /-! ### The work-tape branch -/
 
@@ -159,9 +131,7 @@ private lemma step_start_left (ws : Fin k → List Bool) (out : List Bool)
     (h : (ws i).head? = some x) :
     (branch i x tm₁ tm₂).step (wordsCfg input (some none) ws out) =
       leftCfg (S₂ := S₂) (wordsCfg input (some tm₁.q₀) ws out) := by
-  have hstate : (wordsCfg (State := Option (S₁ ⊕ S₂)) input (some none) ws out).state =
-      some none := rfl
-  rw [step_apply_of_state hstate]
+  rw [step_apply_of_state rfl]
   refine Cfg.ext ?_ ?_ ?_ ?_ ?_ <;>
     simp [branch, armed, Cfg.workTapeSymbols, tapeOfList_zero, h, leftCfg, Cfg.mapState, wordsCfg,
       Action.apply, SignType.cast]
@@ -172,9 +142,7 @@ private lemma step_start_right (ws : Fin k → List Bool) (out : List Bool)
     (h : ¬ (ws i).head? = some x) :
     (branch i x tm₁ tm₂).step (wordsCfg input (some none) ws out) =
       rightCfg (S₁ := S₁) (wordsCfg input (some tm₂.q₀) ws out) := by
-  have hstate : (wordsCfg (State := Option (S₁ ⊕ S₂)) input (some none) ws out).state =
-      some none := rfl
-  rw [step_apply_of_state hstate]
+  rw [step_apply_of_state rfl]
   refine Cfg.ext ?_ ?_ ?_ ?_ ?_ <;>
     simp [branch, armed, Cfg.workTapeSymbols, tapeOfList_zero, h, rightCfg, Cfg.mapState, wordsCfg,
       Action.apply, SignType.cast]
@@ -199,91 +167,48 @@ public theorem exists_transformsTapes_branch {J : Type*} {k : ℕ} (i : Fin k) (
         (fun input ws => if (ws i).head? = some x then P₁ j input ws else P₂ j input ws)
         (Q j) (max (t₁ j) (t₂ j) + 1) (max (s₁ j) (s₂ j) + k) := by
   refine ⟨Option (State₁ ⊕ State₂), inferInstance, branch i x tm₁ tm₂, fun j input ws out hP => ?_⟩
-  -- the machine's initial state is the dispatch state `none`
-  rw [show (branch i x tm₁ tm₂).q₀ = none from rfl]
-  by_cases h : (ws i).head? = some x
-  · -- read `some x`: run `tm₁`
-    simp only [h] at hP
-    obtain ⟨ws', hrun₁, hQ₁, hsp₁⟩ := h₁ j input ws out hP
-    have hstep1 : (branch i x tm₁ tm₂).runFrom (wordsCfg input (some none) ws out) 1 =
-        leftCfg (S₂ := State₂) (wordsCfg input (some tm₁.q₀) ws out) := by
-      simpa only [runFrom, Function.iterate_one] using step_start_left ws out h
-    have hhalt : ((branch i x tm₁ tm₂).runFrom (wordsCfg input (some none) ws out)
-        (1 + t₁ j)).state = none := by
-      rw [runFrom_add]
-      rw [hstep1, runFrom_leftCfg, hrun₁]
-      rfl
-    refine ⟨ws', ?_, hQ₁, ?_⟩
-    · rw [show max (t₁ j) (t₂ j) + 1 = 1 + max (t₁ j) (t₂ j) by omega,
-        runFrom_eq_of_halt _ _ (Nat.add_le_add_left (Nat.le_max_left _ _) 1) hhalt]
-      rw [runFrom_add]
-      rw [hstep1, runFrom_leftCfg, hrun₁]
-      rfl
-    · -- space: the dispatch adds at most `k` cells, `tm₁`'s run at most `s₁ j`
-      have hsp1 : (branch i x tm₁ tm₂).spaceUsed (wordsCfg input (some none) ws out) 1 ≤ k := by
-        refine spaceUsed_le_of_workTapePos_const (wordsCfg input (some none) ws out) 1
-          fun m _ => ?_
-        rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
-        · simp only [runFrom, Function.iterate_zero, id_eq]
-        · rw [hstep1]; rfl
-      have hsp2 : (branch i x tm₁ tm₂).spaceUsed
-          ((branch i x tm₁ tm₂).runFrom (wordsCfg input (some none) ws out) 1) (t₁ j) ≤ s₁ j := by
-        rw [hstep1]
-        refine le_trans (le_of_eq
-          (spaceUsed_eq_of_workTapePos
-            (leftCfg (wordsCfg input (some tm₁.q₀) ws out)) (wordsCfg input (some tm₁.q₀) ws out)
-            (t₁ j) fun m _ => ?_)) hsp₁
-        rw [runFrom_leftCfg, workTapePos_leftCfg]
-      rw [show max (t₁ j) (t₂ j) + 1 = 1 + max (t₁ j) (t₂ j) by omega,
-        spaceUsed_eq_of_halt _
-        (Nat.add_le_add_left (Nat.le_max_left (t₁ j) (t₂ j)) 1) hhalt]
-      calc (branch i x tm₁ tm₂).spaceUsed (wordsCfg input (some none) ws out) (1 + t₁ j)
-        _ ≤ (branch i x tm₁ tm₂).spaceUsed (wordsCfg input (some none) ws out) 1 +
-            (branch i x tm₁ tm₂).spaceUsed
-              ((branch i x tm₁ tm₂).runFrom (wordsCfg input (some none) ws out) 1) (t₁ j) :=
-              spaceUsed_add_le (wordsCfg input (some none) ws out) 1 (t₁ j)
-        _ ≤ k + s₁ j := Nat.add_le_add hsp1 hsp2
-        _ ≤ max (s₁ j) (s₂ j) + k := by have := Nat.le_max_left (s₁ j) (s₂ j); omega
-  · -- read something else: run `tm₂`
-    simp only [h] at hP
-    obtain ⟨ws', hrun₂, hQ₂, hsp₂⟩ := h₂ j input ws out hP
-    have hstep1 : (branch i x tm₁ tm₂).runFrom (wordsCfg input (some none) ws out) 1 =
-        rightCfg (S₁ := State₁) (wordsCfg input (some tm₂.q₀) ws out) := by
-      simpa only [runFrom, Function.iterate_one] using step_start_right ws out h
-    have hhalt : ((branch i x tm₁ tm₂).runFrom (wordsCfg input (some none) ws out)
-        (1 + t₂ j)).state = none := by
-      rw [runFrom_add]
-      rw [hstep1, runFrom_rightCfg, hrun₂]
-      rfl
-    refine ⟨ws', ?_, hQ₂, ?_⟩
-    · rw [show max (t₁ j) (t₂ j) + 1 = 1 + max (t₁ j) (t₂ j) by omega,
-        runFrom_eq_of_halt _ _ (Nat.add_le_add_left (Nat.le_max_right _ _) 1) hhalt]
-      rw [runFrom_add]
-      rw [hstep1, runFrom_rightCfg, hrun₂]
-      rfl
-    · have hsp1 : (branch i x tm₁ tm₂).spaceUsed (wordsCfg input (some none) ws out) 1 ≤ k := by
-        refine spaceUsed_le_of_workTapePos_const (wordsCfg input (some none) ws out) 1
-          fun m _ => ?_
-        rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
-        · simp only [runFrom, Function.iterate_zero, id_eq]
-        · rw [hstep1]; rfl
-      have hsp2 : (branch i x tm₁ tm₂).spaceUsed
-          ((branch i x tm₁ tm₂).runFrom (wordsCfg input (some none) ws out) 1) (t₂ j) ≤ s₂ j := by
-        rw [hstep1]
-        refine le_trans (le_of_eq
-          (spaceUsed_eq_of_workTapePos
-            (rightCfg (wordsCfg input (some tm₂.q₀) ws out)) (wordsCfg input (some tm₂.q₀) ws out)
-            (t₂ j) fun m _ => ?_)) hsp₂
-        rw [runFrom_rightCfg, workTapePos_rightCfg]
-      rw [show max (t₁ j) (t₂ j) + 1 = 1 + max (t₁ j) (t₂ j) by omega,
-        spaceUsed_eq_of_halt _
-        (Nat.add_le_add_left (Nat.le_max_right (t₁ j) (t₂ j)) 1) hhalt]
-      calc (branch i x tm₁ tm₂).spaceUsed (wordsCfg input (some none) ws out) (1 + t₂ j)
-        _ ≤ (branch i x tm₁ tm₂).spaceUsed (wordsCfg input (some none) ws out) 1 +
-            (branch i x tm₁ tm₂).spaceUsed
-              ((branch i x tm₁ tm₂).runFrom (wordsCfg input (some none) ws out) 1) (t₂ j) :=
-              spaceUsed_add_le (wordsCfg input (some none) ws out) 1 (t₂ j)
-        _ ≤ k + s₂ j := Nat.add_le_add hsp1 hsp2
-        _ ≤ max (s₁ j) (s₂ j) + k := by have := Nat.le_max_right (s₁ j) (s₂ j); omega
+  let start := wordsCfg (State := Option (State₁ ⊕ State₂)) input (some none) ws out
+  -- Raise both arms to the same bounds before accounting for the dispatch.
+  have hafter : ∃ ws',
+      (branch i x tm₁ tm₂).runFrom ((branch i x tm₁ tm₂).step start) (max (t₁ j) (t₂ j)) =
+        wordsCfg input none ws' out ∧ Q j input ws ws' ∧
+      (branch i x tm₁ tm₂).spaceUsed ((branch i x tm₁ tm₂).step start)
+        (max (t₁ j) (t₂ j)) ≤ max (s₁ j) (s₂ j) := by
+    dsimp only [start]
+    by_cases h : (ws i).head? = some x
+    · obtain ⟨ws', hrun, hQ, hsp⟩ := (h₁ j).imp (fun _ _ => id) (fun _ _ _ _ => id)
+        (Nat.le_max_left (t₁ j) (t₂ j)) (Nat.le_max_left (s₁ j) (s₂ j))
+          input ws out (by simpa [h] using hP)
+      rw [step_start_left ws out h]
+      refine ⟨ws', ?_, hQ, ?_⟩
+      · rw [runFrom_leftCfg, hrun]; rfl
+      · exact (spaceUsed_eq_of_workTapePos _ _ _ fun m _ => by
+          rw [runFrom_leftCfg, workTapePos_leftCfg]).le.trans hsp
+    · obtain ⟨ws', hrun, hQ, hsp⟩ := (h₂ j).imp (fun _ _ => id) (fun _ _ _ _ => id)
+        (Nat.le_max_right (t₁ j) (t₂ j)) (Nat.le_max_right (s₁ j) (s₂ j))
+          input ws out (by simpa [h] using hP)
+      rw [step_start_right ws out h]
+      refine ⟨ws', ?_, hQ, ?_⟩
+      · rw [runFrom_rightCfg, hrun]; rfl
+      · exact (spaceUsed_eq_of_workTapePos _ _ _ fun m _ => by
+          rw [runFrom_rightCfg, workTapePos_rightCfg]).le.trans hsp
+  have hdispatch : (branch i x tm₁ tm₂).spaceUsed start 1 ≤ k := by
+    refine spaceUsed_le_of_workTapePos_const start 1 fun m hm => ?_
+    rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
+    · rfl
+    · change ((branch i x tm₁ tm₂).step start).workTapePos = start.workTapePos
+      dsimp only [start]
+      by_cases h : (ws i).head? = some x
+      · rw [step_start_left ws out h]; rfl
+      · rw [step_start_right ws out h]; rfl
+  obtain ⟨ws', hrun, hQ, hsp⟩ := hafter
+  refine ⟨ws', ?_, hQ, ?_⟩
+  · change (branch i x tm₁ tm₂).runFrom start (max (t₁ j) (t₂ j) + 1) = _
+    simpa only [runFrom, Function.iterate_succ_apply] using hrun
+  · change (branch i x tm₁ tm₂).spaceUsed start (max (t₁ j) (t₂ j) + 1) ≤ _
+    rw [Nat.add_comm]
+    exact (spaceUsed_add_le start 1 _).trans
+      (by simpa only [runFrom, Function.iterate_one, Nat.add_comm] using
+        Nat.add_le_add hdispatch hsp)
 
 end Turing.MultiTapeTM

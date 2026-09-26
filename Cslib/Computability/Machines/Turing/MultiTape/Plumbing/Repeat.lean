@@ -95,9 +95,7 @@ private lemma leftCfg_wordsCfg (q : Option State₀) (ws : Fin k → List Bool) 
 private lemma step_leftCfg (cfg : Cfg k Bool State₀ input) (h : cfg.state ≠ none) :
     (repeatTM i x tm).step (leftCfg cfg) = leftCfg (tm.step cfg) := by
   obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp h
-  have h1 : (leftCfg cfg).state = some (Sum.inl q : State₀ ⊕ Unit) := by
-    simp [leftCfg, Cfg.mapState, hq]
-  simp only [step, h1, hq]
+  simp only [step, leftCfg, Cfg.mapState, hq, Option.elim_some]
   rfl
 
 /-- While `tm` is live, the looping machine mirrors it. -/
@@ -116,19 +114,15 @@ private lemma runFrom_leftCfg (cfg : Cfg k Bool State₀ input) (n : ℕ)
 private lemma runFrom_left_wordsCfg (w : Fin k → List Bool) (out : List Bool) (n : ℕ)
     (hact : ∀ m < n, (tm.runFrom (wordsCfg input (some tm.q₀) w out) m).state ≠ none) :
     (repeatTM i x tm).runFrom (wordsCfg input (some (Sum.inl tm.q₀)) w out) n =
-      leftCfg (tm.runFrom (wordsCfg input (some tm.q₀) w out) n) := by
-  have h : wordsCfg (State := State₀ ⊕ Unit) input (some (Sum.inl tm.q₀)) w out =
-      leftCfg (wordsCfg input (some tm.q₀) w out) := rfl
-  rw [h, runFrom_leftCfg _ n hact]
+      leftCfg (tm.runFrom (wordsCfg input (some tm.q₀) w out) n) :=
+  runFrom_leftCfg _ n hact
 
 /-- The check step, when tape `i` shows `x`: the machine halts, leaving the words untouched. -/
 private lemma step_check_halt (ws : Fin k → List Bool) (out : List Bool)
     (h : (ws i).head? = some x) :
     (repeatTM i x tm).step (wordsCfg input (some (Sum.inr ())) ws out) =
       wordsCfg input none ws out := by
-  have hstate : (wordsCfg (State := State₀ ⊕ Unit) input (some (Sum.inr ())) ws out).state =
-      some (Sum.inr ()) := rfl
-  rw [step_apply_of_state hstate]
+  rw [step_apply_of_state rfl]
   refine Cfg.ext ?_ ?_ ?_ ?_ ?_ <;>
     simp [repeatTM, Cfg.workTapeSymbols, tapeOfList_zero, h, wordsCfg, Action.apply, SignType.cast]
 
@@ -138,9 +132,7 @@ private lemma step_check_restart (ws : Fin k → List Bool) (out : List Bool)
     (h : ¬ (ws i).head? = some x) :
     (repeatTM i x tm).step (wordsCfg input (some (Sum.inr ())) ws out) =
       wordsCfg input (some (Sum.inl tm.q₀)) ws out := by
-  have hstate : (wordsCfg (State := State₀ ⊕ Unit) input (some (Sum.inr ())) ws out).state =
-      some (Sum.inr ()) := rfl
-  rw [step_apply_of_state hstate]
+  rw [step_apply_of_state rfl]
   refine Cfg.ext ?_ ?_ ?_ ?_ ?_ <;>
     simp [repeatTM, Cfg.workTapeSymbols, tapeOfList_zero, h, wordsCfg, Action.apply, SignType.cast]
 
@@ -148,12 +140,9 @@ private lemma step_check_restart (ws : Fin k → List Bool) (out : List Bool)
 private lemma check_step_workTapePos (c : Cfg k Bool (State₀ ⊕ Unit) input)
     (hstate : c.state = some (Sum.inr ())) (l : Fin k) :
     ((repeatTM i x tm).step c).workTapePos l = c.workTapePos l := by
-  have h2 : (((repeatTM i x tm).tr (Sum.inr ()) c.inputSymbol c.workTapeSymbols).workTapes l).2
-      = 0 := by
-    simp only [repeatTM]
-    split <;> rfl
-  rw [step_workTapePos_of_state hstate l, h2]
-  simp
+  rw [step_workTapePos_of_state hstate l]
+  simp only [repeatTM]
+  split <;> simp
 
 /-- One full round takes the loop from a `wordsCfg` on `tm`'s initial state to a `wordsCfg` on
 `tm`'s initial state, when tape `i` does not show `x`. -/
@@ -195,24 +184,20 @@ private lemma round_Icc (w w' : Fin k → List Bool) (out : List Bool) (u : ℕ)
     (hact : ∀ m < u, (tm.runFrom (wordsCfg input (some tm.q₀) w out) m).state ≠ none)
     (hrun_u : tm.runFrom (wordsCfg input (some tm.q₀) w out) u = wordsCfg input none w' out)
     (hsp : tm.spaceUsed (wordsCfg input (some tm.q₀) w out) u ≤ s0) :
-    ∀ m ≤ u + 1, ∀ l : Fin k,
-      ((repeatTM i x tm).runFrom (wordsCfg input (some (Sum.inl tm.q₀)) w out) m).workTapePos l
-        ∈ Finset.Icc (-(s0 : ℤ)) (s0 : ℤ) := by
-  intro m hm l
-  rcases Nat.lt_or_ge m (u + 1) with hlt | hge
-  · -- during `tm`'s phase: the head is in `tm`'s visited set, which lies in `[-s0, s0]`
-    have hmu : m ≤ u := by omega
+    ∀ l : Fin k, (repeatTM i x tm).visitedByTapeHead
+      (wordsCfg input (some (Sum.inl tm.q₀)) w out) (u + 1) l ⊆
+        Finset.Icc (-(s0 : ℤ)) (s0 : ℤ) := by
+  intro l z hz
+  obtain ⟨m, hm, rfl⟩ := mem_visitedByTapeHead.mp hz
+  rcases (Nat.le_of_lt_succ hm).eq_or_lt with rfl | hlt
+  · -- The check step leaves the head at `0`.
+    rw [runFrom_succ, runFrom_left_wordsCfg w out u hact, hrun_u,
+      check_step_workTapePos _ rfl l, leftCfg_wordsCfg]
+    simp
+  · -- During `tm`'s phase, the head lies in `tm`'s visited set.
     rw [runFrom_left_wordsCfg w out m (fun r hr => hact r (by omega)), workTapePos_leftCfg]
     apply visited_subset_Icc (tm := tm) _ u l s0 rfl hsp
-    exact mem_visitedByTapeHead.mpr ⟨m, by omega, rfl⟩
-  · -- the check step: the head does not move, and it sits at `0`
-    have hmeq : m = u + 1 := by omega
-    subst hmeq
-    rw [runFrom_succ, runFrom_left_wordsCfg w out u hact, hrun_u]
-    rw [check_step_workTapePos _ (by rw [leftCfg_wordsCfg]; rfl) l]
-    rw [leftCfg_wordsCfg]
-    simp only [Finset.mem_Icc, wordsCfg_workTapePos]
-    omega
+    exact mem_visitedByTapeHead.mpr ⟨m, hlt, rfl⟩
 
 end Repeat
 
@@ -245,19 +230,14 @@ public theorem exists_transformsTapes_repeat {J : Type*} {k : ℕ} (i : Fin k) (
   have hrec : ∀ n, n ≤ N j → ∃ (T : ℕ) (wsn : Fin k → List Bool),
       (repeatTM i x tm).runFrom start T = wordsCfg input (some (Sum.inl tm.q₀)) wsn out ∧
       P j n input wsn ∧ T ≤ n * (t j + 1) ∧
-      ∀ m ≤ T, ∀ l, ((repeatTM i x tm).runFrom start m).workTapePos l
-        ∈ Finset.Icc (-(s j : ℤ)) (s j : ℤ) := by
+      ∀ l, (repeatTM i x tm).visitedByTapeHead start T l ⊆
+        Finset.Icc (-(s j : ℤ)) (s j : ℤ) := by
     intro n
     induction n with
     | zero =>
       intro _
-      refine ⟨0, ws, by simp only [runFrom, Function.iterate_zero, id_eq, hstart],
-        hP0, by omega, fun m hm l => ?_⟩
-      have : m = 0 := by omega
-      subst this
-      simp only [runFrom, Function.iterate_zero, id_eq, hstart]
-      simp only [Finset.mem_Icc, wordsCfg_workTapePos]
-      omega
+      refine ⟨0, ws, rfl, hP0, by simp, ?_⟩
+      simp [visitedByTapeHead, runFrom, hstart, Finset.subset_iff]
     | succ n ih =>
       intro hn
       obtain ⟨T, wsn, hrun, hPn, hT, hIcc⟩ := ih (by omega)
@@ -270,17 +250,11 @@ public theorem exists_transformsTapes_repeat {J : Type*} {k : ℕ} (i : Fin k) (
       have hsp_u : tm.spaceUsed (wordsCfg input (some tm.q₀) wsn out) u ≤ s j :=
         le_trans (spaceUsed_mono tm _ hu) hsp
       refine ⟨T + (u + 1), wsn', ?_, hQ.1, ?_, ?_⟩
-      · rw [runFrom_add]
-        rw [hrun, runFrom_round_restart wsn wsn' out u huactive hu_run hQ.2]
-      · have hexp : (n + 1) * (t j + 1) = n * (t j + 1) + (t j + 1) := by rw [add_mul, one_mul]
-        omega
-      · intro m hm l
-        rcases Nat.lt_or_ge m (T + 1) with hmT | hmT
-        · exact hIcc m (by omega) l
-        · obtain ⟨m', rfl⟩ : ∃ m', m = T + m' := ⟨m - T, by omega⟩
-          rw [runFrom_add]
-          rw [hrun]
-          exact round_Icc wsn wsn' out u (s j) huactive hu_run hsp_u m' (by omega) l
+      · rw [runFrom_add, hrun, runFrom_round_restart wsn wsn' out u huactive hu_run hQ.2]
+      · simpa only [Nat.succ_mul] using Nat.add_le_add hT (Nat.add_le_add_right hu 1)
+      · intro l
+        rw [visitedByTapeHead_add, hrun]
+        exact Finset.union_subset (hIcc l) (round_Icc wsn wsn' out u (s j) huactive hu_run hsp_u l)
   -- The stopping round: apply `hstop`, take the minimal halting time, and read off `R j`.
   obtain ⟨T, wsN, hrun, hPN, hT, hIcc⟩ := hrec (N j) le_rfl
   obtain ⟨ws', hrunTm, hQ, hsp⟩ := hstop j input wsN out hPN
@@ -291,49 +265,29 @@ public theorem exists_transformsTapes_repeat {J : Type*} {k : ℕ} (i : Fin k) (
     rw [← runFrom_eq_of_halt tm _ hu huhalt, hrunTm]
   have hsp_u : tm.spaceUsed (wordsCfg input (some tm.q₀) wsN out) u ≤ s j :=
     le_trans (spaceUsed_mono tm _ hu) hsp
-  -- The head stays in `[-s j, s j]` for the whole run.
-  have hIccAll : ∀ m ≤ T + (u + 1), ∀ l,
-      ((repeatTM i x tm).runFrom start m).workTapePos l ∈ Finset.Icc (-(s j : ℤ)) (s j : ℤ) := by
-    intro m hm l
-    rcases Nat.lt_or_ge m (T + 1) with hmT | hmT
-    · exact hIcc m (by omega) l
-    · obtain ⟨m', rfl⟩ : ∃ m', m = T + m' := ⟨m - T, by omega⟩
-      rw [runFrom_add]
-      rw [hrun]
-      exact round_Icc wsN ws' out u (s j) huactive hu_run hsp_u m' (by omega) l
   have htime : T + (u + 1) ≤ (N j + 1) * (t j + 1) := by
-    have hexp : (N j + 1) * (t j + 1) = N j * (t j + 1) + (t j + 1) := by
-      rw [add_mul, one_mul]
-    omega
+    simpa only [Nat.add_mul, Nat.one_mul] using Nat.add_le_add hT (Nat.add_le_add_right hu 1)
   have hrunLoop : (repeatTM i x tm).runFrom start (T + (u + 1)) =
       wordsCfg input none ws' out := by
-    rw [runFrom_add]
-    rw [hrun, runFrom_round_halt wsN ws' out u huactive hu_run hQ.2]
+    rw [runFrom_add, hrun, runFrom_round_halt wsN ws' out u huactive hu_run hQ.2]
   have hhaltLoop : ((repeatTM i x tm).runFrom start (T + (u + 1))).state = none := by
     rw [hrunLoop]
     rfl
   refine ⟨ws', ?_, hQ.1, ?_⟩
-  · -- the run ends in the halting `wordsCfg`
-    rw [runFrom_eq_of_halt _ _ htime hhaltLoop, hrunLoop]
-  · -- space bound: each tape's visited set lies in `[-s j, s j]`, so has at most `2 * s j + 1`
-    -- cells, and there are `k` tapes
+  · rw [runFrom_eq_of_halt _ _ htime hhaltLoop, hrunLoop]
+  · -- Each tape visits at most the `2 * s j + 1` cells in `[-s j, s j]`.
     rw [spaceUsed_eq_of_halt _ htime hhaltLoop]
     have hbound : ∀ l : Fin k,
         (repeatTM i x tm).spaceUsedByTape start (T + (u + 1)) l ≤ 2 * s j + 1 := by
       intro l
       have hsub : (repeatTM i x tm).visitedByTapeHead start (T + (u + 1)) l ⊆
           Finset.Icc (-(s j : ℤ)) (s j : ℤ) := by
-        intro z hz
-        obtain ⟨m, hm, rfl⟩ := mem_visitedByTapeHead.mp hz
-        exact hIccAll m (by omega) l
+        rw [visitedByTapeHead_add, hrun]
+        exact Finset.union_subset (hIcc l) (round_Icc wsN ws' out u (s j) huactive hu_run hsp_u l)
       calc (repeatTM i x tm).spaceUsedByTape start (T + (u + 1)) l
           ≤ (Finset.Icc (-(s j : ℤ)) (s j : ℤ)).card := Finset.card_le_card hsub
         _ = 2 * s j + 1 := by rw [Int.card_Icc]; omega
-    calc (repeatTM i x tm).spaceUsed start (T + (u + 1))
-        = ∑ l : Fin k, (repeatTM i x tm).spaceUsedByTape start (T + (u + 1)) l := rfl
-      _ ≤ ∑ _l : Fin k, (2 * s j + 1) := Finset.sum_le_sum fun l _ => hbound l
-      _ = 2 * k * s j + k := by
-          rw [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, Nat.cast_id,
-            Nat.mul_add, Nat.mul_one, ← Nat.mul_assoc, Nat.mul_comm k 2]
+    simpa [spaceUsed, Nat.mul_add, Nat.mul_left_comm, Nat.mul_assoc] using
+      Finset.sum_le_sum (s := Finset.univ) (fun l _ => hbound l)
 
 end Turing.MultiTapeTM
