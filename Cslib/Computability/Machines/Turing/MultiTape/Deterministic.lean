@@ -163,14 +163,15 @@ public lemma step_workTapes_of_state {cfg : Cfg k Symbol State input} {q : State
       | none => cfg.workTapes i
       | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s := by
   rw [step_apply_of_state h]
-  exact Action.apply_workTapes _ _ i
+  rfl
 
 /-- A work tape head after a live step. -/
 public lemma step_workTapePos_of_state {cfg : Cfg k Symbol State input} {q : State}
     (h : cfg.state = some q) (i : Fin k) :
     (tm.step cfg).workTapePos i =
       cfg.workTapePos i + ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i).2 := by
-  rw [step_apply_of_state h, Action.apply_workTapePos]
+  rw [step_apply_of_state h]
+  rfl
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
@@ -274,7 +275,7 @@ lemma step_output (cfg : Cfg k Symbol State input) :
   unfold step outputSymbol Action.apply
   cases cfg.state <;> simp
 
-/-- The input head strays at most `t` positions from where it started in `t` steps. -/
+/-- In `t` steps the input head moves at most `t` positions to the right. -/
 lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) (t : ℕ) :
     ((tm.runFrom cfg t).inputPos : ℕ) ≤ (cfg.inputPos : ℕ) + t := by
@@ -300,15 +301,10 @@ lemma runFrom_output_eq_of_halt
     (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output :=
   congrArg Cfg.output (tm.runFrom_eq_of_halt cfg hle hhalt)
 
-/-- The output can only grow during a run. -/
-public lemma length_output_mono (tm : MultiTapeTM k Symbol State)
-    (c : Cfg k Symbol State input) (d : ℕ) :
-    c.output.length ≤ (tm.runFrom c d).output.length := by
-  induction d with
-  | zero => simp [runFrom]
-  | succ d ih =>
-    rw [runFrom, Function.iterate_succ_apply', ← runFrom, step_output, List.length_append]
-    omega
+/-- The output only grows during a run. -/
+public lemma length_output_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
+    Monotone fun t => (tm.runFrom cfg t).output.length :=
+  monotone_nat_of_le_succ fun t => by simp [runFrom, Function.iterate_succ_apply']
 
 /-- A machine emits at most one symbol per step. -/
 theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
@@ -318,8 +314,7 @@ theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
   | zero => simp [runFrom]
   | succ t ih =>
     rw [runFrom, Function.iterate_succ_apply', ← runFrom, step_output, List.length_append]
-    have : (tm.outputSymbol (tm.runFrom cfg t)).toList.length ≤ 1 := by
-      cases tm.outputSymbol (tm.runFrom cfg t) <;> simp
+    have := (tm.outputSymbol (tm.runFrom cfg t)).length_toList_le
     omega
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps

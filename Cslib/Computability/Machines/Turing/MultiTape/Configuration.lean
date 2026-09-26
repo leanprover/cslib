@@ -253,6 +253,7 @@ The effect of an action on a configuration: move the input head, write and move 
 append the emitted symbol to the output tape, and go to the successor state. This is the part of a
 step that does not depend on how the action was chosen.
 -/
+@[simps -fullyApplied]
 def Action.apply (action : Action k Symbol State) (cfg : Cfg k Symbol State input) :
     Cfg k Symbol State input where
   state := action.state
@@ -262,27 +263,6 @@ def Action.apply (action : Action k Symbol State) (cfg : Cfg k Symbol State inpu
     | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s
   workTapePos i := cfg.workTapePos i + (action.workTapes i).2
   output := cfg.output ++ action.output.toList
-
-@[simp] lemma Action.apply_state (a : Action k Symbol State)
-    (cfg : Cfg k Symbol State input) : (a.apply cfg).state = a.state := rfl
-
-@[simp] lemma Action.apply_inputPos (a : Action k Symbol State)
-    (cfg : Cfg k Symbol State input) :
-    (a.apply cfg).inputPos = moveInputPos cfg.inputPos a.inputTape := rfl
-
-@[simp] lemma Action.apply_output (a : Action k Symbol State)
-    (cfg : Cfg k Symbol State input) :
-    (a.apply cfg).output = cfg.output ++ a.output.toList := rfl
-
-@[simp] lemma Action.apply_workTapePos (a : Action k Symbol State)
-    (cfg : Cfg k Symbol State input) (i : Fin k) :
-    (a.apply cfg).workTapePos i = cfg.workTapePos i + (a.workTapes i).2 := rfl
-
-@[simp] lemma Action.apply_workTapes (a : Action k Symbol State)
-    (cfg : Cfg k Symbol State input) (i : Fin k) :
-    (a.apply cfg).workTapes i = match (a.workTapes i).1 with
-      | none => cfg.workTapes i
-      | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s := rfl
 
 /-- A work tape head moves by at most one cell when an action is applied. -/
 lemma workTapePos_apply_le (action : Action k Symbol State)

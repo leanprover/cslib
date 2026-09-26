@@ -33,8 +33,7 @@ step and run of `tm`.
 
 * `Turing.MultiTapeTM.step_embed` and `Turing.MultiTapeTM.runFrom_embed`: the one-step and run-level
   mirroring lemmas.
-* `Turing.MultiTapeTM.visitedByTapeHead_embed_embed` and
-  `Turing.MultiTapeTM.workTapePos_embed_of_not_range`: behavior of embedded and extra tapes.
+* `Turing.MultiTapeTM.workTapePos_embed_of_not_range`: the extra tapes never move.
 * `Turing.MultiTapeTM.spaceUsed_embed_le`: the resulting space bound.
 -/
 
@@ -48,16 +47,11 @@ when `e j = l` (such `j` is unique by injectivity), and `none` when `l` lies out
 @[expose] public def partialInv (e : Fin k ↪ Fin k') (l : Fin k') : Option (Fin k) :=
   if h : l ∈ Set.range e then some (e.invOfMemRange ⟨l, h⟩) else none
 
-lemma partialInv_isPartialInv (e : Fin k ↪ Fin k') :
-    Function.IsPartialInv e (partialInv e) := by
-  intro j l
-  rw [partialInv]
-  split
-  · next h =>
-    rw [Option.some_inj]
-    exact ⟨fun hj => hj ▸ e.left_inv_of_invOfMemRange ⟨l, h⟩,
-      fun hj => hj ▸ e.right_inv_of_invOfMemRange j⟩
-  · next h => exact ⟨fun hs => by simp at hs, fun hl => absurd ⟨j, hl⟩ h⟩
+/-- `partialInv e` is a partial inverse of `e`. -/
+public lemma partialInv_isPartialInv (e : Fin k ↪ Fin k') :
+    Function.IsPartialInv e (partialInv e) := fun j l => by
+  grind [partialInv, Function.Embedding.left_inv_of_invOfMemRange,
+    Function.Embedding.right_inv_of_invOfMemRange]
 
 /-- `tm` run on the tapes selected by the embedding `e`, leaving other tapes untouched: work tape
 `e j` plays the role of `tm`'s tape `j`, and any tape outside `range e` is never written and never
@@ -88,16 +82,13 @@ carry the given `extraTapes` contents and `extraPos` head positions. -/
       | none => extraPos l,
     cfg.output⟩
 
-variable {tm : MultiTapeTM k Symbol State} {e : Fin k ↪ Fin k'}
-  {cfg : Cfg k Symbol State input} {extraTapes : Fin k' → ℤ → Option Symbol} {extraPos : Fin k' → ℤ}
-
 /-- The partial inverse recovers the source tape of an embedded tape. -/
 @[simp]
-public lemma partialInv_embed (e : Fin k ↪ Fin k') (j : Fin k) : partialInv e (e j) = some j := by
-  exact (partialInv_isPartialInv e).eq j
+public lemma partialInv_embed (e : Fin k ↪ Fin k') (j : Fin k) : partialInv e (e j) = some j :=
+  (partialInv_isPartialInv e).eq j
 
 /-- Outside the range of `e`, the partial inverse is undefined. -/
-public lemma partialInv_eq_none (e : Fin k ↪ Fin k') {l : Fin k'} (hl : ¬ ∃ j, e j = l) :
+public lemma partialInv_eq_none (e : Fin k ↪ Fin k') {l : Fin k'} (hl : l ∉ Set.range e) :
     partialInv e l = none :=
   dite_eq_right hl
 
@@ -105,6 +96,11 @@ public lemma partialInv_eq_none (e : Fin k ↪ Fin k') {l : Fin k'} (hl : ¬ ∃
 public lemma partialInv_eq_some (e : Fin k ↪ Fin k') {l : Fin k'} {j : Fin k}
     (h : partialInv e l = some j) : e j = l :=
   (partialInv_isPartialInv e j l).mp h
+
+@[simp]
+public lemma embed_inputSymbol (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
+    (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
+    (embed e cfg extraTapes extraPos).inputSymbol = cfg.inputSymbol := rfl
 
 @[simp]
 public lemma embed_workTapes_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
@@ -132,23 +128,11 @@ public lemma step_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
     (tm.extendTapes e).step (embed e cfg extraTapes extraPos)
       = embed e (tm.step cfg) extraTapes extraPos := by
   cases hq : cfg.state with
-  | none =>
-    simp [embed, hq, step_of_halt]
+  | none => simp [embed, hq]
   | some q =>
-    have h1 : (embed e cfg extraTapes extraPos).state = some q := by
-      simpa [embed] using hq
-    have hin : (embed e cfg extraTapes extraPos).inputSymbol = cfg.inputSymbol := rfl
-    have hargs : (fun j : Fin k => (embed e cfg extraTapes extraPos).workTapeSymbols (e j))
-        = cfg.workTapeSymbols :=
-      funext fun j => embed_workTapeSymbols_embed e cfg extraTapes extraPos j
-    rw [step_apply_of_state h1, step_apply_of_state hq]
-    simp only [extendTapes, hin, hargs]
-    refine Cfg.ext rfl rfl ?_ ?_ rfl
-    · funext l z
-      simp only [Action.apply, embed]
-      cases partialInv e l <;> rfl
-    · funext l
-      simp only [Action.apply, embed]
+    rw [step_apply_of_state (cfg := embed e cfg extraTapes extraPos) hq, step_apply_of_state hq]
+    simp only [extendTapes, embed_inputSymbol, embed_workTapeSymbols_embed]
+    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> simp only [Action.apply, embed] <;>
       cases partialInv e l <;> simp
 
 /-- The reindexed run mirrors the original, with the extra tapes held fixed throughout. -/
@@ -157,26 +141,15 @@ public lemma runFrom_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin 
     (extraPos : Fin k' → ℤ) (n : ℕ) :
     (tm.extendTapes e).runFrom (embed e cfg extraTapes extraPos) n
       = embed e (tm.runFrom cfg n) extraTapes extraPos :=
-  (Function.Semiconj.iterate_right
-    (f := fun c => embed e c extraTapes extraPos) (ga := tm.step) (gb := (tm.extendTapes e).step)
+  (Function.Semiconj.iterate_right (f := (embed e · extraTapes extraPos))
     (fun c => (step_embed tm e c extraTapes extraPos).symm) n cfg).symm
 
 section Space
 
-/-- On an embedded tape `e j`, the reindexed run's head visits exactly the cells `tm`'s head of
-tape `j` visits. -/
-public lemma visitedByTapeHead_embed_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
-    (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
-    (extraPos : Fin k' → ℤ) (n : ℕ) (j : Fin k) :
-    (tm.extendTapes e).visitedByTapeHead (embed e cfg extraTapes extraPos) n (e j)
-      = tm.visitedByTapeHead cfg n j := by
-  refine Finset.image_congr fun m _ => ?_
-  rw [runFrom_embed, embed_workTapePos_embed]
-
 /-- The head of a tape outside `range e` never leaves its starting position. -/
 public lemma workTapePos_embed_of_not_range (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
     (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
-    (extraPos : Fin k' → ℤ) (n : ℕ) {l : Fin k'} (hl : ¬ ∃ j, e j = l) :
+    (extraPos : Fin k' → ℤ) (n : ℕ) {l : Fin k'} (hl : l ∉ Set.range e) :
     ((tm.extendTapes e).runFrom (embed e cfg extraTapes extraPos) n).workTapePos l
       = extraPos l := by
   rw [runFrom_embed]
@@ -189,36 +162,11 @@ public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪
     (extraPos : Fin k' → ℤ) (n : ℕ) :
     (tm.extendTapes e).spaceUsed (embed e cfg extraTapes extraPos) n
       ≤ tm.spaceUsed cfg n + (k' - k) := by
-  classical
-  calc (tm.extendTapes e).spaceUsed (embed e cfg extraTapes extraPos) n
-      = (∑ l ∈ Finset.univ \ Finset.univ.image e,
-            (tm.extendTapes e).spaceUsedByTape (embed e cfg extraTapes extraPos) n l)
-          + ∑ l ∈ Finset.univ.image e,
-            (tm.extendTapes e).spaceUsedByTape (embed e cfg extraTapes extraPos) n l :=
-        (Finset.sum_sdiff (Finset.subset_univ _)).symm
-    _ ≤ (k' - k) + tm.spaceUsed cfg n := by
-        refine Nat.add_le_add ?_ (le_of_eq ?_)
-        · calc (∑ l ∈ Finset.univ \ Finset.univ.image e,
-                  (tm.extendTapes e).spaceUsedByTape (embed e cfg extraTapes extraPos) n l)
-              ≤ ∑ _l ∈ Finset.univ \ Finset.univ.image e, 1 := by
-                refine Finset.sum_le_sum fun l hl => ?_
-                rw [Finset.mem_sdiff] at hl
-                have hl' : ¬ ∃ j, e j = l := by
-                  rintro ⟨j, rfl⟩
-                  exact hl.2 (Finset.mem_image_of_mem e (Finset.mem_univ j))
-                exact spaceUsedByTape_le_one _ fun m _ => by
-                  rw [workTapePos_embed_of_not_range tm e cfg extraTapes extraPos m hl']
-                  simp only [embed, partialInv_eq_none e hl']
-            _ = k' - k := by
-                rw [Finset.sum_const, smul_eq_mul, mul_one,
-                  Finset.card_sdiff_of_subset (Finset.subset_univ _), Finset.card_univ,
-                  Fintype.card_fin, Finset.card_image_of_injective _ e.injective, Finset.card_univ,
-                  Fintype.card_fin]
-        · rw [Finset.sum_image fun x _ y _ h => e.injective h]
-          simp only [spaceUsed]
-          exact Finset.sum_congr rfl fun j _ =>
-            congrArg Finset.card (visitedByTapeHead_embed_embed tm e cfg extraTapes extraPos n j)
-    _ = tm.spaceUsed cfg n + (k' - k) := Nat.add_comm _ _
+  simpa using tm.spaceUsed_le_of_workTapePos_embedding e cfg _ 1
+    (fun m _ j => by rw [runFrom_embed, embed_workTapePos_embed])
+    fun l hl => spaceUsedByTape_le_one _ fun m _ => by
+      rw [workTapePos_embed_of_not_range tm e cfg extraTapes extraPos m hl]
+      simp only [embed, partialInv_eq_none e hl]
 
 end Space
 
