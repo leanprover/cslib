@@ -73,6 +73,17 @@ def castSucc : Wire inputCount gateCount → Wire inputCount (gateCount + 1)
 @[simp] theorem castSucc_gate (j : Fin gateCount) :
     (gate j : Wire inputCount gateCount).castSucc = gate j.castSucc := rfl
 
+/-- Regard a wire as a wire of the same program continued by `extra` further gates. -/
+def castAdd (extra : Nat) : Wire inputCount gateCount → Wire inputCount (gateCount + extra)
+  | input i => input i
+  | gate j => gate (j.castAdd extra)
+
+@[simp] theorem castAdd_input (extra : Nat) (i : Fin inputCount) :
+    (input i : Wire inputCount gateCount).castAdd extra = input i := rfl
+
+@[simp] theorem castAdd_gate (extra : Nat) (j : Fin gateCount) :
+    (gate j : Wire inputCount gateCount).castAdd extra = gate (j.castAdd extra) := rfl
+
 /-- A wire in a namespace with one additional gate is either the new last gate or an
 earlier wire. -/
 @[elab_as_elim]
@@ -85,11 +96,6 @@ def lastCases {motive : Wire inputCount (gateCount + 1) → Sort*}
       Fin.lastCases (motive := fun j => motive (gate j)) last (fun j => castSucc (gate j)) j
 
 end Wire
-
-/-- Regard a wire as a wire of the same program continued by `extra` further gates. -/
-abbrev Wire.castAdd {inputCount gateCount : Nat} (extra : Nat) (wire : Wire inputCount gateCount) :
-    Wire inputCount (gateCount + extra) :=
-  Fin.castLE (Nat.add_le_add_left (Nat.le_add_right gateCount extra) inputCount) wire
 
 /-- A renaming of gate wires that fixes every original input. Gate wires may be
 sent to either inputs or gates in the target namespace. -/

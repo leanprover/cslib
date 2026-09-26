@@ -45,27 +45,28 @@ namespace Program
 
 /-- The wire of `p.append feed q` that carries a wire of `q`: an input of `q` is the wire of `p`
 feeding it, and a gate of `q` comes after all the gates of `p`. -/
-def appendWire (feed : Fin k → Wire n g₁) : Wire k g₂ → Wire n (g₁ + g₂) :=
-  Fin.addCases (fun i => (feed i).castAdd g₂) fun j => Wire.gate (Fin.natAdd g₁ j)
+def appendWire (feed : Fin k → Wire n g₁) : Wire k g₂ → Wire n (g₁ + g₂)
+  | .input i => (feed i).castAdd g₂
+  | .gate j => .gate (Fin.natAdd g₁ j)
 
 @[simp] theorem appendWire_input (feed : Fin k → Wire n g₁) (i : Fin k) :
-    appendWire (g₂ := g₂) feed (Wire.input i) = (feed i).castAdd g₂ := by
-  simp [appendWire]
+    appendWire (g₂ := g₂) feed (Wire.input i) = (feed i).castAdd g₂ := rfl
 
 @[simp] theorem appendWire_gate (feed : Fin k → Wire n g₁) (j : Fin g₂) :
-    appendWire feed (Wire.gate j) = Wire.gate (Fin.natAdd g₁ j) := by
-  simp [appendWire]
+    appendWire feed (Wire.gate j) = Wire.gate (Fin.natAdd g₁ j) := rfl
 
 theorem appendWire_castSucc (feed : Fin k → Wire n g₁) (w : Wire k g₂) :
     appendWire (g₂ := g₂ + 1) feed w.castSucc = (appendWire feed w).castSucc := by
-  induction w using Fin.addCases with
-  | left i => exact Fin.ext (by simp [Fin.castSucc_castAdd])
-  | right j => exact Fin.ext (by simp)
+  cases w with
+  | input i =>
+    change (feed i).castAdd (g₂ + 1) = ((feed i).castAdd g₂).castSucc
+    cases feed i <;> rfl
+  | gate j => rfl
 
 theorem appendWire_last (feed : Fin k → Wire n g₁) :
-    appendWire (g₂ := g₂ + 1) feed (Fin.last (k + g₂)) = Fin.last (n + (g₁ + g₂)) := by
-  rw [← Fin.natAdd_last, appendWire_gate]
-  exact Fin.ext (by simp)
+    appendWire (g₂ := g₂ + 1) feed (Wire.gate (Fin.last g₂)) =
+      Wire.gate (Fin.last (g₁ + g₂)) :=
+  rfl
 
 /-- Continue `p` by `q`, reading the inputs of `q` from the wires `feed` of `p`. -/
 def append (p : Program σ n g₁) (feed : Fin k → Wire n g₁) :
@@ -80,9 +81,9 @@ variable (p : Program σ n g₁) (feed : Fin k → Wire n g₁) (I : Interpretat
 theorem trace_append_castAdd (q : Program σ k g₂) (w : Wire n g₁) :
     (p.append feed q).trace I x (w.castAdd g₂) = p.trace I x w := by
   induction q with
-  | empty => rfl
+  | empty => cases w <;> rfl
   | @gate g₂ q line ih =>
-    have hw : w.castAdd (g₂ + 1) = (w.castAdd g₂).castSucc := Fin.ext rfl
+    have hw : w.castAdd (g₂ + 1) = (w.castAdd g₂).castSucc := by cases w <;> rfl
     rw [hw]
     exact (Program.trace_gate_castSucc _ _ I x _).trans ih
 
@@ -93,17 +94,14 @@ theorem trace_append_appendWire (q : Program σ k g₂) (w : Wire k g₂) :
       q.trace I (fun i => p.trace I x (feed i)) w := by
   induction q with
   | empty =>
-    induction w using Fin.addCases with
-    | left i =>
-      rw [appendWire_input]
-      exact (trace_append_castAdd p feed I x .empty (feed i)).trans
-        (Program.trace_input .empty I (fun i => p.trace I x (feed i)) i).symm
-    | right j => exact j.elim0
+    cases w with
+    | input i => exact trace_append_castAdd p feed I x .empty (feed i)
+    | gate j => exact j.elim0
   | @gate g₂ q line ih =>
-    refine Fin.lastCases (n := k + g₂) ?_ (fun w => ?_) w
+    refine Wire.lastCases ?_ (fun w => ?_) w
     · rw [appendWire_last]
-      refine (Program.trace_gate_last _ _ I x).trans ?_
-      refine Eq.trans ?_ (Program.trace_gate_last q line I _).symm
+      refine (Program.eval_gate_last _ _ I x).trans ?_
+      refine Eq.trans ?_ (Program.eval_gate_last q line I _).symm
       exact Line.eval_mapWires line (appendWire feed) I _ x _ _ ih
     · rw [appendWire_castSucc]
       refine (Program.trace_gate_castSucc _ _ I x _).trans ?_
@@ -145,8 +143,7 @@ def append (c : Circuit σ n m) (d : Circuit σ n p) : Circuit σ n (m + p) :=
     exact Program.trace_append_castAdd c.program Wire.input I x d.program (c.outputs o)
   | right o =>
     simp only [eval, append, Function.comp_apply, Fin.append_right]
-    refine (Program.trace_append_appendWire c.program Wire.input I x d.program _).trans ?_
-    simp
+    exact Program.trace_append_appendWire c.program Wire.input I x d.program _
 
 /-- Feeding a circuit computing `f` into one computing `g` computes `g ∘ f`. -/
 theorem Computes.comp {c : Circuit σ n m} {d : Circuit σ m p}
