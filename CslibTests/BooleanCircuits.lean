@@ -66,7 +66,7 @@ example {n m : ℕ} (f : BitString n → BitString m) :
 
 -- Lower bounds are statements about every circuit: a zero-gate circuit only reads an
 -- input, so negation needs a gate.
-example : 1 ≤ complexity interpretation (fun (x : Fin 1 → Bool) (_ : Fin 1) => !x 0) := by
+example : 1 ≤ complexity interpretation (single fun x : Fin 1 → Bool => !x 0) := by
   rw [le_complexity_iff]
   intro c hc
   by_contra hsize
@@ -89,8 +89,8 @@ example : (fun x : Fin 1 → Bool => x 0) ∈ computableFunctions 1 0 :=
 -- Shannon's lower bound and Lupanov's upper bound bracket the complexity.
 example (ε : ℝ) (hε : 0 < ε) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n,
-      2 ^ n / (n : ℝ) < complexity interpretation (fun x (_ : Fin 1) => f x) ∧
-        (complexity interpretation (fun x (_ : Fin 1) => f x) : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
+      2 ^ n / (n : ℝ) < complexity interpretation (single f) ∧
+        (complexity interpretation (single f) : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
   obtain ⟨N, hN⟩ := Shannon.lt_complexity
   obtain ⟨M, hM⟩ := Lupanov.complexity_le ε hε
   refine ⟨max N M, fun n hn => ?_⟩
