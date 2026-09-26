@@ -271,7 +271,7 @@ lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.c
     funext i
     simp [Cfg.workTapeSymbols, hwt, hwp]
   simp only [Cfg.core, Cfg.storage, MultiTapeTM.step, hstate, hsym, hws]
-  cases c₂.state <;> simp [Action.apply, hpos, hstate, hwt, hwp]
+  cases c₂.state <;> simp [hpos, hstate, hwt, hwp]
 
 /-! ## The storages and cores of a space-bounded run
 

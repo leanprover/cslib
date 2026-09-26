@@ -231,6 +231,22 @@ lemma spaceUsed_eq_of_workTapePos {State' : Type*} {input' : List Symbol}
   refine Finset.sum_congr rfl fun i _ => congrArg Finset.card (Finset.image_congr fun m _ => ?_)
   exact congrFun (h m (Nat.lt_succ_iff.mp m.isLt)) i
 
+/-- **Space of a simulation.** If the heads of `tm'` on the tapes `σ j` follow the heads of `tm` on
+the tapes `j`, and each remaining tape of `tm'` visits at most `b` cells, then `tm'` uses the space
+of `tm` plus at most `b` cells per remaining tape. -/
+lemma spaceUsed_le_of_workTapePos_embedding {k' : ℕ} {State' : Type*} {input' : List Symbol}
+    {tm' : MultiTapeTM k' Symbol State'} (σ : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
+    (cfg' : Cfg k' Symbol State' input') {t : ℕ} (b : ℕ)
+    (hσ : ∀ m ≤ t, ∀ j, (tm'.runFrom cfg' m).workTapePos (σ j) = (tm.runFrom cfg m).workTapePos j)
+    (hrest : ∀ l ∉ Set.range σ, tm'.spaceUsedByTape cfg' t l ≤ b) :
+    tm'.spaceUsed cfg' t ≤ tm.spaceUsed cfg t + (k' - k) * b := by
+  classical
+  rw [spaceUsed, spaceUsed, ← Finset.sum_add_sum_compl (Finset.univ.map σ), Finset.sum_map]
+  refine add_le_add (Finset.sum_le_sum fun j _ => (congrArg Finset.card
+    (Finset.image_congr fun (m : Fin (t + 1)) _ => hσ m (Nat.lt_succ_iff.mp m.isLt) j)).le) ?_
+  refine (Finset.sum_le_card_nsmul _ _ b fun l hl => hrest l (by simpa using hl)).trans ?_
+  simp [Finset.card_compl]
+
 /-- After the machine has halted the heads no longer move, so the visited set stops growing. -/
 lemma visitedByTapeHead_eq_of_halt (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) (i : Fin k) :
