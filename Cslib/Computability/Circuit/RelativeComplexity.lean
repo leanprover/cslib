@@ -46,13 +46,6 @@ noncomputable def ecomplexityGiven (I : Interpretation σ U) (f : (Fin n → U) 
 
 variable {I : Interpretation σ U} {s : ℕ}
 
-/-- Relative complexity is complexity on the graph: computing `f` given `g` is computing `f` of
-the first `n` inputs on the graph of `g`. -/
-theorem ecomplexityGiven_eq_ecomplexityOn_graph (f : (Fin n → U) → Fin m → U)
-    (g : (Fin n → U) → Fin k → U) :
-    ecomplexityGiven I f g = ecomplexityOn I (graph g) (fun z => f (z ∘ Fin.castAdd k)) :=
-  rfl
-
 /-- A circuit computes `f` of the first `n` inputs on the graph of `g` exactly when, reading an
 input followed by the values of `g` on it, it outputs the values of `f` on that input. -/
 theorem Circuit.computesOn_graph_iff {f : (Fin n → U) → Fin m → U} {g : (Fin n → U) → Fin k → U}
@@ -85,7 +78,7 @@ theorem ecomplexity_append_self_le (g : (Fin n → U) → Fin k → U) :
 /-- Knowing `g` never makes `f` harder: `C(f | g) ≤ C(f)`. -/
 theorem ecomplexityGiven_le_ecomplexity (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : ecomplexityGiven I f g ≤ ecomplexity I f := by
-  rw [ecomplexityGiven_eq_ecomplexityOn_graph]
+  rw [ecomplexityGiven]
   exact (ecomplexityOn_comp_wiring_le (Fin.castAdd k) f).trans ecomplexityOn_le_ecomplexity
 
 /-- The chain rule: computing `g` and then `f` from it gives `C(f) ≤ C(g) + C(f | g)`. -/
@@ -106,7 +99,7 @@ theorem ecomplexity_le_add_ecomplexityGiven (f : (Fin n → U) → Fin m → U)
         rw [Set.image_univ] at h
         exact h
     _ ≤ ecomplexity I g + ecomplexityGiven I f g := by
-        rw [ecomplexityGiven_eq_ecomplexityOn_graph]
+        rw [ecomplexityGiven]
         exact add_le_add (ecomplexity_append_self_le g) le_rfl
 
 /-- Computing `f` and `g` together costs at most computing `f` and then `g` given `f`. -/
@@ -133,7 +126,7 @@ theorem ecomplexity_append_le_add_ecomplexityGiven (f : (Fin n → U) → Fin m 
         exact h
     _ ≤ ecomplexity I f + ecomplexityGiven I g f := by
         refine add_le_add (ecomplexity_append_self_le f) ?_
-        rw [ecomplexityGiven_eq_ecomplexityOn_graph]
+        rw [ecomplexityGiven]
         have h := ecomplexityOn_append_le (I := I) (S := graph f)
           (fun z => z ∘ Fin.natAdd n) (fun z => g (z ∘ Fin.castAdd m))
         rwa [ecomplexityOn_wiring, zero_add] at h
@@ -143,7 +136,7 @@ theorem ecomplexity_append_le_add_ecomplexityGiven (f : (Fin n → U) → Fin m 
 theorem ecomplexityGiven_le_add (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U)
     (h : (Fin n → U) → Fin l → U) :
     ecomplexityGiven I f h ≤ ecomplexityGiven I g h + ecomplexityGiven I f g := by
-  simp only [ecomplexityGiven_eq_ecomplexityOn_graph]
+  simp only [ecomplexityGiven]
   let Φ : (Fin (n + l) → U) → Fin (n + k) → U :=
     fun z => Fin.append (z ∘ Fin.castAdd l) (g (z ∘ Fin.castAdd l))
   have hcomp : (fun z => f (z ∘ Fin.castAdd l)) = (fun w => f (w ∘ Fin.castAdd k)) ∘ Φ := by
@@ -170,7 +163,7 @@ theorem ecomplexityGiven_le_add (f : (Fin n → U) → Fin m → U) (g : (Fin n 
 /-- Every function is free given itself: `C(f | f) = 0`. -/
 @[simp] theorem ecomplexityGiven_self (f : (Fin n → U) → Fin m → U) :
     ecomplexityGiven I f f = 0 := by
-  rw [ecomplexityGiven_eq_ecomplexityOn_graph]
+  rw [ecomplexityGiven]
   refine (ecomplexityOn_congr ?_).trans (ecomplexityOn_wiring (Fin.natAdd n))
   rintro _ ⟨x, rfl⟩
   simp
@@ -180,7 +173,7 @@ theorem ecomplexityGiven_append_le (f : (Fin n → U) → Fin m → U) (g : (Fin
     (g' : (Fin n → U) → Fin l → U) :
     ecomplexityGiven I f (fun x => Fin.append (g x) (g' x)) ≤ ecomplexityGiven I f g := by
   have hG : ecomplexityGiven I g (fun x => Fin.append (g x) (g' x)) = 0 := by
-    rw [ecomplexityGiven_eq_ecomplexityOn_graph]
+    rw [ecomplexityGiven]
     refine (ecomplexityOn_congr ?_).trans
       (ecomplexityOn_wiring fun j => Fin.natAdd n (Fin.castAdd l j))
     rintro _ ⟨x, rfl⟩
