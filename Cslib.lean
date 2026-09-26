@@ -69,6 +69,7 @@ public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.SafetyLiveness
+public import Cslib.Computability.Languages.Slice
 public import Cslib.Computability.Languages.SyntacticMonoid
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
