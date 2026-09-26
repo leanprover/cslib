@@ -48,6 +48,7 @@ public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Normalization
 public import Cslib.Computability.Circuit.Program
+public import Cslib.Computability.Circuit.RelativeComplexity
 public import Cslib.Computability.Circuit.Shannon
 public import Cslib.Computability.Circuit.Signature
 public import Cslib.Computability.Circuit.Synthesis
