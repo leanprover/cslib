@@ -73,9 +73,9 @@ example : 1 ≤ complexity interpretation (fun (x : Fin 1 → Bool) (_ : Fin 1) 
   obtain @⟨g, p, outputs⟩ := c
   obtain rfl : g = 0 := by simpa using hsize
   have hread (w : Wire 1 0) : p.trace interpretation (fun _ => true) w = true := by
-    induction w using Fin.addCases with
-    | left i => exact Program.trace_input p interpretation _ i
-    | right j => exact j.elim0
+    cases w with
+    | input i => rfl
+    | gate j => exact j.elim0
   exact Bool.noConfusion ((hread (outputs 0)).symm.trans (congrFun (hc fun _ => true) 0))
 
 example : computableFunctions 0 0 = ∅ := by
