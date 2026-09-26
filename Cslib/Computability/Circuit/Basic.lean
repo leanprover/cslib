@@ -23,8 +23,8 @@ counts only operation gates; Arora and Barak count all nodes, including inputs.
 An output wire may also supply a later gate.
 
 A circuit computes a function with as many values as it has outputs when its designated
-outputs agree with the function on every input; a single-valued function is computed by a
-circuit with one output. Evaluation commutes with homomorphisms of interpretations.
+outputs agree with the function on every input; a single-valued function `f`, written `single f`,
+is computed by a circuit with one output. Evaluation commutes with homomorphisms of interpretations.
 
 ## References
 
@@ -119,6 +119,15 @@ def Circuit.Computes (c : Circuit σ inputCount outputCount)
     (interpretation : Interpretation σ U) (f : (Fin inputCount → U) → Fin outputCount → U) :
     Prop :=
   ∀ x, c.eval interpretation x = f x
+
+/-- A single-valued function as a function with one output, which is what a circuit with one
+output computes. -/
+def single (f : (Fin inputCount → U) → U) : (Fin inputCount → U) → Fin 1 → U :=
+  fun x _ => f x
+
+@[simp] theorem single_apply (f : (Fin inputCount → U) → U) (x : Fin inputCount → U)
+    (i : Fin 1) : single f x i = f x :=
+  rfl
 
 /-- A wiring circuit computes the selection of its inputs. -/
 theorem Circuit.wiring_computes (select : Fin outputCount → Fin inputCount)

@@ -21,7 +21,7 @@ open Cslib.Circuits
 universe v u
 
 example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) {n : ℕ} (i : Fin n) :
-    ∃ c : Circuit σ n 1, c.Computes I (fun x _ => x i) ∧ c.size ≤ 0 := by
+    ∃ c : Circuit σ n 1, c.Computes I (single fun x => x i) ∧ c.size ≤ 0 := by
   have h : Synthesis I (inputs n) {fun x => x i} 0 :=
     Synthesis.of_mem ⟨i, rfl⟩
   exact h.exists_circuit
@@ -73,7 +73,7 @@ example (value : ℕ) :
 
 example (n : ℕ) :
     ∃ c : Circuit signature n 1,
-      c.Computes interpretation (fun x _ => ∑ i, x i) ∧ c.size ≤ 1 := by
+      c.Computes interpretation (single fun x => ∑ i, x i) ∧ c.size ≤ 1 := by
   have h := Synthesis.gate_of_syntheses (I := interpretation) (.total n)
     (fun i x => x i) (fun _ => 0) projection
   simpa [interpretation] using h.exists_circuit
@@ -99,7 +99,7 @@ example : ∃ c : Circuit signature 2 3,
 
 -- Subtraction is neither commutative nor associative; the list determines the order.
 example : ∃ c : Circuit signature 2 1,
-    c.Computes interpretation (fun x _ => x 0 - (x 1 - x 0)) ∧ c.size ≤ 2 := by
+    c.Computes interpretation (single fun x => x 0 - (x 1 - x 0)) ∧ c.size ≤ 2 := by
   have h := Synthesis.foldr (I := interpretation) (· - ·) 1 sub_available
     ([0, 1] : List (Fin 2)) (projection 0) (fun i _ => projection i)
   simpa using h.exists_circuit
@@ -107,13 +107,13 @@ example : ∃ c : Circuit signature 2 1,
 -- A finite-set fold may start from an available, nonconstant seed.
 example : ∃ c : Circuit signature 2 1,
     c.Computes interpretation
-      (fun x _ => Finset.univ.fold (· + ·) (x 0) (fun i : Fin 2 => x i)) ∧ c.size ≤ 2 := by
+      (single fun x => Finset.univ.fold (· + ·) (x 0) (fun i : Fin 2 => x i)) ∧ c.size ≤ 2 := by
   have h := Synthesis.finset_fold (I := interpretation) (· + ·) 1 add_available
     (Finset.univ : Finset (Fin 2)) (projection 0) (fun i _ => projection i)
   simpa using h.exists_circuit
 
 example : ∃ c : Circuit signature 1 1,
-    c.Computes interpretation (fun x _ => x 0) ∧ c.size ≤ 0 := by
+    c.Computes interpretation (single fun x => x 0) ∧ c.size ≤ 0 := by
   have h := Synthesis.finset_fold (I := interpretation) (· + ·) 1 add_available
     (∅ : Finset (Fin 1)) (projection 0) (fun i _ => projection i)
   simpa using h.exists_circuit

@@ -236,7 +236,7 @@ theorem exists_circuit_outputs {m cost : ℕ} {f : Fin m → (Fin n → U) → U
 
 /-- Extract a single-output circuit from a synthesis bound on the input projections. -/
 theorem exists_circuit {cost : ℕ} (h : Synthesis I (inputs n) {f} cost) :
-    ∃ c : Circuit σ n 1, c.Computes I (fun x _ => f x) ∧ c.size ≤ cost := by
+    ∃ c : Circuit σ n 1, c.Computes I (single f) ∧ c.size ≤ cost := by
   have h' : Synthesis I (inputs n) (Set.range fun _ : Fin 1 => f) cost := by
     simpa using h
   exact h'.exists_circuit_outputs
