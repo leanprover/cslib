@@ -66,7 +66,7 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
 
 /-- The functions computable with at most `s` gates are those of complexity at most `s`. -/
 theorem mem_computableFunctions_iff_ecomplexity_le {f : (Fin n → U) → U} :
-    f ∈ computableFunctions I n s ↔ ecomplexity I (fun x (_ : Fin 1) => f x) ≤ s := by
+    f ∈ computableFunctions I n s ↔ ecomplexity I (single f) ≤ s := by
   rw [mem_computableFunctions, ecomplexity_le_iff]
 
 /-- Functions computed at an output wire of a program whose `g` gates compute pairwise distinct

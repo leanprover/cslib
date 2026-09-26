@@ -52,7 +52,7 @@ values side by side. -/
 class Interpretation.IsComplete (I : Interpretation σ U) : Prop where
   /-- Every single-valued function has a circuit. -/
   exists_computes_single :
-    ∀ {n : ℕ} (f : (Fin n → U) → U), ∃ c : Circuit σ n 1, c.Computes I (fun x _ => f x)
+    ∀ {n : ℕ} (f : (Fin n → U) → U), ∃ c : Circuit σ n 1, c.Computes I (single f)
 
 /-- Over a complete basis every function, with any number of values, has a circuit. -/
 theorem Interpretation.IsComplete.exists_computes {I : Interpretation σ U} [I.IsComplete] :
@@ -215,7 +215,7 @@ theorem ecomplexity_le_ecomplexity_append_right (f : (Fin n → U) → Fin m →
 
 /-- A synthesis bound on the input projections bounds the extended complexity. -/
 theorem Synthesis.ecomplexity_le {f : (Fin n → U) → U} {cost : ℕ}
-    (h : Synthesis I (inputs n) {f} cost) : ecomplexity I (fun x (_ : Fin 1) => f x) ≤ cost :=
+    (h : Synthesis I (inputs n) {f} cost) : ecomplexity I (single f) ≤ cost :=
   ecomplexity_le_iff.mpr h.exists_circuit
 
 /-! ### Over a complete basis -/
@@ -299,7 +299,7 @@ theorem complexityOn_append_le (f : (Fin n → U) → Fin m → U) (g : (Fin n �
 
 /-- A synthesis bound on the input projections bounds the complexity. -/
 theorem Synthesis.complexity_le {f : (Fin n → U) → U} {cost : ℕ}
-    (h : Synthesis I (inputs n) {f} cost) : complexity I (fun x (_ : Fin 1) => f x) ≤ cost :=
+    (h : Synthesis I (inputs n) {f} cost) : complexity I (single f) ≤ cost :=
   complexity_le_iff.mpr h.exists_circuit
 
 end Complete

@@ -18,12 +18,12 @@ namespace CslibTests.CircuitComplexity
 
 open Cslib Cslib.Circuits Cslib.Circuits.Boolean
 
-example : ecomplexity interpretation (fun (x : BitString 2) (_ : Fin 1) => x 0 && x 1) ≤ 1 := by
+example : ecomplexity interpretation (single fun x : BitString 2 => x 0 && x 1) ≤ 1 := by
   have h := (Synthesis.of_mem (I := interpretation) (s := inputs 2) ⟨0, rfl⟩).and
     (Synthesis.of_mem (I := interpretation) (s := inputs 2) ⟨1, rfl⟩)
   exact h.ecomplexity_le
 
-example {n : ℕ} (i : Fin n) : ecomplexity interpretation (fun x (_ : Fin 1) => x i) = 0 := by
+example {n : ℕ} (i : Fin n) : ecomplexity interpretation (single fun x => x i) = 0 := by
   have h : Synthesis interpretation (inputs n) {fun x => x i} 0 :=
     Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨i, rfl⟩)
   exact nonpos_iff_eq_zero.mp h.ecomplexity_le
