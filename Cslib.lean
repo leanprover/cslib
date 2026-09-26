@@ -115,6 +115,7 @@ public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.List.IsChainFromTo
+public import Cslib.Foundations.Data.Multiset.Grind
 public import Cslib.Foundations.Data.Nat.Asymptotics
 public import Cslib.Foundations.Data.Nat.Factorial
 public import Cslib.Foundations.Data.Nat.Segment
@@ -216,7 +217,7 @@ public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.LinearLogic.CLL.Basic
-public import Cslib.Logics.LinearLogic.CLL.CutElimination
+public import Cslib.Logics.LinearLogic.CLL.CutFree
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
 public import Cslib.Logics.LinearLogic.CLL.MLL
 public import Cslib.Logics.LinearLogic.CLL.PhaseSemantics.Basic
