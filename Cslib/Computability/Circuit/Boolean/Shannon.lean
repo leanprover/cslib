@@ -33,12 +33,11 @@ theorem exists_hard_function :
 function on `n` inputs has complexity more than `2ⁿ/n`. -/
 theorem lt_complexity :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n,
-      2 ^ n / (n : ℝ) < (complexity interpretation (fun x (_ : Fin 1) => f x) : ℝ) := by
+      2 ^ n / (n : ℝ) < (complexity interpretation (single f) : ℝ) := by
   obtain ⟨N, hN⟩ := exists_hard_function
   refine ⟨N, fun n hn => ?_⟩
   obtain ⟨f, hf⟩ := hN n hn
-  obtain ⟨c, hc, hsize⟩ :=
-    exists_computes_size_eq_complexity (I := interpretation) (f := fun x (_ : Fin 1) => f x)
+  obtain ⟨c, hc, hsize⟩ := exists_computes_size_eq_complexity (I := interpretation) (f := single f)
   exact ⟨f, by rw [← hsize]; exact hf c hc⟩
 
 end Cslib.Circuits.Boolean.Shannon

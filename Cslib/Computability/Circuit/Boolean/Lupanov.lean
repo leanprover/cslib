@@ -237,12 +237,12 @@ theorem exists_circuit (ε : ℝ) (hε : 0 < ε) :
 complexity at most `(1 + ε) 2ⁿ/n`, uniformly for sufficiently large `n`. -/
 theorem complexity_le (ε : ℝ) (hε : 0 < ε) :
     ∃ N : ℕ, ∀ n ≥ N, ∀ f : BooleanFunction n,
-      (complexity interpretation (fun x (_ : Fin 1) => f x) : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
+      (complexity interpretation (single f) : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
   obtain ⟨N, hN⟩ := exists_circuit ε hε
   refine ⟨N, fun n hn f => ?_⟩
   obtain ⟨c, hc, hsize⟩ := hN n hn f
   calc
-    (complexity interpretation (fun x (_ : Fin 1) => f x) : ℝ) ≤ c.size := by
+    (complexity interpretation (single f) : ℝ) ≤ c.size := by
       exact_mod_cast complexity_le_of_computes c hc
     _ ≤ (1 + ε) * 2 ^ n / n := hsize
 
