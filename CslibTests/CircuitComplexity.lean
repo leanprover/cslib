@@ -34,12 +34,6 @@ example (S : Set (BitString n)) (f : BitString n → BitString m) :
     ecomplexityOn interpretation S f ≤ ecomplexity interpretation f :=
   ecomplexityOn_le_ecomplexity
 
--- Relative complexity is complexity on the graph.
-example (f : BitString n → BitString m) (g : BitString n → BitString k) :
-    ecomplexityGiven interpretation f g =
-      ecomplexityOn interpretation (graph g) (fun z => f (z ∘ Fin.castAdd k)) :=
-  ecomplexityGiven_eq_ecomplexityOn_graph f g
-
 example (f : BitString n → BitString m) (g : BitString n → BitString k) :
     ecomplexityGiven interpretation f g ≤ ecomplexity interpretation f ∧
       ecomplexity interpretation f ≤
