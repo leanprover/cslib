@@ -55,19 +55,6 @@ def appendWire (feed : Fin k → Wire n g₁) : Wire k g₂ → Wire n (g₁ + g
 @[simp] theorem appendWire_gate (feed : Fin k → Wire n g₁) (j : Fin g₂) :
     appendWire feed (Wire.gate j) = Wire.gate (Fin.natAdd g₁ j) := rfl
 
-theorem appendWire_castSucc (feed : Fin k → Wire n g₁) (w : Wire k g₂) :
-    appendWire (g₂ := g₂ + 1) feed w.castSucc = (appendWire feed w).castSucc := by
-  cases w with
-  | input i =>
-    change (feed i).castAdd (g₂ + 1) = ((feed i).castAdd g₂).castSucc
-    cases feed i <;> rfl
-  | gate j => rfl
-
-theorem appendWire_last (feed : Fin k → Wire n g₁) :
-    appendWire (g₂ := g₂ + 1) feed (Wire.gate (Fin.last g₂)) =
-      Wire.gate (Fin.last (g₁ + g₂)) :=
-  rfl
-
 /-- Continue `p` by `q`, reading the inputs of `q` from the wires `feed` of `p`. -/
 def append (p : Program σ n g₁) (feed : Fin k → Wire n g₁) :
     {g₂ : ℕ} → Program σ k g₂ → Program σ n (g₁ + g₂)
@@ -82,10 +69,7 @@ theorem trace_append_castAdd (q : Program σ k g₂) (w : Wire n g₁) :
     (p.append feed q).trace I x (w.castAdd g₂) = p.trace I x w := by
   induction q with
   | empty => cases w <;> rfl
-  | @gate g₂ q line ih =>
-    have hw : w.castAdd (g₂ + 1) = (w.castAdd g₂).castSucc := by cases w <;> rfl
-    rw [hw]
-    exact (Program.trace_gate_castSucc _ _ I x _).trans ih
+  | gate q line ih => cases w <;> exact (Program.trace_gate_castSucc _ _ I x _).trans ih
 
 /-- A wire of `q` carries, in the continued program, the value it has when `q` runs on the
 values of the wires feeding it. -/
@@ -97,15 +81,16 @@ theorem trace_append_appendWire (q : Program σ k g₂) (w : Wire k g₂) :
     cases w with
     | input i => exact trace_append_castAdd p feed I x .empty (feed i)
     | gate j => exact j.elim0
-  | @gate g₂ q line ih =>
-    refine Wire.lastCases ?_ (fun w => ?_) w
-    · rw [appendWire_last]
-      refine (Program.eval_gate_last _ _ I x).trans ?_
-      refine Eq.trans ?_ (Program.eval_gate_last q line I _).symm
-      exact Line.eval_mapWires line (appendWire feed) I _ x _ _ ih
-    · rw [appendWire_castSucc]
-      refine (Program.trace_gate_castSucc _ _ I x _).trans ?_
-      exact (ih w).trans (Program.trace_gate_castSucc q line I _ w).symm
+  | gate q line ih =>
+    cases w with
+    | input i => exact trace_append_castAdd p feed I x _ (feed i)
+    | gate j =>
+      refine Fin.lastCases ?_ (fun j => ?_) j
+      · refine (Program.eval_gate_last _ _ I x).trans ?_
+        refine Eq.trans ?_ (Program.eval_gate_last q line I _).symm
+        exact Line.eval_mapWires line (appendWire feed) I _ x _ _ ih
+      · exact (Program.trace_gate_castSucc _ _ I x (.gate (Fin.natAdd _ j))).trans
+          ((ih (.gate j)).trans (Program.trace_gate_castSucc q line I _ (.gate j)).symm)
 
 end Program
 
