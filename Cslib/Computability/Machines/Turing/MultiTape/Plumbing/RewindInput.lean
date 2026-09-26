@@ -59,22 +59,13 @@ def rewindInput (k : ℕ) (Symbol : Type*) : MultiTapeTM k Symbol RewindState wh
   q₀ := .probe
   tr q inp _ :=
     match q, inp with
-    | .probe, some _ =>
+    | _, some _ =>
         { inputTape := .neg, workTapes := fun _ => (none, 0), output := none,
           state := some .walk }
     | .probe, none =>
         { inputTape := .neg, workTapes := fun _ => (none, 0), output := none,
           state := some .probe2 }
-    | .probe2, some _ =>
-        { inputTape := .neg, workTapes := fun _ => (none, 0), output := none,
-          state := some .walk }
-    | .probe2, none =>
-        { inputTape := .pos, workTapes := fun _ => (none, 0), output := none,
-          state := none }
-    | .walk, some _ =>
-        { inputTape := .neg, workTapes := fun _ => (none, 0), output := none,
-          state := some .walk }
-    | .walk, none =>
+    | _, none =>
         { inputTape := .pos, workTapes := fun _ => (none, 0), output := none,
           state := none }
 
@@ -224,9 +215,8 @@ lemma runFrom_walk (j : ℕ) :
   induction j with
   | zero =>
     intro p hp _
-    obtain rfl : p = 0 := Fin.ext (by simpa using hp)
-    rw [runFrom, Function.iterate_succ_apply', Function.iterate_zero, id_eq,
-      step_walk_none (inputSymbol_mk_eq_none_left rfl)]
+    obtain rfl : p = 0 := Fin.ext hp
+    rw [runFrom_one, step_walk_none (inputSymbol_mk_eq_none_left rfl)]
     refine cfg_congr ?_
     rw [val_moveInputPos_pos 0 (by simp)]
     simp
@@ -254,14 +244,14 @@ public theorem exists_rewindInput (k : ℕ) (Symbol : Type*) :
   refine ⟨RewindState, inferInstance, rewindInput k Symbol, fun input c hc => ?_⟩
   obtain ⟨q, p, w, wp, out⟩ := c
   obtain rfl : q = some RewindState.probe := hc
-  -- the run halts at position `1` after at most `input.length + 3` steps
+  -- First exhibit a halting time, then take the earliest one.
   obtain ⟨u₀, hu₀, hrun⟩ : ∃ u₀ ≤ p.val + 2,
       (rewindInput k Symbol).runFrom ⟨some .probe, p, w, wp, out⟩ u₀ =
         ⟨none, 1, w, wp, out⟩ := by
     rcases Nat.eq_zero_or_pos p.val with hp0 | hp1
     · -- started at the left boundary: probe, probe again, halt
       refine ⟨2, by omega, ?_⟩
-      obtain rfl : p = 0 := Fin.ext (by simpa using hp0)
+      obtain rfl : p = 0 := Fin.ext hp0
       rw [Rewind.runFrom_two, Rewind.step_probe_none (Rewind.inputSymbol_mk_eq_none_left rfl),
         show moveInputPos (0 : Fin (input.length + 2)) .neg = 0 from
           Fin.ext (by rw [Rewind.val_moveInputPos_neg]; simp),
@@ -293,26 +283,20 @@ public theorem exists_rewindInput (k : ℕ) (Symbol : Type*) :
         rw [Rewind.val_moveInputPos_pos 0 (by simp)]
         simp
       · -- nonempty input: one probe, the second probe finds a symbol, then walk
-        refine ⟨1 + (1 + (input.length - 1 + 1)), by omega, ?_⟩
+        refine ⟨input.length + 2, by omega, ?_⟩
         have hmv : (moveInputPos p .neg).val = input.length := by
           rw [Rewind.val_moveInputPos_neg]; omega
-        rw [runFrom, Nat.add_comm 1 (1 + (input.length - 1 + 1)),
-          Function.iterate_add_apply]
-        rw [← runFrom, ← runFrom, Rewind.runFrom_one, Rewind.step_probe_none hs1]
-        rw [runFrom, Nat.add_comm 1 (input.length - 1 + 1),
-          Function.iterate_add_apply]
-        rw [← runFrom, ← runFrom, Rewind.runFrom_one,
+        rw [runFrom, Function.iterate_succ_apply, Rewind.step_probe_none hs1,
+          Function.iterate_succ_apply, ← runFrom,
           Rewind.step_read _ (Rewind.inputSymbol_mk_eq_some (by omega) (by omega))]
-        exact Rewind.runFrom_walk (input.length - 1) _
-          (by rw [Rewind.val_moveInputPos_neg, hmv]) (by omega)
+        simpa only [Nat.sub_add_cancel hlen] using
+          Rewind.runFrom_walk (input.length - 1) _
+            (by rw [Rewind.val_moveInputPos_neg, hmv]) (by omega)
   -- take the first halting time; the frame holds at every step
   obtain ⟨u, hu, hhalt, hactive⟩ :=
     exists_minimal_halting_time (rewindInput k Symbol) _ u₀ (by rw [hrun])
-  have hfin : (rewindInput k Symbol).runFrom ⟨some RewindState.probe, p, w, wp, out⟩ u =
-      ⟨none, 1, w, wp, out⟩ := by
-    have h := runFrom_eq_of_halt (rewindInput k Symbol) _ hu hhalt
-    rw [hrun] at h
-    exact h.symm
-  exact ⟨u, le_trans hu hu₀, hactive, hfin, fun m _ => Rewind.runFrom_frame _ m⟩
+  exact ⟨u, hu.trans hu₀, hactive,
+    (runFrom_eq_of_halt (rewindInput k Symbol) _ hu hhalt).symm.trans hrun,
+    fun m _ => Rewind.runFrom_frame _ m⟩
 
 end Turing.MultiTapeTM

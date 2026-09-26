@@ -85,115 +85,48 @@ lemma cfg_workTapePos_ne {l : Fin k} (h : l ≠ i) (q : Option Bool) :
 /-- A word configuration is a `cfg` whose tape `i` holds the word `ws i`. -/
 lemma wordsCfg_eq_cfg (q : Option Bool) (hws : ws i = w) :
     wordsCfg input q ws out = cfg input i q (tapeOfList w) 0 ws out := by
-  refine Cfg.ext rfl rfl ?_ ?_ rfl
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp [wordsCfg, cfg, hws]
-    · simp [wordsCfg, cfg, h]
-  · funext l
-    simp [wordsCfg, cfg]
+  apply Cfg.ext <;> simp [wordsCfg, cfg, ← hws, funext_iff]
 
 /-- The halting `cfg` with a blank tape `i` is the word configuration in which the word on tape
 `i` has been replaced by the empty word. -/
 lemma cfg_halt_eq_wordsCfg :
     cfg input i none (fun _ => none) 0 ws out =
       wordsCfg input none (Function.update ws i []) out := by
-  refine Cfg.ext rfl rfl ?_ ?_ rfl
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp [wordsCfg, cfg]
-    · simp [wordsCfg, cfg, h]
-  · funext l
-    simp [wordsCfg, cfg]
+  refine Cfg.ext rfl rfl (funext fun l => ?_) (by simp [cfg, wordsCfg]) rfl
+  by_cases h : l = i <;> simp [cfg, wordsCfg, h]
 
 /-- Scanning right in state `false`: over a symbol the head moves right and nothing is written. -/
 lemma step_scan {s : Symbol} (hT : T p = some s) :
     (clearTape i).step (cfg input i (some false) T p ws out) =
       cfg input i (some false) T (p + 1) ws out := by
-  have hsym : (cfg input i (some false) T p ws out).workTapeSymbols i = some s := by
-    simp [cfg, Cfg.workTapeSymbols, hT]
-  unfold step
-  simp only [cfg] at hsym ⊢
-  simp only [clearTape]
-  rw [hsym]
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_
-  · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · simp
+  simp only [step, cfg, clearTape, Cfg.workTapeSymbols, ↓reduceIte, hT]
+  refine Cfg.ext rfl (by simp) (funext fun l => ?_) (funext fun l => ?_) (by simp)
+  all_goals by_cases h : l = i <;> simp [h]
 
 /-- Turning around: on the blank one cell past the word, state `false` moves left and enters
 state `true`. -/
 lemma step_turn (hT : T p = none) :
     (clearTape i).step (cfg input i (some false) T p ws out) =
       cfg input i (some true) T (p - 1) ws out := by
-  have hsym : (cfg input i (some false) T p ws out).workTapeSymbols i = none := by
-    simp [cfg, Cfg.workTapeSymbols, hT]
-  unfold step
-  simp only [cfg] at hsym ⊢
-  simp only [clearTape]
-  rw [hsym]
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_
-  · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp [sub_eq_add_neg]
-    · simp [h]
-  · simp
+  simp only [step, cfg, clearTape, Cfg.workTapeSymbols, ↓reduceIte, hT]
+  refine Cfg.ext rfl (by simp) (funext fun l => ?_) (funext fun l => ?_) (by simp)
+  all_goals by_cases h : l = i <;> simp [h, sub_eq_add_neg]
 
 /-- Sweeping left in state `true`: over a symbol the cell is blanked and the head moves left. -/
 lemma step_sweep {s : Symbol} (hT : T p = some s) :
     (clearTape i).step (cfg input i (some true) T p ws out) =
       cfg input i (some true) (Function.update T p none) (p - 1) ws out := by
-  have hsym : (cfg input i (some true) T p ws out).workTapeSymbols i = some s := by
-    simp [cfg, Cfg.workTapeSymbols, hT]
-  unfold step
-  simp only [cfg] at hsym ⊢
-  simp only [clearTape]
-  rw [hsym]
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_
-  · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp [sub_eq_add_neg]
-    · simp [h]
-  · simp
+  simp only [step, cfg, clearTape, Cfg.workTapeSymbols, ↓reduceIte, hT]
+  refine Cfg.ext rfl (by simp) (funext fun l => ?_) (funext fun l => ?_) (by simp)
+  all_goals by_cases h : l = i <;> simp [h, sub_eq_add_neg]
 
 /-- Halting: on the blank at position `-1`, state `true` moves right and halts. -/
 lemma step_halt (hT : T p = none) :
     (clearTape i).step (cfg input i (some true) T p ws out) =
       cfg input i none T (p + 1) ws out := by
-  have hsym : (cfg input i (some true) T p ws out).workTapeSymbols i = none := by
-    simp [cfg, Cfg.workTapeSymbols, hT]
-  unfold step
-  simp only [cfg] at hsym ⊢
-  simp only [clearTape]
-  rw [hsym]
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_
-  · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · simp
+  simp only [step, cfg, clearTape, Cfg.workTapeSymbols, ↓reduceIte, hT]
+  refine Cfg.ext rfl (by simp) (funext fun l => ?_) (funext fun l => ?_) (by simp)
+  all_goals by_cases h : l = i <;> simp [h]
 
 /-- Blanking the cell just past the end of a word shortens the word by one symbol. -/
 lemma update_tapeOfList_eq_tapeOfList_take (w : List Symbol) (p : ℕ) :

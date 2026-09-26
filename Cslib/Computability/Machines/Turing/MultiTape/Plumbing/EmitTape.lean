@@ -21,10 +21,9 @@ head: the only lasting effect is the appended output and the tape-`i` head resti
 `w.length`.
 
 `setCell i v` writes a designated symbol value `v` into cell `-1` of work tape `i` — the cell just
-left of the word — and returns the head to `0`, touching nothing else. It is the primitive used to
-place or clear a flag mark. The machine is specialised to the cell `-1`, the only cell the callers
-need; a general version for an arbitrary cell `z` would require a head able to reach `z`, i.e. a
-state count depending on `z`.
+left of the word — and returns the head to `0`, touching nothing else. Starting with the head at
+`0`, it takes two steps and visits only cells `-1` and `0`. This can place or clear a flag without
+changing the word.
 
 ## Main results
 
@@ -77,45 +76,15 @@ right, staying live. -/
 lemma step_emit_some {s : Symbol} (hs : W i p = some s) :
     (emitTape i).step (cfg input i (some ()) ip W WP out p) =
       cfg input i (some ()) ip W WP (out ++ [s]) (p + 1) := by
-  have hsym : (cfg input i (some ()) ip W WP out p).workTapeSymbols i = some s := by
-    simp [cfg, Cfg.workTapeSymbols, hs]
-  unfold step
-  simp only [cfg] at hsym ⊢
-  simp only [emitTape]
-  rw [hsym]
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_
-  · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · simp
+  simp only [step, cfg, emitTape, Cfg.workTapeSymbols, Function.update_self, hs]
+  refine Cfg.ext rfl (by simp) (by simp) (funext fun l => ?_) (by simp)
+  by_cases h : l = i <;> simp [h]
 
 /-- Halting: reading the first blank on tape `i` the machine halts, writing and moving nothing. -/
 lemma step_emit_none (hs : W i p = none) :
     (emitTape i).step (cfg input i (some ()) ip W WP out p) =
       cfg input i none ip W WP out p := by
-  have hsym : (cfg input i (some ()) ip W WP out p).workTapeSymbols i = none := by
-    simp [cfg, Cfg.workTapeSymbols, hs]
-  unfold step
-  simp only [cfg] at hsym ⊢
-  simp only [emitTape]
-  rw [hsym]
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_
-  · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · simp
+  apply Cfg.ext <;> simp [step, cfg, emitTape, Cfg.workTapeSymbols, hs]
 
 /-- The scanning phase: from the start of the word, after `n ≤ w.length` steps the head is at
 position `n` and the first `n` symbols of `w` have been appended to the output. -/
@@ -123,15 +92,13 @@ lemma runFrom_scan {w : List Symbol} (hw : W i = tapeOfList w) (n : ℕ) (hn : n
     (emitTape i).runFrom (cfg input i (some ()) ip W WP out 0) n =
       cfg input i (some ()) ip W WP (out ++ w.take n) (n : ℤ) := by
   induction n with
-  | zero =>
-    simp only [runFrom, Function.iterate_zero, id_eq]
-    exact cfg_congr (by simp) (by simp)
+  | zero => simp [runFrom]
   | succ n ih =>
     have hsym : W i (n : ℤ) = some (w[n]'(by omega)) := by
       rw [hw, tapeOfList_ofNat]
       exact List.getElem?_eq_getElem (by omega)
     rw [runFrom, Function.iterate_succ_apply', ← runFrom, ih (by omega), step_emit_some hsym]
-    refine cfg_congr ?_ (by push_cast; omega)
+    refine cfg_congr ?_ (by simp)
     rw [List.append_assoc, List.take_concat_get' w n (by omega)]
 
 /-- The complete run: from the start of the word, after `w.length + 1` steps the machine has
@@ -139,12 +106,8 @@ halted with the full word `w` appended to the output and the head at the frontie
 lemma runFrom_full {w : List Symbol} (hw : W i = tapeOfList w) :
     (emitTape i).runFrom (cfg input i (some ()) ip W WP out 0) (w.length + 1) =
       cfg input i none ip W WP (out ++ w) (w.length : ℤ) := by
-  have hnone : W i (w.length : ℤ) = none := by
-    rw [hw, tapeOfList_ofNat]
-    exact List.getElem?_eq_none (by omega)
   rw [runFrom, Function.iterate_succ_apply', ← runFrom,
-    runFrom_scan hw w.length le_rfl, step_emit_none hnone]
-  exact cfg_congr (by rw [List.take_length]) rfl
+    runFrom_scan hw w.length le_rfl, step_emit_none (by simp [hw]), List.take_length]
 
 /-- Throughout the run the head of tape `i` stays within `[0, w.length]`: it walks right from the
 start of the word to the frontier and stops. -/
@@ -154,12 +117,11 @@ lemma runFrom_pos_range {w : List Symbol} (hw : W i = tapeOfList w) (m : ℕ)
       ((emitTape i).runFrom (cfg input i (some ()) ip W WP out 0) m).workTapePos i ≤
         (w.length : ℤ) := by
   rcases Nat.lt_or_ge m (w.length + 1) with hlt | hge
-  · have hml : m ≤ w.length := by omega
-    rw [runFrom_scan hw m hml]
-    constructor <;> simp only [cfg, Function.update_self] <;> omega
+  · rw [runFrom_scan hw m (by omega)]
+    simpa [cfg] using (show m ≤ w.length by omega)
   · obtain rfl : m = w.length + 1 := by omega
     rw [runFrom_full hw]
-    constructor <;> simp only [cfg, Function.update_self] <;> omega
+    simp [cfg]
 
 /-- No action of the machine writes to a work tape. -/
 lemma tr_write_none (q : Unit) (inp : Option Symbol) (work : Fin K → Option Symbol) (l : Fin K) :
@@ -235,36 +197,20 @@ public theorem exists_emitTape {Symbol : Type*} {K : ℕ} (i : Fin K) :
             (0 : ℤ) ≤ (tm.runFrom c m).workTapePos i ∧
             (tm.runFrom c m).workTapePos i ≤ (w.length : ℤ) := by
   refine ⟨Unit, inferInstance, emitTape i, fun input c w hstate hwi hwp => ?_⟩
-  obtain ⟨q, ip, W, WP, out⟩ := c
-  obtain rfl : q = some () := hstate
-  have hwi' : W i = tapeOfList w := hwi
-  have hwp' : WP i = 0 := hwp
-  have hc0 : (⟨some (), ip, W, WP, out⟩ : Cfg K Symbol Unit input) =
-      cfg input i (some ()) ip W WP out 0 := by
-    refine Cfg.ext rfl rfl rfl ?_ rfl
-    change WP = Function.update WP i 0
-    rw [← hwp', Function.update_eq_self]
-  obtain ⟨u, hu, hactive, hhalt⟩ : ∃ u ≤ w.length + 1,
-      (∀ m < u, ((emitTape i).runFrom
-        (⟨some (), ip, W, WP, out⟩ : Cfg K Symbol Unit input) m).state ≠ none) ∧
-      (emitTape i).runFrom (⟨some (), ip, W, WP, out⟩ : Cfg K Symbol Unit input) u =
-        ⟨none, ip, W, Function.update WP i (w.length : ℤ), out ++ w⟩ := by
-    have hrun : (emitTape i).runFrom
-        (⟨some (), ip, W, WP, out⟩ : Cfg K Symbol Unit input) (w.length + 1) =
-        ⟨none, ip, W, Function.update WP i (w.length : ℤ), out ++ w⟩ := by
-      rw [hc0, runFrom_full hwi']
-      simp only [cfg]
-    obtain ⟨u, hu, hhaltu, hact⟩ :=
-      exists_minimal_halting_time (emitTape i) _ (w.length + 1) (by rw [hrun])
-    have heq := runFrom_eq_of_halt (emitTape i) _ hu hhaltu
-    rw [hrun] at heq
-    exact ⟨u, hu, hact, heq.symm⟩
-  refine ⟨u, by omega, hactive, hhalt, fun m hm => ?_⟩
-  obtain ⟨f1, f2, f3⟩ := runFrom_frame (⟨some (), ip, W, WP, out⟩) m
-  obtain ⟨g1, g2⟩ := runFrom_pos_range (input := input) (i := i) (ip := ip) (W := W) (WP := WP)
-    (out := out) hwi' m (by omega)
-  rw [← hc0] at g1 g2
-  exact ⟨f1, f2, f3, g1, g2⟩
+  have hc0 : c = cfg input i (some ()) c.inputPos c.workTapes c.workTapePos c.output 0 := by
+    refine Cfg.ext hstate rfl rfl ?_ rfl
+    simp [cfg, ← hwp]
+  have hrun := runFrom_full (ip := c.inputPos) (WP := c.workTapePos) (out := c.output) hwi
+  rw [← hc0] at hrun
+  obtain ⟨u, hu, hhalt, hactive⟩ :=
+    exists_minimal_halting_time (emitTape i) c (w.length + 1) (by rw [hrun]; rfl)
+  refine ⟨u, by omega, hactive, ?_, fun m hm => ?_⟩
+  · exact (runFrom_eq_of_halt (emitTape i) c hu hhalt).symm.trans hrun
+  · obtain ⟨f1, f2, f3⟩ := runFrom_frame c m
+    have hrange := runFrom_pos_range (ip := c.inputPos) (WP := c.workTapePos)
+      (out := c.output) hwi m (hm.trans hu)
+    rw [← hc0] at hrange
+    exact ⟨f1, f2, f3, hrange⟩
 
 /-! ## Setting a single work-tape cell -/
 
@@ -320,68 +266,42 @@ lemma cfg_congr {q : Option SetCellState} {W W' : Fin K → ℤ → Option Symbo
 lemma step_go :
     (setCell i v).step (cfg input i (some .go) ip W WP out p) =
       cfg input i (some .write) ip W WP out (p - 1) := by
-  unfold step
-  simp only [cfg]
-  simp only [setCell]
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_
-  · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp [sub_eq_add_neg]
-    · simp [h]
-  · simp
+  simp only [step, cfg, setCell]
+  refine Cfg.ext rfl (by simp) (by simp) (funext fun l => ?_) (by simp)
+  by_cases h : l = i <;> simp [h, sub_eq_add_neg]
 
 /-- Writing `v` at the current cell in state `write`, moving the head right and halting. -/
 lemma step_write :
     (setCell i v).step (cfg input i (some .write) ip W WP out p) =
       cfg input i none ip (Function.update W i (Function.update (W i) p v)) WP out (p + 1) := by
-  unfold step
-  simp only [cfg]
-  simp only [setCell]
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_
-  · simp
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · funext l
-    rcases eq_or_ne l i with rfl | h
-    · simp
-    · simp [h]
-  · simp
+  simp only [step, cfg, setCell]
+  refine Cfg.ext rfl (by simp) (funext fun l => ?_) (funext fun l => ?_) (by simp)
+  all_goals by_cases h : l = i <;> simp [h]
 
 /-- After one step the machine is in state `write` with the head at cell `-1`. -/
 lemma runFrom_one :
     (setCell i v).runFrom (cfg input i (some .go) ip W WP out 0) 1 =
       cfg input i (some .write) ip W WP out (-1) := by
-  rw [runFrom, Function.iterate_succ_apply', Function.iterate_zero, id_eq, step_go]
-  exact cfg_congr rfl (by omega)
+  exact step_go
 
 /-- The complete run: after two steps the machine has written `v` at cell `-1` of tape `i` and
 returned the head to `0`. -/
 lemma runFrom_two :
     (setCell i v).runFrom (cfg input i (some .go) ip W WP out 0) 2 =
       cfg input i none ip (Function.update W i (Function.update (W i) (-1) v)) WP out 0 := by
-  rw [show (2 : ℕ) = 1 + 1 from rfl, runFrom, Function.iterate_succ_apply',
-    ← runFrom, runFrom_one, step_write]
-  exact cfg_congr rfl (by omega)
+  rw [runFrom, Function.iterate_succ_apply', ← runFrom, runFrom_one, step_write]
+  rfl
 
 /-- Throughout the run the head of tape `i` stays within `[-1, 0]`. -/
 lemma runFrom_pos_range (m : ℕ) (hm : m ≤ 2) :
     (-1 : ℤ) ≤ ((setCell i v).runFrom (cfg input i (some .go) ip W WP out 0) m).workTapePos i ∧
       ((setCell i v).runFrom (cfg input i (some .go) ip W WP out 0) m).workTapePos i ≤ 0 := by
-  rcases m with _ | _ | _ | m
-  · simp only [runFrom, Function.iterate_zero, id_eq]
-    constructor <;> simp only [cfg, Function.update_self] <;> omega
+  obtain rfl | rfl | rfl : m = 0 ∨ m = 1 ∨ m = 2 := by omega
+  · simp [runFrom, cfg]
   · rw [runFrom_one]
-    constructor <;> simp only [cfg, Function.update_self] <;> omega
+    simp [cfg]
   · rw [runFrom_two]
-    constructor <;> simp only [cfg, Function.update_self] <;> omega
-  · exact absurd hm (by omega)
+    simp [cfg]
 
 /-- No action of the machine moves the input head. -/
 lemma tr_inputTape (q : SetCellState) (inp : Option Symbol) (work : Fin K → Option Symbol) :
@@ -449,9 +369,7 @@ open SetCell in
 output, all other tape contents and all other work heads — unchanged at every step of the run.
 Before the halting step the machine is live, so runs chain sequentially.
 
-This is the specialisation to the cell `z = -1` of a general "set cell `z`" primitive: it is the
-only cell the callers (which mark and clear the flag cell just left of a word) need, and the
-excursion is confined to `[-1, 0]`. -/
+The excursion is confined to `[-1, 0]`, so the word starting at cell `0` is unchanged. -/
 public theorem exists_setCell {Symbol : Type*} {K : ℕ} (i : Fin K) (v : Option Symbol) :
     ∃ (State : Type) (_ : Finite State) (tm : MultiTapeTM K Symbol State),
       ∀ (input : List Symbol) (c : Cfg K Symbol State input),
@@ -466,37 +384,21 @@ public theorem exists_setCell {Symbol : Type*} {K : ℕ} (i : Fin K) (v : Option
               (tm.runFrom c m).workTapePos j = c.workTapePos j) ∧
             (-1 : ℤ) ≤ (tm.runFrom c m).workTapePos i ∧ (tm.runFrom c m).workTapePos i ≤ 0 := by
   refine ⟨SetCellState, inferInstance, setCell i v, fun input c hstate hwp => ?_⟩
-  obtain ⟨q, ip, W, WP, out⟩ := c
-  obtain rfl : q = some SetCellState.go := hstate
-  have hwp' : WP i = 0 := hwp
-  have hupdWP : Function.update WP i 0 = WP := by rw [← hwp', Function.update_eq_self]
-  have hc0 : (⟨some SetCellState.go, ip, W, WP, out⟩ : Cfg K Symbol SetCellState input) =
-      cfg input i (some .go) ip W WP out 0 := by
-    refine Cfg.ext rfl rfl rfl ?_ rfl
-    exact hupdWP.symm
-  obtain ⟨u, hu, hactive, hhalt⟩ : ∃ u ≤ 2,
-      (∀ m < u, ((setCell i v).runFrom
-        (⟨some SetCellState.go, ip, W, WP, out⟩ : Cfg K Symbol SetCellState input)
-        m).state ≠ none) ∧
-      (setCell i v).runFrom
-          (⟨some SetCellState.go, ip, W, WP, out⟩ : Cfg K Symbol SetCellState input) u =
-        ⟨none, ip, Function.update W i (Function.update (W i) (-1) v), WP, out⟩ := by
-    have hrun : (setCell i v).runFrom
-        (⟨some SetCellState.go, ip, W, WP, out⟩ : Cfg K Symbol SetCellState input) 2 =
-        ⟨none, ip, Function.update W i (Function.update (W i) (-1) v), WP, out⟩ := by
-      rw [hc0, runFrom_two]
-      unfold cfg
-      rw [hupdWP]
-    obtain ⟨u, hu, hhaltu, hact⟩ :=
-      exists_minimal_halting_time (setCell i v) _ 2 (by rw [hrun])
-    have heq := runFrom_eq_of_halt (setCell i v) _ hu hhaltu
-    rw [hrun] at heq
-    exact ⟨u, hu, hact, heq.symm⟩
-  refine ⟨u, by omega, hactive, hhalt, fun m hm => ?_⟩
-  obtain ⟨f1, f2, f3⟩ := runFrom_frame (⟨some SetCellState.go, ip, W, WP, out⟩) m
-  obtain ⟨g1, g2⟩ := runFrom_pos_range (input := input) (i := i) (v := v) (ip := ip) (W := W)
-    (WP := WP) (out := out) m (by omega)
-  rw [← hc0] at g1 g2
-  exact ⟨f1, f2, f3, g1, g2⟩
+  have hc0 : c = cfg input i (some .go) c.inputPos c.workTapes c.workTapePos c.output 0 := by
+    refine Cfg.ext hstate rfl rfl ?_ rfl
+    simp [cfg, ← hwp]
+  have hrun := runFrom_two (i := i) (v := v) (ip := c.inputPos) (W := c.workTapes)
+    (WP := c.workTapePos) (out := c.output)
+  rw [← hc0] at hrun
+  obtain ⟨u, hu, hhalt, hactive⟩ :=
+    exists_minimal_halting_time (setCell i v) c 2 (by rw [hrun]; rfl)
+  refine ⟨u, by omega, hactive, ?_, fun m hm => ?_⟩
+  · simpa only [cfg, ← hwp, Function.update_eq_self] using
+      (runFrom_eq_of_halt (setCell i v) c hu hhalt).symm.trans hrun
+  · obtain ⟨f1, f2, f3⟩ := runFrom_frame c m
+    have hrange := runFrom_pos_range (i := i) (v := v) (ip := c.inputPos) (W := c.workTapes)
+      (WP := c.workTapePos) (out := c.output) m (hm.trans hu)
+    rw [← hc0] at hrange
+    exact ⟨f1, f2, f3, hrange⟩
 
 end Turing.MultiTapeTM
