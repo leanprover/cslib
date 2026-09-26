@@ -1,25 +1,31 @@
 version: 2
 updates:
-  # Keep action pins fresh. Grouped so that all bumps land in a single weekly PR,
-  # which bounds the number of full Lean CI builds this triggers.
+  # Grouped by semver impact so major bumps arrive on their own.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     groups:
-      actions:
+      actions-minor-patch:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-major:
+        patterns: ["*"]
+        update-types: ["major"]
     commit-message:
       prefix: ci
 
-  # Python packages installed by workflows (see requirements.txt in this directory).
-  # Major bumps are left for a human to review.
+  # Python packages installed by workflows (see requirements.txt here), split the same way.
   - package-ecosystem: pip
     directory: /.github
     schedule:
       interval: weekly
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+    groups:
+      pip-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      pip-major:
+        patterns: ["*"]
+        update-types: ["major"]
     commit-message:
       prefix: ci
