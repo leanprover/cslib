@@ -28,9 +28,9 @@ variable {Seed Output : Type*}
 
 /-- An unbounded adversary tests whether its input is in the generator's range.
 It is not assumed to be admissible for a computationally restricted class. -/
-noncomputable def rangeAdversary (G : Generator Seed Output) : Adversary Output := by
-  classical
-  exact fun output => PMF.pure (decide (output ∈ Set.range G))
+noncomputable def rangeAdversary (G : Generator Seed Output) : Adversary Output :=
+  letI : DecidablePred (· ∈ Set.range G) := fun _ => Classical.propDecidable _
+  fun output => PMF.pure (decide (output ∈ Set.range G))
 
 variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
 
@@ -71,7 +71,7 @@ theorem secure_zero_of_outputDist_eq (G : Generator Seed Output)
 /-- Zero-error security against arbitrary tests is equivalent to exactly uniform output. -/
 theorem secure_zero_iff_outputDist_eq_uniform (G : Generator Seed Output) :
     G.Secure (fun _ => True) 0 ↔ G.outputDist = PMF.uniformOfFintype Output := by
-  classical
+  let : DecidableEq Output := Classical.decEq Output
   refine ⟨fun h => ?_, fun h => G.secure_zero_of_outputDist_eq h _⟩
   ext output
   apply (ENNReal.toReal_eq_toReal_iff' (PMF.apply_ne_top _ _) (PMF.apply_ne_top _ _)).mp
@@ -103,7 +103,7 @@ of outputs in the range. -/
 theorem idealExperiment_rangeAdversary (G : Generator Seed Output) :
     (idealExperiment G.rangeAdversary true).toReal =
       Nat.card (Set.range G) / (Fintype.card Output : ℝ) := by
-  classical
+  let : DecidablePred (· ∈ Set.range G) := fun _ => Classical.propDecidable _
   simp only [idealExperiment, rangeAdversary, PMF.bind_apply, PMF.pure_apply,
     PMF.uniformOfFintype_apply, tsum_fintype]
   simp only [mul_ite, mul_one, mul_zero, eq_comm (a := true), decide_eq_true_eq]
@@ -126,10 +126,9 @@ theorem advantage_rangeAdversary (G : Generator Seed Output) :
 theorem one_sub_card_div_le_advantage_rangeAdversary (G : Generator Seed Output) :
     1 - Fintype.card Seed / (Fintype.card Output : ℝ) ≤
       G.advantage G.rangeAdversary := by
-  classical
   rw [advantage_rangeAdversary]
   have hcard : Nat.card (Set.range G) ≤ Fintype.card Seed := by
-    simpa using Fintype.card_range_le G
+    simpa using Finite.card_range_le G
   gcongr
 
 /-- Security is impossible below the range-test bound whenever that test is admissible. -/
