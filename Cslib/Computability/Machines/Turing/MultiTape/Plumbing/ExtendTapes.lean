@@ -6,7 +6,6 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Mathlib.Algebra.BigOperators.Fin
 public import Mathlib.Data.Fintype.Inv
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 
@@ -64,10 +63,9 @@ public lemma partialInv_isPartialInv (e : Fin k ↪ Fin k') :
 /-- `tm` run on the tapes selected by the embedding `e`, leaving other tapes untouched: work tape
 `e j` plays the role of `tm`'s tape `j`, and any tape outside `range e` is never written and never
 moves. -/
-@[expose] public def extendTapes (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k') :
-    MultiTapeTM k' Symbol State where
-  q₀ := tm.q₀
-  tr q inp work :=
+@[expose] public noncomputable def extendTapes (tm : MultiTapeTM k Symbol State)
+    (e : Fin k ↪ Fin k') : MultiTapeTM k' Symbol State :=
+  ofTr tm.q₀ fun q inp work =>
     let a := tm.tr q inp fun j => work (e j)
     { inputTape := a.inputTape
       workTapes := fun l => match partialInv e l with
@@ -142,8 +140,8 @@ public lemma step_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
   cases hq : cfg.state with
   | none => simp [embed, hq]
   | some q =>
-    rw [step_apply_of_state (cfg := embed e cfg extraTapes extraPos) hq, step_apply_of_state hq]
-    simp only [extendTapes, embed_inputSymbol, embed_workTapeSymbols_embed]
+    rw [step_of_state (cfg := embed e cfg extraTapes extraPos) hq, step_of_state hq]
+    simp only [extendTapes, tr_ofTr, embed_inputSymbol, embed_workTapeSymbols_embed]
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> simp only [Action.apply, embed] <;>
       cases partialInv e l <;> simp
 
