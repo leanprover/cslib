@@ -39,7 +39,7 @@ noncomputable def slice (L : Language α) (n : ℕ) : (Fin n → α) → Bool :=
 def ofSlices (f : ∀ n, (Fin n → α) → Bool) : Language α :=
   {w | f w.length (fun i => w[i]) = true}
 
-@[simp] theorem mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {w : List α} :
+theorem mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {w : List α} :
     w ∈ ofSlices f ↔ f w.length (w[·]) := Iff.rfl
 
 @[simp] theorem ofFn_mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {n : ℕ} {x : Fin n → α} :
