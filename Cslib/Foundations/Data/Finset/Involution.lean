@@ -37,12 +37,8 @@ theorem card_filter_not_le_card_filter_of_involution
     (hp : ∀ x ∈ s, p x ∨ p (σ x)) :
     #(s.filter fun x => ¬ p x) ≤ #(s.filter p) := by
   refine card_le_card_of_injOn σ ?_ ?_
-  · intro x hx
-    simp only [coe_filter, Set.mem_ofPred_eq] at hx ⊢
-    exact ⟨hσs x hx.1, (hp x hx.1).resolve_left hx.2⟩
-  · intro x hx y hy hxy
-    simp only [coe_filter, Set.mem_ofPred_eq] at hx hy
-    rw [← hσ x hx.1, hxy, hσ y hy.1]
+  · grind [Set.MapsTo]
+  · grind [Set.InjOn]
 
 /-- If `σ` is an involution on `s` and every orbit `{x, σ x}` meets `p`, then
 at least half of `s` satisfies `p`. -/
