@@ -32,8 +32,8 @@ noncomputable def slice (L : Language α) (n : ℕ) : (Fin n → α) → Bool :=
   open scoped Classical in fun x => decide (List.ofFn x ∈ L)
 
 @[simp] theorem slice_eq_true_iff {L : Language α} {n : ℕ} {x : Fin n → α} :
-    L.slice n x = true ↔ List.ofFn x ∈ L := by
-  simp [slice]
+    L.slice n x = true ↔ List.ofFn x ∈ L :=
+  @decide_eq_true_iff _ (Classical.propDecidable _)
 
 /-- The language whose slice at each length `n` is `f n`. -/
 def ofSlices (f : ∀ n, (Fin n → α) → Bool) : Language α :=
