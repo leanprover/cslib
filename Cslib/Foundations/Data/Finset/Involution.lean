@@ -50,8 +50,6 @@ theorem card_div_two_le_card_filter_of_involution
     (hσ : ∀ x ∈ s, σ (σ x) = x) (hσs : ∀ x ∈ s, σ x ∈ s)
     (hp : ∀ x ∈ s, p x ∨ p (σ x)) :
     #s / 2 ≤ #(s.filter p) := by
-  have h₁ := card_filter_not_le_card_filter_of_involution hσ hσs hp
-  have h₂ := card_filter_add_card_filter_not (s := s) p
-  omega
+  lia [card_filter_not_le_card_filter_of_involution hσ hσs hp, card_filter_add_card_filter_not]
 
 end Finset
