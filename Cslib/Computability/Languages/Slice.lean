@@ -39,12 +39,17 @@ noncomputable def slice (L : Language α) (n : ℕ) : (Fin n → α) → Bool :=
 def ofSlices (f : ∀ n, (Fin n → α) → Bool) : Language α :=
   {w | f w.length (fun i => w[i]) = true}
 
+@[simp] theorem mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {w : List α} :
+    w ∈ ofSlices f ↔ f w.length (w[·]) := Iff.rfl
+
+@[simp] theorem ofFn_mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {n : ℕ} {x : Fin n → α} :
+    .ofFn x ∈ ofSlices f ↔ f n x := by
+  congrm f $List.length_ofFn $((Fin.heq_fun_iff List.length_ofFn).mpr ?_)
+  simp
+
 @[simp] theorem slice_ofSlices (f : ∀ n, (Fin n → α) → Bool) (n : ℕ) :
     (ofSlices f).slice n = f n := by
-  funext x
-  have h : (⟨_, fun i => (List.ofFn x)[i]⟩ : Σ m, Fin m → α) = ⟨n, x⟩ :=
-    List.ofFn_inj'.mp List.ofFn_getElem
-  rw [Bool.eq_iff_iff, slice_eq_true_iff]
-  exact (congrArg (fun p : Σ m, Fin m → α => f p.1 p.2 = true) h).to_iff
+  ext x
+  rw [Bool.eq_iff_iff, slice_eq_true_iff, ofFn_mem_ofSlices]
 
 end Language
