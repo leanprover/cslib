@@ -91,16 +91,16 @@ section Nop
 
 /-- The machine that does nothing: it halts on its first step, leaving the configuration
 unchanged. -/
-def nop (k : ℕ) (Symbol : Type*) : MultiTapeTM k Symbol Unit where
-  q₀ := ()
-  tr _ _ _ := { inputTape := 0, workTapes := fun _ => (none, 0), output := none, state := none }
+def nop (k : ℕ) (Symbol : Type*) : MultiTapeTM k Symbol Unit :=
+  ofTr () fun _ _ _ =>
+    { inputTape := 0, workTapes := fun _ => (none, 0), output := none, state := none }
 
 /-- A single step of `nop` halts and leaves the words alone. -/
 @[simp]
 lemma step_nop (ws : Fin k → List Symbol) (out : List Symbol) :
     (nop k Symbol).step (wordsCfg input (some ()) ws out) = wordsCfg input none ws out := by
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_ <;>
-    simp [step, nop, Action.apply, wordsCfg, SignType.cast]
+  rw [step_of_state (by rfl)]
+  simp [nop, Action.apply, wordsCfg, SignType.cast]
 
 /-- `nop` reaches its halting configuration after exactly one step. -/
 @[simp]
