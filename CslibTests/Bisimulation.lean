@@ -74,6 +74,16 @@ example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by
   symm
   exact h
 
+open scoped Bisimilarity in
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by grind
+
+-- Existing named arguments remain available after generalizing the state types.
+example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ :=
+  SimulationEquiv.symm (State := State₁) (s2 := s₂) h
+
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ :=
+  Bisimilarity.symm (State := State₁) h
+
 end Heterogeneous
 
 -- A relation can be a bisimulation up to bisimilarity without itself being a bisimulation.

@@ -14,11 +14,11 @@ public import Mathlib.Tactic.TFAE
 
 A bisimulation is a binary relation on the states of two `LTS`s, which establishes a tight semantic
 correspondence. More specifically, if two states `s₁` and `s₂` are related by a bisimulation, then
-`s₁` can mimic all transitions of `s₂` and vice versa. Furthermore, the derivatives reaches through
+`s₁` can mimic all transitions of `s₂` and vice versa. Furthermore, the derivatives reached through
 these transitions remain related by the bisimulation.
 
-Bisimilarity is the largest bisimulation: given an `LTS`, it relates any two states that are related
-by a bisimulation for that LTS.
+Bisimilarity is the largest bisimulation between two LTSs: it relates any two states that are
+related by some bisimulation between those LTSs.
 
 Weak bisimulation (resp. bisimilarity) is the relaxed version of bisimulation (resp. bisimilarity)
 whereby internal actions performed by processes can be ignored.
@@ -27,42 +27,43 @@ For an introduction to theory of bisimulation, we refer to [Sangiorgi2011].
 
 ## Main definitions
 
-- `lts.IsBisimulation r`: the relation `r` is a bisimulation for the LTS `lts`.
-- `Bisimilarity lts` is the binary relation on the states of `lts` that relates any two states
-related by some bisimulation on `lts`.
-- `lts.IsBisimulationUpTo r`: the relation `r` is a bisimulation up to bisimilarity (this is known
-as one of the 'up to' techniques for bisimulation).
+- `IsBisimulation lts₁ lts₂ r`: the relation `r` is a bisimulation between `lts₁` and `lts₂`.
+- `Bisimilarity lts₁ lts₂`: states related by some bisimulation between `lts₁` and `lts₂`.
+- `UpToHomBisimilarity lts₁ lts₂ r`: the closure of `r` under bisimilarity in each LTS.
+- `IsBisimulationUpTo lts₁ lts₂ r`: transitions from states related by `r` can be matched with
+  derivatives in `UpToHomBisimilarity lts₁ lts₂ r`.
+- `IsWeakBisimulation lts₁ lts₂ r`: the relation `r` is a weak bisimulation.
+- `WeakBisimilarity lts₁ lts₂`: states related by some weak bisimulation.
+- `IsSWBisimulation lts₁ lts₂ r`: a characterization of weak bisimulation using single-transition
+  challenges, which we prove to be sound and complete.
 
-- `lts.IsWeakBisimulation r`: the relation `r` on the states of the LTS `lts` is a weak
-bisimulation.
-- `WeakBisimilarity lts` is the binary relation on the states of `lts` that relates any two states
-related by some weak bisimulation on `lts`.
-- `lts.IsSWBisimulation` is a more convenient definition for establishing weak bisimulations, which
-we prove to be sound and complete.
+The `Hom` variants specialize these definitions to comparing states in the same LTS.
 
 ## Notations
 
-- `s₁ ~[lts] s₂`: the states `s₁` and `s₂` are bisimilar in the LTS `lts`.
-- `s₁ ≈[lts] s₂`: the states `s₁` and `s₂` are weakly bisimilar in the LTS `lts`.
+- `s₁ ~[lts₁,lts₂] s₂`: the states `s₁` and `s₂` are bisimilar under `lts₁` and `lts₂`.
+- `s₁ ≈[lts₁,lts₂] s₂`: the states `s₁` and `s₂` are weakly bisimilar under `lts₁` and `lts₂`.
+- `s₁ ~[lts] s₂` and `s₁ ≈[lts] s₂`: the corresponding homogeneous relations.
 
 ## Main statements
 
 - `LTS.IsBisimulation.inv`: the inverse of a bisimulation is a bisimulation.
-- `Bisimilarity.eqv`: bisimilarity is an equivalence relation (see `Equivalence`).
+- `HomBisimilarity.eqv`: homogeneous bisimilarity is an equivalence relation (see `Equivalence`).
 - `Bisimilarity.isBisimulation`: bisimilarity is itself a bisimulation.
 - `IsBisimulation.le_bisimilarity`: bisimilarity is the largest bisimulation.
 - `Bisimilarity.gfp`: the union of bisimilarity and any bisimulation is equal to bisimilarity.
-- `LTS.IsBisimulationUpTo.isBisimulation`: the closure of a bisimulation up to bisimilarity
-  is a bisimulation.
+- `LTS.IsBisimulationUpTo.isBisimulation`: if `r` is a bisimulation up to bisimilarity,
+  `UpToHomBisimilarity lts₁ lts₂ r` is a bisimulation.
 - `LTS.IsBisimulationUpTo.le_bisimilarity`: a bisimulation up to bisimilarity relates only
   bisimilar states.
 - `LTS.IsBisimulation.traceEq`: any bisimulation that relates two states implies that they are
 trace equivalent (see `TraceEq`).
 - `Bisimilarity.deterministic_bisim_eq_traceEq`: in a deterministic LTS, bisimilarity and trace
 equivalence coincide.
-- `Bisimilarity.symm_simulation`: bisimilarity can be characterized through symmetric simulations.
+- `HomBisimilarity.symm_simulation`: homogeneous bisimilarity can be characterized through
+  symmetric simulations.
 - `WeakBisimilarity.weakBisim_eq_swBisim`: weak bisimulation and sw-bisimulation coincide.
-- `WeakBisimilarity.eqv`: weak bisimilarity is an equivalence relation.
+- `HomWeakBisimilarity.eqv`: homogeneous weak bisimilarity is an equivalence relation.
 
 -/
 
@@ -194,7 +195,9 @@ theorem IsBisimulation.inv (h : IsBisimulation lts₁ lts₂ r) :
 
 /-- Bisimilarity is symmetric. -/
 @[scoped grind →, symm]
-theorem Bisimilarity.symm (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by
+theorem Bisimilarity.symm {State State₂ : Type*}
+    {lts₁ : LTS State Label} {lts₂ : LTS State₂ Label} {s₁ : State} {s₂ : State₂}
+    (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by
   obtain ⟨r, hr, hb⟩ := h
   exact ⟨flip r, hr, hb.inv⟩
 
@@ -304,14 +307,15 @@ end Order
 
 /-! ## Bisimulation up-to -/
 
-/-- Lifts a relation `r` to homogeneous bisimilarities on its types. -/
+/-- The closure of `r` under bisimilarity in each LTS: `s₁` and `s₂` are related if there are
+`t₁` and `t₂` with `s₁ ~[lts₁] t₁`, `r t₁ t₂`, and `t₂ ~[lts₂] s₂`. -/
 def UpToHomBisimilarity (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
     (r : State₁ → State₂ → Prop) : State₁ → State₂ → Prop :=
   Relation.Comp (HomBisimilarity lts₁) (Relation.Comp r (HomBisimilarity lts₂))
 
 /-- A relation `r` is a bisimulation up to homogeneous bisimilarity if, whenever it relates two
-states in an lts, the transitions originating from these states mimic each other and the reached
-derivatives are themselves related by `r` up to bisimilarity. -/
+states, their transitions can be matched with derivatives related by
+`UpToHomBisimilarity lts₁ lts₂ r`. -/
 def IsBisimulationUpTo (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
     (r : State₁ → State₂ → Prop) : Prop :=
   ∀ ⦃s₁ s₂⦄, r s₁ s₂ → ∀ μ, (
@@ -322,7 +326,8 @@ def IsBisimulationUpTo (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Labe
       (UpToHomBisimilarity lts₁ lts₂ r) s₁' s₂')
   )
 
-/-- The closure of a bisimulation up to bisimilarity is a bisimulation. -/
+/-- If `r` is a bisimulation up to bisimilarity, its closure
+`UpToHomBisimilarity lts₁ lts₂ r` is a bisimulation. -/
 @[scoped grind →]
 theorem IsBisimulationUpTo.isBisimulation (h : IsBisimulationUpTo lts₁ lts₂ r) :
     IsBisimulation lts₁ lts₂ (UpToHomBisimilarity lts₁ lts₂ r) := by
@@ -349,7 +354,6 @@ theorem IsBisimulationUpTo.isBisimulation (h : IsBisimulationUpTo lts₁ lts₂ 
     exact hsmidrb.trans hs₂b'r
 
 /-- A bisimulation up to bisimilarity relates only bisimilar states. -/
-@[scoped grind →]
 theorem IsBisimulationUpTo.le_bisimilarity (h : IsBisimulationUpTo lts₁ lts₂ r) :
     r ≤ Bisimilarity lts₁ lts₂ := by
   intro s₁ s₂ hr
@@ -585,6 +589,8 @@ theorem WeakBisimilarity.weakBisim_eq_swBisim [HasTau Label]
       fun s₁ s₂ => ∃ r : State₁ → State₂ → Prop, r s₁ s₂ ∧ IsSWBisimulation lts₁ lts₂ r := by
   grind [WeakBisimilarity, isWeakBisimulation_iff_isSWBisimulation.1,
     isWeakBisimulation_iff_isSWBisimulation.2]
+
+/- The weak laws below reuse the strong laws on the saturated LTSs. -/
 
 /-- Homogeneous weak bisimilarity is reflexive. -/
 theorem HomWeakBisimilarity.refl [HasTau Label] {lts : LTS State Label} (s : State) :
