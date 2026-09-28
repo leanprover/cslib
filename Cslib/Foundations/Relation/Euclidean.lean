@@ -170,31 +170,14 @@ theorem rightTotal_leftUnique_trans (h₁ : RightTotal r) (h₂ : LeftUnique r) 
     have : a = d := h₂ ac (_root_.trans da ac)
     grind
 
-private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
-    ¬ ∃ (a b c : α), a ≠ b ∧ a ≠ c ∧ b ≠ c := by
-  rintro ⟨a, b, c, _⟩
-  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a b
-  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a c
-  have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ b c
-  have := antisymm_leftUnique (r := r)
-  have := @reflOn_dom (r := r)
-  simp [Set.ReflOn] at this
-  grind [Relator.LeftUnique]
-
 theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α := by
-  classical
-  by_contra! h
-  apply three_contra (r := r)
-  have ⟨_, hcard⟩ := Infinite.exists_subset_card_eq α 3
-  have ⟨a, b, c, _, _, _, _⟩ := Finset.card_eq_three.mp hcard
-  use a, b, c
+  have : RightEuclidean (Function.swap r) := rightEuclidean_swap
+  exact RightEuclidean.trichotomous_antisymm_finite (r := Function.swap r)
 
 theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintype α] :
     Fintype.card α ≤ 2 := by
-  by_contra! h
-  apply three_contra (r := r)
-  have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
-  use a, b, c
+  have : RightEuclidean (Function.swap r) := rightEuclidean_swap
+  exact RightEuclidean.trichotomous_antisymm_card (r := Function.swap r)
 
 theorem dom_subset_cod : dom r ⊆ cod r := fun _ ⟨_, ab⟩ ↦ of_dom (reflOn_dom.of_dom ab)
 
