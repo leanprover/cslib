@@ -14,7 +14,7 @@ public import Mathlib.Data.Nat.Nth
 # Segments defined by a strictly monotonic function on Nat
 
 Given a strictly monotonic function `f : ℕ → ℕ` and `k : ℕ` with `k ≥ f 0`,
-`Nat.segment f k` is the unique `m : ℕ` such that `f m ≤ k < f (k + 1)`.
+`Nat.segment f k` is the unique `m : ℕ` such that `f m ≤ k < f (m + 1)`.
 `Nat.segment f k` is defined to be 0 for `k < f 0`.
 This file defines `Nat.segment` and proves various properties about it.
 -/
@@ -47,26 +47,16 @@ theorem infinite_strictMono {ns : Set ℕ} (h : ns.Infinite) :
 assuming `p` (as a set) is infinite. -/
 theorem nth_succ_gap {p : ℕ → Prop} (hf : (ofPred p).Infinite) (n : ℕ) :
     ∀ k < nth p (n + 1) - nth p n, 0 < k → ¬ p (k + nth p n) := by
-  classical
-  intro k h_k1 h_k0 h_p_k
-  let m := count p (k + nth p n)
-  have h_k_ex : nth p m = k + nth p n := by simp [m, nth_count h_p_k]
-  have h_n_m : n < m := by apply (nth_lt_nth hf).mp; omega
-  have h_m_n : m < n + 1 := by apply (nth_lt_nth hf).mp; omega
+  intro k hk hk0 hp
+  have := (nth_add_one_le_iff hf (n := n) hp).2 (by omega)
   omega
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `f n` is exactly the n-th
 element of the range of `f`. -/
 theorem nth_of_strictMono (hm : StrictMono f) (n : ℕ) :
     f n = nth (· ∈ range f) n := by
-  rw [← nth_comp_of_strictMono hm]
-  · simp
-  · simp
-  · #adaptation_note
-    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-    intros
-    have : (range f).Infinite := strictMono_infinite hm
-    contradiction
+  simpa using nth_comp_of_strictMono (p := (· ∈ range f)) (n := n) hm
+    (fun _ h => h) (fun hf => (strictMono_infinite hm hf).elim)
 
 open scoped Classical in
 /-- If `f 0 = 0`, then `0` is below any `n` not in the range of `f`. -/
@@ -79,13 +69,10 @@ theorem count_notMem_range_pos (h0 : f 0 = 0) (n : ℕ) (hn : n ∉ range f) :
 `f m` and ` f (m + 1)` is in the range of `f`. -/
 theorem strictMono_range_gap (hm : StrictMono f) {m k : ℕ}
     (hl : f m < k) (hu : k < f (m + 1)) : k ∉ range f := by
-  rw [nth_of_strictMono hm m] at hl
-  rw [nth_of_strictMono hm (m + 1)] at hu
-  have h_inf := strictMono_infinite hm
-  have h_gap := nth_succ_gap (p := (· ∈ range f)) h_inf m
-    (k - nth (· ∈ range f) m) (by omega) (by omega)
-  rw [(show k - nth (· ∈ range f) m + nth (· ∈ range f) m = k by omega)] at h_gap
-  exact h_gap
+  rintro ⟨i, rfl⟩
+  have := hm.lt_iff_lt.mp hl
+  have := hm.lt_iff_lt.mp hu
+  omega
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, the segment of `f k` is `k`. -/
 @[simp]
@@ -137,58 +124,36 @@ theorem segment_upper_bound (hm : StrictMono f) (h0 : f 0 = 0) (k : ℕ) :
 theorem segment_lower_bound (hm : StrictMono f) (h0 : f 0 = 0) (k : ℕ) :
     f (segment f k) ≤ k := by
   classical
-  rw [nth_of_strictMono hm (segment f k), segment]
-  rcases Classical.em (k ∈ range f) with h_k | h_k
-  · simp_all [count_succ_eq_succ_count]
-  · have h1 : 0 < count (· ∈ range f) k := count_notMem_range_pos h0 k h_k
-    have h2 : count (· ∈ range f) (k + 1) = count (· ∈ range f) k :=
-      count_succ_eq_count h_k
-    rw [h2]
-    suffices _ : nth (· ∈ range f) (count (· ∈ range f) k - 1) < k by omega
-    apply nth_lt_of_lt_count
-    omega
+  have h := nth_lt_of_lt_count (p := (· ∈ range f))
+    (show segment f k < count (· ∈ range f) (k + 1) by rw [← segment_plus_one h0]; omega)
+  rwa [← nth_of_strictMono hm, Nat.lt_succ_iff] at h
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, all `k` satisfying `f m ≤ k < f (m + 1)`
 has `segment f k = m`. -/
 theorem segment_range_val (hm : StrictMono f) {m k : ℕ}
     (hl : f m ≤ k) (hu : k < f (m + 1)) : segment f k = m := by
   classical
-  obtain (rfl | hu') := show f m = k ∨ f m < k by omega
-  · exact segment_idem hm m
-  · obtain ⟨j, h_j, rfl⟩ : ∃ j < f (m + 1) - f m - 1, k = j + f m + 1 := ⟨k - f m - 1, by omega⟩
-    induction j
-    case zero =>
-      #adaptation_note
-      /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-      have := strictMono_range_gap hm (show f m < f m + 1 by grind)
-      have : count (· ∈ range f) (f m + 1 + 1) = count (· ∈ range f) (f m + 1) := by grind
-      have := nth_of_strictMono hm m
-      have := count_succ (· ∈ range f)
-      simp_all only [segment, mem_range]
-      split
-      · grind [count_nth_of_infinite (strictMono_infinite hm) m]
-      · grind
-    case succ j _ =>
-      have := strictMono_range_gap hm (show f m < j + 1 + f m     by grind)
-      have := strictMono_range_gap hm (show f m < j + 1 + f m + 1 by grind)
-      grind
+  -- Exactly `m + 1` values in the range of `f` are at most `k`.
+  have h_inf := strictMono_infinite hm
+  have h_lower : m < count (· ∈ range f) (k + 1) :=
+    (lt_nth_iff_count_lt (p := (· ∈ range f)) h_inf).2
+      (by rwa [← nth_of_strictMono hm, Nat.lt_succ_iff])
+  have h_upper : count (· ∈ range f) (k + 1) ≤ m + 1 :=
+    (count_le_iff_le_nth (p := (· ∈ range f)) h_inf).2
+      (by rwa [← nth_of_strictMono hm, Nat.succ_le_iff])
+  unfold segment
+  omega
 
 /-- For a strictly monotonic function `f : ℕ → ℕ` with `f 0 = 0`,
 `f` and `segment f` form a Galois connection. -/
 theorem segment_galois_connection (hm : StrictMono f) (h0 : f 0 = 0) :
     GaloisConnection f (segment f) := by
-  intro m k; constructor
+  intro m k
+  constructor
   · intro h
-    by_contra! h_con
-    have h1 : segment f k + 1 ≤ m := by omega
-    have := (StrictMono.le_iff_le hm).mpr h1
-    have := segment_upper_bound hm h0 k
-    omega
+    exact Nat.le_of_lt_succ (hm.lt_iff_lt.mp (h.trans_lt (segment_upper_bound hm h0 k)))
   · intro h
-    by_contra! h_con
-    have := (StrictMono.le_iff_le hm).mpr h
-    have := segment_lower_bound hm h0 k
-    omega
+    exact (hm.monotone h).trans (segment_lower_bound hm h0 k)
 
 /-- `segment'` is a helper function that will be proved to be equal to `segment`.
 It facilitates the proofs of some theorems below. -/
@@ -201,36 +166,22 @@ private lemma base_zero_shift (f : ℕ → ℕ) :
 
 theorem base_zero_strictMono (hm : StrictMono f) :
     StrictMono (f · - f 0) := by
-  intro m n h_m_n; simp
-  have := hm h_m_n
-  have : f 0 ≤ f m := by simp [StrictMono.le_iff_le hm]
-  have : f 0 ≤ f n := by simp [StrictMono.le_iff_le hm]
-  omega
+  intro m n h
+  exact Nat.sub_lt_sub_right (hm.monotone (Nat.zero_le m)) (hm h)
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`,
 `segment' f` and `segment f` are actually equal. -/
 theorem segment'_eq_segment (hm : StrictMono f) :
     segment' f = segment f := by
-  classical
-  ext k; unfold segment'
-  obtain (h_k | h_k) : k < f 0 ∨ f 0 ≤ k := k.lt_or_ge (f 0)
-  · grind
-  unfold segment; congr 1
-  simp only [count_eq_card_filter_range]
-  suffices h : ∃ g, BijOn g
-      ({x ∈ Finset.range (k - f 0 + 1) | x ∈ range fun x => f x - f 0})
-      ({x ∈ Finset.range (k + 1) | x ∈ range f}) by
-    grind [BijOn.finsetCard_eq, Finset.coe_filter]
-  refine ⟨fun n ↦ n + f 0, ?_, ?_, ?_⟩
-  · intro n; simp only [mem_range, Finset.mem_range]
-    rintro ⟨h_n, i, rfl⟩
-    have := StrictMono.monotone hm <| zero_le i
-    refine ⟨?_, i, ?_⟩ <;> omega
-  · grind [injOn_of_injective, Injective]
-  · intro n; simp only [mem_range, Finset.mem_range, mem_ofPred_eq, mem_image]
-    rintro ⟨h_n, i, rfl⟩
-    have := StrictMono.monotone hm <| zero_le i
-    grind
+  ext k
+  unfold segment'
+  by_cases hk : k < f 0
+  · rw [segment_pre_zero hm hk, Nat.sub_eq_zero_of_le (by omega)]
+    exact segment_zero (base_zero_strictMono hm) (by simp)
+  · have h_lower := segment_lower_bound (base_zero_strictMono hm) (by simp) (k - f 0)
+    have h_upper := segment_upper_bound (base_zero_strictMono hm) (by simp) (k - f 0)
+    symm
+    apply segment_range_val hm <;> omega
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `segment f k = 0` for all `k ≤ f 0`. -/
 theorem segment_zero' (hm : StrictMono f) {k : ℕ} (h : k ≤ f 0) :
