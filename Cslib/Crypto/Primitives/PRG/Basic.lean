@@ -26,12 +26,6 @@ open scoped NNReal
 
 variable {Seed Output : Type*}
 
-/-- An unbounded adversary tests whether its input is in the generator's range.
-It is not assumed to be admissible for a computationally restricted class. -/
-noncomputable def rangeAdversary (G : Generator Seed Output) : Adversary Output :=
-  letI : DecidablePred (· ∈ Set.range G) := fun _ => Classical.propDecidable _
-  fun output => PMF.pure (decide (output ∈ Set.range G))
-
 variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
 
 /-- Advantage is nonnegative. -/
@@ -71,7 +65,7 @@ theorem secure_zero_of_outputDist_eq (G : Generator Seed Output)
 /-- Zero-error security against arbitrary tests is equivalent to exactly uniform output. -/
 theorem secure_zero_iff_outputDist_eq_uniform (G : Generator Seed Output) :
     G.Secure (fun _ => True) 0 ↔ G.outputDist = PMF.uniformOfFintype Output := by
-  let : DecidableEq Output := Classical.decEq Output
+  classical
   refine ⟨fun h => ?_, fun h => G.secure_zero_of_outputDist_eq h _⟩
   ext output
   apply (ENNReal.toReal_eq_toReal_iff' (PMF.apply_ne_top _ _) (PMF.apply_ne_top _ _)).mp
@@ -89,22 +83,35 @@ theorem Secure.of_admissible {G : Generator Seed Output}
     (h : G.Secure Admissible ε) (hsub : ∀ adversary, Restricted adversary → Admissible adversary) :
     G.Secure Restricted ε := fun adversary ha => h adversary (hsub adversary ha)
 
+section RangeTests
+
+variable [DecidableEq Output]
+
+omit [Nonempty Seed] [Fintype Output] [Nonempty Output] in
+/-- Decide range membership by finite seed enumeration and output comparison. -/
+def rangeTest (G : Generator Seed Output) (output : Output) : Bool :=
+  decide (∃ seed, G seed = output)
+
+omit [Nonempty Seed] [Fintype Output] [Nonempty Output] in
+/-- The deterministic adversary that tests membership in the generator's range. -/
+noncomputable def rangeAdversary (G : Generator Seed Output) : Adversary Output :=
+  fun output => PMF.pure (G.rangeTest output)
+
 omit [Fintype Output] [Nonempty Output] in
 /-- The range test always accepts a generated output. -/
 @[simp]
 theorem realExperiment_rangeAdversary (G : Generator Seed Output) :
     G.realExperiment G.rangeAdversary = PMF.pure true := by
-  simp [realExperiment, outputDist, PMF.bind_map, rangeAdversary, Function.comp_def,
+  simp [realExperiment, outputDist, PMF.bind_map, rangeAdversary, rangeTest, Function.comp_def,
     PMF.bind_const]
 
-omit [Fintype Seed] [Nonempty Seed] in
+omit [Nonempty Seed] in
 /-- The range test's acceptance probability under uniform sampling is the fraction
 of outputs in the range. -/
 theorem idealExperiment_rangeAdversary (G : Generator Seed Output) :
     (idealExperiment G.rangeAdversary true).toReal =
       Nat.card (Set.range G) / (Fintype.card Output : ℝ) := by
-  let : DecidablePred (· ∈ Set.range G) := fun _ => Classical.propDecidable _
-  simp only [idealExperiment, rangeAdversary, PMF.bind_apply, PMF.pure_apply,
+  simp only [idealExperiment, rangeAdversary, rangeTest, PMF.bind_apply, PMF.pure_apply,
     PMF.uniformOfFintype_apply, tsum_fintype]
   simp only [mul_ite, mul_one, mul_zero, eq_comm (a := true), decide_eq_true_eq]
   rw [← Finset.sum_filter]
@@ -140,9 +147,12 @@ theorem not_secure_of_rangeAdversary (G : Generator Seed Output)
   intro h
   exact (hε.trans_le G.one_sub_card_div_le_advantage_rangeAdversary).not_ge (h _ ha)
 
+end RangeTests
+
 /-- An expanding generator cannot be perfectly secure against arbitrary adversaries. -/
 theorem not_secure_zero_of_isExpanding (G : Generator Seed Output) (hG : G.IsExpanding) :
     ¬ G.Secure (fun _ => True) 0 := by
+  classical
   apply G.not_secure_of_rangeAdversary trivial
   have hpos : (0 : ℝ) < Fintype.card Output := by exact_mod_cast Fintype.card_pos
   have hlt : (Fintype.card Seed : ℝ) < Fintype.card Output := by exact_mod_cast hG
