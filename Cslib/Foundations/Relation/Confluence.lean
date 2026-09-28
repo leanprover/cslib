@@ -291,8 +291,7 @@ theorem StronglyConfluent.to_confluent (h : StronglyConfluent r) : Confluent r :
 
 lemma Commute.join_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ⊔ r₂) r₃ := by
   apply SemiCommute.to_commute
-  intro a b c hab hac
-  rcases hab with hab | hab
+  rintro a b c (hab | hab) hac
   · exact Join₂.mono le_rfl (ReflTransGen.mono le_sup_left) _ _ (c₁ (.single hab) hac)
   · exact Join₂.mono le_rfl (ReflTransGen.mono le_sup_right) _ _ (c₂ (.single hab) hac)
 
