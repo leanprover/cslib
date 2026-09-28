@@ -22,9 +22,10 @@ with `W`. See also the `Finset`-based definitions in
 ## Main definitions
 
 - `SetShatters C W`: the concept class `C` shatters the set `W`.
-- `vcDim C`: the VC dimension of `C`, i.e. the supremum of the cardinalities of
-  finite sets shattered by `C`.
-- `evcDim C`: the extended-natural VC dimension, with `⊤` for infinite dimension.
+- `evcDim C`: the supremum of the cardinalities of finite sets shattered by `C`,
+  with `⊤` for infinite dimension.
+- `HasFiniteVCDim C`: the extended dimension is finite.
+- `vcDim C hC`: the same dimension as a natural number, given `hC : HasFiniteVCDim C`.
 
 ## Main statements
 
@@ -33,7 +34,8 @@ with `W`. See also the `Finset`-based definitions in
 - `Finset.Shatters.toSetShatters`: bridge from Mathlib's `Finset.Shatters`
   to `SetShatters`.
 - `evcDim_mono`: extended VC dimension is monotone in the concept class.
-- `evcDim_lt_top_iff`, `HasFiniteVCDim.coe_vcDim`: finiteness and the bridge to `vcDim`.
+- `hasFiniteVCDim_iff`: finite dimension is equivalent to a uniform bound on shattered sets.
+- `natCast_vcDim`: casting finite VC dimension recovers the extended value.
 
 ## References
 
@@ -100,32 +102,9 @@ theorem _root_.Finset.Shatters.toSetShatters {𝒜 : Finset (Finset α)} {s : Fi
   exact ⟨fun ⟨h1, h2⟩ => hut ▸ Finset.mem_inter.mpr ⟨h1, h2⟩,
     fun h => Finset.mem_inter.mp (hut.symm ▸ h)⟩
 
-/-- The *Vapnik-Chervonenkis dimension* of a binary concept class `C` is the
-supremum of the cardinalities of finite sets shattered by `C`. Returns `0` when
-no finite set is shattered (i.e. the defining set is empty).
-
-**Caveat**: because `sSup` on `ℕ` returns `0` for unbounded sets, this definition
-is only meaningful when the VC dimension is finite — see `HasFiniteVCDim`.
-Use `evcDim` to distinguish infinite dimension from dimension zero. -/
-noncomputable def vcDim (C : ConceptClass α Bool) : ℕ :=
-  sSup {n : ℕ | ∃ W : Finset α, W.card = n ∧ SetShatters C (↑W)}
-
-/-- A binary concept class `C` has *finite VC dimension* if there is a uniform
-upper bound on the cardinalities of finite sets it shatters. This is the
-hypothesis under which `vcDim C` is mathematically meaningful (otherwise
-`vcDim` returns `0` for unbounded shattered families via `sSup` on `ℕ`). -/
-def HasFiniteVCDim (C : ConceptClass α Bool) : Prop :=
-  BddAbove {n : ℕ | ∃ W : Finset α, W.card = n ∧ SetShatters C (↑W)}
-
-/-- A class has finite VC dimension iff there is a uniform bound on the
-cardinality of every shattered finite set. -/
-theorem hasFiniteVCDim_iff {C : ConceptClass α Bool} :
-    HasFiniteVCDim C ↔ ∃ N : ℕ, ∀ W : Finset α, SetShatters C ↑W → W.card ≤ N :=
-  ⟨fun ⟨N, hN⟩ => ⟨N, fun W hW => hN ⟨W, rfl, hW⟩⟩,
-   fun ⟨N, hN⟩ => ⟨N, fun _ ⟨W, hWc, hW⟩ => hWc ▸ hN W hW⟩⟩
-
-/-- The extended-natural VC dimension. Unbounded shattered cardinalities give `⊤`,
-while a class that shatters no nonempty finite set has dimension zero. -/
+/-- The *Vapnik-Chervonenkis dimension* of `C`: the supremum of the cardinalities
+of finite sets it shatters. Unbounded cardinalities give `⊤`, while a class that
+shatters no nonempty finite set has dimension zero. -/
 noncomputable def evcDim (C : ConceptClass α Bool) : ℕ∞ :=
   ⨆ W : Finset α, ⨆ _ : SetShatters C ↑W, (W.card : ℕ∞)
 
@@ -144,31 +123,36 @@ theorem evcDim_mono {C C' : ConceptClass α Bool} (hC : C ⊆ C') :
     evcDim C ≤ evcDim C' :=
   evcDim_le_iff.mpr fun _ hW => (hW.superset hC).card_le_evcDim
 
-/-- For finite VC dimension, the natural and extended-natural definitions agree. -/
-theorem HasFiniteVCDim.coe_vcDim {C : ConceptClass α Bool} (hC : HasFiniteVCDim C) :
-    (vcDim C : ℕ∞) = evcDim C := by
-  rw [vcDim, ENat.natCast_sSup hC]
-  refine le_antisymm (iSup₂_le ?_) (evcDim_le_iff.mpr ?_)
-  · rintro n ⟨W, rfl, hW⟩
-    exact hW.card_le_evcDim
-  · intro W hW
-    exact le_iSup₂_of_le W.card ⟨W, rfl, hW⟩ le_rfl
-
-/-- Finite VC dimension is equivalent to the extended dimension being below infinity. -/
-theorem evcDim_lt_top_iff {C : ConceptClass α Bool} :
-    evcDim C < ⊤ ↔ HasFiniteVCDim C := by
-  constructor
-  · intro h
-    obtain ⟨n, hn⟩ := ENat.ne_top_iff_exists.mp h.ne
-    refine hasFiniteVCDim_iff.mpr ⟨n, fun W hW => ?_⟩
-    exact_mod_cast hn ▸ hW.card_le_evcDim
-  · intro h
-    rw [← h.coe_vcDim]
-    exact ENat.natCast_lt_top _
+/-- A binary concept class has finite VC dimension when its extended dimension is finite. -/
+def HasFiniteVCDim (C : ConceptClass α Bool) : Prop :=
+  evcDim C ≠ ⊤
 
 /-- The extended VC dimension is infinite precisely when shattered cardinalities are unbounded. -/
 theorem evcDim_eq_top_iff {C : ConceptClass α Bool} :
     evcDim C = ⊤ ↔ ¬ HasFiniteVCDim C := by
-  rw [← evcDim_lt_top_iff, not_lt, top_le_iff]
+  simp [HasFiniteVCDim]
+
+/-- A class has finite VC dimension iff there is a uniform bound on the
+cardinality of every shattered finite set. -/
+theorem hasFiniteVCDim_iff {C : ConceptClass α Bool} :
+    HasFiniteVCDim C ↔ ∃ N : ℕ, ∀ W : Finset α, SetShatters C ↑W → W.card ≤ N := by
+  constructor
+  · intro hC
+    obtain ⟨n, hn⟩ := ENat.ne_top_iff_exists.mp hC
+    refine ⟨n, fun W hW => ?_⟩
+    exact_mod_cast hn ▸ hW.card_le_evcDim
+  · rintro ⟨N, hN⟩
+    apply ne_top_of_le_ne_top (ENat.natCast_ne_top N)
+    exact evcDim_le_iff.mpr fun W hW => by exact_mod_cast hN W hW
+
+/-- The VC dimension as a natural number, with the infinite case excluded by `hC`. -/
+noncomputable def vcDim (C : ConceptClass α Bool) (hC : HasFiniteVCDim C) : ℕ :=
+  (evcDim C).untop hC
+
+/-- Casting finite VC dimension recovers the extended value. -/
+@[simp]
+theorem natCast_vcDim {C : ConceptClass α Bool} (hC : HasFiniteVCDim C) :
+    (vcDim C hC : ℕ∞) = evcDim C :=
+  WithTop.coe_untop _ _
 
 end Cslib.MachineLearning.PACLearning
