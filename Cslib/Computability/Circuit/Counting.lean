@@ -48,7 +48,7 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
     Finset ((Fin n → U) → U) :=
   open scoped Classical in
   (Finset.range (s + 1)).biUnion fun g =>
-    Finset.univ.image fun p : Program σ n g × Wire n g => fun x => p.1.trace I x p.2
+    Finset.univ.image fun p : Program σ n g × Wire n g => p.1.wireFunction I p.2
 
 @[simp] theorem mem_computableFunctions {f : (Fin n → U) → U} :
     f ∈ computableFunctions I n s ↔
@@ -69,13 +69,13 @@ noncomputable def irredundantFunctions (I : Interpretation σ U) (n g : ℕ) :
     Finset ((Fin n → U) → U) :=
   open scoped Classical in
   (Finset.univ.filter fun p : Program σ n g × Wire n g => p.1.Irredundant I).image
-    fun p => fun x => p.1.trace I x p.2
+    fun p => p.1.wireFunction I p.2
 
 private theorem mem_irredundantFunctions_iff {f : (Fin n → U) → U} :
     f ∈ irredundantFunctions I n g ↔ ∃ p : Program σ n g × Wire n g,
       (∀ x, p.1.trace I x p.2 = f x) ∧ p.1.Irredundant I := by
   classical
-  simp [irredundantFunctions, funext_iff, and_comm]
+  simp [irredundantFunctions, Program.wireFunction, funext_iff, and_comm]
 
 @[simp] theorem mem_irredundantFunctions {f : (Fin n → U) → U} :
     f ∈ irredundantFunctions I n g ↔
