@@ -46,6 +46,153 @@ start state `i`, accept state `j`, and interior states below `k`
 
 @[expose] public section
 
+namespace List
+
+variable {α : Type*}
+
+def AllButFirstLast (p : α → Bool) (as : List α) : Prop :=
+  ∀ i, ∀ _ : 0 < i ∧ i + 1 < as.length, p as[i]
+
+def findIdxButFirst (p : α → Bool) (as : List α) : ℕ :=
+  as.tail.findIdx p + 1
+
+def revFindIdxButLast (p : α → Bool) (as : List α) : ℕ :=
+  as.length - as.reverse.findIdxButFirst p
+
+end List
+
+variable {Symbol : Type*} {n : ℕ}
+
+open List
+
+namespace Cslib.LTS
+
+def BddExec (lts : LTS (Fin n) Symbol) (start : Fin n) (xs : List Symbol) (last : Fin n)
+    (ss : List (Fin n)) (bound : ℕ) : Prop :=
+  lts.Execution start xs last ss ∧ ss.AllButFirstLast (· < bound)
+
+def BddLang (lts : LTS (Fin n) Symbol) (start last : Fin n) (bound : ℕ) : Language Symbol :=
+  { xs | ∃ ss, lts.BddExec start xs last ss bound }
+
+open Automata Acceptor
+
+theorem bddLang_eq_language_nfa (lts : LTS (Fin n) Symbol) (s t : Fin n) {r : ℕ} (hk : n ≤ r) :
+    BddLang lts s t r =
+    language (NA.FinAcc.mk {Tr := lts.Tr, start := {s}} {t}) := by
+  simp [BddLang, BddExec, language, Accepts]
+  sorry
+
+section splitFirst
+
+def splitFirstTake (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
+  xs.take (ss.findIdxButFirst (· = r))
+
+def splitFirstDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
+  xs.drop (ss.findIdxButFirst (· = r))
+
+theorem splitFirstTake_mem {lts : LTS (Fin n) Symbol} {s t r : Fin n} {xs : List Symbol}
+    {ss : List (Fin n)} (hex : lts.Execution s xs t ss)
+    (hbdd : ∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val + 1)
+    (hbdd' : ¬(∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val)) :
+    splitFirstTake xs ss r ∈ BddLang lts s r r := by sorry
+
+theorem splitFirstDrop_mem {lts : LTS (Fin n) Symbol} {s t r : Fin n} {xs : List Symbol}
+    {ss : List (Fin n)} (hex : lts.Execution s xs t ss)
+    (hbdd : ∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val + 1)
+    (hbdd' : ¬(∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val)) :
+    splitFirstDrop xs ss r ∈ BddLang lts s r (r + 1) := by sorry
+
+theorem bddLang_splitFirst (lts : LTS (Fin n) Symbol) (s t r : Fin n) :
+    lts.BddLang s t (r + 1) = lts.BddLang s r r * lts.BddLang r t (r + 1) := by sorry
+
+end splitFirst
+
+section splitLast
+
+def splitLastTake (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
+  xs.take (ss.revFindIdxButLast (· = r))
+
+def splitLastDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
+  xs.drop (ss.revFindIdxButLast (· = r))
+
+theorem splitLastTake_mem {lts : LTS (Fin n) Symbol} {t r : Fin n} {xs : List Symbol}
+    {ss : List (Fin n)} (hex : lts.Execution r xs t ss)
+    (hbdd : ∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val + 1) :
+    splitLastTake xs ss r ∈ BddLang lts r r (r + 1) := by sorry
+
+theorem splitLastDrop_mem {lts : LTS (Fin n) Symbol} {t r : Fin n} {xs : List Symbol}
+    {ss : List (Fin n)} (hex : lts.Execution r xs t ss)
+    (hbdd : ∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val + 1) :
+    splitLastDrop xs ss r ∈ BddLang lts r t r := by sorry
+
+theorem bddLang_splitLast (lts : LTS (Fin n) Symbol) (t r : Fin n) :
+    lts.BddLang r t (r + 1) = lts.BddLang r r (r + 1) * lts.BddLang r t r := by sorry
+
+end splitLast
+
+open Computability
+
+section kstar
+
+theorem bddLang_kstar (lts : LTS (Fin n) Symbol) (r : Fin n) :
+    BddLang lts r r (r + 1) = (BddLang lts r r (r + 1))∗ := by sorry
+
+end kstar
+
+end Cslib.LTS
+
+namespace Cslib.Language
+
+open RegularExpression
+
+section Regex
+
+theorem mem_sum_matches'_iff {α : Type*} (L : List (RegularExpression α)) (x : List α) :
+    x ∈ (L.sum).matches' ↔ ∃ P ∈ L, x ∈ P.matches' := by
+  induction L with
+  | nil => simp
+  | cons head tail ih =>
+  simp only [sum_cons, matches', Language.mem_add, ih, mem_cons, exists_eq_or_imp]
+
+variable [Fintype Symbol]
+
+/-- Regex i j k is the regex for the path from state i to state j passing through states < k.
+When k = 0, i = j, the regex is ε union all characters from state i to state i.
+When k = 0, i ≠ j, the regex is all characters from state i to state j.
+For k + 1, the regex is the union of Regex i j k and
+(Regex i k k) (Regex k k k)∗ (Regex k j k). -/
+noncomputable def Regex (lts : LTS (Fin n) Symbol) [∀ s t, DecidablePred fun x => lts.Tr s x t]
+    (s t : Fin n) : ℕ → RegularExpression Symbol
+  | 0 =>
+    let chars := (Finset.univ.filter
+      (fun x : Symbol ↦ lts.Tr s x t)).toList.map RegularExpression.char
+    if s = t then 1 + chars.sum else chars.sum
+  | r + 1 =>
+    if h : n ≤ r then Regex lts s t r
+    else
+      let rFin : Fin n := ⟨r, by omega⟩
+      Regex lts s t r + Regex lts s rFin r * (Regex lts rFin rFin r).star * Regex lts rFin t r
+
+theorem bddLang_eq_language_regex {r : ℕ} {lts : LTS (Fin n) Symbol}
+    [∀ s t, DecidablePred fun x => lts.Tr s x t] {s t : Fin n} :
+    lts.BddLang s t r = (Regex lts s t r).matches' := by
+  induction r generalizing s t with
+  | zero =>
+    sorry
+  | succ r ih =>
+    simp only [Regex]
+    split_ifs with hk
+    · rw [← ih, lts.bddLang_eq_language_nfa s t hk, lts.bddLang_eq_language_nfa s t (by omega)]
+    rw [lts.bddLang_splitFirst (r := ⟨r, by omega⟩), lts.bddLang_splitLast, lts.bddLang_kstar]
+    -- grind [matches'_add, matches'_mul, matches'_star]
+    sorry
+
+end Regex
+
+end Cslib.Language
+
+
+/- Old codes below.-/
 namespace Cslib.Language
 
 open scoped LTS
