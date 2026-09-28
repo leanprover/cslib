@@ -56,11 +56,14 @@ theorem Execution.cons_invert (h : lts.Execution s1 (μ :: μs) s2 (s1 :: ss)) :
 theorem Execution.of_mTr {lts : LTS State Label}
     {s1 : State} {μs : List Label} {s2 : State}
     (h : lts.MTr s1 μs s2) : ∃ ss : List State, lts.Execution s1 μs s2 ss := by
-  induction h with
-  | refl => exact ⟨_, Execution.refl _ _⟩
-  | stepL htr _ ih =>
+  induction h
+  case refl s =>
+    use [s]
+    exact Execution.refl _ _
+  case stepL s1 μ s2 μs s3 htr hmtr ih =>
     obtain ⟨ss, hexec⟩ := ih
-    exact ⟨_, hexec.stepL htr⟩
+    use s1 :: ss
+    exact hexec.stepL htr
 
 /-- Converts an execution into a multistep transition. -/
 @[scoped grind →]
@@ -69,7 +72,8 @@ theorem Execution.to_mTr (hexec : lts.Execution s1 μs s2 ss) :
   induction μs generalizing s1 ss with
   | nil =>
     have : s1 = s2 := by grind
-    exact this ▸ .refl
+    rw [this]
+    exact .refl
   | cons μ μs ih =>
     obtain ⟨s, ss, rfl⟩ := List.exists_cons_of_ne_nil hexec.nonEmpty_states
     obtain rfl : s = s1 := by simpa using hexec.start
