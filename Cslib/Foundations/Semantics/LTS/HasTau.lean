@@ -80,11 +80,11 @@ theorem saturate_τsTr_τSTr_iff [hHasTau : HasTau Label] (lts : LTS State Label
   apply Iff.intro <;> intro h
   case mp =>
     induction h
-    case refl => constructor
+    case refl => exact .refl
     case tail _ _ _ h2 h3 => exact Relation.ReflTransGen.trans h3 ((sTr_τSTr_iff _).mp h2)
   case mpr =>
     cases h
-    case refl => constructor
+    case refl => exact .refl
     case tail s' h2 h3 =>
       have h4 := STr.tr h2 h3 Relation.ReflTransGen.refl
       exact Relation.ReflTransGen.single h4
@@ -121,13 +121,13 @@ theorem saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label
   apply Iff.intro <;> intro h
   case mp =>
     cases h
-    case refl => constructor
+    case refl => exact .refl
     case tr hstr1 htr hstr2 =>
       apply STr.single
       exact STr.tr hstr1 htr hstr2
   case mpr =>
     cases h
-    case refl => constructor
+    case refl => exact .refl
     case tr hstr1 htr hstr2 =>
       rw [saturate_τsTr_τSTr_iff lts] at hstr1 hstr2
       rw [←sTr_τSTr_iff lts] at hstr1 hstr2
