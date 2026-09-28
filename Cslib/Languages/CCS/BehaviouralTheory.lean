@@ -274,35 +274,21 @@ private inductive ResBisim : Process Name Constant → Process Name Constant →
 theorem bisimilarity_congr_res :
     (p ~[lts (defs := defs)] q) → (res a p) ~[lts (defs := defs)] (res a q) := by
   intro hpq
-  exists @ResBisim _ _ defs
-  constructor
-  · grind
-  intro s1 s2 hr μ'
-  cases hr
-  rename_i p q a h
-  constructor
-  case left =>
-    intro s1' htr
-    cases htr with | res _ _ htr =>
-    obtain ⟨q', _, bisim⟩ := h.follow_fst htr
-    exists res a q'
-    unfold lts at *
-    #adaptation_note
-    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-    split_ands
-    · grind
-    · exact ResBisim.res bisim
-  case right =>
-    intro s2' htr
-    cases htr with | res _ _ htr =>
-    obtain ⟨p', _, bisim⟩ := h.follow_snd htr
-    exists res a p'
-    unfold lts at *
-    #adaptation_note
-    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-    split_ands
-    · grind
-    · exact ResBisim.res bisim
+  refine ⟨@ResBisim Name Constant defs, .res hpq, ?_⟩
+  intro s1 s2 hr μ
+  cases hr with
+  | res h =>
+    constructor
+    · intro _ htr
+      cases htr with
+      | res hn hn' htr =>
+        obtain ⟨q', htr', h'⟩ := h.follow_fst htr
+        exact ⟨_, .res hn hn' htr', .res h'⟩
+    · intro _ htr
+      cases htr with
+      | res hn hn' htr =>
+        obtain ⟨p', htr', h'⟩ := h.follow_snd htr
+        exact ⟨_, .res hn hn' htr', .res h'⟩
 
 private inductive ChoiceBisim : Process Name Constant → Process Name Constant → Prop where
 | choice : (p ~[lts (defs := defs)] q) → ChoiceBisim (choice p r) (choice q r)
@@ -311,66 +297,32 @@ private inductive ChoiceBisim : Process Name Constant → Process Name Constant 
 /-- P ~ Q → P + R ~ Q + R -/
 theorem bisimilarity_congr_choice :
     (p ~[lts (defs := defs)] q) → (choice p r) ~[lts (defs := defs)] (choice q r) := by
-  intro h
-  exists @ChoiceBisim _ _ defs
-  constructor
-  · exact ChoiceBisim.choice h
-  intro s1 s2 r μ
-  constructor
-  case left =>
-    intro s1' htr
-    cases r
-    case choice p q r hbisim =>
-      obtain ⟨rel, hr, hb⟩ := hbisim
-      cases htr
-      case choiceL a b c htr =>
-        obtain ⟨s2', htr2, hr2⟩ := hb.follow_fst hr htr
-        exists s2'
-        constructor
-        · apply Tr.choiceL htr2
-        · constructor
-          apply hb.le_bisimilarity _ _ hr2
-      case choiceR a b c htr =>
-        exists s1'
-        constructor
-        · apply Tr.choiceR htr
-        · constructor
-          apply HomBisimilarity.refl
-    case bisim hbisim =>
-      obtain ⟨rel, hr, hb⟩ := hbisim
-      obtain ⟨s2', htr2, hr2⟩ := hb.follow_fst hr htr
-      exists s2'
-      constructor
-      · assumption
-      constructor
-      apply hb.le_bisimilarity _ _ hr2
-  case right =>
-    intro s2' htr
-    cases r
-    case choice p q r hbisim =>
-      obtain ⟨rel, hr, hb⟩ := hbisim
-      cases htr
-      case choiceL a b c htr =>
-        obtain ⟨s1', htr1, hr1⟩ := hb.follow_snd hr htr
-        exists s1'
-        constructor
-        · apply Tr.choiceL htr1
-        · constructor
-          apply hb.le_bisimilarity _ _ hr1
-      case choiceR a b c htr =>
-        exists s2'
-        constructor
-        · apply Tr.choiceR htr
-        · constructor
-          apply HomBisimilarity.refl
-    case bisim hbisim =>
-      obtain ⟨rel, hr, hb⟩ := hbisim
-      obtain ⟨s1', htr1, hr1⟩ := hb.follow_snd hr htr
-      exists s1'
-      constructor
-      · assumption
-      · constructor
-        apply hb.le_bisimilarity _ _ hr1
+  intro hpq
+  refine ⟨@ChoiceBisim Name Constant defs, .choice hpq, ?_⟩
+  intro s1 s2 hr μ
+  cases hr with
+  | choice h =>
+    constructor
+    · intro s htr
+      cases htr with
+      | choiceL htr =>
+        obtain ⟨s', htr', h'⟩ := h.follow_fst htr
+        exact ⟨s', .choiceL htr', .bisim h'⟩
+      | choiceR htr => exact ⟨s, .choiceR htr, .bisim (.refl s)⟩
+    · intro s htr
+      cases htr with
+      | choiceL htr =>
+        obtain ⟨s', htr', h'⟩ := h.follow_snd htr
+        exact ⟨s', .choiceL htr', .bisim h'⟩
+      | choiceR htr => exact ⟨s, .choiceR htr, .bisim (.refl s)⟩
+  | bisim h =>
+    constructor
+    · intro _ htr
+      obtain ⟨s', htr', h'⟩ := h.follow_fst htr
+      exact ⟨s', htr', .bisim h'⟩
+    · intro _ htr
+      obtain ⟨s', htr', h'⟩ := h.follow_snd htr
+      exact ⟨s', htr', .bisim h'⟩
 
 @[local grind]
 private inductive ParBisim : Process Name Constant → Process Name Constant → Prop where
@@ -379,50 +331,30 @@ private inductive ParBisim : Process Name Constant → Process Name Constant →
 /-- P ~ Q → P | R ~ Q | R -/
 theorem bisimilarity_congr_par :
     (p ~[lts (defs := defs)] q) → (par p r) ~[lts (defs := defs)] (par q r) := by
-  intro h
-  exists @ParBisim _ _ defs
-  constructor
-  · grind
-  intro s1 s2 r μ
-  constructor
-  case left =>
-    intro s1' htr
-    cases r
-    unfold lts at *
-    have : {Tr :=  Tr (defs := defs)} = lts (defs := defs) := by rfl
-    case par p q r hbisim =>
-      obtain ⟨rel, hr, hb⟩ := hbisim
-      cases htr
-      case parL p' htr =>
-        obtain ⟨q', _⟩ := hb.follow_fst hr htr
-        exists par q' r
-        grind
-      case parR r' htr =>
-        exists par q r'
-        grind
-      case com r' _ htrp _ =>
-        obtain ⟨q', _⟩ := hb.follow_fst hr htrp
-        exists par q' r'
-        grind
-  case right =>
-    intro s2' htr
-    cases r
-    unfold lts at *
-    have : {Tr :=  Tr (defs := defs)} = lts (defs := defs) := by rfl
-    case par p _ r hbisim =>
-      obtain ⟨_, hr, hb⟩ := hbisim
-      cases htr
-      case parL htr =>
-        obtain ⟨p', _⟩ := hb.follow_snd hr htr
-        exists par p' r
-        grind
-      case parR _ _ r' htr =>
-        exists par p r'
-        grind
-      case com r' hco htrq htrr =>
-        obtain ⟨q', _⟩ := hb.follow_snd hr htrq
-        exists par q' r'
-        grind
+  intro hpq
+  refine ⟨@ParBisim Name Constant defs, .par hpq, ?_⟩
+  intro s1 s2 hr μ
+  cases hr with
+  | par h =>
+    constructor
+    · intro _ htr
+      cases htr with
+      | parL htr =>
+        obtain ⟨q', htr', h'⟩ := h.follow_fst htr
+        exact ⟨_, .parL htr', .par h'⟩
+      | parR htr => exact ⟨_, .parR htr, .par h⟩
+      | com hco htrp htrr =>
+        obtain ⟨q', htr', h'⟩ := h.follow_fst htrp
+        exact ⟨_, .com hco htr' htrr, .par h'⟩
+    · intro _ htr
+      cases htr with
+      | parL htr =>
+        obtain ⟨p', htr', h'⟩ := h.follow_snd htr
+        exact ⟨_, .parL htr', .par h'⟩
+      | parR htr => exact ⟨_, .parR htr, .par h⟩
+      | com hco htrq htrr =>
+        obtain ⟨p', htr', h'⟩ := h.follow_snd htrq
+        exact ⟨_, .com hco htr' htrr, .par h'⟩
 
 /-- Bisimilarity is a congruence in CCS. -/
 theorem bisimilarity_is_congruence
