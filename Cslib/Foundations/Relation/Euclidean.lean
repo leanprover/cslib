@@ -132,6 +132,7 @@ variable [LeftEuclidean r]
 theorem reflOn_dom : (dom r).ReflOn r := fun _ ⟨_, ab⟩ ↦ leftEuclidean ab ab
 
 /-- The converse of a `LeftEuclidean` relation is `RightEuclidean` -/
+@[local instance]
 theorem rightEuclidean_swap : RightEuclidean (fun a b => r b a) where
   rightEuclidean ab ac := leftEuclidean ac ab
 
@@ -170,14 +171,12 @@ theorem rightTotal_leftUnique_trans (h₁ : RightTotal r) (h₂ : LeftUnique r) 
     have : a = d := h₂ ac (_root_.trans da ac)
     grind
 
-theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α := by
-  have : RightEuclidean (Function.swap r) := rightEuclidean_swap
-  exact RightEuclidean.trichotomous_antisymm_finite (r := Function.swap r)
+theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α :=
+  RightEuclidean.trichotomous_antisymm_finite (r := Function.swap r)
 
 theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintype α] :
-    Fintype.card α ≤ 2 := by
-  have : RightEuclidean (Function.swap r) := rightEuclidean_swap
-  exact RightEuclidean.trichotomous_antisymm_card (r := Function.swap r)
+    Fintype.card α ≤ 2 :=
+  RightEuclidean.trichotomous_antisymm_card (r := Function.swap r)
 
 theorem dom_subset_cod : dom r ⊆ cod r := fun _ ⟨_, ab⟩ ↦ of_dom (reflOn_dom.of_dom ab)
 
