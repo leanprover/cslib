@@ -379,16 +379,8 @@ theorem DeterministicStateLabel.image_char (h : lts.DeterministicStateLabel s μ
 /-- If `s` is deterministic at `μ`, then the `μ`-image of `s` is finite. -/
 @[scoped grind →]
 theorem DeterministicStateLabel.finite_image (h : lts.DeterministicStateLabel s μ) :
-    Finite (lts.image s μ) := by
-  have hDet := image_char lts h
-  cases hDet
-  case inl hDet =>
-    obtain ⟨s', hDet'⟩ := hDet
-    simp only [hDet']
-    apply Set.finite_singleton
-  case inr hDet =>
-    simp only [hDet]
-    apply Set.finite_empty
+    Finite (lts.image s μ) :=
+  Set.Subsingleton.finite (fun _ h₁ _ h₂ => h _ _ h₁ h₂)
 
 instance [h : lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) :=
   DeterministicStateLabel.finite_image lts (h.deterministic s μ)
@@ -438,18 +430,6 @@ class Acyclic (lts : LTS State Label) where
 
 attribute [instance] Acyclic.acyclic
 
-/-- In a deterministic lts, a state's traces are determined by any of its predecessors. -/
-theorem Deterministic.traces_of_tr {lts : LTS State Label} [lts.Deterministic]
-    (h : lts.Tr s μ s') : lts.traces s' = {μs | μ :: μs ∈ lts.traces s} := by
-  ext μs
-  constructor
-  · intro ⟨s'', hmtr⟩
-    use s'', MTr.stepL h hmtr
-  · intro ⟨s'', hmtr⟩
-    rcases hmtr with (_ | ⟨htr, hmtr⟩)
-    rw [←deterministic _ _ _ _ h htr] at hmtr
-    exact ⟨s'', hmtr⟩
-
 /-- In a deterministic lts, a state's traces are determined by any of its multi-step predecessors.
 -/
 theorem Deterministic.traces_of_mTr {lts : LTS State Label} [lts.Deterministic]
@@ -462,6 +442,11 @@ theorem Deterministic.traces_of_mTr {lts : LTS State Label} [lts.Deterministic]
     obtain ⟨smid, hmid, hmid'⟩ := hmtr.split
     rw [Deterministic.eq_of_mTr h hmid]
     use s'', hmid'
+
+/-- In a deterministic lts, a state's traces are determined by any of its predecessors. -/
+theorem Deterministic.traces_of_tr {lts : LTS State Label} [lts.Deterministic]
+    (h : lts.Tr s μ s') : lts.traces s' = {μs | μ :: μs ∈ lts.traces s} := by
+  simpa using Deterministic.traces_of_mTr (MTr.single lts h)
 
 end Classes
 
