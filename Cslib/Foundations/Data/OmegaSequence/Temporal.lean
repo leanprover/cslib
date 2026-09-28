@@ -94,13 +94,7 @@ theorem frequently_leadsTo_frequently {p q : Set α}
 
 theorem drop_frequently_iff_frequently {p : Set α} (n : ℕ) :
     (∃ᶠ k in atTop, (xs.drop n) k ∈ p) ↔ (∃ᶠ k in atTop, xs k ∈ p) := by
-  simp only [frequently_atTop, get_drop]
-  constructor
-  · intro h m
-    grind [h m]
-  · intro h m
-    obtain ⟨k, _⟩ := h (m + n)
-    use k - n
-    grind
+  conv_rhs => rw [← map_add_atTop_eq_nat n, frequently_map]
+  simp only [get_drop, Nat.add_comm]
 
 end Cslib.ωSequence
