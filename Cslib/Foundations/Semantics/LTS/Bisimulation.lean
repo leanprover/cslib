@@ -52,7 +52,10 @@ we prove to be sound and complete.
 - `Bisimilarity.isBisimulation`: bisimilarity is itself a bisimulation.
 - `IsBisimulation.le_bisimilarity`: bisimilarity is the largest bisimulation.
 - `Bisimilarity.gfp`: the union of bisimilarity and any bisimulation is equal to bisimilarity.
-- `LTS.IsBisimulationUpTo.isBisimulation`: any bisimulation up to bisimilarity is a bisimulation.
+- `LTS.IsBisimulationUpTo.isBisimulation`: the closure of a bisimulation up to bisimilarity
+  is a bisimulation.
+- `LTS.IsBisimulationUpTo.le_bisimilarity`: a bisimulation up to bisimilarity relates only
+  bisimilar states.
 - `LTS.IsBisimulation.traceEq`: any bisimulation that relates two states implies that they are
 trace equivalent (see `TraceEq`).
 - `Bisimilarity.deterministic_bisim_eq_traceEq`: in a deterministic LTS, bisimilarity and trace
@@ -189,12 +192,11 @@ theorem HomBisimilarity.refl (s : State) : s ~[lts] s := by
 theorem IsBisimulation.inv (h : IsBisimulation lts₁ lts₂ r) :
   IsBisimulation lts₂ lts₁ (flip r) := by grind [IsBisimulation, flip]
 
-open scoped IsBisimulation in
 /-- Bisimilarity is symmetric. -/
 @[scoped grind →, symm]
-theorem Bisimilarity.symm {lts₁ lts₂ : LTS State Label} {s₁ s₂ : State}
-    (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by
-  grind [flip]
+theorem Bisimilarity.symm (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by
+  obtain ⟨r, hr, hb⟩ := h
+  exact ⟨flip r, hr, hb.inv⟩
 
 /-- The composition of two bisimulations is a bisimulation. -/
 @[scoped grind .]
@@ -320,7 +322,7 @@ def IsBisimulationUpTo (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Labe
       (UpToHomBisimilarity lts₁ lts₂ r) s₁' s₂')
   )
 
-/-- Any bisimulation up to bisimilarity is a bisimulation. -/
+/-- The closure of a bisimulation up to bisimilarity is a bisimulation. -/
 @[scoped grind →]
 theorem IsBisimulationUpTo.isBisimulation (h : IsBisimulationUpTo lts₁ lts₂ r) :
     IsBisimulation lts₁ lts₂ (UpToHomBisimilarity lts₁ lts₂ r) := by
@@ -345,6 +347,14 @@ theorem IsBisimulationUpTo.isBisimulation (h : IsBisimulationUpTo lts₁ lts₂ 
     obtain ⟨smid1, hsmidb, smid2, hsmidr, hsmidrb⟩ := hs₁b'r
     use smid1, hs₁br.trans hsmidb, smid2, hsmidr
     exact hsmidrb.trans hs₂b'r
+
+/-- A bisimulation up to bisimilarity relates only bisimilar states. -/
+@[scoped grind →]
+theorem IsBisimulationUpTo.le_bisimilarity (h : IsBisimulationUpTo lts₁ lts₂ r) :
+    r ≤ Bisimilarity lts₁ lts₂ := by
+  intro s₁ s₂ hr
+  exact h.isBisimulation.le_bisimilarity s₁ s₂
+    ⟨s₁, HomBisimilarity.refl s₁, s₂, hr, HomBisimilarity.refl s₂⟩
 
 /-- If two states are related by a bisimulation, they can mimic each other's multi-step
 transitions. -/
@@ -578,34 +588,23 @@ theorem WeakBisimilarity.weakBisim_eq_swBisim [HasTau Label]
 
 /-- Homogeneous weak bisimilarity is reflexive. -/
 theorem HomWeakBisimilarity.refl [HasTau Label] {lts : LTS State Label} (s : State) :
-    s ≈[lts] s := by
-  simp only [HomWeakBisimilarity]
-  rw [WeakBisimilarity.weakBisim_eq_swBisim lts lts]
-  exists Eq
-  grind [IsSWBisimulation, STr.single]
+    s ≈[lts] s := HomBisimilarity.refl s
 
 /-- The inverse of a weak bisimulation is a weak bisimulation. -/
 theorem IsWeakBisimulation.inv [HasTau Label]
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     (r : State₁ → State₂ → Prop) (h : IsWeakBisimulation lts₁ lts₂ r) :
-    IsWeakBisimulation lts₂ lts₁ (flip r) := by
-  grind [IsWeakBisimulation.isSwBisimulation, IsSWBisimulation,
-    flip, IsSWBisimulation.isWeakBisimulation]
+    IsWeakBisimulation lts₂ lts₁ (flip r) := IsBisimulation.inv h
 
 /-- Weak bisimilarity is symmetric. -/
 theorem WeakBisimilarity.symm [HasTau Label] {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
-    (h : s₁ ≈[lts₁,lts₂] s₂) : s₂ ≈[lts₂,lts₁] s₁ := by
-  obtain ⟨r, hr, hrh⟩ := h
-  exists (flip r)
-  grind [IsWeakBisimulation.inv, flip]
+    (h : s₁ ≈[lts₁,lts₂] s₂) : s₂ ≈[lts₂,lts₁] s₁ := Bisimilarity.symm h
 
 /-- The composition of two weak bisimulations is a weak bisimulation. -/
 theorem IsWeakBisimulation.comp
     [HasTau Label] {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {lts₃ : LTS State₃ Label}
     (h1 : IsWeakBisimulation lts₁ lts₂ r1) (h2 : IsWeakBisimulation lts₂ lts₃ r2) :
-    IsWeakBisimulation lts₁ lts₃ (Relation.Comp r1 r2) := by
-  simp_all only [IsWeakBisimulation]
-  exact h1.comp h2
+    IsWeakBisimulation lts₁ lts₃ (Relation.Comp r1 r2) := IsBisimulation.comp h1 h2
 
 /-- The composition of two sw-bisimulations is an sw-bisimulation. -/
 theorem IsSWBisimulation.comp
@@ -618,15 +617,8 @@ theorem IsSWBisimulation.comp
 /-- Weak bisimilarity is transitive. -/
 theorem WeakBisimilarity.trans [HasTau Label]
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {lts₃ : LTS State₃ Label}
-    (h1 : s₁ ≈[lts₁,lts₂] s₂) (h2 : s₂ ≈[lts₂,lts₃] s₃) : s₁ ≈[lts₁,lts₃] s₃ := by
-  obtain ⟨r1, hr1, hr1b⟩ := h1
-  obtain ⟨r2, hr2, hr2b⟩ := h2
-  exists Relation.Comp r1 r2
-  constructor
-  case left =>
-    exists s₂
-  case right =>
-    apply IsWeakBisimulation.comp hr1b hr2b
+    (h1 : s₁ ≈[lts₁,lts₂] s₂) (h2 : s₂ ≈[lts₂,lts₃] s₃) : s₁ ≈[lts₁,lts₃] s₃ :=
+  Bisimilarity.trans h1 h2
 
 /-- Homogeneous weak bisimilarity is an equivalence relation. -/
 theorem HomWeakBisimilarity.eqv [HasTau Label] {lts : LTS State Label} :
