@@ -25,8 +25,6 @@ adversarial distributions.
   off the product of supports.
 - `MeasureTheory.NullMeasurableSet.pi_of_finite_compl_null`: every set is
   null-measurable for a product of measures with finite supports.
-- `MeasureTheory.measurableSet_setOf_mem_range`: the set of tuples hitting a
-  given point is measurable.
 -/
 
 @[expose] public section
@@ -36,20 +34,15 @@ open scoped ENNReal
 
 namespace MeasureTheory
 
-section Base
-
-variable {α : Type*} [MeasurableSpace α] [MeasurableSingletonClass α] {μ : Measure α}
-
 /-- If `μ` vanishes off a finite set `s`, then every set is null-measurable
 for `μ`: it splits as a finite (hence measurable) part inside `s` and a null
 part outside. -/
-theorem NullMeasurableSet.of_finite_compl_null {s : Set α} (hs : s.Finite)
+theorem NullMeasurableSet.of_finite_compl_null {α : Type*} [MeasurableSpace α]
+    [MeasurableSingletonClass α] {μ : Measure α} {s : Set α} (hs : s.Finite)
     (hμ : μ sᶜ = 0) (t : Set α) : NullMeasurableSet t μ := by
   rw [← inter_union_sdiff t s]
-  exact (hs.subset inter_subset_right).measurableSet.nullMeasurableSet.union
-    (.of_null (measure_mono_null (fun _ hx => hx.2) hμ))
-
-end Base
+  exact (hs.subset inter_subset_right).measurableSet.nullMeasurableSet.union_null
+    (measure_mono_null (sdiff_subset_compl t s) hμ)
 
 section Pi
 
@@ -60,10 +53,9 @@ variable {ι : Type*} [Fintype ι] {X : ι → Type*} [∀ i, MeasurableSpace (X
 `Set.pi univ s`. -/
 theorem Measure.pi_compl_univ_pi_null {s : ∀ i, Set (X i)} (hs : ∀ i, μ i (s i)ᶜ = 0) :
     Measure.pi μ (univ.pi s)ᶜ = 0 := by
-  refine measure_mono_null ?_
-    (measure_iUnion_null fun i => Measure.pi_eval_preimage_null (μ := μ) (hs i))
+  refine mono_null ?_
+    (measure_iUnion_null fun i => Measure.pi_eval_preimage_null μ (hs i))
   intro f hf
-  simp only [mem_compl_iff, mem_univ_pi, not_forall] at hf
   simpa using hf
 
 /-- If each factor `μ i` vanishes off a finite set `s i`, then every set is
@@ -74,14 +66,5 @@ theorem NullMeasurableSet.pi_of_finite_compl_null [∀ i, MeasurableSingletonCla
   .of_finite_compl_null (Finite.pi hs) (Measure.pi_compl_univ_pi_null μ hμ) t
 
 end Pi
-
-/-- The set of tuples `f : ι → β` taking the value `b` somewhere is
-measurable, being a countable union of coordinate preimages. -/
-theorem measurableSet_setOf_mem_range {ι β : Type*} [Countable ι] [MeasurableSpace β]
-    [MeasurableSingletonClass β] (b : β) :
-    MeasurableSet {f : ι → β | b ∈ range f} := by
-  have : {f : ι → β | b ∈ range f} = ⋃ i, Function.eval i ⁻¹' {b} := by ext f; simp
-  rw [this]
-  exact MeasurableSet.iUnion fun i => measurable_pi_apply i (measurableSet_singleton b)
 
 end MeasureTheory
