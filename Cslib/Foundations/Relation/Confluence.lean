@@ -92,16 +92,6 @@ theorem Commute.isTrans_join₂_reflTransGen (h : Commute r₁ r₂) :
 theorem Confluent.isTrans_join_reflTransGen (h : Confluent r) : IsTrans α (Join (ReflTransGen r)) :=
   Commute.isTrans_join₂_reflTransGen h
 
-theorem Commute.to_semiDiamondCommute (hc : Commute r₁ r₂) (h : TransGenCommute r₁ r₂) :
-  SemiDiamondCommute r₁ r₂ := by
-  intros x y z hxy hyz
-  induction hyz with
-  | single hyz => exact h hxy hyz
-  | tail h₁ h₂ h₃ =>
-    obtain ⟨w, hw₁, hw₂⟩ := h₃
-    obtain ⟨s, hs₁, hs₂⟩ := hc hw₂ (.single h₂)
-    exact ⟨s, hw₁.trans_left hs₁, hs₂⟩
-
 -- mirror of `SemiCommute.to_commute`
 theorem SemiDiamondCommute.to_diamond_commute (h : SemiDiamondCommute r₁ r₂) :
   DiamondCommute (ReflTransGen r₁) (TransGen r₂) := by
@@ -116,6 +106,32 @@ theorem SemiDiamondCommute.to_diamond_commute (h : SemiDiamondCommute r₁ r₂)
 theorem semiDiamondCommute_iff_diamondCommute :
     SemiDiamondCommute r₁ r₂ ↔ DiamondCommute (ReflTransGen r₁) (TransGen r₂) :=
   ⟨fun h => h.to_diamond_commute, fun h => fun _ _ _ hxy₁ hxy₂ => h (.single hxy₁) hxy₂⟩
+
+theorem Commute.to_semiDiamondCommute (hc : Commute r₁ r₂) (h : TransGenCommute r₁ r₂) :
+  SemiDiamondCommute r₁ r₂ := by
+  intros x y z hxy hyz
+  induction hyz with
+  | single hyz => exact h hxy hyz
+  | tail h₁ h₂ h₃ =>
+    obtain ⟨w, hw₁, hw₂⟩ := h₃
+    obtain ⟨s, hs₁, hs₂⟩ := hc hw₂ (.single h₂)
+    exact ⟨s, hw₁.trans_left hs₁, hs₂⟩
+
+theorem SemiDiamondCommute.to_commute (h : SemiDiamondCommute r₁ r₂) : Commute r₁ r₂ := by
+  intro x y₁ y₂ hxy₁ hxy₂
+  rcases hxy₂.cases_head with rfl | ⟨c, hxc, hcy₂⟩
+  · exact ⟨y₁, .refl, hxy₁⟩
+  · obtain ⟨z, hz₁, hz₂⟩ := h.to_diamond_commute hxy₁ (TransGen.head' hxc hcy₂)
+    exact ⟨z, hz₁.to_reflTransGen, hz₂⟩
+
+theorem SemiDiamondCommute.to_transGenCommute (h : SemiDiamondCommute r₁ r₂) :
+    TransGenCommute r₁ r₂ :=
+  fun _ _ _ hxy₁ hxy₂ => h hxy₁ (.single hxy₂)
+
+theorem commute_and_transGenCommute_iff_semiDiamondCommute :
+    Commute r₁ r₂ ∧ TransGenCommute r₁ r₂ ↔ SemiDiamondCommute r₁ r₂ :=
+    ⟨fun ⟨hc, h⟩ => hc.to_semiDiamondCommute h,
+     fun h => ⟨h.to_commute, h.to_transGenCommute⟩⟩
 
 theorem SemiCommute.to_commute (h : SemiCommute r₁ r₂) : Commute r₁ r₂ := by
   intro a b₁ b₂ hab₁ hab₂
