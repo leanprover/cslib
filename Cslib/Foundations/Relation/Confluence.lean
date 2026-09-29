@@ -289,6 +289,13 @@ theorem StronglyConfluent.to_confluent (h : StronglyConfluent r) : Confluent r :
 @[deprecated (since := "2026-09-03")] alias StronglyConfluent.toConfluent :=
   StronglyConfluent.to_confluent
 
+/-- Diamond commutation is preserved by taking the union of the left relations. -/
+lemma DiamondCommute.join_left (c₁ : DiamondCommute r₁ r₃) (c₂ : DiamondCommute r₂ r₃) :
+    DiamondCommute (r₁ ⊔ r₂) r₃ := by
+  rintro a b c (hab | hab) hac
+  · exact Join₂.mono le_rfl le_sup_left _ _ (c₁ hab hac)
+  · exact Join₂.mono le_rfl le_sup_right _ _ (c₂ hab hac)
+
 lemma Commute.join_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ⊔ r₂) r₃ := by
   apply SemiCommute.to_commute
   rintro a b c (hab | hab) hac
