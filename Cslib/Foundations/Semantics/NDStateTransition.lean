@@ -28,6 +28,9 @@ lemma iterFind_stop {x : σ} (h : p x = true) : x ∈ iterFind f p x :=
 lemma mem_iterFind_iff_of_true {x y : σ} (h : p x = true) : y ∈ iterFind f p x ↔ y = x := by
   grind [Part.mem_eq, iterFind_stop]
 
+grind_pattern mem_iterFind_iff_of_true => y ∈ iterFind f p x where
+  guard p x = true
+
 alias ⟨eq_of_mem_iterFind_of_true, _⟩ := mem_iterFind_iff_of_true
 
 lemma iterFind_fwd_eq {x : σ} (hx : p x = false) : iterFind f p x = iterFind f p (f x) :=
@@ -35,6 +38,9 @@ lemma iterFind_fwd_eq {x : σ} (hx : p x = false) : iterFind f p x = iterFind f 
 
 lemma iterFind_fwd {x y : σ} (h : y ∈ iterFind f p x) (hx : p x = false) :
     y ∈ iterFind f p (f x) := iterFind_fwd_eq hx ▸ h
+
+grind_pattern iterFind_fwd => y ∈ iterFind f p x where
+  guard p x = false
 
 @[elab_as_elim]
 def iterFindRec {y : σ} {C : σ → Sort u} {x : σ} (h : y ∈ iterFind f p x)
@@ -55,12 +61,11 @@ lemma iterFindRec_false {y : σ} {C : σ → Sort u} {x : σ} (h : y ∈ iterFin
     (stop : (x : σ) → p x = true → y ∈ iterFind f p x → C x)
     (fwd : (x : σ) → p x = false → y ∈ iterFind f p x → ((x' : σ) → f x = x' → C x') → C x)
     (hx : p x = false) : iterFindRec h stop fwd =
-      fwd x hx h (fun x' heq ↦ iterFindRec (x := x') (heq ▸ iterFind_fwd h hx) stop fwd) := by
+      fwd x hx h (fun x' heq ↦ iterFindRec (x := x') (by grind) stop fwd) := by
   grind [iterFind, iterFindRec, fixInduction_spec]
 
 lemma iterFind_spec {x y : σ} (h : y ∈ iterFind f p x) : p y :=
-  iterFindRec h (fun _ hx hmem ↦ eq_of_mem_iterFind_of_true hx hmem ▸ hx)
-    (fun x _ _ ih ↦ ih (f x) rfl)
+  iterFindRec h (by grind) (fun x _ _ ih ↦ ih (f x) rfl)
 
 lemma eq_iterate_of_mem_iterFind {x y : σ} (h : y ∈ iterFind f p x) : ∃ n, f^[n] x = y := by
   refine iterFindRec h ?_ ?_

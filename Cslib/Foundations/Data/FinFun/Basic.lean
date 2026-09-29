@@ -49,7 +49,7 @@ def fromFun {α β : Type*} [Zero β] [DecidableEq α]
   mem_support_fn := by grind
 
 @[inherit_doc]
-scoped notation f:25 "↾₀" support:51 => FinFun.fromFun f support
+scoped notation f:25 " ↾₀ " support:51 => FinFun.fromFun f support
 
 instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
   coe f := f.fn
@@ -58,14 +58,13 @@ instance instFunLike [Zero β] : FunLike (α →₀ β) α β where
     simp_all [Finset.ext_iff]
 
 @[scoped grind =]
-theorem coe_fn [Zero β] {f : α →₀ β} : (f : α → β) = f.fn := by simp [DFunLike.coe]
+theorem coe_fn [Zero β] {f : α →₀ β} : (f : α → β) = f.fn := rfl
 
 @[scoped grind =]
-theorem coe_eq_fn [Zero β] {f : α →₀ β} : f a = f.fn a := by
-  simp [DFunLike.coe]
+theorem coe_eq_fn [Zero β] {f : α →₀ β} : f a = f.fn a := rfl
 
 /-- Extensional equality for `FinFun`. -/
-@[scoped grind ←=]
+@[scoped grind ←=, ext]
 theorem ext [Zero β] {f g : α →₀ β} (h : ∀ (a : α), f a = g a) : f = g :=
   DFunLike.ext (f := f) (g := g) h
 
@@ -91,7 +90,7 @@ theorem fn_eq_eq [Zero β] {f g : α →₀ β} (h : f.fn = g.fn) : f = g :=
 @[scoped grind =>]
 theorem congrFinFun [Zero β] {f g : α →₀ β} (h : f = g) (a : α) : f a = g a := by grind
 
-@[scoped grind =]
+@[scoped grind ←=]
 theorem fromFun_eq [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
     (f : α → β) (support : Finset α) (h : ∀ a, a ∉ support → f a = 0) :
     (f ↾₀ support) = f := by grind
@@ -99,8 +98,7 @@ theorem fromFun_eq [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
 @[scoped grind =]
 theorem fromFun_fn [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
     (f : α → β) (support : Finset α) :
-    (f ↾₀ support).fn = (fun a => if a ∈ support then f a else 0) := by
-  grind
+    (f ↾₀ support).fn = (fun a => if a ∈ support then f a else 0) := rfl
 
 @[scoped grind =]
 theorem fromFun_support [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)]
@@ -120,13 +118,14 @@ theorem coe_fromFun_id [Zero β] [DecidableEq α] [∀ y : β, Decidable (y = 0)
     (f ↾₀ f.support) = f := by grind
 
 /-- Restricting a function twice to two supports is equal to restricting to their intersection. -/
-@[scoped grind =]
 theorem fromFun_inter [Zero β] [DecidableEq α]
     [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
     (f ↾₀ support1) ↾₀ support2 = f ↾₀ (support1 ∩ support2) := by grind
 
+grind_pattern fromFun_inter => (f ↾₀ support1) ↾₀ support2 where
+  support1 =/= support2
+
 /-- Restricting a function is commutative. -/
-@[scoped grind =]
 theorem fromFun_comm [Zero β] [DecidableEq α]
     [∀ y : β, Decidable (y = 0)] {f : α → β} {support1 support2 : Finset α} :
     (f ↾₀ support1) ↾₀ support2 = (f ↾₀ support2) ↾₀ support1 := by
@@ -139,6 +138,10 @@ instance instDecidableEq [Zero β] [DecidableEq α] [DecidableEq β] : Decidable
       isTrue <| ext fun a => by grind
     else
       isFalse <| by grind
+
+set_option linter.hashCommand false
+#guard_msgs in
+#grind_lint check in Cslib.FinFun
 
 end FinFun
 
