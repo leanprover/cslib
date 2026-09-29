@@ -1,11 +1,23 @@
-import Mathlib.Computability.StateTransition
-import Cslib.Foundations.Relation.Confluence
+/-
+Copyright (c) 2025 Thomas Waring. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Waring
+-/
+
+module
+
+public import Mathlib.Computability.StateTransition
+public import Cslib.Foundations.Relation.Confluence
 
 /-! # Non-deterministic state transisions
 
 - Can we generalise `f : σ → Option σ` and `f : σ → List σ` to any monadic codomain?
 - Is a general "find" function for `f : σ →. σ` and `p : σ → Bool` useful?
 -/
+
+@[expose] public section
+
+namespace Cslib
 
 universe u
 
@@ -17,6 +29,7 @@ lemma PFun.exists_inl_mem_of_mem_fix {f : α →. β ⊕ α} {a : α} {b : β} (
     ∃ a', inl b ∈ f a' :=
   PFun.fixInduction' hb (fun a' ha' _ ↦ ⟨a', ha'⟩) (fun _ _ hb₁ _ ih _ ↦ ih hb₁) hb
 
+/-- Iterate `f` (possibly infinitely) until a value satisfying `p` is found. -/
 def iterFind (f : σ → σ) (p : σ → Bool) : σ →. σ :=
   PFun.fix <| PFun.lift fun (x : σ) ↦ (p x).rec (inr <| f x) (inl x)
 
@@ -42,6 +55,7 @@ lemma iterFind_fwd {x y : σ} (h : y ∈ iterFind f p x) (hx : p x = false) :
 grind_pattern iterFind_fwd => y ∈ iterFind f p x where
   guard p x = false
 
+/-- Recursion principal for `iterFind`. -/
 @[elab_as_elim]
 def iterFindRec {y : σ} {C : σ → Sort u} {x : σ} (h : y ∈ iterFind f p x)
     (stop : (x : σ) → p x = true → y ∈ iterFind f p x → C x)
@@ -162,3 +176,5 @@ lemma dom_iterFind_apply_iff (x : σ) : (iterFind f p x).Dom ↔ ∃ n, p (f^[n]
 -- --   simp [List.mem_flatMap, h a, (h' · c), Comp]
 
 -- -- end Relation
+
+end Cslib
