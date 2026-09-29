@@ -275,13 +275,11 @@ theorem StronglyCommute.extend (h : StronglyCommute r₁ r₂) (xy : ReflTransGe
     | single bw => cases h bc bw; grind [ReflTransGen.trans]
 
 theorem StronglyCommute.to_commute (h : StronglyCommute r₁ r₂) : Commute r₁ r₂ := by
-  intro x y₁ y₂ x_y₁ x_y₂
-  induction x_y₂ with
-  | refl => exists y₁
-  | @tail a b xa ab ih =>
-    obtain ⟨z, y₁_z, y₂_z⟩ := ih
-    obtain ⟨w, zw, bw⟩ := h.extend y₂_z ab
-    exact ⟨w, y₁_z.trans zw.to_reflTransGen, bw⟩
+  rw [comm (r := Commute)]
+  apply SemiCommute.to_commute
+  intro a b c hab hac
+  obtain ⟨d, hcd, hbd⟩ := h.extend hac hab
+  exact ⟨d, hbd, hcd.to_reflTransGen⟩
 
 @[deprecated (since := "2026-09-03")] alias StronglyCommute.toCommute := StronglyCommute.to_commute
 
@@ -292,18 +290,10 @@ theorem StronglyConfluent.to_confluent (h : StronglyConfluent r) : Confluent r :
   StronglyConfluent.to_confluent
 
 lemma Commute.join_left (c₁ : Commute r₁ r₃) (c₂ : Commute r₂ r₃) : Commute (r₁ ⊔ r₂) r₃ := by
-  intro x y z xy xz
-  induction xy with
-  | refl => grind [Join₂]
-  | @tail b c _ bc ih =>
-    have ⟨w, bw, _⟩ := ih
-    cases bc with
-    | inl bc =>
-      obtain ⟨_, _, _⟩ := c₁ (.single bc) bw
-      grind [Join₂, ReflTransGen.trans]
-    | inr bc =>
-      obtain ⟨_, _, _⟩ := c₂ (.single bc) bw
-      grind [Join₂, ReflTransGen.trans]
+  apply SemiCommute.to_commute
+  rintro a b c (hab | hab) hac
+  · exact Join₂.mono le_rfl (ReflTransGen.mono le_sup_left) _ _ (c₁ (.single hab) hac)
+  · exact Join₂.mono le_rfl (ReflTransGen.mono le_sup_right) _ _ (c₂ (.single hab) hac)
 
 theorem Commute.join_confluent (c₁ : Confluent r₁) (c₂ : Confluent r₂) (comm : Commute r₁ r₂) :
     Confluent (r₁ ⊔ r₂) := by
