@@ -7,7 +7,6 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Distributed.FLP.Consensus
-public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Mathlib.Data.List.ReduceOption
 
 /-! # Machinery for constructing infinite fair executions
@@ -24,7 +23,7 @@ predicate `r`.
 
 namespace Cslib.FLP
 
-open Function Set Multiset Filter ωSequence
+open Function Set Multiset ωSequence
 
 variable {P M S : Type*} [DecidableEq P] [DecidableEq M]
 
@@ -76,7 +75,7 @@ theorem foldList_forallActions {r : Action P M → Prop}
 
 end DeliverMsg
 
-/-- Starting from state `s0`, `a.fairSchedular d ps s0` constructs an infinite sequence of
+/-- Starting from state `s0`, `a.fairScheduler d ps s0` constructs an infinite sequence of
 finite executions of `a` by repeatedly applying `d.scheduleMsgs ps`. -/
 noncomputable def Algorithm.fairScheduler (a : Algorithm P M S) (d : DeliverMsg P M S) (ps : Set P)
     (s0 : State P M S) : ℕ → List (Action P M) × State P M S
@@ -200,15 +199,12 @@ theorem flatten_fairSegs {ps : Set P}
   use ss, h_omega, h_ts
   rintro p h_m m ⟨rfl⟩
   by_contra! ⟨k, h_k, h_k'⟩
-  have h_xls : ∃ᶠ n in atTop, n ∈ xls.cumLen '' univ := by
-    apply frequently_iff_strictMono.mpr
-    use xls.cumLen
-    grind [cumLen_strictMono]
-  obtain ⟨j, _, h_j⟩ : ∃ j, k ≤ xls.cumLen j ∧ m ∈ (ts j).msgs := by
-    obtain ⟨n, _, j, _, _⟩ := frequently_atTop.mp h_xls k
-    grind [Algorithm.omega_notRcvd_enabled h_omega h_k h_k']
-  obtain ⟨i, _, _⟩ := List.getElem_of_mem <| hsch j m h_j h_m
-  grind [extract_flatten hpos j]
+  have h_le : k ≤ xls.cumLen k := (cumLen_strictMono hpos).id_le k
+  have h_enabled : m ∈ (ts k).msgs := by
+    rw [← h_ts]
+    exact Algorithm.omega_notRcvd_enabled h_omega h_k h_k' _ h_le
+  obtain ⟨i, _, _⟩ := List.getElem_of_mem <| hsch k m h_enabled h_m
+  grind [extract_flatten hpos k]
 
 /-- Under the assumption `a.FairDeliverMsg d ps q`, the infinite sequence of finite executions
 of `a` represented by `a.fairSegEnds d ps s0` and `a.fairSegActions d ps s0` can be concatenated

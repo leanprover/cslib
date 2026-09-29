@@ -5,7 +5,7 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuit.Basic
+public import Cslib.Computability.Circuit.Program
 public import Mathlib.Data.Fintype.BigOperators
 
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
@@ -13,9 +13,9 @@ import Mathlib.Algebra.Order.BigOperators.Group.Finset
 /-!
 # Finite circuit syntax
 
-A finite signature gives computable enumerations of lines, programs, and circuits of each
-fixed size. Their cardinalities count syntax and are independent of any interpretation or
-carrier. `Line.card_le` bounds the number of lines when all operation arities are bounded.
+A finite signature gives computable enumerations of lines and programs of each fixed size.
+Their cardinalities count syntax and are independent of any interpretation or carrier.
+`Line.card_le` bounds the number of lines when all operation arities are bounded.
 -/
 
 @[expose] public section
@@ -33,9 +33,6 @@ instance Program.instFintype (n : ℕ) : (g : ℕ) → Fintype (Program σ n g)
   | g + 1 =>
       letI := Program.instFintype n g
       Fintype.ofEquiv _ (Program.gateEquiv σ n g).symm
-
-instance Circuit.instFintype (n g m : ℕ) : Fintype (Circuit σ n g m) :=
-  Fintype.ofEquiv _ (Circuit.equiv σ n g m).symm
 
 /-- For each operation, choose one wire for each of its arguments. -/
 theorem Line.card (n g : ℕ) :
@@ -74,11 +71,5 @@ theorem Program.card (n g : ℕ) :
   induction g with
   | zero => simp
   | succ g ih => simp [Program.card_succ, ih, Line.card, Finset.prod_range_succ]
-
-/-- Each output independently selects an input or internal-gate wire. -/
-theorem Circuit.card (n g m : ℕ) :
-    Fintype.card (Circuit σ n g m) = Fintype.card (Program σ n g) * (n + g) ^ m := by
-  rw [Fintype.card_congr (Circuit.equiv σ n g m), Fintype.card_prod]
-  simp
 
 end Cslib.Circuits

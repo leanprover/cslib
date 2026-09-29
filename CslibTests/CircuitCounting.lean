@@ -39,18 +39,16 @@ def arithmeticInterpretation : Interpretation arithmeticSignature ℕ
 example : Fintype.card (Line arithmeticSignature 0 0) = 2 := by decide
 example : Fintype.card (Line arithmeticSignature 2 1) = 11 := by decide
 example : Fintype.card (Program arithmeticSignature 0 2) = 6 := by decide
-example : Fintype.card (Circuit arithmeticSignature 0 0 0) = 1 := by decide
-example : Fintype.card (Circuit arithmeticSignature 0 0 1) = 0 := by decide
 
-def addition : Circuit arithmeticSignature 2 1 1 where
+def addition : Circuit arithmeticSignature 2 1 where
   program := .gate .empty ⟨.add, fun i => Wire.input i⟩
   outputs := fun _ => Wire.gate 0
 
 example : (fun x => x 0 + x 1) ∈ computableFunctions arithmeticInterpretation 2 1 :=
   (mem_computableFunctions (I := arithmeticInterpretation)).mpr
-    ⟨1, le_rfl, addition, fun _ => rfl⟩
+    ⟨addition, fun _ => rfl, le_rfl⟩
 
-def redundant : Circuit arithmeticSignature 0 2 2 where
+def redundant : Circuit arithmeticSignature 0 2 where
   program := .gate (.gate .empty ⟨.zero false, Fin.elim0⟩) ⟨.zero true, Fin.elim0⟩
   outputs := Wire.gate
 
@@ -60,11 +58,11 @@ example : ¬ redundant.Irredundant arithmeticInterpretation := by
   contradiction
 
 -- Normalization preserves all outputs together over the infinite carrier.
-example : ∃ k ≤ 2, ∃ c : Circuit arithmeticSignature 0 k 2,
+example : ∃ c : Circuit arithmeticSignature 0 2,
     (∀ x j, c.eval arithmeticInterpretation x j = 0) ∧
-      c.Irredundant arithmeticInterpretation := by
-  obtain ⟨k, hk, c, hc, hi⟩ := redundant.exists_irredundant arithmeticInterpretation
-  refine ⟨k, hk, c, ?_, hi⟩
+      c.Irredundant arithmeticInterpretation ∧ c.size ≤ 2 := by
+  obtain ⟨c, hc, hi, hk⟩ := redundant.exists_irredundant arithmeticInterpretation
+  refine ⟨c, ?_, hi, hk⟩
   intro x j
   rw [hc]
   fin_cases j <;> rfl
@@ -79,8 +77,8 @@ example : Fintype.card (Program emptySignature 1 1) = 0 := by decide
 
 example : (fun x : Fin 1 → ℕ => x 0) ∈ computableFunctions emptyInterpretation 1 0 :=
   (mem_computableFunctions (I := emptyInterpretation)).mpr
-    ⟨0, le_rfl, Circuit.id emptySignature 1,
-      by simp [Circuit.Computes, funext_iff, Fin.forall_fin_one]⟩
+    ⟨Circuit.id emptySignature 1, by simp [Circuit.Computes, funext_iff, Fin.forall_fin_one],
+      le_rfl⟩
 
 example (s : ℕ) : (computableFunctions emptyInterpretation 0 s).card * s.factorial ≤
     (s + 1) * s ^ s * s := by
@@ -105,18 +103,16 @@ abbrev binarySignature : Signature where
 def nandInterpretation : Interpretation binarySignature Bool := fun _ x => !(x 0 && x 1)
 
 example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Bool) → Bool,
-    ∀ {g} (c : Circuit binarySignature n g 1),
-      c.Computes nandInterpretation (fun x _ => f x) →
-        2 ^ n / (n : ℝ) < (c.size : ℝ) := by
+    ∀ c : Circuit binarySignature n 1,
+      c.Computes nandInterpretation (single f) → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Shannon.exists_hard_function nandInterpretation (fun _ => le_rfl)
 
 def ternaryInterpretation : Interpretation binarySignature (Fin 3) := fun _ x => x 0 + x 1
 
 example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Fin 3) → Fin 3,
-    ∀ {g} (c : Circuit binarySignature n g 1),
-      c.Computes ternaryInterpretation (fun x _ => f x) →
-        3 ^ n / (n : ℝ) < (c.size : ℝ) := by
+    ∀ c : Circuit binarySignature n 1,
+      c.Computes ternaryInterpretation (single f) → 3 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Shannon.exists_hard_function ternaryInterpretation (fun _ => le_rfl)
 
