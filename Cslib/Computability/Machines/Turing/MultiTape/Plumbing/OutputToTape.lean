@@ -6,8 +6,7 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
-public import Mathlib.Algebra.BigOperators.Fin
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
+public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
 /-!
 # Redirecting the output to a work tape
@@ -28,10 +27,9 @@ variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 
 /-- `tm`, with its output writes redirected onto a fresh last work tape, whose head always stands
 at the write frontier. -/
-@[expose] public def outputToTape (tm : MultiTapeTM k Symbol State) :
-    MultiTapeTM (k + 1) Symbol State where
-  q₀ := tm.q₀
-  tr q inp work :=
+@[expose] public noncomputable def outputToTape (tm : MultiTapeTM k Symbol State) :
+    MultiTapeTM (k + 1) Symbol State :=
+  ofTr tm.q₀ fun q inp work =>
     let a := tm.tr q inp fun j => work j.castSucc
     { inputTape := a.inputTape
       workTapes := Fin.lastCases
@@ -86,8 +84,8 @@ public lemma step_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol Sta
   cases hq : c.state with
   | none => simp [outCfg, hq]
   | some q =>
-    rw [step_apply_of_state (cfg := outCfg c) hq, step_apply_of_state hq]
-    simp only [outputToTape, outCfg_inputSymbol, outCfg_workTapeSymbols_castSucc]
+    rw [step_of_state (cfg := outCfg c) hq, step_of_state hq]
+    simp only [outputToTape, tr_ofTr, outCfg_inputSymbol, outCfg_workTapeSymbols_castSucc]
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases with
     | cast j => simp
     | last =>
@@ -109,7 +107,7 @@ public lemma step_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
   cases hq : c.state with
   | none => simp [hq]
   | some q =>
-    rw [step_apply_of_state (cfg := c.withOutput out) hq, step_apply_of_state hq]
+    rw [step_of_state (cfg := c.withOutput out) hq, step_of_state hq]
     exact Cfg.ext rfl rfl rfl rfl (by simp [outputToTape])
 
 /-- The redirected run commutes with the real output already present. -/
@@ -132,7 +130,7 @@ end WithOutput
 public lemma initCfg_outputToTape (tm : MultiTapeTM k Symbol State) (input : List Symbol) :
     tm.outputToTape.initCfg input = outCfg (tm.initCfg input) := by
   refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
-    simp [initCfg, Cfg.init]
+    simp [MultiTapeNTM.initCfg, Cfg.init]
 
 /-- **Space of the output-redirected machine.** The `k` inner tapes visit exactly what the original
 does, and the frontier head only walks between the initial and the final length of the output, so

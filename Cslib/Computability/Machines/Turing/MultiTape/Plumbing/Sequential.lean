@@ -36,10 +36,9 @@ variable {k : ℕ} {Symbol State₀ State₁ : Type*} {input : List Symbol}
 /-- The sequential composition of `tm₀` and `tm₁`: it behaves like `tm₀` until `tm₀` would halt,
 at which point it switches to the initial state of `tm₁` and behaves like `tm₁`. The switch is
 folded into the halting transition of `tm₀`, so it costs no step. -/
-def seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁) :
-    MultiTapeTM k Symbol (State₀ ⊕ State₁) where
-  q₀ := .inl tm₀.q₀
-  tr q inp work :=
+noncomputable def seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁) :
+    MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
+  ofTr (.inl tm₀.q₀) fun q inp work =>
     match q with
     | .inl q₀ =>
       let a := tm₀.tr q₀ inp work
@@ -70,7 +69,8 @@ lemma step_leftCfg (cfg : Cfg k Symbol State₀ input) (h : cfg.state ≠ none) 
   obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp h
   have h1 : (leftCfg tm₁ cfg).state = some (Sum.inl q : State₀ ⊕ State₁) := by
     simp [leftCfg, Cfg.mapState, hq]
-  simp only [step, h1, hq]
+  rw [step_of_state h1, step_of_state hq]
+  simp only [seq, tr_ofTr]
   rfl
 
 lemma step_rightCfg (cfg : Cfg k Symbol State₁ input) :
@@ -78,11 +78,12 @@ lemma step_rightCfg (cfg : Cfg k Symbol State₁ input) :
   cases hq : cfg.state with
   | none =>
     have h1 : (rightCfg (State₀ := State₀) cfg).state = none := by simp [rightCfg, Cfg.mapState, hq]
-    simp only [step, h1, hq]
+    rw [step_of_halt h1, step_of_halt hq]
   | some q =>
     have h1 : (rightCfg (State₀ := State₀) cfg).state = some (Sum.inr q : State₀ ⊕ State₁) := by
       simp [rightCfg, hq]
-    simp only [step, h1, hq]
+    rw [step_of_state h1, step_of_state hq]
+    simp only [seq, tr_ofTr]
     rfl
 
 /-- The second phase of `seq` mirrors the run of `tm₁`. -/
