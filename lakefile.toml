@@ -26,6 +26,9 @@ name = "Cslib"
 [[lean_lib]]
 name = "CslibTests"
 leanOptions = {weak.linter.style.header = false}
+# The test files do not use the module system, but they import Mathlib, whose package sets
+# `requiresModuleSystem`.
+allowNonModules = true
 
 [[lean_exe]]
 name = "checkInitImports"
