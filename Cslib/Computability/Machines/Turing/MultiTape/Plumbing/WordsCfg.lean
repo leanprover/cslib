@@ -72,6 +72,12 @@ lemma mapState_wordsCfg {State' : Type*} (φ : Option State → Option State')
     (input : List Symbol) (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol) :
     (wordsCfg input q ws out).mapState φ = wordsCfg input (φ q) ws out := rfl
 
+/-- Changing the state of a `wordsCfg` leaves the words alone. -/
+@[simp]
+lemma withState_wordsCfg {State' : Type*} (input : List Symbol) (q : Option State)
+    (ws : Fin k → List Symbol) (out : List Symbol) (q' : Option State') :
+    (wordsCfg input q ws out).withState q' = wordsCfg input q' ws out := rfl
+
 /-- The initial configuration is the word configuration with blank tapes and no output. -/
 lemma Cfg.init_eq_wordsCfg (q₀ : State) (input : List Symbol) :
     Cfg.init (k := k) q₀ input = wordsCfg input (some q₀) (fun _ => []) [] := by
