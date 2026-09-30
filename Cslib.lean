@@ -42,6 +42,7 @@ public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 public import Cslib.Computability.Circuit.Boolean.Shannon
 public import Cslib.Computability.Circuit.Boolean.Synthesis
 public import Cslib.Computability.Circuit.Counting
+public import Cslib.Computability.Circuit.Depth
 public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Normalization
