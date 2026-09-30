@@ -12,11 +12,11 @@ public import Mathlib.MeasureTheory.Measure.Dirac.Basic
 
 /-! # Measures supported on finite sets
 
-A measure that vanishes off a finite set behaves like a discrete measure:
-every set is null-measurable, and this transfers to finite products. These
-facts let sample-complexity arguments in learning theory measure failure
-events of *arbitrary* (non-measurable) learners under finitely supported
-adversarial distributions.
+For a measure that vanishes off a finite set, every set is null-measurable if
+singletons are measurable. Finite support is preserved by finite products of
+sigma-finite measures. These facts let sample-complexity arguments in learning
+theory measure failure events of *arbitrary* (non-measurable) learners under
+finitely supported adversarial distributions.
 
 `HasFiniteSupport` records this property as a typeclass, with an instance for
 finite products.
@@ -24,12 +24,14 @@ finite products.
 ## Main statements
 
 - `MeasureTheory.HasFiniteSupport`: a measure vanishes off some finite set.
-- `MeasureTheory.HasFiniteSupport.exists_eq_sum_smul_dirac`: a measure with finite support
-  is a finite sum of Dirac measures weighted by its singleton masses.
+- `MeasureTheory.HasFiniteSupport.exists_eq_sum_smul_dirac`: on a space with measurable
+  singletons, a measure with finite support is a finite sum of Dirac measures weighted by
+  its singleton masses.
 - `MeasureTheory.HasFiniteSupport.isFiniteMeasure`: a sigma-finite measure with finite
   support is finite.
-- `MeasureTheory.NullMeasurableSet.of_hasFiniteSupport`: every set is
-  null-measurable for a measure with finite support, including finite products.
+- `MeasureTheory.NullMeasurableSet.of_hasFiniteSupport`: on a space with measurable
+  singletons, every set is null-measurable for a measure with finite support,
+  including finite products.
 -/
 
 @[expose] public section
@@ -44,8 +46,9 @@ class HasFiniteSupport {α : Type*} [MeasurableSpace α] (μ : Measure α) : Pro
   /-- Some finite set has null complement. -/
   exists_finite_measure_compl_zero : ∃ s : Set α, s.Finite ∧ μ sᶜ = 0
 
-/-- A measure with finite support is a finite sum of Dirac measures weighted by its
-singleton masses. This is `Measure.ae_mem_finset_iff` applied to a finite support. -/
+/-- On a space with measurable singletons, a measure with finite support is a finite sum
+of Dirac measures weighted by its singleton masses. This is `Measure.ae_mem_finset_iff`
+applied to a finite support. -/
 theorem HasFiniteSupport.exists_eq_sum_smul_dirac {α : Type*} [MeasurableSpace α]
     [MeasurableSingletonClass α] (μ : Measure α) [HasFiniteSupport μ] :
     ∃ s : Finset α, μ = ∑ a ∈ s, μ {a} • Measure.dirac a := by
@@ -63,7 +66,8 @@ instance (priority := 100) HasFiniteSupport.isFiniteMeasure {α : Type*} [Measur
     refine measure_union_lt_top ?_ (by simp [hμ])
     simpa using measure_biUnion_lt_top hs (fun a _ ↦ measure_singleton_lt_top (μ := μ) (a := a))
 
-/-- Every set is null-measurable for a measure with finite support. -/
+/-- On a space with measurable singletons, every set is null-measurable for a measure
+with finite support. -/
 theorem NullMeasurableSet.of_hasFiniteSupport {α : Type*} [MeasurableSpace α]
     [MeasurableSingletonClass α] {μ : Measure α} [HasFiniteSupport μ]
     (t : Set α) : NullMeasurableSet t μ := by
