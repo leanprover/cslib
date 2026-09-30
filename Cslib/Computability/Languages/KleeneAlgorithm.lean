@@ -51,15 +51,52 @@ namespace List
 variable {α : Type*}
 
 def AllButFirstLast (p : α → Bool) (as : List α) : Prop :=
-  ∀ i, ∀ _ : 0 < i ∧ i + 1 < as.length, p as[i]
+  ∀ i, ∀ _ : i + 1 + 1 < as.length, p as[i + 1] = true
+  -- ∀ i, ∀ _ : 0 < i ∧ i + 1 < as.length, p as[i]
 
 def findIdxButFirst (p : α → Bool) (as : List α) : ℕ :=
   as.tail.findIdx p + 1
+
+-- theorem findIdxButFirst_ne_zero (p : α → Bool) (as : List α) :
+--     findIdxButFirst p as ≠ 0 := by
+--   rw [findIdxButFirst]
+--   omega
+
+theorem findIdxButFirst_succ (p : α → Bool) (as : List α) :
+    ∃ (i : ℕ), findIdxButFirst p as = i + 1 := ⟨as.tail.findIdx p, by rw [findIdxButFirst]⟩
+
+theorem findIdxButFirst_lt_length (p : α → Bool) (as : List α) :
+    findIdxButFirst p as < as.length ↔ ∃ x ∈ as.tail, p x = true := by
+  simp only [findIdxButFirst, ← findIdx_lt_length, length_tail]
+  omega
+
+theorem findIdxButFirst_eq {p : α → Bool} {as : List α} {i : ℕ} (h : i + 1 < as.length) :
+    findIdxButFirst p as = i + 1 ↔ p as[i + 1] = true ∧
+    ∀ (j : ℕ) (hji : j < i), p as[j + 1] = false := by
+  rw [findIdxButFirst, (by omega : findIdx p as.tail + 1 = i + 1 ↔ findIdx p as.tail = i),
+    findIdx_eq (by grind)]
+  simp only [getElem_tail]
+
+-- theorem findIdxButFirst_spec {p : α → Bool} {as : List α} (h : findIdxButFirst p as < as.length) :
+--     p as[findIdxButFirst p as] = true ∧
+--     ∀ (j : ℕ) (hj : 0 < j) (hji : j < findIdxButFirst p as), p as[j] = false := by
+--   #check Nat.exists_eq_succ_of_ne_zero
+--   obtain ⟨i, hi⟩ := Nat.exists_eq_succ_of_ne_zero (findIdxButFirst_ne_zero p as)
 
 def revFindIdxButLast (p : α → Bool) (as : List α) : ℕ :=
   as.length - as.reverse.findIdxButFirst p
 
 end List
+
+-- namespace Cslib.Language
+
+-- -- Somehow Lean does not translate the membership in this simpler statement
+-- -- `x ∈ ({x | p x} : Language α) ↔ p x` as in `Language` but as in `Set (List α)`.
+-- @[simp]
+-- theorem mem_ofPred_eq {α : Type*} (p : List α → Prop) (x : List α) :
+--     @Membership.mem (List α) (Language α) Language.instMembershipList {x | p x} x ↔ p x := Iff.rfl
+
+-- end Cslib.Language
 
 variable {Symbol : Type*} {n : ℕ}
 
@@ -69,7 +106,7 @@ namespace Cslib.LTS
 
 def BddExec (lts : LTS (Fin n) Symbol) (start : Fin n) (xs : List Symbol) (last : Fin n)
     (ss : List (Fin n)) (bound : ℕ) : Prop :=
-  lts.Execution start xs last ss ∧ ss.AllButFirstLast (· < bound)
+  lts.Execution start xs last ss ∧ ss.AllButFirstLast (fun (s : Fin n) ↦ s < bound)
 
 def BddLang (lts : LTS (Fin n) Symbol) (start last : Fin n) (bound : ℕ) : Language Symbol :=
   { xs | ∃ ss, lts.BddExec start xs last ss bound }
@@ -77,9 +114,10 @@ def BddLang (lts : LTS (Fin n) Symbol) (start last : Fin n) (bound : ℕ) : Lang
 open Automata Acceptor
 
 theorem bddLang_eq_language_nfa (lts : LTS (Fin n) Symbol) (s t : Fin n) {r : ℕ} (hk : n ≤ r) :
-    BddLang lts s t r =
+    lts.BddLang s t r =
     language (NA.FinAcc.mk {Tr := lts.Tr, start := {s}} {t}) := by
-  simp [BddLang, BddExec, language, Accepts]
+  rw [BddLang]
+  unfold BddExec
   sorry
 
 section splitFirst
@@ -90,20 +128,77 @@ def splitFirstTake (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Sym
 def splitFirstDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
   xs.drop (ss.findIdxButFirst (· = r))
 
-theorem splitFirstTake_mem {lts : LTS (Fin n) Symbol} {s t r : Fin n} {xs : List Symbol}
+theorem splitFirst_mem {lts : LTS (Fin n) Symbol} {s t r : Fin n} {xs : List Symbol}
     {ss : List (Fin n)} (hex : lts.Execution s xs t ss)
-    (hbdd : ∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val + 1)
-    (hbdd' : ¬(∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val)) :
-    splitFirstTake xs ss r ∈ BddLang lts s r r := by sorry
-
-theorem splitFirstDrop_mem {lts : LTS (Fin n) Symbol} {s t r : Fin n} {xs : List Symbol}
-    {ss : List (Fin n)} (hex : lts.Execution s xs t ss)
-    (hbdd : ∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val + 1)
-    (hbdd' : ¬(∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val)) :
-    splitFirstDrop xs ss r ∈ BddLang lts s r (r + 1) := by sorry
+    (hbdd : AllButFirstLast (· ≤ r) ss) (hbdd' : ¬AllButFirstLast (· < r) ss) :
+    splitFirstTake xs ss r ∈ lts.BddLang s r r ∧
+    splitFirstDrop xs ss r ∈ lts.BddLang r t (r + 1) := by
+  have exists_tail : ∃ x ∈ ss.tail, decide (x = r) = true := by
+    by_contra! hne
+    simp only [AllButFirstLast, decide_eq_true_eq, not_forall] at hbdd'
+    obtain ⟨i, hi, hnlt⟩ := hbdd'
+    have hlen : i < ss.tail.length := by grind
+    have hle := hbdd i hi
+    have hne := hne ss.tail[i] (List.getElem_mem hlen)
+    simp only [decide_eq_true_eq, getElem_tail, ne_eq] at hle hne hnlt
+    have hlt := lt_of_le_of_ne hle hne
+    contradiction
+  obtain ⟨i, hi⟩ := List.findIdxButFirst_succ (· = r) ss
+  have hi_len : i + 1 < ss.length :=
+    hi ▸ (findIdxButFirst_lt_length (· = r) ss).mpr exists_tail
+  have hi_len' : i < xs.length := by simpa [hex.length] using hi_len
+  obtain ⟨hi_spec, hi_min⟩ := (findIdxButFirst_eq hi_len).mp hi
+  rw [decide_eq_true_eq] at hi_spec
+  constructor
+  · use ss.take (ss.findIdxButFirst (· = r) + 1)
+    refine ⟨by simpa [splitFirstTake, hi, hi_spec] using (hex.split (i + 1) hi_len').1,
+      fun j hj ↦ ?_⟩
+    simp only [hi, length_take, lt_min_iff, Order.lt_add_one_iff, add_le_add_iff_right,
+      Order.add_one_le_iff] at hj
+    simpa using lt_of_le_of_ne (by simpa using hbdd j hj.2) (by simpa using hi_min j hj.1)
+  · use ss.drop (ss.findIdxButFirst (· = r))
+    refine ⟨by simpa [splitFirstDrop, hi, hi_spec] using (hex.split (i + 1) hi_len').2,
+      fun j hj ↦ ?_⟩
+    have hj_len : (ss.findIdxButFirst (· = r) + j) + 1 + 1 < ss.length := by
+      simp only [length_drop] at hj
+      omega
+    simpa [← add_assoc] using hbdd (ss.findIdxButFirst (· = r) + j) hj_len
 
 theorem bddLang_splitFirst (lts : LTS (Fin n) Symbol) (s t r : Fin n) :
-    lts.BddLang s t (r + 1) = lts.BddLang s r r * lts.BddLang r t (r + 1) := by sorry
+    lts.BddLang s t (r + 1) = lts.BddLang s t r + lts.BddLang s r r * lts.BddLang r t (r + 1) := by
+  ext xs
+  rw [Language.mem_add, Language.mem_mul]
+  constructor
+  · intro ⟨ss, hex, hbdd⟩
+    by_cases hbdd' : AllButFirstLast (· < r) ss
+    · left; exact ⟨ss, hex, hbdd'⟩
+    right
+    simp only [Order.lt_add_one_iff, Fin.val_fin_le] at hbdd
+    use splitFirstTake xs ss r, (splitFirst_mem hex hbdd hbdd').1,
+      splitFirstDrop xs ss r, (splitFirst_mem hex hbdd hbdd').2, take_append_drop _ _
+  · rintro (h_left | ⟨ys, ⟨ssy, hyex, hybdd⟩, ⟨zs, ⟨ssz, hzex, hzbdd⟩, happend⟩⟩)
+    · obtain ⟨ss, hex, hbdd⟩ := h_left
+      refine ⟨ss, hex, fun j hj ↦ ?_⟩
+      have hlt := hbdd j hj
+      simp only [Fin.val_fin_lt, decide_eq_true_eq, Order.lt_add_one_iff, Fin.val_fin_le,
+        ge_iff_le] at hlt ⊢
+      exact le_of_lt hlt
+    · refine ⟨ssy ++ ssz.tail, by simpa [happend] using hyex.comp hzex, fun i hi ↦ ?_⟩
+      simp only [AllButFirstLast, Fin.val_fin_lt, decide_eq_true_eq, Order.lt_add_one_iff,
+        Fin.val_fin_le] at hybdd hzbdd ⊢
+      rw [List.getElem_append]
+      rcases lt_trichotomy (i + 1 + 1) ssy.length with h | h | h
+      · simp only [(by omega : i + 1 < ssy.length), ↓reduceDIte]
+        apply le_of_lt
+        exact hybdd i h
+      · simp only [(by omega : i + 1 < ssy.length), ↓reduceDIte]
+        apply le_of_eq
+        simpa [(by omega : i + 1 = ssy.length - 1)] using hyex.last
+      · have hlen : ¬i + 1 < ssy.length := by omega
+        simp only [hlen, ↓reduceDIte, getElem_tail]
+        refine hzbdd (i + 1 - ssy.length) ?_
+        simp only [length_append, length_tail] at hi
+        omega
 
 end splitFirst
 
@@ -116,17 +211,24 @@ def splitLastDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symb
   xs.drop (ss.revFindIdxButLast (· = r))
 
 theorem splitLastTake_mem {lts : LTS (Fin n) Symbol} {t r : Fin n} {xs : List Symbol}
-    {ss : List (Fin n)} (hex : lts.Execution r xs t ss)
-    (hbdd : ∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val + 1) :
-    splitLastTake xs ss r ∈ BddLang lts r r (r + 1) := by sorry
+    {ss : List (Fin n)} (hex : lts.Execution r xs t ss) (hbdd : AllButFirstLast (· ≤ r) ss) :
+    splitLastTake xs ss r ∈ BddLang lts r r (r + 1) := by
+  sorry
 
 theorem splitLastDrop_mem {lts : LTS (Fin n) Symbol} {t r : Fin n} {xs : List Symbol}
-    {ss : List (Fin n)} (hex : lts.Execution r xs t ss)
-    (hbdd : ∀ i, ∀ _ : 0 < i ∧ i + 1 < ss.length, ss[i] < r.val + 1) :
+    {ss : List (Fin n)} (hex : lts.Execution r xs t ss) (hbdd : AllButFirstLast (· ≤ r) ss) :
     splitLastDrop xs ss r ∈ BddLang lts r t r := by sorry
 
 theorem bddLang_splitLast (lts : LTS (Fin n) Symbol) (t r : Fin n) :
-    lts.BddLang r t (r + 1) = lts.BddLang r r (r + 1) * lts.BddLang r t r := by sorry
+    lts.BddLang r t (r + 1) = lts.BddLang r r (r + 1) * lts.BddLang r t r := by
+  ext xs
+  rw [Language.mem_mul]
+  constructor
+  · intro ⟨ss, hex, hbdd⟩
+    simp only [Order.lt_add_one_iff, Fin.val_fin_le] at hbdd
+    use splitLastTake xs ss r, (splitLastTake_mem hex hbdd),
+      splitLastDrop xs ss r, (splitLastDrop_mem hex hbdd), take_append_drop _ _
+  · sorry
 
 end splitLast
 
