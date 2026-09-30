@@ -77,12 +77,12 @@ example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by
 open scoped Bisimilarity in
 example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by grind
 
--- Existing named arguments remain available after generalizing the state types.
+-- The named state-type arguments match the heterogeneous symmetry statements.
 example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ :=
-  SimulationEquiv.symm (State := State₁) (s2 := s₂) h
+  SimulationEquiv.symm (State₁ := State₁) (s2 := s₂) h
 
 example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ :=
-  Bisimilarity.symm (State := State₁) h
+  Bisimilarity.symm (State₁ := State₁) h
 
 end Heterogeneous
 

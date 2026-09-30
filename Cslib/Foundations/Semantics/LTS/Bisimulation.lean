@@ -193,13 +193,13 @@ theorem HomBisimilarity.refl (s : State) : s ~[lts] s := by
 theorem IsBisimulation.inv (h : IsBisimulation lts₁ lts₂ r) :
   IsBisimulation lts₂ lts₁ (flip r) := by grind [IsBisimulation, flip]
 
+open scoped IsBisimulation in
 /-- Bisimilarity is symmetric. -/
 @[scoped grind →, symm]
-theorem Bisimilarity.symm {State State₂ : Type*}
-    {lts₁ : LTS State Label} {lts₂ : LTS State₂ Label} {s₁ : State} {s₂ : State₂}
+theorem Bisimilarity.symm {State₁ State₂ : Type*}
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s₁ : State₁} {s₂ : State₂}
     (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by
-  obtain ⟨r, hr, hb⟩ := h
-  exact ⟨flip r, hr, hb.inv⟩
+  grind [flip]
 
 /-- The composition of two bisimulations is a bisimulation. -/
 @[scoped grind .]
