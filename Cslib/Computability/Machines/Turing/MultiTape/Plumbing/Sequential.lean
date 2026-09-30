@@ -181,8 +181,7 @@ theorem transformsTapes_seq
     rw [hright, hrun₁]
     rfl
   refine ⟨ws'', ?_, ⟨ws', hQ₀, hQ₁⟩, ?_⟩
-  · rw [runFrom_eq_of_halt _ _ (by omega : u + t₁ ≤ t₀ + t₁) hhalt, hright, hrun₁]
-    rfl
+  · exact runFrom_seq hrun₀ rfl (by simpa using hrun₁) rfl
   · rw [spaceUsed_eq_of_halt _ (by omega : u + t₁ ≤ t₀ + t₁) hhalt]
     refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
     · -- the first phase visits what the first machine visits
