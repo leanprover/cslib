@@ -17,7 +17,7 @@ In paricular, we prove that:
 
   Linearizability → SequentialConsistency → CausalConsistency → BasicEventualConsistency
 
-Our proofs follow closely the proof of Proposition 5.1 of [Burckhardt2014].
+Our proofs follow closely the proofs of Lemma 5.1 and Proposition 5.1 of [Burckhardt2014].
 
 ## References
 
