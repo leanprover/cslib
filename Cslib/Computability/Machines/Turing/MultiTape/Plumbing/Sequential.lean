@@ -129,19 +129,18 @@ theorem transformsTapes_seq
   obtain ⟨ws', hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
   obtain ⟨ws'', hrun₁, hQ₁, hspace₁⟩ := h₁ input ws' out (hmid input ws ws' hP₀ hQ₀)
   -- the first halting time of the first machine, which may be earlier than `t₀`
-  obtain ⟨u, hu, huhalt, huactive⟩ := exists_minimal_halting_time tm₀
-    (wordsCfg input (some tm₀.q₀) ws out) t₀ (by simp [hrun₀])
+  obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt
+    (show (tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) t₀).Halted by rw [hrun₀]; rfl)
   have hu_run : tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) u =
       wordsCfg input none ws' out := by
-    rw [← runFrom_eq_of_halt tm₀ _ hu huhalt, hrun₀]
+    rw [← hhaltsAt.runFrom_eq hu, hrun₀]
   -- the first phase mirrors the first machine, ending in the handoff configuration
   have hleft : ∀ m ≤ u, (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out) m
       = leftCfg tm₁ (tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) m) := by
     intro m hm
     have : wordsCfg (State := State₀ ⊕ State₁) input (some (tm₀.seq tm₁).q₀) ws out =
         leftCfg tm₁ (wordsCfg input (some tm₀.q₀) ws out) := rfl
-    rw [this, runFrom_leftCfg _ m fun r hr =>
-      huactive r (by omega)]
+    rw [this, runFrom_leftCfg _ m fun _ hr => hhaltsAt.not_halted (by omega)]
   -- the handoff configuration is the second machine's start, seen through the right embedding
   have hhandoff : (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out) u =
       rightCfg (wordsCfg input (some tm₁.q₀) ws' out) := by
