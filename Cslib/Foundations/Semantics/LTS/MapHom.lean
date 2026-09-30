@@ -44,10 +44,10 @@ a language homomorphism. -/
 theorem mapHom_mTr {lts : LTS State Label₁} {μs : List Label₂} :
     (lts.mapHom f).MTr s μs s' ↔ lts.MTr s (f μs) s' := by
   induction μs generalizing s with
-  | nil => simp only [Hom.map_nil, MTr.nil_iff]
+  | nil => simp
   | cons μ μs ih =>
     rw [Hom.map_cons, MTr.append_iff, MTr.cons_iff]
-    simp only [mapHom_tr, ih]
+    simp [ih]
 
 end MapHom
 
