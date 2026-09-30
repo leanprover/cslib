@@ -94,6 +94,22 @@ lemma singleOrder_readMyWrites_imp_causalArbitration
   intro _ _ _
   grind
 
+lemma causalVisibility_imp_readMyWrites
+    (h : a.CausalVisibility) : a.ReadMyWrites := by
+  intro s x y h_so
+  exact h s x y <| TransGen.single (Or.inl h_so)
+
+lemma causalVisibility_imp_monotonicReads
+    (h : a.CausalVisibility) : a.MonotonicReads := by
+  intro s x y z h_vis h_so
+  exact h s x z <| TransGen.tail (TransGen.single (Or.inr h_vis)) (Or.inl h_so)
+
+lemma causalVisibility_imp_noCircularCausality
+    (h : a.CausalVisibility) : a.NoCircularCausality := by
+  intro s
+  have : a.hb s ≤ a.vis := by grind [CausalVisibility]
+  grind [a.vis_acyclic, acyclic_le]
+
 lemma singleOrder_readMyWrites_imp_causalVisibility
     (h1 : a.SingleOrder) (h2 : a.ReadMyWrites) : a.CausalVisibility := by
   intro s
@@ -129,14 +145,9 @@ theorem sequentialConsistency_imp_causalConsistency
   grind [SequentialConsistency, CausalConsistency, Causality, singleOrder_imp_eventualVisibility,
     singleOrder_readMyWrites_imp_causalArbitration, singleOrder_readMyWrites_imp_causalVisibility]
 
-lemma causality_imp_noCircularCausality
-    (h : a.Causality) : a.NoCircularCausality := by
-  intro s
-  have : a.hb s ≤ a.vis := by grind [Causality, CausalVisibility]
-  grind [a.vis_acyclic, acyclic_le]
-
 theorem causalConsistency_imp_basicEventualConsistency
     (h : a.CausalConsistency d) : a.BasicEventualConsistency d := by
-  grind [CausalConsistency, BasicEventualConsistency, causality_imp_noCircularCausality]
+  grind [CausalConsistency, BasicEventualConsistency,
+    Causality, causalVisibility_imp_noCircularCausality]
 
 end Cslib.DistributedConsistency
