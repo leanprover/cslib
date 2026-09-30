@@ -6,6 +6,7 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
 /-!
@@ -30,8 +31,6 @@ is read off the equation, not re-established cell by cell.
 
 ## Main definitions
 
-* `Turing.tapeOfList`: the tape holding exactly a given word.
-* `Turing.wordsCfg`: the configuration whose tapes hold given words.
 * `Turing.MultiTapeTM.TransformsTapes`: the specification format described above.
 * `Turing.MultiTapeTM.nop`: the machine that does nothing.
 

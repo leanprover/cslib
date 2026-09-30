@@ -120,15 +120,9 @@ Given a phase space (P, ⊥) and a family of subsets (Gᵢ) of P indexed by i �
 -/
 lemma orth_iUnion {ι : Sort*} (G : ι → Set P) :
     (⋃ i, G i)⫠ = ⋂ i, (G i)⫠ := by
-  ext m; constructor
-  · intro hm
-    have hm' : ∀ x ∈ ⋃ j, G j, m * x ∈ PhaseSpace.bot := by grind
-    refine mem_iInter.mpr (fun i => ?_)
-    exact fun x hx => hm' x (mem_iUnion.mpr ⟨i, hx⟩)
-  · intro hm x hx
-    rcases mem_iUnion.mp hx with ⟨i, hix⟩
-    have hmi : m ∈ (G i)⫠ := mem_iInter.mp hm i
-    grind
+  ext m
+  simp only [orthogonal_def, mem_iInter, mem_iUnion, forall_exists_index]
+  exact forall_comm
 
 /--
 Given a phase space (P, ⊥) and a family of subsets (Gᵢ) of P indexed by i ∈ I, we have that
@@ -246,20 +240,8 @@ instance : Bot (Fact P) where
 /-- In a phase space, `G⫠⫠` is the smallest fact containing `G`. -/
 lemma biorth_least_fact (G : Set P) :
       ∀ {F : Set P}, isFact F → G ⊆ F → G⫠⫠ ⊆ F := by
-  let c : ClosureOperator (Set P) := biorthogonalClosure
-  have h_min :
-      ∀ {F : Set P}, isFact F → G ⊆ F → G⫠⫠ ⊆ F := by
-    intro F hF hGF
-    #adaptation_note
-    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-    have : F = c F := by
-      simp only [isFact] at hF
-      rw [hF]
-      symm at hF ⊢
-      apply ClosureOperator.IsClosed.closure_eq (congrArg orthogonal (congrArg orthogonal hF))
-    have hF_closed : c.IsClosed F := (c.isClosed_iff).2 this.symm
-    simpa [c] using! ClosureOperator.closure_min hGF hF_closed
-  apply h_min
+  intro F hF hGF
+  exact biorthogonalClosure.closure_min hGF hF.symm
 
 /-- `0` is the least fact (w.r.t. inclusion). -/
 lemma zero_least_fact :
@@ -269,23 +251,15 @@ lemma zero_least_fact :
   simpa using h
 
 lemma isFact_iff_closed (X : Set P) :
-  isFact X ↔ biorthogonalClosure.IsClosed X := by
-  constructor <;> (intro; simp only [isFact, biorthogonalClosure]; symm; assumption)
+  isFact X ↔ biorthogonalClosure.IsClosed X := eq_comm
 
 /-- Arbitrary intersections of facts are facts. -/
 lemma sInf_isFact {S : Set (Fact P)} :
   isFact (sInf ((fun F : Fact P => (F : Set P)) '' S)) := by
-  have H' :
-      ∀ X ∈ ((fun F : Fact P => (F : Set P)) '' S),
-        biorthogonalClosure.IsClosed X := by
-    intro X hX
-    rcases hX with ⟨F, hF, rfl⟩
-    exact (isFact_iff_closed (X := (F : Set P))).1 F.property
-  have hclosed :biorthogonalClosure.IsClosed (sInf ((fun F : Fact P => (F : Set P)) '' S)) :=
-    ClosureOperator.sInf_isClosed
-      (c := biorthogonalClosure) (S := ((fun F : Fact P => (F : Set P)) '' S)) H'
-  -- translate back to `isFact`
-  exact (isFact_iff_closed (X := sInf ((fun F : Fact P => (F : Set P)) '' S))).2 hclosed
+  rw [isFact_iff_closed]
+  apply ClosureOperator.sInf_isClosed
+  rintro _ ⟨F, _, rfl⟩
+  exact (isFact_iff_closed _).1 F.property
 
 /-- Intersection of the carriers of a set of facts. -/
 def carriersInf (S : Set (Fact P)) : Set P :=
