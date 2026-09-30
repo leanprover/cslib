@@ -8,6 +8,7 @@ module
 
 public import Cslib.Init
 public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Dirac.Basic
 
 /-! # Measures supported on finite sets
 
@@ -23,13 +24,13 @@ finite products.
 ## Main statements
 
 - `MeasureTheory.HasFiniteSupport`: a measure vanishes off some finite set.
+- `MeasureTheory.HasFiniteSupport.exists_eq_sum_smul_dirac`: a measure with finite support
+  is a finite sum of Dirac measures weighted by its singleton masses.
 - `MeasureTheory.NullMeasurableSet.of_hasFiniteSupport`: every set is
   null-measurable for a measure with finite support, including finite products.
 
 ## TODO
 
-- Measures with finite support are finite sums of Dirac measures
-  (cf `MeasureTheory.Measure.ae_mem_finset_iff`).
 - Sigma-finite measures with finite support are finite.
 -/
 
@@ -44,6 +45,16 @@ namespace MeasureTheory
 class HasFiniteSupport {α : Type*} [MeasurableSpace α] (μ : Measure α) : Prop where
   /-- Some finite set has null complement. -/
   exists_finite_measure_compl_zero : ∃ s : Set α, s.Finite ∧ μ sᶜ = 0
+
+/-- A measure with finite support is a finite sum of Dirac measures weighted by its
+singleton masses. This is `Measure.ae_mem_finset_iff` applied to a finite support. -/
+theorem HasFiniteSupport.exists_eq_sum_smul_dirac {α : Type*} [MeasurableSpace α]
+    [MeasurableSingletonClass α] (μ : Measure α) [HasFiniteSupport μ] :
+    ∃ s : Finset α, μ = ∑ a ∈ s, μ {a} • Measure.dirac a := by
+  obtain ⟨s, hs, hμ⟩ := HasFiniteSupport.exists_finite_measure_compl_zero (μ := μ)
+  refine ⟨hs.toFinset, Measure.ae_mem_finset_iff.mp ?_⟩
+  change μ (hs.toFinset : Set α)ᶜ = 0
+  simpa using hμ
 
 /-- Every set is null-measurable for a measure with finite support. -/
 theorem NullMeasurableSet.of_hasFiniteSupport {α : Type*} [MeasurableSpace α]
