@@ -25,6 +25,12 @@ finite products.
 - `MeasureTheory.HasFiniteSupport`: a measure vanishes off some finite set.
 - `MeasureTheory.NullMeasurableSet.of_hasFiniteSupport`: every set is
   null-measurable for a measure with finite support, including finite products.
+
+## TODO
+
+- Measures with finite support are finite sums of Dirac measures
+  (cf `MeasureTheory.Measure.ae_mem_finset_iff`).
+- Sigma-finite measures with finite support are finite.
 -/
 
 @[expose] public section
@@ -48,12 +54,9 @@ theorem NullMeasurableSet.of_hasFiniteSupport {α : Type*} [MeasurableSpace α]
   exact (hs.subset inter_subset_right).measurableSet.nullMeasurableSet.union_null
     (measure_mono_null (sdiff_subset_compl t s) hμ)
 
-section Pi
-
-variable {ι : Type*} [Fintype ι] {X : ι → Type*} [∀ i, MeasurableSpace (X i)]
-  (μ : ∀ i, Measure (X i)) [∀ i, SigmaFinite (μ i)]
-
-instance [∀ i, HasFiniteSupport (μ i)] : HasFiniteSupport (Measure.pi μ) where
+instance {ι : Type*} [Fintype ι] {X : ι → Type*} [∀ i, MeasurableSpace (X i)]
+    (μ : ∀ i, Measure (X i)) [∀ i, SigmaFinite (μ i)] [∀ i, HasFiniteSupport (μ i)] :
+    HasFiniteSupport (Measure.pi μ) where
   exists_finite_measure_compl_zero := by
     choose s hs hμ using fun i =>
       HasFiniteSupport.exists_finite_measure_compl_zero (μ := μ i)
@@ -62,7 +65,5 @@ instance [∀ i, HasFiniteSupport (μ i)] : HasFiniteSupport (Measure.pi μ) whe
       (measure_iUnion_null fun i => Measure.pi_eval_preimage_null μ (hμ i))
     intro f hf
     simpa using hf
-
-end Pi
 
 end MeasureTheory
