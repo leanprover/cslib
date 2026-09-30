@@ -26,12 +26,10 @@ finite products.
 - `MeasureTheory.HasFiniteSupport`: a measure vanishes off some finite set.
 - `MeasureTheory.HasFiniteSupport.exists_eq_sum_smul_dirac`: a measure with finite support
   is a finite sum of Dirac measures weighted by its singleton masses.
+- `MeasureTheory.HasFiniteSupport.isFiniteMeasure`: a sigma-finite measure with finite
+  support is finite.
 - `MeasureTheory.NullMeasurableSet.of_hasFiniteSupport`: every set is
   null-measurable for a measure with finite support, including finite products.
-
-## TODO
-
-- Sigma-finite measures with finite support are finite.
 -/
 
 @[expose] public section
@@ -55,6 +53,15 @@ theorem HasFiniteSupport.exists_eq_sum_smul_dirac {α : Type*} [MeasurableSpace 
   refine ⟨hs.toFinset, Measure.ae_mem_finset_iff.mp ?_⟩
   change μ (hs.toFinset : Set α)ᶜ = 0
   simpa using hμ
+
+/-- A sigma-finite measure with finite support is finite. -/
+instance (priority := 100) HasFiniteSupport.isFiniteMeasure {α : Type*} [MeasurableSpace α]
+    (μ : Measure α) [HasFiniteSupport μ] [SigmaFinite μ] : IsFiniteMeasure μ where
+  measure_univ_lt_top := by
+    obtain ⟨s, hs, hμ⟩ := HasFiniteSupport.exists_finite_measure_compl_zero (μ := μ)
+    rw [← union_compl_self s]
+    refine measure_union_lt_top ?_ (by simp [hμ])
+    simpa using measure_biUnion_lt_top hs (fun a _ ↦ measure_singleton_lt_top (μ := μ) (a := a))
 
 /-- Every set is null-measurable for a measure with finite support. -/
 theorem NullMeasurableSet.of_hasFiniteSupport {α : Type*} [MeasurableSpace α]
