@@ -47,6 +47,14 @@ lemma tapeOfList_append_single (xs : List Symbol) (x : Symbol) :
   | negSucc n => simp [tapeOfList]
   | ofNat n => grind [tapeOfList]
 
+/-- Blanking the cell at position `n` of the prefix `xs.take (n + 1)` leaves the prefix
+`xs.take n`. -/
+lemma update_tapeOfList_take_succ (xs : List Symbol) (n : ℕ) :
+    Function.update (tapeOfList (xs.take (n + 1))) (n : ℤ) none = tapeOfList (xs.take n) := by
+  funext z
+  cases z <;> simp [Function.update_apply, List.getElem?_take]
+  grind
+
 /-- The blank tape holds the empty word. -/
 @[simp]
 lemma tapeOfList_nil : tapeOfList ([] : List Symbol) = fun _ => none := by
