@@ -71,7 +71,7 @@ lemma simpleDeliver_forallActions (ps : Set P) :
 a pseudo-consensus algorithm tolerating up to `f` faults.  The main difficulty in the proof of
 this theorem is that we need to construct an infinite admissible execution starting from any
 reachable state of `a` using any subset of non-faulty processes.  This is achieved using the
-fair scheduler developed in `FairSchedular.lean`. -/
+fair scheduler developed in `FairScheduler.lean`. -/
 theorem of_consensus [Fintype P] (f : ℕ) (hf : f < card P)
     (hc : a.Consensus f) : a.PseudoConsensus f := by
   obtain ⟨h_safe, h_term⟩ := hc
@@ -108,7 +108,8 @@ theorem of_consensus [Fintype P] (f : ℕ) (hf : f < card P)
   let m := n + xl.length
   use ss' m, b
   split_ands
-  · use (xl ++ω xls.flatten).extract xl.length m, by grind [LTS.OmegaExecution.extract_mTr]
+  · apply CanReachVia.iff_exists_mTr.mpr
+    use (xl ++ω xls.flatten).extract xl.length m, by grind [LTS.OmegaExecution.extract_mTr]
     simp [extract_append_right_right, extract_eq_take,
       List.forall_iff_forall_mem, List.forall_mem_iff_getElem]
     grind

@@ -102,7 +102,7 @@ theorem OnePseudoConsensus.fair_nonUniform_step [Fintype P] (inp : P → Bool)
   grind [Algorithm.nonUniformStep]
 
 /-- Assuming `a.PseudoConsensus 1`, starting from any reachable non-uniform state `s0` of `a`,
-use the fair scheduler developed in `FairSchedular.lean` to construct an infinite fair execution
+use the fair scheduler developed in `FairScheduler.lean` to construct an infinite fair execution
 in which there are infinitely many non-uniform states. -/
 theorem OnePseudoConsensus.fair_nonUniform [Fintype P] (inp : P → Bool)
     (hpc1 : a.PseudoConsensus 1) (s0 : State P M S) (hs0 : a.ReachableNonUniform inp s0) :

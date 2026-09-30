@@ -14,6 +14,8 @@ public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.TwoWayNA.OfNA
+public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
 public import Mathlib.Basic.Finite.Sum
@@ -27,7 +29,7 @@ public import Mathlib.Data.Set.Card
 
 namespace Cslib.Language
 
-open Set List Prod Automata Acceptor RightCongruence
+open Set List Prod Automata Acceptor
 open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
 variable {Symbol Symbol' : Type*}
@@ -69,6 +71,23 @@ theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegul
   ext
   simp only [language, Accepts]
   rfl
+
+/-- A language is regular if and only if it is accepted by some two-way nondeterministic
+automaton with finitely many states. -/
+theorem IsRegular.iff_twoWayNA {l : Language Symbol} :
+    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
+      ∃ a : TwoWayNA State Symbol, language a = l := by
+  constructor
+  · intro h
+    rw [IsRegular.iff_nfa] at h
+    obtain ⟨State, hfin, na, rfl⟩ := h
+    exact ⟨State, hfin, NA.FinAcc.toTwoWayNA na, TwoWayNA.language_toTwoWayNA na⟩
+  · rintro ⟨State, hfin, a, rfl⟩
+    have := hfin
+    have hc : (language a)ᶜ.IsRegular := by
+      rw [IsRegular.iff_nfa]
+      exact ⟨Set State × Set State, inferInstance, a.complToNA, a.language_complToNA⟩
+    simpa using hc.compl
 
 /-- The empty language is regular. -/
 @[simp]
@@ -183,6 +202,7 @@ theorem IsRegular.kstar {l : Language Symbol}
       obtain ⟨State, h_fin, nfa, rfl⟩ := h
       use Unit ⊕ Option State, inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
+open _root_.Language RightCongruence in
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
 theorem IsRegular.congr_fin_index {Symbol : Type}
