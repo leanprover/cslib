@@ -96,6 +96,9 @@ public import Cslib.Computability.URM.Defs
 public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
+public import Cslib.Crypto.Primitives.PRG.Asymptotic
+public import Cslib.Crypto.Primitives.PRG.Basic
+public import Cslib.Crypto.Primitives.PRG.Defs
 public import Cslib.Crypto.Protocols.Commitment.Basic
 public import Cslib.Crypto.Protocols.Commitment.Defs
 public import Cslib.Crypto.Protocols.Commitment.Scheme
@@ -137,6 +140,7 @@ public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
+public import Cslib.Foundations.MeasureTheory.FiniteSupport
 public import Cslib.Foundations.Relation.Attr
 public import Cslib.Foundations.Relation.Basic
 public import Cslib.Foundations.Relation.Confluence
