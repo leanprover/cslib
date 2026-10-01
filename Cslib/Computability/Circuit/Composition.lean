@@ -43,23 +43,26 @@ variable {σ : Signature.{v}} {U : Type u} {n m p k g₁ g₂ : ℕ}
 
 namespace Program
 
-/-- The wire of `p.append feed q` that carries a wire of `q`: an input of `q` is the wire of `p`
-feeding it, and a gate of `q` comes after all the gates of `p`. -/
-def appendWire (feed : Fin k → Wire n g₁) : Wire k g₂ → Wire n (g₁ + g₂)
+/-- For programs `p : Program σ n g₁` and `q : Program σ k g₂`, with
+`feed : Fin k → Wire n g₁`, map a wire of `q` to its wire in the combined program.
+Inputs follow `feed`, and gate indices are shifted past the gates of `p`.
+This is the wire map used by `Program.append` below. -/
+def appendedWire (feed : Fin k → Wire n g₁) : Wire k g₂ → Wire n (g₁ + g₂)
   | .input i => (feed i).castAdd g₂
   | .gate j => .gate (Fin.natAdd g₁ j)
 
-@[simp] theorem appendWire_input (feed : Fin k → Wire n g₁) (i : Fin k) :
-    appendWire (g₂ := g₂) feed (Wire.input i) = (feed i).castAdd g₂ := rfl
+@[simp] theorem appendedWire_input (feed : Fin k → Wire n g₁) (i : Fin k) :
+    appendedWire (g₂ := g₂) feed (Wire.input i) = (feed i).castAdd g₂ := rfl
 
-@[simp] theorem appendWire_gate (feed : Fin k → Wire n g₁) (j : Fin g₂) :
-    appendWire feed (Wire.gate j) = Wire.gate (Fin.natAdd g₁ j) := rfl
+@[simp] theorem appendedWire_gate (feed : Fin k → Wire n g₁) (j : Fin g₂) :
+    appendedWire feed (Wire.gate j) = Wire.gate (Fin.natAdd g₁ j) := rfl
 
 /-- Continue `p` by `q`, reading the inputs of `q` from the wires `feed` of `p`. -/
-def append (p : Program σ n g₁) (feed : Fin k → Wire n g₁) :
-    {g₂ : ℕ} → Program σ k g₂ → Program σ n (g₁ + g₂)
-  | _, .empty => p
-  | _, .gate q line => .gate (p.append feed q) (line.mapWires (appendWire feed))
+def append (p : Program σ n g₁) (feed : Fin k → Wire n g₁)
+    {g₂ : ℕ} (q : Program σ k g₂) : Program σ n (g₁ + g₂) :=
+  match q with
+  | .empty => p
+  | .gate q line => .gate (p.append feed q) (line.mapWires (appendedWire feed))
 
 variable (p : Program σ n g₁) (feed : Fin k → Wire n g₁) (I : Interpretation σ U)
   (x : Fin n → U)
@@ -73,8 +76,8 @@ theorem trace_append_castAdd (q : Program σ k g₂) (w : Wire n g₁) :
 
 /-- A wire of `q` carries, in the continued program, the value it has when `q` runs on the
 values of the wires feeding it. -/
-theorem trace_append_appendWire (q : Program σ k g₂) (w : Wire k g₂) :
-    (p.append feed q).trace I x (appendWire feed w) =
+theorem trace_append_appendedWire (q : Program σ k g₂) (w : Wire k g₂) :
+    (p.append feed q).trace I x (appendedWire feed w) =
       q.trace I (fun i => p.trace I x (feed i)) w := by
   induction q with
   | empty =>
@@ -88,7 +91,7 @@ theorem trace_append_appendWire (q : Program σ k g₂) (w : Wire k g₂) :
       refine Fin.lastCases ?_ (fun j => ?_) j
       · refine (Program.eval_gate_last _ _ I x).trans ?_
         refine Eq.trans ?_ (Program.eval_gate_last q line I _).symm
-        exact Line.eval_mapWires line (appendWire feed) I _ x _ _ ih
+        exact Line.eval_mapWires line (appendedWire feed) I _ x _ _ ih
       · exact (Program.trace_gate_castSucc _ _ I x (.gate (Fin.natAdd _ j))).trans
           ((ih (.gate j)).trans (Program.trace_gate_castSucc q line I _ (.gate j)).symm)
 
@@ -100,7 +103,7 @@ variable {I : Interpretation σ U}
 
 /-- Feed the outputs of `c` to the inputs of `d`. -/
 def comp (d : Circuit σ m p) (c : Circuit σ n m) : Circuit σ n p :=
-  ⟨c.program.append c.outputs d.program, fun o => Program.appendWire c.outputs (d.outputs o)⟩
+  ⟨c.program.append c.outputs d.program, fun o => Program.appendedWire c.outputs (d.outputs o)⟩
 
 @[simp] theorem size_comp (d : Circuit σ m p) (c : Circuit σ n m) :
     (d.comp c).size = c.size + d.size := rfl
@@ -108,13 +111,13 @@ def comp (d : Circuit σ m p) (c : Circuit σ n m) : Circuit σ n p :=
 @[simp] theorem eval_comp (d : Circuit σ m p) (c : Circuit σ n m) (x : Fin n → U) :
     (d.comp c).eval I x = d.eval I (c.eval I x) := by
   funext o
-  exact Program.trace_append_appendWire c.program c.outputs I x d.program (d.outputs o)
+  exact Program.trace_append_appendedWire c.program c.outputs I x d.program (d.outputs o)
 
 /-- Run `c` and `d` on the same inputs, listing the outputs of `c` before those of `d`. -/
 def append (c : Circuit σ n m) (d : Circuit σ n p) : Circuit σ n (m + p) :=
   ⟨c.program.append Wire.input d.program,
     Fin.append (fun o => (c.outputs o).castAdd d.size)
-      fun o => Program.appendWire Wire.input (d.outputs o)⟩
+      fun o => Program.appendedWire Wire.input (d.outputs o)⟩
 
 @[simp] theorem size_append (c : Circuit σ n m) (d : Circuit σ n p) :
     (c.append d).size = c.size + d.size := rfl
@@ -128,7 +131,7 @@ def append (c : Circuit σ n m) (d : Circuit σ n p) : Circuit σ n (m + p) :=
     exact Program.trace_append_castAdd c.program Wire.input I x d.program (c.outputs o)
   | right o =>
     simp only [eval, append, Function.comp_apply, Fin.append_right]
-    exact Program.trace_append_appendWire c.program Wire.input I x d.program _
+    exact Program.trace_append_appendedWire c.program Wire.input I x d.program _
 
 /-- Feeding a circuit computing `f` into one computing `g` computes `g ∘ f`. -/
 theorem Computes.comp {c : Circuit σ n m} {d : Circuit σ m p}
