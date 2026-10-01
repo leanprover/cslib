@@ -33,7 +33,7 @@ inductive Execution (lts : LTS State Label) : State → List Label → State →
 
 namespace Execution
 
-@[simp, scoped grind →]
+@[scoped grind →]
 theorem length (h : lts.Execution s₁ μs s₂ ss) : ss.length = μs.length + 1 := by
   induction h <;> simp_all
 
@@ -46,7 +46,7 @@ theorem length_ss_pos (h : lts.Execution s₁ μs s₂ ss) : 0 < ss.length :=
 theorem ss_ne_nil (h : lts.Execution s₁ μs s₂ ss) : ss ≠ [] :=
   ss.ne_nil_iff_length_pos.mpr h.length_ss_pos
 
-alias nonEmpty_states := ss_ne_nil
+@[deprecated (since := "2026-10-01")] alias nonEmpty_states := ss_ne_nil
 
 @[scoped grind →]
 theorem start (h : lts.Execution s₁ μs s₂ ss) : ss[0]'h.length_ss_pos = s₁ := by
