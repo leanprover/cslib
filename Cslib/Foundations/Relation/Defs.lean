@@ -163,6 +163,7 @@ the definition below is a sufficient and necessary condition for a relation `r` 
 a representation by closed intervals on the real line such that `r i1 i2` iff the right
 endpoint of `i1` is less than the left endpoint of `i2`. -/
 def IsIntervalOrder (r : α → α → Prop) : Prop :=
+  IsStrictOrder α r ∧
   ∀ a1 b1 a2 b2, r a1 b1 ∧ r a2 b2 → r a1 b2 ∨ r a2 b1
 
 end Relation
