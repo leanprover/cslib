@@ -93,8 +93,11 @@ lemma buchiCongruence_transfer
     grind
   obtain ⟨l, r⟩ := h_eq s t
   by_cases h_xl : xl ∈ na.pairViaLang na.accept s t
-  · obtain := LTS.mem_pairViaLang.mp (r.mp h_xl)
-    grind [LTS.Execution, → LTS.Execution.comp]
+  · obtain ⟨r, hr, xs₁, xs₂, h₁, h₂, rfl⟩ := LTS.mem_pairViaLang.mp (r.mp h_xl)
+    obtain ⟨sl₁, he₁⟩ := LTS.Execution.of_mTr h₁
+    obtain ⟨sl₂, he₂⟩ := LTS.Execution.of_mTr h₂
+    use sl₁ ++ sl₂.tail, he₁.comp he₂
+    grind
   · use LTS.Execution.of_mTr (l.mp hp) |>.choose
     grind
 
@@ -224,8 +227,8 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
     have h_mono := cumLen_strictMono h_yls_p
     have := StrictMono.add_le_nat h_mono m 0
     lia
-  obtain := h_yls_e m
-  obtain := h_yls_e (m + 1)
+  obtain := (h_yls_e m).length
+  obtain := (h_yls_e (m + 1)).length
   grind =>
    have := @get_extract (xs := ss1)
    have : k < (yls m).length ∨ ¬ k < (yls m).length
