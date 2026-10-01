@@ -81,7 +81,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindTape
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.SingleTapeAction
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
