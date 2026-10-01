@@ -61,7 +61,10 @@ lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
 @[scoped grind ←]
 lemma step_multiApp_l (steps : M ⭢βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ⭢βᶠ M'.multiApp Ns := by
-  induction Ns generalizing M M' with grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-10-01 (changes from lean#15420):
+  this goal now needs more E-matching rounds. -/
+  induction Ns generalizing M M' with grind (ematch := 7)
 
 /-- Congruence lemma for multi reduction of the left most term of a multi-application -/
 lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
