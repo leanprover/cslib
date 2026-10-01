@@ -14,6 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Run the source-only checks before Lean setup restores dependencies in .lake.
+      # These are the additional checks from lint-style-action's check mode.
+      - name: Check case sensitivity
+        uses: credfeto/action-case-checker@cb652aeab29ed363bbdb7d9ee1bfcc010c46cac5 # v1.3.0
+      - name: Look for ignored files
+        uses: credfeto/action-no-ignored-files@4fccae50720d89bef0cd9dc99a85a19b765d2e70 # v1.2.0
+      - name: Check for Lean files with the executable bit set
+        run: |
+          executable_files="$(find . -name '*.lean' -type f \( -perm -u=x -o -perm -g=x -o -perm -o=x \))"
+          if [[ -n "$executable_files" ]]; then
+            echo "ERROR: The following Lean files have the executable bit set."
+            echo "$executable_files"
+            exit 1
+          fi
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail --iofail"
@@ -30,6 +44,6 @@ jobs:
         run: |
           set -e
           lake exe checkInitImports
-      - uses: leanprover-community/lint-style-action@e6128ab22cb03b509075ae46c33727e3952ffab7 # 2026-05-12
-        with:
-          mode: check
+      # Reuse the prepared checkout: lint-style-action deletes it and rebuilds its tools.
+      - name: "lake exe lint-style"
+        run: lake exe lint-style
