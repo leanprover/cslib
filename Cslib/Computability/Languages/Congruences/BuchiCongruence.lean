@@ -21,7 +21,7 @@ of ω-regular languages under complementation.
 
 namespace Cslib.Automata.NA.Buchi
 
-open Function Set Filter ωAcceptor ωLanguage ωSequence
+open Function Set Filter ωAcceptor ωLanguage ωSequence LTS.Execution
 open _root_.Language RightCongruence
 
 variable {Symbol : Type*} {State : Type}
@@ -31,7 +31,7 @@ set_option linter.tacticAnalysis.verifyGrindOnly false in
 according to `na` iff for every pair of states `s` and `t` of `na`, both of the
 following two conditions hold:
 (1) `u` can move `na` from `s` to `t` iff `v` can move `na` from `s` to `t`;
-(2) `u` can move `na` from `s` to `t` via an acceptingg states iff `v` can move `na`
+(2) `u` can move `na` from `s` to `t` via an accepting states iff `v` can move `na`
 from `s` to `t` via an acceptingg states. -/
 @[implicit_reducible]
 def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
@@ -94,7 +94,7 @@ lemma buchiCongruence_transfer
   obtain ⟨l, r⟩ := h_eq s t
   by_cases h_xl : xl ∈ na.pairViaLang na.accept s t
   · obtain := LTS.mem_pairViaLang.mp (r.mp h_xl)
-    grind [LTS.Execution, → LTS.Execution.comp, → LTS.Execution.of_mTr]
+    grind [LTS.Execution, → LTS.Execution.comp]
   · use LTS.Execution.of_mTr (l.mp hp) |>.choose
     grind
 
@@ -224,8 +224,8 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
     have h_mono := cumLen_strictMono h_yls_p
     have := StrictMono.add_le_nat h_mono m 0
     lia
-  obtain ⟨_, _, _, _⟩ := h_yls_e m
-  obtain ⟨_, _, _, _⟩ := h_yls_e (m + 1)
+  obtain := h_yls_e m
+  obtain := h_yls_e (m + 1)
   grind =>
    have := @get_extract (xs := ss1)
    have : k < (yls m).length ∨ ¬ k < (yls m).length
