@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2026 Christian Reitwiessner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Christian Reitwiessner
+Authors: Christian Reitwiessner, Samuel Schlesinger
 -/
 
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.SingleTapeAction
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
+public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
 /-!
 # A machine that rewinds a work-tape head
@@ -31,6 +32,8 @@ nothing; with `write := some none` it erases the part of the word it walks over.
   `Turing.MultiTapeTM.runFrom_rewindWork_none` (nothing is written) and
   `Turing.MultiTapeTM.runFrom_rewindWork_erase` (the whole word is erased).
 * `Turing.MultiTapeTM.workTapePos_runFrom_rewindWork`: the rewound head stays within `[-1, p]`.
+* `Turing.MultiTapeTM.spaceUsed_rewindWork_le`: the machine visits at most `p + k + 1` work-tape
+  cells, including the initially occupied cell on each tape.
 * `Turing.MultiTapeTM.runFrom_rewindWork_frame`: no run changes the input head, the output, any
   other tape or any other work head.
 -/
@@ -70,10 +73,7 @@ variable {i : Fin k} {write : Option (Option Symbol)} {ip : Fin (input.length + 
 lemma tr_eq (q : RewindWorkState) (inp : Option Symbol) (work : Fin k → Option Symbol) :
     ∃ write' m state, (rewindWork Symbol i write).tr q inp work = .onTape i write' m state := by
   dsimp only [rewindWork]
-  split
-  · exact ⟨_, _, _, rfl⟩
-  · exact ⟨_, _, _, rfl⟩
-  · exact ⟨_, _, _, rfl⟩
+  split <;> exact ⟨_, _, _, rfl⟩
 
 /-- Moving the head of tape `i` left in state `start`, unconditionally, entering `scan`. -/
 lemma step_start :
@@ -91,8 +91,7 @@ lemma step_scan_some {s : Symbol} (hs : tapes i p = some s) :
   rw [step_apply_of_state rfl]
   simp [rewindWork, Cfg.workTapeSymbols, hs, Action.apply_onTape, sub_eq_add_neg]
 
-/-- Halting in state `scan`: on the first blank — the cell at position `-1` — the head moves right
-and the machine halts. -/
+/-- Halting in state `scan`: on a blank cell, the head moves right and the machine halts. -/
 lemma step_scan_none (hs : tapes i p = none) :
     (rewindWork Symbol i write).step ⟨some .scan, ip, tapes, Function.update heads i p, out⟩ =
       ⟨none, ip, tapes, Function.update heads i (p + 1), out⟩ := by
@@ -110,15 +109,15 @@ lemma runFrom_scan {w : List Symbol} (hw : tapes i = tapeOfList w) {l : ℕ} (hl
           (fun z => if (l : ℤ) - n ≤ z ∧ z < l then write.getD (tapes i z) else tapes i z),
         Function.update heads i ((l : ℤ) - 1 - n), out⟩ := by
   induction n with
-  | zero => simp [runFrom, show ∀ z : ℤ, ¬((l : ℤ) ≤ z ∧ z < l) by omega]
+  | zero => simp [runFrom, show ∀ z : ℤ, ¬((l : ℤ) ≤ z ∧ z < l) by lia]
   | succ n ih =>
     have hsym : Function.update tapes i
         (fun z => if (l : ℤ) - n ≤ z ∧ z < l then write.getD (tapes i z) else tapes i z) i
-        ((l : ℤ) - 1 - n) = some (w[l - 1 - n]'(by omega)) := by
-      rw [Function.update_self, ite_eq_right (by omega), hw,
-        show (l : ℤ) - 1 - n = ((l - 1 - n : ℕ) : ℤ) by omega, tapeOfList_ofNat]
-      exact List.getElem?_eq_getElem (by omega)
-    rw [runFrom, Function.iterate_succ_apply', ← runFrom, ih (by omega), step_scan_some hsym,
+        ((l : ℤ) - 1 - n) = some (w[l - 1 - n]'(by lia)) := by
+      rw [Function.update_self, ite_eq_right (by lia), hw,
+        show (l : ℤ) - 1 - n = ((l - 1 - n : ℕ) : ℤ) by lia, tapeOfList_ofNat]
+      exact List.getElem?_eq_getElem (by lia)
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom, ih (by lia), step_scan_some hsym,
       Function.update_idem, Function.update_self]
     congr 2
     · cases write with
@@ -126,7 +125,7 @@ lemma runFrom_scan {w : List Symbol} (hw : tapes i = tapeOfList w) {l : ℕ} (hl
       | some c =>
         dsimp
         grind [Function.update_apply]
-    · omega
+    · lia
 
 end RewindWork
 
@@ -172,7 +171,7 @@ public theorem runFrom_rewindWork_erase {i : Fin k} (ip : Fin (input.length + 2)
   congr 2
   funext z
   simp only [hw, Option.getD_some, ite_eq_left_iff, tapeOfList_eq_none_iff]
-  omega
+  lia
 
 open RewindWork in
 /-- At every step, the head of tape `i` is within `[-1, p]`: it walks from its start `p ≤ w.length`
@@ -189,11 +188,11 @@ public theorem workTapePos_runFrom_rewindWork {i : Fin k} (write : Option (Optio
   rcases Nat.lt_or_ge m (p + 1) with hlt | hge
   · -- After the initial left move, take `m` scanning steps.
     rw [show (rewindWork Symbol i write).q₀ = .start from rfl, runFrom,
-      Function.iterate_succ_apply, step_start, ← runFrom, runFrom_scan hw hp m (by omega)]
+      Function.iterate_succ_apply, step_start, ← runFrom, runFrom_scan hw hp m (by lia)]
     simp only [Function.update_self, Set.mem_Icc]
-    constructor <;> omega
+    constructor <;> lia
   · have hrun := runFrom_rewindWork write ip tapes heads out hw hp
-    rw [runFrom_eq_of_halt _ _ (by omega : p + 2 ≤ m + 1) (by rw [hrun]), hrun]
+    rw [runFrom_eq_of_halt _ _ (by lia : p + 2 ≤ m + 1) (by rw [hrun]), hrun]
     simp
 
 /-- No run of the machine changes the input head, the output, any tape other than `i` or any work
@@ -205,5 +204,38 @@ public theorem runFrom_rewindWork_frame {i : Fin k} (write : Option (Option Symb
         ((rewindWork Symbol i write).runFrom c m).workTapePos j = c.workTapePos j) ∧
       ((rewindWork Symbol i write).runFrom c m).output = c.output :=
   runFrom_frame_of_onTape RewindWork.tr_eq c m
+
+/-- Rewinding from position `p` visits at most `p + 2` cells on tape `i` and one cell on each
+other tape. This bound holds at every step, including after the machine halts. -/
+public theorem spaceUsed_rewindWork_le {i : Fin k} {write : Option (Option Symbol)}
+    (c : Cfg k Symbol RewindWorkState input) {w : List Symbol} {p m : ℕ}
+    (hq : c.state = some .start) (hw : c.workTapes i = tapeOfList w)
+    (hp : c.workTapePos i = p) (hlen : p ≤ w.length) :
+    (rewindWork Symbol i write).spaceUsed c m ≤ p + k + 1 := by
+  have hrewound : (rewindWork Symbol i write).spaceUsedByTape c m i ≤ p + 2 := by
+    calc
+      _ ≤ (Finset.Icc (-1) (p : ℤ)).card := by
+        apply spaceUsedByTape_le_card
+        intro n _
+        simpa [rewindWork, ← hq, ← hp] using
+          workTapePos_runFrom_rewindWork write c.inputPos c.workTapes c.workTapePos c.output
+            hw hlen n
+      _ = p + 2 := by rw [Int.card_Icc]; lia
+  have hother (j : Fin k) (hji : j ≠ i) :
+      (rewindWork Symbol i write).spaceUsedByTape c m j ≤ 1 := by
+    apply spaceUsedByTape_le_one
+    intro n _
+    obtain ⟨_, hframe, _⟩ := runFrom_rewindWork_frame write c n
+    exact (hframe j hji).2
+  -- Count one cell per tape and at most `p + 1` additional cells on tape `i`.
+  calc
+    (rewindWork Symbol i write).spaceUsed c m ≤
+        ∑ j : Fin k, (1 + if j = i then p + 1 else 0) := by
+      refine Finset.sum_le_sum fun j _ => ?_
+      split_ifs with hji
+      · subst j
+        lia
+      · simpa using hother j hji
+    _ = p + k + 1 := by simp [Finset.sum_add_distrib, Nat.add_comm, Nat.add_assoc]
 
 end Turing.MultiTapeTM
