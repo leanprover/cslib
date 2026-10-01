@@ -47,6 +47,11 @@ lemma tapeOfList_append_single (xs : List Symbol) (x : Symbol) :
   | negSucc n => simp [tapeOfList]
   | ofNat n => grind [tapeOfList]
 
+/-- A cell of `tapeOfList xs` is blank exactly outside the positions `0, …, xs.length - 1`. -/
+lemma tapeOfList_eq_none_iff (xs : List Symbol) (z : ℤ) :
+    tapeOfList xs z = none ↔ z < 0 ∨ (xs.length : ℤ) ≤ z := by
+  cases z <;> simp
+
 /-- The blank tape holds the empty word. -/
 @[simp]
 lemma tapeOfList_nil : tapeOfList ([] : List Symbol) = fun _ => none := by
@@ -71,6 +76,12 @@ def wordsCfg (input : List Symbol) (q : Option State)
 lemma mapState_wordsCfg {State' : Type*} (φ : Option State → Option State')
     (input : List Symbol) (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol) :
     (wordsCfg input q ws out).mapState φ = wordsCfg input (φ q) ws out := rfl
+
+/-- Changing the state of a `wordsCfg` leaves the words alone. -/
+@[simp]
+lemma withState_wordsCfg {State' : Type*} (input : List Symbol) (q : Option State)
+    (ws : Fin k → List Symbol) (out : List Symbol) (q' : Option State') :
+    (wordsCfg input q ws out).withState q' = wordsCfg input q' ws out := rfl
 
 /-- The initial configuration is the word configuration with blank tapes and no output. -/
 lemma Cfg.init_eq_wordsCfg (q₀ : State) (input : List Symbol) :
