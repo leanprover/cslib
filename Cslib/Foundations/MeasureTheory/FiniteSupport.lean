@@ -74,8 +74,7 @@ instance (priority := 100) HasFiniteSupport.isFiniteMeasure {α : Type*} [Measur
   measure_univ_lt_top := by
     obtain ⟨s, hs, hμ⟩ := HasFiniteSupport.exists_finite_measure_compl_zero (μ := μ)
     rw [← union_compl_self s]
-    refine measure_union_lt_top ?_ (by simp [hμ])
-    exact hs.measure_lt_top_of_sigmaFinite
+    exact measure_union_lt_top hs.measure_lt_top_of_sigmaFinite (by simp [hμ])
 
 /-- On a space with measurable singletons, every set is null-measurable for a measure
 with finite support. -/
