@@ -116,8 +116,8 @@ def comp (d : Circuit σ m p) (c : Circuit σ n m) : Circuit σ n p :=
 /-- Run `c` and `d` on the same inputs, listing the outputs of `c` before those of `d`. -/
 def append (c : Circuit σ n m) (d : Circuit σ n p) : Circuit σ n (m + p) :=
   ⟨c.program.append Wire.input d.program,
-    Fin.append (fun o => (c.outputs o).castAdd d.size)
-      fun o => Program.appendedWire Wire.input (d.outputs o)⟩
+    Fin.append (Wire.castAdd d.size ∘ c.outputs)
+      (Program.appendedWire Wire.input ∘ d.outputs)⟩
 
 @[simp] theorem size_append (c : Circuit σ n m) (d : Circuit σ n p) :
     (c.append d).size = c.size + d.size := rfl
