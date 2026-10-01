@@ -61,8 +61,7 @@ theorem HasFiniteSupport.exists_eq_sum_smul_dirac {α : Type*} [MeasurableSpace 
   change μ (hs.toFinset : Set α)ᶜ = 0
   simpa using hμ
 
--- TODO: upstream this lemma to Mathlib.
-/-- A finite set has finite measure under a sigma-finite measure. -/
+/-- A finite set has finite measure under a sigma-finite measure. TODO: delete once [Mathlib PR 44381](https://github.com/leanprover-community/mathlib4/pull/44381) is available. -/
 theorem _root_.Set.Finite.measure_lt_top_of_sigmaFinite {α : Type*} [MeasurableSpace α]
     {μ : Measure α} [SigmaFinite μ] {s : Set α} (hs : s.Finite) : μ s < ∞ := by
   simpa using measure_biUnion_lt_top hs
