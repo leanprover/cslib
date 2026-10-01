@@ -1,0 +1,125 @@
+/-
+Copyright (c) 2026 Christian Reitwiessner. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christian Reitwiessner
+-/
+
+module
+
+public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+
+/-!
+# A machine that rewinds the input head
+
+A two-state machine that, when started in its initial state at any input-head position, returns the
+head to position 1 (the first input symbol when the input is nonempty, otherwise the right boundary)
+and halts there. It never writes to a work tape, never moves a work-tape head and never outputs, so
+running it in between two phases of a computation re-normalizes the input head without disturbing
+anything else.
+
+In its initial state `start` the machine moves the input head one cell left and enters state `walk`.
+The input head is clamped at the left boundary, so this has no effect if the head already is at
+position `0`, and it moves a head at the right boundary `input.length + 1` back onto the input.
+In state `walk` the machine moves left over symbols. Since the input tape holds a list of
+(non-blank) symbols, the first blank to the left of the head is the cell at position `0`; the
+halting transition moves right, onto position `1`.
+
+From position `p` the run halts after `p + 1` steps, or after `2` steps if `p = 0`.
+
+## Main results
+
+* `Turing.MultiTapeTM.rewindInput`: the machine that rewinds the input head.
+* `Turing.MultiTapeTM.runFrom_rewindInput`: its run from the initial state.
+* `Turing.MultiTapeTM.runFrom_rewindInput_frame`: no run changes the work tapes, the work-tape
+  heads or the output.
+-/
+
+namespace Turing.MultiTapeTM
+
+variable {k : ℕ} {Symbol : Type*} {input : List Symbol}
+
+/-- The control states of the rewinding machine: `start` takes one unconditional step left,
+`walk` moves left towards the left boundary of the input. -/
+public inductive RewindState : Type
+  | start
+  | walk
+  deriving DecidableEq
+
+public instance : Fintype RewindState := ⟨{.start, .walk}, fun q => by cases q <;> simp⟩
+
+/-- The only kind of action the rewinding machine takes: move the input head by `m` and enter
+`state`, without writing or moving a work tape and without output. -/
+abbrev inputAction (m : SignType) (state : Option RewindState) : Action k Symbol RewindState :=
+  ⟨m, fun _ => (none, 0), none, state⟩
+
+/-- The rewinding machine. In state `start` it moves the input head left, unconditionally, and
+enters `walk`. In state `walk` it moves left over a symbol; on the first blank it moves right and
+halts. No work tape is ever written or moved and nothing is output. -/
+public def rewindInput (k : ℕ) (Symbol : Type*) : MultiTapeTM k Symbol RewindState where
+  q₀ := .start
+  tr q inp _ :=
+    match q, inp with
+    | .start, _ => inputAction (-1) (some .walk)
+    | .walk, some _ => inputAction (-1) (some .walk)
+    | .walk, none => inputAction 1 none
+
+namespace Rewind
+
+variable {tapes : Fin k → ℤ → Option Symbol} {heads : Fin k → ℤ} {out : List Symbol}
+
+/-- Every action of the machine is an `inputAction`. -/
+lemma tr_eq (q : RewindState) (inp : Option Symbol) (work : Fin k → Option Symbol) :
+    ∃ m state, (rewindInput k Symbol).tr q inp work = inputAction m state :=
+  match q, inp with
+  | .start, _ | .walk, some _ | .walk, none => ⟨_, _, rfl⟩
+
+/-- A live step moves the input head and changes the state; nothing else changes. -/
+lemma step_eq {c : Cfg k Symbol RewindState input} {q : RewindState} (hc : c.state = some q) :
+    (rewindInput k Symbol).step c =
+      let a := (rewindInput k Symbol).tr q c.inputSymbol c.workTapeSymbols
+      ⟨a.state, moveInputPos c.inputPos a.inputTape, c.workTapes, c.workTapePos, c.output⟩ := by
+  obtain ⟨m, state, h⟩ := tr_eq q c.inputSymbol c.workTapeSymbols
+  rw [step_apply_of_state hc, h]
+  exact Cfg.ext rfl rfl rfl (by simp) (by simp)
+
+/-- From `walk` at position `p ≤ input.length` the machine halts with the input head at position `1`
+after `p + 1` steps. -/
+lemma runFrom_walk (p : Fin (input.length + 2)) (hp : p.val ≤ input.length) :
+    (rewindInput k Symbol).runFrom ⟨some .walk, p, tapes, heads, out⟩ (p.val + 1) =
+      ⟨none, 1, tapes, heads, out⟩ := by
+  induction hj : p.val generalizing p with
+  | zero =>
+    obtain rfl : p = 0 := Fin.ext hj
+    rw [runFrom, Function.iterate_one, step_eq rfl, inputSymbol_eq_none_of_boundary (.inl rfl)]
+    rfl
+  | succ j ih =>
+    rw [runFrom, Function.iterate_succ_apply, ← runFrom, step_eq rfl,
+      inputSymbolInner j (by grind) (by omega)]
+    exact ih (moveInputPos p .neg) (by grind [SignType.cast]) (by grind [SignType.cast])
+
+end Rewind
+
+/-- From its initial state at input position `p` the machine halts after `p - 1 + 2` steps, with
+the input head at position `1` and everything else unchanged. -/
+public theorem runFrom_rewindInput (p : Fin (input.length + 2))
+    (tapes : Fin k → ℤ → Option Symbol) (heads : Fin k → ℤ) (out : List Symbol) :
+    (rewindInput k Symbol).runFrom ⟨some (rewindInput k Symbol).q₀, p, tapes, heads, out⟩
+      (p.val - 1 + 2) = ⟨none, 1, tapes, heads, out⟩ := by
+  have h : (moveInputPos p .neg).val = p.val - 1 := by grind [SignType.cast]
+  rw [runFrom, Function.iterate_succ_apply, Rewind.step_eq rfl, ← runFrom, ← h]
+  exact Rewind.runFrom_walk (moveInputPos p .neg) (by omega)
+
+/-- No run of the machine changes the work tapes, the work-tape heads or the output. -/
+public theorem runFrom_rewindInput_frame (c : Cfg k Symbol RewindState input) (m : ℕ) :
+    ((rewindInput k Symbol).runFrom c m).workTapes = c.workTapes ∧
+      ((rewindInput k Symbol).runFrom c m).workTapePos = c.workTapePos ∧
+      ((rewindInput k Symbol).runFrom c m).output = c.output := by
+  induction m with
+  | zero => exact ⟨rfl, rfl, rfl⟩
+  | succ m ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
+    cases hc : ((rewindInput k Symbol).runFrom c m).state with
+    | none => rwa [step_of_halt hc]
+    | some q => rwa [Rewind.step_eq hc]
+
+end Turing.MultiTapeTM

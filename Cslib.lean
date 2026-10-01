@@ -41,6 +41,7 @@ public import Cslib.Computability.Circuit.Boolean.Lupanov
 public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 public import Cslib.Computability.Circuit.Boolean.Shannon
 public import Cslib.Computability.Circuit.Boolean.Synthesis
+public import Cslib.Computability.Circuit.Composition
 public import Cslib.Computability.Circuit.Counting
 public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Homomorphism
@@ -81,6 +82,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.SingleTapeAction
