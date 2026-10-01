@@ -103,7 +103,7 @@ variable {I : Interpretation σ U}
 
 /-- Feed the outputs of `c` to the inputs of `d`. -/
 def comp (d : Circuit σ m p) (c : Circuit σ n m) : Circuit σ n p :=
-  ⟨c.program.append c.outputs d.program, fun o => Program.appendedWire c.outputs (d.outputs o)⟩
+  ⟨c.program.append c.outputs d.program, Program.appendedWire c.outputs ∘ d.outputs⟩
 
 @[simp] theorem size_comp (d : Circuit σ m p) (c : Circuit σ n m) :
     (d.comp c).size = c.size + d.size := rfl
