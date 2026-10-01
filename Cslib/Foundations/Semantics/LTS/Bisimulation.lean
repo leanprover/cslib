@@ -184,13 +184,15 @@ theorem HomBisimilarity.refl (s : State) : s ~[lts] s := by
   exists Eq
   grind [IsBisimulation]
 
-/-- States with the same labelled successors are bisimilar. -/
-theorem HomBisimilarity.of_tr_iff {lts : LTS State Label} {s₁ s₂ : State}
-    (h : ∀ μ s', lts.Tr s₁ μ s' ↔ lts.Tr s₂ μ s') : s₁ ~[lts] s₂ := by
-  refine ⟨fun s t => ∀ μ s', lts.Tr s μ s' ↔ lts.Tr t μ s', h, ?_⟩
+/-- States with the same image function are bisimilar. -/
+theorem HomBisimilarity.of_image_eq {lts : LTS State Label} {s₁ s₂ : State}
+    (h : lts.image s₁ = lts.image s₂) : s₁ ~[lts] s₂ := by
+  refine ⟨fun s t => lts.image s = lts.image t, h, ?_⟩
   intro s t h μ
-  exact ⟨fun s' hs' => ⟨s', (h μ s').mp hs', fun _ _ => Iff.rfl⟩,
-    fun t' ht' => ⟨t', (h μ t').mpr ht', fun _ _ => Iff.rfl⟩⟩
+  have htr (s' : State) : lts.Tr s μ s' ↔ lts.Tr t μ s' :=
+    Set.ext_iff.mp (congrFun h μ) s'
+  exact ⟨fun s' hs' => ⟨s', (htr s').mp hs', rfl⟩,
+    fun t' ht' => ⟨t', (htr t').mpr ht', rfl⟩⟩
 
 /-- The inverse of a bisimulation is a bisimulation. -/
 @[scoped grind →]

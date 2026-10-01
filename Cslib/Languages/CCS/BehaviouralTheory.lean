@@ -146,32 +146,32 @@ theorem bisimilarity_par_assoc :
 
 /-- P + 𝟎 ~ P -/
 theorem bisimilarity_choice_nil : (choice p nil) ~[lts (defs := defs)] p := by
-  apply HomBisimilarity.of_tr_iff
-  intro μ s
-  unfold lts
+  apply HomBisimilarity.of_image_eq
+  ext μ s
+  unfold LTS.image lts
   grind
 
 /-- P + P ~ P -/
 theorem bisimilarity_choice_idem :
     (choice p p) ~[lts (defs := defs)] p := by
-  apply HomBisimilarity.of_tr_iff
-  intro μ s
-  unfold lts
+  apply HomBisimilarity.of_image_eq
+  ext μ s
+  unfold LTS.image lts
   grind
 
 /-- P + Q ~ Q + P -/
 theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q p) := by
-  apply HomBisimilarity.of_tr_iff
-  intro μ s
-  unfold lts
+  apply HomBisimilarity.of_image_eq
+  ext μ s
+  unfold LTS.image lts
   grind
 
 /-- P + (Q + R) ~ (P + Q) + R -/
 theorem bisimilarity_choice_assoc :
     (choice p (choice q r)) ~[lts (defs := defs)] (choice (choice p q) r) := by
-  apply HomBisimilarity.of_tr_iff
-  intro μ s
-  unfold lts
+  apply HomBisimilarity.of_image_eq
+  ext μ s
+  unfold LTS.image lts
   grind
 
 @[local grind]
