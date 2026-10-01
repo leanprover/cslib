@@ -210,4 +210,6 @@ theorem split
     lts.Execution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) :=
   ⟨he.take n hn, he.drop n hn⟩
 
-end Cslib.LTS.Execution
+end Execution
+
+end Cslib.LTS

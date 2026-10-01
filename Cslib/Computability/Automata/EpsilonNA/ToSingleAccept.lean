@@ -21,6 +21,8 @@ states becomes a singleton.
 
 namespace Cslib.Automata.εNA.FinAcc
 
+open LTS.Execution
+
 variable {State Symbol : Type*}
 
 /-- Any `εNA.FinAcc` can be converted into an `εNA.FinAcc` with a single accept state `none`.

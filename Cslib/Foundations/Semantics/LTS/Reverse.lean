@@ -27,6 +27,8 @@ namespace Cslib.LTS
 
 variable {State Label : Type*}
 
+open Execution
+
 section Reverse
 
 /-- Constructs an LTS by reversing the transitions of an existing LTS. -/
@@ -105,8 +107,12 @@ theorem reverse_boundedUpTo {lts : LTS State Label} {n : ℕ} :
 and endpoints reversed. -/
 theorem Execution.reverse {lts : LTS State Label} (h : lts.Execution s μs s' ss) :
     lts.reverse.Execution s' μs.reverse s ss.reverse := by
-  apply Execution.mk .. <;>
-    simp only [reverse_tr, List.getElem_reverse, List.length_reverse] <;> grind only
+  refine Execution.mk ?_ ?_ ?_ ?trans <;>
+    simp only [reverse_tr, List.getElem_reverse, List.length_reverse]
+  case trans =>
+    intro k hk
+    convert h.trans (ss.length - 1 - (k + 1)) (by grind) using 2 <;> grind
+  all_goals grind
 
 /-- An execution of `lts.reverse` is an execution of `lts` with the labels, states
 and endpoints reversed. -/
