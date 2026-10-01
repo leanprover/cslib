@@ -16,7 +16,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Temporal
 namespace Cslib.Automata.NA
 
 open Nat Set Sum ωSequence Acceptor Language
-open scoped Run LTS LTS.Execution
+open scoped Run LTS
 
 variable {Symbol State : Type*}
 

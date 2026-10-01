@@ -188,17 +188,17 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
   obtain ⟨xl, xls, h_xl_c, h_xls_c, rfl⟩ := mem_buchiFamily.mp h_xs
   obtain ⟨yl, yls, h_yl_c, h_yls_c, rfl⟩ := mem_buchiFamily.mp h_ys
   obtain ⟨ss, ⟨h_init, h_exec⟩, h_acc⟩ := h_lang
-  let f (k : ℕ) := xl.length + xls.cumLen k
-  let ts := ωSequence.mk (fun k ↦ ss (f k))
-  have (k : ℕ) : xls k ≠ [] := by grind
-  have h_xls_p (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
+  let ts := ωSequence.mk (fun k ↦ ss (xl.length + xls.cumLen k))
+  have h_xls_p (k : ℕ) : 0 < (xls k).length := List.length_pos_iff.mpr (by grind)
   have h_xls_e (k : ℕ) : xls k ∈ na.pairLang (ts k) (ts (k + 1)) := by
-    grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : f k ≤ f (k + 1)), LTS.mem_pairLang,
+    have : xl.length + xls.cumLen k < xl.length + xls.cumLen (k + 1) :=
+      Nat.add_lt_add_left ((cumLen_strictMono h_xls_p) k.lt_succ_self) xl.length
+    grind [LTS.OmegaExecution.extract_mTr h_exec this.le, LTS.mem_pairLang,
       extract_append_right_right, add_tsub_cancel_left]
   have h_yls (k : ℕ) := buchiCongruence_transfer ((h_xls_c k).left) ((h_yls_c k).left) (h_xls_e k)
   choose sls h_yls_e h_yls_a using h_yls
   have (k : ℕ) : yls k ≠ [] := by grind
-  have h_yls_p (k : ℕ) : (yls k).length > 0 := List.length_pos_iff.mpr (this k)
+  have h_yls_p (k : ℕ) : 0 < (yls k).length:= List.length_pos_iff.mpr (this k)
   obtain ⟨ss1, h_ss1_run, h_ss1_seg⟩ := LTS.OmegaExecution.flatten_execution h_yls_e h_yls_p
   suffices ∃ᶠ (k : ℕ) in atTop, ss1 k ∈ na.accept by
     have h_xl_e : xl ∈ na.pairLang (ss 0) (ts 0) := by
@@ -219,20 +219,24 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
     grind [Run.mk]
   apply frequently_atTop.mpr
   intro n
-  obtain ⟨m, _, s, _, h_mem⟩ :=
-    frequently_atTop.mp ((frequently_via_accept h_acc h_exec h_xls_p f rfl ts rfl).mono h_yls_a) n
-  obtain ⟨k, _, _⟩ := List.mem_iff_getElem.mp h_mem
-  use yls.cumLen m + k
-  suffices ss1 (yls.cumLen m + k) = (sls m)[k] by
-    have h_mono := cumLen_strictMono h_yls_p
-    have := StrictMono.add_le_nat h_mono m 0
-    lia
-  obtain := (h_yls_e m).length
-  obtain := (h_yls_e (m + 1)).length
-  grind =>
-   have := @get_extract (xs := ss1)
-   have : k < (yls m).length ∨ ¬ k < (yls m).length
-   have : k < yls.cumLen (m + 1) - yls.cumLen m ∨ 0 < yls.cumLen (m + 2) - yls.cumLen (m + 1)
-   finish
+  obtain ⟨m, _, s, h_acc, h_mem⟩ :=
+    frequently_atTop.mp ((frequently_via_accept h_acc h_exec h_xls_p _ rfl ts rfl).mono h_yls_a) n
+  obtain ⟨k, hklen, rfl⟩ := List.mem_iff_getElem.mp h_mem
+  suffices heq : ss1 (yls.cumLen m + k) = (sls m)[k] by
+    refine ⟨yls.cumLen m + k, ?_, mem_of_eq_of_mem heq h_acc⟩
+    lia [(cumLen_strictMono h_yls_p).add_le_nat m 0]
+  obtain (hk | rfl) : k < (yls m).length ∨ k = (yls m).length := by
+    rwa [(h_yls_e m).length, k.lt_succ_iff, k.le_iff_lt_or_eq] at hklen
+  · have := ss1.get_extract (m := yls.cumLen m) (n := yls.cumLen (m + 1)) (k := k)
+      (by lia [cumLen_succ])
+    simp [← this, h_ss1_seg]
+  · have hm := (h_yls_e m).last
+    specialize h_ss1_seg (m + 1)
+    simp only [(h_yls_e m).length, add_tsub_cancel_right, ← (h_yls_e (m + 1)).start] at hm
+    have := ss1.get_extract (m := yls.cumLen (m + 1)) (n := yls.cumLen (m + 2)) (k := 0)
+    rw! [cumLen_succ, add_tsub_cancel_left, add_zero] at this
+    specialize this (h_yls_p (m + 1))
+    rw! [← cumLen_succ, ← this, hm, ← cumLen_succ, h_ss1_seg]
+    simp
 
 end Cslib.Automata.NA.Buchi

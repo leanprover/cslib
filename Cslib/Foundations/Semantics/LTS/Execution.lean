@@ -33,6 +33,9 @@ inductive Execution (lts : LTS State Label) : State → List Label → State →
 
 namespace Execution
 
+theorem of_tr (h : lts.Tr s₁ μ s₂) : lts.Execution s₁ [μ] s₂ [s₁, s₂] :=
+  .stepL h (.refl s₂)
+
 @[scoped grind →]
 theorem length (h : lts.Execution s₁ μs s₂ ss) : ss.length = μs.length + 1 := by
   induction h <;> simp_all
