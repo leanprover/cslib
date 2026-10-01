@@ -14,12 +14,16 @@ public import Mathlib.MeasureTheory.Measure.Dirac.Basic
 
 For a measure that vanishes off a finite set, every set is null-measurable if
 singletons are measurable. Finite support is preserved by finite products of
-sigma-finite measures. These facts let sample-complexity arguments in learning
+finite measures. These facts let sample-complexity arguments in learning
 theory measure failure events of *arbitrary* (non-measurable) learners under
 finitely supported adversarial distributions.
 
 `HasFiniteSupport` records this property as a typeclass, with an instance for
 finite products.
+
+The [PFR project](https://github.com/teorth/pfr/blob/master/PFR/ForMathlib/Entropy/Measure.lean)
+has an equivalent `ProbabilityTheory.FiniteSupport` class, expressed using an almost-everywhere
+`Finset` witness.
 
 ## Main statements
 
@@ -57,14 +61,22 @@ theorem HasFiniteSupport.exists_eq_sum_smul_dirac {α : Type*} [MeasurableSpace 
   change μ (hs.toFinset : Set α)ᶜ = 0
   simpa using hμ
 
+-- TODO: upstream this lemma to Mathlib.
+/-- A finite set has finite measure under a sigma-finite measure. -/
+theorem _root_.Set.Finite.measure_lt_top_of_sigmaFinite {α : Type*} [MeasurableSpace α]
+    {μ : Measure α} [SigmaFinite μ] {s : Set α} (hs : s.Finite) : μ s < ∞ := by
+  simpa using measure_biUnion_lt_top hs
+    (fun a _ ↦ measure_singleton_lt_top (μ := μ) (a := a))
+
 /-- A sigma-finite measure with finite support is finite. -/
+-- Try direct `IsFiniteMeasure` instances before deriving finiteness from finite support.
 instance (priority := 100) HasFiniteSupport.isFiniteMeasure {α : Type*} [MeasurableSpace α]
     (μ : Measure α) [HasFiniteSupport μ] [SigmaFinite μ] : IsFiniteMeasure μ where
   measure_univ_lt_top := by
     obtain ⟨s, hs, hμ⟩ := HasFiniteSupport.exists_finite_measure_compl_zero (μ := μ)
     rw [← union_compl_self s]
     refine measure_union_lt_top ?_ (by simp [hμ])
-    simpa using measure_biUnion_lt_top hs (fun a _ ↦ measure_singleton_lt_top (μ := μ) (a := a))
+    exact hs.measure_lt_top_of_sigmaFinite
 
 /-- On a space with measurable singletons, every set is null-measurable for a measure
 with finite support. -/
@@ -77,7 +89,7 @@ theorem NullMeasurableSet.of_hasFiniteSupport {α : Type*} [MeasurableSpace α]
     (measure_mono_null (sdiff_subset_compl t s) hμ)
 
 instance {ι : Type*} [Fintype ι] {X : ι → Type*} [∀ i, MeasurableSpace (X i)]
-    (μ : ∀ i, Measure (X i)) [∀ i, SigmaFinite (μ i)] [∀ i, HasFiniteSupport (μ i)] :
+    (μ : ∀ i, Measure (X i)) [∀ i, HasFiniteSupport (μ i)] [∀ i, IsFiniteMeasure (μ i)] :
     HasFiniteSupport (Measure.pi μ) where
   exists_finite_measure_compl_zero := by
     choose s hs hμ using fun i =>
