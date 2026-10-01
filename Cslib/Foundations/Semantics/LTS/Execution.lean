@@ -71,8 +71,7 @@ theorem Execution.to_mTr (hexec : lts.Execution s1 μs s2 ss) :
     lts.MTr s1 μs s2 := by
   induction μs generalizing s1 ss with
   | nil =>
-    have : s1 = s2 := by grind
-    rw [this]
+    obtain rfl : s1 = s2 := by grind
     exact .refl
   | cons μ μs ih =>
     obtain ⟨s, ss, rfl⟩ := List.exists_cons_of_ne_nil hexec.nonEmpty_states
