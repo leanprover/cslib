@@ -47,6 +47,11 @@ lemma tapeOfList_append_single (xs : List Symbol) (x : Symbol) :
   | negSucc n => simp [tapeOfList]
   | ofNat n => grind [tapeOfList]
 
+/-- A cell of `tapeOfList xs` is blank exactly outside the positions `0, …, xs.length - 1`. -/
+lemma tapeOfList_eq_none_iff (xs : List Symbol) (z : ℤ) :
+    tapeOfList xs z = none ↔ z < 0 ∨ (xs.length : ℤ) ≤ z := by
+  cases z <;> simp
+
 /-- The blank tape holds the empty word. -/
 @[simp]
 lemma tapeOfList_nil : tapeOfList ([] : List Symbol) = fun _ => none := by

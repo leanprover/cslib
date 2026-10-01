@@ -112,14 +112,11 @@ lemma runFrom_scan {w : List Symbol} (hw : tapes i = tapeOfList w) {l : ℕ} (hl
   induction n with
   | zero => simp [runFrom, show ∀ z : ℤ, ¬((l : ℤ) ≤ z ∧ z < l) by omega]
   | succ n ih =>
-    have hpos : (l : ℤ) - 1 - n = ((l - 1 - n : ℕ) : ℤ) := by omega
     have hsym : Function.update tapes i
         (fun z => if (l : ℤ) - n ≤ z ∧ z < l then write.getD (tapes i z) else tapes i z) i
         ((l : ℤ) - 1 - n) = some (w[l - 1 - n]'(by omega)) := by
-      rw [Function.update_self]
-      split_ifs
-      · omega
-      rw [hw, hpos, tapeOfList_ofNat]
+      rw [Function.update_self, ite_eq_right (by omega), hw,
+        show (l : ℤ) - 1 - n = ((l - 1 - n : ℕ) : ℤ) by omega, tapeOfList_ofNat]
       exact List.getElem?_eq_getElem (by omega)
     rw [runFrom, Function.iterate_succ_apply', ← runFrom, ih (by omega), step_scan_some hsym,
       Function.update_idem, Function.update_self]
@@ -127,17 +124,16 @@ lemma runFrom_scan {w : List Symbol} (hw : tapes i = tapeOfList w) {l : ℕ} (hl
     · cases write with
       | none => simp
       | some c =>
-        funext z
-        simp only [Option.elim_some, Function.update_apply, Option.getD_some]
-        split_ifs <;> first | rfl | omega
+        dsimp
+        grind [Function.update_apply]
     · omega
 
 end RewindWork
 
 open RewindWork in
 /-- **The run of the machine that rewinds a work-tape head.** Started with tape `i` holding a word
-`w` and the head at a position `p ≤ w.length` — inside the word or at the frontier just past it —
-after `p + 2` steps the machine has halted with the head back at position `0`, `write` applied to
+`w` and the head at a position `p ≤ w.length` (inside the word or on the cell just past it),
+the machine halts after `p + 2` steps with the head back at position `0`, `write` applied to
 the cells `0, …, p - 1` and nothing else changed. -/
 public theorem runFrom_rewindWork {i : Fin k} (write : Option (Option Symbol))
     (ip : Fin (input.length + 2)) (tapes : Fin k → ℤ → Option Symbol) (heads : Fin k → ℤ)
@@ -151,7 +147,6 @@ public theorem runFrom_rewindWork {i : Fin k} (write : Option (Option Symbol))
         Function.update heads i 0, out⟩ := by
   rw [show (rewindWork Symbol i write).q₀ = .start from rfl, runFrom, Function.iterate_succ_apply,
     step_start, Function.iterate_succ_apply', ← runFrom, runFrom_scan hw hp p le_rfl,
-    show (p : ℤ) - 1 - p = -1 by omega,
     step_scan_none (by simp [hw]; rfl)]
   simp
 
@@ -164,7 +159,8 @@ public theorem runFrom_rewindWork_none {i : Fin k} (ip : Fin (input.length + 2))
       ⟨none, ip, tapes, Function.update heads i 0, out⟩ := by
   simpa using runFrom_rewindWork none ip tapes heads out hw hp
 
-/-- **Rewinding while erasing** from the frontier of the word leaves tape `i` blank. -/
+/-- **Rewinding while erasing** starting from the cell right after the word leaves tape `i` blank.
+-/
 public theorem runFrom_rewindWork_erase {i : Fin k} (ip : Fin (input.length + 2))
     (tapes : Fin k → ℤ → Option Symbol) (heads : Fin k → ℤ) (out : List Symbol) {w : List Symbol}
     (hw : tapes i = tapeOfList w) :
@@ -175,13 +171,8 @@ public theorem runFrom_rewindWork_erase {i : Fin k} (ip : Fin (input.length + 2)
   rw [runFrom_rewindWork _ ip tapes heads out hw le_rfl]
   congr 2
   funext z
-  split_ifs with h
-  · rfl
-  · rw [hw]
-    rcases z with z | z
-    · simp only [Int.ofNat_eq_natCast] at h
-      exact List.getElem?_eq_none (by omega)
-    · rfl
+  simp only [hw, Option.getD_some, ite_eq_left_iff, tapeOfList_eq_none_iff]
+  omega
 
 open RewindWork in
 /-- At every step, the head of tape `i` is within `[-1, p]`: it walks from its start `p ≤ w.length`
