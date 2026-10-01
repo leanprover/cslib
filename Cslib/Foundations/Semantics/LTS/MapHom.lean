@@ -46,11 +46,8 @@ theorem mapHom_mTr {lts : LTS State Label₁} {μs : List Label₂} :
   induction μs generalizing s with
   | nil => simp
   | cons μ μs ih =>
-    rw [Hom.map_cons]
-    apply Iff.intro .. <;> intro h
-    · grind [mapHom_tr, MTr.append_iff (lts := lts)]
-    · obtain ⟨_, _, _⟩ := (MTr.append_iff (lts := lts)).mp h
-      grind [mapHom_tr, MTr.cons_iff (lts := lts.mapHom f)]
+    rw [Hom.map_cons, MTr.append_iff, MTr.cons_iff]
+    simp [ih]
 
 end MapHom
 
