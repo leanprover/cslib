@@ -18,21 +18,21 @@ functions.
 
 namespace CslibTests.QueryComplexity
 
-open Cslib.QueryComplexity
+open Cslib Cslib.QueryComplexity
 
 /-! ## The functions -/
 
 /-- `OR` of `n` bits. -/
-def orF (n : ℕ) : BoolFunc n := fun x => (List.ofFn x).any id
+def orF (n : ℕ) : BooleanFunction n := fun x => (List.ofFn x).any id
 
 /-- `AND` of `n` bits. -/
-def andF (n : ℕ) : BoolFunc n := fun x => (List.ofFn x).all id
+def andF (n : ℕ) : BooleanFunction n := fun x => (List.ofFn x).all id
 
 /-- `PARITY` of `n` bits. -/
-def parityF (n : ℕ) : BoolFunc n := fun x => (List.ofFn x).foldr xor false
+def parityF (n : ℕ) : BooleanFunction n := fun x => (List.ofFn x).foldr xor false
 
 /-- `MAJ` on three bits: at least two of the three inputs are `true`. -/
-def maj3 : BoolFunc 3 := fun x => (x 0 && x 1) || (x 1 && x 2) || (x 0 && x 2)
+def maj3 : BooleanFunction 3 := fun x => (x 0 && x 1) || (x 1 && x 2) || (x 0 && x 2)
 
 example : orF 3 ![false, false, false] = false := rfl
 example : orF 3 ![false, true, false] = true := rfl
@@ -112,8 +112,8 @@ No bit is sensitive. The empty assignment is a certificate and the trivial tree 
 the function.
 -/
 
-example : sensitivity (fun _ => true : BoolFunc 3) = 0 := by decide
-example : blockSensitivity (fun _ => true : BoolFunc 3) = 0 := by decide
-example : certificateComplexity (fun _ => true : BoolFunc 3) = 0 := by decide
+example : sensitivity (fun _ => true : BooleanFunction 3) = 0 := by decide
+example : blockSensitivity (fun _ => true : BooleanFunction 3) = 0 := by decide
+example : certificateComplexity (fun _ => true : BooleanFunction 3) = 0 := by decide
 
 end CslibTests.QueryComplexity

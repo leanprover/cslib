@@ -7,19 +7,19 @@ Authors: Vignesh Karri
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Data.BitString
 public import Mathlib.Data.Fintype.Card
 
 /-!
 # Boolean functions on the hypercube
 
-A Boolean function is a map `{0,1}ⁿ → {0,1}`. This file sets up the boolean hypercube, bit and block
-flips, and partial assignments. The complexity measures are built in
-`Measures.lean` and `DecisionTree.lean`.
+A Boolean function is a map `{0,1}ⁿ → {0,1}`, shared across the library as
+`Cslib.BooleanFunction`. This file sets up the boolean hypercube, bit and block flips, and partial
+assignments. The complexity measures are built in `Measures.lean` and `DecisionTree.lean`.
 
 ## Main definitions
 
 - `Cube n`: bit strings of length `n`, i.e. `Fin n → Bool`.
-- `BoolFunc n`: Boolean functions `Cube n → Bool`.
 - `Block n`: a set of coordinates.
 - `flipBit`, `flipBlock`: flipping one coordinate, or every coordinate of a block.
 - `PartialAssignment n`: a partial assignment, fixing some coordinates and leaving others free.
@@ -41,9 +41,6 @@ variable {n : ℕ}
 
 /-- Bit string of length `n`. -/
 abbrev Cube (n : ℕ) : Type := Fin n → Bool
-
-/-- `f : {0,1}ⁿ → {0,1}`. -/
-abbrev BoolFunc (n : ℕ) : Type := Cube n → Bool
 
 /-- A block: a set of coordinates. -/
 abbrev Block (n : ℕ) : Type := Finset (Fin n)
