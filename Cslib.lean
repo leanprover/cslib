@@ -86,7 +86,6 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTap
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.SingleTapeAction
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
