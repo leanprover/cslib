@@ -10,9 +10,11 @@ public import Cslib.Computability.Circuit.Basic
 /-!
 # Circuit depth bounds
 
-The depth of a program is the maximum depth of its gates, and the depth of a circuit is the
-maximum depth of its designated outputs. `Program.depth_le_iff` and `Circuit.depth_le_iff`
-express bounds in terms of the individual gates and outputs. These characterizations give
+This file proves bounds for `Program.depth`, defined in `Cslib.Computability.Circuit.Program`,
+and `Circuit.depth`, defined in `Cslib.Computability.Circuit.Basic`. Program depth is the maximum
+depth of its gates; circuit depth is the maximum depth of its designated outputs.
+`Program.depth_le_iff` and `Circuit.depth_le_iff` express bounds in terms of the individual
+gates and outputs. These characterizations give
 `Circuit.depth_le_program_depth` and `Circuit.depth_le_size` without assumptions on the
 signature's fan-in or its interpretation.
 
@@ -71,7 +73,7 @@ theorem Line.depth_pos (line : Line σ n g) (depths : Wire n g → Nat) :
     (p.gate line).depth = max p.depth (line.depth p.wireDepths) := by
   simp [Program.depth, Fin.foldl_succ_last]
 
-/-- Program depth is bounded exactly when every gate depth is bounded. -/
+/-- Program depth is bounded by `d` exactly when every gate depth is bounded by `d`. -/
 theorem Program.depth_le_iff (p : Program σ n g) {d : Nat} :
     p.depth ≤ d ↔ ∀ j, p.depths j ≤ d := by
   simpa [Program.depth] using foldl_max_le_iff p.depths 0 d
@@ -96,7 +98,7 @@ theorem Program.depth_le_gateCount (p : Program σ n g) : p.depth ≤ g := by
       exact ⟨Nat.le_succ_of_le ih, (line.depth_le_add_one_iff p.wireDepths).mpr
         (fun j => (p.wireDepths_le_depth (line.wires j)).trans ih)⟩
 
-/-- Circuit depth is bounded exactly when every designated output depth is bounded. -/
+/-- Circuit depth is bounded by `d` exactly when every designated output depth is bounded by `d`. -/
 theorem Circuit.depth_le_iff (c : Circuit σ n m) {d : Nat} :
     c.depth ≤ d ↔ ∀ j, c.outputDepths j ≤ d := by
   simpa [Circuit.depth] using foldl_max_le_iff c.outputDepths 0 d
