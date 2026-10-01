@@ -33,12 +33,8 @@ theorem iProd_run_iff {na : (i : I) → NA (State i) Symbol}
     (iProd na).Run xs ss ↔ ∀ i, (na i).Run xs (ss.map (· i)) := by
   constructor
   · intro h i
-    exact
-      { start := mem_iInter.mp h.start i
-        trans := fun n => h.trans n i }
+    exact ⟨mem_iInter.mp h.start i, fun n => h.trans n i⟩
   · intro h
-    exact
-      { start := mem_iInter.mpr fun i => (h i).start
-        trans := fun n i => (h i).trans n }
+    exact ⟨mem_iInter.mpr fun i => (h i).start, fun n i => (h i).trans n⟩
 
 end Cslib.Automata.NA
