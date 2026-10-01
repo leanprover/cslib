@@ -11,10 +11,11 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 /-!
 # A machine that rewinds the input head
 
-A two-state machine that returns the input head to position `1` — the first input symbol — from
-an arbitrary starting configuration and halts there. It never writes to a work tape, never moves a
-work-tape head and never outputs, so running it in between two phases of a computation
-re-normalizes the input head without disturbing anything else.
+A two-state machine that, when started in its initial state at any input-head position, returns the
+head to position 1 (the first input symbol when the input is nonempty, otherwise the right boundary)
+and halts there. It never writes to a work tape, never moves a work-tape head and never outputs, so
+running it in between two phases of a computation re-normalizes the input head without disturbing
+anything else.
 
 In its initial state `start` the machine moves the input head one cell left and enters state `walk`.
 The input head is clamped at the left boundary, so this has no effect if the head already is at
