@@ -212,19 +212,30 @@ public theorem spaceUsed_rewindWork_le {i : Fin k} {write : Option (Option Symbo
     (hq : c.state = some .start) (hw : c.workTapes i = tapeOfList w)
     (hp : c.workTapePos i = p) (hlen : p ≤ w.length) :
     (rewindWork Symbol i write).spaceUsed c m ≤ p + k + 1 := by
-  calc
-    _ ≤ ∑ j : Fin k, (1 + if j = i then p + 1 else 0) := by
-      refine Finset.sum_le_sum fun j _ => ?_
-      split_ifs with h
-      · subst j
-        refine (spaceUsedByTape_le_card c (S := .Icc (-1) p) fun n _ => ?_).trans
-          (by rw [Int.card_Icc]; lia)
-        simpa only [rewindWork, ← hq, ← hp, Function.update_eq_self,
-          Finset.mem_Icc, Set.mem_Icc] using
+  have hrewound : (rewindWork Symbol i write).spaceUsedByTape c m i ≤ p + 2 := by
+    calc
+      _ ≤ (Finset.Icc (-1) (p : ℤ)).card := by
+        apply spaceUsedByTape_le_card
+        intro n _
+        simpa [rewindWork, ← hq, ← hp] using
           workTapePos_runFrom_rewindWork write c.inputPos c.workTapes c.workTapePos c.output
             hw hlen n
-      · simpa using spaceUsedByTape_le_one c fun n _ =>
-          ((runFrom_rewindWork_frame write c n).2.1 j h).2
-    _ = _ := by simp [Finset.sum_add_distrib, Nat.add_comm, Nat.add_assoc]
+      _ = p + 2 := by rw [Int.card_Icc]; lia
+  have hother (j : Fin k) (hji : j ≠ i) :
+      (rewindWork Symbol i write).spaceUsedByTape c m j ≤ 1 := by
+    apply spaceUsedByTape_le_one
+    intro n _
+    obtain ⟨_, hframe, _⟩ := runFrom_rewindWork_frame write c n
+    exact (hframe j hji).2
+  -- Count one cell per tape and at most `p + 1` additional cells on tape `i`.
+  calc
+    (rewindWork Symbol i write).spaceUsed c m ≤
+        ∑ j : Fin k, (1 + if j = i then p + 1 else 0) := by
+      refine Finset.sum_le_sum fun j _ => ?_
+      split_ifs with hji
+      · subst j
+        lia
+      · simpa using hother j hji
+    _ = p + k + 1 := by simp [Finset.sum_add_distrib, Nat.add_comm, Nat.add_assoc]
 
 end Turing.MultiTapeTM
