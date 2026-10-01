@@ -180,8 +180,9 @@ theorem ecomplexity_ne_top_iff : ecomplexity I f ≠ ⊤ ↔ ∃ c : Circuit σ 
 /-- When some circuit computes `f`, the least size is attained. -/
 theorem exists_computes_size_eq_ecomplexity (h : ∃ c : Circuit σ n m, c.Computes I f) :
     ∃ c : Circuit σ n m, c.Computes I f ∧ (c.size : ℕ∞) = ecomplexity I f := by
-  simpa [ecomplexity] using
-    exists_computesOn_size_eq_ecomplexityOn (S := Set.univ) (by simpa using h)
+  have hOn : ∃ c : Circuit σ n m, c.ComputesOn I Set.univ f := by
+    simpa using h
+  simpa [ecomplexity] using exists_computesOn_size_eq_ecomplexityOn hOn
 
 theorem ecomplexity_le_iff :
     ecomplexity I f ≤ k ↔ ∃ c : Circuit σ n m, c.Computes I f ∧ c.size ≤ k := by
