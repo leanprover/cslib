@@ -144,107 +144,35 @@ theorem bisimilarity_par_assoc :
       case com => grind
   all_goals grind
 
-private inductive ChoiceNil : Process Name Constant → Process Name Constant → Prop where
-  | nil : ChoiceNil (choice p nil) p
-  | id : ChoiceNil p p
-
 /-- P + 𝟎 ~ P -/
 theorem bisimilarity_choice_nil : (choice p nil) ~[lts (defs := defs)] p := by
-  use ChoiceNil, ChoiceNil.nil
-  intro s1 s2 hr μ
-  apply And.intro <;> cases hr
-  case left.nil =>
-    unfold lts
-    grind [ChoiceNil]
-  case right.nil =>
-    intro s2' htr
-    exists s2'
-    constructor
-    · apply Tr.choiceL
-      assumption
-    · exact ChoiceNil.id
-  all_goals grind [ChoiceNil]
-
-@[local grind]
-private inductive ChoiceIdem : Process Name Constant → Process Name Constant → Prop where
-  | idem : ChoiceIdem (choice p p) p
-  | id : ChoiceIdem p p
+  apply HomBisimilarity.of_image_eq
+  ext μ s
+  unfold LTS.image lts
+  grind
 
 /-- P + P ~ P -/
 theorem bisimilarity_choice_idem :
     (choice p p) ~[lts (defs := defs)] p := by
-  exists ChoiceIdem
-  apply And.intro
-  case left => grind
-  case right =>
-    intro s1 s2 hr μ
-    apply And.intro <;> cases hr <;> unfold lts
-    case right.idem =>
-      intro s1' htr
-      exists s1'
-      grind
-    all_goals grind
+  apply HomBisimilarity.of_image_eq
+  ext μ s
+  unfold LTS.image lts
+  grind
 
-private inductive ChoiceComm : Process Name Constant → Process Name Constant → Prop where
-  | choiceComm : ChoiceComm (choice p q) (choice q p)
-  | bisim : (p ~[lts (defs := defs)] q) → ChoiceComm p q
-
-open Bisimilarity in
 /-- P + Q ~ Q + P -/
 theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q p) := by
-  exists @ChoiceComm Name Constant defs
-  constructor
-  · exact ChoiceComm.choiceComm
-  intro s1 s2 hr μ
-  cases hr
-  case choiceComm p q =>
-    constructor
-    case left =>
-      intro s1' htr
-      exists s1'
-      constructor
-      · unfold lts
-        cases htr with grind
-      · grind [HomBisimilarity.refl, ChoiceComm]
-    case right =>
-      intro s1' htr
-      exists s1'
-      constructor
-      · unfold lts
-        cases htr with grind
-      · grind [HomBisimilarity.refl, ChoiceComm]
-  case bisim h =>
-    grind [IsBisimulation, ChoiceComm]
-
-private inductive ChoiceAssoc : Process Name Constant → Process Name Constant → Prop where
-  | assoc : ChoiceAssoc (choice p (choice q r)) (choice (choice p q) r)
-  | id : ChoiceAssoc p p
+  apply HomBisimilarity.of_image_eq
+  ext μ s
+  unfold LTS.image lts
+  grind
 
 /-- P + (Q + R) ~ (P + Q) + R -/
 theorem bisimilarity_choice_assoc :
     (choice p (choice q r)) ~[lts (defs := defs)] (choice (choice p q) r) := by
-  use ChoiceAssoc, ChoiceAssoc.assoc
-  intro s1 s2 hr μ
-  apply And.intro <;> cases hr
-  case left.assoc p q r =>
-    intro s htr
-    refine ⟨s, ?_, ChoiceAssoc.id⟩
-    cases htr
-    case choiceL htr => apply Tr.choiceL; apply Tr.choiceL; assumption
-    case choiceR htr =>
-      cases htr
-      case choiceL htr => apply Tr.choiceL; apply Tr.choiceR; assumption
-      case choiceR htr => apply Tr.choiceR; assumption
-  case right.assoc p q r =>
-    intro s htr
-    refine ⟨s, ?_, ChoiceAssoc.id⟩
-    cases htr
-    case choiceL htr =>
-      cases htr
-      case choiceL htr => apply Tr.choiceL; assumption
-      case choiceR htr => apply Tr.choiceR; apply Tr.choiceL; assumption
-    case choiceR htr => apply Tr.choiceR; apply Tr.choiceR; assumption
-  all_goals grind [ChoiceAssoc.id]
+  apply HomBisimilarity.of_image_eq
+  ext μ s
+  unfold LTS.image lts
+  grind
 
 @[local grind]
 private inductive PreBisim : Process Name Constant → Process Name Constant → Prop where
