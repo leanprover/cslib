@@ -40,7 +40,7 @@ theorem Interpretation.SimulatesWithCost.simulates {cost : σ.Op → ℕ}
     (h : J.SimulatesWithCost I cost) : J.Simulates I :=
   fun op => (h op).imp fun _ hc => hc.1
 
-/-- The sum of per-operation budgets along a straight-line program. -/
+/-- Given a cost per operation, this is the sum of the costs along a straight-line program. -/
 def Program.cost {g : ℕ} (p : Program σ n g) (cost : σ.Op → ℕ) : ℕ :=
   match p with
   | .empty => 0
@@ -56,8 +56,15 @@ def Program.cost {g : ℕ} (p : Program σ n g) (cost : σ.Op → ℕ) : ℕ :=
     p.cost (fun _ => b) = b * g := by
   induction p <;> simp_all [Nat.mul_add]
 
-/-- Replace each gate of `p` within its budget. The renaming `ρ` fixes the input wires and
-identifies every intermediate value with a wire of the resulting program `q`. -/
+/-- Simulate a program over `σ` by a program over `τ`, with a bound on the number of gates.
+
+Assume that each operation `op` under `I` is computed by a circuit under `J` using at most
+`cost op` gates. Replacing the gates of `p : Program σ n g` by these circuits produces a
+program `q : Program τ n k` with `k ≤ p.cost cost`.
+
+The returned map `ρ : Wire.Renaming n g k` fixes the input wires and maps every gate wire of
+`p` to a wire of `q` carrying the same value. For every input `x`, the equality
+`q.trace J x ∘ ρ = p.trace I x` says that all input and intermediate values are preserved. -/
 theorem Program.exists_simulationWithCost (p : Program σ n g) (cost : σ.Op → ℕ)
     (h : J.SimulatesWithCost I cost) :
     ∃ k : ℕ, ∃ q : Program τ n k, ∃ ρ : Wire.Renaming n g k,
