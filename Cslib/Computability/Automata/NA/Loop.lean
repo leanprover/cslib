@@ -129,7 +129,7 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
   let ts := ωSequence.const (inl () : Unit ⊕ State)
   have h_mtr (k : ℕ) : na.loop.MTr (ts k) (xls k) (ts (k + 1)) := by grind [loop_fin_run_mtr]
   have (k : ℕ) : xls k ≠ [] := by grind
-  have h_pos (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
+  have h_pos (k : ℕ) : 0 < (xls k).length := List.length_pos_iff.mpr (this k)
   obtain ⟨ss, _, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
   use ss
   grind [Run.mk, FinAcc.loop, cumLen_zero (ls := xls)]

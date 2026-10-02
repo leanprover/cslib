@@ -73,21 +73,12 @@ theorem sTr_τSTr_iff [HasTau Label] (lts : LTS State Label) :
     case refl => exact STr.refl
     case tail _ h1 h2 => exact STr.tr h1 h2 .refl
 
-/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
+/-- Saturating an LTS does not change its saturated τ-transition relation. -/
 theorem saturate_τsTr_τSTr_iff [hHasTau : HasTau Label] (lts : LTS State Label) :
     lts.saturate.τSTr = lts.τSTr := by
-  ext s s'
-  apply Iff.intro <;> intro h
-  case mp =>
-    induction h
-    case refl => constructor
-    case tail _ _ _ h2 h3 => exact Relation.ReflTransGen.trans h3 ((sTr_τSTr_iff _).mp h2)
-  case mpr =>
-    cases h
-    case refl => constructor
-    case tail s' h2 h3 =>
-      have h4 := STr.tr h2 h3 Relation.ReflTransGen.refl
-      exact Relation.ReflTransGen.single h4
+  change Relation.ReflTransGen (fun s s' => lts.STr s HasTau.τ s') = _
+  simp only [sTr_τSTr_iff]
+  exact Relation.reflTransGen_eq_self (r := Relation.ReflTransGen _)
 
 /-- Saturated transitions labelled by τ can be composed. -/
 @[scoped grind .]
@@ -114,24 +105,18 @@ theorem STr.comp
   case tr _ _ hτ1 htr hτ2 =>
     exact STr.tr (Relation.ReflTransGen.trans h1 hτ1) htr (Relation.ReflTransGen.trans hτ2 h3)
 
-/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-theorem saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label)
-    (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
+/-- In a saturated LTS, transitions and saturated transitions agree for every label. -/
+theorem saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label) :
+    lts.saturate.Tr s μ = lts.saturate.STr s μ := by
   ext s'
-  apply Iff.intro <;> intro h
-  case mp =>
-    cases h
-    case refl => constructor
-    case tr hstr1 htr hstr2 =>
-      apply STr.single
-      exact STr.tr hstr1 htr hstr2
-  case mpr =>
-    cases h
-    case refl => constructor
-    case tr hstr1 htr hstr2 =>
-      rw [saturate_τsTr_τSTr_iff lts] at hstr1 hstr2
-      rw [←sTr_τSTr_iff lts] at hstr1 hstr2
-      exact STr.comp hstr1 htr hstr2
+  constructor
+  · exact STr.single
+  · intro h
+    cases h with
+    | refl => exact STr.refl
+    | tr h₁ h₂ h₃ =>
+      rw [saturate_τsTr_τSTr_iff] at h₁ h₃
+      exact STr.comp ((sTr_τSTr_iff _).mpr h₁) h₂ ((sTr_τSTr_iff _).mpr h₃)
 
 /-- In a saturated LTS, every state is in its τ-image. -/
 @[scoped grind .]

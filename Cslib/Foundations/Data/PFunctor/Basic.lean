@@ -1,8 +1,9 @@
 /-
-Copyright (c) 2026 PolyFun Contributors. All rights reserved.
+Copyright (c) 2026 Fabrizio Montesi, PolyFun Contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Devon Tuma, Quang Dao
+Authors: Fabrizio Montesi, Devon Tuma, Quang Dao
 -/
+
 module
 
 public import Cslib.Init
@@ -19,6 +20,8 @@ Definitions of common `PFunctor` constructions:
 Special cases `C`, `linear`, `selfMonomial`, `purePower`, the indeterminate `y`,
 and canonical choices of `0` and `1` are defined as abbreviations or instances over `monomial`.
 The scoped notations `A y^ B` and `y^ B` denote `monomial A B` and `purePower B`, respectively.
+
+The child-map API includes `const`, `Unary`, and `DecidableEqChildren`.
 -/
 
 @[expose] public section
@@ -34,6 +37,12 @@ theorem ext {P Q : PFunctor.{uA, uB}} (h : P.A = Q.A) (h' : ∀ a, P.B a = Q.B (
     P = Q := by
   cases P; cases Q; simp only [mk.injEq] at h h' ⊢; subst h
   simp_all only [heq_eq_eq, true_and]; funext; exact h' _
+
+/-- The constant child map for `a`. -/
+def const {P : PFunctor} (a : P.A) (x : α) : P.B a → α := fun _ => x
+
+@[simp, scoped grind =]
+theorem const_apply {P : PFunctor} (a : P.A) (x : α) (i : P.B a) : PFunctor.const a x i = x := rfl
 
 section monomial
 
@@ -52,10 +61,12 @@ end monomial
 section zero
 
 /-- The zero polynomial functor, defined as `A = PEmpty` and `B _ = PEmpty`, is the identity with
-  respect to sum (up to equivalence) -/
+respect to sum (up to equivalence). -/
 @[simps] instance instZeroPFunctor : Zero PFunctor where zero := monomial PEmpty PEmpty
 
-instance instIsEmptyZeroPFunctor : IsEmpty (0 : PFunctor.{uA, uB}).A :=
+-- The head type is independent of the child universe. Fixing it to `0` avoids an
+-- unconstrained universe metavariable when these head instances are synthesized.
+instance instIsEmptyZeroPFunctor : IsEmpty (0 : PFunctor.{uA, 0}).A :=
   inferInstanceAs (IsEmpty PEmpty)
 
 end zero
@@ -63,10 +74,10 @@ end zero
 section one
 
 /-- The unit polynomial functor, defined as `A = PUnit` and `B _ = PEmpty`, is the identity with
-  respect to product (up to equivalence) -/
+respect to product (up to equivalence). -/
 @[simps] instance instOnePFunctor : One PFunctor where one := monomial PUnit PEmpty
 
-instance instUniqueOneA : Unique (1 : PFunctor.{uA, uB}).A := inferInstanceAs (Unique PUnit)
+instance instUniqueOneA : Unique (1 : PFunctor.{uA, 0}).A := inferInstanceAs (Unique PUnit)
 
 instance instIsEmptyOneB (a : (1 : PFunctor.{uA, uB}).A) : IsEmpty ((1 : PFunctor.{uA, uB}).B a) :=
   inferInstanceAs (IsEmpty PEmpty)
@@ -96,9 +107,9 @@ of the abbreviations above: being reducible, they unfold to `PEmpty`/`PUnit` dur
 search. Only `0` and `1` need the explicit instances above, since the `Zero`/`One` instance
 projections are not reducible. -/
 
-@[simp] lemma const_pempty : C PEmpty = 0 := rfl
+@[simp] lemma C_pempty : C PEmpty = 0 := rfl
 
-@[simp] lemma const_punit : C PUnit = 1 := rfl
+@[simp] lemma C_punit : C PUnit = 1 := rfl
 
 @[simp] lemma linear_punit : linear PUnit = y := rfl
 
@@ -109,7 +120,10 @@ projections are not reducible. -/
 section add
 
 /-- The sum of two polynomial functors `P` and `Q`, written as `P + Q`,
-defined as the sum of the head types and the dependent sum recursor for the child types. -/
+defined as the sum of the head types and the dependent sum recursor for the child types.
+
+The child universes must agree. The named spelling `P.add Q` can elaborate in contexts where
+`P + Q` fails to infer universes, such as under `PFunctor.W`; see `CslibTests.PFunctor`. -/
 @[implicit_reducible] def add (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
     PFunctor.{max uA₁ uA₂, uB} :=
   ⟨P.A ⊕ Q.A, @Sum.rec P.A Q.A (fun _ => Type uB) P.B Q.B⟩
@@ -118,6 +132,8 @@ defined as the sum of the head types and the dependent sum recursor for the chil
     HAdd PFunctor.{uA₁, uB} PFunctor.{uA₂, uB} PFunctor.{max uA₁ uA₂, uB} where
   hAdd := add
 
+/- Both named operations and arithmetic notation are available; `simp` normalizes to the
+notation, for both addition and multiplication. -/
 @[simp] lemma add_eq_add (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
     P.add Q = P + Q := rfl
 
@@ -138,5 +154,40 @@ defined as the product of the head types and the sum of the child types. -/
     P.prod Q = P * Q := rfl
 
 end prod
+
+section Unary
+
+/-- A polynomial functor is unary if all child types have exactly one element. -/
+class Unary (P : PFunctor) where
+  unary (a : P.A) : Unique (P.B a)
+
+attribute [instance_reducible, instance] PFunctor.Unary.unary
+
+theorem Unary.fun_eq_const [Unary P]
+    (a : P.A) (f : P.B a → α) : f = fun _ => f default := by
+  funext i
+  exact congrArg f (Subsingleton.elim i default)
+
+/-- A polynomial functor has children with decidable equality. -/
+class DecidableEqChildren (P : PFunctor) where
+  decidableEq (a : P.A) : DecidableEq (P.B a)
+
+attribute [instance_reducible, instance] DecidableEqChildren.decidableEq
+
+/-- A unary polynomial functor has decidable child equality. -/
+instance (P : PFunctor) [P.Unary] : P.DecidableEqChildren where
+  decidableEq _ _ _ := isTrue (Subsingleton.elim _ _)
+
+/-- Constructs a unary polynomial functor. -/
+abbrev mkUnary (A : Type*) : PFunctor where
+  A := A
+  B := fun _ => Unit
+
+instance {A : Type u} : (mkUnary A).Unary where
+  unary _ := by
+    change Unique Unit
+    infer_instance
+
+end Unary
 
 end PFunctor
