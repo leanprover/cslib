@@ -46,6 +46,7 @@ public import Cslib.Computability.Circuit.Composition
 public import Cslib.Computability.Circuit.Counting
 public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Full
+public import Cslib.Computability.Circuit.Full.Aggregation
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Normalization
 public import Cslib.Computability.Circuit.Program
