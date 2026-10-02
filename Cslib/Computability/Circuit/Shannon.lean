@@ -15,7 +15,10 @@ import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Order.Filter.AtTopBot.Basic
 
 /-!
-# Shannon's lower bound for finite carriers and binary bases
+# Shannon's lower bounds for finite carriers
+
+`exists_hard_full_function` gives a finite criterion for the full basis with every parameter
+explicit, including the arity. The following asymptotic theorem specializes to binary bases.
 
 For any fixed finite signature with operation arities at most two, interpreted on a finite
 carrier `U` with `q ≥ 2` elements, some function on `n` inputs requires more than `qⁿ/n` gates
@@ -42,6 +45,30 @@ open Filter
 
 universe v u
 variable {σ : Signature.{v}} {U : Type u}
+
+/-- A finite counting bound yields a hard function without asymptotic assumptions. -/
+theorem exists_hard_function_of_card_lt [Fintype σ.Op] [Fintype U]
+    (I : Interpretation σ U) (n s : ℕ)
+    (h : (computableFunctions I n s).card < Fintype.card U ^ (Fintype.card U ^ n)) :
+    ∃ f : (Fin n → U) → U, ∀ c : Circuit σ n 1, c.Computes I (single f) → s < c.size := by
+  classical
+  obtain ⟨f, _, hf⟩ := Finset.exists_mem_notMem_of_card_lt_card
+    (s := computableFunctions I n s) (t := Finset.univ)
+    (by simpa using h)
+  exact ⟨f, fun c hc => lt_of_not_ge fun hs => hf (mem_computableFunctions.mpr ⟨c, hc, hs⟩)⟩
+
+/-- A finite Shannon criterion for the full basis, valid simultaneously for every arity,
+input count, and gate budget. The factorial correction accounts for gate relabelings. -/
+theorem exists_hard_full_function [Fintype U] (k n s : ℕ)
+    (h : (s + 1) * (max s (Fintype.card U ^ (Fintype.card U ^ k) * (n + s) ^ k +
+      Fintype.card U)) ^ s * (n + s) <
+        Fintype.card U ^ (Fintype.card U ^ n) * s.factorial) :
+    ∃ f : (Fin n → U) → U, ∀ c : Circuit (fullSignature k U) n 1,
+      c.Computes fullInterpretation (single f) → s < c.size := by
+  classical
+  apply exists_hard_function_of_card_lt
+  exact (Nat.mul_lt_mul_right (Nat.factorial_pos s)).mp
+    ((card_computableFunctions_full_mul_factorial_le (U := U) k n s).trans_lt h)
 
 private theorem exists_card_le_exp [Fintype σ.Op] (I : Interpretation σ U)
     (arity_le : ∀ op, σ.Arity op ≤ 2) :
@@ -136,13 +163,9 @@ theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
   simp only [Nat.card_eq_fintype_card]
   apply eventually_atTop.mp
   filter_upwards [eventually_card_lt I arity_le, eventually_ge_atTop 1] with n hn hn0
-  obtain ⟨f, _, hf⟩ := Finset.exists_mem_notMem_of_card_lt_card
-    (s := computableFunctions I n (Fintype.card U ^ n / n)) (t := Finset.univ)
-    (by simpa only [Fintype.card_fun, Fintype.card_fin, Finset.card_univ] using hn)
+  obtain ⟨f, hf⟩ := exists_hard_function_of_card_lt I n (Fintype.card U ^ n / n) hn
   refine ⟨f, fun c hc => ?_⟩
-  have hg : Fintype.card U ^ n / n < c.size := lt_of_not_ge fun hg =>
-    hf (mem_computableFunctions.mpr ⟨c, hc, hg⟩)
-  apply (div_lt_iff₀ (by exact_mod_cast (by omega : 0 < n) : (0 : ℝ) < n)).mpr
-  exact_mod_cast (Nat.div_lt_iff_lt_mul (by omega : 0 < n)).mp hg
+  apply (div_lt_iff₀ (by exact_mod_cast (by lia : 0 < n) : (0 : ℝ) < n)).mpr
+  exact_mod_cast (Nat.div_lt_iff_lt_mul (by lia : 0 < n)).mp (hf c hc)
 
 end Cslib.Circuits.Shannon
