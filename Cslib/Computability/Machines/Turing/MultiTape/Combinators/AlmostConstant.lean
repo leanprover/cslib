@@ -330,15 +330,13 @@ lemma computesFunInTimeAndSpace_almostConstTM (h : ∀ a ∉ S, encOut (f a) = o
   intro a
   obtain ⟨j, hjle, hj, hrun⟩ := reaches_write (encIn := encIn) h a
   use j + 1 + ((encOut (f a)).length + 1)
-  refine ⟨?_, 0, le_rfl, ?_⟩
-  · change j + 1 + ((encOut (f a)).length + 1) ≤ almostConstTime encIn encOut f S out
-    rw [almostConstTime]
+  refine ⟨?_, ?_, ?_, by simp⟩
+  · simp only [almostConstTime]
     omega
-  · refine computesInExactTimeAndSpace_of_runFrom ?_ ?_ (by simp)
-    all_goals
-      simp only [runFrom] at hrun ⊢
-      rw [Nat.add_comm (j + 1), Function.iterate_add_apply, hrun, ← runFrom, runFrom_write_halted]
-    rfl
+  all_goals
+    simp only [runFrom] at hrun ⊢
+    rw [Nat.add_comm (j + 1), Function.iterate_add_apply, hrun, ← runFrom, runFrom_write_halted]
+  rfl
 
 end AlmostConstFun
 

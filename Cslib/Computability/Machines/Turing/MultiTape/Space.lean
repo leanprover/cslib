@@ -12,7 +12,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 /-!
 # Space usage of multi-tape Turing machines
 
-Defines the space used by a run path and computation within time and space bounds. Space
+Defines the space used by a run path and decision within time and space bounds. Space
 usage counts the positions visited by each work-tape head along the path and sums over the tapes.
 
 ## Design
@@ -31,6 +31,11 @@ single marker on the work tape and then counts the number of symbols by work tap
 without writing).
 Defining space usage via "cells visited" thus yields the more fine-grained "complexity world" in
 which `DSPACE(1)` is exactly the class of regular languages.
+
+Space bounds apply to every computation prefix, including rejecting branches, following the
+visited-cell convention in [Watrous, §2.1]
+(https://cs.uwaterloo.ca/~watrous/Papers/SpaceBoundedQuantumSimulation.pdf).
+`UsesSpace` does not require termination; `DecidesInTimeAndSpace` also bounds running time.
 
 ## References
 
@@ -62,57 +67,34 @@ end RunPath
 /-- The number of work tape cells touched along a computation path. -/
 def ComputationPath.space (p : ntm.ComputationPath input) : ℕ := RunPath.space p.toRunPath
 
-/-- `ntm` computes `output` from `input` touching exactly `s` work tape cells. -/
-def ComputesInExactSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (s : ℕ) :
-    Prop :=
-  ntm.ComputesSuchThat input output fun p ↦ p.space = s
+/-- Every computation prefix on `input` touches at most `s` work-tape cells. This bounds
+rejecting branches as well as successful ones, and does not itself require termination. -/
+def UsesSpace (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (s : ℕ) : Prop :=
+  ∀ p : ntm.ComputationPath input, p.space ≤ s
 
-/-- `ntm` computes `output` from `input` in `t` steps and `s` work tape cells, by a single
-computation. -/
-def ComputesInExactTimeAndSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
-    (t s : ℕ) : Prop :=
-  ntm.ComputesSuchThat input output fun p ↦ p.time = t ∧ p.space = s
-
-/-- A machine computes `f` between the supplied encodings, within input-indexed bounds.
-For every input `a`, at least one halting computation path must output `encOut (f a)` from
-`encIn a` within the supplied time and space bounds. Other paths may produce different outputs or
-fail to halt, so a nondeterministic machine can compute multiple distinct functions according to
-this existential definition. -/
-def ComputesFunInTimeAndSpace {α β : Type*}
-    (ntm : MultiTapeNTM k Symbol State)
-    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol)
-    (f : α → β) (t s : α → ℕ) : Prop :=
-  ∀ a, ∃ t' ≤ t a, ∃ s' ≤ s a,
-    ntm.ComputesInExactTimeAndSpace (encIn a) (encOut (f a)) t' s'
+/-- The machine accepts exactly the members of `L`, within time and space bounds on every branch.
+Halting outputs are `[true]` for acceptance and `[false]` for rejection. A branch with no permitted
+transition also rejects. A member may have rejecting branches; a nonmember has no accepting one. -/
+def DecidesInTimeAndSpace {α : Type*} (ntm : MultiTapeNTM k Bool State)
+    (L : Set α) (enc : α ↪ List Bool) (t s : α → ℕ) : Prop :=
+  ∀ a, (ntm.Accepts (enc a) ↔ a ∈ L) ∧
+    ntm.RunsInTime (enc a) (t a) ∧ ntm.UsesSpace (enc a) (s a) ∧
+    ∀ p : ntm.ComputationPath (enc a), p.last.Halted →
+      p.last.output = [true] ∨ p.last.output = [false]
 
 /-- Resource bounds can be weakened independently on every input. -/
-theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
-    {ntm : MultiTapeNTM k Symbol State} {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol}
-    {f : α → β} {t s t' s' : α → ℕ}
-    (h : ntm.ComputesFunInTimeAndSpace encIn encOut f t s)
+theorem DecidesInTimeAndSpace.mono {α : Type*} {ntm : MultiTapeNTM k Bool State}
+    {L : Set α} {enc : α ↪ List Bool} {t s t' s' : α → ℕ}
+    (h : ntm.DecidesInTimeAndSpace L enc t s)
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
-    ntm.ComputesFunInTimeAndSpace encIn encOut f t' s' := fun a ↦ by
-  obtain ⟨u, hu, v, hv, hc⟩ := h a
-  exact ⟨u, hu.trans (ht a), v, hv.trans (hs a), hc⟩
+    ntm.DecidesInTimeAndSpace L enc t' s' := fun a ↦
+  ⟨(h a).1, (h a).2.1.mono (ht a), fun p ↦ ((h a).2.2.1 p).trans (hs a), (h a).2.2.2⟩
 
-/-- A machine emits at most one symbol per step, so the encoded result is no longer than its
-time bound. -/
-theorem ComputesFunInTimeAndSpace.length_encOut_le {α β : Type*}
-    {ntm : MultiTapeNTM k Symbol State} {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol}
-    {f : α → β} {t s : α → ℕ}
-    (h : ntm.ComputesFunInTimeAndSpace encIn encOut f t s) (a : α) :
-    (encOut (f a)).length ≤ t a := by
-  obtain ⟨t', ht', s', _, p, _, hout, htime, _⟩ := h a
-  have hlen := RunPath.length_output_le p.toRunPath
-  rw [hout, p.head_eq] at hlen
-  exact le_trans (by simpa [← htime, ComputationPath.time, RunPath.time] using hlen) ht'
-
-/-- Computability by a nondeterministic machine with a binary tape alphabet and finitely many
-states, within the supplied input-indexed bounds. Computation uses the existential path semantics
-of `ComputesFunInTimeAndSpace`. -/
-def ComputableInTimeAndSpace {α β : Type*}
-    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (t s : α → ℕ) : Prop :=
+/-- A language is decidable within the bounds by a nondeterministic machine with a binary tape
+alphabet and finitely many states. -/
+def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
+    (t s : α → ℕ) : Prop :=
   ∃ (k : ℕ) (State : Type) (_ : Finite State) (ntm : MultiTapeNTM k Bool State),
-    ntm.ComputesFunInTimeAndSpace encIn encOut f t s
+    ntm.DecidesInTimeAndSpace L enc t s
 
 end Turing.MultiTapeNTM
