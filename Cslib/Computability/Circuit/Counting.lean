@@ -32,6 +32,8 @@ After merging gates that compute the same function, a circuit with `g` gates has
 labeled presentations. This factorial correction sharpens the count used in Shannon's lower bound.
 The main bound accepts any uniform bound on the number of lines;
 `card_computableFunctions_mul_factorial_le_of_arity_le` specializes it to operation arities.
+`card_computableFunctions_full_mul_factorial_le` uses the exact full-basis line count,
+keeping the number of operation tables explicit when the arity varies.
 -/
 
 @[expose] public section
@@ -231,5 +233,18 @@ theorem card_computableFunctions_mul_factorial_le_of_arity_le
   exact (Line.card_le n g r arity_le).trans
     ((Nat.mul_le_mul_left _ (Nat.pow_le_pow_left (by omega : n + g + 1 ≤ n + s + 1) r)).trans
       (Nat.le_max_right _ _))
+
+/-- The full-basis count keeps the number of operation tables explicit, so the arity may
+vary along with the number of inputs and the gate budget. -/
+theorem card_computableFunctions_full_mul_factorial_le [Fintype U] [DecidableEq U]
+    (k n s : ℕ) :
+    (computableFunctions (fullInterpretation (k := k) (Carrier := U)) n s).card * s.factorial ≤
+      (s + 1) * (max s (Fintype.card U ^ (Fintype.card U ^ k) * (n + s) ^ k +
+        Fintype.card U)) ^ s * (n + s) := by
+  apply card_computableFunctions_mul_factorial_le _ n s _ (Nat.le_max_left _ _)
+  intro g hg
+  apply le_trans ?_ (Nat.le_max_right _ _)
+  rw [Line.card_full]
+  gcongr
 
 end Cslib.Circuits
