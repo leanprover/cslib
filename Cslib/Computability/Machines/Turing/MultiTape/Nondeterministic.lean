@@ -13,7 +13,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 # Nondeterministic Multi-Tape Turing Machines
 
 Defines nondeterministic Turing machines with a read-only input tape, `k` work tapes and one
-write-only output tape, and computations that halt and emit a given output.
+write-only output tape, their computation paths, acceptance, and running time.
 
 ## Design
 
@@ -27,9 +27,11 @@ transition function is replaced by a transition relation: `Tr q input work actio
 A halted configuration steps to itself, so once a machine has halted it has a run of every length.
 A time bound is therefore an upper bound, with no separate account of the step at which it halted.
 
-The transition relation may be empty at a running configuration, so a machine can get stuck. The
-computation predicates ask for a path ending in a halted configuration, so a stuck one is not a
-witness.
+Acceptance means that some computation halts with output `[true]`. A branch with no permitted
+transition stops without accepting. Following [AroraBarak09], chapter 2, time bounds apply to every
+branch, including rejecting ones. `RunsInTime` bounds transitions out of running configurations,
+so halted self-loops do not consume additional time. Function computation is defined only for
+deterministic machines.
 
 ## Important Declarations
 
@@ -37,8 +39,8 @@ witness.
 * `Step`: the one-step relation on configurations
 * `RunPath`: finite relation series of steps
 * `ComputationPath`: a run path starting at the initial configuration
-* `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
-* `Computes`, `ComputesInExactTime`: its instances, with no constraint or a given number of steps
+* `Accepts`: some computation halts with output `[true]`
+* `RunsInTime`: every branch stops within the bound
 
 ## References
 
@@ -105,6 +107,20 @@ abbrev RunPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :=
 
 namespace RunPath
 
+/-- Once a run path is halted, its configuration stays unchanged. -/
+lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.last = p.head := by
+  induction p using RelSeries.inductionOn' with
+  | singleton c => rfl
+  | snoc p c hc ih =>
+    have hp : p.last = p.head := ih (by simpa using h)
+    have hh : p.last.Halted := hp ▸ (show p.head.Halted by simpa using h)
+    simpa using ((step_of_halt hh).mp hc).trans hp
+
+/-- The last configuration equals any earlier halted configuration. -/
+lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
+    (h : (p i).Halted) : p.last = p i := by
+  simpa using last_eq_of_head_halted (p.drop i) (by simpa using h)
+
 /-- A run path emits at most one symbol per step. -/
 lemma length_output_le (p : ntm.RunPath input) :
     p.last.output.length ≤ p.head.output.length + p.length := by
@@ -131,21 +147,20 @@ def time (p : ntm.ComputationPath input) : ℕ := RunPath.time p.toRunPath
 
 end ComputationPath
 
-/-- `ntm` has a computation on `input` that starts at the initial configuration, halts, emits
-`output` and satisfies `P`. The notions below are its instances, so their constraints all refer to
-a single computation. -/
-def ComputesSuchThat (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
-    (P : ntm.ComputationPath input → Prop) : Prop :=
-  ∃ p : ntm.ComputationPath input, p.last.Halted ∧ p.last.output = output ∧ P p
+/-- Some computation on `input` halts with output `[true]`. -/
+def Accepts (ntm : MultiTapeNTM k Bool State) (input : List Bool) : Prop :=
+  ∃ p : ntm.ComputationPath input, p.last.Halted ∧ p.last.output = [true]
 
-/-- `ntm` computes `output` from `input`, with no bound on resources. -/
-def Computes (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) : Prop :=
-  ntm.ComputesSuchThat input output fun _ => True
+/-- Every branch stops within `t` steps: after at least `t` steps, only halted self-loops are
+permitted. A branch with no permitted transition has already stopped and need not be extended. -/
+def RunsInTime (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (t : ℕ) : Prop :=
+  ∀ p : ntm.ComputationPath input, t ≤ p.time →
+    ∀ c, ntm.Step p.last c → p.last.Halted
 
-/-- `ntm` computes `output` from `input` in exactly `t` steps. -/
-def ComputesInExactTime (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (t : ℕ) :
-    Prop :=
-  ntm.ComputesSuchThat input output fun p => p.time = t
+/-- A time bound can be increased. -/
+lemma RunsInTime.mono {input : List Symbol} {t t' : ℕ}
+    (h : ntm.RunsInTime input t) (ht : t ≤ t') : ntm.RunsInTime input t' :=
+  fun p hp ↦ h p (ht.trans hp)
 
 end MultiTapeNTM
 
