@@ -65,6 +65,69 @@ instance : Acceptor (FinAcc State Symbol) Symbol where
   Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
     ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.MTr s xs s'
 
+/-- The language of an NFA is empty iff there are no final states
+reachable from the initial state [Hopcroft2006]. -/
+theorem is_empty (a : FinAcc State Symbol) :
+    -- a.IsEmpty ↔ Acceptor.language.IsEmpty a := by
+    Acceptor.language.IsEmpty a ↔
+    ¬∃ s1 s2, a.CanReach s1 s2 ∧ s1 ∈ a.start ∧ s2 ∈ a.accept
+    := by
+  apply Iff.intro <;> intro h1
+  -- If language empty, then no reachable accepting states.
+  case mp =>
+    rw [Acceptor.language.IsEmpty, not_exists] at h1
+    -- Assume that there is a reachable accepting state.
+    apply by_contradiction
+    intro h2
+    rw [not_not] at h2
+    -- Then concrete start and accepting states s1 and s2, resp.
+    cases h2 with
+    | intro s1 h2
+    cases h2 with
+    | intro s2 h2
+    rw [LTS.CanReach] at h2
+    cases h2 with
+    | intro h2 _
+    -- And concrete trace xs from s1 to s2.
+    cases h2 with
+    | intro xs h2
+    -- Then xs must be in the language.
+    have h3 : Acceptor.Accepts a xs := by
+      simp only [instAcceptor]
+      grind
+    rw [← Acceptor.mem_language] at h3
+    -- But also not in the language.
+    have h4 : xs ∉ Acceptor.language a := by exact h1 xs
+    -- Which is contradictory.
+    exact h4 h3
+  -- If no reachable accepting states, then language empty.
+  case mpr =>
+    -- rw [IsEmpty] at h1
+    simp only [not_exists, not_and] at h1
+    -- Assume that the language is not empty.
+    apply by_contradiction
+    intro h2
+    rw [Acceptor.language.IsEmpty, not_not] at h2
+    -- Then concrete accepted trace xs.
+    cases h2 with
+    | intro xs h2
+    -- Then concrete start and accepting states s1 and s2, resp.,
+    -- and s2 reachable from s1.
+    have h3 : ∃ s1 s2, s1 ∈ a.start ∧ s2 ∈ a.accept ∧ a.MTr s1 xs s2 := by
+      simp at h2
+      grind
+    cases h3 with
+    | intro s1 h3
+    cases h3 with
+    | intro s2 h3
+    have h4 : a.CanReach s1 s2 := by
+      rw [LTS.CanReach]
+      grind
+    -- Premise implies that s2 should not be an accepting state.
+    have h5 := h1 s1 s2 h4 h3.left
+    -- Which is contradictory.
+    exact h5 h3.right.left
+
 end FinAcc
 
 /-- Nondeterministic Buchi automaton. -/
