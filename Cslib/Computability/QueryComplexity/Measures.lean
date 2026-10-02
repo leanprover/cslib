@@ -24,6 +24,10 @@ the chain `s(f) ≤ bs(f) ≤ C(f)`. Notation follows [AroraBarak09].
 - `sensitivity`: `s(f)`, the maximum over inputs of the number of sensitive coordinates.
 - `blockSensitivity`: `bs(f)`, the maximum over inputs of the maximum number of disjoint sensitive
   blocks.
+- `IsCertificate`: a partial assignment forces the value `b`, as in [BuhrmanDeWolf2002].
+- `Fixes`: a set of coordinates pins down `f` at `x`, as in [AroraBarak09]. At a fixed input the
+  two agree, since an assignment consistent with `x` is determined by its support; see
+  `pointCertificateComplexity_eq_inf'_certificates`.
 - `certificateComplexity`: `C(f)`, the maximum over inputs of the smallest certificate size.
 
 ## Main results
@@ -31,6 +35,8 @@ the chain `s(f) ≤ bs(f) ≤ C(f)`. Notation follows [AroraBarak09].
 - `sensitivity_le_blockSensitivity`: `s(f) ≤ bs(f)`.
 - `blockSensitivity_le_certificateComplexity`: `bs(f) ≤ C(f)`.
 - `|B| ≤ s(f)` for a minimal sensitive block `B`.
+- `pointCertificateComplexity_eq_inf'_certificates`: `Cₓ(f)`, defined over coordinate sets, is
+  equally the least size of a certificate for `x`.
 
 ## References
 
@@ -220,7 +226,11 @@ theorem card_le_sensitivity (hB : IsMinimalSensitiveBlock f x B) : B.card ≤ se
 
 end IsMinimalSensitiveBlock
 
-/-! ## Certificates -/
+/-! ## Certificates
+
+A certificate for `x` is a partial assignment consistent with `x` that already forces the value
+of `f`. `IsCertificate` keeps that in general form, with the forced value `b` a parameter.
+-/
 
 /-- `C` forces the value `b`: everything consistent with `C` has `f = b`. -/
 def IsCertificate (f : BooleanFunction n) (C : PartialAssignment n) (b : Bool) : Prop :=
@@ -230,7 +240,7 @@ instance (f : BooleanFunction n) (C : PartialAssignment n) (b : Bool) :
     Decidable (IsCertificate f C b) :=
   inferInstanceAs (Decidable (∀ x, Agrees C x → f x = b))
 
-/-- Assignments consistent with `x` that already force `f x`. -/
+/-- Partial assignments consistent with `x` that already force `f x`. -/
 def certificates (f : BooleanFunction n) (x : Cube n) : Finset (PartialAssignment n) :=
   Finset.univ.filter (fun C => Agrees C x ∧ IsCertificate f C (f x))
 
@@ -245,18 +255,47 @@ lemma ofCube_mem_certificates (f : BooleanFunction n) (x : Cube n) :
   mem_certificates.mpr ⟨agrees_ofCube_iff.mpr rfl, fun _ hy => by
     rw [agrees_ofCube_iff.mp hy]⟩
 
-/-- There is always a certificate, so `Cₓ(f)` is a minimum over a non-empty set. -/
+/-- There is always a certificate for `x`. -/
 lemma certificates_nonempty (f : BooleanFunction n) (x : Cube n) : (certificates f x).Nonempty :=
   ⟨ofCube x, ofCube_mem_certificates f x⟩
 
-/-- The size of the smallest certificate for the input `x`, denoted `Cₓ(f)`. -/
-def pointCertificateComplexity (f : BooleanFunction n) (x : Cube n) : ℕ :=
-  (certificates f x).inf' (certificates_nonempty f x) size
+/-! ## Pointwise certificates as sets of coordinates
 
-/-- Upper-bound rule for `Cₓ(f)`: exhibit one certificate. -/
-lemma pointCertificateComplexity_le {f : BooleanFunction n} {x : Cube n} {C : PartialAssignment n}
-    (h : C ∈ certificates f x) : pointCertificateComplexity f x ≤ size C :=
-  Finset.inf'_le _ h
+At a fixed input a certificate carries no information beyond the coordinates it reads: `Agrees C x`
+forces `C i = some (x i)` on the support and `none` elsewhere. So `Cₓ(f)` is defined over sets of
+coordinates, and the next section connects that back to `certificates`.
+-/
+
+/-- `S` pins down `f` at `x`: every input agreeing with `x` on `S` takes the same value. This is
+the pointwise form of `IsCertificate`, recording only which coordinates are read. -/
+def Fixes (f : BooleanFunction n) (x : Cube n) (S : Finset (Fin n)) : Prop :=
+  ∀ y, (∀ i ∈ S, y i = x i) → f y = f x
+
+instance (f : BooleanFunction n) (x : Cube n) (S : Finset (Fin n)) : Decidable (Fixes f x S) :=
+  inferInstanceAs (Decidable (∀ y, (∀ i ∈ S, y i = x i) → f y = f x))
+
+/-- Reading every coordinate of `x` pins down `f`. -/
+lemma fixes_univ (f : BooleanFunction n) (x : Cube n) : Fixes f x Finset.univ :=
+  fun _ hy => congrArg f (funext fun i => hy i (Finset.mem_univ i))
+
+/-- There is always a fixing set, so `Cₓ(f)` is a minimum over a non-empty set. -/
+lemma fixes_nonempty (f : BooleanFunction n) (x : Cube n) :
+    (Finset.univ.filter (Fixes f x)).Nonempty :=
+  ⟨Finset.univ, Finset.mem_filter.mpr ⟨Finset.mem_univ _, fixes_univ f x⟩⟩
+
+/-- The fewest coordinates of `x` that pin down the value of `f`, denoted `Cₓ(f)`. -/
+def pointCertificateComplexity (f : BooleanFunction n) (x : Cube n) : ℕ :=
+  (Finset.univ.filter (Fixes f x)).inf' (fixes_nonempty f x) Finset.card
+
+/-- Upper-bound rule for `Cₓ(f)`: exhibit one fixing set. -/
+lemma pointCertificateComplexity_le {f : BooleanFunction n} {x : Cube n} {S : Finset (Fin n)}
+    (h : Fixes f x S) : pointCertificateComplexity f x ≤ S.card :=
+  Finset.inf'_le _ (Finset.mem_filter.mpr ⟨Finset.mem_univ _, h⟩)
+
+/-- Lower-bound rule for `Cₓ(f)`: a bound that holds for every fixing set. -/
+lemma le_pointCertificateComplexity {f : BooleanFunction n} {x : Cube n} {k : ℕ}
+    (h : ∀ S, Fixes f x S → k ≤ S.card) : k ≤ pointCertificateComplexity f x :=
+  Finset.le_inf' _ _ fun _ hS => h _ (Finset.mem_filter.mp hS).2
 
 /-- The maximum over all inputs of the smallest certificate size, denoted `C(f)`. -/
 def certificateComplexity (f : BooleanFunction n) : ℕ :=
@@ -267,16 +306,120 @@ lemma pointCertificateComplexity_le_certificateComplexity (f : BooleanFunction n
     pointCertificateComplexity f x ≤ certificateComplexity f :=
   Finset.le_sup (Finset.mem_univ x)
 
-/-- `Cₓ(f) ≤ n`: reading off the whole input is a certificate. -/
+/-- `Cₓ(f) ≤ n`: reading every coordinate pins down `f`. -/
 theorem pointCertificateComplexity_le_card (f : BooleanFunction n) (x : Cube n) :
     pointCertificateComplexity f x ≤ n :=
-  (pointCertificateComplexity_le (ofCube_mem_certificates f x)).trans_eq (size_ofCube x)
+  (pointCertificateComplexity_le (fixes_univ f x)).trans_eq (by simp)
+
+/-! ## Connecting the two views
+
+An assignment agreeing with `x` is determined by its support, so the two descriptions of a
+pointwise certificate carry the same information.
+-/
+
+/-- The partial assignment that reads the coordinates of `S` off `x`. -/
+def ofCubeOn (x : Cube n) (S : Finset (Fin n)) : PartialAssignment n :=
+  fun i => if i ∈ S then some (x i) else none
+
+@[simp]
+lemma support_ofCubeOn {x : Cube n} {S : Finset (Fin n)} : support (ofCubeOn x S) = S := by
+  ext i; simp [support, ofCubeOn]
+
+@[simp]
+lemma size_ofCubeOn {x : Cube n} {S : Finset (Fin n)} : size (ofCubeOn x S) = S.card := by
+  simp [size]
+
+lemma agrees_ofCubeOn {x : Cube n} {S : Finset (Fin n)} : Agrees (ofCubeOn x S) x := by
+  intro i b hb
+  simp only [ofCubeOn] at hb
+  split at hb <;> simp_all
+
+/-- Once `C` is known to be consistent with `x`, agreeing with `C` is agreeing with `x` on the
+coordinates `C` fixes. This is what makes the two views interchangeable. -/
+lemma agrees_iff_eqOn_support {C : PartialAssignment n} {x y : Cube n} (hx : Agrees C x) :
+    Agrees C y ↔ ∀ i ∈ support C, y i = x i := by
+  constructor
+  · intro hy i hi
+    obtain ⟨b, hb⟩ := Option.isSome_iff_exists.mp (mem_support.mp hi)
+    rw [hy i b hb, hx i b hb]
+  · intro h i b hb
+    rw [h i (mem_support.mpr (by simp [hb])), hx i b hb]
+
+/-- A certificate for `x` pins down `f` on the coordinates it fixes. -/
+lemma fixes_support_of_mem_certificates {f : BooleanFunction n} {x : Cube n}
+    {C : PartialAssignment n}
+    (hC : C ∈ certificates f x) : Fixes f x (support C) :=
+  fun y hy => (mem_certificates.mp hC).2 y
+    ((agrees_iff_eqOn_support (mem_certificates.mp hC).1).mpr hy)
+
+/-- Conversely, reading a fixing set off `x` gives a certificate for `x`. -/
+lemma ofCubeOn_mem_certificates {f : BooleanFunction n} {x : Cube n} {S : Finset (Fin n)}
+    (hS : Fixes f x S) : ofCubeOn x S ∈ certificates f x :=
+  mem_certificates.mpr ⟨agrees_ofCubeOn, fun y hy =>
+    hS y fun i hi => (agrees_iff_eqOn_support agrees_ofCubeOn).mp hy i (by simpa using hi)⟩
+
+/-- Upper-bound rule for `Cₓ(f)` in terms of assignments: any certificate for `x` bounds it. -/
+lemma pointCertificateComplexity_le_size {f : BooleanFunction n} {x : Cube n}
+    {C : PartialAssignment n}
+    (hC : C ∈ certificates f x) : pointCertificateComplexity f x ≤ size C :=
+  pointCertificateComplexity_le (fixes_support_of_mem_certificates hC)
+
+/-- `Cₓ(f)` is equally the least size of a certificate for `x`, so nothing is lost by defining
+it over coordinate sets. -/
+theorem pointCertificateComplexity_eq_inf'_certificates (f : BooleanFunction n) (x : Cube n) :
+    pointCertificateComplexity f x =
+      (certificates f x).inf' (certificates_nonempty f x) size :=
+  le_antisymm
+    (Finset.le_inf' _ _ fun _ hC => pointCertificateComplexity_le_size hC)
+    (le_pointCertificateComplexity fun _ hS =>
+      (Finset.inf'_le _ (ofCubeOn_mem_certificates hS)).trans_eq size_ofCubeOn)
 
 /-! ## `bs(f) ≤ C(f)`
 
-A valid certificate for x must contain at least one bit from every block in a
-sensitive family.
+A set of coordinates pinning down `f` at `x` must meet every block of a sensitive family. The
+blocks are pairwise disjoint, so a family has at most `|S|` members.
 -/
+
+/-- A fixing set must contain at least one coordinate of every sensitive block. -/
+theorem sensitiveBlock_inter_nonempty {f : BooleanFunction n} (x : Cube n) (B : Block n)
+    (hB : IsSensitiveBlock f x B) {S : Finset (Fin n)} (hS : Fixes f x S) :
+    (B ∩ S).Nonempty := by
+  by_contra h
+  rw [Finset.not_nonempty_iff_eq_empty, Finset.eq_empty_iff_forall_notMem] at h
+  refine hB (hS _ fun i hi => ?_)
+  have hiB : i ∉ B := fun hiB => h i (Finset.mem_inter.mpr ⟨hiB, hi⟩)
+  simp [flipBlock, hiB]
+
+/-- A fixing set is at least as large as any sensitive family. -/
+lemma card_le_card_of_isSensitiveFamily {f : BooleanFunction n} {x : Cube n}
+    {F : Finset (Block n)} {S : Finset (Fin n)}
+    (hF : IsSensitiveFamily f x F) (hS : Fixes f x S) : F.card ≤ S.card :=
+  (Finset.card_le_card_biUnion
+      (fun _ hP _ hQ hPQ => Disjoint.mono Finset.inter_subset_left Finset.inter_subset_left
+        (hF.2 hP hQ hPQ))
+      (fun B hB => sensitiveBlock_inter_nonempty x B (hF.1 B hB) hS)).trans
+    (Finset.card_le_card (Finset.biUnion_subset.mpr fun _ _ => Finset.inter_subset_right))
+
+/-- Pointwise: `bsₓ(f) ≤ Cₓ(f)`. -/
+theorem pointBlockSensitivity_le_pointCertificateComplexity (f : BooleanFunction n) (x : Cube n) :
+    pointBlockSensitivity f x ≤ pointCertificateComplexity f x :=
+  Finset.sup_le fun _ hF => le_pointCertificateComplexity fun _ hS =>
+    card_le_card_of_isSensitiveFamily (mem_sensitiveFamilies.mp hF) hS
+
+/-- Every block of a sensitive family meets every fixing set, so `bs(f) ≤ C(f)`. -/
+theorem blockSensitivity_le_certificateComplexity (f : BooleanFunction n) :
+    blockSensitivity f ≤ certificateComplexity f :=
+  Finset.sup_mono_fun fun x _ =>
+    pointBlockSensitivity_le_pointCertificateComplexity f x
+
+/-! ## The same bound via partial assignments
+
+For side-by-side comparison only: the original argument, phrased over `certificates` instead of
+fixing sets. It proves the same `bsₓ(f) ≤ Cₓ(f)`, but has to unwind `Agrees` to discard the
+bit values that a fixing set never carries in the first place.
+-/
+
+namespace ViaAssignments
 
 /-- A certificate must fix at least one coordinate of every sensitive block. -/
 theorem sensitiveBlock_inter_support_nonempty {f : BooleanFunction n} (x : Cube n) (B : Block n)
@@ -300,18 +443,15 @@ lemma card_le_size_of_isSensitiveFamily {f : BooleanFunction n} {x : Cube n}
       (fun B hB => sensitiveBlock_inter_support_nonempty x B (hF.1 B hB) C hC)).trans
     (Finset.card_le_card (Finset.biUnion_subset.mpr fun _ _ => Finset.inter_subset_right))
 
-/-- Pointwise: `bsₓ(f) ≤ Cₓ(f)`. -/
-theorem pointBlockSensitivity_le_pointCertificateComplexity
-    (f : BooleanFunction n) (x : Cube n) :
-    pointBlockSensitivity f x ≤ pointCertificateComplexity f x :=
-  Finset.sup_le fun _ hF => Finset.le_inf' _ _ fun _ hC =>
+/-- Pointwise: `bsₓ(f) ≤ Cₓ(f)`, proved over certificates. The opening `rw` is the one step
+the original did not need, since back then `Cₓ(f)` was itself an infimum over
+`certificates`. -/
+theorem pointBlockSensitivity_le_pointCertificateComplexity (f : BooleanFunction n) (x : Cube n) :
+    pointBlockSensitivity f x ≤ pointCertificateComplexity f x := by
+  rw [pointCertificateComplexity_eq_inf'_certificates]
+  exact Finset.sup_le fun _ hF => Finset.le_inf' _ _ fun _ hC =>
     card_le_size_of_isSensitiveFamily (mem_sensitiveFamilies.mp hF) hC
 
-/-- Every block of a sensitive family meets the support of any certificate, so
-`bs(f) ≤ C(f)`. -/
-theorem blockSensitivity_le_certificateComplexity (f : BooleanFunction n) :
-    blockSensitivity f ≤ certificateComplexity f :=
-  Finset.sup_mono_fun fun x _ =>
-    pointBlockSensitivity_le_pointCertificateComplexity f x
+end ViaAssignments
 
 end Cslib.QueryComplexity
