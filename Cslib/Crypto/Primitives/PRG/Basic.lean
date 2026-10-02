@@ -164,4 +164,45 @@ theorem not_exists_isExpanding_secure_zero :
   rintro ⟨G, hG, hsecure⟩
   exact G.not_secure_zero_of_isExpanding hG hsecure
 
+/-- Independent uniform sampling on `α` and `β` equals uniform sampling on `α × β`. -/
+theorem uniformOfFintype_prod (α β : Type*)
+    [Fintype α] [Nonempty α] [Fintype β] [Nonempty β] :
+    ((PMF.uniformOfFintype α).bind fun a =>
+      (PMF.uniformOfFintype β).map fun b => (a, b)) =
+    PMF.uniformOfFintype (α × β) := by
+  ext ⟨a, b⟩
+  simp only [PMF.bind_apply, PMF.map_apply, PMF.uniformOfFintype_apply, Fintype.card_prod,
+    Nat.cast_mul, ENNReal.mul_inv (Or.inl (Nat.cast_ne_zero.mpr Fintype.card_ne_zero))
+      (Or.inl (ENNReal.natCast_ne_top _))]
+  rw [tsum_eq_single a]
+  · rw [tsum_eq_single b]
+    · simp
+    · intro b' hb'
+      simp [hb'.symm]
+  · intro a' ha'
+    simp [ha'.symm]
+
+namespace parallel_composition
+
+variable {Seed Output : Type*}
+
+/-- Parallel composition `H(x₁, x₂) = (G(x₁), G(x₂))`. -/
+def prod (G : Generator Seed Output) : Generator (Seed × Seed) (Output × Output) :=
+  ⟨fun (x₁, x₂) => (G x₁, G x₂)⟩
+
+variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
+
+/-- The output distribution of `G.prod` is two independent draws from `G.outputDist`. -/
+theorem outputDist_prod (G : Generator Seed Output) :
+    G.prod.outputDist =
+      G.outputDist.bind fun y₁ => G.outputDist.map fun y₂ => (y₁, y₂) := by
+  dsimp only [outputDist, prod, coe_mk]
+  rw [← uniformOfFintype_prod Seed Seed, PMF.map_bind, PMF.bind_map]
+  congr 1; ext x₁
+  dsimp only [Function.comp_def]
+  rw [PMF.map_comp, PMF.map_comp]
+  rfl
+
+end parallel_composition
+
 end Cslib.Crypto.PRG.Generator
