@@ -111,9 +111,8 @@ theorem canDecideWithout_dest {s s' : State P M S} {m : Message P M} {b : Bool}
     (ht : a.lts.Tr s (some m) s')
     (hd : a.CanDecideWithout s m.dest b) : a.CanDecideWithout s' m.dest b := by
   obtain ⟨t, h_s, h_t⟩ := hd
-  have h_m : a.CanReachVia {m.dest} s s' := by
-    use [some m]
-    grind [DestIn, LTS.MTr, List.Forall]
+  have h_m : a.CanReachVia {m.dest} s s' :=
+    .single ⟨some m, by simp [DestIn], ht⟩
   obtain ⟨t', h_s', h_t'⟩ := CanReachVia.diamond h_m h_s
   use t', h_s'
   grind [CanReachVia.canReach h_t', Algorithm.decided_stable]
@@ -155,45 +154,28 @@ then for any process `p`, there exists a state `s'` reachable from `s` such that
 theorem nonUniform_step [Fintype P] (hpc1 : a.PseudoConsensus 1)
     {s : State P M S} (hr : a.Reachable inp s) (hn : a.NonUniform s) (p : P) :
     ∃ s', a.lts.CanReach s s' ∧ ∀ b, a.CanDecideWithout s' p b := by
-  obtain ⟨b, h_s⟩ := canDecideWithout_exists hpc1 hr p
-  obtain ⟨q, s', h_ss', h_s'⟩ := hn !b
-  have hr' := Algorithm.reachable_stable hr (CanReachVia.canReach h_ss')
-  obtain ⟨xs, h_mtr, h_xs'⟩ := h_ss'
-  obtain ⟨ss, h_ss'⟩ := LTS.Execution.of_mTr h_mtr
-  have reach_lemma (k : ℕ) (h : k < ss.length) : a.lts.CanReach s ss[k] := by
-    use xs.take k
-    have := LTS.Execution.split h_ss' k
-    grind [LTS.Execution, LTS.Execution.to_mTr]
-  have : a.CanDecideWithout s' p !b := by
-    obtain ⟨b', h_b'⟩ := canDecideWithout_exists hpc1 hr' p
-    grind [decided_eq_canDecideWithout hpc1 hr' h_s' h_b']
-  have h_nb : ∃ n, ∃ _ : n < ss.length, a.CanDecideWithout ss[n] p !b := by grind [LTS.Execution]
-  classical
-  let n := Nat.find h_nb
-  obtain ⟨_, _⟩ : ∃ _ : n < ss.length, a.CanDecideWithout ss[n] p !b := by grind
-  use ss[n], ?_, ?_
-  · grind [reach_lemma n]
-  · suffices ∀ k, (_ : k ≤ n) → a.CanDecideWithout ss[k] p b by
-      intro b'
-      by_cases h : b' = !b
-      · grind
-      · simp only [Bool.not_eq_not] at h
-        grind
-    intro k
-    induction k
-    case zero => grind [LTS.Execution]
-    case succ k h_ind =>
-      intro h_k
-      obtain ⟨_, _, _, _⟩ := h_ss'
-      have h_tr : a.lts.Tr ss[k] xs[k] ss[k + 1] := by grind
-      obtain (_ | ⟨m, h_m⟩) := Option.eq_none_or_eq_some xs[k]
-      · grind [Algorithm.tr_none]
-      · rw [h_m] at h_tr
-        have hr_k : a.Reachable inp ss[k] := by
-          apply Algorithm.reachable_stable hr
-          grind [reach_lemma k]
-        have hnb_k : ¬a.CanDecideWithout ss[k] p !b := by grind [Nat.find_min h_nb (m := k)]
-        exact canDecideWithout_uniform hpc1 hr_k h_tr (h_ind (by grind)) hnb_k
+  obtain ⟨b, hb⟩ := canDecideWithout_exists hpc1 hr p
+  obtain ⟨q, t, hreach, hd⟩ := hn !b
+  obtain ⟨xs, hpath⟩ := CanReachVia.canReach hreach
+  have hend : a.CanDecideWithout t p !b :=
+    (decided_imp_uniform hpc1
+      (Algorithm.reachable_stable hr ⟨xs, hpath⟩) hd p).1
+  clear hn hd hreach q
+  induction hpath with
+  | refl =>
+    exact ⟨_, LTS.CanReach.refl _ _, by
+      intro b'; cases b <;> cases b' <;> assumption⟩
+  | @stepL s x u xs t htr hpath ih =>
+    by_cases hnb : a.CanDecideWithout s p !b
+    · exact ⟨_, LTS.CanReach.refl _ _, by
+        intro b'; cases b <;> cases b' <;> assumption⟩
+    · have hr' := Algorithm.reachable_stable hr ⟨[x], LTS.MTr.single _ htr⟩
+      have hb' : a.CanDecideWithout u p b := by
+        cases x with
+        | none => simpa only [Algorithm.tr_none htr] using hb
+        | some m => exact canDecideWithout_uniform hpc1 hr htr hb hnb
+      obtain ⟨v, ⟨ys, hys⟩, hv⟩ := ih hr' hb' hend
+      exact ⟨v, ⟨x :: ys, hys.stepL htr⟩, hv⟩
 
 section NonUniformInit
 
@@ -205,11 +187,11 @@ def inpN (pn : P ≃ Fin (card P)) (n : ℕ) : P → Bool :=
   fun p ↦ if pn p < n then true else false
 
 omit [DecidableEq P] in
-/-- Assuming `0 < n ≤ card P`, the inputs `inpN pn (n - 1)` amd `inpN pn n` agree on all processes
+/-- Assuming `0 < n ≤ card P`, the inputs `inpN pn (n - 1)` and `inpN pn n` agree on all processes
 except the one that is numbered `(n - 1)`. -/
 theorem inpN_eqOn_except_singleton (pn : P ≃ Fin (card P))
     {n : ℕ} (hn0 : 0 < n) (hnc : n ≤ card P) :
-    InpEqOn {pn.symm ⟨n - 1, by grind⟩}ᶜ (inpN pn (n - 1)) (inpN pn n) := by
+    EqOn (inpN pn (n - 1)) (inpN pn n) {pn.symm ⟨n - 1, by grind⟩}ᶜ := by
   intro p h_p
   suffices pn p ≠ n - 1 by
     grind [inpN]
@@ -227,13 +209,13 @@ lemma inpN_zero_no_true (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (
 
 /-- Assuming `a.PseudoConsensus 1`, the initial state determined by the all-`false` input
 is uniform for `false`. -/
-theorem inpN_zero_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (hc : card P ≥ 1) :
+theorem inpN_zero_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) :
     a.Uniform (a.start (inpN pn 0)) false := by
-  have h_i := Algorithm.reachable_start (a := a) (inp := inpN pn 0)
-  obtain (h | h | h) := uniform_or_nonUniform hpc1 h_i
-  · exact h
-  · grind [inpN_zero_no_true, h (pn.symm ⟨0, by grind⟩)]
-  · grind [inpN_zero_no_true, h true]
+  intro p
+  obtain ⟨b, hb⟩ := canDecideWithout_exists hpc1
+    (Algorithm.reachable_start (inp := inpN pn 0)) p
+  have hn := inpN_zero_no_true pn hpc1 p
+  cases b <;> grind
 
 lemma inpN_card_not_false (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (p : P) :
     ¬ a.CanDecideWithout (a.start (inpN pn (card P))) p false := by
@@ -246,13 +228,13 @@ lemma inpN_card_not_false (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1)
 
 /-- Assuming `a.PseudoConsensus 1`, the initial state determined by the all-`true` input
 is uniform for `true`. -/
-theorem inpN_card_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (hc : card P ≥ 1) :
+theorem inpN_card_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) :
     a.Uniform (a.start (inpN pn (card P))) true := by
-  have h_i := Algorithm.reachable_start (a := a) (inp := inpN pn (card P))
-  obtain (h | h | h) := uniform_or_nonUniform hpc1 h_i
-  · grind [inpN_card_not_false, h (pn.symm ⟨0, by grind⟩)]
-  · exact h
-  · grind [inpN_card_not_false, h false]
+  intro p
+  obtain ⟨b, hb⟩ := canDecideWithout_exists hpc1
+    (Algorithm.reachable_start (inp := inpN pn (card P))) p
+  have hn := inpN_card_not_false pn hpc1 p
+  cases b <;> grind
 
 /-- Assuming `a.PseudoConsensus 1` and there are at least 2 processes, there must exist an input
 that gives rise to a non-uniform initial state. This theorem formalizes Lemma 1 of [Volzer2004]. -/
@@ -261,7 +243,7 @@ theorem nonUniform_inp (hpc1 : a.PseudoConsensus 1) (hc : card P ≥ 2) :
   let pn := Fintype.equivFin P
   let uniF (n : ℕ) := ¬ a.Uniform (a.start (inpN pn n)) false
   have h_card : uniF (card P) := by
-    grind [Algorithm.Uniform, inpN_card_uniform pn hpc1 (by grind) (pn.symm ⟨0, by grind⟩)]
+    grind [Algorithm.Uniform, inpN_card_uniform pn hpc1 (pn.symm ⟨0, by grind⟩)]
   have h_uniF : ∃ n, uniF n := ⟨card P, h_card⟩
   classical
   let n := Nat.find h_uniF

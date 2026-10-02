@@ -6,6 +6,10 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Basic
+public import Cslib.Foundations.Data.BitString
+public import Mathlib.Data.Fintype.Card
+public import Mathlib.Data.Fintype.Sum
+public import Mathlib.Tactic.DeriveFintype
 
 /-!
 # Boolean circuits
@@ -21,9 +25,6 @@ designated output wires are free.
 namespace Cslib.Circuits
 namespace Boolean
 
-/-- Boolean functions on `n` inputs. -/
-abbrev BooleanFunction (n : ℕ) := (Fin n → Bool) → Bool
-
 /-- Operations of the De Morgan basis, including constants. -/
 inductive Op where
   /-- A Boolean constant. -/
@@ -34,7 +35,10 @@ inductive Op where
   | and
   /-- Binary disjunction. -/
   | or
-  deriving DecidableEq
+  deriving DecidableEq, Fintype
+
+/-- The De Morgan basis has five operation symbols, counting its two constants. -/
+@[simp] theorem Op.card : Fintype.card Op = 5 := rfl
 
 /-- The De Morgan signature. -/
 abbrev signature : Signature where
@@ -61,7 +65,7 @@ theorem Program.fanInAtMost_two {n g : ℕ} (p : Program Boolean.signature n g) 
   | gate p line ih => exact And.intro ih (by cases line.op <;> simp)
 
 /-- Every De Morgan circuit has fan-in at most two. -/
-theorem Circuit.fanInAtMost_two {n g o : ℕ} (c : Circuit Boolean.signature n g o) :
+theorem Circuit.fanInAtMost_two {n o : ℕ} (c : Circuit Boolean.signature n o) :
     c.FanInAtMost 2 :=
   c.program.fanInAtMost_two
 
