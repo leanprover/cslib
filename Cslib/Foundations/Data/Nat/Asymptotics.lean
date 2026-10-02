@@ -9,6 +9,7 @@ public import Cslib.Init
 public import Mathlib.Data.Nat.Log
 public import Mathlib.Order.Filter.AtTopBot.Defs
 import Mathlib.Analysis.SpecificLimits.Normed
+import Mathlib.Tactic.Linarith
 
 /-!
 # Asymptotic bounds on natural numbers
@@ -34,6 +35,14 @@ theorem eventually_mul_pow_le_pow (c k : ℕ) {b : ℕ} (hb : 1 < b) :
     (isLittleO_pow_const_const_pow_of_one_lt (R := ℝ) k hbR) c
   filter_upwards [h] with n hn
   exact_mod_cast (by simpa using hn : (c : ℝ) * n ^ k ≤ (b : ℝ) ^ n)
+
+/-- The quotient of an exponential of base greater than one by the input is eventually
+at least the input plus one. -/
+theorem eventually_add_one_le_pow_div {b : ℕ} (hb : 1 < b) :
+    ∀ᶠ n : ℕ in atTop, n + 1 ≤ b ^ n / n := by
+  filter_upwards [eventually_mul_pow_le_pow 2 2 hb, eventually_ge_atTop 1] with n hn hn0
+  apply (Nat.le_div_iff_mul_le (by omega)).mpr
+  nlinarith
 
 /-- Every fixed multiple of the logarithm in a base greater than one is eventually at most
 the input. -/

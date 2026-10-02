@@ -66,35 +66,11 @@ theorem cumLen_segment_zero {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).le
 theorem cumLen_segment_one_add {ls : ωSequence (List α)} (h_ls : ∀ k, (ls k).length > 0)
     (n : ℕ) (h_n : (ls 0).length ≤ n) :
     segment ls.cumLen n = 1 + segment (ls.drop 1).cumLen (n - (ls 0).length) := by
-  classical
-  have h0 : (ls.drop 1).cumLen 0 = 0 := by simp [cumLen_zero]
-  rw [add_comm, segment_plus_one h0]; unfold Nat.segment
-  simp only [Nat.count_eq_card_filter_range]
-  have h1 : {x ∈ Finset.range (n + 1) | x ∈ Set.range ls.cumLen} = insert 0
-      {x ∈ Finset.range (n + 1) | x ∈ Set.range ls.cumLen ∧ (ls 0).length ≤ x} := by
-    ext k; simp only [Set.mem_range, Finset.mem_filter, Finset.mem_range, Finset.mem_insert]
-    constructor
-    · rintro ⟨h_k, i, rfl⟩
-      simp only [h_k, exists_apply_eq_apply, true_and, or_iff_not_imp_left]
-      intro h_i
-      suffices h : i = 1 + (i - 1) by grind [cumLen_one_add_drop]
-      grind
-    · rintro (rfl | _)
-      · refine ⟨?_, 0, ?_⟩ <;> grind
-      · grind
-  have h2 : 0 ∉ {x ∈ Finset.range (n + 1) | x ∈ Set.range ls.cumLen ∧ (ls 0).length ≤ x} := by
-    grind
-  rw [h1, Finset.card_insert_of_notMem h2, Nat.add_one_sub_one]
-  symm
-  apply Set.BijOn.finsetCard_eq (fun n ↦ n + (ls 0).length)
-  refine ⟨?_, by grind [injOn_of_injective, Injective], ?_⟩ <;>
-  ( intro k; simp only [Set.mem_range, Finset.coe_filter, Finset.mem_range, Set.mem_ofPred_eq,
-      le_add_iff_nonneg_left, _root_.zero_le, and_true] )
-  · rintro ⟨h_k, i, rfl⟩
-    refine ⟨?_, 1 + i, ?_⟩ <;> grind [cumLen_one_add_drop]
-  · rintro ⟨h_k, ⟨i, rfl⟩, h_l0⟩
-    have := cumLen_one_add_drop ls (i - 1)
-    refine ⟨ls.cumLen i - (ls 0).length, ⟨?_, i - 1, ?_⟩, ?_⟩ <;> grind
+  have h_mono := cumLen_strictMono (ls := ls.drop 1) (fun k => h_ls (k + 1))
+  have h_lower := segment_lower_bound h_mono rfl (n - (ls 0).length)
+  have h_upper := segment_upper_bound h_mono rfl (n - (ls 0).length)
+  apply segment_range_val (cumLen_strictMono h_ls) <;>
+    simp only [Nat.add_assoc, cumLen_one_add_drop] <;> omega
 
 /-- Given an ω-sequence `ls` of lists, `ls.flatten` is the infinite sequence
 formed by the concatenation of all of them.  For the definition to make proper
