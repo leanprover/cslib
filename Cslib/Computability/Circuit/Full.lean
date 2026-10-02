@@ -17,6 +17,10 @@ synthesized with one gate. In the binary full basis, applying any binary operati
 functions synthesized with budgets `a` and `b` takes at most `a + b + 1` gates.
 Both constructions preserve all previously available functions.
 
+More generally, `Synthesis.full_gate` applies an operation of arity at most `k` to
+available functions with one gate. `Synthesis.full_gate_of_syntheses` first constructs
+the arguments, retaining their intermediate values, and then applies the operation.
+
 The full basis of arity `k` simulates any interpretation whose operations have arity at most
 `k`, using at most one gate per operation. Constants are handled separately so this also
 applies when `k = 0`, without assuming the carrier is inhabited.
@@ -41,6 +45,29 @@ theorem full_const (value : U) :
     Synthesis (fullInterpretation (k := k)) s {fun _ => value} 1 :=
   nullary (I := fullInterpretation (k := k)) (.con value) rfl
 
+/-- Apply any operation with at most `k` arguments to available functions using one gate.
+Nullary operations use a constant gate; other operations pad their arguments by repetition. -/
+theorem full_gate {r : ℕ} (hr : r ≤ k) (op : (Fin r → U) → U)
+    (args : Fin r → (Fin n → U) → U) (hargs : ∀ i, args i ∈ s) :
+    Synthesis (fullInterpretation (k := k)) s {fun x => op (fun i => args i x)} 1 := by
+  by_cases hzero : r = 0
+  · subst r
+    convert! full_const (k := k) (s := s) (op Fin.elim0)
+  · let : NeZero r := ⟨hzero⟩
+    simpa [fullInterpretation] using
+      (gate (I := fullInterpretation (k := k)) (s := s)
+        (.fn fun x => op (fun i => x (Fin.castLE hr i)))
+        (fun i => args (Fin.ofNat r i.val)) (fun i => hargs _))
+
+/-- Construct the arguments of an operation of arity at most `k`, then apply it with one
+further gate. All functions computed while constructing the arguments remain available. -/
+theorem full_gate_of_syntheses {r : ℕ} (hr : r ≤ k) (op : (Fin r → U) → U)
+    (args : Fin r → (Fin n → U) → U) (cost : Fin r → ℕ)
+    (h : ∀ i, Synthesis (fullInterpretation (k := k)) s {args i} (cost i)) :
+    Synthesis (fullInterpretation (k := k)) s {fun x => op (fun i => args i x)}
+      ((∑ i, cost i) + 1) :=
+  (family args cost h).trans (full_gate hr op args (fun i => Set.mem_union_right _ ⟨i, rfl⟩))
+
 /-- Apply any binary operation to synthesized functions in the binary full basis. -/
 theorem full_binary {f g : (Fin n → U) → U}
     (hf : Synthesis (fullInterpretation (k := 2)) s {f} a)
@@ -55,15 +82,8 @@ theorem fullInterpretation_simulatesWithCost {σ : Signature.{v}} (I : Interpret
     (h : ∀ op, σ.Arity op ≤ k) :
     (fullInterpretation (k := k)).SimulatesWithCost I (fun _ => 1) := by
   intro op
-  by_cases hzero : σ.Arity op = 0
-  · let : IsEmpty (Fin (σ.Arity op)) := ⟨fun i => (Fin.cast hzero i).elim0⟩
-    convert! (Synthesis.full_const (k := k) (n := σ.Arity op)
-      (s := inputs _) (I op isEmptyElim)).exists_circuit
-  · let : NeZero (σ.Arity op) := ⟨hzero⟩
-    simpa [fullInterpretation] using
-      (Synthesis.gate (I := fullInterpretation (k := k)) (s := inputs (σ.Arity op))
-        (.fn fun x => I op (fun i => x (Fin.castLE (h op) i)))
-        (fun i x => x (Fin.ofNat _ i.val)) (fun i => ⟨_, rfl⟩)).exists_circuit
+  exact (Synthesis.full_gate (s := inputs _) (h op) (I op)
+    (fun i x => x i) (fun i => ⟨i, rfl⟩)).exists_circuit
 
 /-- The full basis simulates any interpretation whose operations have arity at most `k`. -/
 theorem fullInterpretation_simulates {σ : Signature.{v}} (I : Interpretation σ U)
