@@ -353,8 +353,7 @@ public theorem computableInTimeAndSpace_almostConstTime
     ComputableInTimeAndSpace f encIn encOut
       (fun _ => almostConstTime encIn encOut f S out) (fun _ => 0) :=
   ⟨0, AlmostConstState encIn encOut f S out, inferInstance,
-    (almostConstTM encIn encOut f S out).toMultiTapeNTM,
-    (almostConstTM encIn encOut f S out).deterministic, computesFunInTimeAndSpace_almostConstTM h⟩
+    almostConstTM encIn encOut f S out, computesFunInTimeAndSpace_almostConstTM h⟩
 
 /-- Every almost constant function is computable in constant time and zero space. -/
 public theorem computableInTimeAndSpace_of_exists_finite_ne
