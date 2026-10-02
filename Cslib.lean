@@ -207,8 +207,10 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Safety
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.StrongNorm
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.BetaAt
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.BetaNfLc
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.CallByName
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.EtaPostpone
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaConfluence
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBetaEta
@@ -219,9 +221,12 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LeftmostReduction
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.ParEta
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Size
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StandardReduction
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.WeakNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 public import Cslib.Languages.Mech.Choreography.Basic
