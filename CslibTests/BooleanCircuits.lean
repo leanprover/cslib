@@ -83,7 +83,7 @@ example : computableFunctions 0 0 = ∅ := by
   simpa using card_computableFunctions_mul_factorial_le 0 0
 
 example : (fun x : Fin 1 → Bool => x 0) ∈ computableFunctions 1 0 :=
-  mem_computableFunctions.mpr
+  Boolean.mem_computableFunctions.mpr
     ⟨Circuit.id signature 1, by simp [Circuit.Computes, funext_iff, Fin.forall_fin_one], le_rfl⟩
 
 -- Shannon's lower bound and Lupanov's upper bound bracket the complexity.
