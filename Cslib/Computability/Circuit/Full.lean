@@ -51,18 +51,13 @@ theorem fullInterpretation_simulatesWithCost {σ : Signature.{v}} (I : Interpret
   intro op
   by_cases hzero : σ.Arity op = 0
   · let : IsEmpty (Fin (σ.Arity op)) := ⟨fun i => (Fin.cast hzero i).elim0⟩
-    obtain ⟨c, hc, hsize⟩ := (Synthesis.full_const (k := k) (n := σ.Arity op)
+    convert! (Synthesis.full_const (k := k) (n := σ.Arity op)
       (s := inputs _) (I op isEmptyElim)).exists_circuit
-    exact ⟨c, fun x => (hc x).trans (funext fun _ =>
-      congrArg (I op) (Subsingleton.elim _ _)), hsize⟩
-  · let select : Fin k → Fin (σ.Arity op) := fun i =>
-      if hi : i.val < σ.Arity op then ⟨i.val, hi⟩ else ⟨0, Nat.pos_of_ne_zero hzero⟩
-    have hs := Synthesis.gate (I := fullInterpretation (k := k)) (s := inputs (σ.Arity op))
-      (.fn fun x => I op (fun i => x (Fin.castLE (h op) i)))
-      (fun i x => x (select i)) (fun i => ⟨select i, rfl⟩)
-    obtain ⟨c, hc, hsize⟩ := hs.exists_circuit
-    refine ⟨c, ?_, hsize⟩
-    simpa [fullInterpretation, select] using hc
+  · let : NeZero (σ.Arity op) := ⟨hzero⟩
+    simpa [fullInterpretation] using
+      (Synthesis.gate (I := fullInterpretation (k := k)) (s := inputs (σ.Arity op))
+        (.fn fun x => I op (fun i => x (Fin.castLE (h op) i)))
+        (fun i x => x (Fin.ofNat _ i.val)) (fun i => ⟨_, rfl⟩)).exists_circuit
 
 /-- The full basis simulates any interpretation whose operations have arity at most `k`. -/
 theorem fullInterpretation_simulates {σ : Signature.{v}} (I : Interpretation σ U)
