@@ -137,6 +137,8 @@ public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.OmegaSequence.Topology
 public import Cslib.Foundations.Data.PFunctor.Basic
 public import Cslib.Foundations.Data.PFunctor.Free
+public import Cslib.Foundations.Data.PFunctor.Free.Fold
+public import Cslib.Foundations.Data.PFunctor.Free.W
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
