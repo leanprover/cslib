@@ -10,21 +10,25 @@ public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Basic.Sign.Defs
-public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Space
 
 /-!
 # Deterministic Multi-Tape Turing Machines
 
-A deterministic Turing machine is a nondeterministic machine with exactly one permitted action
-in every non-halting configuration. It inherits the initial configuration and computation
-predicates, with a derived transition function `tr` and step function `step`. The function `step`
-returns the unique successor allowed by the relation `Step`. A halted configuration steps to itself.
+A deterministic Turing machine is a nondeterministic machine whose transition relation has exactly
+one action for every combination of state and symbols read. From the transition relation it derives
+a transition function `tr` and a function `step` which maps each configuration to its unique
+successor configuration (a halted configuration maps to itself).
+
+The design choices for configurations and actions are documented in
+`Cslib.Computability.Machines.Turing.MultiTape.Configuration`.
 
 ## Important Declarations
 
 We define a number of structures and concepts related to multi-tape Turing machine computation:
 
-* `MultiTapeNTM.IsDeterministic`: every state and tuple of read symbols permits exactly one action
+* `MultiTapeNTM.IsDeterministic`: the transition relation relates every state and tuple of read
+    symbols to exactly one action
 * `MultiTapeTM`: the TM itself
 * `tr`, `ofTr`: the derived transition function and construction from a function
 * `step`, `runFrom`: the successor configuration and iteration of this function
@@ -42,7 +46,8 @@ namespace Turing
 
 variable {k : ℕ} {State Symbol : Type*}
 
-/-- Every state and tuple of read symbols permits exactly one action. -/
+/-- Every state and tuple of read symbols is related to exactly one action by `ntm`'s transition
+relation. -/
 def MultiTapeNTM.IsDeterministic (ntm : MultiTapeNTM k Symbol State) : Prop :=
   ∀ (q : State) (input : Option Symbol) (work : Fin k → Option Symbol),
     ∃! action, ntm.Tr q input work action
@@ -55,7 +60,8 @@ computability by Turing machines in general.
 -/
 structure MultiTapeTM (k : ℕ) (Symbol State : Type*)
     extends MultiTapeNTM k Symbol State where
-  /-- Every state and tuple of read symbols permits exactly one action. -/
+  /-- Every state and tuple of read symbols is related to exactly one action by the transition
+  relation. -/
   deterministic : toMultiTapeNTM.IsDeterministic
 
 instance : CoeOut (MultiTapeTM k Symbol State) (MultiTapeNTM k Symbol State) :=
@@ -108,7 +114,7 @@ private lemma existsUnique_step (cfg : Cfg k Symbol State input) :
   unfold MultiTapeNTM.Step
   cases cfg.state <;> simp
 
-/-- The unique successor permitted by the inherited step relation. -/
+/-- The unique successor configuration permitted by the inherited step relation. -/
 noncomputable def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   (show ∃! cfg', tm.Step cfg cfg' from by exact existsUnique_step cfg).choose
 
@@ -267,8 +273,8 @@ theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
     rw [runFrom, Function.iterate_succ_apply', ← runFrom]
     exact (tm.step_spec _).length_output_le.trans (by omega)
 
-/-- A run from the initial configuration that has halted with the given output witnesses
-computation in the same time and space. -/
+/-- The halting run of a deterministic TM corresponds to a nondeterministic computation path
+witnessing time and space bounds. -/
 lemma computesInExactTimeAndSpace_of_runFrom {input output : List Symbol} {t s : ℕ}
     (hhalt : (tm.runFrom (tm.initCfg input) t).Halted)
     (hout : (tm.runFrom (tm.initCfg input) t).output = output)
@@ -281,12 +287,14 @@ lemma computesInExactTimeAndSpace_of_runFrom {input output : List Symbol} {t s :
       head_eq := rfl }
   exact ⟨p, hhalt, hout, rfl, hspace⟩
 
-/-- Computability by a deterministic binary machine with finitely many states, within the supplied
-input-indexed bounds. This specializes nondeterministic computability to deterministic witnesses. -/
-abbrev ComputableInTimeAndSpace {α β : Type*}
+/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
+within the supplied input-indexed bounds. This specializes nondeterministic computability to
+deterministic machines. -/
+def ComputableInTimeAndSpace {α β : Type*}
     (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : α → ℕ) : Prop :=
-  MultiTapeNTM.ComputableInTimeAndSpace f encIn encOut t s MultiTapeNTM.IsDeterministic
+  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
+    tm.ComputesFunInTimeAndSpace encIn encOut f t s
 
 /-- There exists a binary Turing machine with finitely many states that, for every input `a`,
 computes `encOut (f a)` from `encIn a` in at most `t (encIn a).length` steps,

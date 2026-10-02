@@ -21,11 +21,15 @@ public import Cslib.Init
 Configurations of a multi-tape Turing machine with a read-only input tape, `k` work tapes and one
 write-only output tape, together with what a single transition does to a configuration.
 
+The configurations are used by both deterministic and nondeterministic multi-tape Turing machines
+and give instantaneous descriptions of their state. An `Action` describes how one configuration
+transitions to the next. It records which way the input head moves, what is written and where the
+work heads move, which symbol is emitted and which state follows. `Action.apply` carries out the
+action on a configuration.
+
 ## Design
 
-Nothing here mentions a machine. A step is described in two parts. An `Action` records
-which way the input head moves, what is written and where the work heads move, which symbol is
-emitted and which state follows. `Action.apply` carries out the action on a configuration.
+Configurations and actions are defined independently of a machine.
 
 The output tape is part of the configuration, so the string emitted along a run can be read off
 the configuration the run ends in. An action can optionally output one symbol, which models the
