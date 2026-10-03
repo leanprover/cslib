@@ -157,15 +157,17 @@ theorem mem_versionSpace_iff_empiricalError_zero
   · simp_all [Nat.pos_iff_ne_zero]
 
 /-- The empirical 0-1 error equals the empirical miscount divided by the
-sample size. -/
+sample size. Both sides are zero for an empty sample. -/
 theorem empiricalError_eq_div [DecidableEq β]
     [MeasurableSpace α] [MeasurableSpace β]
     [MeasurableSingletonClass α] [MeasurableSingletonClass β]
-    {m : ℕ} (hm : 0 < m) (h : α → β) (S : LabeledSample α β m) :
+    {m : ℕ} (h : α → β) (S : LabeledSample α β m) :
     empiricalError h S = (empiricalMiscount h S : ℝ≥0∞) / m := by
-  have hm_ne : m ≠ 0 := hm.ne'
+  by_cases hm : m = 0
+  · subst m
+    simp [empiricalError, empiricalMeasure, error, empiricalMiscount]
   unfold empiricalError empiricalMeasure error empiricalMiscount
-  rw [dite_eq_right hm_ne, Measure.smul_apply, Measure.finsetSum_apply]
+  rw [dite_eq_right hm, Measure.smul_apply, Measure.finsetSum_apply]
   simp only [Measure.dirac_apply, Set.indicator, Set.mem_ofPred_eq, Pi.one_apply, smul_eq_mul]
   rw [Finset.sum_boole, ← ENNReal.div_eq_inv_mul]
 
