@@ -108,7 +108,7 @@ inductive Params.Val | nat (n : ℕ) | zMod (z : ZMod params.p)
 /-- Alice's expression for computing the public message. -/
 abbrev aliceComputeMesg : Expr Var params.Val FunId :=
   Expr.call .computePublicMessage
-    [.val <| .nat params.p, .val <| .zMod params.g, .val <| .nat params.b]
+    [.val <| .nat params.p, .val <| .zMod params.g, .val <| .nat params.a]
 
 /-- Alice's expression for computing the shared secret. -/
 abbrev aliceComputeSharedSecret : Expr Var params.Val FunId :=
@@ -121,7 +121,7 @@ abbrev bobComputeMesg : Expr Var params.Val FunId :=
 
 /-- Bob's expression for computing the shared secret. -/
 abbrev bobComputeSharedSecret : Expr Var params.Val FunId :=
-  Expr.call .computeSharedSecret [.val <| .nat params.p, params.x, .val <| .nat params.a]
+  Expr.call .computeSharedSecret [.val <| .nat params.p, params.x, .val <| .nat params.b]
 
 /-- Alice's program. -/
 def alice : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=

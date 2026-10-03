@@ -12,19 +12,32 @@ open Cslib.Mech Cslib.Algorithms.StatefulProcesses.DiffieHellman
 
 variable {Pid Var : Type*} (params : Params Pid Var)
 
--- Each final key computation can evaluate after receiving a field element.
+-- Each role must use its own exponent in its public message.
+example (σ : LocalStore Var params.Val) :
+    (funEval params).EvalExpr σ (aliceComputeMesg params) (.zMod (params.g ^ params.a)) := by
+  apply FunCallEval.EvalExpr.call (.cons .val (.cons .val (.cons .val .nil)))
+  intro hmod
+  rfl
+
+example (σ : LocalStore Var params.Val) :
+    (funEval params).EvalExpr σ (bobComputeMesg params) (.zMod (params.g ^ params.b)) := by
+  apply FunCallEval.EvalExpr.call (.cons .val (.cons .val (.cons .val .nil)))
+  intro hmod
+  rfl
+
+-- Each role must also use its own exponent on the received message.
 example (σ : LocalStore Var params.Val) (message : ZMod params.p)
     (h : σ params.y = .zMod message) :
-    ∃ key, (funEval params).EvalExpr σ (aliceComputeSharedSecret params) (.zMod key) := by
-  refine ⟨message ^ params.a, .call (.cons .val (.cons .var (.cons .val .nil))) ?_⟩
+    (funEval params).EvalExpr σ (aliceComputeSharedSecret params) (.zMod (message ^ params.a)) := by
+  apply FunCallEval.EvalExpr.call (.cons .val (.cons .var (.cons .val .nil)))
   simp only [h, funEval]
   intro hmod
   rfl
 
 example (σ : LocalStore Var params.Val) (message : ZMod params.p)
     (h : σ params.x = .zMod message) :
-    ∃ key, (funEval params).EvalExpr σ (bobComputeSharedSecret params) (.zMod key) := by
-  refine ⟨message ^ params.a, .call (.cons .val (.cons .var (.cons .val .nil))) ?_⟩
+    (funEval params).EvalExpr σ (bobComputeSharedSecret params) (.zMod (message ^ params.b)) := by
+  apply FunCallEval.EvalExpr.call (.cons .val (.cons .var (.cons .val .nil)))
   simp only [h, funEval]
   intro hmod
   rfl
