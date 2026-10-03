@@ -117,6 +117,9 @@ example (A : Type uA) (B : Type uB) (a : A) (x : α) (b : B) :
 
 example (A : Type uA) : (mkUnary A).DecidableEqChildren := inferInstance
 
+example (A : Type uA) : (linear.{uA, uB} A).Unary := inferInstance
+example : (y : PFunctor.{uA, uB}).Unary := inferInstance
+
 example (A : Type uA) (a : A) (f : (mkUnary A).B a → α) :
     f = PFunctor.const (P := mkUnary A) a (f default) :=
   Unary.fun_eq_const (P := mkUnary A) a f

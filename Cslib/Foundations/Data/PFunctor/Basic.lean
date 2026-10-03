@@ -183,10 +183,8 @@ abbrev mkUnary (A : Type*) : PFunctor where
   A := A
   B := fun _ => Unit
 
-instance {A : Type u} : (mkUnary A).Unary where
-  unary _ := by
-    change Unique Unit
-    infer_instance
+instance (A : Type uA) : (linear.{uA, uB} A).Unary where
+  unary _ := inferInstanceAs (Unique PUnit)
 
 end Unary
 
