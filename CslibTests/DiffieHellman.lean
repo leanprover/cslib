@@ -16,30 +16,30 @@ variable {Pid Var : Type*} (params : Params Pid Var)
 example (σ : LocalStore Var params.Val) :
     (funEval params).EvalExpr σ (aliceComputeMesg params) (.zMod (params.g ^ params.a)) := by
   apply FunCallEval.EvalExpr.call (.cons .val (.cons .val (.cons .val .nil)))
-  intro hmod
-  rfl
+  exact ⟨rfl, rfl⟩
 
 example (σ : LocalStore Var params.Val) :
     (funEval params).EvalExpr σ (bobComputeMesg params) (.zMod (params.g ^ params.b)) := by
   apply FunCallEval.EvalExpr.call (.cons .val (.cons .val (.cons .val .nil)))
-  intro hmod
-  rfl
+  exact ⟨rfl, rfl⟩
 
 -- Each role must also use its own exponent on the received message.
 example (σ : LocalStore Var params.Val) (message : ZMod params.p)
     (h : σ params.y = .zMod message) :
     (funEval params).EvalExpr σ (aliceComputeSharedSecret params) (.zMod (message ^ params.a)) := by
   apply FunCallEval.EvalExpr.call (.cons .val (.cons .var (.cons .val .nil)))
-  simp only [h, funEval]
-  intro hmod
-  rfl
+  simp [h, funEval, computeSharedSecret]
 
 example (σ : LocalStore Var params.Val) (message : ZMod params.p)
     (h : σ params.x = .zMod message) :
     (funEval params).EvalExpr σ (bobComputeSharedSecret params) (.zMod (message ^ params.b)) := by
   apply FunCallEval.EvalExpr.call (.cons .val (.cons .var (.cons .val .nil)))
-  simp only [h, funEval]
-  intro hmod
-  rfl
+  simp [h, funEval, computeSharedSecret]
+
+-- A mismatched modulus must reject every result for either function.
+example (f : FunId) (p : ℕ) (hp : p ≠ params.p) (message : ZMod params.p)
+    (privateExp : ℕ) (v : params.Val) :
+    ¬ funEval params f [.nat p, .zMod message, .nat privateExp] v := by
+  cases f <;> exact fun h => hp h.1
 
 end CslibTests.DiffieHellman
