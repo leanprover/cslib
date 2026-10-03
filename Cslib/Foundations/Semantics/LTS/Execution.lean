@@ -28,10 +28,25 @@ structure Execution (lts : LTS State Label)
   last : ss[ss.length - 1] = s2
   trans (k : ℕ) (hk : k < μs.length) : lts.Tr ss[k] μs[k] ss[k + 1]
 
+@[grind .]
+theorem Execution.length_ss_pos (h : lts.Execution s₁ μs s₂ ss) : 0 < ss.length := by
+  simp [h.length]
+
 /-- Every execution has at least one intermediate state. -/
-@[scoped grind →]
-theorem Execution.nonEmpty_states (h : lts.Execution s1 μs s2 ss) :
-    ss ≠ [] := by grind
+@[scoped grind .]
+theorem Execution.ss_ne_nil (h : lts.Execution s₁ μs s₂ ss) : ss ≠ [] :=
+  ss.ne_nil_iff_length_pos.mpr h.length_ss_pos
+
+@[deprecated (since := "2026-10-01")] alias Execution.nonEmpty_states := Execution.ss_ne_nil
+
+theorem Execution.length' (h : lts.Execution s₁ μs s₂ ss) :
+  μs.length = ss.length - 1 := by grind
+
+theorem Execution.last' (h : lts.Execution s₁ μs s₂ ss) :
+  ss[μs.length]'(by grind) = s₂ := by simp [← h.last, h.length]
+
+theorem Execution.getLast (h : lts.Execution s₁ μs s₂ ss) : ss.getLast h.ss_ne_nil = s₂ := by
+  rw [List.getLast_eq_getElem, h.last]
 
 /-- Every state has an execution of zero steps terminating in itself. -/
 @[scoped grind ⇒]

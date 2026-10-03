@@ -51,11 +51,7 @@ theorem Satisfies.unimodalOfPredicates_preserves_reflTransGen
     {r : α → α → Prop} {P : α → Prop}
     (h : ∀ a, ⇓Modal[unimodalOfPredicates (τ := τ) r,a ⊨ P → □P]) :
     ∀ a, ⇓Modal[unimodalOfPredicates (τ := τ) (Relation.ReflTransGen r),a ⊨ P → □P] := by
-  apply (Satisfies.ofPredicates_preservesMap_iff
-    (Frame.ofRelation (τ := τ) (Relation.ReflTransGen r))).mpr
-  have hmap : (Frame.ofRelation (τ := τ) r).PreservesMap
-      default P (fun _ => P) := by
-    exact (Satisfies.ofPredicates_preservesMap_iff (Frame.ofRelation (τ := τ) r)).mp h
-  grind
+  simpa only [Satisfies.unimodalOfPredicates_preserves_iff,
+    Relation.preserves_reflTransGen_iff] using h
 
 end Cslib.Logic.Modal

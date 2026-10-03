@@ -47,64 +47,87 @@ theorem OmegaExecution.cons (htr : lts.Tr s μ t)
   intro i
   induction i <;> grind
 
+theorem OmegaExecution.prepend_execution (he_head : lts.Execution s μl t sl)
+    (he_tail : lts.OmegaExecution ss μs) (hm : ss 0 = t) :
+    lts.OmegaExecution (sl ++ω ss.tail) (μl ++ω μs) := by
+  intro n
+  obtain (hn | rfl | hn) := n.lt_trichotomy μl.length
+  · grind [get_append_left]
+  · convert he_tail 0 using 1
+    · rw [hm, ← he_head.last', get_append_left]
+    · exact get_append_right 0 μl μs
+    · have := get_append_right 0 sl ss.tail
+      simpa [he_head.length]
+  · obtain ⟨n, rfl⟩ : ∃ n', n = sl.length + n' := by
+      have ⟨k, hk⟩ := Nat.exists_eq_add_of_lt hn
+      exact ⟨k, by grind [he_head.length]⟩
+    simp_rw [add_assoc, get_append_right, he_head.length, add_assoc,
+      get_append_right, add_comm, ωSequence.tail, get_fun,]
+    exact he_tail (n + 1)
+
 /-- Prepends an infinite execution with a finite execution. -/
 theorem OmegaExecution.append
     (hmtr : lts.MTr s μl t) (hωtr : lts.OmegaExecution ss μs) (hm : ss 0 = t) :
     ∃ ss', lts.OmegaExecution ss' (μl ++ω μs) ∧
       ss' 0 = s ∧ ss' μl.length = t ∧ ss'.drop μl.length = ss := by
-  obtain ⟨sl, _, _, _, _⟩ := Execution.of_mTr hmtr
-  use sl.take μl.length ++ω ss
-  split_ands
-  · intro n
-    by_cases n < μl.length
-    · grind [get_append_left]
-    · by_cases n = μl.length
-      · grind [get_append_left, get_append_right']
-      · grind [get_append_right', hωtr (n - μl.length - 1)]
-  · grind [get_append_left]
-  · grind [get_append_left]
-  · grind [drop_append_of_ge_length]
+  obtain ⟨sl, he⟩ := Execution.of_mTr hmtr
+  refine ⟨sl ++ω ss.tail, hωtr.prepend_execution he hm, ?_, ?_, ?_⟩
+  · rw [get_append_left _ _ _ he.length_ss_pos, he.start]
+  · rw [← he.last', get_append_left]
+  · rw [← ss.eta, drop_append_of_le_length _ _ _ (by grind), tail_cons,
+      ← singleton_append_ωSequence]
+    congr
+    rw [head, hm, ← sl.take_append_getLast he.ss_ne_nil, sl.take_append_getLast,
+      he.length', sl.drop_length_sub_one he.ss_ne_nil, he.getLast]
+
+open Nat in
+/-- Concatenating an infinite sequence of finite executions, with an explicit expression for the
+state sequence. -/
+theorem OmegaExecution.flatten_execution' [Inhabited Label] [Inhabited State]
+    {ts : ωSequence State} {μls : ωSequence (List Label)} {sls : ωSequence (List State)}
+    (hexec : ∀ k, lts.Execution (ts k) (μls k) (ts (k + 1)) (sls k))
+    (hpos : ∀ k, 0 < (μls k).length) :
+    lts.OmegaExecution (sls.map List.dropLast).flatten μls.flatten := by
+  intro n
+  obtain ⟨n, k, hk, rfl⟩ : ∃ n' k, k < (μls n').length ∧ n = μls.cumLen n' + k := by
+    obtain ⟨k, hk⟩ := Nat.exists_eq_add_of_le <|
+      segment_lower_bound (cumLen_strictMono hpos) cumLen_zero n
+    refine ⟨segment μls.cumLen n, k, ?_, hk⟩
+    have := segment_upper_bound (cumLen_strictMono hpos) cumLen_zero n
+    simp [cumLen_succ] at this
+    grind
+  have hlen (k : ℕ) : (μls k).length = (sls.map List.dropLast k).length := by grind
+  have hclen : μls.cumLen = (sls.map List.dropLast).cumLen := by ext k; induction k <;> grind
+  have hspos (k : ℕ) : 0 < (sls.map List.dropLast k).length := hlen k ▸ hpos k
+  convert (hexec n).trans k hk
+  · rw [hlen] at hk
+    simp [hclen, flatten_get_add _ hk hspos]
+  · exact flatten_get_add _ hk hpos
+  · obtain (hk | hk) : k + 1 < (μls n).length ∨ k + 1 = (μls n).length := by lia
+    · rw [hlen] at hk
+      simp [hclen, add_assoc, flatten_get_add _ hk hspos]
+    · rw! [add_assoc, hk, ← cumLen_succ, (hexec n).last', hclen, flatten_get_cumLen _ hspos]
+      simp [(hexec (n + 1)).start]
 
 open Nat in
 /-- Concatenating an infinite sequence of finite executions. -/
 theorem OmegaExecution.flatten_execution [Inhabited Label]
     {ts : ωSequence State} {μls : ωSequence (List Label)} {sls : ωSequence (List State)}
     (hexec : ∀ k, lts.Execution (ts k) (μls k) (ts (k + 1)) (sls k))
-    (hpos : ∀ k, (μls k).length > 0) :
+    (hpos : ∀ k, 0 < (μls k).length) :
     ∃ ss, lts.OmegaExecution ss μls.flatten ∧
       ∀ k, ss.extract (μls.cumLen k) (μls.cumLen (k + 1)) = (sls k).take (μls k).length := by
-  have : Inhabited State := by exact {default := ts 0}
-  let segs := ωSequence.mk fun k ↦ (sls k).take (μls k).length
-  have h_len : μls.cumLen = segs.cumLen := by ext k; induction k <;> grind
-  have h_pos (k : ℕ) : (segs k).length > 0 := by grind [List.eq_nil_iff_length_eq_zero]
-  have h_mono := cumLen_strictMono h_pos
-  have h_zero := cumLen_zero (ls := segs)
-  have h_seg0 (k : ℕ) : (segs k)[0]! = ts k := by grind
-  use segs.flatten
-  split_ands
-  · intro n
-    simp only [h_len, flatten_def]
-    have := segment_lower_bound h_mono h_zero n
-    by_cases h_n : n + 1 < segs.cumLen (segment segs.cumLen n + 1)
-    · have := segment_range_val h_mono (by grind) h_n
-      grind
-    · have h1 : segs.cumLen (segment segs.cumLen n + 1) = n + 1 := by
-        grind [segment_upper_bound h_mono h_zero n]
-      have h2 : segment segs.cumLen (n + 1) = segment segs.cumLen n + 1 := by
-        simp [← h1, segment_idem h_mono]
-      have : n + 1 - segs.cumLen (segment segs.cumLen n) = (μls (segment segs.cumLen n)).length :=
-        by grind
-      have h3 : ts (segment segs.cumLen n + 1) =
-          (sls (segment segs.cumLen n))[n + 1 - segs.cumLen (segment segs.cumLen n)]! := by
-        grind
-      simp [h1, h2, h_seg0, h3]
-      grind
-  · simp [h_len, extract_flatten h_pos, segs]
+  have : Inhabited State := {default := ts 0}
+  use (sls.map List.dropLast).flatten, .flatten_execution' hexec hpos
+  intro k
+  have hlen : μls.cumLen = (sls.map List.dropLast).cumLen := by ext k; induction k <;> grind
+  rw [hlen, extract_flatten, get_map, (sls k).dropLast_eq_take, ← (hexec k).length']
+  grind
 
 /-- Concatenating an infinite sequence of multistep transitions. -/
 theorem OmegaExecution.flatten_mTr [Inhabited Label]
     {ts : ωSequence State} {μls : ωSequence (List Label)}
-    (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, (μls k).length > 0) :
+    (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, 0 < (μls k).length) :
     ∃ ss, lts.OmegaExecution ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
   choose sls h_sls using fun k ↦ Execution.of_mTr (hmtr k)
   obtain ⟨ss, h_ss, h_seg⟩ := OmegaExecution.flatten_execution h_sls hpos

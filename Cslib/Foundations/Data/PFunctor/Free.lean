@@ -186,6 +186,14 @@ lemma bind_pure_comp (f : α → β) : ∀ x : P.FreeM α, x.bind (pure ∘ f) =
   | .liftBind a cont => by simp only [FreeM.bind, map, bind_pure_comp]
 
 @[simp]
+theorem map_pure (f : α → β) (x : α) : map f (pure x : P.FreeM α) = pure (f x) := rfl
+
+@[simp]
+theorem map_bind (f : β → γ) (x : P.FreeM α) (cont : α → P.FreeM β) :
+    map f (x.bind cont) = x.bind fun a => (cont a).map f := by
+  simp_rw [← bind_pure_comp, FreeM.bind_assoc]
+
+@[simp]
 lemma liftBind_bind (a : P.A) (cont : P.B a → P.FreeM β) (f : β → P.FreeM γ) :
     ((FreeM.lift a).bind cont).bind f = (FreeM.lift a).bind (fun u ↦ (cont u).bind f) := by
   simp only [lift]
@@ -386,6 +394,20 @@ lemma liftM_liftObj (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
   simp [liftObj]
 
 end liftM
+
+/-- Interpreting each operation by its lift into the free monad is the identity. -/
+@[simp]
+theorem liftM_lift_eq_self {α : Type uB} (x : P.FreeM α) : FreeM.liftM FreeM.lift x = x := by
+  induction x with
+  | pure _ => rfl
+  | lift_bind _ _ ih => simp [ih]
+
+/-- Interpreting into a free monad and then into `m` composes the two handlers. -/
+theorem liftM_comp {m : Type uB → Type v} [Monad m] [LawfulMonad m]
+    {Q : PFunctor.{u, uB}} {α : Type uB} (x : P.FreeM α)
+    (first : (a : P.A) → Q.FreeM (P.B a)) (second : (a : Q.A) → m (Q.B a)) :
+    (x.liftM first).liftM second = x.liftM fun a => (first a).liftM second :=
+  (isMonadHom_liftM second).map_pfunctorFreeMLiftM first x
 
 end FreeM
 
