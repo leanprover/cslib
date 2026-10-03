@@ -195,9 +195,9 @@ abbrev Params.cfgLts {SelLabel ProcName : Type*} :=
   Cfg.lts (Pid := Pid) (Var := Var) (SelLabel := SelLabel) (ProcName := ProcName)
     (fun _ => False) (funEval params)
 
-/- Functional correctness of the Diffie-Hellman protocol. -/
+/- Functional correctness of the Diffie-Hellman protocol over complete executions. -/
 proof_wanted net_fun_correct
-    (hmtr : params.cfgLts.Tr ⟨net params, gs⟩ μs ⟨0, gs'⟩) :
+    (hmtr : params.cfgLts.MTr ⟨net params, gs⟩ μs ⟨0, gs'⟩) :
     (gs' params.alice) params.s = (gs' params.bob) params.s
 
 end Cslib.Algorithms.StatefulProcesses.DiffieHellman
