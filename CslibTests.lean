@@ -28,6 +28,8 @@ import CslibTests.Modal.Stlc
 import CslibTests.Modal.UnimodalCube
 import CslibTests.MultiTapeComplexity
 import CslibTests.PACLearning
+import CslibTests.PFunctor
+import CslibTests.PFunctorFree
 import CslibTests.PRG
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
