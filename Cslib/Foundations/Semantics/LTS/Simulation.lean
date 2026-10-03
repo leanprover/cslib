@@ -147,8 +147,10 @@ theorem HomSimulationEquiv.refl (s : State) : s ≤≥[lts] s := by
   grind [SimulationEquiv, HomSimilarity.refl]
 
 /-- Simulation equivalence is symmetric. -/
-theorem SimulationEquiv.symm {s₁ s2 : State} (h : s₁ ≤≥[lts₁,lts₂] s2) : s2 ≤≥[lts₂, lts₁] s₁ := by
-  grind [SimulationEquiv]
+theorem SimulationEquiv.symm {State₁ State₂ Label : Type*}
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s₁ : State₁} {s2 : State₂}
+    (h : s₁ ≤≥[lts₁,lts₂] s2) : s2 ≤≥[lts₂,lts₁] s₁ :=
+  ⟨h.2, h.1⟩
 
 /-- Simulation equivalence is transitive. -/
 theorem SimulationEquiv.trans (h1 : s₁ ≤≥[lts₁,lts₂] s2) (h2 : s2 ≤≥[lts₂,lts₃] s₃) :

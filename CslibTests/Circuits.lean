@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Samuel Schlesinger
 -/
 
-import Cslib.Computability.Circuit.Basic
+import Cslib.Computability.Circuit.Depth
 
 /-! # Circuit tests
 
@@ -57,6 +57,13 @@ example : andNandCircuit.eval nandInterpretation trueFalse 1 = true := rfl
 example : andNandCircuit.size = 2 := rfl
 
 example : andNandCircuit.depth = 2 := rfl
+
+/-- A later unused gate contributes to program depth but not to circuit depth. -/
+def firstGateOnly : Circuit nandSignature 2 1 := ⟨andProgram, fun _ => Wire.gate 0⟩
+
+example : firstGateOnly.depth = 1 := rfl
+
+example : firstGateOnly.depth < firstGateOnly.program.depth := by decide
 
 example : andNandCircuit.FanInAtMost 2 := by decide
 
@@ -145,5 +152,21 @@ example : truthCircuit.eval constantInterpretation Fin.elim0 0 = true := rfl
 example : truthCircuit.FanInAtMost 0 := by decide
 
 example : truthCircuit.depth = 1 := rfl
+
+-- A depth bound for selected outputs follows from the public maximum characterization.
+example {σ : Signature} {n m k : Nat} (c : Circuit σ n m) (select : Fin k → Fin m) :
+    (⟨c.program, c.outputs ∘ select⟩ : Circuit σ n k).depth ≤ c.depth := by
+  apply (Circuit.depth_le_iff _).mpr
+  intro j
+  exact c.outputDepths_le_depth (select j)
+
+-- The line bound accounts for constant gates even though their argument bounds are vacuous.
+example {σ : Signature} {n g : Nat} (line : Line σ n g) (h : σ.Arity line.op = 0)
+    (depths : Wire n g → Nat) : line.depth depths = 1 := by
+  apply Nat.le_antisymm
+  · apply (line.depth_le_add_one_iff depths).mpr
+    intro j
+    exact (Fin.cast h j).elim0
+  · exact line.depth_pos depths
 
 end CslibTests.Circuits

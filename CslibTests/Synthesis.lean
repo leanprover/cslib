@@ -4,14 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Samuel Schlesinger
 -/
 
-import Cslib.Computability.Circuit.Synthesis
+import Cslib.Computability.Circuit.Complexity
 import Mathlib.Data.Fintype.Card
 
 /-!
 # Generic synthesis tests
 
 These examples use arbitrary carriers and an infinite arithmetic signature with unbounded
-arities. They exercise shared outputs, ordered and unordered folds, and empty constructions.
+arities. They exercise shared outputs, ordered and unordered folds, empty constructions, and
+complexity bounds over a basis that is not known to be complete.
 -/
 
 namespace CslibTests.Synthesis
@@ -25,6 +26,12 @@ example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) {n : ℕ} (i
   have h : Synthesis I (inputs n) {fun x => x i} 0 :=
     Synthesis.of_mem ⟨i, rfl⟩
   exact h.exists_circuit
+
+example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) {n : ℕ} (i : Fin n) :
+    ecomplexity I (single fun x => x i) = 0 := by
+  have h : Synthesis I (inputs n) {fun x => x i} 0 :=
+    Synthesis.of_subset (Set.singleton_subset_iff.mpr ⟨i, rfl⟩)
+  simpa using h.ecomplexity_le
 
 example {σ : Signature.{v}} {U : Type u} (I : Interpretation σ U) :
     ∃ c : Circuit σ 0 0, c.Computes I (fun _ j => Fin.elim0 j) ∧ c.size ≤ 0 := by
@@ -117,5 +124,11 @@ example : ∃ c : Circuit signature 1 1,
   have h := Synthesis.finset_fold (I := interpretation) (· + ·) 1 add_available
     (∅ : Finset (Fin 1)) (projection 0) (fun i _ => projection i)
   simpa using h.exists_circuit
+
+-- Upper bounds on `ecomplexity` need no completeness: the circuit witnesses finiteness.
+example : ecomplexity interpretation (single fun x : Fin 2 → ℕ => x 0 + x 1) ≤ 1 := by
+  have h := Synthesis.gate (I := interpretation) (s := inputs 2) .add
+    (fun i x => x i) (fun i => ⟨i, rfl⟩)
+  simpa [interpretation] using h.ecomplexity_le
 
 end CslibTests.Synthesis
