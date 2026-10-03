@@ -35,127 +35,118 @@ variable {t : Term Var}
 
 /-- Any reduction step preserves typing. -/
 lemma Typing.preservation (der : Typing Γ t τ) (step : t ⭢βᵛ t') : Typing Γ t' τ := by
-  induction der generalizing t'
-  case app Γ _ σ τ _ _ _ _ _ =>
-    cases step
-    case appₗ | appᵣ => grind
-    case abs der _ _ =>
-      have sub : Sub Γ (σ.arrow τ) (σ.arrow τ) := by grind [Sub.refl]
-      have ⟨_, _, ⟨_, _⟩⟩ := der.abs_inv sub
-      grind [fresh_exists <| free_union [fvTm] Var, openTm_substTm_intro, subst_tm, Sub.weaken]
-  case tapp Γ _ σ τ σ' _ _ _ =>
-    cases step
-    case tabs der _ _ =>
-      have sub : Sub Γ (σ.all τ) (σ.all τ) := by grind [Sub.refl]
-      have ⟨_, _, ⟨_, _⟩⟩ := der.tabs_inv sub
-      have ⟨X, mem⟩ := fresh_exists <| free_union [Ty.fv, fvTy] Var
-      simp at mem
-      have : Γ = (Context.mapVal (·[X := σ']) []) ++ Γ := by grind
-      rw [openTy_substTy_intro (X := X), open_subst_intro (X := X)] <;> grind [subst_ty]
-    case tapp => grind
-  case let' Γ _ _ _ _ L der _ ih₁ _ =>
-    cases step
-    case let_bind red₁ _ => apply Typing.let' L (ih₁ red₁); grind
-    case let_body =>
-      grind [fresh_exists <| free_union [fvTm] Var, openTm_substTm_intro, subst_tm]
-  case case Γ _ σ τ _ _ _ L _ _ _ ih₁ _ _ =>
-    have sub : Sub Γ (σ.sum τ) (σ.sum τ) := by grind [Sub.refl]
-    have : Γ = [] ++ Γ := by rfl
-    cases step
-    case «case» red₁ _ _ => apply Typing.case L (ih₁ red₁) <;> grind
-    case case_inl der _ _ =>
-      have ⟨_, ⟨_, _⟩⟩ := der.inl_inv sub
-      grind [fresh_exists <| free_union [fvTm] Var, openTm_substTm_intro, subst_tm]
-    case case_inr der _ _ =>
-      have ⟨_, ⟨_, _⟩⟩ := der.inr_inv sub
-      grind [fresh_exists <| free_union [fvTm] Var, openTm_substTm_intro, subst_tm]
-  all_goals grind [cases Red]
+  induction der generalizing t' with
+  | var => cases step
+  | abs => cases step
+  | tabs => cases step
+  | app der₁ der₂ ih₁ ih₂ =>
+    cases step with
+    | appₗ _ step => exact Typing.app (ih₁ step) der₂
+    | appᵣ _ step => exact Typing.app der₁ (ih₂ step)
+    | @abs σ t₁ t₂ _ _ =>
+      obtain ⟨sub, τ', L, h⟩ := der₁.abs_inv (Sub.refl der₁.wf.1 der₁.wf.2.2)
+      obtain ⟨x, hx⟩ := fresh_exists (L ∪ t₁.fvTm)
+      simp only [Finset.mem_union, not_or] at hx
+      rw [openTm_substTm_intro t₁ _ hx.2]
+      exact Typing.sub ((h x hx.1).1.subst_tm (Γ := []) (der₂.sub sub)) (h x hx.1).2
+  | @tapp Γ t₁ σ τ σ' der sub ih =>
+    cases step with
+    | tapp _ step => exact Typing.tapp (ih step) sub
+    | @tabs σ₀ t _ _ _ =>
+      obtain ⟨_, τ', L, h⟩ := der.tabs_inv (Sub.refl der.wf.1 der.wf.2.2)
+      obtain ⟨X, hX⟩ := fresh_exists (L ∪ t.fvTy ∪ τ.fv)
+      simp only [Finset.mem_union, not_or] at hX
+      rw [openTy_substTy_intro t σ' hX.1.2, open_subst_intro σ' hX.2]
+      exact Typing.sub ((h X hX.1.1).1.subst_ty (Γ := []) sub)
+        (Sub.map_subst (Γ := []) (h X hX.1.1).2 sub)
+  | sub _ sub ih => exact Typing.sub (ih step) sub
+  | @let' Γ t₁ σ t₂ τ L der h ih _ =>
+    cases step with
+    | let_bind step _ => exact Typing.let' L (ih step) h
+    | let_body =>
+      obtain ⟨x, hx⟩ := fresh_exists (L ∪ t₂.fvTm)
+      simp only [Finset.mem_union, not_or] at hx
+      rw [openTm_substTm_intro t₂ t₁ hx.2]
+      exact (h x hx.1).subst_tm (Γ := []) der
+  | inl _ wf ih =>
+    cases step with
+    | inl step => exact Typing.inl (ih step) wf
+  | inr _ wf ih =>
+    cases step with
+    | inr step => exact Typing.inr (ih step) wf
+  | @case Γ t₁ σ τ t₂ δ t₃ L der h₂ h₃ ih _ _ =>
+    cases step with
+    | case step _ _ => exact Typing.case L (ih step) h₂ h₃
+    | @case_inl t _ _ _ _ _ =>
+      obtain ⟨σ', ht, sub⟩ := der.inl_inv (Sub.refl der.wf.1 der.wf.2.2)
+      obtain ⟨x, hx⟩ := fresh_exists (L ∪ t₂.fvTm)
+      simp only [Finset.mem_union, not_or] at hx
+      rw [openTm_substTm_intro t₂ t hx.2]
+      exact (h₂ x hx.1).subst_tm (Γ := []) (ht.sub sub)
+    | @case_inr t _ _ _ _ _ =>
+      obtain ⟨τ', ht, sub⟩ := der.inr_inv (Sub.refl der.wf.1 der.wf.2.2)
+      obtain ⟨x, hx⟩ := fresh_exists (L ∪ t₃.fvTm)
+      simp only [Finset.mem_union, not_or] at hx
+      rw [openTm_substTm_intro t₃ t hx.2]
+      exact (h₃ x hx.1).subst_tm (Γ := []) (ht.sub sub)
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Any typable term either has a reduction step or is a value. -/
 lemma Typing.progress (der : Typing [] t τ) : t.Value ∨ ∃ t', t ⭢βᵛ t' := by
   generalize eq : [] = Γ at der
-  have der' : Typing Γ t τ := der
-  induction der <;> subst eq
-  case var mem => grind
-  case app t₁ _ _ t₂ l r ih_l ih_r =>
-    right
-    cases ih_l rfl l with
-    | inl val_l =>
-        cases ih_r rfl r with
-        | inl val_r =>
-            have ⟨σ, t₁, eq⟩ := l.canonical_form_abs val_l
-            exists t₁ ^ᵗᵗ t₂
-            grind
-        | inr red_r =>
-            obtain ⟨t₂', _⟩ := red_r
-            exists t₁.app t₂'
-            grind
-    | inr red_l =>
-        obtain ⟨t₁', _⟩ := red_l
-        exists t₁'.app t₂
-        grind
-  case tapp σ' der _ ih =>
-    right
-    specialize ih rfl der
-    cases ih with
-    | inl val =>
-        obtain ⟨_, t, _⟩ := der.canonical_form_tabs val
-        exists t ^ᵗᵞ σ'
-        grind
-    | inr red =>
-        obtain ⟨t', _⟩ := red
-        exists .tapp t' σ'
-        grind
-  case let' t₁ σ t₂ τ L der _ ih _ =>
-    right
-    cases ih rfl der with
-    | inl _ =>
-        exists t₂ ^ᵗᵗ t₁
-        grind
-    | inr red =>
-        obtain ⟨t₁', _⟩ := red
-        exists t₁'.let' t₂
-        grind
-  case inl der _ ih =>
-    cases (ih rfl der) with
-    | inl val => grind
-    | inr red =>
-        right
-        obtain ⟨t', _⟩ := red
-        exists .inl t'
-        grind
-  case inr der _ ih =>
-    cases (ih rfl der) with
-    | inl val => grind
-    | inr red =>
-        right
-        obtain ⟨t', _⟩ := red
-        exists .inr t'
-        grind
-  case case t₁ _ _ t₂ _ t₃ _ der _ _ ih _ _ =>
-    right
-    cases ih rfl der with
-    | inl val =>
-        have ⟨t₁, lr⟩ := der.canonical_form_sum val
-        cases lr <;> [exists t₂ ^ᵗᵗ t₁; exists t₃ ^ᵗᵗ t₁] <;> grind
-    | inr red =>
-        obtain ⟨t₁', _⟩ := red
-        exists t₁'.case t₂ t₃
-        grind
-  case sub => grind
-  case abs σ _ τ L _ _=>
+  induction der with
+  | var _ mem => subst eq; simp at mem
+  | abs L h _ =>
     left
-    constructor
-    apply LC.abs L
-    · grind only [→ wf, cases Term.LC]
-    · grind only [→ wf]
-  case tabs L _ _=>
+    exact Value.abs (Typing.abs L h).wf.2.1
+  | tabs L h _ =>
     left
-    constructor
-    apply LC.tabs L
-    · grind only [→ wf, cases Term.LC]
-    · grind only [→ wf]
+    exact Value.tabs (Typing.tabs L h).wf.2.1
+  | app der₁ der₂ ih₁ ih₂ =>
+    subst eq
+    right
+    rcases ih₁ rfl with val₁ | ⟨t₁', step⟩
+    · rcases ih₂ rfl with val₂ | ⟨t₂', step⟩
+      · obtain ⟨σ, t, rfl⟩ := der₁.canonical_form_abs val₁
+        exact ⟨_, Red.abs val₁.lc val₂⟩
+      · exact ⟨_, Red.appᵣ val₁ step⟩
+    · exact ⟨_, Red.appₗ der₂.wf.2.1 step⟩
+  | tapp der sub ih =>
+    subst eq
+    right
+    rcases ih rfl with val | ⟨t', step⟩
+    · obtain ⟨σ, t, rfl⟩ := der.canonical_form_tabs val
+      exact ⟨_, Red.tabs val.lc (Sub.wf _ _ _ sub).2.1.lc⟩
+    · exact ⟨_, Red.tapp (Sub.wf _ _ _ sub).2.1.lc step⟩
+  | sub _ _ ih => exact ih eq
+  | let' L der h ih _ =>
+    subst eq
+    have body := fun x hx => (h x hx).wf.2.1
+    right
+    rcases ih rfl with val | ⟨t', step⟩
+    · exact ⟨_, Red.let_body val ⟨L, body⟩⟩
+    · exact ⟨_, Red.let_bind step ⟨L, body⟩⟩
+  | inl _ _ ih =>
+    rcases ih eq with val | ⟨t', step⟩
+    · exact Or.inl (Value.inl val)
+    · exact Or.inr ⟨_, Red.inl step⟩
+  | inr _ _ ih =>
+    rcases ih eq with val | ⟨t', step⟩
+    · exact Or.inl (Value.inr val)
+    · exact Or.inr ⟨_, Red.inr step⟩
+  | case L der h₂ h₃ ih _ _ =>
+    subst eq
+    have body₂ := fun x hx => (h₂ x hx).wf.2.1
+    have body₃ := fun x hx => (h₃ x hx).wf.2.1
+    right
+    rcases ih rfl with val | ⟨t', step⟩
+    · obtain ⟨t, heq | heq⟩ := der.canonical_form_sum val
+      · subst heq
+        cases val with
+        | inl val => exact ⟨_, Red.case_inl val ⟨L, body₂⟩ ⟨L, body₃⟩⟩
+      · subst heq
+        cases val with
+        | inr val => exact ⟨_, Red.case_inr val ⟨L, body₂⟩ ⟨L, body₃⟩⟩
+    · exact ⟨_, Red.case step ⟨L, body₂⟩ ⟨L, body₃⟩⟩
 
 end LambdaCalculus.LocallyNameless.Fsub
 

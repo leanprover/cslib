@@ -35,7 +35,6 @@ namespace LambdaCalculus.LocallyNameless.Fsub
 namespace Ty
 
 /-- Variable opening (type opening to type) of the ith bound variable. -/
-@[scoped grind =]
 def openRec (X : ℕ) (δ : Ty Var) : Ty Var → Ty Var
 | top => top
 | bvar Y => if X = Y then δ else bvar Y
@@ -48,7 +47,6 @@ def openRec (X : ℕ) (δ : Ty Var) : Ty Var → Ty Var
 scoped notation:68 γ "⟦" X " ↝ " δ "⟧ᵞ"=> openRec X δ γ
 
 /-- Variable opening (type opening to type) of the closest binding. -/
-@[scoped grind =]
 def open' (γ δ : Ty Var) := openRec 0 δ γ
 
 @[inherit_doc]
@@ -62,10 +60,7 @@ inductive LC : Ty Var → Prop
   | all (L : Finset Var) : LC σ → (∀ X ∉ L, LC (τ ^ᵞ fvar X)) → LC (all σ τ)
   | sum : LC σ → LC τ → LC (sum σ τ)
 
-attribute [scoped grind .] LC.top LC.var LC.arrow LC.sum
-
 /-- Type substitution. -/
-@[scoped grind =]
 def subst (X : Var) (δ : Ty Var) : Ty Var → Ty Var
 | top => top
 | bvar J => bvar J
@@ -82,27 +77,57 @@ variable {σ τ δ γ : Ty Var}
 omit [HasFresh Var] [DecidableEq Var] in
 /-- An opening appearing in both sides of an equality of types can be removed. -/
 lemma openRec_neq_eq {σ τ γ : Ty Var} (neq : X ≠ Y) (h : σ⟦Y ↝ τ⟧ᵞ = σ⟦Y ↝ τ⟧ᵞ⟦X ↝ γ⟧ᵞ) :
-    σ = σ⟦X ↝ γ⟧ᵞ := by induction σ generalizing Y X <;> grind
+    σ = σ⟦X ↝ γ⟧ᵞ := by
+  induction σ generalizing Y X with
+  | top | fvar => rfl
+  | bvar Z =>
+    by_cases hY : Y = Z
+    · subst Y
+      simp [openRec, neq]
+    · simpa [openRec, hY] using h
+  | arrow σ₁ σ₂ ih₁ ih₂ | sum σ₁ σ₂ ih₁ ih₂ =>
+    simp only [openRec, Ty.arrow.injEq, Ty.sum.injEq] at h ⊢
+    exact ⟨ih₁ neq h.1, ih₂ neq h.2⟩
+  | all σ₁ σ₂ ih₁ ih₂ =>
+    simp only [openRec, Ty.all.injEq] at h ⊢
+    exact ⟨ih₁ neq h.1, ih₂ (by omega) h.2⟩
 
+set_option linter.unusedSectionVars false in
 /-- A locally closed type is unchanged by opening. -/
+@[nolint unusedArguments]
 lemma openRec_lc {σ τ : Ty Var} (lc : σ.LC) : σ = σ⟦X ↝ τ⟧ᵞ := by
   induction lc generalizing X with
-  | all => grind [fresh_exists <| free_union Var, openRec_neq_eq]
-  | _ => grind
+  | all L hσ hτ ihσ ihτ =>
+    obtain ⟨Y, hY⟩ := fresh_exists L
+    simp only [openRec, all.injEq]
+    exact ⟨ihσ, openRec_neq_eq (Nat.succ_ne_zero X) (ihτ Y hY)⟩
+  | arrow _ _ ih₁ ih₂ | sum _ _ ih₁ ih₂ =>
+    simp only [openRec, Ty.arrow.injEq, Ty.sum.injEq]
+    exact ⟨ih₁, ih₂⟩
+  | _ => rfl
 
 omit [HasFresh Var] in
-@[scoped grind _=_]
 lemma subst_def : Ty.subst (X : Var) (δ : Ty Var) (γ : Ty Var) = γ[X := δ] := by rfl
 
 omit [HasFresh Var] in
 /-- Substitution of a free variable not present in a type leaves it unchanged. -/
 lemma subst_fresh (nmem : X ∉ γ.fv) (δ : Ty Var) : γ = γ[X := δ] := by
-  induction γ <;> grind
+  induction γ with
+  | top | bvar => rfl
+  | fvar Y =>
+    simp only [fv, Finset.mem_singleton] at nmem
+    simp [← subst_def, subst, Ne.symm nmem]
+  | arrow σ τ ihσ ihτ | all σ τ ihσ ihτ | sum σ τ ihσ ihτ =>
+    simp only [fv, Finset.mem_union, not_or] at nmem
+    simp only [← subst_def, subst, arrow.injEq, all.injEq, sum.injEq]
+    exact ⟨ihσ nmem.1, ihτ nmem.2⟩
 
 /-- Substitution of a locally closed type distributes with opening. -/
 lemma openRec_subst (Y : ℕ) (σ τ : Ty Var) (lc : δ.LC) (X : Var) :
     (σ⟦Y ↝ τ⟧ᵞ)[X := δ] = σ[X := δ]⟦Y ↝ τ[X := δ]⟧ᵞ := by
-  induction σ generalizing Y <;> grind [openRec_lc]
+  induction σ generalizing Y <;> simp_all [← subst_def, subst, openRec]
+  · split_ifs <;> simp_all [subst]
+  · split_ifs <;> simp_all [openRec, ← openRec_lc lc]
 
 /-- Specialize `Ty.openRec_subst` to the first opening. -/
 lemma open_subst (σ τ : Ty Var) (lc : δ.LC) (X : Var) : (σ ^ᵞ τ)[X := δ] = σ[X := δ] ^ᵞ τ[X := δ]
@@ -110,13 +135,24 @@ lemma open_subst (σ τ : Ty Var) (lc : δ.LC) (X : Var) : (σ ^ᵞ τ)[X := δ]
 
 /-- Specialize `Ty.subst_open` to free variables. -/
 lemma open_subst_var (σ : Ty Var) (neq : Y ≠ X) (lc : δ.LC) :
-    (σ ^ᵞ fvar Y)[X := δ] = (σ[X := δ]) ^ᵞ fvar Y := by grind [open_subst]
+    (σ ^ᵞ fvar Y)[X := δ] = (σ[X := δ]) ^ᵞ fvar Y := by
+  simpa [← subst_def, subst, neq] using open_subst σ (fvar Y) lc X
 
 omit [HasFresh Var] in
 /-- Opening to a type is equivalent to opening to a free variable and substituting. -/
 lemma openRec_subst_intro (Y : ℕ) (δ : Ty Var) (nmem : X ∉ γ.fv) :
     γ⟦Y ↝ δ⟧ᵞ = (γ⟦Y ↝ fvar X⟧ᵞ)[X := δ] := by
-  induction γ generalizing δ Y <;> grind
+  induction γ generalizing δ Y with
+  | top => rfl
+  | bvar Z =>
+    by_cases h : Y = Z <;> simp [openRec, ← subst_def, subst, h]
+  | fvar Z =>
+    simp only [fv, Finset.mem_singleton] at nmem
+    simp [openRec, ← subst_def, subst, Ne.symm nmem]
+  | arrow σ τ ihσ ihτ | all σ τ ihσ ihτ | sum σ τ ihσ ihτ =>
+    simp only [fv, Finset.mem_union, not_or] at nmem
+    simp only [openRec, ← subst_def, subst, arrow.injEq, all.injEq, sum.injEq]
+    exact ⟨ihσ _ _ nmem.1, ihτ _ _ nmem.2⟩
 
 omit [HasFresh Var] in
 /-- Specialize `Ty.openRec_subst_intro` to the first opening. -/
@@ -125,12 +161,26 @@ lemma open_subst_intro (δ : Ty Var) (nmem : X ∉ γ.fv) : γ ^ᵞ δ = (γ ^�
 
 lemma subst_lc (σ_lc : σ.LC) (τ_lc : τ.LC) (X : Var) : σ[X := τ].LC := by
   induction σ_lc with
-  | all => grind [LC.all (free_union Var), openRec_subst]
-  | _ => grind [openRec_subst]
+  | all L hσ hγ ihσ ihγ =>
+    apply LC.all (L ∪ {X}) ihσ
+    intro Y hY
+    simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hY
+    simpa only [open_subst_var _ hY.2 τ_lc, ← subst_def] using ihγ Y hY.1
+  | var =>
+    simp only [← subst_def, subst]
+    split_ifs
+    · exact τ_lc
+    · exact LC.var
+  | _ => simp only [← subst_def, subst]; constructor <;> assumption
 
 omit [HasFresh Var] in
 lemma nmem_fv_openRec (nmem : X ∉ (σ⟦k ↝ γ⟧ᵞ).fv) : X ∉ σ.fv := by
-  induction σ generalizing k <;> grind
+  induction σ generalizing k with
+  | top | bvar => simp [fv]
+  | fvar => exact nmem
+  | arrow σ τ ihσ ihτ | all σ τ ihσ ihτ | sum σ τ ihσ ihτ =>
+    simp only [openRec, fv, Finset.mem_union, not_or] at nmem ⊢
+    exact ⟨ihσ nmem.1, ihτ nmem.2⟩
 
 omit [HasFresh Var] in
 lemma nmem_fv_open (nmem : X ∉ (σ ^ᵞ γ).fv) : X ∉ σ.fv :=
@@ -143,7 +193,6 @@ namespace Term
 open scoped Ty
 
 /-- Variable opening (term opening to type) of the ith bound variable. -/
-@[scoped grind =]
 def openRecTy (X : ℕ) (δ : Ty Var) : Term Var → Term Var
 | bvar x => bvar x
 | fvar x => fvar x
@@ -160,14 +209,12 @@ def openRecTy (X : ℕ) (δ : Ty Var) : Term Var → Term Var
 scoped notation:68 t "⟦" X " ↝ " δ "⟧ᵗᵞ"=> openRecTy X δ t
 
 /-- Variable opening (term opening to type) of the closest binding. -/
-@[scoped grind =]
 def openTy (t : Term Var) (δ : Ty Var) := openRecTy 0 δ t
 
 @[inherit_doc]
 scoped infixr:80 " ^ᵗᵞ " => openTy
 
 /-- Variable opening (term opening to term) of the ith bound variable. -/
-@[scoped grind =]
 def openRecTm (x : ℕ) (s : Term Var) : Term Var → Term Var
 | bvar y => if x = y then s else (bvar y)
 | fvar x => fvar x
@@ -184,7 +231,6 @@ def openRecTm (x : ℕ) (s : Term Var) : Term Var → Term Var
 scoped notation:68 t "⟦" x " ↝ " s "⟧ᵗᵗ"=> openRecTm x s t
 
 /-- Variable opening (term opening to term) of the closest binding. -/
-@[scoped grind =]
 def openTm (t₁ t₂ : Term Var) := openRecTm 0 t₂ t₁
 
 @[inherit_doc]
@@ -206,32 +252,82 @@ inductive LC : Term Var → Prop
       (∀ x ∉ L, LC (t₃ ^ᵗᵗ fvar x)) →
       LC (case t₁ t₂ t₃)
 
-attribute [scoped grind .] LC.var LC.app LC.inl LC.inr LC.tapp
-
 variable {t : Term Var} {δ : Ty Var}
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- An opening (term to type) appearing in both sides of an equality of terms can be removed. -/
 lemma openRecTy_neq_eq (neq : X ≠ Y) (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ σ⟧ᵗᵞ⟦X ↝ τ⟧ᵗᵞ) :
     t = t⟦X ↝ τ⟧ᵗᵞ := by
-  induction t generalizing X Y <;> grind [Ty.openRec_neq_eq]
+  induction t generalizing X Y with
+  | bvar | fvar => rfl
+  | abs σ t ih =>
+    simp only [openRecTy, abs.injEq] at eq ⊢
+    exact ⟨Ty.openRec_neq_eq neq eq.1, ih neq eq.2⟩
+  | tabs σ t ih =>
+    simp only [openRecTy, tabs.injEq] at eq ⊢
+    exact ⟨Ty.openRec_neq_eq neq eq.1, ih (by omega) eq.2⟩
+  | tapp t σ ih =>
+    simp only [openRecTy, tapp.injEq] at eq ⊢
+    exact ⟨ih neq eq.1, Ty.openRec_neq_eq neq eq.2⟩
+  | app t s iht ihs | let' t s iht ihs =>
+    simp only [openRecTy, app.injEq, let'.injEq] at eq ⊢
+    exact ⟨iht neq eq.1, ihs neq eq.2⟩
+  | inl t ih | inr t ih =>
+    simp only [openRecTy, inl.injEq, inr.injEq] at eq ⊢
+    exact ih neq eq
+  | case t s r iht ihs ihr =>
+    simp only [openRecTy, case.injEq] at eq ⊢
+    exact ⟨iht neq eq.1, ihs neq eq.2.1, ihr neq eq.2.2⟩
 
 omit [HasFresh Var] [DecidableEq Var] in
 /-- Elimination of mixed term and type opening. -/
-@[scoped grind .]
 lemma openRecTm_ty_eq (eq : t⟦x ↝ s⟧ᵗᵗ = t⟦x ↝ s⟧ᵗᵗ⟦y ↝ δ⟧ᵗᵞ) : t = t⟦y ↝ δ⟧ᵗᵞ
-  := by induction t generalizing x y <;> grind
+  := by
+  induction t generalizing x y with
+  | bvar | fvar => rfl
+  | abs σ t ih | tabs σ t ih =>
+    simp only [openRecTm, openRecTy, abs.injEq, tabs.injEq] at eq ⊢
+    exact ⟨eq.1, ih eq.2⟩
+  | tapp t σ ih =>
+    simp only [openRecTm, openRecTy, tapp.injEq] at eq ⊢
+    exact ⟨ih eq.1, eq.2⟩
+  | app t s iht ihs | let' t s iht ihs =>
+    simp only [openRecTm, openRecTy, app.injEq, let'.injEq] at eq ⊢
+    exact ⟨iht eq.1, ihs eq.2⟩
+  | inl t ih | inr t ih =>
+    simp only [openRecTm, openRecTy, inl.injEq, inr.injEq] at eq ⊢
+    exact ih eq
+  | case t s r iht ihs ihr =>
+    simp only [openRecTm, openRecTy, case.injEq] at eq ⊢
+    exact ⟨iht eq.1, ihs eq.2.1, ihr eq.2.2⟩
 
 /-- A locally closed term is unchanged by type opening. -/
-@[scoped grind =_]
 lemma openRecTy_lc {t : Term Var} (lc : t.LC) : t = t⟦X ↝ σ⟧ᵗᵞ := by
   induction lc generalizing X with
-  | let' | case | tabs | abs =>
-    grind [fresh_exists <| free_union Var, Ty.openRec_lc, openRecTy_neq_eq]
-  | _ => grind [Ty.openRec_lc]
+  | abs L hσ ht ih =>
+    obtain ⟨y, hy⟩ := fresh_exists L
+    simp only [openRecTy, abs.injEq]
+    exact ⟨Ty.openRec_lc hσ, openRecTm_ty_eq (ih y hy)⟩
+  | tabs L hσ ht ih =>
+    obtain ⟨Y, hY⟩ := fresh_exists L
+    simp only [openRecTy, tabs.injEq]
+    exact ⟨Ty.openRec_lc hσ, openRecTy_neq_eq (Nat.succ_ne_zero X) (ih Y hY)⟩
+  | let' L ht hs iht ihs =>
+    obtain ⟨y, hy⟩ := fresh_exists L
+    simp only [openRecTy, let'.injEq]
+    exact ⟨iht, openRecTm_ty_eq (ihs y hy)⟩
+  | case L ht hs hr iht ihs ihr =>
+    obtain ⟨y, hy⟩ := fresh_exists L
+    simp only [openRecTy, case.injEq]
+    exact ⟨iht, openRecTm_ty_eq (ihs y hy), openRecTm_ty_eq (ihr y hy)⟩
+  | app _ _ ih₁ ih₂ =>
+    exact congrArg₂ app ih₁ ih₂
+  | tapp _ hσ ih => exact congrArg₂ tapp ih (Ty.openRec_lc hσ)
+  | inl _ ih => exact congrArg inl ih
+  | inr _ ih => exact congrArg inr ih
+  | var => rfl
 
 /-- Substitution of a type within a term. -/
-@[scoped grind =]
 def substTy (X : Var) (δ : Ty Var) : Term Var → Term Var
 | bvar x => bvar x
 | fvar x => fvar x
@@ -248,18 +344,38 @@ instance : HasSubstitution (Term Var) Var (Ty Var) where
   subst t X δ := Term.substTy X δ t
 
 omit [HasFresh Var] in
-@[scoped grind _=_]
 lemma substTy_def : substTy (X : Var) (δ : Ty Var) (t : Term Var) = t[X := δ] := by rfl
 
 omit [HasFresh Var] in
 /-- Substitution of a free type variable not present in a term leaves it unchanged. -/
 lemma substTy_fresh (nmem : X ∉ t.fvTy) (δ : Ty Var) : t = t[X := δ] :=
-  by induction t <;> grind [Ty.subst_fresh]
+  by
+  induction t with
+  | bvar | fvar => rfl
+  | abs σ t ih | tabs σ t ih =>
+    simp only [fvTy, Finset.mem_union, not_or] at nmem
+    simp only [← substTy_def, substTy, abs.injEq, tabs.injEq]
+    exact ⟨Ty.subst_fresh nmem.1 δ, ih nmem.2⟩
+  | tapp t σ ih =>
+    simp only [fvTy, Finset.mem_union, not_or] at nmem
+    simp only [← substTy_def, substTy, tapp.injEq]
+    exact ⟨ih nmem.2, Ty.subst_fresh nmem.1 δ⟩
+  | app t s iht ihs | let' t s iht ihs =>
+    simp only [fvTy, Finset.mem_union, not_or] at nmem
+    simp only [← substTy_def, substTy, app.injEq, let'.injEq]
+    exact ⟨iht nmem.1, ihs nmem.2⟩
+  | inl t ih => exact congrArg inl (ih nmem)
+  | inr t ih => exact congrArg inr (ih nmem)
+  | case t s r iht ihs ihr =>
+    simp only [fvTy, Finset.mem_union, not_or] at nmem
+    simp only [← substTy_def, substTy, case.injEq]
+    exact ⟨iht nmem.1.1, ihs nmem.1.2, ihr nmem.2⟩
 
 /-- Substitution of a locally closed type distributes with term opening to a type . -/
 lemma openRecTy_substTy (Y : ℕ) (t : Term Var) (σ : Ty Var) (lc : δ.LC) (X : Var) :
     (t⟦Y ↝ σ⟧ᵗᵞ)[X := δ] = (t[X := δ])⟦Y ↝  σ[X := δ]⟧ᵗᵞ := by
-  induction t generalizing Y <;> grind [Ty.openRec_subst]
+  induction t generalizing Y <;>
+    simp_all [← substTy_def, substTy, openRecTy, Ty.openRec_subst _ _ _ lc]
 
 /-- Specialize `Term.openRecTy_subst` to the first opening. -/
 lemma openTy_substTy (t : Term Var) (σ : Ty Var) (lc : δ.LC) (X : Var) :
@@ -267,21 +383,40 @@ lemma openTy_substTy (t : Term Var) (σ : Ty Var) (lc : δ.LC) (X : Var) :
 
 /-- Specialize `Term.openTy_subst` to free type variables. -/
 lemma openTy_substTy_var (t : Term Var) (neq : Y ≠ X) (lc : δ.LC) :
-    (t ^ᵗᵞ .fvar Y)[X := δ] = t[X := δ] ^ᵗᵞ .fvar Y := by grind [openTy_substTy]
+    (t ^ᵗᵞ .fvar Y)[X := δ] = t[X := δ] ^ᵗᵞ .fvar Y := by
+  simpa [← Ty.subst_def, Ty.subst, neq] using openTy_substTy t (.fvar Y) lc X
 
 omit [HasFresh Var]
 
 /-- Opening a term to a type is equivalent to opening to a free variable and substituting. -/
 lemma openRecTy_substTy_intro (Y : ℕ) (t : Term Var) (nmem : X ∉ t.fvTy) :
   t⟦Y ↝ δ⟧ᵗᵞ = (t⟦Y ↝ Ty.fvar X⟧ᵗᵞ)[X := δ] := by
-  induction t generalizing X δ Y <;> grind [Ty.openRec_subst_intro]
+  induction t generalizing X δ Y with
+  | bvar | fvar => rfl
+  | abs σ t ih | tabs σ t ih =>
+    simp only [fvTy, Finset.mem_union, not_or] at nmem
+    simp only [openRecTy, ← substTy_def, substTy, abs.injEq, tabs.injEq]
+    exact ⟨Ty.openRec_subst_intro _ _ nmem.1, ih _ nmem.2⟩
+  | tapp t σ ih =>
+    simp only [fvTy, Finset.mem_union, not_or] at nmem
+    simp only [openRecTy, ← substTy_def, substTy, tapp.injEq]
+    exact ⟨ih _ nmem.2, Ty.openRec_subst_intro _ _ nmem.1⟩
+  | app t s iht ihs | let' t s iht ihs =>
+    simp only [fvTy, Finset.mem_union, not_or] at nmem
+    simp only [openRecTy, ← substTy_def, substTy, app.injEq, let'.injEq]
+    exact ⟨iht _ nmem.1, ihs _ nmem.2⟩
+  | inl t ih => exact congrArg inl (ih _ nmem)
+  | inr t ih => exact congrArg inr (ih _ nmem)
+  | case t s r iht ihs ihr =>
+    simp only [fvTy, Finset.mem_union, not_or] at nmem
+    simp only [openRecTy, ← substTy_def, substTy, case.injEq]
+    exact ⟨iht _ nmem.1.1, ihs _ nmem.1.2, ihr _ nmem.2⟩
 
 /-- Specialize `Term.openRecTy_substTy_intro` to the first opening. -/
 lemma openTy_substTy_intro (t : Term Var) (δ : Ty Var) (nmem : X ∉ t.fvTy) :
     t ^ᵗᵞ δ = (t ^ᵗᵞ Ty.fvar X)[X := δ] := openRecTy_substTy_intro _ _ nmem
 
 /-- Substitution of a term within a term. -/
-@[scoped grind =]
 def substTm (x : Var) (s : Term Var) : Term Var → Term Var
 | bvar x => bvar x
 | fvar y => if y = x then s else fvar y
@@ -297,41 +432,117 @@ def substTm (x : Var) (s : Term Var) : Term Var → Term Var
 instance : HasSubstitution (Term Var) Var (Term Var) where
   subst t x s := Term.substTm x s t
 
-@[scoped grind _=_]
 lemma substTm_def : substTm (x : Var) (s : Term Var) (t : Term Var) = t[x := s] := by rfl
 
 omit [DecidableEq Var] in
 /-- An opening (term to term) appearing in both sides of an equality of terms can be removed. -/
 lemma openRecTm_neq_eq (neq : x ≠ y) (eq : t⟦y ↝ s₁⟧ᵗᵗ = t⟦y ↝ s₁⟧ᵗᵗ⟦x ↝ s₂⟧ᵗᵗ) :
     t = t⟦x ↝ s₂⟧ᵗᵗ := by
-  induction t generalizing x y <;> grind
+  induction t generalizing x y with
+  | fvar => rfl
+  | bvar z =>
+    by_cases hy : y = z
+    · subst y
+      simp [openRecTm, neq]
+    · simpa [openRecTm, hy] using eq
+  | abs σ t ih =>
+    simp only [openRecTm, abs.injEq, true_and] at eq ⊢
+    exact ih (by omega) eq
+  | tabs σ t ih | tapp t σ ih =>
+    simp only [openRecTm, tabs.injEq, tapp.injEq, true_and, and_true] at eq ⊢
+    exact ih neq eq
+  | app t s iht ihs =>
+    simp only [openRecTm, app.injEq] at eq ⊢
+    exact ⟨iht neq eq.1, ihs neq eq.2⟩
+  | let' t s iht ihs =>
+    simp only [openRecTm, let'.injEq] at eq ⊢
+    exact ⟨iht neq eq.1, ihs (by omega) eq.2⟩
+  | inl t ih | inr t ih =>
+    simp only [openRecTm, inl.injEq, inr.injEq] at eq ⊢
+    exact ih neq eq
+  | case t s r iht ihs ihr =>
+    simp only [openRecTm, case.injEq] at eq ⊢
+    exact ⟨iht neq eq.1, ihs (by omega) eq.2.1, ihr (by omega) eq.2.2⟩
 
 omit [DecidableEq Var] in
 /-- Elimination of mixed term and type opening. -/
 lemma openRecTy_tm_eq (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ σ⟧ᵗᵞ⟦x ↝ s⟧ᵗᵗ) : t = t⟦x ↝ s⟧ᵗᵗ := by
-  induction t generalizing x Y <;> grind
+  induction t generalizing x Y with
+  | bvar | fvar => exact eq
+  | abs σ t ih | tabs σ t ih | tapp t σ ih =>
+    simp only [openRecTy, openRecTm, abs.injEq, tabs.injEq, tapp.injEq,
+      true_and, and_true] at eq ⊢
+    exact ih eq
+  | app t s iht ihs | let' t s iht ihs =>
+    simp only [openRecTy, openRecTm, app.injEq, let'.injEq] at eq ⊢
+    exact ⟨iht eq.1, ihs eq.2⟩
+  | inl t ih | inr t ih =>
+    simp only [openRecTy, openRecTm, inl.injEq, inr.injEq] at eq ⊢
+    exact ih eq
+  | case t s r iht ihs ihr =>
+    simp only [openRecTy, openRecTm, case.injEq] at eq ⊢
+    exact ⟨iht eq.1, ihs eq.2.1, ihr eq.2.2⟩
 
 variable [HasFresh Var]
 
+set_option linter.unusedSectionVars false in
 /-- A locally closed term is unchanged by term opening. -/
-@[scoped grind =_]
+@[nolint unusedArguments]
 lemma openRecTm_lc (lc : t.LC) : t = t⟦x ↝ s⟧ᵗᵗ := by
   induction lc generalizing x with
-  | let' | case | tabs | abs =>
-    grind [fresh_exists <| free_union Var, openRecTm_neq_eq, openRecTy_tm_eq]
-  | _ => grind
+  | abs L hσ ht ih =>
+    obtain ⟨y, hy⟩ := fresh_exists L
+    simp only [openRecTm, abs.injEq, true_and]
+    exact openRecTm_neq_eq (Nat.succ_ne_zero x) (ih y hy)
+  | tabs L hσ ht ih =>
+    obtain ⟨Y, hY⟩ := fresh_exists L
+    simp only [openRecTm, tabs.injEq, true_and]
+    exact openRecTy_tm_eq (ih Y hY)
+  | let' L ht hs iht ihs =>
+    obtain ⟨y, hy⟩ := fresh_exists L
+    simp only [openRecTm, let'.injEq]
+    exact ⟨iht, openRecTm_neq_eq (Nat.succ_ne_zero x) (ihs y hy)⟩
+  | case L ht hs hr iht ihs ihr =>
+    obtain ⟨y, hy⟩ := fresh_exists L
+    simp only [openRecTm, case.injEq]
+    exact ⟨iht, openRecTm_neq_eq (Nat.succ_ne_zero x) (ihs y hy),
+      openRecTm_neq_eq (Nat.succ_ne_zero x) (ihr y hy)⟩
+  | app _ _ ih₁ ih₂ => exact congrArg₂ app ih₁ ih₂
+  | tapp _ _ ih => exact congrArg (tapp · _) ih
+  | inl _ ih => exact congrArg inl ih
+  | inr _ ih => exact congrArg inr ih
+  | var => rfl
 
 variable {t s : Term Var} {δ : Ty Var} {x : Var}
 
 omit [HasFresh Var] in
 /-- Substitution of a free term variable not present in a term leaves it unchanged. -/
 lemma substTm_fresh (nmem : x ∉ t.fvTm) (s : Term Var) : t = t[x := s] := by
-  induction t <;> grind
+  induction t with
+  | bvar => rfl
+  | fvar y =>
+    simp only [fvTm, Finset.mem_singleton] at nmem
+    simp [← substTm_def, substTm, Ne.symm nmem]
+  | abs σ t ih => exact congrArg (abs σ) (ih nmem)
+  | tabs σ t ih => exact congrArg (tabs σ) (ih nmem)
+  | tapp t σ ih => exact congrArg (tapp · σ) (ih nmem)
+  | app t r iht ihr | let' t r iht ihr =>
+    simp only [fvTm, Finset.mem_union, not_or] at nmem
+    simp only [← substTm_def, substTm, app.injEq, let'.injEq]
+    exact ⟨iht nmem.1, ihr nmem.2⟩
+  | inl t ih => exact congrArg inl (ih nmem)
+  | inr t ih => exact congrArg inr (ih nmem)
+  | case t r u iht ihr ihu =>
+    simp only [fvTm, Finset.mem_union, not_or] at nmem
+    simp only [← substTm_def, substTm, case.injEq]
+    exact ⟨iht nmem.1.1, ihr nmem.1.2, ihu nmem.2⟩
 
 /-- Substitution of a locally closed term distributes with term opening to a term. -/
 lemma openRecTm_substTm (y : ℕ) (t₁ t₂ : Term Var) (lc : s.LC) (x : Var) :
     (t₁⟦y ↝ t₂⟧ᵗᵗ)[x := s] = (t₁[x := s])⟦y ↝  t₂[x := s]⟧ᵗᵗ := by
-  induction t₁ generalizing y <;> grind
+  induction t₁ generalizing y <;> simp_all [← substTm_def, substTm, openRecTm]
+  · split_ifs <;> simp_all [substTm]
+  · split_ifs <;> simp_all [openRecTm, ← openRecTm_lc lc]
 
 /-- Specialize `Term.openRecTm_substTm` to the first opening. -/
 lemma openTm_substTm (t₁ t₂ : Term Var) (lc : s.LC) (x : Var) :
@@ -339,12 +550,16 @@ lemma openTm_substTm (t₁ t₂ : Term Var) (lc : s.LC) (x : Var) :
 
 /-- Specialize `Term.openRecTm_substTm` to free term variables. -/
 lemma openTm_substTm_var (t : Term Var) (neq : y ≠ x) (lc : s.LC) :
-     (t ^ᵗᵗ fvar y)[x := s] = (t[x := s]) ^ᵗᵗ fvar y := by grind [openTm_substTm]
+     (t ^ᵗᵗ fvar y)[x := s] = (t[x := s]) ^ᵗᵗ fvar y := by
+  simpa [← substTm_def, substTm, neq] using openTm_substTm t (fvar y) lc x
 
+set_option linter.unusedSectionVars false in
 /-- Substitution of a locally closed type distributes with term opening to a term. -/
+@[nolint unusedArguments]
 lemma openRecTm_substTy (y : ℕ) (t₁ t₂ : Term Var) (δ : Ty Var) (X : Var) :
     (t₁⟦y ↝ t₂⟧ᵗᵗ)[X := δ] = (t₁[X := δ])⟦y ↝  t₂[X := δ]⟧ᵗᵗ := by
-  induction t₁ generalizing y <;> grind
+  induction t₁ generalizing y <;> simp_all [← substTy_def, substTy, openRecTm]
+  split_ifs <;> simp_all [substTy]
 
 /-- Specialize `Term.openRecTm_substTy` to the first opening -/
 lemma openTm_substTy (t₁ t₂ : Term Var) (δ : Ty Var) (X : Var) :
@@ -352,12 +567,13 @@ lemma openTm_substTy (t₁ t₂ : Term Var) (δ : Ty Var) (X : Var) :
 
 /-- Specialize `Term.openTm_substTy` to free term variables -/
 lemma openTm_substTy_var (t₁ : Term Var) (δ : Ty Var) (X y : Var) :
-    (t₁ ^ᵗᵗ fvar y)[X := δ] = (t₁[X := δ]) ^ᵗᵗ fvar y := by grind [openTm_substTy]
+    (t₁ ^ᵗᵗ fvar y)[X := δ] = (t₁[X := δ]) ^ᵗᵗ fvar y := openTm_substTy t₁ (fvar y) δ X
 
 /-- Substitution of a locally closed term distributes with term opening to a type. -/
 lemma openRecTy_substTm (Y : ℕ) (t : Term Var) (δ : Ty Var) (lc : s.LC) (x : Var) :
     (t⟦Y ↝ δ⟧ᵗᵞ)[x := s] = t[x := s]⟦Y ↝ δ⟧ᵗᵞ := by
-  induction t generalizing Y <;> grind
+  induction t generalizing Y <;> simp_all [← substTm_def, substTm, openRecTy]
+  split_ifs <;> simp_all [openRecTy, ← openRecTy_lc lc]
 
 /-- Specialize `Term.openRecTy_substTm` to the first opening. -/
 lemma openTy_substTm (t : Term Var) (δ : Ty Var) (lc : s.LC) (x : Var) :
@@ -372,7 +588,25 @@ omit [HasFresh Var]
 /-- Opening a term to a term is equivalent to opening to a free variable and substituting. -/
 lemma openRecTm_substTm_intro (y : ℕ) (t s : Term Var) (nmem : x ∉ t.fvTm) :
     t⟦y ↝ s⟧ᵗᵗ = (t⟦y ↝ fvar x⟧ᵗᵗ)[x := s] := by
-  induction t generalizing y <;> grind
+  induction t generalizing y with
+  | bvar z =>
+    by_cases h : y = z <;> simp [openRecTm, ← substTm_def, substTm, h]
+  | fvar z =>
+    simp only [fvTm, Finset.mem_singleton] at nmem
+    simp [openRecTm, ← substTm_def, substTm, Ne.symm nmem]
+  | abs σ t ih => exact congrArg (abs σ) (ih _ nmem)
+  | tabs σ t ih => exact congrArg (tabs σ) (ih _ nmem)
+  | tapp t σ ih => exact congrArg (tapp · σ) (ih _ nmem)
+  | app t r iht ihr | let' t r iht ihr =>
+    simp only [fvTm, Finset.mem_union, not_or] at nmem
+    simp only [openRecTm, ← substTm_def, substTm, app.injEq, let'.injEq]
+    exact ⟨iht _ nmem.1, ihr _ nmem.2⟩
+  | inl t ih => exact congrArg inl (ih _ nmem)
+  | inr t ih => exact congrArg inr (ih _ nmem)
+  | case t r u iht ihr ihu =>
+    simp only [fvTm, Finset.mem_union, not_or] at nmem
+    simp only [openRecTm, ← substTm_def, substTm, case.injEq]
+    exact ⟨iht _ nmem.1.1, ihr _ nmem.1.2, ihu _ nmem.2⟩
 
 /-- Specialize `Term.openRecTm_substTm_intro` to the first opening. -/
 lemma openTm_substTm_intro (t s : Term Var) (nmem : x ∉ t.fvTm) :
@@ -381,20 +615,73 @@ lemma openTm_substTm_intro (t s : Term Var) (nmem : x ∉ t.fvTm) :
 variable [HasFresh Var]
 
 lemma substTy_lc (t_lc : t.LC) (δ_lc : δ.LC) (X : Var) : t[X := δ].LC := by
-  induction t_lc
-  case' abs  => apply LC.abs (free_union Var)
-  case' tabs => apply LC.tabs (free_union Var)
-  case' let' => apply LC.let' (free_union Var)
-  case' case => apply LC.case (free_union Var)
-  all_goals grind [Ty.subst_lc, openTm_substTy_var, openRecTy_substTy]
+  induction t_lc with
+  | abs L hσ ht ih =>
+    apply LC.abs L (Ty.subst_lc hσ δ_lc X)
+    intro y hy
+    have h := ih y hy
+    rw [openTm_substTy_var] at h
+    exact h
+  | tabs L hσ ht ih =>
+    apply LC.tabs (L ∪ {X}) (Ty.subst_lc hσ δ_lc X)
+    intro Y hY
+    simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hY
+    simpa only [openTy_substTy_var _ hY.2 δ_lc, ← substTy_def] using ih Y hY.1
+  | let' L ht hs iht ihs =>
+    apply LC.let' L iht
+    intro y hy
+    have h := ihs y hy
+    rw [openTm_substTy_var] at h
+    exact h
+  | case L ht hs hr iht ihs ihr =>
+    apply LC.case L iht
+    · intro y hy
+      have h := ihs y hy
+      rw [openTm_substTy_var] at h
+      exact h
+    · intro y hy
+      have h := ihr y hy
+      rw [openTm_substTy_var] at h
+      exact h
+  | var => exact LC.var
+  | app _ _ iht ihs => exact LC.app iht ihs
+  | tapp _ hσ ih => exact LC.tapp ih (Ty.subst_lc hσ δ_lc X)
+  | inl _ ih => exact LC.inl ih
+  | inr _ ih => exact LC.inr ih
 
 lemma substTm_lc (t_lc : t.LC) (s_lc : s.LC) (x : Var) : t[x := s].LC := by
-  induction t_lc
-  case' abs  => apply LC.abs (free_union Var)
-  case' let' => apply LC.let' (free_union Var)
-  case' case => apply LC.case (free_union Var)
-  case' tabs => apply LC.tabs (free_union Var)
-  all_goals grind [openTm_substTm_var, openTy_substTm_var]
+  induction t_lc with
+  | abs L hσ ht ih =>
+    apply LC.abs (L ∪ {x}) hσ
+    intro y hy
+    simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hy
+    simpa only [openTm_substTm_var _ hy.2 s_lc, ← substTm_def] using ih y hy.1
+  | tabs L hσ ht ih =>
+    apply LC.tabs L hσ
+    intro Y hY
+    simpa only [openTy_substTm_var _ s_lc, ← substTm_def] using ih Y hY
+  | let' L ht hs iht ihs =>
+    apply LC.let' (L ∪ {x}) iht
+    intro y hy
+    simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hy
+    simpa only [openTm_substTm_var _ hy.2 s_lc, ← substTm_def] using ihs y hy.1
+  | case L ht hs hr iht ihs ihr =>
+    apply LC.case (L ∪ {x}) iht
+    · intro y hy
+      simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hy
+      simpa only [openTm_substTm_var _ hy.2 s_lc, ← substTm_def] using ihs y hy.1
+    · intro y hy
+      simp only [Finset.mem_union, Finset.mem_singleton, not_or] at hy
+      simpa only [openTm_substTm_var _ hy.2 s_lc, ← substTm_def] using ihr y hy.1
+  | var =>
+    simp only [← substTm_def, substTm]
+    split_ifs
+    · exact s_lc
+    · exact LC.var
+  | app _ _ iht ihs => exact LC.app iht ihs
+  | tapp _ hσ ih => exact LC.tapp ih hσ
+  | inl _ ih => exact LC.inl ih
+  | inr _ ih => exact LC.inr ih
 
 end Term
 
@@ -403,7 +690,6 @@ namespace Binding
 omit [HasFresh Var]
 
 /-- Binding substitution of types. -/
-@[scoped grind =]
 def subst (X : Var) (δ : Ty Var) : Binding Var → Binding Var
 | sub γ => sub <| γ[X := δ]
 | ty  γ => ty  <| γ[X := δ]
@@ -413,16 +699,16 @@ instance : HasSubstitution (Binding Var) Var (Ty Var) where
 
 variable {δ γ : Ty Var} {X : Var}
 
-@[scoped grind _=_]
 lemma substSub : (sub γ)[X := δ] = sub (γ[X := δ]) := by rfl
 
-@[scoped grind _=_]
 lemma substTy : (ty γ)[X := δ] = ty (γ[X := δ]) := by rfl
 
 open scoped Ty in
 /-- Substitution of a free variable not present in a binding leaves it unchanged. -/
 lemma subst_fresh {γ : Binding Var} (nmem : X ∉ γ.fv) (δ : Ty Var) : γ = γ[X := δ] := by
-  induction γ <;> grind [Ty.subst_fresh]
+  cases γ <;> simp only [fv] at nmem
+  · simpa only [substSub, sub.injEq] using Ty.subst_fresh nmem δ
+  · simpa only [substTy, ty.injEq] using Ty.subst_fresh nmem δ
 
 end Binding
 

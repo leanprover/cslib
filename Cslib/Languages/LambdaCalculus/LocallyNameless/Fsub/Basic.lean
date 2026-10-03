@@ -77,19 +77,16 @@ inductive Binding (Var : Type*)
   deriving Inhabited
 
 /-- Free variables of a type. -/
-@[scoped grind =]
 def Ty.fv : Ty Var → Finset Var
 | top | bvar _ => {}
 | fvar X => {X}
 | arrow σ τ | all σ τ | sum σ τ => σ.fv ∪ τ.fv
 
 /-- Free variables of a binding. -/
-@[scoped grind =]
 def Binding.fv : Binding Var → Finset Var
 | sub σ | ty σ => σ.fv
 
 /-- Free type variables of a term. -/
-@[scoped grind =]
 def Term.fvTy : Term Var → Finset Var
 | bvar _ | fvar _ => {}
 | abs σ t₁ | tabs σ t₁ | tapp t₁ σ => σ.fv ∪ t₁.fvTy
@@ -98,7 +95,6 @@ def Term.fvTy : Term Var → Finset Var
 | case t₁ t₂ t₃ => t₁.fvTy ∪ t₂.fvTy ∪ t₃.fvTy
 
 /-- Free term variables of a term. -/
-@[scoped grind =]
 def Term.fvTm : Term Var → Finset Var
 | bvar _ => {}
 | fvar x => {x}
