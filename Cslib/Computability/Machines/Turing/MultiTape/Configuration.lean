@@ -185,12 +185,6 @@ output, so prepending to it commutes with running: cf.
     Cfg k Symbol State input :=
   ⟨c.state, c.inputPos, c.workTapes, c.workTapePos, pre ++ c.output⟩
 
-/-- Prepending to the output of a configuration that has not emitted anything is just setting the
-output. -/
-lemma Cfg.prependOutput_of_nil {c : Cfg k Symbol State input} (h : c.output = [])
-    (pre : List Symbol) : c.prependOutput pre = c.withOutput pre := by
-  rw [prependOutput, h, List.append_nil, withOutput]
-
 /-- The same configuration in a different control state, possibly of a different state type. -/
 @[simps] def Cfg.withState (cfg : Cfg k Symbol State input)
     {State' : Type*} (q : Option State') : Cfg k Symbol State' input :=

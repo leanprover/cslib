@@ -58,6 +58,13 @@ moved. -/
       inputTape := 0
       workTapes := Fin.append a.workTapes fun _ => (none, m) }
 
+/-- The virtual input tape of `Turing.MultiTapeTM.inputFromTape`: the first of the two fresh
+tapes. -/
+public abbrev vipTape (k : ℕ) : Fin (k + 2) := Fin.natAdd k 0
+
+/-- The flag tape of `Turing.MultiTapeTM.inputFromTape`: the second of the two fresh tapes. -/
+public abbrev flagTape (k : ℕ) : Fin (k + 2) := Fin.natAdd k 1
+
 @[simp]
 public lemma inputFromTape_q₀ (tm : MultiTapeTM k Symbol State) :
     tm.inputFromTape.q₀ = tm.q₀ := rfl
@@ -137,6 +144,18 @@ public lemma inCfg_workTapeSymbols_flag (c : Cfg k Symbol State input) :
     (inCfg mark c outerInput).workTapeSymbols (Fin.natAdd k 1) =
       if c.inputPos.val = 0 then some mark else none := by
   simp [Cfg.workTapeSymbols, Function.update_apply]
+
+/-- The state of a redirected configuration is the state of the original. -/
+@[simp]
+public lemma withState_inCfg {State' : Type*} (c : Cfg k Symbol State input)
+    (q : Option State') :
+    (inCfg mark c outerInput).withState q = inCfg mark (c.withState q) outerInput := rfl
+
+/-- Prior output is carried along by the redirection, which never touches the output tape. -/
+@[simp]
+public lemma prependOutput_inCfg (c : Cfg k Symbol State input) (pre : List Symbol) :
+    inCfg mark (c.prependOutput pre) outerInput = (inCfg mark c outerInput).prependOutput pre :=
+  rfl
 
 /-- The clamped move of the virtual input head tracks the simulated input head exactly. -/
 public lemma val_moveInputPos_sub_one_eq_clampMove (mark : Symbol) (c : Cfg k Symbol State input)

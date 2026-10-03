@@ -117,9 +117,10 @@ theorem TransformsTapes.exists {ι : Sort*} {tm : MultiTapeTM k Symbol State}
 section Normalized
 
 /-- `ComputesNormalizedInTimeAndSpace tm input output t s`: started on blank work tapes, the
-machine has after exactly `t` steps emitted `output` and halted *in the normal form* — every work
-tape blank again, every work head back at cell `0` and the input head back at the start of the
-input — having used at most `s` work-tape cells.
+machine is after `t` steps halted *in the normal form* — every work tape blank again, every work
+head back at cell `0` and the input head back at the start of the input — having emitted `output`
+and used at most `s` work-tape cells. As everywhere in this file the time bound is an upper bound:
+the machine may halt earlier and then simply stay put.
 
 This is `Turing.MultiTapeTM.ComputesInTimeAndSpace` plus the requirement that the machine clean up
 after itself, and it is what makes a computation usable as a component: because the final

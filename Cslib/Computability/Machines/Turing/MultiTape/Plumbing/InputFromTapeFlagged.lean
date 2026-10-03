@@ -49,9 +49,6 @@ namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State : Type*} {input outerInput : List Symbol}
 
-/-- The flag tape of `Turing.MultiTapeTM.inputFromTape`: the second of the two fresh tapes. -/
-def flagTape (k : ℕ) : Fin (k + 2) := Fin.natAdd k 1
-
 /-- `tm`, reading its input from the first of two fresh work tapes, with the flag tape set up and
 torn down so that the whole machine starts and ends in normal form. -/
 def inputFromTapeFlagged (tm : MultiTapeTM k Symbol State) (mark : Symbol) :
@@ -67,26 +64,17 @@ namespace InputFromTapeFlagged
 
 variable {tm : MultiTapeTM k Symbol State} {output : List Symbol} {t s : ℕ}
 
-/-- Prior output is carried along by the redirection, which never touches the output tape. -/
-lemma prependOutput_inCfg (mark : Symbol) (c : Cfg k Symbol State input) (pre : List Symbol) :
-    inCfg mark (c.prependOutput pre) outerInput = (inCfg mark c outerInput).prependOutput pre :=
-  rfl
-
-/-- The state of a redirected configuration is the state of the original. -/
-lemma withState_inCfg {State' : Type*} (mark : Symbol) (c : Cfg k Symbol State input)
-    (q : Option State') :
-    (inCfg mark c outerInput).withState q = inCfg mark (c.withState q) outerInput := rfl
-
 /-- The flag tape of a word configuration whose two fresh tapes hold the simulated input and
 nothing: blank, with its head at `0`. -/
-lemma oneTapeCfg_flagTape (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol) :
+private lemma oneTapeCfg_flagTape (q : Option State) (ws : Fin k → List Symbol)
+    (out : List Symbol) :
     oneTapeCfg (flagTape k) (wordsCfg outerInput q (Fin.append ws ![input, []]) out) =
       ⟨q, 1, fun _ => fun _ => none, fun _ => 0, out⟩ := by
   simp [oneTapeCfg, flagTape, wordsCfg]
 
 /-- Setting or clearing the mark on the flag tape of a word configuration is exactly the
 difference between that configuration and its redirected form. -/
-lemma embed_flagTape (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol)
+private lemma embed_flagTape (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol)
     (c : ℤ → Option Symbol) (mark : Symbol) (hc : c = Function.update (fun _ => none) (-1)
       (some mark)) :
     embed (tapeEmb (flagTape k)) (⟨q, 1, fun _ => c, fun _ => 0, out⟩ :
@@ -106,7 +94,7 @@ lemma embed_flagTape (q : Option State) (ws : Fin k → List Symbol) (out : List
     | right i => fin_cases i <;> simp [inCfg, flagTape, wordsCfg, Fin.ext_iff]
 
 /-- **The setup phase.** Two steps put the mark on the flag tape and bring its head back. -/
-lemma runFrom_phase₀ (mark : Symbol) (ws : Fin k → List Symbol) (out : List Symbol) :
+private lemma runFrom_phase₀ (mark : Symbol) (ws : Fin k → List Symbol) (out : List Symbol) :
     ((writeLeft (some mark)).extendTapes (tapeEmb (flagTape k))).runFrom
         (wordsCfg outerInput (some ((writeLeft (some mark)).extendTapes
           (tapeEmb (flagTape k))).q₀) (Fin.append ws ![input, []]) out) 2 =
@@ -116,15 +104,15 @@ lemma runFrom_phase₀ (mark : Symbol) (ws : Fin k → List Symbol) (out : List 
 
 /-- The flag tape of a redirected word configuration: blank apart from the mark at `-1`, with its
 head at `0`. -/
-lemma oneTapeCfg_inCfg_flagTape (mark : Symbol) (q : Option State) (ws : Fin k → List Symbol)
-    (out : List Symbol) :
+private lemma oneTapeCfg_inCfg_flagTape (mark : Symbol) (q : Option State)
+    (ws : Fin k → List Symbol) (out : List Symbol) :
     oneTapeCfg (flagTape k) (inCfg mark (wordsCfg input q ws out) outerInput) =
       ⟨q, 1, fun _ => Function.update (fun _ => none) (-1) (some mark), fun _ => 0, out⟩ := by
   simp [oneTapeCfg, inCfg, flagTape, wordsCfg]
 
 /-- **The teardown phase.** Two steps erase the mark again, putting the configuration back into
 normal form. -/
-lemma runFrom_phase₂ (mark : Symbol) (ws : Fin k → List Symbol) (out : List Symbol) :
+private lemma runFrom_phase₂ (mark : Symbol) (ws : Fin k → List Symbol) (out : List Symbol) :
     ((writeLeft none).extendTapes (tapeEmb (flagTape k))).runFrom
         ((inCfg mark (wordsCfg input (none : Option State) ws out) outerInput).withState
           (some ((writeLeft (none : Option Symbol)).extendTapes (tapeEmb (flagTape k))).q₀)) 2 =
@@ -142,8 +130,8 @@ lemma runFrom_phase₂ (mark : Symbol) (ws : Fin k → List Symbol) (out : List 
 
 /-- **The computing phase.** The redirected machine runs `tm` on the word on the virtual input
 tape, emitting its output after whatever was already there. -/
-lemma runFrom_phase₁ (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (mark : Symbol)
-    (out : List Symbol) :
+private lemma runFrom_phase₁ (h : tm.ComputesNormalizedInTimeAndSpace input output t s)
+    (mark : Symbol) (out : List Symbol) :
     tm.inputFromTape.runFrom
         (inCfg mark (wordsCfg input (some tm.inputFromTape.q₀) (fun _ => []) out) outerInput) t =
       inCfg mark (wordsCfg input none (fun _ => []) (out ++ output)) outerInput := by
@@ -155,8 +143,8 @@ lemma runFrom_phase₁ (h : tm.ComputesNormalizedInTimeAndSpace input output t s
 
 /-- **The space of the computing phase.** On top of the space of `tm` the two fresh tapes cost the
 cells the simulated input head can reach. -/
-lemma spaceUsed_phase₁ (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (mark : Symbol)
-    (out : List Symbol) :
+private lemma spaceUsed_phase₁ (h : tm.ComputesNormalizedInTimeAndSpace input output t s)
+    (mark : Symbol) (out : List Symbol) :
     tm.inputFromTape.spaceUsed
         (inCfg mark (wordsCfg input (some tm.inputFromTape.q₀) (fun _ => []) out) outerInput) t ≤
       s + 2 * (input.length + 2) := by
@@ -167,7 +155,7 @@ lemma spaceUsed_phase₁ (h : tm.ComputesNormalizedInTimeAndSpace input output t
 
 /-- **The space of the setup phase**, and, with the mark already in place, of the teardown phase:
 the two cells of the flag tape, plus one cell for each other tape. -/
-lemma spaceUsed_writeLeft_flagTape (w : Option Symbol)
+private lemma spaceUsed_writeLeft_flagTape (w : Option Symbol)
     (c : Cfg (k + 2) Symbol WriteLeftState outerInput)
     (hstate : c.state = some (writeLeft w).q₀) (hpos : c.workTapePos (flagTape k) = 0) (n : ℕ) :
     ((writeLeft w).extendTapes (tapeEmb (flagTape k))).spaceUsed c n ≤ k + 3 := by
@@ -183,7 +171,7 @@ lemma spaceUsed_writeLeft_flagTape (w : Option Symbol)
 
 /-- The flag head of a redirected word configuration rests at `0`, because the simulated input
 head rests at the start of the input. -/
-lemma workTapePos_inCfg_flagTape {State' : Type*} (mark : Symbol) (q : Option State)
+private lemma workTapePos_inCfg_flagTape {State' : Type*} (mark : Symbol) (q : Option State)
     (q' : Option State') (ws : Fin k → List Symbol) (out : List Symbol) :
     ((inCfg mark (wordsCfg input q ws out) outerInput).withState q').workTapePos (flagTape k)
       = 0 := by
@@ -200,8 +188,9 @@ theorem runFrom_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output :
     (outerInput out : List Symbol) :
     (tm.inputFromTapeFlagged mark).runFrom
         (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
-          (Fin.append (fun _ => []) ![input, []]) out) (2 + (t + 2)) =
+          (Fin.append (fun _ => []) ![input, []]) out) (t + 4) =
       wordsCfg outerInput none (Fin.append (fun _ => []) ![input, []]) (out ++ output) := by
+  rw [show t + 4 = 2 + (t + 2) from by omega]
   have h₁ : (tm.inputFromTape.seq ((writeLeft none).extendTapes (tapeEmb (flagTape k)))).runFrom
       (((inCfg mark (wordsCfg input (none : Option WriteLeftState) (fun _ => []) out)
           outerInput).withState (some (tm.inputFromTape.seq
@@ -222,8 +211,9 @@ theorem spaceUsed_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output
     (outerInput out : List Symbol) :
     (tm.inputFromTapeFlagged mark).spaceUsed
         (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
-          (Fin.append (fun _ => []) ![input, []]) out) (2 + (t + 2)) ≤
+          (Fin.append (fun _ => []) ![input, []]) out) (t + 4) ≤
       s + 2 * input.length + 2 * k + 10 := by
+  rw [show t + 4 = 2 + (t + 2) from by omega]
   have hmid := runFrom_phase₀ (k := k) (input := input) (outerInput := outerInput) mark
     (fun _ => []) out
   have hspace₀ : ((writeLeft (some mark)).extendTapes (tapeEmb (flagTape k))).spaceUsed
