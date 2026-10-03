@@ -29,15 +29,28 @@ Requiring this normal form is what lets specifications compose by rewriting: the
 configuration of one machine is already a valid start for the next, so which words survived a step
 is read off the equation, not re-established cell by cell.
 
+A whole computation is described in the same vocabulary by
+`ComputesNormalizedInTimeAndSpace`: a machine that starts on blank tapes and halts in the same
+normal form, having emitted its output. This is `ComputesInTimeAndSpace` strengthened by the
+requirement that the machine clean up after itself, and it is the hypothesis under which a
+computation can be used as a *component* — plugged into a combinator that redirects its input or
+its output to a work tape, the result is again a `TransformsTapes`.
+
 ## Main definitions
 
 * `Turing.MultiTapeTM.TransformsTapes`: the specification format described above.
+* `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace`: a computation that leaves its tapes in
+  the normal form.
 * `Turing.MultiTapeTM.nop`: the machine that does nothing.
 
 ## Main results
 
 * `Turing.MultiTapeTM.TransformsTapes.imp`: strengthen the precondition, weaken the postcondition
   and raise the bounds.
+* `Turing.MultiTapeTM.TransformsTapes.exists`: a family of specifications over a parameter is a
+  single specification with an existential precondition.
+* `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace.computesInTimeAndSpace`: a normalized
+  computation is in particular a computation.
 * `Turing.MultiTapeTM.transformsTapes_nop`: `nop` leaves every word as it was, the first machine of
   the interface and the check that the format is inhabited as intended.
 -/
@@ -85,6 +98,75 @@ theorem TransformsTapes.imp {tm : MultiTapeTM k Symbol State}
   · rw [runFrom_eq_of_halt tm _ ht hhalt, hrun]
   · rw [spaceUsed_eq_of_halt _ ht hhalt]
     exact hspace.trans hs
+
+/-- A family of specifications over a parameter is a single specification whose precondition is
+the existential over the family. The parameter is recovered in the postcondition, so nothing is
+lost; this is how a family with *uniform* bounds is turned back into a single statement. -/
+theorem TransformsTapes.exists {ι : Sort*} {tm : MultiTapeTM k Symbol State}
+    {P : ι → (input : List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q : ι → (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
+    {t s : ℕ} (h : ∀ j, TransformsTapes tm (P j) (Q j) t s) :
+    TransformsTapes tm (fun input ws => ∃ j, P j input ws)
+      (fun input ws ws' => ∃ j, P j input ws ∧ Q j input ws ws') t s := by
+  rintro input ws out ⟨j, hj⟩
+  obtain ⟨ws', hrun, hQ, hspace⟩ := h j input ws out hj
+  exact ⟨ws', hrun, ⟨j, hj, hQ⟩, hspace⟩
+
+/-! ### Normalized computations -/
+
+section Normalized
+
+/-- `ComputesNormalizedInTimeAndSpace tm input output t s`: started on blank work tapes, the
+machine has after exactly `t` steps emitted `output` and halted *in the normal form* — every work
+tape blank again, every work head back at cell `0` and the input head back at the start of the
+input — having used at most `s` work-tape cells.
+
+This is `Turing.MultiTapeTM.ComputesInTimeAndSpace` plus the requirement that the machine clean up
+after itself, and it is what makes a computation usable as a component: because the final
+configuration is again a `Turing.wordsCfg`, the run can be composed with the plumbing machines
+that move words between the tapes and the input and output streams. -/
+def ComputesNormalizedInTimeAndSpace (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (t s : ℕ) : Prop :=
+  tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
+      wordsCfg input none (fun _ => []) output ∧
+  tm.spaceUsed (wordsCfg input (some tm.q₀) (fun _ => []) []) t ≤ s
+
+namespace ComputesNormalizedInTimeAndSpace
+
+variable {tm : MultiTapeTM k Symbol State} {input output : List Symbol} {t s : ℕ}
+
+/-- The run of a normalized computation, started from the initial configuration. -/
+lemma runFrom_initCfg (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
+    tm.runFrom (tm.initCfg input) t = wordsCfg input none (fun _ => []) output := by
+  rw [initCfg, Cfg.init_eq_wordsCfg]
+  exact h.1
+
+/-- The space of a normalized computation, started from the initial configuration. -/
+lemma spaceUsed_initCfg (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
+    tm.spaceUsed (tm.initCfg input) t ≤ s := by
+  rw [initCfg, Cfg.init_eq_wordsCfg]
+  exact h.2
+
+/-- **A normalized computation is a computation.** The space bound of
+`Turing.MultiTapeTM.ComputesInTimeAndSpace` is exact, so it is met by the space actually used,
+which is at most `s`. -/
+theorem computesInTimeAndSpace (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
+    ∃ s' ≤ s, tm.ComputesInTimeAndSpace input output t s' :=
+  ⟨_, h.spaceUsed_initCfg, by rw [h.runFrom_initCfg]; rfl, by rw [h.runFrom_initCfg]; rfl, rfl⟩
+
+/-- Both bounds can be weakened: the machine has halted at step `t`, so it neither moves nor
+visits new cells afterwards. -/
+theorem mono (h : tm.ComputesNormalizedInTimeAndSpace input output t s) {t' s' : ℕ}
+    (ht : t ≤ t') (hs : s ≤ s') :
+    tm.ComputesNormalizedInTimeAndSpace input output t' s' := by
+  have hhalt : (tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t).state = none := by
+    rw [h.1]; rfl
+  exact ⟨by rw [runFrom_eq_of_halt _ _ ht hhalt, h.1],
+    by rw [spaceUsed_eq_of_halt _ ht hhalt]; exact h.2.trans hs⟩
+
+end ComputesNormalizedInTimeAndSpace
+
+end Normalized
 
 section Nop
 
