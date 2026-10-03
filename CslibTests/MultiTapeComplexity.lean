@@ -82,22 +82,25 @@ private lemma chooseBit_path {input : List Bool} (p : chooseBit.ComputationPath 
   cases b <;> simp [stop, Action.apply, Cfg.Halted]
 
 private lemma chooseBit_time (input : List Bool) : chooseBit.RunsInTime input 1 := by
-  intro p hp _ _
+  intro p hp
   exact (chooseBit_path p hp).1
 
 -- The same machine decides the full language: rejecting branches on a member are allowed.
-example : chooseBit.DecidesInTimeAndSpace Set.univ bit (fun _ ↦ 1) (fun _ ↦ 0) := by
+private lemma chooseBit_decides : chooseBit.DecidesInTime Set.univ bit (fun _ ↦ 1) := by
   intro a
   refine ⟨⟨fun _ ↦ Set.mem_univ _, fun _ ↦ ⟨outputPath _ true, rfl, rfl⟩⟩,
-    chooseBit_time _, ?_, fun p hp ↦ ?_⟩
-  · intro p
-    simp [ComputationPath.space, RunPath.space]
-  · by_cases hlen : 0 < p.length
-    · exact (chooseBit_path p hlen).2
-    · have heq : Fin.last p.length = 0 := Fin.ext (by simp; omega)
-      have hlast : p.last = p.head := congrArg p.toFun heq
-      rw [hlast, p.head_eq] at hp
-      cases hp
+    chooseBit_time _, fun p hp ↦ ?_⟩
+  by_cases hlen : 0 < p.length
+  · exact (chooseBit_path p hlen).2
+  · have heq : Fin.last p.length = 0 := Fin.ext (by simp; omega)
+    have hlast : p.last = p.head := congrArg p.toFun heq
+    rw [hlast, p.head_eq] at hp
+    cases hp
+
+example : chooseBit.DecidesInTimeAndSpace Set.univ bit (fun _ ↦ 1) (fun _ ↦ 0) := by
+  intro a
+  obtain ⟨haccept, htime, houtput⟩ := chooseBit_decides a
+  exact ⟨haccept, ⟨htime, by intro p; simp [ComputationPath.space, RunPath.space]⟩, houtput⟩
 
 -- Halting padding does not violate the time bound.
 example : chooseBit.RunsInTime [] 100 := (chooseBit_time []).mono (by decide)
@@ -106,7 +109,7 @@ example : chooseBit.RunsInTime [] 100 := (chooseBit_time []).mono (by decide)
 example : ¬chooseBit.RunsInTime [] 0 := by
   intro h
   let p : chooseBit.ComputationPath [] := ⟨RelSeries.singleton _ (chooseBit.initCfg []), rfl⟩
-  have hh := h p le_rfl ((stop true).apply p.last) ⟨stop true, ⟨true, rfl⟩, rfl⟩
+  have hh := h p le_rfl
   cases hh
 
 private def blocked : MultiTapeNTM 0 Bool Unit := ⟨(), fun _ _ _ _ ↦ False⟩
@@ -122,18 +125,27 @@ private lemma blocked_path {input : List Bool} (p : blocked.ComputationPath inpu
   · have heq : Fin.last p.length = 0 := Fin.ext (by simp; omega)
     exact (congrArg p.toFun heq).trans p.head_eq
 
--- A branch with no transition rejects immediately, without requiring a successor.
-example : blocked.DecidesInTimeAndSpace ∅ bit (fun _ ↦ 0) (fun _ ↦ 0) := by
+-- A stuck initial configuration fails the zero-step bound, despite having no successor.
+example : ¬blocked.RunsInTime [] 0 := by
+  intro h
+  let p : blocked.ComputationPath [] := ⟨RelSeries.singleton _ (blocked.initCfg []), rfl⟩
+  have hh := h p le_rfl
+  cases hh
+
+-- All stuck paths have zero steps, so the one-step bound holds.
+example : blocked.DecidesInTimeAndSpace ∅ bit (fun _ ↦ 1) (fun _ ↦ 0) := by
   intro a
-  refine ⟨?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ⟨?_, ?_⟩, ?_⟩
   · constructor
     · rintro ⟨p, hp, _⟩
       rw [blocked_path p] at hp
       cases hp
     · simp
-  · intro p _ c hc
-    rw [blocked_path p] at hc
-    obtain ⟨_, hf, _⟩ := hc
+  · intro p hp
+    have hstep := p.step ⟨0, hp⟩
+    change blocked.Step p.head _ at hstep
+    rw [p.head_eq] at hstep
+    obtain ⟨_, hf, _⟩ := hstep
     exact hf.elim
   · intro p
     simp [ComputationPath.space, RunPath.space]
@@ -157,7 +169,7 @@ example : mayLoop.Accepts [] ∧ ¬mayLoop.RunsInTime [] 1 := by
     let p : mayLoop.ComputationPath [] :=
       ⟨(RelSeries.singleton _ (mayLoop.initCfg [])).snoc
         (action.apply (mayLoop.initCfg [])) ⟨action, Or.inr rfl, rfl⟩, by simp⟩
-    have hh := h p le_rfl (action.apply p.last) ⟨action, Or.inr rfl, rfl⟩
+    have hh := h p le_rfl
     cases hh
 
 private def visit (b : Bool) : Action 1 Bool Unit :=
