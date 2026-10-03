@@ -34,6 +34,10 @@ the chain `s(f) ≤ bs(f) ≤ C(f)`. Notation follows [AroraBarak09].
 
 - `sensitivity_le_blockSensitivity`: `s(f) ≤ bs(f)`.
 - `blockSensitivity_le_certificateComplexity`: `bs(f) ≤ C(f)`.
+- `fixes_iff_isCertificate_restrict`, `isCertificate_iff_fixes_support`: `Fixes` and
+  `IsCertificate` agree at a fixed input.
+- `pointCertificateComplexity_eq_inf'_size`: `Cₓ(f)` is the smallest certificate for `x` as a
+  partial assignment.
 - `|B| ≤ s(f)` for a minimal sensitive block `B`.
 
 ## References
@@ -272,6 +276,18 @@ def Fixes (f : BooleanFunction n) (x : Cube n) (S : Finset (Fin n)) : Prop :=
 instance (f : BooleanFunction n) (x : Cube n) (S : Finset (Fin n)) : Decidable (Fixes f x S) :=
   inferInstanceAs (Decidable (∀ y, (∀ i ∈ S, y i = x i) → f y = f x))
 
+/-- `S` fixes `f` at `x` exactly when `x` restricted to `S` is a certificate for `f x`. -/
+theorem fixes_iff_isCertificate_restrict {f : BooleanFunction n} {x : Cube n}
+    {S : Finset (Fin n)} : Fixes f x S ↔ IsCertificate f (restrict x S) (f x) := by
+  simp only [Fixes, IsCertificate, agrees_restrict_iff]
+
+/-- A partial assignment consistent with `x` is a certificate for `f x` exactly when its support
+pins down `f` at `x`. -/
+theorem isCertificate_iff_fixes_support {f : BooleanFunction n} {x : Cube n}
+    {C : PartialAssignment n} (hC : Agrees C x) :
+    IsCertificate f C (f x) ↔ Fixes f x (support C) := by
+  rw [fixes_iff_isCertificate_restrict, ← eq_restrict_support hC]
+
 /-- Reading every coordinate of `x` pins down `f`. -/
 lemma fixes_univ (f : BooleanFunction n) (x : Cube n) : Fixes f x Finset.univ :=
   fun _ hy => congrArg f (funext fun i => hy i (Finset.mem_univ i))
@@ -294,6 +310,19 @@ lemma pointCertificateComplexity_le {f : BooleanFunction n} {x : Cube n} {S : Fi
 lemma le_pointCertificateComplexity {f : BooleanFunction n} {x : Cube n} {k : ℕ}
     (h : ∀ S, Fixes f x S → k ≤ S.card) : k ≤ pointCertificateComplexity f x :=
   Finset.le_inf' _ _ fun _ hS => h _ (Finset.mem_filter.mp hS).2
+
+/-- `Cₓ(f)` over fixing sets agrees with the smallest certificate for `x` as a partial assignment,
+as in [BuhrmanDeWolf2002]. -/
+theorem pointCertificateComplexity_eq_inf'_size (f : BooleanFunction n) (x : Cube n) :
+    pointCertificateComplexity f x = (certificates f x).inf' (certificates_nonempty f x) size := by
+  refine le_antisymm (Finset.le_inf' _ _ fun C hC => ?_)
+    (le_pointCertificateComplexity fun S hS => ?_)
+  · obtain ⟨hA, hcert⟩ := mem_certificates.mp hC
+    exact pointCertificateComplexity_le ((isCertificate_iff_fixes_support hA).mp hcert)
+  · have hmem : restrict x S ∈ certificates f x :=
+      mem_certificates.mpr ⟨agrees_restrict_iff.mpr fun _ _ => rfl,
+        fixes_iff_isCertificate_restrict.mp hS⟩
+    exact (Finset.inf'_le size hmem).trans_eq (by simp [size])
 
 /-- The maximum over all inputs of the smallest certificate size, denoted `C(f)`. -/
 def certificateComplexity (f : BooleanFunction n) : ℕ :=

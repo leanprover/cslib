@@ -23,6 +23,7 @@ assignments. The complexity measures are built in `Measures.lean` and `DecisionT
 - `Block n`: a set of coordinates.
 - `flipBit`, `flipBlock`: flipping one coordinate, or every coordinate of a block.
 - `PartialAssignment n`: a partial assignment, fixing some coordinates and leaving others free.
+- `restrict x S`: the partial assignment reading off `x` on the coordinates in `S`.
 - `Agrees`: An input is consistent with a partial assignment.
 
 ## References
@@ -123,5 +124,33 @@ theorem agrees_ofCube_iff {x y : Cube n} : Agrees (ofCube x) y ↔ y = x := by
 @[simp]
 theorem size_ofCube (x : Cube n) : size (ofCube x) = n := by
   simp [size, support, ofCube]
+
+/-- The partial assignment reading off `x` on the coordinates only in `S`. -/
+def restrict (x : Cube n) (S : Finset (Fin n)) : PartialAssignment n :=
+  fun i => if i ∈ S then some (x i) else none
+
+/-- An input agrees with `restrict x S` if and only if it matches `x` on `S`. -/
+@[simp]
+theorem agrees_restrict_iff {x y : Cube n} {S : Finset (Fin n)} :
+    Agrees (restrict x S) y ↔ ∀ i ∈ S, y i = x i := by
+  constructor
+  · intro h i hi
+    exact h i (x i) (by simp [restrict, hi])
+  · intro h i b hb
+    by_cases hi : i ∈ S <;> simp_all [restrict]
+
+/-- `restrict x S` fixes exactly the coordinates in `S`. -/
+@[simp]
+theorem support_restrict (x : Cube n) (S : Finset (Fin n)) : support (restrict x S) = S := by
+  ext i
+  by_cases hi : i ∈ S <;> simp [restrict, hi]
+
+/-- A partial assignment consistent with `x` is `x` restricted to its support. -/
+theorem eq_restrict_support {C : PartialAssignment n} {x : Cube n} (h : Agrees C x) :
+    C = restrict x (support C) := by
+  funext i
+  cases hC : C i with
+  | none => simp [restrict, hC]
+  | some b => simp [restrict, hC, h i b hC]
 
 end Cslib.QueryComplexity
