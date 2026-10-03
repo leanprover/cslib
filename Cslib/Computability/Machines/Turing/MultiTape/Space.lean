@@ -35,7 +35,7 @@ which `DSPACE(1)` is exactly the class of regular languages.
 Space bounds apply to every computation prefix, including rejecting branches, following the
 visited-cell convention in [Watrous, §2.1]
 (https://cs.uwaterloo.ca/~watrous/Papers/SpaceBoundedQuantumSimulation.pdf).
-`UsesSpace` does not require termination; `DecidesInTimeAndSpace` also bounds running time.
+`UsesSpace` does not require termination; `DecidesInTimeAndSpace` also bounds computation time.
 
 ## References
 
@@ -77,10 +77,8 @@ Halting outputs are `[true]` for acceptance and `[false]` for rejection. A branc
 transition also rejects. A member may have rejecting branches; a nonmember has no accepting one. -/
 def DecidesInTimeAndSpace {α : Type*} (ntm : MultiTapeNTM k Bool State)
     (L : Set α) (enc : α ↪ List Bool) (t s : α → ℕ) : Prop :=
-  ∀ a, (ntm.Accepts (enc a) ↔ a ∈ L) ∧
-    ntm.RunsInTime (enc a) (t a) ∧ ntm.UsesSpace (enc a) (s a) ∧
-    ∀ p : ntm.ComputationPath (enc a), p.last.Halted →
-      p.last.output = [true] ∨ p.last.output = [false]
+  ntm.DecidesSuchThat L enc fun a ↦
+    ntm.RunsInTime (enc a) (t a) ∧ ntm.UsesSpace (enc a) (s a)
 
 /-- Resource bounds can be weakened independently on every input. -/
 theorem DecidesInTimeAndSpace.mono {α : Type*} {ntm : MultiTapeNTM k Bool State}
@@ -88,7 +86,7 @@ theorem DecidesInTimeAndSpace.mono {α : Type*} {ntm : MultiTapeNTM k Bool State
     (h : ntm.DecidesInTimeAndSpace L enc t s)
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
     ntm.DecidesInTimeAndSpace L enc t' s' := fun a ↦
-  ⟨(h a).1, (h a).2.1.mono (ht a), fun p ↦ ((h a).2.2.1 p).trans (hs a), (h a).2.2.2⟩
+  ⟨(h a).1, ⟨(h a).2.1.1.mono (ht a), fun p ↦ ((h a).2.1.2 p).trans (hs a)⟩, (h a).2.2⟩
 
 /-- A language is decidable within the bounds by a nondeterministic machine with a binary tape
 alphabet and finitely many states. -/

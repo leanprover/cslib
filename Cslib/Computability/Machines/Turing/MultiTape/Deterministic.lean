@@ -301,8 +301,7 @@ theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
 /-- The shared time bound is halting by that time for a deterministic machine. -/
 lemma runsInTime_iff {input : List Symbol} {t : ℕ} :
     tm.RunsInTime input t ↔ (tm.runFrom (tm.initCfg input) t).Halted := by
-  refine ⟨fun h ↦ h (computationPath tm input t) le_rfl _ (tm.step_spec _),
-    fun h p hp _ _ ↦ ?_⟩
+  refine ⟨fun h ↦ h (computationPath tm input t) le_rfl, fun h p hp ↦ ?_⟩
   rw [computationPath_last_eq_runFrom p, tm.runFrom_eq_of_halt _ hp h]
   exact h
 
@@ -397,19 +396,19 @@ lemma decidesInTimeAndSpace_iff {α : Type*} {tm : MultiTapeTM k Bool State}
   classical
   constructor
   · intro h a
-    have hh := runsInTime_iff.mp (h a).2.1
-    refine ⟨t a, le_rfl, hh, ?_, (usesSpace_iff_of_halted hh).mp (h a).2.2.1⟩
+    have hh := runsInTime_iff.mp (h a).2.1.1
+    refine ⟨t a, le_rfl, hh, ?_, (usesSpace_iff_of_halted hh).mp (h a).2.1.2⟩
     change (tm.runFrom (tm.initCfg (enc a)) (t a)).output = [indicator L a]
     by_cases ha : a ∈ L
     · simp only [indicator, ite_eq_left ha]
       exact (accepts_iff_of_halted hh).mp ((h a).1.mpr ha)
-    · rcases (h a).2.2.2 (computationPath tm (enc a) (t a)) hh with hout | hout
+    · rcases (h a).2.2 (computationPath tm (enc a) (t a)) hh with hout | hout
       · exact (ha ((h a).1.mp ((accepts_iff_of_halted hh).mpr hout))).elim
       · simp only [indicator, ite_eq_right ha]
         exact hout
   · intro h a
     obtain ⟨u, hu, hh, hout, hs⟩ := h a
-    refine ⟨?_, (runsInTime_iff.mpr hh).mono hu, (usesSpace_iff_of_halted hh).mpr hs,
+    refine ⟨?_, ⟨(runsInTime_iff.mpr hh).mono hu, (usesSpace_iff_of_halted hh).mpr hs⟩,
       fun p hp ↦ ?_⟩
     · rw [accepts_iff_of_halted hh, hout]
       simp [indicator]
