@@ -27,6 +27,7 @@ import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
 import CslibTests.Modal.UnimodalCube
 import CslibTests.MultiTapeComplexity
+import CslibTests.MultisetGrind
 import CslibTests.PACLearning
 import CslibTests.PFunctorFree
 import CslibTests.PRG
