@@ -11,19 +11,30 @@ namespace CslibTests
 
 open Cslib Turing MultiTapeTM
 
-/-- **The two adapters stack.** A normalized computation, fed its input from a work tape and
-writing what it would have emitted onto another work tape, is a tape transformation — which is
-what a combinator needs in order to use it as a component. -/
-example {k : ℕ} {Symbol State : Type*} {input output : List Symbol} {t s : ℕ}
-    {tm : MultiTapeTM k Symbol State} (mark : Symbol)
-    (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
+/-- **The two adapters stack, and a computation feeds them directly.** A machine computing `f` and
+leaving its tapes clean, fed its input from a work tape and writing what it would have emitted
+onto another work tape, is a tape transformation — which is what a combinator needs in order to
+use it as a component. No bridge appears: `h a` is already a specification. -/
+example {k : ℕ} {Symbol State α β : Type*} {tm : MultiTapeTM k Symbol State}
+    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β} {t s : α → ℕ}
+    (mark : Symbol) (h : ComputesFunNormalizedInTimeAndSpace tm encIn encOut f t s) (a : α) :
     ∃ P Q, TransformsTapes ((tm.inputFromTapeFlagged mark).outputToTapeRewound) P Q
-      (t + 4 + output.length + 2)
-      (s + 2 * input.length + 2 * k + 10 + 2 * output.length + (k + 2) + 3) :=
+      (t a + 4 + (encOut (f a)).length + 2)
+      (s a + 2 * (encIn a).length + 2 * k + 10 + 2 * (encOut (f a)).length + (k + 2) + 3) :=
   ⟨_, _, transformsTapes_outputToTapeRewound
-    (transformsTapes_inputFromTapeFlagged h.transformsTapes mark
+    (transformsTapes_inputFromTapeFlagged (h a) mark
       (by rintro inp ws ⟨rfl, -⟩; exact le_refl _))
     (by rintro inp ws ws' e - ⟨i, w, w', -, -, -, rfl⟩; exact le_refl _)⟩
+
+/-- A concrete machine enters the interface through `transformsTapes_of_runFrom`, which is the
+only place the ambient output has to be dealt with. -/
+example {k : ℕ} {Symbol State α β : Type*} {tm : MultiTapeTM k Symbol State}
+    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β} {t s : α → ℕ}
+    (hrun : ∀ a, tm.runFrom (wordsCfg (encIn a) (some tm.q₀) (fun _ => []) []) (t a) =
+      wordsCfg (encIn a) none (fun _ => []) (encOut (f a)))
+    (hspace : ∀ a, tm.spaceUsed (wordsCfg (encIn a) (some tm.q₀) (fun _ => []) []) (t a) ≤ s a) :
+    ComputesFunNormalizedInTimeAndSpace tm encIn encOut f t s :=
+  fun a => transformsTapes_of_runFrom (hrun a) (hspace a)
 
 /-- A tape transformation can be sequenced with itself, the emitted words concatenating. -/
 example {k : ℕ} {Symbol State : Type*} {t s : ℕ} {tm : MultiTapeTM k Symbol State}

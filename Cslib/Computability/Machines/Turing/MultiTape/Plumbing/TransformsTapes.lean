@@ -30,20 +30,20 @@ Requiring this normal form is what lets specifications compose by rewriting: the
 configuration of one machine is already a valid start for the next, so which words survived a step
 is read off the equation, not re-established cell by cell.
 
-A whole computation is described in the same vocabulary by
-`ComputesNormalizedInTimeAndSpace`: a machine that starts on blank tapes and halts in the same
-normal form, having emitted its output. This is `ComputesInTimeAndSpace` strengthened by the
-requirement that the machine clean up after itself. It is not a separate notion: it is exactly the
-transformation that turns blank tapes into blank tapes and emits the output, on one fixed input,
-and `ComputesNormalizedInTimeAndSpace.transformsTapes` says so. That is what makes a computation
-usable as a *component* — every combinator of the plumbing layer consumes a `TransformsTapes` and
-produces one, so computations and plumbing stack without a change of vocabulary.
+A whole computation needs no separate vocabulary. A machine that starts on blank tapes and halts
+in the same normal form, having emitted its output, *is* the tape transformation whose
+precondition pins the input and whose postcondition pins the emitted word; so
+`ComputesFunNormalizedInTimeAndSpace` — `ComputesFunInTimeAndSpace` strengthened by the
+requirement that the machine clean up after itself — is defined as a family of `TransformsTapes`
+rather than as a notion of its own. That is what makes a computation usable as a *component*:
+every combinator of the plumbing layer consumes a `TransformsTapes` and produces one, so
+computations and plumbing stack with nothing in between.
 
 ## Main definitions
 
 * `Turing.MultiTapeTM.TransformsTapes`: the specification format described above.
-* `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace`: a computation that leaves its tapes in
-  the normal form.
+* `Turing.MultiTapeTM.ComputesFunNormalizedInTimeAndSpace`: a machine computing a function and
+  leaving its tapes in the normal form, as a family of specifications.
 * `Turing.MultiTapeTM.nop`: the machine that does nothing.
 
 ## Main results
@@ -52,10 +52,11 @@ produces one, so computations and plumbing stack without a change of vocabulary.
   and raise the bounds.
 * `Turing.MultiTapeTM.TransformsTapes.exists`: a family of specifications over a parameter is a
   single specification with an existential precondition.
-* `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace.computesInTimeAndSpace`: a normalized
+* `Turing.MultiTapeTM.transformsTapes_of_runFrom`: a single normalized run is a specification;
+  this is how a concrete machine enters the interface.
+* `Turing.MultiTapeTM.TransformsTapes.computesInTimeAndSpace`: and how it leaves it again.
+* `Turing.MultiTapeTM.ComputesFunNormalizedInTimeAndSpace.computesFunInTimeAndSpace`: a normalized
   computation is in particular a computation.
-* `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace.transformsTapes`: a normalized computation
-  is in particular a tape transformation, and can therefore be plumbed.
 * `Turing.MultiTapeTM.transformsTapes_nop`: `nop` leaves every word as it was, the first machine of
   the interface and the check that the format is inhabited as intended.
 -/
@@ -126,58 +127,15 @@ theorem TransformsTapes.exists {ι : Sort*} {tm : MultiTapeTM k Symbol State}
   obtain ⟨ws', e, hrun, hQ, hspace⟩ := h j input ws out hj
   exact ⟨ws', e, hrun, ⟨j, hj, hQ⟩, hspace⟩
 
-/-! ### Normalized computations -/
+/-! ### Whole computations as tape transformations -/
 
-section Normalized
+section Computations
 
-/-- `ComputesNormalizedInTimeAndSpace tm input output t s`: started on blank work tapes, the
-machine is after `t` steps halted *in the normal form* — every work tape blank again, every work
-head back at cell `0` and the input head back at the start of the input — having emitted `output`
-and used at most `s` work-tape cells. As everywhere in this file the time bound is an upper bound:
-the machine may halt earlier and then simply stay put.
-
-This is `Turing.MultiTapeTM.ComputesInTimeAndSpace` plus the requirement that the machine clean up
-after itself, and it is what makes a computation usable as a component: because the final
-configuration is again a `Turing.wordsCfg`, the run can be composed with the plumbing machines
-that move words between the tapes and the input and output streams. -/
-def ComputesNormalizedInTimeAndSpace (tm : MultiTapeTM k Symbol State)
-    (input output : List Symbol) (t s : ℕ) : Prop :=
-  tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
-      wordsCfg input none (fun _ => []) output ∧
-  tm.spaceUsed (wordsCfg input (some tm.q₀) (fun _ => []) []) t ≤ s
-
-namespace ComputesNormalizedInTimeAndSpace
-
-variable {tm : MultiTapeTM k Symbol State} {input output : List Symbol} {t s : ℕ}
-
-/-- The run of a normalized computation, started from the initial configuration. -/
-lemma runFrom_initCfg (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
-    tm.runFrom (tm.initCfg input) t = wordsCfg input none (fun _ => []) output := by
-  rw [initCfg, Cfg.init_eq_wordsCfg]
-  exact h.1
-
-/-- The space of a normalized computation, started from the initial configuration. -/
-lemma spaceUsed_initCfg (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
-    tm.spaceUsed (tm.initCfg input) t ≤ s := by
-  rw [initCfg, Cfg.init_eq_wordsCfg]
-  exact h.2
-
-/-- **A normalized computation is a computation.** The space bound of
-`Turing.MultiTapeTM.ComputesInTimeAndSpace` is exact, so it is met by the space actually used,
-which is at most `s`. -/
-theorem computesInTimeAndSpace (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
-    ∃ s' ≤ s, tm.ComputesInTimeAndSpace input output t s' :=
-  ⟨_, h.spaceUsed_initCfg, by rw [h.runFrom_initCfg]; rfl, by rw [h.runFrom_initCfg]; rfl, rfl⟩
-
-/-- Both bounds can be weakened: the machine has halted at step `t`, so it neither moves nor
-visits new cells afterwards. -/
-theorem mono (h : tm.ComputesNormalizedInTimeAndSpace input output t s) {t' s' : ℕ}
-    (ht : t ≤ t') (hs : s ≤ s') :
-    tm.ComputesNormalizedInTimeAndSpace input output t' s' := by
-  have hhalt : (tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t).state = none := by
-    rw [h.1]; rfl
-  exact ⟨by rw [runFrom_eq_of_halt _ _ ht hhalt, h.1],
-    by rw [spaceUsed_eq_of_halt _ ht hhalt]; exact h.2.trans hs⟩
+variable {tm : MultiTapeTM k Symbol State}
+  {P : (input : List Symbol) → (Fin k → List Symbol) → Prop}
+  {Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+    List Symbol → Prop}
+  {t s : ℕ}
 
 /-- Spelling a run on blank tapes and no output as a run on blank tapes over an arbitrary ambient
 output, which the machine never reads. -/
@@ -186,25 +144,90 @@ private lemma wordsCfg_eq_prependOutput (q : Option State) (out : List Symbol) :
       (wordsCfg input q (fun _ => ([] : List Symbol)) []).prependOutput out := by
   simp
 
-/-- **A normalized computation is a tape transformation.** It is the one that turns blank tapes
-into blank tapes and emits `output`, on the single input it is about. The ambient output plays no
-role, because a machine never reads what it has already written.
+/-- **A single normalized run is a tape transformation.** Started on blank tapes with no prior
+output, a machine that halts in normal form having emitted `output` is the transformation that
+turns blank tapes into blank tapes and emits `output`, on the one input it is about.
 
-This is the bridge that lets a whole computation be fed to the combinators of the plumbing layer,
-which all speak `Turing.MultiTapeTM.TransformsTapes`. -/
-theorem transformsTapes (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
+Generality in the ambient output comes for free — a machine never reads what it has already
+written — and this is where that is discharged, once, rather than by every caller. It is therefore
+the way to produce a `TransformsTapes` for a concrete machine, and in particular a
+`Turing.MultiTapeTM.ComputesFunNormalizedInTimeAndSpace`. -/
+theorem transformsTapes_of_runFrom {input output : List Symbol}
+    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
+      wordsCfg input none (fun _ => []) output)
+    (hspace : tm.spaceUsed (wordsCfg input (some tm.q₀) (fun _ => []) []) t ≤ s) :
     TransformsTapes tm (fun inp ws => inp = input ∧ ws = fun _ => [])
       (fun _ _ ws' e => ws' = (fun _ => []) ∧ e = output) t s := by
   rintro inp ws out ⟨rfl, rfl⟩
   refine ⟨fun _ => [], output, ?_, ⟨rfl, rfl⟩, ?_⟩
-  · rw [wordsCfg_eq_prependOutput, runFrom_prependOutput, h.1]
+  · rw [wordsCfg_eq_prependOutput, runFrom_prependOutput, hrun]
     simp
   · rw [wordsCfg_eq_prependOutput, spaceUsed_prependOutput]
-    exact h.2
+    exact hspace
 
-end ComputesNormalizedInTimeAndSpace
+/-- A specification read from the *initial* configuration, which is the word configuration with
+blank tapes and no output. This is the step from the vocabulary of the plumbing layer back to the
+vocabulary of whole computations. -/
+theorem TransformsTapes.runFrom_initCfg (h : TransformsTapes tm P Q t s) {input : List Symbol}
+    (hP : P input fun _ => []) :
+    ∃ ws' e, tm.runFrom (tm.initCfg input) t = wordsCfg input none ws' e ∧
+      Q input (fun _ => []) ws' e ∧ tm.spaceUsed (tm.initCfg input) t ≤ s := by
+  obtain ⟨ws', e, hrun, hQ, hspace⟩ := h input (fun _ => []) [] hP
+  rw [List.nil_append] at hrun
+  rw [initCfg, Cfg.init_eq_wordsCfg]
+  exact ⟨ws', e, hrun, hQ, hspace⟩
 
-end Normalized
+/-- **A tape transformation that accepts blank tapes is a computation.** The space bound of
+`Turing.MultiTapeTM.ComputesInTimeAndSpace` is exact, so it is met by the space actually used,
+which is at most `s`. -/
+theorem TransformsTapes.computesInTimeAndSpace (h : TransformsTapes tm P Q t s)
+    {input output : List Symbol} (hP : P input fun _ => [])
+    (hQ : ∀ ws' e, Q input (fun _ => []) ws' e → e = output) :
+    ∃ s' ≤ s, tm.ComputesInTimeAndSpace input output t s' := by
+  obtain ⟨ws', e, hrun, hq, hspace⟩ := h.runFrom_initCfg hP
+  obtain rfl := hQ ws' e hq
+  exact ⟨_, hspace, by rw [hrun]; rfl, by rw [hrun]; rfl, rfl⟩
+
+/-- `ComputesFunNormalizedInTimeAndSpace tm encIn encOut f t s`: for every `a`, the machine is the
+tape transformation which, started on blank tapes with `encIn a` on the input tape, halts *in the
+normal form* — every work tape blank again, every work head back at cell `0` and the input head
+back at the start of the input — having emitted `encOut (f a)`, within `t a` steps and `s a`
+work-tape cells.
+
+This is `Turing.MultiTapeTM.ComputesFunInTimeAndSpace` plus the requirement that the machine clean
+up after itself. It is not a notion of its own but a *family of specifications*, in the sense of
+`Turing.MultiTapeTM.TransformsTapes`: a computation that cleans up is nothing but a tape
+transformation whose precondition pins the input and whose postcondition pins the emitted word.
+Saying so in the definition is what lets every combinator of the plumbing layer consume a
+computation directly, with no change of vocabulary. -/
+def ComputesFunNormalizedInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
+  ∀ a, TransformsTapes tm
+    (fun input ws => input = encIn a ∧ ws = fun _ => [])
+    (fun _ _ ws' e => ws' = (fun _ => []) ∧ e = encOut (f a))
+    (t a) (s a)
+
+namespace ComputesFunNormalizedInTimeAndSpace
+
+variable {α β : Type*} {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β}
+  {t s : α → ℕ}
+
+/-- Resource bounds can be weakened independently on every input. -/
+theorem mono (h : ComputesFunNormalizedInTimeAndSpace tm encIn encOut f t s) {t' s' : α → ℕ}
+    (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
+    ComputesFunNormalizedInTimeAndSpace tm encIn encOut f t' s' :=
+  fun a => (h a).imp (fun _ _ h => h) (fun _ _ _ _ _ h => h) (ht a) (hs a)
+
+/-- **A normalized computation is a computation.** -/
+theorem computesFunInTimeAndSpace
+    (h : ComputesFunNormalizedInTimeAndSpace tm encIn encOut f t s) :
+    ComputesFunInTimeAndSpace tm encIn encOut f t s := fun a =>
+  let ⟨s', hs', hc⟩ := (h a).computesInTimeAndSpace ⟨rfl, rfl⟩ fun _ _ h => h.2
+  ⟨t a, le_refl _, s', hs', hc⟩
+
+end ComputesFunNormalizedInTimeAndSpace
+
+end Computations
 
 section Nop
 

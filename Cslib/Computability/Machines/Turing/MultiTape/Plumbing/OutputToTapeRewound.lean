@@ -26,10 +26,9 @@ can be plumbed further. The hypothesis is only that the machine starts and ends 
 the redirection does not touch the original tapes or the input head, so whatever mess the machine
 leaves behind would be left behind by the redirected machine too.
 
-Because a whole computation is a tape transformation
-(`Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace.transformsTapes`), this in particular turns
-a machine that *computes normally* into a tape transformer; that special case is spelled out as
-`transformsTapes_outputToTapeRewound_of_computesNormalized`.
+Because a whole computation *is* a tape transformation, cf.
+`Turing.MultiTapeTM.ComputesFunNormalizedInTimeAndSpace`, this in particular turns a machine that
+computes a function, leaving its tapes clean, into a tape transformer.
 
 ## Main definitions
 
@@ -42,8 +41,6 @@ a machine that *computes normally* into a tape transformer; that special case is
 * `Turing.MultiTapeTM.transformsTapes_outputToTapeRewound`: the resulting specification. The
   bounds are numbers, so the length of the emitted word has to be bounded uniformly; a family of
   specifications with varying bounds is handled as described in `TransformsTapes.lean`.
-* `Turing.MultiTapeTM.transformsTapes_outputToTapeRewound_of_computesNormalized`: the special case
-  of a whole computation, where the emitted word is the output.
 -/
 
 @[expose] public section
@@ -242,26 +239,5 @@ theorem transformsTapes_outputToTapeRewound {tm : MultiTapeTM k Symbol State}
   · rw [List.append_nil, runFrom_eq_of_halt _ _ (by omega) hhalt, hr]
   · rw [spaceUsed_eq_of_halt _ (by omega) hhalt]
     omega
-
-/-- **A normalized computation is a tape transformer.** Redirected onto a fresh last tape and
-rewound, a machine that computes `output` from `input` leaving its tapes clean is an ordinary
-`Turing.MultiTapeTM.TransformsTapes` machine: started on blank tapes it halts in normal form with
-`output` on the last tape and nothing emitted.
-
-The bounds mention the length of the output, so a machine computing a function gives one such
-statement per input; `Turing.MultiTapeTM.TransformsTapes.exists` collects a family with uniform
-bounds back into a single statement. -/
-theorem transformsTapes_outputToTapeRewound_of_computesNormalized
-    {tm : MultiTapeTM k Symbol State} {output : List Symbol} {t s : ℕ}
-    (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
-    TransformsTapes tm.outputToTapeRewound
-      (fun inp ws => inp = input ∧ ws = fun _ => [])
-      (fun _ _ ws' e => ws' = Fin.snoc (fun _ => []) output ∧ e = [])
-      (t + output.length + 2) (s + 2 * output.length + k + 3) := by
-  rintro inp ws out ⟨rfl, rfl⟩
-  have hrun := runFrom_outputToTapeRewound_of_runFrom (ws := fun _ => []) h.1 out
-  have hspace := spaceUsed_outputToTapeRewound_of_runFrom (ws := fun _ => []) h.1 h.2 out
-  rw [OutputToTapeRewound.snoc_nil] at hrun hspace
-  exact ⟨_, [], by rw [List.append_nil]; exact hrun, ⟨rfl, rfl⟩, hspace⟩
 
 end Turing.MultiTapeTM
