@@ -15,7 +15,7 @@ public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
 namespace Cslib.Automata.NA
 
-open Sum ωSequence Acceptor
+open Sum ωSequence Acceptor LTS.Execution
 
 variable {Symbol State1 State2 : Type*}
 
@@ -104,7 +104,7 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
       grind only [LTS.OmegaExecution, = Set.mem_union, = get_map, = Set.mem_image, Run]
     · simp
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
-    obtain ⟨ss1, _, _, _, _⟩ := LTS.Execution.of_mTr h_mtr
+    obtain ⟨ss1, he⟩ := LTS.Execution.of_mTr h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
     refine ⟨ss, Run.mk ?_ ?_, ?_⟩
     · grind [concat, get_append_left]
@@ -112,7 +112,7 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
       simp only [concat]
       grind only [Run, LTS.OmegaExecution, get_append_right', get_append_left,
         = List.length_take, = get_map, = List.length_map, = min_def, = List.getElem_take,
-        = List.getElem_map]
+        = List.getElem_map, he.length, he.last, he.trans]
     · grind [drop_append_of_le_length]
 
 namespace Buchi

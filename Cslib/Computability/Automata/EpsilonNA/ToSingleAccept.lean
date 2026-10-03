@@ -54,8 +54,7 @@ theorem toSingleAccept_tr_antiDerivative_isSome {a : εNA.FinAcc State Symbol}
   cases os with grind
 
 theorem toSingleAccept_tr_tr {a : εNA.FinAcc State Symbol} :
-    a.toSingleAccept.Tr (some s) x (some s') ↔ a.Tr s x s' := by
-  simp [toSingleAccept]
+    a.toSingleAccept.Tr (some s) x (some s') ↔ a.Tr s x s' := Iff.rfl
 
 scoped grind_pattern toSingleAccept_tr_tr => a.toSingleAccept.Tr (some s) x (some s')
 
@@ -84,7 +83,10 @@ theorem toSingleAccept_mTr_mTr {a : εNA.FinAcc State Symbol} :
     apply Iff.intro <;> intro h
     case mp =>
       cases h with
-      | stepL => grind
+      | @stepL s _ s'' _ _ htr hmtr =>
+        obtain ⟨smid, rfl⟩ : ∃ smid, s'' = Option.some smid :=
+          s''.isSome_iff_exists.mp (toSingleAccept_mTr_antiDerivative_isSome hmtr)
+        exact (ih.mp hmtr).stepL (toSingleAccept_tr_tr.mp htr)
     case mpr =>
       cases h
       case stepL sb htr hmtr =>

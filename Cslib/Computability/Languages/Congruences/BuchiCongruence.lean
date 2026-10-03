@@ -21,7 +21,7 @@ of ω-regular languages under complementation.
 
 namespace Cslib.Automata.NA.Buchi
 
-open Function Set Filter ωAcceptor ωLanguage ωSequence
+open Function Set Filter ωAcceptor ωLanguage ωSequence LTS.Execution
 open _root_.Language RightCongruence
 
 variable {Symbol : Type*} {State : Type}
@@ -31,7 +31,7 @@ set_option linter.tacticAnalysis.verifyGrindOnly false in
 according to `na` iff for every pair of states `s` and `t` of `na`, both of the
 following two conditions hold:
 (1) `u` can move `na` from `s` to `t` iff `v` can move `na` from `s` to `t`;
-(2) `u` can move `na` from `s` to `t` via an acceptingg states iff `v` can move `na`
+(2) `u` can move `na` from `s` to `t` via an accepting states iff `v` can move `na`
 from `s` to `t` via an acceptingg states. -/
 @[implicit_reducible]
 def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
@@ -93,8 +93,11 @@ lemma buchiCongruence_transfer
     grind
   obtain ⟨l, r⟩ := h_eq s t
   by_cases h_xl : xl ∈ na.pairViaLang na.accept s t
-  · obtain := LTS.mem_pairViaLang.mp (r.mp h_xl)
-    grind [LTS.Execution, → LTS.Execution.comp, → LTS.Execution.of_mTr]
+  · obtain ⟨r, hr, xs₁, xs₂, h₁, h₂, rfl⟩ := LTS.mem_pairViaLang.mp (r.mp h_xl)
+    obtain ⟨sl₁, he₁⟩ := LTS.Execution.of_mTr h₁
+    obtain ⟨sl₂, he₂⟩ := LTS.Execution.of_mTr h₂
+    use sl₁ ++ sl₂.tail, he₁.comp he₂
+    grind
   · use LTS.Execution.of_mTr (l.mp hp) |>.choose
     grind
 
@@ -185,51 +188,54 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
   obtain ⟨xl, xls, h_xl_c, h_xls_c, rfl⟩ := mem_buchiFamily.mp h_xs
   obtain ⟨yl, yls, h_yl_c, h_yls_c, rfl⟩ := mem_buchiFamily.mp h_ys
   obtain ⟨ss, ⟨h_init, h_exec⟩, h_acc⟩ := h_lang
-  let f (k : ℕ) := xl.length + xls.cumLen k
-  let ts := ωSequence.mk (fun k ↦ ss (f k))
-  have (k : ℕ) : xls k ≠ [] := by grind
-  have h_xls_p (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
+  let ts := ωSequence.mk (fun k ↦ ss (xl.length + xls.cumLen k))
+  have h_xls_p (k : ℕ) : 0 < (xls k).length := List.length_pos_iff.mpr (by grind)
   have h_xls_e (k : ℕ) : xls k ∈ na.pairLang (ts k) (ts (k + 1)) := by
-    grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : f k ≤ f (k + 1)), LTS.mem_pairLang,
+    have : xl.length + xls.cumLen k < xl.length + xls.cumLen (k + 1) :=
+      Nat.add_lt_add_left ((cumLen_strictMono h_xls_p) k.lt_succ_self) xl.length
+    grind [LTS.OmegaExecution.extract_mTr h_exec this.le, LTS.mem_pairLang,
       extract_append_right_right, add_tsub_cancel_left]
   have h_yls (k : ℕ) := buchiCongruence_transfer ((h_xls_c k).left) ((h_yls_c k).left) (h_xls_e k)
   choose sls h_yls_e h_yls_a using h_yls
-  have (k : ℕ) : yls k ≠ [] := by grind
-  have h_yls_p (k : ℕ) : (yls k).length > 0 := List.length_pos_iff.mpr (this k)
+  have h_yls_p (k : ℕ) : 0 < (yls k).length:= List.length_pos_iff.mpr (by grind)
   obtain ⟨ss1, h_ss1_run, h_ss1_seg⟩ := LTS.OmegaExecution.flatten_execution h_yls_e h_yls_p
-  suffices ∃ᶠ (k : ℕ) in atTop, ss1 k ∈ na.accept by
+  simp_rw [get_fun] at h_ss1_seg
+  suffices hfreq : ∃ᶠ (k : ℕ) in atTop, ss1 k ∈ na.accept by
     have h_xl_e : xl ∈ na.pairLang (ss 0) (ts 0) := by
-      grind [LTS.OmegaExecution.extract_mTr h_exec (?_ : 0 ≤ xl.length),
-        extract_append_zero_right, LTS.mem_pairLang]
+      rw [LTS.mem_pairLang]
+      convert! LTS.OmegaExecution.extract_mTr h_exec (by grind : 0 ≤ xl.length) using 1
+      simp [extract_append_zero_right]
     have h_yl_e : yl ∈ na.pairLang (ss 0) (ts 0) := by
       grind [buchiCongruence_transfer h_xl_c h_yl_c h_xl_e, LTS.mem_pairLang, LTS.Execution.to_mTr]
     have h_ss1_ts : ss1 0 = ts 0 := by
-      have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by grind
-      have : sls 0 ≠ [] := by grind
-      have : 0 < (sls 0).length := List.length_pos_iff.mpr this
-      have : ss1 0 = (sls 0)[0] := by grind [get_extract (xs := ss1) h]
-      have : (sls 0)[0] = ts 0 := (h_yls_e 0).start
-      grind
-    obtain ⟨ss2, _, _, _, _⟩ := LTS.OmegaExecution.append h_yl_e h_ss1_run h_ss1_ts
-    use ss2
-    have := @drop_frequently_iff_frequently _ ss2 na.accept yl.length
-    grind [Run.mk]
+      have hpos : 0 < ((sls 0).take (yls 0).length).length := by
+        simpa using ⟨h_yls_p 0, (h_yls_e 0).length_ss_pos⟩
+      have h : 0 < yls.cumLen 1 - yls.cumLen 0 := by simpa [cumLen_succ] using h_yls_p 0
+      simp_rw [← (h_yls_e 0).start, ← (sls 0).getElem_take (h := hpos), ← h_ss1_seg 0,
+        ← (ss1.get_extract h).symm, add_zero, cumLen_zero]
+    obtain ⟨ss2, hexec, hstart, _, hdrop⟩ := LTS.OmegaExecution.append h_yl_e h_ss1_run h_ss1_ts
+    refine ⟨ss2, ⟨hstart ▸ h_init, hexec⟩, ?_⟩
+    rwa [← @drop_frequently_iff_frequently _ ss2 na.accept yl.length, hdrop]
   apply frequently_atTop.mpr
   intro n
-  obtain ⟨m, _, s, _, h_mem⟩ :=
-    frequently_atTop.mp ((frequently_via_accept h_acc h_exec h_xls_p f rfl ts rfl).mono h_yls_a) n
-  obtain ⟨k, _, _⟩ := List.mem_iff_getElem.mp h_mem
-  use yls.cumLen m + k
-  suffices ss1 (yls.cumLen m + k) = (sls m)[k] by
-    have h_mono := cumLen_strictMono h_yls_p
-    have := StrictMono.add_le_nat h_mono m 0
-    lia
-  obtain ⟨_, _, _, _⟩ := h_yls_e m
-  obtain ⟨_, _, _, _⟩ := h_yls_e (m + 1)
-  grind =>
-   have := @get_extract (xs := ss1)
-   have : k < (yls m).length ∨ ¬ k < (yls m).length
-   have : k < yls.cumLen (m + 1) - yls.cumLen m ∨ 0 < yls.cumLen (m + 2) - yls.cumLen (m + 1)
-   finish
+  obtain ⟨m, _, s, h_acc, h_mem⟩ :=
+    frequently_atTop.mp ((frequently_via_accept h_acc h_exec h_xls_p _ rfl ts rfl).mono h_yls_a) n
+  obtain ⟨k, hklen, rfl⟩ := List.mem_iff_getElem.mp h_mem
+  suffices heq : ss1 (yls.cumLen m + k) = (sls m)[k] by
+    refine ⟨yls.cumLen m + k, ?_, mem_of_eq_of_mem heq h_acc⟩
+    lia [(cumLen_strictMono h_yls_p).add_le_nat m 0]
+  obtain (hk | rfl) : k < (yls m).length ∨ k = (yls m).length := by
+    rwa [(h_yls_e m).length, k.lt_succ_iff, k.le_iff_lt_or_eq] at hklen
+  · have := ss1.get_extract (m := yls.cumLen m) (n := yls.cumLen (m + 1)) (k := k)
+      (by lia [cumLen_succ])
+    simp [← this, h_ss1_seg]
+  · have hm := (h_yls_e m).last
+    specialize h_ss1_seg (m + 1)
+    simp only [(h_yls_e m).length, add_tsub_cancel_right, ← (h_yls_e (m + 1)).start] at hm
+    have := ss1.get_extract (m := yls.cumLen (m + 1)) (n := yls.cumLen (m + 2)) (k := 0)
+    rw! [cumLen_succ, add_tsub_cancel_left, add_zero] at this
+    specialize this (h_yls_p (m + 1))
+    rw! [← cumLen_succ, ← this, hm, ← cumLen_succ, h_ss1_seg]
+    simp
 
 end Cslib.Automata.NA.Buchi

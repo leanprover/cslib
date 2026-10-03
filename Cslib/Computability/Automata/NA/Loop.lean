@@ -100,7 +100,7 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     sl[0] = inl () ∧ sl[xl.length] = inl () ∧
     ∀ k, (_ : k < xl.length) → na.loop.Tr sl[k] xl[k] sl[k + 1] := by
   obtain ⟨_, _, _, _, h_mtr⟩ := h
-  obtain ⟨sl, _, _, _, _⟩ := LTS.Execution.of_mTr h_mtr
+  obtain ⟨sl, he⟩ := LTS.Execution.of_mTr h_mtr
   by_cases xl.length = 0
   · use [inl ()]
     grind
@@ -109,7 +109,8 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     /-- This squeeze was required moving to nightly-2026-01-28 -/
     grind only [= length_append, = length_cons, = length_nil, = length_map, = List.length_take,
       = length_drop, = min_def, = getElem_append, = getElem_cons, = List.take_zero, FinAcc.loop,
-      = map_nil, = getElem_map, = getElem_take, = getElem_drop]
+      = map_nil, = getElem_map, = getElem_take, = getElem_drop, he.length, he.start, he.last,
+      he.trans]
 
 /-- For any finite word in `language na`, there is a corresponding multistep transition
 of `na.loop`. -/

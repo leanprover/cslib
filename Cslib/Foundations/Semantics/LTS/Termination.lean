@@ -20,6 +20,8 @@ This module relates global execution bounds, well-founded termination, and acycl
 
 namespace Cslib.LTS
 
+open Execution
+
 universe u v
 
 variable {State : Type u} {Label : Type v} (lts : LTS State Label) (Terminated : State → Prop)
@@ -69,7 +71,7 @@ theorem Acyclic.toBoundedUpTo [Finite State] (h : lts.Acyclic) :
     hexec.isChain.imp_of_mem_imp fun _ _ _ _ htr => .single htr
   let : Std.Irrefl (Relation.TransGen lts.UnlabelledTr) := h.acyclic
   have hcard := hchain.pairwise.nodup.length_le_card
-  grind [Execution]
+  grind
 
 /-- On a finite state space, acyclic LTSs are bounded. -/
 theorem Acyclic.toBounded [Finite State] (h : lts.Acyclic) : lts.Bounded :=
