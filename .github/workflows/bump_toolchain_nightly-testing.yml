@@ -7,6 +7,11 @@ on:
     # This should be 3 hours after lean4 starts building its nightly.
   workflow_dispatch:
 
+# Runs every step under `bash --noprofile --norc -eo pipefail`
+defaults:
+  run:
+    shell: bash
+
 jobs:
   update-toolchain:
     if: github.repository == 'leanprover/cslib'

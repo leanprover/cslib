@@ -11,6 +11,11 @@ on:
       - 'scripts/**/*.sh'
   workflow_dispatch:
 
+# Runs every step under `bash --noprofile --norc -eo pipefail`
+defaults:
+  run:
+    shell: bash
+
 jobs:
   shellcheck:
     name: Check shell scripts

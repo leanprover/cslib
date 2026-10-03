@@ -8,6 +8,11 @@ on:
 env:
   CSLIB: cslib
 
+# Runs every step under `bash --noprofile --norc -eo pipefail`
+defaults:
+  run:
+    shell: bash
+
 jobs:
   weekly-lints:
     name: Weekly Linting
