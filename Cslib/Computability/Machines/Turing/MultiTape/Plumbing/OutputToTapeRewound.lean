@@ -209,28 +209,6 @@ theorem spaceUsed_outputToTapeRewound_of_runFrom {tm : MultiTapeTM k Symbol Stat
   have h₁ := spaceUsed_phase₁ (input := input) ws' e out (e.length + 2)
   omega
 
-open OutputToTapeRewound in
-/-- **The run of the redirected and rewound machine on a normalized computation.** Started on
-blank tapes, it halts in normal form with the output of `tm` on its fresh last tape. -/
-theorem runFrom_outputToTapeRewound {tm : MultiTapeTM k Symbol State} {output : List Symbol}
-    {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (out : List Symbol) :
-    tm.outputToTapeRewound.runFrom
-        (wordsCfg input (some tm.outputToTapeRewound.q₀) (fun _ => []) out)
-        (t + output.length + 2) =
-      wordsCfg input none (Fin.snoc (fun _ => []) output) out := by
-  rw [← snoc_nil]
-  exact runFrom_outputToTapeRewound_of_runFrom h.1 out
-
-open OutputToTapeRewound in
-/-- **The space of the redirected and rewound machine on a normalized computation.** -/
-theorem spaceUsed_outputToTapeRewound {tm : MultiTapeTM k Symbol State} {output : List Symbol}
-    {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (out : List Symbol) :
-    tm.outputToTapeRewound.spaceUsed
-        (wordsCfg input (some tm.outputToTapeRewound.q₀) (fun _ => []) out)
-        (t + output.length + 2) ≤ s + 2 * output.length + k + 3 := by
-  rw [← snoc_nil]
-  exact spaceUsed_outputToTapeRewound_of_runFrom h.1 h.2 out
-
 /-- **Redirecting the output of a tape transformation onto a work tape.** If `tm` transforms words
 and emits, then `tm` redirected and rewound transforms the same words on the first `k` tapes and
 writes what it would have emitted onto a fresh last tape, which it is given blank. The result emits
@@ -281,7 +259,9 @@ theorem transformsTapes_outputToTapeRewound_of_computesNormalized
       (fun _ _ ws' e => ws' = Fin.snoc (fun _ => []) output ∧ e = [])
       (t + output.length + 2) (s + 2 * output.length + k + 3) := by
   rintro inp ws out ⟨rfl, rfl⟩
-  exact ⟨_, [], by rw [List.append_nil]; exact runFrom_outputToTapeRewound h out, ⟨rfl, rfl⟩,
-    spaceUsed_outputToTapeRewound h out⟩
+  have hrun := runFrom_outputToTapeRewound_of_runFrom (ws := fun _ => []) h.1 out
+  have hspace := spaceUsed_outputToTapeRewound_of_runFrom (ws := fun _ => []) h.1 h.2 out
+  rw [OutputToTapeRewound.snoc_nil] at hrun hspace
+  exact ⟨_, [], by rw [List.append_nil]; exact hrun, ⟨rfl, rfl⟩, hspace⟩
 
 end Turing.MultiTapeTM

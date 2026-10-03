@@ -41,8 +41,6 @@ word on a work tape, the two adapters stack.
   original machine that ends in normal form.
 * `Turing.MultiTapeTM.transformsTapes_inputFromTapeFlagged`: the resulting specification. The
   bounds are numbers, so the length of the simulated input has to be bounded uniformly.
-* `Turing.MultiTapeTM.runFrom_inputFromTapeFlagged`: the special case of a whole computation,
-  cf. `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace`.
 -/
 
 @[expose] public section
@@ -296,30 +294,5 @@ theorem transformsTapes_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State}
   have hs := spaceUsed_inputFromTapeFlagged_of_runFrom hrun hspace mark outerInput
   have := hm inp w hP
   omega
-
-/-- **The run of the wrapped machine on a normalized computation.** Started in normal form with
-the input on the first of its two fresh tapes, it halts in normal form with the output of `tm`
-emitted. -/
-theorem runFrom_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output : List Symbol}
-    {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (mark : Symbol)
-    (outerInput out : List Symbol) :
-    (tm.inputFromTapeFlagged mark).runFrom
-        (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
-          (Fin.append (fun _ => []) ![input, []]) out) (t + 4) =
-      wordsCfg outerInput none (Fin.append (fun _ => []) ![input, []]) (out ++ output) := by
-  obtain ⟨ws', e, hrun, ⟨rfl, rfl⟩, -⟩ := h.transformsTapes input (fun _ => []) out ⟨rfl, rfl⟩
-  exact runFrom_inputFromTapeFlagged_of_runFrom hrun mark outerInput
-
-/-- **The space of the wrapped machine on a normalized computation.** -/
-theorem spaceUsed_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output : List Symbol}
-    {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (mark : Symbol)
-    (outerInput out : List Symbol) :
-    (tm.inputFromTapeFlagged mark).spaceUsed
-        (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
-          (Fin.append (fun _ => []) ![input, []]) out) (t + 4) ≤
-      s + 2 * input.length + 2 * k + 10 := by
-  obtain ⟨ws', e, hrun, ⟨rfl, rfl⟩, hspace⟩ :=
-    h.transformsTapes input (fun _ => []) out ⟨rfl, rfl⟩
-  exact spaceUsed_inputFromTapeFlagged_of_runFrom hrun hspace mark outerInput
 
 end Turing.MultiTapeTM
