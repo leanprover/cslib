@@ -51,6 +51,7 @@ public import Cslib.Computability.Circuit.Normalization
 public import Cslib.Computability.Circuit.Program
 public import Cslib.Computability.Circuit.Shannon
 public import Cslib.Computability.Circuit.Signature
+public import Cslib.Computability.Circuit.Simulation
 public import Cslib.Computability.Circuit.Synthesis
 public import Cslib.Computability.Circuit.Wire
 public import Cslib.Computability.Distributed.FLP.Algorithm
