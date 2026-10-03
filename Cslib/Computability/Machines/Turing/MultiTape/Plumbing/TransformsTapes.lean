@@ -52,8 +52,6 @@ makes a computation usable as a *component*: every combinator of the plumbing la
 
 * `Turing.MultiTapeTM.TransformsTapes.imp`: strengthen the precondition, weaken the postcondition
   and raise the bounds.
-* `Turing.MultiTapeTM.TransformsTapes.exists`: a family of specifications over a parameter is a
-  single specification with an existential precondition.
 * `Turing.MultiTapeTM.transformsTapes_iff_nil_output`: a specification holds over every ambient
   output as soon as it holds over none; this is how a concrete machine enters the interface.
 * `Turing.MultiTapeTM.computesNormalized_iff`: a normalized computation, as an equation.
@@ -115,20 +113,6 @@ theorem TransformsTapes.imp {tm : MultiTapeTM k Symbol State}
   · rw [runFrom_eq_of_halt tm _ ht hhalt, hrun]
   · rw [spaceUsed_eq_of_halt _ ht hhalt]
     exact hspace.trans hs
-
-/-- A family of specifications over a parameter is a single specification whose precondition is
-the existential over the family. The parameter is recovered in the postcondition, so nothing is
-lost; this is how a family with *uniform* bounds is turned back into a single statement. -/
-theorem TransformsTapes.exists {ι : Sort*} {tm : MultiTapeTM k Symbol State}
-    {P : ι → (input : List Symbol) → (Fin k → List Symbol) → Prop}
-    {Q : ι → (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
-      List Symbol → Prop}
-    {t s : ℕ} (h : ∀ j, TransformsTapes tm (P j) (Q j) t s) :
-    TransformsTapes tm (fun input ws => ∃ j, P j input ws)
-      (fun input ws ws' e => ∃ j, P j input ws ∧ Q j input ws ws' e) t s := by
-  rintro input ws out ⟨j, hj⟩
-  obtain ⟨ws', e, hrun, hQ, hspace⟩ := h j input ws out hj
-  exact ⟨ws', e, hrun, ⟨j, hj, hQ⟩, hspace⟩
 
 /-! ### Whole computations as tape transformations -/
 
