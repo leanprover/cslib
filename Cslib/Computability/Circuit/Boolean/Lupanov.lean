@@ -5,6 +5,7 @@ Authors: Samuel Schlesinger
 -/
 module
 
+public import Cslib.Computability.Circuit.Boolean.Complexity
 public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 public import Mathlib.Basic.Real.Basic
 import Cslib.Foundations.Data.Nat.Asymptotics
@@ -42,7 +43,8 @@ Write `l = log₂ n`. We take `k = 3 l` address bits, `d = n - 3 l` data bits, a
 `Nat.eventually_mul_pow_le_pow` and `error_le` show that the polynomial and the exponential
 term are each `o(2 ^ n / n)`. Then `eventually_bound_le` combines everything into
 `P · n · bound ≤ (P + 1) · 2 ^ n` for all large `n`, for any natural number `P`.
-Taking `P > 1 / ε` in `exists_circuit` gives the theorem.
+Taking `P > 1 / ε` in `exists_circuit` gives the theorem; `complexity_le` states it as a
+bound on circuit complexity.
 
 ## References
 
@@ -230,5 +232,18 @@ theorem exists_circuit (ε : ℝ) (hε : 0 < ε) :
     _ ≤ (P + 1) * 2 ^ n := hcost
     _ ≤ P * ((1 + ε) * 2 ^ n) := by
       nlinarith [mul_le_mul_of_nonneg_right hcoefficient (by positivity : (0 : ℝ) ≤ 2 ^ n)]
+
+/-- Lupanov's upper bound for circuit complexity: every Boolean function on `n` inputs has
+complexity at most `(1 + ε) 2ⁿ/n`, uniformly for sufficiently large `n`. -/
+theorem complexity_le (ε : ℝ) (hε : 0 < ε) :
+    ∃ N : ℕ, ∀ n ≥ N, ∀ f : BooleanFunction n,
+      (complexity interpretation (single f) : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
+  obtain ⟨N, hN⟩ := exists_circuit ε hε
+  refine ⟨N, fun n hn f => ?_⟩
+  obtain ⟨c, hc, hsize⟩ := hN n hn f
+  calc
+    (complexity interpretation (single f) : ℝ) ≤ c.size := by
+      exact_mod_cast complexity_le_of_computes c hc
+    _ ≤ (1 + ε) * 2 ^ n / n := hsize
 
 end Cslib.Circuits.Boolean.Lupanov
