@@ -44,6 +44,5 @@ jobs:
         run: |
           set -e
           lake exe checkInitImports
-      # Reuse the prepared checkout: lint-style-action deletes it and rebuilds its tools.
       - name: "lake exe lint-style"
         run: lake exe lint-style
