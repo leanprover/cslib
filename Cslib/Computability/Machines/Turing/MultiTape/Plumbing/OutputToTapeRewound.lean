@@ -20,13 +20,16 @@ by `rewindWork`, which is needed because `outputToTape` leaves the new head at t
 one cell past the last symbol, whereas the normal form of `Turing.MultiTapeTM.TransformsTapes`
 wants every head at cell `0`.
 
-The point of the construction is `transformsTapes_outputToTapeRewound`: a machine that
-*computes normally* — halting with its work tapes blank and all heads reset, cf.
-`Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace` — becomes, after this redirection, an
-ordinary tape transformer, and can therefore be used as a component by every combinator of the
-plumbing layer. The normalization hypothesis is what makes this work: the redirection does not
-touch the original tapes or the input head, so whatever mess `tm` leaves behind would be left
-behind by the redirected machine too, and the result would not be in normal form.
+The point of the construction is `transformsTapes_outputToTapeRewound`: it turns the *emission* of
+a `Turing.MultiTapeTM.TransformsTapes` into a word on a work tape, so the result emits nothing and
+can be plumbed further. The hypothesis is only that the machine starts and ends in normal form:
+the redirection does not touch the original tapes or the input head, so whatever mess the machine
+leaves behind would be left behind by the redirected machine too.
+
+Because a whole computation is a tape transformation
+(`Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace.transformsTapes`), this in particular turns
+a machine that *computes normally* into a tape transformer; that special case is spelled out as
+`transformsTapes_outputToTapeRewound_of_computesNormalized`.
 
 ## Main definitions
 
@@ -34,11 +37,13 @@ behind by the redirected machine too, and the result would not be in normal form
 
 ## Main results
 
-* `Turing.MultiTapeTM.runFrom_outputToTapeRewound`: its run, from a word configuration with blank
-  tapes to the same configuration with the output on the last tape.
-* `Turing.MultiTapeTM.transformsTapes_outputToTapeRewound`: the resulting specification. The bounds
-  depend on the input through the length of the output, so this is a *family* of specifications,
-  one per input, as described in `TransformsTapes.lean`.
+* `Turing.MultiTapeTM.runFrom_outputToTapeRewound_of_runFrom`: its run, from any run of the
+  original machine that ends in normal form.
+* `Turing.MultiTapeTM.transformsTapes_outputToTapeRewound`: the resulting specification. The
+  bounds are numbers, so the length of the emitted word has to be bounded uniformly; a family of
+  specifications with varying bounds is handled as described in `TransformsTapes.lean`.
+* `Turing.MultiTapeTM.transformsTapes_outputToTapeRewound_of_computesNormalized`: the special case
+  of a whole computation, where the emitted word is the output.
 -/
 
 @[expose] public section
@@ -85,17 +90,34 @@ private lemma withState_outCfg_wordsCfg (q : Option State) (ws : Fin k → List 
   rw [outCfg_wordsCfg_output]
   rfl
 
-/-- **The redirection phase.** A normalized computation, redirected, turns blank tapes into blank
-tapes with the output on the last one, leaving the head of that tape at the frontier. -/
-private lemma runFrom_phase₀ (h : tm.ComputesNormalizedInTimeAndSpace input output t s)
-    (out : List Symbol) :
-    tm.outputToTape.runFrom (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) out) t =
-      (outCfg (wordsCfg input none (fun _ => []) output)).withOutput out := by
-  rw [show (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) out
+/-- Spelling the start of the first phase as a redirected configuration. -/
+private lemma wordsCfg_snoc_nil (ws : Fin k → List Symbol) (out : List Symbol) :
+    (wordsCfg input (some tm.outputToTape.q₀) (Fin.snoc ws []) out
         : Cfg (k + 1) Symbol State input) =
-      (outCfg (wordsCfg input (some tm.q₀) (fun _ => []) [])).withOutput out from by
-    rw [outputToTape_q₀, outCfg_wordsCfg, snoc_nil, withOutput_wordsCfg],
-    runFrom_outputToTape_withOutput, runFrom_outCfg, h.1]
+      (outCfg (wordsCfg input (some tm.q₀) ws [])).withOutput out := by
+  rw [outputToTape_q₀, outCfg_wordsCfg, withOutput_wordsCfg]
+
+/-- **The redirection phase.** A run that leaves the words `ws'` behind and emits `e` becomes,
+redirected, a run that leaves `ws'` behind and writes `e` on the fresh last tape, with the head of
+that tape at the frontier just past `e`. -/
+private lemma runFrom_phase₀ {ws ws' : Fin k → List Symbol} {e : List Symbol}
+    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) ws []) t = wordsCfg input none ws' e)
+    (out : List Symbol) :
+    tm.outputToTape.runFrom (wordsCfg input (some tm.outputToTape.q₀) (Fin.snoc ws []) out) t =
+      (outCfg (wordsCfg input none ws' e)).withOutput out := by
+  rw [wordsCfg_snoc_nil, runFrom_outputToTape_withOutput, runFrom_outCfg, hrun]
+
+/-- **The space of the redirection phase.** On top of the space of the original run the fresh tape
+costs the cells of the emitted word and the frontier cell past it. -/
+private lemma spaceUsed_phase₀ {ws ws' : Fin k → List Symbol} {e : List Symbol}
+    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) ws []) t = wordsCfg input none ws' e)
+    (hspace : tm.spaceUsed (wordsCfg input (some tm.q₀) ws []) t ≤ s) (out : List Symbol) :
+    tm.outputToTape.spaceUsed
+        (wordsCfg input (some tm.outputToTape.q₀) (Fin.snoc ws []) out) t ≤ s + e.length + 1 := by
+  rw [wordsCfg_snoc_nil, spaceUsed_outputToTape_withOutput]
+  refine le_trans (spaceUsed_outputToTape _ _ _) ?_
+  rw [hrun]
+  exact Nat.add_le_add_right hspace _
 
 /-- The one-tape view of the start of the rewinding phase: the output, with the head at its
 frontier. -/
@@ -133,64 +155,115 @@ private lemma spaceUsed_phase₁ (ws : Fin k → List Symbol) (output out : List
 end OutputToTapeRewound
 
 open OutputToTapeRewound in
-/-- **The run of the redirected and rewound machine.** Started on blank tapes, it halts in normal
-form with the output of `tm` on its fresh last tape, after `t + |output| + 2` steps: the `t` steps
-of `tm`, and the walk of the new head from the frontier back to the start. -/
+/-- **The run of the redirected and rewound machine.** A run of `tm` that leaves the words `ws'`
+behind and emits `e` becomes a run that leaves `ws'` behind with `e` on its fresh last tape, in
+normal form, after `t + |e| + 2` steps: the `t` steps of `tm`, and the walk of the new head from
+the frontier back to the start. -/
+theorem runFrom_outputToTapeRewound_of_runFrom {tm : MultiTapeTM k Symbol State}
+    {ws ws' : Fin k → List Symbol} {e : List Symbol} {t : ℕ}
+    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) ws []) t = wordsCfg input none ws' e)
+    (out : List Symbol) :
+    tm.outputToTapeRewound.runFrom
+        (wordsCfg input (some tm.outputToTapeRewound.q₀) (Fin.snoc ws []) out)
+        (t + e.length + 2) =
+      wordsCfg input none (Fin.snoc ws' e) out := by
+  have h₁ : ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).runFrom
+      ((((outCfg (wordsCfg (State := State) input none ws' e)).withOutput
+        out).withState (some ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).q₀)))
+      (e.length + 2) = wordsCfg input none (Fin.snoc ws' e) out := by
+    rw [withState_outCfg_wordsCfg]
+    exact runFrom_phase₁ _ e out
+  exact runFrom_seq (runFrom_phase₀ hrun out) rfl h₁ rfl
+
+open OutputToTapeRewound in
+/-- **The space of the redirected and rewound machine.** The bound is the sum of the two phases
+and is not tight: the redirection costs the space of `tm` plus the cells of the emitted word and
+its frontier, and the rewinding costs the cells walked back over plus one cell on each of the `k`
+original tapes, with the cells of the emitted word counted in both. -/
+theorem spaceUsed_outputToTapeRewound_of_runFrom {tm : MultiTapeTM k Symbol State}
+    {ws ws' : Fin k → List Symbol} {e : List Symbol} {t s : ℕ}
+    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) ws []) t = wordsCfg input none ws' e)
+    (hspace : tm.spaceUsed (wordsCfg input (some tm.q₀) ws []) t ≤ s) (out : List Symbol) :
+    tm.outputToTapeRewound.spaceUsed
+        (wordsCfg input (some tm.outputToTapeRewound.q₀) (Fin.snoc ws []) out)
+        (t + e.length + 2) ≤ s + 2 * e.length + k + 3 := by
+  have hfin : (((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).runFrom
+      ((((outCfg (wordsCfg (State := State) input none ws' e)).withOutput
+        out).withState (some ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).q₀)))
+      (e.length + 2)).Halted := by
+    rw [withState_outCfg_wordsCfg, runFrom_phase₁]
+    rfl
+  -- spell the start out as a first-phase configuration, so that `spaceUsed_seq_le` applies
+  -- without the elaborator having to unfold `outputToTapeRewound` against a metavariable
+  have hstart : tm.outputToTapeRewound.spaceUsed
+      (wordsCfg input (some tm.outputToTapeRewound.q₀) (Fin.snoc ws []) out)
+      (t + e.length + 2) =
+      (tm.outputToTape.seq ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k)))).spaceUsed
+        (Sequential.leftCfg ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k)))
+          (wordsCfg input (some tm.outputToTape.q₀) (Fin.snoc ws []) out))
+        (t + e.length + 2) := rfl
+  rw [hstart, show t + e.length + 2 = t + (e.length + 2) from by omega]
+  refine le_trans (spaceUsed_seq_le (runFrom_phase₀ hrun out) rfl hfin) ?_
+  rw [withState_outCfg_wordsCfg]
+  have h₀ := spaceUsed_phase₀ (s := s) hrun hspace out
+  have h₁ := spaceUsed_phase₁ (input := input) ws' e out (e.length + 2)
+  omega
+
+open OutputToTapeRewound in
+/-- **The run of the redirected and rewound machine on a normalized computation.** Started on
+blank tapes, it halts in normal form with the output of `tm` on its fresh last tape. -/
 theorem runFrom_outputToTapeRewound {tm : MultiTapeTM k Symbol State} {output : List Symbol}
     {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (out : List Symbol) :
     tm.outputToTapeRewound.runFrom
         (wordsCfg input (some tm.outputToTapeRewound.q₀) (fun _ => []) out)
         (t + output.length + 2) =
       wordsCfg input none (Fin.snoc (fun _ => []) output) out := by
-  have h₁ : ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).runFrom
-      ((((outCfg (wordsCfg (State := State) input none (fun _ => []) output)).withOutput
-        out).withState (some ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).q₀)))
-      (output.length + 2) = wordsCfg input none (Fin.snoc (fun _ => []) output) out := by
-    rw [withState_outCfg_wordsCfg]
-    exact runFrom_phase₁ _ output out
-  exact runFrom_seq (runFrom_phase₀ h out) rfl h₁ rfl
+  rw [← snoc_nil]
+  exact runFrom_outputToTapeRewound_of_runFrom h.1 out
 
 open OutputToTapeRewound in
-/-- **The space of the redirected and rewound machine.** The bound is the sum of the two phases
-and is not tight: the redirection costs the space of `tm` plus the cells of the output and its
-frontier, and the rewinding costs the cells walked back over plus one cell on each of the `k`
-original tapes, with the cells of the output counted in both. -/
+/-- **The space of the redirected and rewound machine on a normalized computation.** -/
 theorem spaceUsed_outputToTapeRewound {tm : MultiTapeTM k Symbol State} {output : List Symbol}
     {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (out : List Symbol) :
     tm.outputToTapeRewound.spaceUsed
         (wordsCfg input (some tm.outputToTapeRewound.q₀) (fun _ => []) out)
         (t + output.length + 2) ≤ s + 2 * output.length + k + 3 := by
-  -- the redirection visits what `tm` visits, plus the cells of the output and its frontier
-  have hspace₀ : tm.outputToTape.spaceUsed
-      (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) out) t ≤ s + output.length + 1 := by
-    rw [show (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) out
-          : Cfg (k + 1) Symbol State input) =
-        (outCfg (wordsCfg input (some tm.q₀) (fun _ => []) [])).withOutput out from by
-      rw [outputToTape_q₀, outCfg_wordsCfg, snoc_nil, withOutput_wordsCfg],
-      spaceUsed_outputToTape_withOutput]
-    refine le_trans (spaceUsed_outputToTape _ _ _) ?_
-    rw [h.1]
-    exact Nat.add_le_add_right h.2 _
-  have hfin : (((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).runFrom
-      ((((outCfg (wordsCfg (State := State) input none (fun _ => []) output)).withOutput
-        out).withState (some ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).q₀)))
-      (output.length + 2)).Halted := by
-    rw [withState_outCfg_wordsCfg, runFrom_phase₁]
+  rw [← snoc_nil]
+  exact spaceUsed_outputToTapeRewound_of_runFrom h.1 h.2 out
+
+/-- **Redirecting the output of a tape transformation onto a work tape.** If `tm` transforms words
+and emits, then `tm` redirected and rewound transforms the same words on the first `k` tapes and
+writes what it would have emitted onto a fresh last tape, which it is given blank. The result emits
+nothing, so it is a tape transformation in the strictest sense and can be plumbed further.
+
+The bounds need a bound `o` on the length of the emitted word, since they are numbers while the
+emitted word varies with the input; `ho` supplies it. -/
+theorem transformsTapes_outputToTapeRewound {tm : MultiTapeTM k Symbol State}
+    {P : (input : List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop}
+    {t s o : ℕ} (h : TransformsTapes tm P Q t s)
+    (ho : ∀ input ws ws' e, P input ws → Q input ws ws' e → e.length ≤ o) :
+    TransformsTapes tm.outputToTapeRewound
+      (fun input ws => ∃ w, ws = Fin.snoc w [] ∧ P input w)
+      (fun input ws ws' e => ∃ w w' v, ws = Fin.snoc w [] ∧ Q input w w' v ∧
+        ws' = Fin.snoc w' v ∧ e = [])
+      (t + o + 2) (s + 2 * o + k + 3) := by
+  rintro inp ws out ⟨w, rfl, hP⟩
+  obtain ⟨w', v, hrun, hQ, hspace⟩ := h inp w [] hP
+  rw [List.nil_append] at hrun
+  have hv : v.length ≤ o := ho _ _ _ _ hP hQ
+  have hr := runFrom_outputToTapeRewound_of_runFrom hrun out
+  have hs := spaceUsed_outputToTapeRewound_of_runFrom hrun hspace out
+  have hhalt : (tm.outputToTapeRewound.runFrom
+      (wordsCfg inp (some tm.outputToTapeRewound.q₀) (Fin.snoc w []) out)
+      (t + v.length + 2)).state = none := by
+    rw [hr]
     rfl
-  -- spell the start out as a first-phase configuration, so that `spaceUsed_seq_le` applies
-  -- without the elaborator having to unfold `outputToTapeRewound` against a metavariable
-  have hstart : tm.outputToTapeRewound.spaceUsed
-      (wordsCfg input (some tm.outputToTapeRewound.q₀) (fun _ => []) out)
-      (t + output.length + 2) =
-      (tm.outputToTape.seq ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k)))).spaceUsed
-        (Sequential.leftCfg ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k)))
-          (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) out))
-        (t + output.length + 2) := rfl
-  rw [hstart, show t + output.length + 2 = t + (output.length + 2) from by omega]
-  refine le_trans (spaceUsed_seq_le (runFrom_phase₀ h out) rfl hfin) ?_
-  rw [withState_outCfg_wordsCfg]
-  have := spaceUsed_phase₁ (input := input) (k := k) (fun _ => []) output out (output.length + 2)
-  omega
+  refine ⟨Fin.snoc w' v, [], ?_, ⟨w, w', v, rfl, hQ, rfl, rfl⟩, ?_⟩
+  · rw [List.append_nil, runFrom_eq_of_halt _ _ (by omega) hhalt, hr]
+  · rw [spaceUsed_eq_of_halt _ (by omega) hhalt]
+    omega
 
 /-- **A normalized computation is a tape transformer.** Redirected onto a fresh last tape and
 rewound, a machine that computes `output` from `input` leaving its tapes clean is an ordinary
@@ -200,14 +273,15 @@ rewound, a machine that computes `output` from `input` leaving its tapes clean i
 The bounds mention the length of the output, so a machine computing a function gives one such
 statement per input; `Turing.MultiTapeTM.TransformsTapes.exists` collects a family with uniform
 bounds back into a single statement. -/
-theorem transformsTapes_outputToTapeRewound {tm : MultiTapeTM k Symbol State}
-    {output : List Symbol} {t s : ℕ}
+theorem transformsTapes_outputToTapeRewound_of_computesNormalized
+    {tm : MultiTapeTM k Symbol State} {output : List Symbol} {t s : ℕ}
     (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
     TransformsTapes tm.outputToTapeRewound
       (fun inp ws => inp = input ∧ ws = fun _ => [])
-      (fun _ _ ws' => ws' = Fin.snoc (fun _ => []) output)
+      (fun _ _ ws' e => ws' = Fin.snoc (fun _ => []) output ∧ e = [])
       (t + output.length + 2) (s + 2 * output.length + k + 3) := by
   rintro inp ws out ⟨rfl, rfl⟩
-  exact ⟨_, runFrom_outputToTapeRewound h out, rfl, spaceUsed_outputToTapeRewound h out⟩
+  exact ⟨_, [], by rw [List.append_nil]; exact runFrom_outputToTapeRewound h out, ⟨rfl, rfl⟩,
+    spaceUsed_outputToTapeRewound h out⟩
 
 end Turing.MultiTapeTM

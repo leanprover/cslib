@@ -187,21 +187,27 @@ theorem spaceUsed_seq_le {cfg mid : Cfg k Symbol State₀ input} {t₀ t₁ : �
 open Sequential in
 /-- **Sequential composition of transformations.** If the postcondition of the first
 transformation implies the precondition of the second, the composed machine performs the two
-transformations one after the other, with the time and space bounds adding. -/
+transformations one after the other, with the time and space bounds adding and the emitted words
+concatenating. -/
 theorem transformsTapes_seq
     {P₀ P₁ : (input : List Symbol) → (Fin k → List Symbol) → Prop}
-    {Q₀ Q₁ : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q₀ Q₁ : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop}
     {t₀ s₀ t₁ s₁ : ℕ}
     (h₀ : TransformsTapes tm₀ P₀ Q₀ t₀ s₀) (h₁ : TransformsTapes tm₁ P₁ Q₁ t₁ s₁)
-    (hmid : ∀ input ws ws', P₀ input ws → Q₀ input ws ws' → P₁ input ws') :
+    (hmid : ∀ input ws ws' e, P₀ input ws → Q₀ input ws ws' e → P₁ input ws') :
     TransformsTapes (tm₀.seq tm₁) P₀
-      (fun input ws ws'' => ∃ ws', Q₀ input ws ws' ∧ Q₁ input ws' ws'')
+      (fun input ws ws'' e => ∃ ws' e₀ e₁, Q₀ input ws ws' e₀ ∧ Q₁ input ws' ws'' e₁ ∧
+        e = e₀ ++ e₁)
       (t₀ + t₁) (s₀ + s₁) := by
   intro input ws out hP₀
-  obtain ⟨ws', hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
-  obtain ⟨ws'', hrun₁, hQ₁, hspace₁⟩ := h₁ input ws' out (hmid input ws ws' hP₀ hQ₀)
-  rw [← withState_wordsCfg (State := State₀) input none ws' out (some tm₁.q₀)] at hrun₁
-  refine ⟨ws'', runFrom_seq hrun₀ rfl hrun₁ rfl, ⟨ws', hQ₀, hQ₁⟩, ?_⟩
-  exact (spaceUsed_seq_le hrun₀ rfl (by rw [hrun₁]; rfl)).trans (Nat.add_le_add hspace₀ hspace₁)
+  obtain ⟨ws', e₀, hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
+  obtain ⟨ws'', e₁, hrun₁, hQ₁, hspace₁⟩ :=
+    h₁ input ws' (out ++ e₀) (hmid input ws ws' e₀ hP₀ hQ₀)
+  rw [← withState_wordsCfg (State := State₀) input none ws' (out ++ e₀) (some tm₁.q₀)] at hrun₁
+  refine ⟨ws'', e₀ ++ e₁, ?_, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, ?_⟩
+  · rw [← List.append_assoc]
+    exact runFrom_seq hrun₀ rfl hrun₁ rfl
+  · exact (spaceUsed_seq_le hrun₀ rfl (by rw [hrun₁]; rfl)).trans (Nat.add_le_add hspace₀ hspace₁)
 
 end Turing.MultiTapeTM

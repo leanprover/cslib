@@ -20,9 +20,10 @@ Configurations are described by *equalities*: `wordsCfg input q ws out` is the c
 work tape `i` holds exactly the word `ws i` (contents `tapeOfList (ws i)`, head at the start), with
 the input head at the start of the input and output `out`. A specification
 `TransformsTapes tm P Q t s` says: started on word-holding tapes satisfying `P`, after exactly `t`
-steps the machine sits in the halted *normal form* `wordsCfg input none ws' out` (every head reset
-to its initial position, tapes blank outside their words, output untouched), with the new words
-related to the old ones by `Q` and using at most `s` work-tape cells. The machine may halt earlier
+steps the machine sits in the halted *normal form* `wordsCfg input none ws' (out ++ emitted)`
+(every head reset to its initial position, tapes blank outside their words, the ambient output
+extended by whatever the machine emitted), with the new words and the emitted word related to the
+old words by `Q` and using at most `s` work-tape cells. The machine may halt earlier
 than `t`; since a halted machine stays put and stops visiting new cells, running on to `t` costs
 nothing, so a fixed step count loses no generality and spares every composition an existential.
 Requiring this normal form is what lets specifications compose by rewriting: the halting
@@ -32,9 +33,11 @@ is read off the equation, not re-established cell by cell.
 A whole computation is described in the same vocabulary by
 `ComputesNormalizedInTimeAndSpace`: a machine that starts on blank tapes and halts in the same
 normal form, having emitted its output. This is `ComputesInTimeAndSpace` strengthened by the
-requirement that the machine clean up after itself, and it is the hypothesis under which a
-computation can be used as a *component* — plugged into a combinator that redirects its input or
-its output to a work tape, the result is again a `TransformsTapes`.
+requirement that the machine clean up after itself. It is not a separate notion: it is exactly the
+transformation that turns blank tapes into blank tapes and emits the output, on one fixed input,
+and `ComputesNormalizedInTimeAndSpace.transformsTapes` says so. That is what makes a computation
+usable as a *component* — every combinator of the plumbing layer consumes a `TransformsTapes` and
+produces one, so computations and plumbing stack without a change of vocabulary.
 
 ## Main definitions
 
@@ -51,6 +54,8 @@ its output to a work tape, the result is again a `TransformsTapes`.
   single specification with an existential precondition.
 * `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace.computesInTimeAndSpace`: a normalized
   computation is in particular a computation.
+* `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace.transformsTapes`: a normalized computation
+  is in particular a tape transformation, and can therefore be plumbed.
 * `Turing.MultiTapeTM.transformsTapes_nop`: `nop` leaves every word as it was, the first machine of
   the interface and the check that the format is inhabited as intended.
 -/
@@ -63,38 +68,46 @@ variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 
 /-- `TransformsTapes tm P Q t s`: started in its initial state on tapes holding words `ws` that
 satisfy the precondition `P`, the machine is halted after exactly `t` steps in the configuration
-whose tapes hold words `ws'` with `Q input ws ws'`, having used at most `s` work-tape cells. The
-machine is free to halt before step `t`, because it then stays in that configuration.
+whose tapes hold words `ws'` and which has appended `emitted` to the output, with
+`Q input ws ws' emitted`, having used at most `s` work-tape cells. The machine is free to halt
+before step `t`, because it then stays in that configuration.
+
+The output is described as a *suffix* appended to whatever was already there, never as an absolute
+value, so that the specification is insensitive to the ambient output — which is what lets
+specifications compose: in a sequence the emitted words concatenate.
 
 The bounds are numbers; a specification whose bounds depend on the data is a *family*
 `∀ j, TransformsTapes tm (P j) (Q j) (t j) (s j)` over one fixed machine. -/
 def TransformsTapes (tm : MultiTapeTM k Symbol State)
     (P : (input : List Symbol) → (Fin k → List Symbol) → Prop)
-    (Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop)
+    (Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop)
     (t s : ℕ) : Prop :=
   ∀ (input : List Symbol) (ws : Fin k → List Symbol) (out : List Symbol), P input ws →
-    ∃ ws',
-      tm.runFrom (wordsCfg input (some tm.q₀) ws out) t = wordsCfg input none ws' out ∧
-      Q input ws ws' ∧
+    ∃ ws' emitted,
+      tm.runFrom (wordsCfg input (some tm.q₀) ws out) t =
+        wordsCfg input none ws' (out ++ emitted) ∧
+      Q input ws ws' emitted ∧
       tm.spaceUsed (wordsCfg input (some tm.q₀) ws out) t ≤ s
 
 /-- A `TransformsTapes` statement can be read with a stronger precondition, a weaker postcondition
 and larger bounds. -/
 theorem TransformsTapes.imp {tm : MultiTapeTM k Symbol State}
     {P P' : (input : List Symbol) → (Fin k → List Symbol) → Prop}
-    {Q Q' : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q Q' : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop}
     {t s t' s' : ℕ} (h : TransformsTapes tm P Q t s)
     (hP : ∀ input ws, P' input ws → P input ws)
-    (hQ : ∀ input ws ws', P' input ws → Q input ws ws' → Q' input ws ws')
+    (hQ : ∀ input ws ws' e, P' input ws → Q input ws ws' e → Q' input ws ws' e)
     (ht : t ≤ t') (hs : s ≤ s') :
     TransformsTapes tm P' Q' t' s' := by
   intro input ws out hP'
-  obtain ⟨ws', hrun, hQ'', hspace⟩ := h input ws out (hP input ws hP')
+  obtain ⟨ws', e, hrun, hQ'', hspace⟩ := h input ws out (hP input ws hP')
   -- the machine is halted at step `t`, so running on to `t'` changes neither tapes nor space
   have hhalt : (tm.runFrom (wordsCfg input (some tm.q₀) ws out) t).state = none := by
     rw [hrun]
     rfl
-  refine ⟨ws', ?_, hQ input ws ws' hP' hQ'', ?_⟩
+  refine ⟨ws', e, ?_, hQ input ws ws' e hP' hQ'', ?_⟩
   · rw [runFrom_eq_of_halt tm _ ht hhalt, hrun]
   · rw [spaceUsed_eq_of_halt _ ht hhalt]
     exact hspace.trans hs
@@ -104,13 +117,14 @@ the existential over the family. The parameter is recovered in the postcondition
 lost; this is how a family with *uniform* bounds is turned back into a single statement. -/
 theorem TransformsTapes.exists {ι : Sort*} {tm : MultiTapeTM k Symbol State}
     {P : ι → (input : List Symbol) → (Fin k → List Symbol) → Prop}
-    {Q : ι → (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q : ι → (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop}
     {t s : ℕ} (h : ∀ j, TransformsTapes tm (P j) (Q j) t s) :
     TransformsTapes tm (fun input ws => ∃ j, P j input ws)
-      (fun input ws ws' => ∃ j, P j input ws ∧ Q j input ws ws') t s := by
+      (fun input ws ws' e => ∃ j, P j input ws ∧ Q j input ws ws' e) t s := by
   rintro input ws out ⟨j, hj⟩
-  obtain ⟨ws', hrun, hQ, hspace⟩ := h j input ws out hj
-  exact ⟨ws', hrun, ⟨j, hj, hQ⟩, hspace⟩
+  obtain ⟨ws', e, hrun, hQ, hspace⟩ := h j input ws out hj
+  exact ⟨ws', e, hrun, ⟨j, hj, hQ⟩, hspace⟩
 
 /-! ### Normalized computations -/
 
@@ -165,6 +179,29 @@ theorem mono (h : tm.ComputesNormalizedInTimeAndSpace input output t s) {t' s' :
   exact ⟨by rw [runFrom_eq_of_halt _ _ ht hhalt, h.1],
     by rw [spaceUsed_eq_of_halt _ ht hhalt]; exact h.2.trans hs⟩
 
+/-- Spelling a run on blank tapes and no output as a run on blank tapes over an arbitrary ambient
+output, which the machine never reads. -/
+private lemma wordsCfg_eq_prependOutput (q : Option State) (out : List Symbol) :
+    wordsCfg (k := k) input q (fun _ => []) out =
+      (wordsCfg input q (fun _ => ([] : List Symbol)) []).prependOutput out := by
+  simp
+
+/-- **A normalized computation is a tape transformation.** It is the one that turns blank tapes
+into blank tapes and emits `output`, on the single input it is about. The ambient output plays no
+role, because a machine never reads what it has already written.
+
+This is the bridge that lets a whole computation be fed to the combinators of the plumbing layer,
+which all speak `Turing.MultiTapeTM.TransformsTapes`. -/
+theorem transformsTapes (h : tm.ComputesNormalizedInTimeAndSpace input output t s) :
+    TransformsTapes tm (fun inp ws => inp = input ∧ ws = fun _ => [])
+      (fun _ _ ws' e => ws' = (fun _ => []) ∧ e = output) t s := by
+  rintro inp ws out ⟨rfl, rfl⟩
+  refine ⟨fun _ => [], output, ?_, ⟨rfl, rfl⟩, ?_⟩
+  · rw [wordsCfg_eq_prependOutput, runFrom_prependOutput, h.1]
+    simp
+  · rw [wordsCfg_eq_prependOutput, spaceUsed_prependOutput]
+    exact h.2
+
 end ComputesNormalizedInTimeAndSpace
 
 end Normalized
@@ -194,10 +231,10 @@ lemma runFrom_nop_one (ws : Fin k → List Symbol) (out : List Symbol) :
 never move, so it visits one cell per tape. This is the first machine of the interface: it checks
 that the specification format is inhabited exactly as intended. -/
 theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
-    TransformsTapes (nop k Symbol) (fun _ _ => True) (fun _ ws ws' => ws' = ws) 1 k := by
+    TransformsTapes (nop k Symbol) (fun _ _ => True) (fun _ ws ws' e => ws' = ws ∧ e = []) 1 k := by
   intro input ws out _
   -- the heads never move, so each tape touches only the single cell `0`
-  refine ⟨ws, runFrom_nop_one ws out, rfl,
+  refine ⟨ws, [], by rw [List.append_nil]; exact runFrom_nop_one ws out, ⟨rfl, rfl⟩,
     spaceUsed_le_of_workTapePos_const _ 1 fun m hm => ?_⟩
   rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
   · rfl

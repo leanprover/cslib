@@ -21,16 +21,15 @@ set up and tear down its flag tape. `inputFromTape` expects its flag tape to car
 is blank at every negative cell. The wrapper writes the mark before the computation and erases it
 afterwards, using `Turing.MultiTapeTM.writeLeft`, so the composite starts and ends in normal form.
 
-The hypothesis that makes this work is that `tm` *computes normally*, cf.
-`Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace`: it halts with its work tapes blank and its
-input head back at the start. The input head of `tm` is simulated by the virtual input head, so
-only then are the two fresh heads back at cell `0` at the end, where the teardown step expects
-them.
+The hypothesis that makes this work is that `tm` starts and ends in normal form, with its input
+head back at the start: the input head of `tm` is simulated by the virtual input head, so only then
+are the two fresh heads back at cell `0` at the end, where the teardown step expects them.
 
-Unlike `Turing.MultiTapeTM.outputToTapeRewound` this is *not* a
-`Turing.MultiTapeTM.TransformsTapes`: the composite still emits the output of `tm` on the real
-output tape, which `TransformsTapes` forbids. It is therefore stated directly as a run, in the same
-`Turing.wordsCfg` vocabulary.
+The composite still emits what `tm` emits, on the real output tape, so this is a
+`Turing.MultiTapeTM.TransformsTapes` only because that specification describes the output as a
+suffix appended to the ambient one. Together with
+`Turing.MultiTapeTM.transformsTapes_outputToTapeRewound`, which turns such an emission back into a
+word on a work tape, the two adapters stack.
 
 ## Main definitions
 
@@ -38,9 +37,12 @@ output tape, which `TransformsTapes` forbids. It is therefore stated directly as
 
 ## Main results
 
-* `Turing.MultiTapeTM.runFrom_inputFromTapeFlagged`: its run, from a word configuration holding the
-  simulated input on the first fresh tape to the same configuration with the output emitted.
-* `Turing.MultiTapeTM.spaceUsed_inputFromTapeFlagged`: its space.
+* `Turing.MultiTapeTM.runFrom_inputFromTapeFlagged_of_runFrom`: its run, from any run of the
+  original machine that ends in normal form.
+* `Turing.MultiTapeTM.transformsTapes_inputFromTapeFlagged`: the resulting specification. The
+  bounds are numbers, so the length of the simulated input has to be bounded uniformly.
+* `Turing.MultiTapeTM.runFrom_inputFromTapeFlagged`: the special case of a whole computation,
+  cf. `Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace`.
 -/
 
 @[expose] public section
@@ -128,30 +130,24 @@ private lemma runFrom_phase₂ (mark : Symbol) (ws : Fin k → List Symbol) (out
     | left j => simp [inCfg, flagTape, wordsCfg, Function.update_of_ne (hne j)]
     | right i => fin_cases i <;> simp [inCfg, flagTape, wordsCfg, Fin.ext_iff]
 
-/-- **The computing phase.** The redirected machine runs `tm` on the word on the virtual input
-tape, emitting its output after whatever was already there. -/
-private lemma runFrom_phase₁ (h : tm.ComputesNormalizedInTimeAndSpace input output t s)
-    (mark : Symbol) (out : List Symbol) :
+/-- **The computing phase.** The redirected machine mirrors `tm` run on the word on the virtual
+input tape. -/
+private lemma runFrom_phase₁ {ws ws' : Fin k → List Symbol} {out e : List Symbol}
+    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) ws out) t =
+      wordsCfg input none ws' (out ++ e)) (mark : Symbol) :
     tm.inputFromTape.runFrom
-        (inCfg mark (wordsCfg input (some tm.inputFromTape.q₀) (fun _ => []) out) outerInput) t =
-      inCfg mark (wordsCfg input none (fun _ => []) (out ++ output)) outerInput := by
-  rw [show wordsCfg input (some tm.inputFromTape.q₀) (fun _ => ([] : List Symbol)) out =
-      (wordsCfg input (some tm.q₀) (fun _ => ([] : List Symbol)) []).prependOutput out from by
-        simp, prependOutput_inCfg, runFrom_prependOutput, runFrom_inCfg, h.1,
-    ← prependOutput_inCfg]
-  simp
+        (inCfg mark (wordsCfg input (some tm.inputFromTape.q₀) ws out) outerInput) t =
+      inCfg mark (wordsCfg input none ws' (out ++ e)) outerInput := by
+  rw [inputFromTape_q₀, runFrom_inCfg, hrun]
 
 /-- **The space of the computing phase.** On top of the space of `tm` the two fresh tapes cost the
 cells the simulated input head can reach. -/
-private lemma spaceUsed_phase₁ (h : tm.ComputesNormalizedInTimeAndSpace input output t s)
-    (mark : Symbol) (out : List Symbol) :
+private lemma spaceUsed_phase₁ {ws : Fin k → List Symbol} {out : List Symbol}
+    (hspace : tm.spaceUsed (wordsCfg input (some tm.q₀) ws out) t ≤ s) (mark : Symbol) :
     tm.inputFromTape.spaceUsed
-        (inCfg mark (wordsCfg input (some tm.inputFromTape.q₀) (fun _ => []) out) outerInput) t ≤
-      s + 2 * (input.length + 2) := by
-  rw [show wordsCfg input (some tm.inputFromTape.q₀) (fun _ => ([] : List Symbol)) out =
-      (wordsCfg input (some tm.q₀) (fun _ => ([] : List Symbol)) []).prependOutput out from by
-        simp, prependOutput_inCfg, spaceUsed_prependOutput]
-  exact (spaceUsed_inputFromTape _ _ _ _ _).trans (Nat.add_le_add_right h.2 _)
+        (inCfg mark (wordsCfg input (some tm.inputFromTape.q₀) ws out) outerInput) t ≤
+      s + 2 * (input.length + 2) :=
+  (spaceUsed_inputFromTape _ _ _ _ _).trans (Nat.add_le_add_right hspace _)
 
 /-- **The space of the setup phase**, and, with the mark already in place, of the teardown phase:
 the two cells of the flag tape, plus one cell for each other tape. -/
@@ -181,79 +177,79 @@ end InputFromTapeFlagged
 
 open InputFromTapeFlagged Sequential in
 /-- **The run of the wrapped machine.** Started in normal form with the simulated input on the
-first of its two fresh tapes, it halts in normal form with the output of `tm` emitted, after
-`t + 4` steps: two to set the flag up, the `t` steps of `tm`, and two to tear it down. -/
-theorem runFrom_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output : List Symbol}
-    {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (mark : Symbol)
-    (outerInput out : List Symbol) :
+first of its two fresh tapes, it mirrors a run of `tm` on that word and halts in normal form,
+after `t + 4` steps: two to set the flag up, the `t` steps of `tm`, and two to tear it down. -/
+theorem runFrom_inputFromTapeFlagged_of_runFrom {tm : MultiTapeTM k Symbol State}
+    {ws ws' : Fin k → List Symbol} {out e : List Symbol} {t : ℕ}
+    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) ws out) t =
+      wordsCfg input none ws' (out ++ e))
+    (mark : Symbol) (outerInput : List Symbol) :
     (tm.inputFromTapeFlagged mark).runFrom
         (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
-          (Fin.append (fun _ => []) ![input, []]) out) (t + 4) =
-      wordsCfg outerInput none (Fin.append (fun _ => []) ![input, []]) (out ++ output) := by
+          (Fin.append ws ![input, []]) out) (t + 4) =
+      wordsCfg outerInput none (Fin.append ws' ![input, []]) (out ++ e) := by
   rw [show t + 4 = 2 + (t + 2) from by omega]
   have h₁ : (tm.inputFromTape.seq ((writeLeft none).extendTapes (tapeEmb (flagTape k)))).runFrom
-      (((inCfg mark (wordsCfg input (none : Option WriteLeftState) (fun _ => []) out)
+      (((inCfg mark (wordsCfg input (none : Option WriteLeftState) ws out)
           outerInput).withState (some (tm.inputFromTape.seq
             ((writeLeft (none : Option Symbol)).extendTapes (tapeEmb (flagTape k)))).q₀)))
       (t + 2) =
-      rightCfg (wordsCfg outerInput none (Fin.append (fun _ => []) ![input, []])
-        (out ++ output)) :=
-    runFrom_seq (runFrom_phase₁ h mark out) rfl (runFrom_phase₂ mark (fun _ => []) (out ++ output))
-      rfl
-  exact runFrom_seq (runFrom_phase₀ mark (fun _ => []) out) rfl h₁ rfl
+      rightCfg (wordsCfg outerInput none (Fin.append ws' ![input, []]) (out ++ e)) :=
+    runFrom_seq (runFrom_phase₁ hrun mark) rfl (runFrom_phase₂ mark ws' (out ++ e)) rfl
+  exact runFrom_seq (runFrom_phase₀ mark ws out) rfl h₁ rfl
 
 open InputFromTapeFlagged Sequential in
 /-- **The space of the wrapped machine.** On top of the space of `tm` the virtual input tape and
 the flag tape each cost the cells the simulated input head can reach, and the setup and teardown
 steps cost one cell on every tape they do not use. -/
-theorem spaceUsed_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output : List Symbol}
-    {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (mark : Symbol)
-    (outerInput out : List Symbol) :
+theorem spaceUsed_inputFromTapeFlagged_of_runFrom {tm : MultiTapeTM k Symbol State}
+    {ws ws' : Fin k → List Symbol} {out e : List Symbol} {t s : ℕ}
+    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) ws out) t =
+      wordsCfg input none ws' (out ++ e))
+    (hspace : tm.spaceUsed (wordsCfg input (some tm.q₀) ws out) t ≤ s)
+    (mark : Symbol) (outerInput : List Symbol) :
     (tm.inputFromTapeFlagged mark).spaceUsed
         (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
-          (Fin.append (fun _ => []) ![input, []]) out) (t + 4) ≤
+          (Fin.append ws ![input, []]) out) (t + 4) ≤
       s + 2 * input.length + 2 * k + 10 := by
   rw [show t + 4 = 2 + (t + 2) from by omega]
-  have hmid := runFrom_phase₀ (k := k) (input := input) (outerInput := outerInput) mark
-    (fun _ => []) out
+  have hmid := runFrom_phase₀ (input := input) (outerInput := outerInput) mark ws out
   have hspace₀ : ((writeLeft (some mark)).extendTapes (tapeEmb (flagTape k))).spaceUsed
       (wordsCfg outerInput (some ((writeLeft (some mark)).extendTapes (tapeEmb (flagTape k))).q₀)
-        (Fin.append (fun _ => []) ![input, []]) out) 2 ≤ k + 3 :=
+        (Fin.append ws ![input, []]) out) 2 ≤ k + 3 :=
     spaceUsed_writeLeft_flagTape _ _ rfl (by simp [flagTape, wordsCfg]) 2
   have hspace₂ : ((writeLeft (none : Option Symbol)).extendTapes
         (tapeEmb (flagTape k))).spaceUsed
-      ((inCfg mark (wordsCfg input (none : Option State) (fun _ => []) (out ++ output))
+      ((inCfg mark (wordsCfg input (none : Option State) ws' (out ++ e))
         outerInput).withState (some ((writeLeft (none : Option Symbol)).extendTapes
           (tapeEmb (flagTape k))).q₀)) 2 ≤ k + 3 :=
     spaceUsed_writeLeft_flagTape _ _ rfl (workTapePos_inCfg_flagTape _ _ _ _ _) 2
   have hhalt₂ : ((((writeLeft (none : Option Symbol)).extendTapes
       (tapeEmb (flagTape k))).runFrom
-      ((inCfg mark (wordsCfg input (none : Option State) (fun _ => []) (out ++ output))
+      ((inCfg mark (wordsCfg input (none : Option State) ws' (out ++ e))
         outerInput).withState (some ((writeLeft (none : Option Symbol)).extendTapes
           (tapeEmb (flagTape k))).q₀)) 2)).Halted := by
     rw [runFrom_phase₂]
     rfl
   have hspace₁ : (tm.inputFromTape.seq ((writeLeft none).extendTapes
         (tapeEmb (flagTape k)))).spaceUsed
-      ((inCfg mark (wordsCfg input (none : Option WriteLeftState) (fun _ => []) out)
+      ((inCfg mark (wordsCfg input (none : Option WriteLeftState) ws out)
         outerInput).withState (some (tm.inputFromTape.seq
           ((writeLeft (none : Option Symbol)).extendTapes (tapeEmb (flagTape k)))).q₀)) (t + 2) ≤
       (s + 2 * (input.length + 2)) + (k + 3) :=
-    (spaceUsed_seq_le (runFrom_phase₁ h mark out) rfl hhalt₂).trans
-      (Nat.add_le_add (spaceUsed_phase₁ h mark out) hspace₂)
+    (spaceUsed_seq_le (runFrom_phase₁ hrun mark) rfl hhalt₂).trans
+      (Nat.add_le_add (spaceUsed_phase₁ hspace mark) hspace₂)
   have hrun₁ : (tm.inputFromTape.seq ((writeLeft none).extendTapes
       (tapeEmb (flagTape k)))).runFrom
-      ((inCfg mark (wordsCfg input (none : Option WriteLeftState) (fun _ => []) out)
+      ((inCfg mark (wordsCfg input (none : Option WriteLeftState) ws out)
         outerInput).withState (some (tm.inputFromTape.seq
           ((writeLeft (none : Option Symbol)).extendTapes (tapeEmb (flagTape k)))).q₀))
       (t + 2) =
-      rightCfg (wordsCfg outerInput none (Fin.append (fun _ => []) ![input, []])
-        (out ++ output)) :=
-    runFrom_seq (runFrom_phase₁ h mark out) rfl (runFrom_phase₂ mark (fun _ => []) (out ++ output))
-      rfl
+      rightCfg (wordsCfg outerInput none (Fin.append ws' ![input, []]) (out ++ e)) :=
+    runFrom_seq (runFrom_phase₁ hrun mark) rfl (runFrom_phase₂ mark ws' (out ++ e)) rfl
   have hhalt₁ : ((tm.inputFromTape.seq ((writeLeft none).extendTapes
       (tapeEmb (flagTape k)))).runFrom
-      ((inCfg mark (wordsCfg input (none : Option WriteLeftState) (fun _ => []) out)
+      ((inCfg mark (wordsCfg input (none : Option WriteLeftState) ws out)
         outerInput).withState (some (tm.inputFromTape.seq
           ((writeLeft (none : Option Symbol)).extendTapes (tapeEmb (flagTape k)))).q₀))
       (t + 2)).Halted := by
@@ -263,15 +259,67 @@ theorem spaceUsed_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output
   -- without the elaborator having to unfold `inputFromTapeFlagged` against a metavariable
   have hstart : (tm.inputFromTapeFlagged mark).spaceUsed
       (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
-        (Fin.append (fun _ => []) ![input, []]) out) (2 + (t + 2)) =
+        (Fin.append ws ![input, []]) out) (2 + (t + 2)) =
       (((writeLeft (some mark)).extendTapes (tapeEmb (flagTape k))).seq
         (tm.inputFromTape.seq ((writeLeft none).extendTapes (tapeEmb (flagTape k))))).spaceUsed
         (leftCfg (tm.inputFromTape.seq ((writeLeft none).extendTapes (tapeEmb (flagTape k))))
           (wordsCfg outerInput (some ((writeLeft (some mark)).extendTapes
-            (tapeEmb (flagTape k))).q₀) (Fin.append (fun _ => []) ![input, []]) out))
+            (tapeEmb (flagTape k))).q₀) (Fin.append ws ![input, []]) out))
         (2 + (t + 2)) := rfl
   rw [hstart]
   have := (spaceUsed_seq_le hmid rfl hhalt₁).trans (Nat.add_le_add hspace₀ hspace₁)
   omega
+
+/-- **Reading the input of a tape transformation from a work tape.** If `tm` transforms words and
+emits, then `tm` reading its input from the first of two fresh work tapes transforms the same words
+on the first `k` tapes, leaves the simulated input and the flag tape as it found them, and emits
+the same word. The result is again a `Turing.MultiTapeTM.TransformsTapes`, which is what makes the
+two adapters stack.
+
+The bounds need a bound `m` on the length of the simulated input, since they are numbers while the
+word on the virtual input tape varies; `hm` supplies it. -/
+theorem transformsTapes_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State}
+    {P : (input : List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop}
+    {t s m : ℕ} (h : TransformsTapes tm P Q t s) (mark : Symbol)
+    (hm : ∀ inp ws, P inp ws → inp.length ≤ m) :
+    TransformsTapes (tm.inputFromTapeFlagged mark)
+      (fun _ ws => ∃ inp w, ws = Fin.append w ![inp, []] ∧ P inp w)
+      (fun _ ws ws' e => ∃ inp w w', ws = Fin.append w ![inp, []] ∧
+        ws' = Fin.append w' ![inp, []] ∧ Q inp w w' e)
+      (t + 4) (s + 2 * m + 2 * k + 10) := by
+  rintro outerInput ws out ⟨inp, w, rfl, hP⟩
+  obtain ⟨w', e, hrun, hQ, hspace⟩ := h inp w out hP
+  refine ⟨Fin.append w' ![inp, []], e,
+    runFrom_inputFromTapeFlagged_of_runFrom hrun mark outerInput, ⟨inp, w, w', rfl, rfl, hQ⟩, ?_⟩
+  have hs := spaceUsed_inputFromTapeFlagged_of_runFrom hrun hspace mark outerInput
+  have := hm inp w hP
+  omega
+
+/-- **The run of the wrapped machine on a normalized computation.** Started in normal form with
+the input on the first of its two fresh tapes, it halts in normal form with the output of `tm`
+emitted. -/
+theorem runFrom_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output : List Symbol}
+    {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (mark : Symbol)
+    (outerInput out : List Symbol) :
+    (tm.inputFromTapeFlagged mark).runFrom
+        (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
+          (Fin.append (fun _ => []) ![input, []]) out) (t + 4) =
+      wordsCfg outerInput none (Fin.append (fun _ => []) ![input, []]) (out ++ output) := by
+  obtain ⟨ws', e, hrun, ⟨rfl, rfl⟩, -⟩ := h.transformsTapes input (fun _ => []) out ⟨rfl, rfl⟩
+  exact runFrom_inputFromTapeFlagged_of_runFrom hrun mark outerInput
+
+/-- **The space of the wrapped machine on a normalized computation.** -/
+theorem spaceUsed_inputFromTapeFlagged {tm : MultiTapeTM k Symbol State} {output : List Symbol}
+    {t s : ℕ} (h : tm.ComputesNormalizedInTimeAndSpace input output t s) (mark : Symbol)
+    (outerInput out : List Symbol) :
+    (tm.inputFromTapeFlagged mark).spaceUsed
+        (wordsCfg outerInput (some (tm.inputFromTapeFlagged mark).q₀)
+          (Fin.append (fun _ => []) ![input, []]) out) (t + 4) ≤
+      s + 2 * input.length + 2 * k + 10 := by
+  obtain ⟨ws', e, hrun, ⟨rfl, rfl⟩, hspace⟩ :=
+    h.transformsTapes input (fun _ => []) out ⟨rfl, rfl⟩
+  exact spaceUsed_inputFromTapeFlagged_of_runFrom hrun hspace mark outerInput
 
 end Turing.MultiTapeTM
