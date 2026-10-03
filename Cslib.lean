@@ -49,6 +49,7 @@ public import Cslib.Computability.Circuit.Depth
 public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Full
 public import Cslib.Computability.Circuit.Full.Aggregation
+public import Cslib.Computability.Circuit.Full.Blocks
 public import Cslib.Computability.Circuit.Full.Decoder
 public import Cslib.Computability.Circuit.Full.Dictionary
 public import Cslib.Computability.Circuit.Homomorphism
