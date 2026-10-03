@@ -9,6 +9,7 @@ import CslibTests.CircuitCounting
 import CslibTests.Circuits
 import CslibTests.Commitment
 import CslibTests.Complexity.Combinators
+import CslibTests.Complexity.Plumbing
 import CslibTests.Congruence
 import CslibTests.DFA
 import CslibTests.FreeMonad
