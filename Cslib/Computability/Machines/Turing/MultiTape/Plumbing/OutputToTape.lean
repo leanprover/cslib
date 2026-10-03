@@ -42,6 +42,10 @@ at the write frontier. -/
       output := none
       state := a.state }
 
+@[simp]
+public lemma outputToTape_q₀ (tm : MultiTapeTM k Symbol State) :
+    tm.outputToTape.q₀ = tm.q₀ := rfl
+
 /-- A configuration of `tm`, as the redirected machine sees it: the output so far sits on the
 last work tape with the head at its end, and the real output is empty. -/
 @[expose] public def outCfg (c : Cfg k Symbol State input) :
@@ -133,6 +137,26 @@ public lemma initCfg_outputToTape (tm : MultiTapeTM k Symbol State) (input : Lis
     tm.outputToTape.initCfg input = outCfg (tm.initCfg input) := by
   refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
     simp [initCfg, Cfg.init]
+
+/-- **A word configuration, redirected.** Before anything has been emitted, the redirected view of
+a `wordsCfg` is again a `wordsCfg`, with a fresh empty word on the new last tape. This is the start
+of a redirected run. -/
+public lemma outCfg_wordsCfg (input : List Symbol) (q : Option State)
+    (ws : Fin k → List Symbol) :
+    outCfg (wordsCfg input q ws []) = wordsCfg input q (Fin.snoc ws []) [] := by
+  refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
+    simp [outCfg, wordsCfg]
+
+/-- **A halted normal-form configuration, redirected.** At the end of a redirected run the new last
+tape holds the emitted word, but its head stands at the *frontier* just past it, so this is not a
+`wordsCfg`; rewinding that head is what `outputToTapeRewound` adds. -/
+public lemma outCfg_wordsCfg_output (input : List Symbol) (q : Option State)
+    (ws : Fin k → List Symbol) (output : List Symbol) :
+    outCfg (wordsCfg input q ws output) =
+      ⟨q, 1, fun l => tapeOfList ((Fin.snoc ws output : Fin (k + 1) → List Symbol) l),
+        Fin.snoc (fun _ => (0 : ℤ)) (output.length : ℤ), []⟩ := by
+  refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
+    simp [outCfg, wordsCfg]
 
 /-- **Space of the output-redirected machine.** The `k` inner tapes visit exactly what the original
 does, and the frontier head only walks between the initial and the final length of the output, so
