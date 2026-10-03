@@ -82,6 +82,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.DeterministicToNonde
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTapeFlagged
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTapeRewound
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput

@@ -58,6 +58,10 @@ moved. -/
       inputTape := 0
       workTapes := Fin.append a.workTapes fun _ => (none, m) }
 
+@[simp]
+public lemma inputFromTape_q₀ (tm : MultiTapeTM k Symbol State) :
+    tm.inputFromTape.q₀ = tm.q₀ := rfl
+
 /-- A configuration of `tm` on `input`, as the redirecting machine sees it, over an arbitrary
 ambient input: `input` sits on the virtual input tape with the head at cell `inputPos - 1`, the flag
 tape carries its mark at `-1` with its head in lockstep, and the ambient input head rests at
