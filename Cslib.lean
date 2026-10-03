@@ -50,6 +50,7 @@ public import Cslib.Computability.Circuit.Full.Aggregation
 public import Cslib.Computability.Circuit.Full.Blocks
 public import Cslib.Computability.Circuit.Full.Decoder
 public import Cslib.Computability.Circuit.Full.Dictionary
+public import Cslib.Computability.Circuit.Full.LupanovConstruction
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Normalization
 public import Cslib.Computability.Circuit.Program
