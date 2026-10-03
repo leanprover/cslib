@@ -148,6 +148,10 @@ private lemma some_algebra (n : ℕ) :
 /-- Upper bound function for merge sort time complexity: `T(n) = n * ⌈log₂ n⌉` -/
 abbrev T (n : ℕ) : ℕ := n * clog 2 n
 
+lemma T_monotone : Monotone T := by
+  intro i j h_ij
+  exact Nat.mul_le_mul h_ij (Nat.clog_monotone 2 h_ij)
+
 /-- Solve the recurrence -/
 theorem timeMergeSortRec_le (n : ℕ) : timeMergeSortRec n ≤ T n := by
   fun_induction timeMergeSortRec with
