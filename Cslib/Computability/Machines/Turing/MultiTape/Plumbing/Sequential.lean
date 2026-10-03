@@ -27,6 +27,7 @@ second.
 * `Turing.MultiTapeTM.HaltsAt.runFrom_seq`: once `tm₀` halts, `seq` mirrors `tm₁`.
 * `Turing.MultiTapeTM.runFrom_seq`: runs compose; each machine only has to have halted by the end
   of its time bound.
+* `Turing.MultiTapeTM.spaceUsed_seq_le`: the space of the two phases adds.
 * `Turing.MultiTapeTM.transformsTapes_seq`: transformations compose, bounds adding.
 -/
 
@@ -152,6 +153,38 @@ theorem runFrom_seq {cfg mid : Cfg k Symbol State₀ input} {fin : Cfg k Symbol 
   rw [runFrom_eq_of_halt _ _ (by omega) hhalt, hrun]
 
 open Sequential in
+/-- **Space of a sequential composition of runs.** If `tm₀` has halted in `mid` by step `t₀` and
+`tm₁`, started where `tm₀` halted, has halted by step `t₁`, the composed machine visits at most the
+cells the two phases visit. Unlike `Turing.MultiTapeTM.transformsTapes_seq` this says nothing about
+the shape of the configurations, so it also applies to phases that do not start or end in the
+normal form. -/
+theorem spaceUsed_seq_le {cfg mid : Cfg k Symbol State₀ input} {t₀ t₁ : ℕ}
+    (h₀ : tm₀.runFrom cfg t₀ = mid) (hmid : mid.Halted)
+    (hfin : (tm₁.runFrom (mid.withState (some tm₁.q₀)) t₁).Halted) :
+    (tm₀.seq tm₁).spaceUsed (leftCfg tm₁ cfg) (t₀ + t₁) ≤
+      tm₀.spaceUsed cfg t₀ + tm₁.spaceUsed (mid.withState (some tm₁.q₀)) t₁ := by
+  -- the first halting time of `tm₀`, which may be earlier than `t₀`
+  obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt (tm := tm₀) (cfg := cfg) (h₀ ▸ hmid)
+  -- from step `u` on, `seq` mirrors `tm₁`
+  have hright (n : ℕ) : (tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) (u + n) =
+      rightCfg (tm₁.runFrom (mid.withState (some tm₁.q₀)) n) := by
+    rw [hhaltsAt.runFrom_seq, ← hhaltsAt.runFrom_eq hu, h₀]
+  have hhalt : ((tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) (u + t₁)).Halted := by
+    rw [hright]
+    simpa [Cfg.Halted, rightCfg] using hfin
+  rw [spaceUsed_eq_of_halt _ (by omega : u + t₁ ≤ t₀ + t₁) hhalt]
+  refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
+  · -- the first phase visits what the first machine visits
+    refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ u fun m hm => ?_))
+      (spaceUsed_mono tm₀ _ hu)
+    rw [runFrom_leftCfg _ m fun _ hr => hhaltsAt.not_halted (by omega), workTapePos_leftCfg]
+  · -- the second phase visits what the second machine visits
+    rw [← add_zero u, hright 0]
+    refine le_of_eq (spaceUsed_eq_of_workTapePos _ _ t₁ fun m hm => ?_)
+    rw [runFrom_rightCfg, workTapePos_rightCfg]
+    rfl
+
+open Sequential in
 /-- **Sequential composition of transformations.** If the postcondition of the first
 transformation implies the precondition of the second, the composed machine performs the two
 transformations one after the other, with the time and space bounds adding. -/
@@ -167,32 +200,8 @@ theorem transformsTapes_seq
   intro input ws out hP₀
   obtain ⟨ws', hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
   obtain ⟨ws'', hrun₁, hQ₁, hspace₁⟩ := h₁ input ws' out (hmid input ws ws' hP₀ hQ₀)
-  have hstart : wordsCfg input (some (tm₀.seq tm₁).q₀) ws out =
-      leftCfg tm₁ (wordsCfg input (some tm₀.q₀) ws out) := rfl
-  -- the first halting time of `tm₀`, which may be earlier than `t₀`
-  obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt
-    (show (tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) t₀).Halted by rw [hrun₀]; rfl)
-  -- from step `u` on, `seq` mirrors `tm₁`
-  have hright (n : ℕ) : (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
-      (u + n) = rightCfg (tm₁.runFrom (wordsCfg input (some tm₁.q₀) ws' out) n) := by
-    rw [hstart, hhaltsAt.runFrom_seq, ← hhaltsAt.runFrom_eq hu, hrun₀, withState_wordsCfg]
-  have hhalt : ((tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
-      (u + t₁)).Halted := by
-    rw [hright, hrun₁]
-    rfl
-  refine ⟨ws'', ?_, ⟨ws', hQ₀, hQ₁⟩, ?_⟩
-  · exact runFrom_seq hrun₀ rfl (by simpa using hrun₁) rfl
-  · rw [spaceUsed_eq_of_halt _ (by omega : u + t₁ ≤ t₀ + t₁) hhalt]
-    refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
-    · -- the first phase visits what the first machine visits
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ u fun m hm => ?_))
-        (le_trans (spaceUsed_mono tm₀ _ hu) hspace₀)
-      rw [hstart, runFrom_leftCfg _ m fun _ hr => hhaltsAt.not_halted (by omega),
-        workTapePos_leftCfg]
-    · -- the second phase visits what the second machine visits
-      rw [← add_zero u, hright 0]
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ t₁ fun m hm => ?_)) hspace₁
-      rw [runFrom_rightCfg, workTapePos_rightCfg]
-      rfl
+  rw [← withState_wordsCfg (State := State₀) input none ws' out (some tm₁.q₀)] at hrun₁
+  refine ⟨ws'', runFrom_seq hrun₀ rfl hrun₁ rfl, ⟨ws', hQ₀, hQ₁⟩, ?_⟩
+  exact (spaceUsed_seq_le hrun₀ rfl (by rw [hrun₁]; rfl)).trans (Nat.add_le_add hspace₀ hspace₁)
 
 end Turing.MultiTapeTM

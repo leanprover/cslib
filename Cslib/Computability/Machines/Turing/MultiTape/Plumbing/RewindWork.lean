@@ -6,6 +6,7 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
+public import Mathlib.Algebra.BigOperators.Fin
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
@@ -180,5 +181,19 @@ public theorem workTapePos_runFrom_rewindWork (write : Option (Option Symbol))
   · have hrun := runFrom_rewindWork write ip t out hw hp
     rw [runFrom_eq_of_halt _ _ (by omega : p + 2 ≤ m + 1) (by rw [hrun]), hrun]
     simp
+
+/-- **Space of the one-tape rewinding machine.** The head only ever stands in `[-1, p]`, so the
+run visits at most `p + 2` cells. -/
+public theorem spaceUsed_rewindWork_le (write : Option (Option Symbol))
+    (ip : Fin (input.length + 2)) (t : ℤ → Option Symbol) (out : List Symbol) {w : List Symbol}
+    (hw : t = tapeOfList w) {p : ℕ} (hp : p ≤ w.length) (n : ℕ) :
+    (rewindWork Symbol write).spaceUsed
+        ⟨some (rewindWork Symbol write).q₀, ip, fun _ => t, fun _ => (p : ℤ), out⟩ n ≤ p + 2 := by
+  simp only [spaceUsed, Fin.sum_univ_one]
+  refine le_trans (spaceUsedByTape_le_card _ (S := Finset.Icc (-1 : ℤ) p) fun m _ =>
+    Finset.mem_Icc.mpr (Set.mem_Icc.mp
+      (workTapePos_runFrom_rewindWork write ip t out hw hp m))) ?_
+  simp only [Int.card_Icc]
+  omega
 
 end Turing.MultiTapeTM
