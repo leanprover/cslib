@@ -84,19 +84,19 @@ private abbrev arity : PFunctor := ⟨Nat, Fin⟩
 private def leaf : arity.W := W.mk (.mk 0 Fin.elim0)
 
 example (n : Nat) (cont : Fin n → arity.FreeM PEmpty) :
-    FreeM.toW (FreeM.lift (P := arity) n >>= cont) =
-      W.mk (.mk n fun b => FreeM.toW (cont b)) := by
+    FreeM.toWOfIsEmpty (FreeM.lift (P := arity) n >>= cont) =
+      W.mk (.mk n fun b => FreeM.toWOfIsEmpty (cont b)) := by
   simp
 
-example : FreeM.toW (FreeM.ofW (α := PEmpty.{u + 1}) leaf) = leaf := by simp
+example : FreeM.toWOfIsEmpty (W.toFreeM (α := PEmpty.{u + 1}) leaf) = leaf := by simp
 
 example (x : arity.FreeM PEmpty) :
-    FreeM.ofW (FreeM.equivWOfIsEmpty x) = x := by
+    W.toFreeM (FreeM.equivWOfIsEmpty x) = x := by
   simp
 
 -- Embedding a W-type does not require the result type to be empty.
-example : FreeM.ofW (α := Nat) leaf = (FreeM.lift (P := arity) 0).bind (fun b => Fin.elim0 b) := by
-  rw [leaf, FreeM.ofW_mk]
+example : W.toFreeM (α := Nat) leaf = (FreeM.lift (P := arity) 0).bind (fun b => Fin.elim0 b) := by
+  rw [leaf, W.toFreeM_mk]
   congr 1
   funext b
   exact Fin.elim0 b

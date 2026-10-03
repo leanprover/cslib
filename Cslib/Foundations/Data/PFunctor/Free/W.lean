@@ -19,49 +19,54 @@ When `α` is empty, a tree in `P.FreeM α` has only operation nodes. The equival
 
 universe uA uB u
 
-namespace PFunctor.FreeM
+namespace PFunctor
 
 variable {P : PFunctor.{uA, uB}} {α : Type u}
 
 /-- Regard a free polynomial tree with no return values as a W-type. -/
-def toW [IsEmpty α] : P.FreeM α → P.W
+def FreeM.toWOfIsEmpty [IsEmpty α] : P.FreeM α → P.W
   | .pure a => isEmptyElim a
-  | .liftBind a cont => W.mk (.mk a fun b => toW (cont b))
+  | .liftBind a cont => W.mk (.mk a fun b => FreeM.toWOfIsEmpty (cont b))
 
 /-- Regard a W-type as a free polynomial tree with no return nodes. -/
-def ofW : P.W → P.FreeM α
-  | ⟨a, cont⟩ => .liftBind a fun b => ofW (cont b)
+def W.toFreeM : P.W → P.FreeM α
+  | ⟨a, cont⟩ => .liftBind a fun b => W.toFreeM (cont b)
 
 @[simp]
-theorem toW_lift_bind [IsEmpty α] (a : P.A) (cont : P.B a → P.FreeM α) :
-    toW ((lift a).bind (α := no_index (P.B a)) cont) = W.mk (.mk a fun b => toW (cont b)) := rfl
+theorem FreeM.toWOfIsEmpty_lift_bind [IsEmpty α] (a : P.A) (cont : P.B a → P.FreeM α) :
+    toWOfIsEmpty ((lift a).bind (α := no_index (P.B a)) cont) =
+      W.mk (.mk a fun b => toWOfIsEmpty (cont b)) := rfl
 
 @[simp]
-theorem toW_lift_bind' {α : Type uB} [IsEmpty α] (a : P.A) (cont : P.B a → P.FreeM α) :
-    toW (Bind.bind (α := no_index (P.B a)) (lift a) cont) =
-      W.mk (.mk a fun b => toW (cont b)) := rfl
+theorem FreeM.toWOfIsEmpty_lift_bind' {α : Type uB} [IsEmpty α] (a : P.A)
+    (cont : P.B a → P.FreeM α) :
+    toWOfIsEmpty (Bind.bind (α := no_index (P.B a)) (lift a) cont) =
+      W.mk (.mk a fun b => toWOfIsEmpty (cont b)) := rfl
 
 @[simp]
-theorem ofW_mk (a : P.A) (cont : P.B a → P.W) :
-    ofW (α := α) (W.mk (.mk a cont)) = (lift a).bind (fun b => ofW (cont b)) := rfl
+theorem W.toFreeM_mk (a : P.A) (cont : P.B a → P.W) :
+    toFreeM (α := α) (W.mk (.mk a cont)) =
+      (FreeM.lift a).bind (fun b => toFreeM (cont b)) := rfl
 
 @[simp]
-theorem toW_ofW [IsEmpty α] (x : P.W) : toW (ofW (α := α) x) = x := by
+theorem FreeM.toWOfIsEmpty_toFreeM [IsEmpty α] (x : P.W) :
+    toWOfIsEmpty (W.toFreeM (α := α) x) = x := by
   induction x with
   | mk a cont ih => exact congrArg (WType.mk a) (funext ih)
 
 @[simp]
-theorem ofW_toW [IsEmpty α] (x : P.FreeM α) : ofW (toW x) = x := by
+theorem W.toFreeM_toWOfIsEmpty [IsEmpty α] (x : P.FreeM α) :
+    toFreeM (FreeM.toWOfIsEmpty x) = x := by
   induction x with
   | pure a => exact isEmptyElim a
   | lift_bind a cont ih => exact congrArg (FreeM.liftBind a) (funext ih)
 
 /-- With an empty result type, the free polynomial monad is equivalent to its W-type. -/
 @[simps]
-def equivWOfIsEmpty [IsEmpty α] : P.FreeM α ≃ P.W where
-  toFun := toW
-  invFun := ofW
-  left_inv := ofW_toW
-  right_inv := toW_ofW
+def FreeM.equivWOfIsEmpty [IsEmpty α] : P.FreeM α ≃ P.W where
+  toFun := toWOfIsEmpty
+  invFun := W.toFreeM
+  left_inv := W.toFreeM_toWOfIsEmpty
+  right_inv := toWOfIsEmpty_toFreeM
 
-end PFunctor.FreeM
+end PFunctor
