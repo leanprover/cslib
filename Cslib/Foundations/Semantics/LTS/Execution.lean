@@ -57,33 +57,26 @@ theorem Execution.of_mTr {lts : LTS State Label}
     {s1 : State} {μs : List Label} {s2 : State}
     (h : lts.MTr s1 μs s2) : ∃ ss : List State, lts.Execution s1 μs s2 ss := by
   induction h
-  case refl t =>
-    use [t]
-    grind
-  case stepL t1 μ t2 μs t3 htr hmtr ih =>
-    obtain ⟨ss', _⟩ := ih
-    use t1 :: ss'
-    grind
+  case refl s =>
+    use [s]
+    exact Execution.refl _ _
+  case stepL s1 μ s2 μs s3 htr hmtr ih =>
+    obtain ⟨ss, hexec⟩ := ih
+    use s1 :: ss
+    exact hexec.stepL htr
 
 /-- Converts an execution into a multistep transition. -/
 @[scoped grind →]
 theorem Execution.to_mTr (hexec : lts.Execution s1 μs s2 ss) :
     lts.MTr s1 μs s2 := by
-  induction ss generalizing s1 μs
-  case nil => grind
-  case cons s1' ss ih =>
-    let ⟨hlen, hstart, hfinal, hexec'⟩ := hexec
-    have : s1' = s1 := by grind
-    rw [this] at hexec' hexec
-    cases μs
-    · grind
-    case cons μ μs =>
-      specialize ih (s1 := ss[0]'(by grind)) (μs := μs)
-      apply Execution.cons_invert at hexec
-      apply MTr.stepL
-      · have : lts.Tr s1 μ (ss[0]'(by grind)) := by grind
-        apply this
-      · grind
+  induction μs generalizing s1 ss with
+  | nil =>
+    obtain rfl : s1 = s2 := by grind
+    exact .refl
+  | cons μ μs ih =>
+    obtain ⟨s, ss, rfl⟩ := List.exists_cons_of_ne_nil hexec.nonEmpty_states
+    obtain rfl : s = s1 := by simpa using hexec.start
+    exact .stepL (hexec.trans 0 (by simp)) (ih hexec.cons_invert)
 
 /-- The states visited by an execution form a chain from the initial to the final state
 in the underlying unlabelled relation. -/
