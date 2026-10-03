@@ -53,7 +53,7 @@ inductive BetaAt : Nat → Term Var → Term Var → Prop
 | abs (xs : Finset Var) :
     (∀ x ∉ xs, BetaAt i (M ^ fvar x) (M' ^ fvar x)) → BetaAt i (abs M) (abs M')
 
-variable {L L' M M' N N' P : Term Var} {a b i m n : Nat}
+variable {M M' N : Term Var} {i : Nat}
 
 /-- Reducing a non-abstraction operator keeps the position. -/
 lemma BetaAt.appNoAbsL (h : BetaAt i M M') (hna : ¬IsAbs M) :
@@ -151,6 +151,22 @@ lemma BetaAt.to_step [DecidableEq Var] (h : BetaAt i M N) (lc : LC M) : M ⭢β�
 
 variable [HasFresh Var]
 
+lemma BetaAt.lt_countRedexes (h : BetaAt i M N) : i < countRedexes M := by
+  induction h with
+  | outer => grind
+  | appL step =>
+    split
+    · grind
+    · exact le_trans (by omega) (countRedexes_app_le _ _)
+  | appR =>
+    split
+    · rw [countRedexes_app_abs (by assumption)]
+      omega
+    · exact le_trans (by omega) (countRedexes_app_le _ _)
+  | abs xs =>
+    have := fresh_exists xs
+    grind [countRedexes_open_fvar]
+
 /-- The position of a contracted redex is at most the redex count of the result. -/
 lemma BetaAt.le_countRedexes (h : BetaAt i M N) : i ≤ countRedexes N := by
   induction h with
@@ -170,6 +186,16 @@ lemma BetaAt.le_countRedexes (h : BetaAt i M N) : i ≤ countRedexes N := by
     grind [countRedexes_open_fvar]
 
 variable [DecidableEq Var]
+
+lemma BetaAt.step_fv (h : BetaAt i M M') : M'.fv ⊆ M.fv := by
+  induction h with
+  | outer _ _ => grind [open_preserve_not_fvar]
+  | appL _ _ => grind
+  | appR _ _ => grind
+  | abs xs _ _ =>
+    have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+    have := open_close x
+    grind [open_preserve_not_fvar 0 M M']
 
 /-- Renaming a free variable preserves the position of the contracted redex. -/
 lemma BetaAt.rename (h : BetaAt i M M') (x y : Var) :
@@ -216,6 +242,33 @@ lemma BetaAt.abs_close {x : Var} (h : BetaAt i M M') (lc : LC M) :
   have lc' := h.lc_r lc
   have hr : BetaAt i (M[x := fvar z]) (M'[x := fvar z]) := h.rename x z
   grind
+
+lemma BetaAt.unique (hn : BetaAt i M N) (hp : BetaAt i M P) : N = P := by
+  induction hn generalizing P with
+  | outer _ _ =>
+      generalize hi : 0 = i at hp
+      cases hp <;> grind
+  | appL hn ih =>
+      generalize hi : ( _ +  if (IsAbs _) then 1 else 0) = i at hp
+      cases hp with
+      | outer => grind
+      | appL => grind
+      | appR hp =>
+          apply BetaAt.lt_countRedexes at hn
+          omega
+  | appR hn ih =>
+      generalize hi : ( _ +  if (IsAbs _) then 1 else 0) = i at hp
+      cases hp with
+      | outer => grind
+      | appR => grind
+      | appL hp =>
+          apply BetaAt.lt_countRedexes at hp
+          omega
+  | abs xs _ ih => cases hp with | abs xs hp =>
+      have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+      specialize ih x (by grind) (hp x (by grind))
+      apply_fun (fun t => close t x) at ih
+      rw [<- open_close_var, <- open_close_var] at ih <;> grind
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
