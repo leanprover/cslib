@@ -26,9 +26,10 @@ can be plumbed further. The hypothesis is only that the machine starts and ends 
 the redirection does not touch the original tapes or the input head, so whatever mess the machine
 leaves behind would be left behind by the redirected machine too.
 
-Because a whole computation *is* a tape transformation, cf.
-`Turing.MultiTapeTM.ComputesFunNormalizedInTimeAndSpace`, this in particular turns a machine that
-computes a function, leaving its tapes clean, into a tape transformer.
+Because a whole computation already *is* a tape transformation, cf.
+`Turing.MultiTapeTM.ComputesNormalizedInTimeAndSpace`, this is in particular what turns a machine
+that computes a function into a component: one that no longer emits, but has written its result
+where a later machine can read it.
 
 ## Main definitions
 
