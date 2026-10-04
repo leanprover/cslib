@@ -96,24 +96,36 @@ set_option linter.tacticAnalysis.verifyGrindOnly false in
 theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : ωSequence State2}
     (h1 : xs1 ∈ language na1) (h2 : na2.Run xs2 ss2) :
     ∃ ss, (concat na1 na2).Run (xs1 ++ω xs2) ss ∧ ss.drop xs1.length = ss2.map inr := by
-  by_cases h_xs1 : xs1.length = 0
-  · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
-    use ss2.map inr
-    split_ands
-    · simp [concat]
-      grind only [LTS.OmegaExecution, = Set.mem_union, = get_map, = Set.mem_image, Run]
-    · simp
-  · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
+  obtain (hxs1 | hxs1) : xs1.length = 0 ∨ 0 < xs1.length := xs1.length.eq_zero_or_pos
+  · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr hxs1
+    refine ⟨ss2.map inr, ?_, by simp⟩
+    simp [concat]
+    grind only [LTS.OmegaExecution, = Set.mem_union, = get_map, = Set.mem_image, Run]
+  · obtain ⟨s0, h0_mem, s1, h1_mem, h_mtr⟩ := h1
     obtain ⟨ss1, he⟩ := LTS.Execution.of_mTr h_mtr
-    let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
-    refine ⟨ss, Run.mk ?_ ?_, ?_⟩
-    · grind [concat, get_append_left]
-    · have (k) (h_k : ¬ k < xs1.length) : k + 1 - xs1.length = k - xs1.length + 1 := by grind
-      simp only [concat]
-      grind only [Run, LTS.OmegaExecution, get_append_right', get_append_left,
-        = List.length_take, = get_map, = List.length_map, = min_def, = List.getElem_take,
-        = List.getElem_map, he.length, he.last, he.trans]
-    · grind [drop_append_of_le_length]
+    have hlen : (ss1.map (β := State1 ⊕ State2) inl).dropLast.length = xs1.length := by
+      simpa using he.length'.symm
+    have h_ne_nil : (ss1.map (β := State1 ⊕ State2) inl).dropLast ≠ [] :=
+      List.ne_nil_iff_length_pos.mpr <| hlen ▸ hxs1
+    refine ⟨(ss1.map inl).dropLast ++ω ss2.map inr, Run.mk ?_ ?_, ?_⟩
+    · suffices ((ss1.map inl).dropLast ++ω ss2.map inr) 0 = inl s0 by simpa [concat, this]
+      simp [append_get_zero_of_ne_nil h_ne_nil, List.head_dropLast h_ne_nil, he.head]
+    · intro k
+      obtain (hk | ⟨k, rfl⟩) : k < xs1.length ∨ ∃ k', k = xs1.length + k' := by
+        grind [le_iff_exists_add]
+      · rw [get_append_left _ _ _ hk, get_append_left _ _ _ (hlen ▸ hk), List.getElem_dropLast,
+          List.getElem_map]
+        obtain (hk' | hk') : k + 1 = xs1.length ∨ k + 1 < xs1.length := Nat.eq_or_lt_of_le hk
+        · rw! [hk', ← hlen, get_append_length, get_map]
+          dsimp only [concat]
+          refine ⟨_, he.trans k hk, ?_, h2.start⟩
+          rw! [hk', he.last']
+          assumption
+        · rw [get_append_left _ _ _ (hlen ▸ hk'), List.getElem_dropLast, List.getElem_map]
+          simpa [concat] using he.trans k hk
+      · rw [get_append_right, ← hlen, get_append_right, add_assoc, get_append_right]
+        simpa [concat] using h2.trans k
+    · rw [← hlen, drop_append_ωSequence]
 
 namespace Buchi
 
