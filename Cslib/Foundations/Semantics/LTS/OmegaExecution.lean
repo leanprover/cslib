@@ -77,7 +77,7 @@ theorem OmegaExecution.append
   · rw [← ss.eta, drop_append_of_le_length _ _ _ (by grind), tail_cons,
       ← singleton_append_ωSequence]
     congr
-    rw [head, hm, ← sl.take_append_getLast he.ss_ne_nil, sl.take_append_getLast,
+    rw [ωSequence.head, hm, ← sl.take_append_getLast he.ss_ne_nil, sl.take_append_getLast,
       he.length', sl.drop_length_sub_one he.ss_ne_nil, he.getLast]
 
 open Nat in
@@ -130,12 +130,13 @@ theorem OmegaExecution.flatten_mTr [Inhabited Label]
     (hmtr : ∀ k, lts.MTr (ts k) (μls k) (ts (k + 1))) (hpos : ∀ k, 0 < (μls k).length) :
     ∃ ss, lts.OmegaExecution ss μls.flatten ∧ ∀ k, ss (μls.cumLen k) = ts k := by
   choose sls h_sls using fun k ↦ Execution.of_mTr (hmtr k)
-  obtain ⟨ss, h_ss, h_seg⟩ := OmegaExecution.flatten_execution h_sls hpos
+  obtain ⟨ss, h_ss, (h_seg : ∀ k, _ = (sls k).take (μls k).length)⟩ :=
+    OmegaExecution.flatten_execution h_sls hpos
   use ss, h_ss
   intro k
-  have : ss.extract (μls.cumLen k) (μls.cumLen (k + 1)) ≠ [] := by grind
-  have h1 : 0 < (ss.extract (μls.cumLen k) (μls.cumLen (k + 1))).length :=
-    List.length_pos_iff.mpr this
-  grind [List.getElem_of_eq (h_seg k) h1]
+  have hsub : 0 < μls.cumLen (k + 1) - μls.cumLen k := by simpa [cumLen_succ] using hpos k
+  rw! [← (h_sls k).head, ← (μls.cumLen k).add_zero, ← ss.get_extract hsub, h_seg k,
+    List.getElem_take, List.head_eq_getElem]
+  rfl
 
 end Cslib.LTS
