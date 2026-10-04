@@ -44,14 +44,12 @@ open scoped NNReal
 variable {Message Commitment Opening : Type*}
 
 /-- Perfect hiding is exactly statistical hiding with zero error. -/
-theorem perfectlyHiding_iff_statisticallyHiding_zero
-    [Fintype Commitment] (scheme : Scheme Message Commitment Opening) :
+theorem perfectlyHiding_iff_statisticallyHiding_zero (scheme : Scheme Message Commitment Opening) :
     scheme.PerfectlyHiding ↔ scheme.StatisticallyHiding 0 := by
   simp [PerfectlyHiding, StatisticallyHiding]
 
 /-- Enlarging the permitted error preserves statistical hiding. -/
-theorem StatisticallyHiding.mono [Fintype Commitment]
-    {scheme : Scheme Message Commitment Opening} :
+theorem StatisticallyHiding.mono {scheme : Scheme Message Commitment Opening} :
     Monotone scheme.StatisticallyHiding :=
   fun _ _ hεδ h message₀ message₁ =>
     StatisticallyClose.mono hεδ (h message₀ message₁)
@@ -74,7 +72,7 @@ theorem PerfectlyBinding.disjoint_support_commitmentDist
 messages are at the maximum statistical distance: an unbounded observer can
 read the message off the commitment. -/
 theorem PerfectlyBinding.dist_commitmentDist_eq_one
-    [Fintype Commitment] {scheme : Scheme Message Commitment Opening}
+    {scheme : Scheme Message Commitment Opening}
     (hbind : scheme.PerfectlyBinding) {message₀ message₁ : Message}
     (hne : message₀ ≠ message₁) :
     dist (scheme.commitmentDist message₀)
@@ -86,7 +84,7 @@ hiding with error below one and perfectly binding unless any two messages are
 equal. The error bound is sharp: statistical hiding with error one holds
 vacuously for every scheme. -/
 theorem subsingleton_of_statisticallyHiding_of_perfectlyBinding
-    [Fintype Commitment] (scheme : Scheme Message Commitment Opening) {ε : ℝ≥0}
+    (scheme : Scheme Message Commitment Opening) {ε : ℝ≥0}
     (hε : ε < 1) (hhide : scheme.StatisticallyHiding ε)
     (hbind : scheme.PerfectlyBinding) : Subsingleton Message := by
   refine ⟨fun message₀ message₁ => ?_⟩
@@ -97,21 +95,12 @@ theorem subsingleton_of_statisticallyHiding_of_perfectlyBinding
   exact absurd hle (by exact_mod_cast hε.not_ge)
 
 /-- A scheme cannot be both perfectly hiding and perfectly binding unless any
-two messages are equal. Unlike the statistical version, this needs no
-finiteness assumption on the commitment type. -/
+two messages are equal. -/
 theorem subsingleton_of_perfectlyHiding_of_perfectlyBinding
     (scheme : Scheme Message Commitment Opening)
     (hhide : scheme.PerfectlyHiding) (hbind : scheme.PerfectlyBinding) :
-    Subsingleton Message := by
-  refine ⟨fun message₀ message₁ => ?_⟩
-  obtain ⟨commitment, hcommitment⟩ :=
-    (scheme.commitmentDist message₀).support_nonempty
-  obtain ⟨opening₀, hpair₀⟩ :=
-    scheme.mem_support_commitmentDist_iff.mp hcommitment
-  rw [hhide message₀ message₁] at hcommitment
-  obtain ⟨opening₁, hpair₁⟩ :=
-    scheme.mem_support_commitmentDist_iff.mp hcommitment
-  exact hbind commitment message₀ opening₀ message₁ opening₁
-    (scheme.accepts_of_mem_support hpair₀) (scheme.accepts_of_mem_support hpair₁)
+    Subsingleton Message :=
+  scheme.subsingleton_of_statisticallyHiding_of_perfectlyBinding (by norm_num)
+    (scheme.perfectlyHiding_iff_statisticallyHiding_zero.mp hhide) hbind
 
 end Cslib.Crypto.Protocols.Commitment.Scheme

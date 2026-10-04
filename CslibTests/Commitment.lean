@@ -12,7 +12,7 @@ open Cslib.Crypto.Protocols.Commitment
 open Cslib.Probability.PMF
 open scoped NNReal
 
-example {α β : Type*} [Fintype α] [Fintype β] {p q : PMF α} {ε : ℝ≥0}
+example {α β : Type*} {p q : PMF α} {ε : ℝ≥0}
     (h : StatisticallyClose p q ε) (kernel : α → PMF β) :
     StatisticallyClose (p.bind kernel) (q.bind kernel) ε :=
   h.bind kernel
@@ -41,7 +41,7 @@ theorem revealingScheme_perfectlyBinding (Message : Type*) [DecidableEq Message]
 
 /-- The hiding–binding trade-off: no scheme with two distinct messages is both
 statistically hiding with error below one and perfectly binding. -/
-example {ε : ℝ≥0} (hε : ε < 1) (scheme : Scheme Bool Bool Unit)
+example {ε : ℝ≥0} (hε : ε < 1) (scheme : Scheme Bool ℕ Unit)
     (hhide : scheme.StatisticallyHiding ε) (hbind : scheme.PerfectlyBinding) :
     False := by
   have h := scheme.subsingleton_of_statisticallyHiding_of_perfectlyBinding hε hhide hbind
