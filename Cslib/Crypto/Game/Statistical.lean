@@ -58,7 +58,7 @@ theorem refl (X : ∀ n, PMF (α n)) : StatisticallyIndistinguishable X X := by
 
 /-- Statistical indistinguishability is symmetric. -/
 theorem symm (h : StatisticallyIndistinguishable X Y) : StatisticallyIndistinguishable Y X := by
-  simpa only [StatisticallyIndistinguishable, dist_comm] using h
+  simpa [StatisticallyIndistinguishable, dist_comm] using h
 
 /-- Statistical errors add across a game hop. -/
 theorem trans (hXY : StatisticallyIndistinguishable X Y)
