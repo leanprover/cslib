@@ -45,7 +45,7 @@ theorem advantage_nonneg (real ideal : Game) : 0 ≤ advantage real ideal := abs
 
 /-- Equal experiments have zero advantage. -/
 @[simp] theorem advantage_self (game : Game) : advantage game game = 0 := by
-  simp [advantage]
+  simp
 
 /-- Swapping the experiments preserves advantage. -/
 theorem advantage_comm (real ideal : Game) : advantage real ideal = advantage ideal real :=
@@ -55,7 +55,7 @@ theorem advantage_comm (real ideal : Game) : advantage real ideal = advantage id
 @[simp] theorem winProbability_not (game : Game) :
     winProbability (game.map Bool.not) = 1 - winProbability game := by
   rw [eq_sub_iff_add_eq', ← Probability.PMF.sum_toReal game, Fintype.sum_bool]
-  simp [winProbability, PMF.map_apply, tsum_fintype]
+  simp [winProbability]
 
 /-- Complementing both answers preserves advantage. -/
 @[simp] theorem advantage_not (real ideal : Game) :
@@ -82,7 +82,7 @@ theorem advantage_le_one (real ideal : Game) : advantage real ideal ≤ 1 := by
 /-- Comparing with a fair coin measures absolute prediction bias. -/
 @[simp] theorem advantage_uniform_bool (game : Game) :
     advantage game (PMF.uniformOfFintype Bool) = |winProbability game - 1 / 2| := by
-  simp [advantage, winProbability, PMF.uniformOfFintype_apply]
+  simp [advantage, winProbability]
 
 /-- Each admissible adversary has negligible advantage. The admissibility predicate applies to
 the whole adversary before the security parameter is supplied, so it can constrain the adversary
