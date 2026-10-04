@@ -120,7 +120,9 @@ theorem dist_eq_one_of_disjoint_support {p q : PMF α}
         exact Set.disjoint_left.mp h ((p.mem_support_iff a).mpr hp)
           ((q.mem_support_iff a).mpr hq)
       simp [hq]
-  simp [dist_eq_tsum, key, (summable_toReal p).tsum_add (summable_toReal q)]
+  rw [dist_eq_tsum, tsum_congr key, (summable_toReal p).tsum_add (summable_toReal q),
+    tsum_toReal, tsum_toReal]
+  norm_num
 
 private theorem summable_weighted_kernel {weight : α → ℝ} (hweight : Summable weight)
     (hnonneg : ∀ a, 0 ≤ weight a) (kernel : α → PMF β) :
