@@ -75,6 +75,15 @@ lemma runFrom_full (input : List Symbol) :
     copy.runFrom (copy.initCfg input) (input.length + 1) = cfg input none input.length := by
   rw [runFrom, Function.iterate_succ_apply', ← runFrom, runFrom_scan _ le_rfl, step_halt]
 
+/-- The copy machine outputs its input unchanged, in `input.length + 1` steps and zero space. -/
+theorem computesInTimeAndSpace (input : List Symbol) :
+    ComputesInTimeAndSpace copy input input (input.length + 1) 0 := by
+  have hhalt := congrArg Cfg.state (runFrom_full input)
+  refine ⟨⟨input.length + 1, hhalt, by rw [runFrom_full]; simp [cfg]⟩,
+    fun p hp ↦ ?_, by simp⟩
+  rw [computationPath_last_eq_runFrom p, copy.runFrom_eq_of_halt _ hp hhalt]
+  exact hhalt
+
 end Copy
 
 variable {α : Type*}
@@ -82,14 +91,7 @@ variable {α : Type*}
 /-- The identity function is computable in one step per input symbol and zero space. -/
 public theorem computableInTimeAndSpace_id {enc : α ↪ List Bool} :
     ComputableInTimeAndSpace (id : α → α) enc enc
-      (fun a => (enc a).length + 1) (fun _ => 0) := by
-  refine ⟨0, Unit, inferInstance, copy, fun a ↦ ⟨?_, ?_, by simp⟩⟩
-  · refine ⟨(enc a).length + 1, ?_, ?_⟩
-    · rw [Copy.runFrom_full]; rfl
-    · rw [Copy.runFrom_full]; simp [Copy.cfg]
-  · intro p hp
-    rw [computationPath_last_eq_runFrom p,
-      copy.runFrom_eq_of_halt _ hp (by rw [Copy.runFrom_full]; rfl), Copy.runFrom_full]
-    rfl
+      (fun a => (enc a).length + 1) (fun _ => 0) :=
+  ⟨0, Unit, inferInstance, copy, fun a ↦ Copy.computesInTimeAndSpace (enc a)⟩
 
 end Turing.MultiTapeTM
