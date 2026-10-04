@@ -21,7 +21,7 @@ For PMFs `p` and `q`, their statistical distance is
 
 On finite types this is [BonehShoup2023], Definition 3.5. The probabilities are converted from
 `ℝ≥0∞`, Mathlib's codomain for a `PMF`, to `ℝ` before summing. Absolute summability follows
-from the unit mass of each distribution, so the same API applies to infinite types such as words.
+from the unit mass of each distribution, so the same API applies to infinite types such as `ℕ`.
 
 Statistical distance is packaged as a scoped `MetricSpace` instance on
 `PMF α`, so it is spelled `dist p q` and the general metric API applies:
@@ -87,7 +87,7 @@ noncomputable scoped instance instMetricSpace :
     ext a
     apply (ENNReal.toReal_eq_toReal_iff' (p.apply_ne_top a) (q.apply_ne_top a)).mp
     have ha := (summable_abs_sub p q).le_tsum a (fun _ _ => abs_nonneg _)
-    simpa [hsum, abs_nonpos_iff, sub_eq_zero] using ha
+    simpa [hsum, sub_eq_zero] using ha
 
 /-- Statistical distance is half the sum of the absolute differences of the masses. -/
 theorem dist_eq_tsum (p q : PMF α) :
@@ -97,14 +97,13 @@ theorem dist_eq_tsum (p q : PMF α) :
 distance ([BonehShoup2023], Definition 3.5). -/
 theorem dist_eq [Fintype α] (p q : PMF α) :
     dist p q = (∑ a, |(p a).toReal - (q a).toReal|) / 2 := by
-  simp only [dist_eq_tsum, tsum_fintype]
+  simp [dist_eq_tsum]
 
 /-- Statistical distance is at most one. -/
 theorem dist_le_one (p q : PMF α) : dist p q ≤ 1 := by
   rw [dist_eq_tsum]
-  have h := Summable.tsum_le_tsum (fun a =>
-    show |(p a).toReal - (q a).toReal| ≤ (p a).toReal + (q a).toReal by
-      simpa using abs_sub_le (p a).toReal 0 (q a).toReal)
+  have h := Summable.tsum_le_tsum
+    (fun a => by simpa using abs_sub_le (p a).toReal 0 (q a).toReal)
     (summable_abs_sub p q) ((summable_toReal p).add (summable_toReal q))
   rw [(summable_toReal p).tsum_add (summable_toReal q), tsum_toReal, tsum_toReal] at h
   linarith
@@ -127,10 +126,8 @@ private theorem summable_weighted_kernel {weight : α → ℝ} (hweight : Summab
     (hnonneg : ∀ a, 0 ≤ weight a) (kernel : α → PMF β) :
     Summable (fun pair : α × β => weight pair.1 * (kernel pair.1 pair.2).toReal) := by
   rw [summable_prod_of_nonneg (fun pair => mul_nonneg (hnonneg pair.1) ENNReal.toReal_nonneg)]
-  constructor
-  · intro a
-    exact (summable_toReal (kernel a)).mul_left (weight a)
-  · simpa only [tsum_mul_left, tsum_toReal, mul_one] using hweight
+  exact ⟨fun a => (summable_toReal (kernel a)).mul_left (weight a),
+    by simpa [tsum_mul_left] using hweight⟩
 
 /-- Weighting by the masses of a kernel at a fixed outcome preserves summability. -/
 private theorem summable_mul_kernel {weight : α → ℝ} (hweight : Summable weight)
@@ -151,9 +148,9 @@ theorem dist_bind_le (p q : PMF α) (kernel : α → PMF β) :
       (summable_toReal p) kernel b).tsum_sub (summable_mul_kernel (summable_toReal q) kernel b)]
     simp_rw [← sub_mul]
     have hs := summable_mul_kernel ((summable_toReal p).sub (summable_toReal q)) kernel b
-    simpa only [Real.norm_eq_abs, abs_mul, abs_of_nonneg ENNReal.toReal_nonneg] using
+    simpa using
       norm_tsum_le_tsum_norm (f := fun a => ((p a).toReal - (q a).toReal) * (kernel a b).toReal)
-        (by simpa only [Real.norm_eq_abs] using hs.abs)
+        (by simpa using hs.abs)
   rw [dist_eq_tsum, dist_eq_tsum]
   gcongr ?_ / _
   calc
@@ -162,7 +159,7 @@ theorem dist_bind_le (p q : PMF α) (kernel : α → PMF β) :
     _ = _ := by
       rw [Summable.tsum_comm (f := fun a b =>
         |(p a).toReal - (q a).toReal| * (kernel a b).toReal) hd]
-      simp only [tsum_mul_left, tsum_toReal, mul_one]
+      simp [tsum_mul_left]
 
 /-- Deterministic postprocessing cannot increase statistical distance
 ([BonehShoup2023], Theorem 3.13). -/
