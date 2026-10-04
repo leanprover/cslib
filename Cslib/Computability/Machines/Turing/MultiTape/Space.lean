@@ -12,7 +12,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 /-!
 # Space usage of multi-tape Turing machines
 
-Defines the space used by a run path and decision within time and space bounds. Space
+Defines the space used by a run path and space bounds for multi-tape Turing machines. Space
 usage counts the positions visited by each work-tape head along the path and sums over the tapes.
 
 ## Design
@@ -32,10 +32,10 @@ without writing).
 Defining space usage via "cells visited" thus yields the more fine-grained "complexity world" in
 which `DSPACE(1)` is exactly the class of regular languages.
 
-Space bounds apply to every computation prefix, including rejecting branches, following the
+Space bounds apply to every computation prefix, regardless of its outcome, following the
 visited-cell convention in [Watrous, §2.1]
 (https://cs.uwaterloo.ca/~watrous/Papers/SpaceBoundedQuantumSimulation.pdf).
-`UsesSpace` does not require termination; `DecidesInTimeAndSpace` also bounds computation time.
+`UsesSpace` does not require termination.
 
 ## References
 
@@ -67,32 +67,9 @@ end RunPath
 /-- The number of work tape cells touched along a computation path. -/
 def ComputationPath.space (p : ntm.ComputationPath input) : ℕ := RunPath.space p.toRunPath
 
-/-- Every computation prefix on `input` touches at most `s` work-tape cells. This bounds
-rejecting branches as well as successful ones, and does not itself require termination. -/
+/-- Every computation prefix on `input` touches at most `s` work-tape cells, regardless of its
+outcome. This does not require termination. -/
 def UsesSpace (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (s : ℕ) : Prop :=
   ∀ p : ntm.ComputationPath input, p.space ≤ s
-
-/-- The machine accepts exactly the members of `L`, within time and space bounds on every branch.
-Halting outputs are `[true]` for acceptance and `[false]` for rejection. A branch with no permitted
-transition also rejects. A member may have rejecting branches; a nonmember has no accepting one. -/
-def DecidesInTimeAndSpace {α : Type*} (ntm : MultiTapeNTM k Bool State)
-    (L : Set α) (enc : α ↪ List Bool) (t s : α → ℕ) : Prop :=
-  ntm.DecidesSuchThat L enc fun a ↦
-    ntm.RunsInTime (enc a) (t a) ∧ ntm.UsesSpace (enc a) (s a)
-
-/-- Resource bounds can be weakened independently on every input. -/
-theorem DecidesInTimeAndSpace.mono {α : Type*} {ntm : MultiTapeNTM k Bool State}
-    {L : Set α} {enc : α ↪ List Bool} {t s t' s' : α → ℕ}
-    (h : ntm.DecidesInTimeAndSpace L enc t s)
-    (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
-    ntm.DecidesInTimeAndSpace L enc t' s' := fun a ↦
-  ⟨(h a).1, ⟨(h a).2.1.1.mono (ht a), fun p ↦ ((h a).2.1.2 p).trans (hs a)⟩, (h a).2.2⟩
-
-/-- A language is decidable within the bounds by a nondeterministic machine with a binary tape
-alphabet and finitely many states. -/
-def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
-    (t s : α → ℕ) : Prop :=
-  ∃ (k : ℕ) (State : Type) (_ : Finite State) (ntm : MultiTapeNTM k Bool State),
-    ntm.DecidesInTimeAndSpace L enc t s
 
 end Turing.MultiTapeNTM
