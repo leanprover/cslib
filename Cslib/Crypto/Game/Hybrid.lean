@@ -29,12 +29,11 @@ namespace Cslib.Crypto.Game
 theorem winProbability_uniform {α : Type*} [Fintype α] [Nonempty α] (games : α → Game) :
     winProbability ((PMF.uniformOfFintype α).bind games) =
       (∑ a, winProbability (games a)) / Fintype.card α := by
-  simp only [winProbability, Probability.PMF.bind_apply_toReal, PMF.uniformOfFintype_apply,
-    ENNReal.toReal_inv, ENNReal.toReal_natCast, inv_mul_eq_div, Finset.sum_div]
+  simp [Probability.PMF.bind_apply_toReal, inv_mul_eq_div, Finset.sum_div]
 
 /-- Randomly choosing an adjacent hybrid telescopes signed gaps.
 Unused indices run the same rejecting game on both sides. This gives one reduction for every
-security parameter, with loss `capacity`, without selecting a length-dependent best hop. -/
+security parameter, with loss `capacity`, without selecting a parameter-dependent best hop. -/
 theorem winProbability_hybrid_average (games : ℕ → Game) (hops capacity : ℕ) [NeZero capacity]
     (hle : hops ≤ capacity) :
     winProbability (games 0) - winProbability (games hops) = (capacity : ℝ) *
@@ -59,10 +58,10 @@ theorem winProbability_hybrid_average (games : ℕ → Game) (hops capacity : �
       if i.val < hops then winProbability (games i.val) - winProbability (games (i.val + 1))
         else 0 := by split_ifs <;> simp
   have hcapacity : (capacity : ℝ) ≠ 0 := by exact_mod_cast NeZero.ne capacity
-  simp only [hdiff, hsum, mul_div_cancel₀ _ hcapacity]
+  simp [hdiff, hsum, mul_div_cancel₀ _ hcapacity]
 
 /-- Averaging adjacent hybrids also preserves absolute distinguishing advantage, with the
-sampling-range loss and no length-dependent choice of the best hop. -/
+sampling-range loss and no parameter-dependent choice of the best hop. -/
 theorem advantage_hybrid_average (games : ℕ → Game) (hops capacity : ℕ) [NeZero capacity]
     (hle : hops ≤ capacity) :
     advantage (games 0) (games hops) = (capacity : ℝ) *
@@ -75,7 +74,7 @@ theorem advantage_hybrid_average (games : ℕ → Game) (hops capacity : ℕ) [N
     Nat.abs_cast]
 
 /-- Local reductions with a common signed loss combine into one uniformly selected reduction.
-The proof needs no choice of a best hop or advice depending on the security parameter. -/
+The proof needs no choice of a best hop depending on the security parameter. -/
 theorem winProbability_hybrid_reduction (games real ideal : ℕ → Game)
     (hops capacity : ℕ) [NeZero capacity] (hle : hops ≤ capacity) (loss : ℝ)
     (hstep : ∀ i < hops, winProbability (games i) - winProbability (games (i + 1)) =
