@@ -8,7 +8,7 @@ module
 
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Relation.RelatesInSteps
-public import Mathlib.Algebra.Polynomial.Eval.Defs
+public import Cslib.Foundations.Data.Nat.PolynomialBound
 
 /-!
 # Single-Tape Turing Machines
@@ -466,21 +466,16 @@ and proves that:
 
 section PolyTimeComputable
 
-open Polynomial
-
-/-- A Turing machine + a polynomial time function +
+/-- A Turing machine + a polynomially bounded time function +
 a proof it outputs `f` in at most `time(input.length)` steps. -/
 structure PolyTimeComputable (f : List Symbol → List Symbol) extends TimeComputable f where
-  /-- a polynomial time bound -/
-  poly : Polynomial ℕ
-  /-- proof that this machine outputs `f` in at most `time(input.length)` steps -/
-  bounds : ∀ n, timeBound n ≤ poly.eval n
+  /-- the time bound is polynomially bounded -/
+  bounds : PolynomiallyBounded timeBound
 
 /-- A proof that the identity map on Symbol is computable in polytime. -/
 noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) id where
   toTimeComputable := TimeComputable.id
-  poly := 1
-  bounds _ := by simp [TimeComputable.id]
+  bounds := .const 1
 
 -- TODO remove `h_mono` assumption
 -- by developing function to convert PolyTimeComputable into one with monotone time bound
@@ -492,12 +487,13 @@ noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
     (h_mono : Monotone hg.timeBound) :
     PolyTimeComputable (g ∘ f) where
   toTimeComputable := TimeComputable.comp hf.toTimeComputable hg.toTimeComputable h_mono
-  poly := hf.poly + hg.poly.comp (1 + X + hf.poly)
-  bounds n := by
-    simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
-    apply add_le_add
-    · exact hf.bounds n
-    · exact (h_mono (add_le_add (by omega) (hf.bounds n))).trans (hg.bounds _)
+  bounds := by
+    have hmax : PolynomiallyBounded (max 1 ·) :=
+      (PolynomiallyBounded.id.add (.const 1)).mono fun n => by omega
+    have := hf.bounds
+    have := hg.bounds
+    simp only [TimeComputable.comp]
+    fun_prop
 
 end PolyTimeComputable
 
