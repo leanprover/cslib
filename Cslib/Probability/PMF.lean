@@ -53,7 +53,7 @@ theorem summable_toReal (p : PMF α) : Summable (fun a => (p a).toReal) :=
 
 /-- The real-valued probabilities of a finite distribution sum to one. -/
 theorem sum_toReal [Fintype α] (p : PMF α) :
-    ∑ a, (p a).toReal = 1 := by simpa only [tsum_fintype] using tsum_toReal p
+    ∑ a, (p a).toReal = 1 := by simpa using tsum_toReal p
 
 /-- An event has probability at most one. -/
 theorem toOuterMeasure_le_one (p : PMF α) (event : Set α) : p.toOuterMeasure event ≤ 1 := by
@@ -81,16 +81,13 @@ theorem toOuterMeasure_toReal_add_compl (p : PMF α) (event : Set α) :
   have h : p.toOuterMeasure event + p.toOuterMeasure eventᶜ = 1 := by
     rw [PMF.toOuterMeasure_apply, PMF.toOuterMeasure_apply, ← ENNReal.tsum_add]
     convert p.tsum_coe using 1
-    congr 1
-    funext a
-    by_cases ha : a ∈ event <;> simp [ha]
-  simpa only [ENNReal.toReal_add (toOuterMeasure_ne_top p _) (toOuterMeasure_ne_top p _),
-    ENNReal.toReal_one] using congrArg ENNReal.toReal h
+    simp
+  simpa [ENNReal.toReal_add (toOuterMeasure_ne_top p _) (toOuterMeasure_ne_top p _)]
+    using congrArg ENNReal.toReal h
 
 /-- An event has positive real probability exactly when it contains a possible outcome. -/
 theorem toOuterMeasure_toReal_pos_iff (p : PMF α) (event : Set α) :
     0 < (p.toOuterMeasure event).toReal ↔ ∃ a ∈ event, a ∈ p.support := by
-  classical
   simp [ENNReal.toReal_pos_iff, lt_top_iff_ne_top, toOuterMeasure_ne_top, pos_iff_ne_zero,
     PMF.toOuterMeasure_apply_eq_zero_iff, Set.disjoint_left, and_comm]
 
@@ -101,7 +98,7 @@ theorem filter_apply_toReal (p : PMF α) (event : Set α)
     ((p.filter event hevent) a).toReal =
       if a ∈ event then (p a).toReal / (p.toOuterMeasure event).toReal else 0 := by
   rw [PMF.filter_apply, ← PMF.toOuterMeasure_apply]
-  by_cases ha : a ∈ event <;> simp [ha, ENNReal.toReal_mul, div_eq_mul_inv]
+  by_cases ha : a ∈ event <;> simp [ha, div_eq_mul_inv]
 
 /-- Event probability after a finite random choice is the average conditional probability. -/
 theorem toOuterMeasure_bind_toReal [Fintype α] (p : PMF α) (kernel : α → PMF β)
@@ -110,30 +107,29 @@ theorem toOuterMeasure_bind_toReal [Fintype α] (p : PMF α) (kernel : α → PM
       ∑ a, (p a).toReal * ((kernel a).toOuterMeasure event).toReal := by
   rw [PMF.toOuterMeasure_bind_apply, tsum_fintype, ENNReal.toReal_sum
     (fun a _ => ENNReal.mul_ne_top (PMF.apply_ne_top _ _) (toOuterMeasure_ne_top _ _))]
-  simp only [ENNReal.toReal_mul]
+  simp
 
 /-- Randomized postprocessing averages the outcome probabilities over any discrete input. -/
 theorem bind_apply_toReal_tsum (p : PMF α) (kernel : α → PMF β) (b : β) :
     (p.bind kernel b).toReal = ∑' a, (p a).toReal * (kernel a b).toReal := by
   rw [PMF.bind_apply, ENNReal.tsum_toReal_eq (fun a =>
     ENNReal.mul_ne_top (p.apply_ne_top a) ((kernel a).apply_ne_top b))]
-  simp only [ENNReal.toReal_mul]
+  simp
 
 /-- The probability of an outcome after a finite random choice is its weighted average. -/
 theorem bind_apply_toReal [Fintype α] (p : PMF α)
     (kernel : α → PMF β) (b : β) :
     (p.bind kernel b).toReal =
       ∑ a, (p a).toReal * (kernel a b).toReal := by
-  simpa only [tsum_fintype] using bind_apply_toReal_tsum p kernel b
+  simpa using bind_apply_toReal_tsum p kernel b
 
 /-- The mass of a deterministic image is the sum of the masses in its fiber. -/
 theorem map_apply_toReal [Fintype α] [DecidableEq β] (p : PMF α) (f : α → β) (b : β) :
     ((p.map f) b).toReal = ∑ a, if b = f a then (p a).toReal else 0 := by
-  change (p.bind (fun a => PMF.pure (f a)) b).toReal = _
-  rw [bind_apply_toReal]
+  rw [← PMF.bind_pure_comp, bind_apply_toReal]
   apply Finset.sum_congr rfl
   intro a _
-  by_cases h : b = f a <;> simp [PMF.pure_apply, h]
+  by_cases h : b = f a <;> simp [h]
 
 /-- Averaging a score after a deterministic map is averaging its composite with that map. -/
 theorem sum_map_mul [Fintype α] [Fintype β] (p : PMF α) (f : α → β) (score : β → ℝ) :
@@ -141,7 +137,7 @@ theorem sum_map_mul [Fintype α] [Fintype β] (p : PMF α) (f : α → β) (scor
   classical
   simp only [map_apply_toReal, Finset.sum_mul]
   rw [Finset.sum_comm]
-  simp [ite_mul]
+  simp
 
 /-- Averaging a score after a random choice averages its conditional scores. -/
 theorem sum_bind_mul [Fintype α] [Fintype β] (p : PMF α) (kernel : α → PMF β)
@@ -155,8 +151,8 @@ theorem sum_bind_mul [Fintype α] [Fintype β] (p : PMF α) (kernel : α → PMF
 theorem sum_affine [Fintype α] (p : PMF α) (a b : ℝ) (score : α → ℝ) :
     (∑ x, (p x).toReal * (a + b * score x)) =
       a + b * ∑ x, (p x).toReal * score x := by
-  simp only [mul_add, mul_left_comm _ b, Finset.sum_add_distrib, ← Finset.sum_mul,
-    sum_toReal, one_mul, ← Finset.mul_sum]
+  simp [mul_add, mul_left_comm _ b, Finset.sum_add_distrib, ← Finset.sum_mul, sum_toReal,
+    ← Finset.mul_sum]
 
 /-- A uniform upper bound on a score also bounds its expectation. -/
 theorem sum_mul_le [Fintype α] (p : PMF α) (score : α → ℝ) (bound : ℝ)
