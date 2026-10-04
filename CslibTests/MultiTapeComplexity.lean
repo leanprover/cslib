@@ -20,14 +20,18 @@ private lemma constant_computable (symbol : Bool) :
     ComputableInTimeAndSpace (fun _ : Bool => symbol) bit bit
       (fun b => if b then 1 else 2) (fun _ => 0) := by
   refine ⟨0, Unit, inferInstance, finish 0 symbol, ?_⟩
-  apply ComputesFunInTimeAndSpace.of_runFrom (hs := by simp)
+  rw [ComputesFunInTimeAndSpace, ComputesFun, ← forall_and]
   intro b
-  refine ⟨1, ?_, ?_, ?_⟩
-  · cases b <;> decide
-  · rw [runFrom, Function.iterate_one, step_of_state rfl]
+  have hh : ((finish 0 symbol).runFrom ((finish 0 symbol).initCfg (bit b)) 1).Halted := by
+    rw [runFrom, Function.iterate_one, step_of_state rfl]
     simp [finish, Turing.Cfg.Halted]
+  refine ⟨⟨1, hh, ?_⟩, ?_, by simp⟩
   · rw [runFrom, Function.iterate_one, step_of_state rfl]
     simp [finish]; rfl
+  · intro p hp
+    rw [computationPath_last_eq_runFrom p,
+      runFrom_eq_of_halt _ _ (by split at hp <;> omega) hh]
+    exact hh
 
 -- A theorem about nondeterministic steps applies directly to a deterministic machine.
 example {tm : Turing.MultiTapeTM k Symbol State} {input : List Symbol}
