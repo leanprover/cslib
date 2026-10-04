@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi, Ching-Tsun Chou
+Authors: Fabrizio Montesi, Ching-Tsun Chou, Thomas Waring
 -/
 
 module
@@ -11,6 +11,14 @@ public import Cslib.Foundations.Data.List.IsChainFromTo
 
 /-!
 # Finite executions of LTS
+
+A finite execution of `lts : LTS State Label`, a proposition `lts.Execution s μs t ss`, which says
+that `lts` can transition from `s₁` to `s₂` through `ss` using the transition labels `μ`. That is,
+the lists have the form `μs = [μ₁, μ₂, ..., μₙ]` and `ss = [s, s₂, s₃, ..., sₙ, t]`, and there are
+transitions `lts.Tr s μ₁ s₂`, `lts.Tr s₂ μ₂ s₃`, ..., `lts.Tr sₙ μₙ t`.
+
+We define `Cslib.LTS.Execution` as an inductive proposition, which is equivalent to the definition
+in terms of indicies: see `Cslib.LTS.Execution.mk` and `Cslib.LTS.execution_iff_index`.
 -/
 
 @[expose] public section
@@ -129,6 +137,13 @@ protected theorem mk {s₁ s₂ : State} {μs : List Label} {ss : List State}
       intro k hk
       apply trans (k + 1)
       simpa
+
+/-- The inductive definition of `Cslib.LTS.Execution` is equivalent to that in terms of indices. -/
+theorem _root_.Cslib.LTS.execution_iff_index :
+    lts.Execution s₁ μs s₂ ss ↔
+      ∃ (_ : ss.length = μs.length + 1), ss[0] = s₁ ∧ ss[ss.length - 1] = s₂ ∧
+      ∀ k (_ : k < μs.length), lts.Tr ss[k] μs[k] ss[k + 1] :=
+  ⟨fun h ↦ ⟨h.length, h.start, h.last, h.trans⟩, fun ⟨hl, hs, ht, htr⟩ ↦ .mk hl hs ht htr⟩
 
 /-- Deconstruction of executions with `List.cons`. -/
 theorem cons_invert (h : lts.Execution s₁ (μ :: μs) s₂ (s₁ :: ss)) :
