@@ -13,7 +13,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 # Nondeterministic Multi-Tape Turing Machines
 
 Defines nondeterministic Turing machines with a read-only input tape, `k` work tapes and one
-write-only output tape, their computation paths, acceptance, and decision within a time bound.
+write-only output tape, their computation paths, and time bounds.
 
 ## Design
 
@@ -27,11 +27,10 @@ transition function is replaced by a transition relation: `Tr q input work actio
 A halted configuration steps to itself, so once a machine has halted it has a run of every length.
 A time bound is therefore an upper bound, with no separate account of the step at which it halted.
 
-Acceptance means that some computation halts with output `[true]`. A branch with no permitted
-transition stops without accepting. Time bounds apply to every computation path, regardless of its
-outcome. `RunsInTime input t` requires every path of at least `t` steps to end in a halted
-configuration. A path that gets stuck after `u` steps therefore requires a bound strictly greater
-than `u`. Function computation is defined only for deterministic machines.
+Time bounds apply to every computation path, regardless of its outcome. `RunsInTime input t`
+requires every path of at least `t` steps to end in a halted configuration. A path that gets stuck
+after `u` steps therefore requires a bound strictly greater than `u`. Function computation and
+decidability are defined only for deterministic machines.
 
 ## Important Declarations
 
@@ -39,10 +38,7 @@ than `u`. Function computation is defined only for deterministic machines.
 * `Step`: the one-step relation on configurations
 * `RunPath`: finite relation series of steps
 * `ComputationPath`: a run path starting at the initial configuration
-* `Accepts`: some computation halts with output `[true]`
 * `RunsInTime`: every computation path of at least the given length ends in a halted configuration
-* `DecidesSuchThat`: acceptance characterizes a language and an input-indexed constraint holds
-* `DecidesInTime`: decision with a time bound on every computation path
 
 ## References
 
@@ -149,10 +145,6 @@ def time (p : ntm.ComputationPath input) : ℕ := RunPath.time p.toRunPath
 
 end ComputationPath
 
-/-- Some computation on `input` halts with output `[true]`. -/
-def Accepts (ntm : MultiTapeNTM k Bool State) (input : List Bool) : Prop :=
-  ∃ p : ntm.ComputationPath input, p.last.Halted ∧ p.last.output = [true]
-
 /-- Every computation path on `input` of at least `t` steps ends in a halted configuration.
 A path ending in a stuck configuration must have fewer than `t` steps. -/
 def RunsInTime (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (t : ℕ) : Prop :=
@@ -162,20 +154,6 @@ def RunsInTime (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (t : �
 lemma RunsInTime.mono {input : List Symbol} {t t' : ℕ}
     (h : ntm.RunsInTime input t) (ht : t ≤ t') : ntm.RunsInTime input t' :=
   fun p hp ↦ h p (ht.trans hp)
-
-/-- The machine accepts exactly the members of `L`, has Boolean halting outputs, and satisfies
-the constraint `P` on every input. The constraint may bound all computation paths, independently
-of their outcome. -/
-def DecidesSuchThat {α : Type*} (ntm : MultiTapeNTM k Bool State)
-    (L : Set α) (enc : α ↪ List Bool) (P : α → Prop) : Prop :=
-  ∀ a, (ntm.Accepts (enc a) ↔ a ∈ L) ∧ P a ∧
-    ∀ p : ntm.ComputationPath (enc a), p.last.Halted →
-      p.last.output = [true] ∨ p.last.output = [false]
-
-/-- The machine decides `L`, with every computation path subject to the supplied time bound. -/
-def DecidesInTime {α : Type*} (ntm : MultiTapeNTM k Bool State)
-    (L : Set α) (enc : α ↪ List Bool) (t : α → ℕ) : Prop :=
-  ntm.DecidesSuchThat L enc fun a ↦ ntm.RunsInTime (enc a) (t a)
 
 end MultiTapeNTM
 

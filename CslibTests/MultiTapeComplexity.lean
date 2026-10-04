@@ -16,10 +16,10 @@ private def finish (move : SignType) (symbol : Bool) : Turing.MultiTapeTM 0 Bool
 private def bit : Bool ↪ List Bool := ⟨fun b => [b], by intro a b h; simpa using h⟩
 
 -- Bounds can differ for inputs of the same encoded length.
-private lemma constant_computable :
-    ComputableInTimeAndSpace (fun _ : Bool => true) bit bit
+private lemma constant_computable (symbol : Bool) :
+    ComputableInTimeAndSpace (fun _ : Bool => symbol) bit bit
       (fun b => if b then 1 else 2) (fun _ => 0) := by
-  refine ⟨0, Unit, inferInstance, finish 0 true, ?_⟩
+  refine ⟨0, Unit, inferInstance, finish 0 symbol, ?_⟩
   intro b
   refine ⟨1, ?_, ?_, ?_, by simp⟩
   · cases b <;> decide
@@ -42,19 +42,25 @@ example {α β : Type*} {f : α → β} {encIn : α ↪ List Bool} {encOut : β 
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
 
--- A deterministic decider is already a nondeterministic decider.
-example {α : Type*} {L : Set α} {enc : α ↪ List Bool} {t s : α → ℕ}
-    (h : DecidableInTimeAndSpace L enc t s) :
-    Turing.MultiTapeNTM.DecidableInTimeAndSpace L enc t s := by
-  obtain ⟨k, State, hfinite, tm, htm⟩ := h
-  exact ⟨k, State, hfinite, tm.toMultiTapeNTM, htm⟩
+-- Deterministic function computation satisfies the shared resource bounds.
+example {α β : Type*} {tm : Turing.MultiTapeTM k Symbol State}
+    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol}
+    {f : α → β} {t s : α → ℕ}
+    (h : tm.ComputesFunInTimeAndSpace encIn encOut f t s) (a : α) :
+    tm.RunsInTime (encIn a) (t a) ∧ tm.UsesSpace (encIn a) (s a) := by
+  obtain ⟨u, hu, hh, _, hs⟩ := h a
+  exact ⟨(runsInTime_iff.mpr hh).mono hu, (usesSpace_iff_of_halted hh).mpr hs⟩
 
--- Deterministic decision agrees with computing the Boolean indicator.
-example {α : Type*} {L : Set α} {enc : α ↪ List Bool} {t s : α → ℕ}
-    {tm : Turing.MultiTapeTM k Bool State}
-    (h : tm.ComputesFunInTimeAndSpace enc bit (indicator L) t s) :
-    tm.DecidesInTimeAndSpace L enc t s :=
-  decidesInTimeAndSpace_iff.mpr h
+-- Deciding the full and empty languages requires returning true and false, respectively.
+example : DecidableInTimeAndSpace (Set.univ : Set Bool) bit
+    (fun b ↦ if b then 1 else 2) (fun _ ↦ 0) := by
+  unfold DecidableInTimeAndSpace indicator
+  simpa [bit] using constant_computable true
+
+example : DecidableInTimeAndSpace (∅ : Set Bool) bit
+    (fun b ↦ if b then 1 else 2) (fun _ ↦ 0) := by
+  unfold DecidableInTimeAndSpace indicator
+  simpa [bit] using constant_computable false
 
 open Turing Turing.MultiTapeNTM
 
@@ -64,43 +70,16 @@ private def chooseBit : MultiTapeNTM 0 Bool Unit where
   q₀ := ()
   Tr _ _ _ action := ∃ b, action = stop b
 
-private def outputPath (input : List Bool) (b : Bool) : chooseBit.ComputationPath input where
-  toRunPath := (RelSeries.singleton _ (chooseBit.initCfg input)).snoc
-    ((stop b).apply (chooseBit.initCfg input)) ⟨stop b, ⟨b, rfl⟩, rfl⟩
-  head_eq := by simp
-
-private lemma chooseBit_path {input : List Bool} (p : chooseBit.ComputationPath input)
-    (hp : 0 < p.length) :
-    p.last.Halted ∧ (p.last.output = [true] ∨ p.last.output = [false]) := by
+private lemma chooseBit_time (input : List Bool) : chooseBit.RunsInTime input 1 := by
+  intro p hp
   let i : Fin p.length := ⟨0, hp⟩
   have hstep := p.step i
   change chooseBit.Step p.head (p.toRunPath i.succ) at hstep
   rw [p.head_eq] at hstep
   obtain ⟨action, ⟨b, rfl⟩, hc⟩ := hstep
   have hh : (p.toRunPath i.succ).Halted := by rw [hc]; rfl
-  rw [RunPath.last_eq_of_halted p.toRunPath i.succ hh, hc]
-  cases b <;> simp [stop, Action.apply, Cfg.Halted]
-
-private lemma chooseBit_time (input : List Bool) : chooseBit.RunsInTime input 1 := by
-  intro p hp
-  exact (chooseBit_path p hp).1
-
--- The same machine decides the full language: rejecting branches on a member are allowed.
-private lemma chooseBit_decides : chooseBit.DecidesInTime Set.univ bit (fun _ ↦ 1) := by
-  intro a
-  refine ⟨⟨fun _ ↦ Set.mem_univ _, fun _ ↦ ⟨outputPath _ true, rfl, rfl⟩⟩,
-    chooseBit_time _, fun p hp ↦ ?_⟩
-  by_cases hlen : 0 < p.length
-  · exact (chooseBit_path p hlen).2
-  · have heq : Fin.last p.length = 0 := Fin.ext (by simp; omega)
-    have hlast : p.last = p.head := congrArg p.toFun heq
-    rw [hlast, p.head_eq] at hp
-    cases hp
-
-example : chooseBit.DecidesInTimeAndSpace Set.univ bit (fun _ ↦ 1) (fun _ ↦ 0) := by
-  intro a
-  obtain ⟨haccept, htime, houtput⟩ := chooseBit_decides a
-  exact ⟨haccept, ⟨htime, by intro p; simp [ComputationPath.space, RunPath.space]⟩, houtput⟩
+  rw [RunPath.last_eq_of_halted p.toRunPath i.succ hh]
+  exact hh
 
 -- Halting padding does not violate the time bound.
 example : chooseBit.RunsInTime [] 100 := (chooseBit_time []).mono (by decide)
@@ -114,17 +93,6 @@ example : ¬chooseBit.RunsInTime [] 0 := by
 
 private def blocked : MultiTapeNTM 0 Bool Unit := ⟨(), fun _ _ _ _ ↦ False⟩
 
-private lemma blocked_path {input : List Bool} (p : blocked.ComputationPath input) :
-    p.last = blocked.initCfg input := by
-  by_cases hp : 0 < p.length
-  · have hstep := p.step ⟨0, hp⟩
-    change blocked.Step p.head _ at hstep
-    rw [p.head_eq] at hstep
-    obtain ⟨_, hf, _⟩ := hstep
-    exact hf.elim
-  · have heq : Fin.last p.length = 0 := Fin.ext (by simp; omega)
-    exact (congrArg p.toFun heq).trans p.head_eq
-
 -- A stuck initial configuration fails the zero-step bound, despite having no successor.
 example : ¬blocked.RunsInTime [] 0 := by
   intro h
@@ -133,32 +101,21 @@ example : ¬blocked.RunsInTime [] 0 := by
   cases hh
 
 -- All stuck paths have zero steps, so the one-step bound holds.
-example : blocked.DecidesInTimeAndSpace ∅ bit (fun _ ↦ 1) (fun _ ↦ 0) := by
-  intro a
-  refine ⟨?_, ⟨?_, ?_⟩, ?_⟩
-  · constructor
-    · rintro ⟨p, hp, _⟩
-      rw [blocked_path p] at hp
-      cases hp
-    · simp
-  · intro p hp
-    have hstep := p.step ⟨0, hp⟩
-    change blocked.Step p.head _ at hstep
-    rw [p.head_eq] at hstep
-    obtain ⟨_, hf, _⟩ := hstep
-    exact hf.elim
-  · intro p
-    simp [ComputationPath.space, RunPath.space]
-  · intro p hp
-    rw [blocked_path p] at hp
-    cases hp
+example (input : List Bool) : blocked.RunsInTime input 1 := by
+  intro p hp
+  have hstep := p.step ⟨0, hp⟩
+  change blocked.Step p.head _ at hstep
+  rw [p.head_eq] at hstep
+  obtain ⟨_, hf, _⟩ := hstep
+  exact hf.elim
 
 private def mayLoop : MultiTapeNTM 0 Bool Unit where
   q₀ := ()
   Tr _ _ _ action := action = stop true ∨ action = ⟨0, Fin.elim0, none, some ()⟩
 
--- One short accepting branch does not bound a second branch that can keep running.
-example : mayLoop.Accepts [] ∧ ¬mayLoop.RunsInTime [] 1 := by
+-- One short halting branch does not bound a second branch that can keep running.
+example : (∃ p : mayLoop.ComputationPath [], p.time = 1 ∧ p.last.Halted) ∧
+    ¬mayLoop.RunsInTime [] 1 := by
   constructor
   · let p : mayLoop.ComputationPath [] :=
       ⟨(RelSeries.singleton _ (mayLoop.initCfg [])).snoc
@@ -184,9 +141,9 @@ private def visitPath (b : Bool) : mayUseSpace.ComputationPath [] where
     ((visit b).apply (mayUseSpace.initCfg [])) ⟨visit b, ⟨b, rfl⟩, rfl⟩
   head_eq := by simp
 
--- A short accepting path does not excuse extra space used on a rejecting branch.
-example : mayUseSpace.Accepts [] ∧ ¬mayUseSpace.UsesSpace [] 1 := by
-  refine ⟨⟨visitPath true, rfl, rfl⟩, fun hs ↦ ?_⟩
+-- A space bound on one path does not bound another.
+example : (visitPath true).space = 1 ∧ ¬mayUseSpace.UsesSpace [] 1 := by
+  refine ⟨by decide, fun hs ↦ ?_⟩
   have hspace : (visitPath false).space = 2 := by decide
   have := hs (visitPath false)
   omega
