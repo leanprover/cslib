@@ -17,8 +17,7 @@ Attack Game 3.1 of [BonehShoup2023] compares a deterministic generator applied t
 uniform seed with a uniform output. The experiments also accept explicit seed and ideal
 distributions, so the same definitions apply to infinite sample spaces and to intermediate
 distributions in reductions. Omitted distributions default to uniform sampling from the
-respective finite types.
-Adversaries are randomized Boolean tests. Security
+respective finite types. Adversaries are randomized Boolean tests. Security
 is relative to a caller-supplied predicate `Admissible`, with an explicit advantage bound.
 No computational model or efficiency assumption is built into the generator or the tests.
 

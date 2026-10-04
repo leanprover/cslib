@@ -21,7 +21,7 @@ This model has a natural-number security parameter and no sampled public system 
 Efficiency of generation and sampling is not asserted by these semantic definitions.
 Seed and ideal distributions can be supplied explicitly; their defaults are uniform on finite
 types. Security is stated through `Game.Secure`, so computational definitions over infinite
-sample spaces, such as words, can reuse these experiments.
+sample spaces can reuse these experiments.
 
 `SecureWithError` bounds every admissible family's advantage at parameter `n` by `ε n`.
 A negligible bound implies `Secure`.

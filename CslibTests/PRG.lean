@@ -24,7 +24,7 @@ example : (Generator.mk (id : Bool → Bool)).Secure (fun _ => True) 0 := by
 example : (Generator.mk (id : ℕ → ℕ)).advantage (fun n => PMF.pure (decide (n = 0)))
     (seed := PMF.pure 0) (ideal := PMF.pure 1) = 1 := by
   simp [Generator.advantage, Generator.realExperiment, Generator.idealExperiment,
-    Generator.outputDist, Cslib.Crypto.Game.advantage, Cslib.Crypto.Game.winProbability]
+    Generator.outputDist, Cslib.Crypto.Game.winProbability]
 
 -- Zero-error security implies uniform output.
 example {Seed Output : Type*} [Fintype Seed] [Nonempty Seed]
@@ -70,8 +70,7 @@ example : Family.Secure (fun n => Generator.mk (id : (Fin n → Bool) → (Fin n
       (fun n => Generator.mk (id : (Fin n → Bool) → (Fin n → Bool)))
       (fun _ => True) (fun _ => 0) := by
     intro adversary_family _ n
-    simp [Generator.realExperiment, Generator.idealExperiment,
-      Generator.outputDist, PMF.map_id]
+    simp [Generator.realExperiment, Generator.idealExperiment, Generator.outputDist]
   exact h.secure (Asymptotics.superpolynomialDecay_zero _ _)
 
 -- The inverse-polynomial gap 1 / (n + 2) rules out asymptotic security.
