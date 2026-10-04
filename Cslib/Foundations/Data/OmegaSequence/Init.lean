@@ -103,9 +103,6 @@ lemma append_get_zero_of_ne_nil {x : List α} {s : ωSequence α} (h : x ≠ [])
   rw! [← List.cons_head_tail h, get_cons_append_zero]
   simp
 
--- lemma append_get_zero_of_length_pos {x : List α} {s : ωSequence α} (h : 0 < x.length) :
---     (x ++ω s) 0 = x[0] := by simp_rw [x.eq_cons_of_mem_head? ]
-
 @[simp, scoped grind =]
 lemma append_eq_cons {a : α} {as : ωSequence α} : [a] ++ω as = a ::ω as := rfl
 
