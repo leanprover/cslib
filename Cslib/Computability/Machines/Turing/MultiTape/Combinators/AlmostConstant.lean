@@ -327,10 +327,11 @@ lemma reaches_write (h : ∀ a ∉ S, encOut (f a) = out) (a : α) :
 lemma computesFunInTimeAndSpace_almostConstTM (h : ∀ a ∉ S, encOut (f a) = out) :
     (almostConstTM encIn encOut f S out).ComputesFunInTimeAndSpace encIn encOut f
       (fun _ => almostConstTime encIn encOut f S out) (fun _ => 0) := by
+  apply ComputesFunInTimeAndSpace.of_runFrom (hs := by simp)
   intro a
   obtain ⟨j, hjle, hj, hrun⟩ := reaches_write (encIn := encIn) h a
   use j + 1 + ((encOut (f a)).length + 1)
-  refine ⟨?_, ?_, ?_, by simp⟩
+  refine ⟨?_, ?_, ?_⟩
   · simp only [almostConstTime]
     omega
   all_goals

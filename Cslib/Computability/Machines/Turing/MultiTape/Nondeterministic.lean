@@ -27,7 +27,7 @@ transition function is replaced by a transition relation: `Tr q input work actio
 A halted configuration steps to itself, so once a machine has halted it has a run of every length.
 A time bound is therefore an upper bound, with no separate account of the step at which it halted.
 
-Time bounds apply to every computation path, regardless of its outcome. `ComputesInTime input t`
+Time bounds apply to every computation path, regardless of its outcome. `RunsInTime input t`
 requires every path of at least `t` steps to end in a halted configuration. A path that gets stuck
 after `u` steps therefore requires a bound strictly greater than `u`. Function computation and
 decidability are defined only for deterministic machines.
@@ -38,7 +38,7 @@ decidability are defined only for deterministic machines.
 * `Step`: the one-step relation on configurations
 * `RunPath`: finite relation series of steps
 * `ComputationPath`: a run path starting at the initial configuration
-* `ComputesInTime`: every computation path of at least the given length ends in a halted
+* `RunsInTime`: every computation path of at least the given length ends in a halted
   configuration
 
 ## References
@@ -148,12 +148,12 @@ end ComputationPath
 
 /-- Every computation path on `input` of at least `t` steps ends in a halted configuration.
 A path ending in a stuck configuration must have fewer than `t` steps. -/
-def ComputesInTime (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (t : ℕ) : Prop :=
+def RunsInTime (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (t : ℕ) : Prop :=
   ∀ p : ntm.ComputationPath input, t ≤ p.time → p.last.Halted
 
 /-- A time bound can be increased. -/
-lemma ComputesInTime.mono {input : List Symbol} {t t' : ℕ}
-    (h : ntm.ComputesInTime input t) (ht : t ≤ t') : ntm.ComputesInTime input t' :=
+lemma RunsInTime.mono {input : List Symbol} {t t' : ℕ}
+    (h : ntm.RunsInTime input t) (ht : t ≤ t') : ntm.RunsInTime input t' :=
   fun p hp ↦ h p (ht.trans hp)
 
 end MultiTapeNTM

@@ -20,8 +20,9 @@ private lemma constant_computable (symbol : Bool) :
     ComputableInTimeAndSpace (fun _ : Bool => symbol) bit bit
       (fun b => if b then 1 else 2) (fun _ => 0) := by
   refine ⟨0, Unit, inferInstance, finish 0 symbol, ?_⟩
+  apply ComputesFunInTimeAndSpace.of_runFrom (hs := by simp)
   intro b
-  refine ⟨1, ?_, ?_, ?_, by simp⟩
+  refine ⟨1, ?_, ?_, ?_⟩
   · cases b <;> decide
   · rw [runFrom, Function.iterate_one, step_of_state rfl]
     simp [finish, Turing.Cfg.Halted]
@@ -47,9 +48,8 @@ example {α β : Type*} {tm : Turing.MultiTapeTM k Symbol State}
     {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol}
     {f : α → β} {t s : α → ℕ}
     (h : tm.ComputesFunInTimeAndSpace encIn encOut f t s) (a : α) :
-    tm.ComputesInTime (encIn a) (t a) ∧ tm.ComputesInSpace (encIn a) (s a) := by
-  obtain ⟨u, hu, hh, _, hs⟩ := h a
-  exact ⟨(computesInTime_iff.mpr hh).mono hu, (computesInSpace_iff_of_halted hh).mpr hs⟩
+    tm.RunsInTime (encIn a) (t a) ∧ tm.RunsInSpace (encIn a) (s a) :=
+  h.2 a
 
 -- Deciding the full and empty languages requires returning true and false, respectively.
 example : DecidableInTimeAndSpace (Set.univ : Set Bool) bit
@@ -70,7 +70,7 @@ private def chooseBit : MultiTapeNTM 0 Bool Unit where
   q₀ := ()
   Tr _ _ _ action := ∃ b, action = stop b
 
-private lemma chooseBit_time (input : List Bool) : chooseBit.ComputesInTime input 1 := by
+private lemma chooseBit_time (input : List Bool) : chooseBit.RunsInTime input 1 := by
   intro p hp
   let i : Fin p.length := ⟨0, hp⟩
   have hstep := p.step i
@@ -82,10 +82,10 @@ private lemma chooseBit_time (input : List Bool) : chooseBit.ComputesInTime inpu
   exact hh
 
 -- Halting padding does not violate the time bound.
-example : chooseBit.ComputesInTime [] 100 := (chooseBit_time []).mono (by decide)
+example : chooseBit.RunsInTime [] 100 := (chooseBit_time []).mono (by decide)
 
 -- The transition into a halting configuration still costs one step.
-example : ¬chooseBit.ComputesInTime [] 0 := by
+example : ¬chooseBit.RunsInTime [] 0 := by
   intro h
   let p : chooseBit.ComputationPath [] := ⟨RelSeries.singleton _ (chooseBit.initCfg []), rfl⟩
   have hh := h p le_rfl
@@ -94,14 +94,14 @@ example : ¬chooseBit.ComputesInTime [] 0 := by
 private def blocked : MultiTapeNTM 0 Bool Unit := ⟨(), fun _ _ _ _ ↦ False⟩
 
 -- A stuck initial configuration fails the zero-step bound, despite having no successor.
-example : ¬blocked.ComputesInTime [] 0 := by
+example : ¬blocked.RunsInTime [] 0 := by
   intro h
   let p : blocked.ComputationPath [] := ⟨RelSeries.singleton _ (blocked.initCfg []), rfl⟩
   have hh := h p le_rfl
   cases hh
 
 -- All stuck paths have zero steps, so the one-step bound holds.
-example (input : List Bool) : blocked.ComputesInTime input 1 := by
+example (input : List Bool) : blocked.RunsInTime input 1 := by
   intro p hp
   have hstep := p.step ⟨0, hp⟩
   change blocked.Step p.head _ at hstep
@@ -115,7 +115,7 @@ private def mayLoop : MultiTapeNTM 0 Bool Unit where
 
 -- One short halting branch does not bound a second branch that can keep running.
 example : (∃ p : mayLoop.ComputationPath [], p.time = 1 ∧ p.last.Halted) ∧
-    ¬mayLoop.ComputesInTime [] 1 := by
+    ¬mayLoop.RunsInTime [] 1 := by
   constructor
   · let p : mayLoop.ComputationPath [] :=
       ⟨(RelSeries.singleton _ (mayLoop.initCfg [])).snoc
@@ -142,7 +142,7 @@ private def visitPath (b : Bool) : mayUseSpace.ComputationPath [] where
   head_eq := by simp
 
 -- A space bound on one path does not bound another.
-example : (visitPath true).space = 1 ∧ ¬mayUseSpace.ComputesInSpace [] 1 := by
+example : (visitPath true).space = 1 ∧ ¬mayUseSpace.RunsInSpace [] 1 := by
   refine ⟨by decide, fun hs ↦ ?_⟩
   have hspace : (visitPath false).space = 2 := by decide
   have := hs (visitPath false)
