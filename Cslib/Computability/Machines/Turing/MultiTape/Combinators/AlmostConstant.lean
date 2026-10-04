@@ -327,7 +327,6 @@ lemma reaches_write (h : ∀ a ∉ S, encOut (f a) = out) (a : α) :
 lemma computesFunInTimeAndSpace_almostConstTM (h : ∀ a ∉ S, encOut (f a) = out) :
     (almostConstTM encIn encOut f S out).ComputesFunInTimeAndSpace encIn encOut f
       (fun _ => almostConstTime encIn encOut f S out) (fun _ => 0) := by
-  rw [ComputesFunInTimeAndSpace, ComputesFun, ← forall_and]
   intro a
   obtain ⟨j, hjle, hj, hrun⟩ := reaches_write (encIn := encIn) h a
   have hfinal := congrArg

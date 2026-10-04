@@ -20,8 +20,8 @@ private lemma constant_computable (symbol : Bool) :
     ComputableInTimeAndSpace (fun _ : Bool => symbol) bit bit
       (fun b => if b then 1 else 2) (fun _ => 0) := by
   refine ⟨0, Unit, inferInstance, finish 0 symbol, ?_⟩
-  rw [ComputesFunInTimeAndSpace, ComputesFun, ← forall_and]
   intro b
+  have hb : 1 ≤ (if b then 1 else 2 : ℕ) := by cases b <;> decide
   have hh : ((finish 0 symbol).runFrom ((finish 0 symbol).initCfg (bit b)) 1).Halted := by
     rw [runFrom, Function.iterate_one, step_of_state rfl]
     simp [finish, Turing.Cfg.Halted]
@@ -30,7 +30,7 @@ private lemma constant_computable (symbol : Bool) :
     simp [finish]; rfl
   · intro p hp
     rw [computationPath_last_eq_runFrom p,
-      runFrom_eq_of_halt _ _ (by split at hp <;> omega) hh]
+      runFrom_eq_of_halt _ _ (hb.trans hp) hh]
     exact hh
 
 -- A theorem about nondeterministic steps applies directly to a deterministic machine.
@@ -53,7 +53,7 @@ example {α β : Type*} {tm : Turing.MultiTapeTM k Symbol State}
     {f : α → β} {t s : α → ℕ}
     (h : tm.ComputesFunInTimeAndSpace encIn encOut f t s) (a : α) :
     tm.RunsInTime (encIn a) (t a) ∧ tm.RunsInSpace (encIn a) (s a) :=
-  h.2 a
+  (h a).2
 
 -- Deciding the full and empty languages requires returning true and false, respectively.
 example : DecidableInTimeAndSpace (Set.univ : Set Bool) bit
