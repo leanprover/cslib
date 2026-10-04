@@ -27,6 +27,7 @@ finite sums, eventual comparison, and polynomial-loss bounds. Changing finitely 
 preserves negligibility.
 [`Game`](Game.lean) gives the success probability and distinguishing advantage of Boolean
 experiments, and indistinguishability of game families under polynomial-loss reductions.
+[`Game/Hybrid`](Game/Hybrid.lean) supplies hybrid arguments with polynomially many hops.
 
 ## Pseudorandom generators
 
