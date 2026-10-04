@@ -75,12 +75,12 @@ namespace MultiTapeTM
 
 variable {tm : MultiTapeTM k Symbol State}
 
-/-- The unique action permitted by the transition relation. -/
+/-- The unique action related to the given state and read symbols by `Tr`. -/
 noncomputable def tr (tm : MultiTapeTM k Symbol State) (q : State) (input : Option Symbol)
     (work : Fin k → Option Symbol) : Action k Symbol State :=
   (tm.deterministic q input work).choose
 
-/-- An action is permitted by `Tr` exactly when `tr` returns it. -/
+/-- `Tr` relates a state and read symbols to an action exactly when `tr` returns that action. -/
 @[simp, scoped grind =]
 lemma tr_iff {q : State} {input : Option Symbol} {work : Fin k → Option Symbol}
     {action : Action k Symbol State} : tm.Tr q input work action ↔ tm.tr q input work = action :=
@@ -118,11 +118,11 @@ private lemma existsUnique_step (cfg : Cfg k Symbol State input) :
   unfold MultiTapeNTM.Step
   cases cfg.state <;> simp
 
-/-- The unique successor configuration permitted by the inherited step relation. -/
+/-- The unique successor configuration related to `cfg` by the inherited step relation. -/
 noncomputable def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   (show ∃! cfg', tm.Step cfg cfg' from by exact existsUnique_step cfg).choose
 
-/-- A configuration is a permitted successor of `c` exactly when `step c` returns it. -/
+/-- `Step` relates `c` to `c'` exactly when `step c = c'`. -/
 @[simp, scoped grind =]
 lemma step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ tm.step c = c' := by
   unfold step

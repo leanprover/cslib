@@ -50,8 +50,8 @@ the sub-linear space modifications from chapter 2.5 with the following changes:
   the alphabet.
 - We only have a single halting state. The different ways to halt (accepting, rejecting, etc) can
   be distinguished based on the output.
-- The input-head restriction is enforced by `Action.apply`, rather than by restricting which
-  actions a machine permits. The two definitions are equivalent, but allowing all actions makes it
+- The input-head restriction is enforced by `Action.apply`, rather than by restricting the
+  transition relation. The two definitions are equivalent, but allowing all actions makes it
   easier to define a universal machine.
 
 ## Important Declarations
