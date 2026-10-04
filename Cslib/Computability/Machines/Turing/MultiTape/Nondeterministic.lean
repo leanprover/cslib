@@ -21,8 +21,8 @@ The design choices for configurations and actions are documented in
 `Cslib.Computability.Machines.Turing.MultiTape.Configuration`.
 
 Following [Papadimitriou94], chapter 2.7, a nondeterministic machine is a Turing machine whose
-transition function is replaced by a transition relation: `Tr q input work action` holds when
-`action` is one of the actions permitted in that situation.
+transition function is replaced by a transition relation: `Tr q input work action` holds when `Tr`
+relates the state `q` and the read symbols `input` and `work` to `action`.
 
 A halted configuration steps to itself, so once a machine has halted it has a run of every length.
 A time bound is therefore an upper bound, with no separate account of the step at which it halted.
@@ -71,8 +71,8 @@ namespace MultiTapeNTM
 
 variable {ntm : MultiTapeNTM k Symbol State}
 
-/-- The one-step relation on configurations. A halted configuration steps to itself. A running one
-steps by any permitted transition. -/
+/-- The one-step relation on configurations. A halted configuration steps only to itself. A running
+configuration steps by applying any action related to its state and read symbols by `Tr`. -/
 @[scoped grind =]
 def Step (ntm : MultiTapeNTM k Symbol State) (c₁ c₂ : Cfg k Symbol State input) : Prop :=
   match c₁.state with
