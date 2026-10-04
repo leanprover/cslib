@@ -183,17 +183,25 @@ theorem transformsTapes_seq
     rfl
   refine ⟨ws'', ?_, ⟨ws', hQ₀, hQ₁⟩, ?_⟩
   · exact runFrom_seq hrun₀ rfl (by simpa using hrun₁) rfl
-  · rw [spaceUsed_eq_of_halt _ (by omega : u + t₁ ≤ t₀ + t₁) hhalt]
-    refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
+  · rw [((tm₀.seq tm₁).runPath _ (t₀ + t₁)).space_eq_take_of_halted
+      ⟨u + t₁, by simp; omega⟩ hhalt]
+    change ((tm₀.seq tm₁).runPath _ (u + t₁)).space ≤ _
+    refine le_trans (((tm₀.seq tm₁).runPath _ (u + t₁)).space_le_take_add_drop
+      ⟨u, by simp; omega⟩) (Nat.add_le_add ?_ ?_)
     · -- the first phase visits what the first machine visits
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ u fun m hm => ?_))
-        (le_trans (spaceUsed_mono tm₀ _ hu) hspace₀)
-      rw [hstart, runFrom_leftCfg _ m fun _ hr => hhaltsAt.not_halted (by omega),
-        workTapePos_leftCfg]
+      refine le_trans (le_of_eq (MultiTapeNTM.RunPath.space_eq_of_workTapePos
+        _ (tm₀.runPath (wordsCfg input (some tm₀.q₀) ws out) u) (by rfl) ?_)) ?_
+      · intro m
+        have hm : m.val ≤ u := Nat.le_of_lt_succ m.isLt
+        change ((tm₀.seq tm₁).runFrom _ m).workTapePos = (tm₀.runFrom _ m).workTapePos
+        rw [hstart, runFrom_leftCfg _ m fun _ hr ↦ hhaltsAt.not_halted (by omega),
+          workTapePos_leftCfg]
+      · exact ((tm₀.runPath _ t₀).space_take_le ⟨u, by simp; omega⟩).trans hspace₀
     · -- the second phase visits what the second machine visits
-      rw [← add_zero u, hright 0]
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ t₁ fun m hm => ?_)) hspace₁
-      rw [runFrom_rightCfg, workTapePos_rightCfg]
+      refine le_trans (le_of_eq (MultiTapeNTM.RunPath.space_eq_of_workTapePos
+        _ (tm₁.runPath (wordsCfg input (some tm₁.q₀) ws' out) t₁) (by simp) ?_)) hspace₁
+      intro m
+      simp [RelSeries.drop, runPath, Nat.add_comm, hright, workTapePos_rightCfg]
       rfl
 
 end Turing.MultiTapeTM

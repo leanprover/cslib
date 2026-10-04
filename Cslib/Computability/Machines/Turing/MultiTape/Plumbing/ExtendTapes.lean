@@ -170,13 +170,16 @@ each of the remaining `k' - k` tapes never moves and contributes at most one cel
 public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
     (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
     (extraPos : Fin k' → ℤ) (n : ℕ) :
-    (tm.extendTapes e).spaceUsed (embed e cfg extraTapes extraPos) n
-      ≤ tm.spaceUsed cfg n + (k' - k) := by
-  simpa using tm.spaceUsed_le_of_workTapePos_embedding e cfg _ 1
-    (fun m _ j => by rw [runFrom_embed, embed_workTapePos_embed])
-    fun l hl => spaceUsedByTape_le_one _ fun m _ => by
-      rw [workTapePos_embed_of_not_range tm e cfg extraTapes extraPos m hl]
-      simp only [embed, partialInv_eq_none e hl]
+    ((tm.extendTapes e).runPath (embed e cfg extraTapes extraPos) n).space
+      ≤ (tm.runPath cfg n).space + (k' - k) := by
+  simpa using (tm.runPath cfg n).space_le_of_workTapePos_embedding
+    ((tm.extendTapes e).runPath (embed e cfg extraTapes extraPos) n) rfl e 1
+    (fun m j ↦ by simp [runPath, runFrom_embed]; rfl) fun l hl ↦
+      ((tm.extendTapes e).runPath _ n).spaceUsedByTape_le_one fun m ↦ by
+        change ((tm.extendTapes e).runFrom (embed e cfg extraTapes extraPos) m).workTapePos l =
+          (embed e cfg extraTapes extraPos).workTapePos l
+        rw [workTapePos_embed_of_not_range tm e cfg extraTapes extraPos m hl]
+        simp only [embed, partialInv_eq_none e hl]
 
 end Space
 
@@ -239,7 +242,8 @@ public lemma runFrom_tapeEmb (tm : MultiTapeTM 1 Symbol State) (i : Fin k)
 one cell for each tape the machine does not use. -/
 public lemma spaceUsed_tapeEmb_le (tm : MultiTapeTM 1 Symbol State) (i : Fin k)
     (cfg : Cfg k Symbol State input) (n : ℕ) :
-    (tm.extendTapes (tapeEmb i)).spaceUsed cfg n ≤ tm.spaceUsed (oneTapeCfg i cfg) n + (k - 1) := by
+    ((tm.extendTapes (tapeEmb i)).runPath cfg n).space ≤
+      (tm.runPath (oneTapeCfg i cfg) n).space + (k - 1) := by
   conv_lhs => rw [← embed_oneTapeCfg i cfg]
   exact spaceUsed_embed_le _ _ _ _ _ _
 
@@ -309,7 +313,7 @@ public lemma runFrom_noTapes (tm : MultiTapeTM 0 Symbol State) (cfg : Cfg k Symb
 /-- **Space bound for a machine without work tapes:** one cell for each tape it does not use. -/
 public lemma spaceUsed_noTapes_le (tm : MultiTapeTM 0 Symbol State)
     (cfg : Cfg k Symbol State input) (n : ℕ) :
-    (tm.extendTapes (noTapes k)).spaceUsed cfg n ≤ k := by
+    ((tm.extendTapes (noTapes k)).runPath cfg n).space ≤ k := by
   conv_lhs => rw [← embed_noTapesCfg cfg]
   simpa using spaceUsed_embed_le tm (noTapes k) (noTapesCfg cfg) cfg.workTapes cfg.workTapePos n
 

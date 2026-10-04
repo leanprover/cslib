@@ -63,7 +63,7 @@ def TransformsTapes (tm : MultiTapeTM k Symbol State)
     ∃ ws',
       tm.runFrom (wordsCfg input (some tm.q₀) ws out) t = wordsCfg input none ws' out ∧
       Q input ws ws' ∧
-      tm.spaceUsed (wordsCfg input (some tm.q₀) ws out) t ≤ s
+      (tm.runPath (wordsCfg input (some tm.q₀) ws out) t).space ≤ s
 
 /-- A `TransformsTapes` statement can be read with a stronger precondition, a weaker postcondition
 and larger bounds. -/
@@ -83,8 +83,8 @@ theorem TransformsTapes.imp {tm : MultiTapeTM k Symbol State}
     rfl
   refine ⟨ws', ?_, hQ input ws ws' hP' hQ'', ?_⟩
   · rw [runFrom_eq_of_halt tm _ ht hhalt, hrun]
-  · rw [spaceUsed_eq_of_halt _ ht hhalt]
-    exact hspace.trans hs
+  · exact ((tm.runPath _ t').space_eq_take_of_halted ⟨t, by simp; omega⟩ hhalt).le.trans
+      (hspace.trans hs)
 
 section Nop
 
@@ -115,10 +115,14 @@ theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
   intro input ws out _
   -- the heads never move, so each tape touches only the single cell `0`
   refine ⟨ws, runFrom_nop_one ws out, rfl,
-    spaceUsed_le_of_workTapePos_const _ 1 fun m hm => ?_⟩
+    ((nop k Symbol).runPath _ 1).space_le_of_workTapePos_const fun m ↦ ?_⟩
+  rcases m with ⟨m, hm⟩
+  change m < 2 at hm
   rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
   · rfl
-  · rw [runFrom_nop_one]; funext i; simp only [wordsCfg_workTapePos]
+  · change ((nop k Symbol).runFrom _ 1).workTapePos = _
+    rw [runFrom_nop_one]
+    rfl
 
 end Nop
 
