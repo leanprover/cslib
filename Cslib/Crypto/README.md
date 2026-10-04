@@ -25,6 +25,7 @@ To this end, we expect to leverage the combination of `Crypto` and [Languages](.
 parameters, with zero, comparison, and polynomial-loss bounds.
 [`Game`](Game.lean) gives the acceptance probability, distinguishing advantage and negligible
 security of Boolean experiments.
+[`Game/Hybrid`](Game/Hybrid.lean) supplies hybrid arguments with polynomially many hops.
 
 ## Pseudorandom generators
 
