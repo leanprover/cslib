@@ -154,7 +154,7 @@ theorem fairDeliverMsg_scheduleMsgs {d : DeliverMsg P M S} {ps : Set P} {q : Sta
     (hd : a.FairDeliverMsg d ps q) (s : State P M S) (hs : q s) :
     let xl := (d.scheduleMsgs ps s).fst
     let t := (d.scheduleMsgs ps s).snd
-    q t ∧ a.lts.MTr s xl t ∧ xl.length > 0 ∧ ∀ m, m ∈ s.msgs → m.dest ∈ ps → some m ∈ xl := by
+    q t ∧ a.lts.MTr s xl t ∧ 0 < xl.length ∧ ∀ m, m ∈ s.msgs → m.dest ∈ ps → some m ∈ xl := by
   classical
   intro xl t
   let ms := s.msgs.filter (fun m ↦ m.dest ∈ ps)
@@ -178,7 +178,7 @@ theorem fair_fairSegs {d : DeliverMsg P M S} {ps : Set P} {q : State P M S → P
     (hd : a.FairDeliverMsg d ps q) (s0 : State P M S) (hs0 : q s0) :
     let ts := a.fairSegEnds d ps s0
     let xls := a.fairSegActions d ps s0
-    ∀ k, q (ts k) ∧ a.lts.MTr (ts k) (xls k) (ts (k + 1)) ∧ (xls k).length > 0 ∧
+    ∀ k, q (ts k) ∧ a.lts.MTr (ts k) (xls k) (ts (k + 1)) ∧ 0 < (xls k).length ∧
       ∀ m, m ∈ (ts k).msgs → m.dest ∈ ps → some m ∈ xls k := by
   classical
   intro ts xls k
@@ -191,7 +191,7 @@ be concatenated into an infinite execution of `a` in which every process in `ps`
 theorem flatten_fairSegs {ps : Set P}
     {ts : ωSequence (State P M S)} {xls : ωSequence (List (Action P M))}
     (hmtr : ∀ k, a.lts.MTr (ts k) (xls k) (ts (k + 1)))
-    (hpos : ∀ k, (xls k).length > 0)
+    (hpos : ∀ k, 0 < (xls k).length)
     (hsch : ∀ k m, m ∈ (ts k).msgs → m.dest ∈ ps → some m ∈ xls k) :
     ∃ ss, a.lts.OmegaExecution ss xls.flatten ∧ (∀ k, ss (xls.cumLen k) = ts k) ∧
       ∀ p, p ∈ ps → ProcFair p ss xls.flatten := by
@@ -216,13 +216,13 @@ theorem fair_omegaExecution {d : DeliverMsg P M S} {ps : Set P} {q : State P M S
     let xls := a.fairSegActions d ps s0
     ∃ ss, a.lts.OmegaExecution ss xls.flatten ∧
       ss 0 = s0 ∧ (∀ k, ss (xls.cumLen k) = ts k) ∧
-      (∀ k, q (ss (xls.cumLen k))) ∧ (∀ k, (xls k).length > 0) ∧
+      (∀ k, q (ss (xls.cumLen k))) ∧ (∀ k, 0 < (xls k).length) ∧
       ∀ p, p ∈ ps → ProcFair p ss xls.flatten := by
   intro ts xls
   obtain ⟨h_q, hmtr, hpos, hsch⟩ :
       (∀ k, q (ts k)) ∧
       (∀ k, a.lts.MTr (ts k) (xls k) (ts (k + 1))) ∧
-      (∀ k, (xls k).length > 0) ∧
+      (∀ k, 0 < (xls k).length) ∧
       (∀ k m, m ∈ (ts k).msgs → m.dest ∈ ps → some m ∈ xls k) := by
     grind [fair_fairSegs hd s0 hs0]
   obtain ⟨ss, _, _, _⟩ := flatten_fairSegs hmtr hpos hsch
@@ -236,7 +236,7 @@ theorem omega_forall_actions {d : DeliverMsg P M S} {ps : Set P}
     (hd : a.FairDeliverMsg d ps q) (s0 : State P M S) (hs0 : q s0)
     (ha : d.ForallActions r) (hn : r none) :
     ∀ k, r ((a.fairSegActions d ps s0).flatten k) := by
-  have hpos : ∀ k, (a.fairSegActions d ps s0 k).length > 0 := by grind [fair_fairSegs hd s0 hs0]
+  have hpos : ∀ k, 0 < (a.fairSegActions d ps s0 k).length := by grind [fair_fairSegs hd s0 hs0]
   simp only [forall_flatten_iff hpos]
   grind [fairSeg_forallActions]
 

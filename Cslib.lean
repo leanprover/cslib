@@ -41,7 +41,10 @@ public import Cslib.Computability.Circuit.Boolean.Lupanov
 public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 public import Cslib.Computability.Circuit.Boolean.Shannon
 public import Cslib.Computability.Circuit.Boolean.Synthesis
+public import Cslib.Computability.Circuit.Complexity
+public import Cslib.Computability.Circuit.Composition
 public import Cslib.Computability.Circuit.Counting
+public import Cslib.Computability.Circuit.Depth
 public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Normalization
@@ -81,8 +84,9 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.SingleTapeAction
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
@@ -95,6 +99,9 @@ public import Cslib.Computability.URM.Defs
 public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
+public import Cslib.Crypto.Primitives.PRG.Asymptotic
+public import Cslib.Crypto.Primitives.PRG.Basic
+public import Cslib.Crypto.Primitives.PRG.Defs
 public import Cslib.Crypto.Protocols.Commitment.Basic
 public import Cslib.Crypto.Protocols.Commitment.Defs
 public import Cslib.Crypto.Protocols.Commitment.Scheme
@@ -130,12 +137,15 @@ public import Cslib.Foundations.Data.OmegaSequence.Temporal
 public import Cslib.Foundations.Data.OmegaSequence.Topology
 public import Cslib.Foundations.Data.PFunctor.Basic
 public import Cslib.Foundations.Data.PFunctor.Free
+public import Cslib.Foundations.Data.PFunctor.Free.Fold
+public import Cslib.Foundations.Data.PFunctor.Free.W
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
+public import Cslib.Foundations.MeasureTheory.FiniteSupport
 public import Cslib.Foundations.Relation.Attr
 public import Cslib.Foundations.Relation.Basic
 public import Cslib.Foundations.Relation.Confluence

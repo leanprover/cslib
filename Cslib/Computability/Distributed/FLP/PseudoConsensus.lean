@@ -35,7 +35,7 @@ In other words, from any reachable state of `a`, a decision can be made without 
 of at most `f` processes. -/
 def Algorithm.PseudoTermination [Fintype P] (a : Algorithm P M S) (f : ℕ) : Prop :=
   ∀ inp s, a.Reachable inp s →
-    ∀ ps : Set P, ps.ncard ≥ card P - f →
+    ∀ ps : Set P, card P - f ≤ ps.ncard →
       ∃ s' b, a.CanReachVia ps s s' ∧ s'.Decided b
 
 /-- An algorithm `a` is a pseudo-consensus algorithm tolerating up to `f` faults iff it satisfies

@@ -326,6 +326,20 @@ theorem Interprets.iff (handler : {ι : Type u} → F ι → m ι) (interp : Fre
 
 end liftM
 
+/-- Interpreting each operation by its lift into the free monad is the identity. -/
+@[simp]
+theorem liftM_lift_eq_self {α : Type u} (x : FreeM F α) : FreeM.liftM lift x = x := by
+  induction x with
+  | pure _ => rfl
+  | lift_bind _ _ ih => simp [ih]
+
+/-- Interpreting into a free monad and then into `m` composes the two handlers. -/
+theorem liftM_comp {m : Type u → Type w} [Monad m] [LawfulMonad m]
+    {G : Type u → Type w'} {α : Type u} (x : FreeM F α)
+    (first : {ι : Type u} → F ι → FreeM G ι) (second : {ι : Type u} → G ι → m ι) :
+    (x.liftM first).liftM second = x.liftM fun op => (first op).liftM second :=
+  (isMonadHom_liftM second).map_freeMLiftM first x
+
 end FreeM
 
 end Cslib

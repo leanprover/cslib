@@ -44,16 +44,25 @@ theorem length (h : lts.Execution s₁ μs s₂ ss) : ss.length = μs.length + 1
 theorem length_ss_pos (h : lts.Execution s₁ μs s₂ ss) : 0 < ss.length :=
   h.length ▸ Nat.zero_lt_succ μs.length
 
+@[grind .]
+theorem Execution.length_ss_pos (h : lts.Execution s₁ μs s₂ ss) : 0 < ss.length := by
+  simp [h.length]
+
 /-- Every execution has at least one intermediate state. -/
 @[scoped grind .]
-theorem ss_ne_nil (h : lts.Execution s₁ μs s₂ ss) : ss ≠ [] :=
+theorem Execution.ss_ne_nil (h : lts.Execution s₁ μs s₂ ss) : ss ≠ [] :=
   ss.ne_nil_iff_length_pos.mpr h.length_ss_pos
 
-@[deprecated (since := "2026-10-01")] alias nonEmpty_states := ss_ne_nil
+@[deprecated (since := "2026-10-01")] alias Execution.nonEmpty_states := Execution.ss_ne_nil
 
-@[scoped grind →]
-theorem start (h : lts.Execution s₁ μs s₂ ss) : ss[0]'h.length_ss_pos = s₁ := by
-  cases h <;> rfl
+theorem Execution.length' (h : lts.Execution s₁ μs s₂ ss) :
+  μs.length = ss.length - 1 := by grind
+
+theorem Execution.last' (h : lts.Execution s₁ μs s₂ ss) :
+  ss[μs.length]'(by grind) = s₂ := by simp [← h.last, h.length]
+
+theorem Execution.getLast (h : lts.Execution s₁ μs s₂ ss) : ss.getLast h.ss_ne_nil = s₂ := by
+  rw [List.getLast_eq_getElem, h.last]
 
 theorem head (h : lts.Execution s₁ μs s₂ ss) : ss.head h.ss_ne_nil = s₁ := by
   cases h <;> rfl
