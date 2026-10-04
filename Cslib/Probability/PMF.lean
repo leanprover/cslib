@@ -60,7 +60,7 @@ theorem map_injective {f : α → β} (hf : Function.Injective f) :
   classical
   intro p q h
   ext a
-  simpa [hf.eq_iff] using congrArg (fun law => law (f a)) h
+  simpa [hf.eq_iff] using DFunLike.congr_fun h (f a)
 
 /-- Relabeling a distribution by an equivalence preserves each corresponding point mass. -/
 theorem map_equiv_apply (p : PMF α) (e : α ≃ β) (b : β) :
