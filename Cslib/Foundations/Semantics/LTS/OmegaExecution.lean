@@ -46,23 +46,25 @@ theorem OmegaExecution.cons (htr : lts.Tr s μ t)
   intro i
   induction i <;> grind
 
+/-- Prepend an infinite execution with a finite one, bridged with a transition. -/
+theorem OmegaExecution.prepend_execution_tr (he_head : lts.Execution s μl t sl)
+    (he_tail : lts.OmegaExecution ss μs) (htr : lts.Tr t μ (ss 0)) :
+    lts.OmegaExecution (sl ++ω ss) (μl ++ω μ ::ω μs) := by
+  induction he_head with
+  | refl => exact he_tail.cons htr rfl
+  | stepL h he ih =>
+    apply (ih htr).cons h
+    simp [append_get_zero_of_ne_nil he.ss_ne_nil, he.head]
+
+/-- Glue a finite execution and an infinite execution together on a common first and last state. -/
 theorem OmegaExecution.prepend_execution (he_head : lts.Execution s μl t sl)
     (he_tail : lts.OmegaExecution ss μs) (hm : ss 0 = t) :
     lts.OmegaExecution (sl ++ω ss.tail) (μl ++ω μs) := by
-  intro n
-  obtain (hn | rfl | hn) := n.lt_trichotomy μl.length
-  · grind [get_append_left]
-  · convert he_tail 0 using 1
-    · rw [hm, ← he_head.last', get_append_left]
-    · exact get_append_right 0 μl μs
-    · have := get_append_right 0 sl ss.tail
-      simpa [he_head.length]
-  · obtain ⟨n, rfl⟩ : ∃ n', n = sl.length + n' := by
-      have ⟨k, hk⟩ := Nat.exists_eq_add_of_lt hn
-      exact ⟨k, by grind [he_head.length]⟩
-    simp_rw [add_assoc, get_append_right, he_head.length, add_assoc,
-      get_append_right, add_comm, ωSequence.tail, get_fun,]
-    exact he_tail (n + 1)
+  induction he_head with
+  | refl => simpa [← hm]
+  | stepL htr he ih =>
+    apply (ih hm).cons htr
+    simp [append_get_zero_of_ne_nil he.ss_ne_nil, he.head]
 
 /-- Prepends an infinite execution with a finite execution. -/
 theorem OmegaExecution.append

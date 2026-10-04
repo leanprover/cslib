@@ -90,42 +90,40 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
     · grind [concat_run_left_right]
   · exact concat_run_right hc n hl (Nat.find_spec hr')
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
+-- some theory of functional simulations between `LTS` might be useful for results like this.
+private theorem concat_lift_left {s₁ xs s₂ ss} (h : na1.Execution s₁ xs s₂ ss) :
+    (concat na1 na2).Execution (inl s₁) xs (inl s₂) (ss.map inl) := by
+  induction h with
+  | refl s => exact .refl (inl s)
+  | stepL htr he ih => apply ih.stepL; exact htr
+
 /-- Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
 `concat na1 na2` that is the concatenation of the two runs. -/
 theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : ωSequence State2}
     (h1 : xs1 ∈ language na1) (h2 : na2.Run xs2 ss2) :
     ∃ ss, (concat na1 na2).Run (xs1 ++ω xs2) ss ∧ ss.drop xs1.length = ss2.map inr := by
-  obtain (hxs1 | hxs1) : xs1.length = 0 ∨ 0 < xs1.length := xs1.length.eq_zero_or_pos
-  · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr hxs1
-    refine ⟨ss2.map inr, ?_, by simp⟩
-    simp [concat]
-    grind only [LTS.OmegaExecution, = Set.mem_union, = get_map, = Set.mem_image, Run]
-  · obtain ⟨s0, h0_mem, s1, h1_mem, h_mtr⟩ := h1
-    obtain ⟨ss1, he⟩ := LTS.Execution.of_mTr h_mtr
-    have hlen : (ss1.map (β := State1 ⊕ State2) inl).dropLast.length = xs1.length := by
-      simpa using he.length'.symm
-    have h_ne_nil : (ss1.map (β := State1 ⊕ State2) inl).dropLast ≠ [] :=
-      List.ne_nil_iff_length_pos.mpr <| hlen ▸ hxs1
-    refine ⟨(ss1.map inl).dropLast ++ω ss2.map inr, Run.mk ?_ ?_, ?_⟩
-    · suffices ((ss1.map inl).dropLast ++ω ss2.map inr) 0 = inl s0 by simpa [concat, this]
-      simp [append_get_zero_of_ne_nil h_ne_nil, List.head_dropLast h_ne_nil, he.head]
-    · intro k
-      obtain (hk | ⟨k, rfl⟩) : k < xs1.length ∨ ∃ k', k = xs1.length + k' := by
-        grind [le_iff_exists_add]
-      · rw [get_append_left _ _ _ hk, get_append_left _ _ _ (hlen ▸ hk), List.getElem_dropLast,
-          List.getElem_map]
-        obtain (hk' | hk') : k + 1 = xs1.length ∨ k + 1 < xs1.length := Nat.eq_or_lt_of_le hk
-        · rw! [hk', ← hlen, get_append_length, get_map]
-          dsimp only [concat]
-          refine ⟨_, he.trans k hk, ?_, h2.start⟩
-          rw! [hk', he.last']
-          assumption
-        · rw [get_append_left _ _ _ (hlen ▸ hk'), List.getElem_dropLast, List.getElem_map]
-          simpa [concat] using he.trans k hk
-      · rw [get_append_right, ← hlen, get_append_right, add_assoc, get_append_right]
-        simpa [concat] using h2.trans k
-    · rw [← hlen, drop_append_ωSequence]
+  obtain (rfl | ⟨xs, x, rfl⟩) := xs1.eq_nil_or_concat'
+  · refine ⟨ss2.map inr, ⟨?_, h2.trans⟩, rfl⟩
+    simpa [concat, h1] using h2.start
+  · let ⟨s0, h0_mem, s1, h1_mem, h_mtr⟩ := h1
+    have ⟨ss1, he⟩ := LTS.Execution.of_mTr h_mtr
+    refine ⟨ss1.dropLast.map inl ++ω ss2.map inr, ⟨?_, ?_⟩, ?_⟩
+    · convert! (Set.mem_union_left _ ⟨s0, h0_mem, rfl⟩ : inl s0 ∈ (concat na1 na2).start)
+      have : ss1.dropLast.map (@inl State1 State2) ≠ [] := by
+        simp [List.dropLast_eq_nil_iff, he.length]
+      rw [append_get_zero_of_ne_nil this, List.head_map, inl.injEq, ← he.head]
+      apply List.head_dropLast
+    · rw [append_append_ωSequence, singleton_append_ωSequence]
+      obtain he1' := (concat_lift_left (na2 := na2) he).take xs.length (by grind)
+      obtain h2' : (concat na1 na2).OmegaExecution (ss2.map inr) xs2 := h2.trans
+      convert! h2'.prepend_execution_tr he1' (μ := x) ?_
+      · simp [List.dropLast_eq_take, he.length]
+      · grind
+      · simp only [concat, mem_language, List.getElem_map, get_map]
+        refine ⟨s1, ?_, h1_mem, h2.start⟩
+        simpa [← he.last, he.length] using he.trans xs.length
+    · convert drop_append_ωSequence _ _
+      simp [he.length]
 
 namespace Buchi
 
