@@ -100,7 +100,7 @@ theorem subsingleton_of_perfectlyHiding_of_perfectlyBinding
     (scheme : Scheme Message Commitment Opening)
     (hhide : scheme.PerfectlyHiding) (hbind : scheme.PerfectlyBinding) :
     Subsingleton Message :=
-  scheme.subsingleton_of_statisticallyHiding_of_perfectlyBinding (by norm_num)
+  scheme.subsingleton_of_statisticallyHiding_of_perfectlyBinding zero_lt_one
     (scheme.perfectlyHiding_iff_statisticallyHiding_zero.mp hhide) hbind
 
 end Cslib.Crypto.Protocols.Commitment.Scheme
