@@ -20,11 +20,17 @@ example : (Generator.mk (id : Bool → Bool)).Secure (fun _ => True) 0 := by
   apply Generator.secure_zero_of_outputDist_eq
   exact PMF.map_id _
 
+-- Explicit distributions allow infinite ambient types and need not agree.
+example : (Generator.mk (id : ℕ → ℕ)).advantage (fun n => PMF.pure (decide (n = 0)))
+    (seed := PMF.pure 0) (ideal := PMF.pure 1) = 1 := by
+  simp [Generator.advantage, Generator.realExperiment, Generator.idealExperiment,
+    Generator.outputDist, Cslib.Crypto.Game.advantage, Cslib.Crypto.Game.winProbability]
+
 -- Zero-error security implies uniform output.
 example {Seed Output : Type*} [Fintype Seed] [Nonempty Seed]
     [Fintype Output] [Nonempty Output] (G : Generator Seed Output)
     (h : G.Secure (fun _ => True) 0) : G.outputDist = uniformOfFintype Output :=
-  G.secure_zero_iff_outputDist_eq_uniform.mp h
+  G.secure_zero_iff_outputDist_eq.mp h
 
 example (G : Generator Bool (Bool × Bool)) (Admissible : Adversary (Bool × Bool) → Prop)
     {ε δ : ℝ≥0} (hεδ : ε ≤ δ) (h : G.Secure Admissible ε) : G.Secure Admissible δ :=
@@ -64,7 +70,7 @@ example : Family.Secure (fun n => Generator.mk (id : (Fin n → Bool) → (Fin n
       (fun n => Generator.mk (id : (Fin n → Bool) → (Fin n → Bool)))
       (fun _ => True) (fun _ => 0) := by
     intro adversary_family _ n
-    simp [Generator.advantage, Generator.realExperiment, Generator.idealExperiment,
+    simp [Generator.realExperiment, Generator.idealExperiment,
       Generator.outputDist, PMF.map_id]
   exact h.secure (Asymptotics.superpolynomialDecay_zero _ _)
 
