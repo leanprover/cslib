@@ -25,6 +25,8 @@ To this end, we expect to leverage the combination of `Crypto` and [Languages](.
 real-valued bounds at natural security parameters, with zero, addition, multiplication, fixed
 finite sums, eventual comparison, and polynomial-loss bounds. Changing finitely many values
 preserves negligibility.
+[`Game`](Game.lean) gives the acceptance probability, distinguishing advantage and negligible
+security of Boolean experiments.
 
 ## Pseudorandom generators
 
