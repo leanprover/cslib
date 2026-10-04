@@ -34,7 +34,8 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `HaltsAt`: the run from a configuration halts at exactly a given step
 * `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
-* `ComputesFun`: the machine halts with the encoded function value on every encoded input
+* `Computes`: the machine halts with the given output on an input
+* `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
 * `ComputableInTimeAndSpace`: such a machine exists with binary alphabet and finitely many states.
 * `ComputableInTimeAndSpaceOfLength`: the specialization to bounds on encoded input length.
@@ -302,27 +303,21 @@ lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
         exact val_moveInputPos_le _ _
       omega
 
-/-- The output only grows during a run. -/
-lemma length_output_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
-    Monotone fun t => (tm.runFrom cfg t).output.length :=
-  monotone_nat_of_le_succ fun t => by
-    conv_rhs => rw [runFrom, Function.iterate_succ_apply', ← runFrom]
-    cases h : (tm.runFrom cfg t).state with
-    | none => simp [step_of_halt h]
-    | some q => simp [step_of_state h]
+/-- The machine eventually halts on `input` with the given `output`. -/
+def Computes (tm : MultiTapeTM k Symbol State) (input output : List Symbol) : Prop :=
+  ∃ u, (tm.runFrom (tm.initCfg input) u).Halted ∧
+    (tm.runFrom (tm.initCfg input) u).output = output
 
-/-- On every encoded input, the machine eventually halts with the encoded function value. -/
-def ComputesFun {α β : Type*} (tm : MultiTapeTM k Symbol State)
-    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) : Prop :=
-  ∀ a, ∃ u, (tm.runFrom (tm.initCfg (encIn a)) u).Halted ∧
-    (tm.runFrom (tm.initCfg (encIn a)) u).output = encOut (f a)
+/-- The machine computes `output` from `input` within the shared time and space bounds. -/
+def ComputesInTimeAndSpace (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (t s : ℕ) : Prop :=
+  tm.Computes input output ∧ tm.RunsInTime input t ∧ tm.RunsInSpace input s
 
 /-- The machine computes `f`, with every computation path subject to the supplied time and space
 bounds. -/
 def ComputesFunInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
-  tm.ComputesFun encIn encOut f ∧
-    ∀ a, tm.RunsInTime (encIn a) (t a) ∧ tm.RunsInSpace (encIn a) (s a)
+  ∀ a, tm.ComputesInTimeAndSpace (encIn a) (encOut (f a)) (t a) (s a)
 
 /-- Resource bounds can be weakened independently on every input. -/
 theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
@@ -330,7 +325,7 @@ theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
     (h : tm.ComputesFunInTimeAndSpace encIn encOut f t s)
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
     tm.ComputesFunInTimeAndSpace encIn encOut f t' s' :=
-  ⟨h.1, fun a ↦ ⟨(h.2 a).1.mono (ht a), (h.2 a).2.mono (hs a)⟩⟩
+  fun a ↦ ⟨(h a).1, (h a).2.1.mono (ht a), (h a).2.2.mono (hs a)⟩
 
 /-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
 within the supplied input-indexed bounds. -/
