@@ -492,7 +492,6 @@ noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
       (PolynomiallyBounded.id.add (.const 1)).mono fun n => by omega
     have := hf.bounds
     have := hg.bounds
-    simp only [TimeComputable.comp]
     fun_prop
 
 end PolyTimeComputable
