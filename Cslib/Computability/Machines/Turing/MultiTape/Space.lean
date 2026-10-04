@@ -35,7 +35,7 @@ which `DSPACE(1)` is exactly the class of regular languages.
 Space bounds apply to every computation prefix, regardless of its outcome, following the
 visited-cell convention in [Watrous, §2.1]
 (https://cs.uwaterloo.ca/~watrous/Papers/SpaceBoundedQuantumSimulation.pdf).
-`UsesSpace` does not require termination.
+`ComputesInSpace` does not require termination.
 
 ## References
 
@@ -69,7 +69,7 @@ def ComputationPath.space (p : ntm.ComputationPath input) : ℕ := RunPath.space
 
 /-- Every computation prefix on `input` touches at most `s` work-tape cells, regardless of its
 outcome. This does not require termination. -/
-def UsesSpace (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (s : ℕ) : Prop :=
+def ComputesInSpace (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (s : ℕ) : Prop :=
   ∀ p : ntm.ComputationPath input, p.space ≤ s
 
 end Turing.MultiTapeNTM
