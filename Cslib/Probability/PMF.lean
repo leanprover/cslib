@@ -60,13 +60,13 @@ theorem map_injective {f : α → β} (hf : Function.Injective f) :
   classical
   intro p q h
   ext a
-  simpa only [PMF.map_apply, hf.eq_iff, tsum_ite_eq'] using congrArg (fun law => law (f a)) h
+  simpa [hf.eq_iff] using congrArg (fun law => law (f a)) h
 
 /-- Relabeling a distribution by an equivalence preserves each corresponding point mass. -/
 theorem map_equiv_apply (p : PMF α) (e : α ≃ β) (b : β) :
     p.map e b = p (e.symm b) := by
   classical
-  simp only [PMF.map_apply, ← e.symm_apply_eq, tsum_ite_eq']
+  simp [← e.symm_apply_eq]
 
 /-- A deterministic map preserves at least the mass of each individual preimage. -/
 theorem le_map_apply (p : PMF α) (f : α → β) (a : α) : p a ≤ (p.map f) (f a) := by
@@ -176,7 +176,7 @@ theorem toOuterMeasure_rate_ge (p : PMF α) (kernel : α → PMF β) (event : Se
   have h := toOuterMeasure_bind_failure_toReal_le p kernel
     {a | ((kernel a).toOuterMeasure event).toReal < threshold} event hthreshold
     (fun a _ ha => le_of_lt ha)
-  simpa only [Set.compl_ofPred, not_lt] using (sub_le_iff_le_add.mpr h)
+  simpa [Set.compl_ofPred] using h
 
 /-- Randomized postprocessing averages the outcome probabilities over any discrete input. -/
 theorem bind_apply_toReal_tsum (p : PMF α) (kernel : α → PMF β) (b : β) :
@@ -237,9 +237,7 @@ theorem uniformOfFintype_map_apply [Fintype α] [Nonempty α] (f : α → β) (b
     ((PMF.uniformOfFintype α).map f) b =
       (Nat.card {a // f a = b} : ℝ≥0∞) / Fintype.card α := by
   classical
-  simp only [PMF.map_apply, PMF.uniformOfFintype_apply, tsum_fintype,
-    ← Finset.sum_filter, Finset.sum_const, nsmul_eq_mul, div_eq_mul_inv,
-    Nat.card_eq_fintype_card, Fintype.card_subtype, eq_comm]
+  simp [← Finset.sum_filter, div_eq_mul_inv, Fintype.card_subtype, eq_comm]
 
 /-- A continuation only needs to agree on outcomes which the preceding distribution can produce. -/
 theorem bind_congr_on_support (p : PMF α) (f g : α → PMF β)
@@ -272,11 +270,11 @@ theorem bind_sigma_apply {β : α → Type*} (p : PMF α) (f : (a : α) → PMF 
   classical
   rw [PMF.bind_apply, tsum_eq_single a]
   · congr 1
-    simp [PMF.map_apply]
+    simp
   · intro i hi
     have hne (c : β i) : (Sigma.mk a b : Sigma β) ≠ ⟨i, c⟩ :=
       fun h => hi (congrArg Sigma.fst h).symm
-    simp [PMF.map_apply, hne]
+    simp [hne]
 
 /-- Summing the pairing bind over the first component gives the marginal. -/
 theorem bind_pair_tsum_fst (p : PMF α) (f : α → PMF β) (b : β) :
@@ -289,14 +287,14 @@ theorem bind_pair_tsum_fst (p : PMF α) (f : α → PMF β) (b : β) :
     (p.bind (fun a => (f a).map (a, ·))).map Prod.fst = p := by
   simp only [PMF.map_bind, PMF.map_comp, Function.comp_def]
   change p.bind (fun a => (f a).map (Function.const β a)) = p
-  simp only [PMF.map_const, PMF.bind_pure]
+  simp
 
 /-- Marginalizing a joint distribution over its first component gives ordinary sequencing. -/
 @[simp] theorem map_snd_bind_pair (p : PMF α) (f : α → PMF β) :
     (p.bind (fun a => (f a).map (a, ·))).map Prod.snd = p.bind f := by
   simp only [PMF.map_bind, PMF.map_comp, Function.comp_def]
   change p.bind (fun a => (f a).map id) = p.bind f
-  simp only [PMF.map_id]
+  simp [PMF.map_id]
 
 /-- A uniform distribution on a finite type is invariant under any equivalence. -/
 theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [Nonempty α] [Nonempty γ]
