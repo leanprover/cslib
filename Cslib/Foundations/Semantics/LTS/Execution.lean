@@ -11,8 +11,6 @@ public import Cslib.Foundations.Data.List.IsChainFromTo
 
 /-!
 # Finite executions of LTS
-
-This is a *draft PR* demonstrating an inductive approach to LTS executions.
 -/
 
 @[expose] public section
@@ -21,9 +19,20 @@ namespace Cslib.LTS
 
 variable {State Label : Type*} {lts : LTS State Label}
 
-/-- `Execution` extends `MTr` by providing the intermediate states of a multistep transition. -/
+/-- `Execution` extends `MTr` by providing the intermediate states of a multistep transition:
+`lts.Execution s₁ μs s₂ ss` means that `lts` can transition from `s₁` to `s₂` through `ss` using
+the transition labels `μ`. This is equivalent to the proposition:
+```lean
+∃ _ : ss.length = μs.length + 1, ss[0] = s₁ ∧ ss[ss.length - 1] = s₂ ∧ ∀ k < μs.length, lts.Tr
+ss[k] μ[k] ss[k + 1].
+```
+Access that formulation as a constructor using `Cslib.LTS.Execution.mk`, and its projections as
+`Cslib.LTS.Execution.length`, `Cslib.LTS.Execution.start`, `Cslib.LTS.Execution.last` and
+`Cslib.LTS.Execution.trans`.
+-/
 @[mk_iff]
-inductive Execution (lts : LTS State Label) : State → List Label → State → List State → Prop where
+inductive Execution (lts : LTS State Label) :
+    (s₁ : State) → (μs : List Label) → (s₂ : State) → (ss : List State) → Prop where
   /-- Every state has an execution of zero steps terminating in itself. -/
   | refl (s : State) : lts.Execution s [] s [s]
   /-- Equivalent of `MTr.stepL` for executions. -/
@@ -36,10 +45,16 @@ namespace Execution
 theorem of_tr (h : lts.Tr s₁ μ s₂) : lts.Execution s₁ [μ] s₂ [s₁, s₂] :=
   .stepL h (.refl s₂)
 
+/-- The lengths of `μs` and `ss` are constrained by the fact that each label `μ ∈ μs` represents
+a transition between two states in `ss`. -/
 @[scoped grind →]
 theorem length (h : lts.Execution s₁ μs s₂ ss) : ss.length = μs.length + 1 := by
   induction h <;> simp_all
 
+theorem length' (h : lts.Execution s₁ μs s₂ ss) :
+  μs.length = ss.length - 1 := by simp [h.length]
+
+/-- Transitions have positive length. -/
 @[scoped grind .]
 theorem length_ss_pos (h : lts.Execution s₁ μs s₂ ss) : 0 < ss.length :=
   h.length ▸ Nat.zero_lt_succ μs.length
@@ -51,15 +66,15 @@ theorem ss_ne_nil (h : lts.Execution s₁ μs s₂ ss) : ss ≠ [] :=
 
 @[deprecated (since := "2026-10-01")] alias nonEmpty_states := ss_ne_nil
 
-theorem length' (h : lts.Execution s₁ μs s₂ ss) :
-  μs.length = ss.length - 1 := by grind
-
+/-- `s₁` is the first state of the execution. -/
 theorem head (h : lts.Execution s₁ μs s₂ ss) : ss.head h.ss_ne_nil = s₁ := by
   cases h <;> rfl
 
+/-- Alternative accessor for `Cslib.LTS.Execution.head`. -/
 theorem start (h : lts.Execution s₁ μs s₂ ss) : ss[0]'h.length_ss_pos = s₁ := by
   rw [← ss.head_eq_getElem h.ss_ne_nil, h.head]
 
+/-- `s₂` is the last state of the execution. -/
 @[scoped grind .]
 theorem getLast (h : lts.Execution s₁ μs s₂ ss) :
     ss.getLast h.ss_ne_nil = s₂ := by
@@ -67,15 +82,19 @@ theorem getLast (h : lts.Execution s₁ μs s₂ ss) :
   | refl => rfl
   | stepL htr he ih => rw [List.getLast_cons he.ss_ne_nil, ih]
 
+/-- Alternative accessor for `Cslib.LTS.Execution.getLast`. -/
 @[scoped grind →]
 theorem last (h : lts.Execution s₁ μs s₂ ss) :
     ss[ss.length - 1]'(by lia [h.length_ss_pos]) = s₂ := by
   simp_rw [← h.getLast]
   apply List.getElem_length_sub_one_eq_getLast
 
+/-- Alternative accessor for `Cslib.LTS.Execution.getLast`. -/
 theorem last' (h : lts.Execution s₁ μs s₂ ss) :
   ss[μs.length]'(by grind) = s₂ := by simp [← h.last, h.length]
 
+/-- `lts` transitions along the `k`th label in `μs` between the `k`th and `(k + 1)`th states in
+`ss`. -/
 @[scoped grind →]
 theorem trans (h : lts.Execution s₁ μs s₂ ss) (k : ℕ) (hk : k < μs.length) :
     lts.Tr (ss[k]'(by lia [h.length])) μs[k] (ss[k + 1]'(by lia [h.length])) := by
@@ -90,6 +109,8 @@ theorem trans (h : lts.Execution s₁ μs s₂ ss) (k : ℕ) (hk : k < μs.lengt
       exact htr
     · exact ih k (by lia)
 
+/-- Alternative constructor for `Cslib.LTS.Execution`, in terms of the indexed collections of
+  states and labels. -/
 protected theorem mk {s₁ s₂ : State} {μs : List Label} {ss : List State}
     (length : ss.length = μs.length + 1) (start : ss[0] = s₁)
     (last : ss[ss.length - 1] = s₂)
@@ -115,12 +136,14 @@ theorem cons_invert (h : lts.Execution s₁ (μ :: μs) s₂ (s₁ :: ss)) :
   rcases h with (_ | ⟨_, he⟩)
   rwa [he.start]
 
+/-- Deconstruct a positive-length execution, with a specific value for the second state in the
+sequence. -/
 theorem cons_cons_invert (h : lts.Execution s₁ (μ :: μs) s₂ (s₁' :: s :: ss)) :
     lts.Execution s μs s₂ (s :: ss) := by
   rcases h with (_ | ⟨_, he⟩)
-  convert he using 1
-  exact he.start
+  rwa [← he.start] at he
 
+/-- Trim the first state from a positive-length execution. -/
 theorem tail_of_length_pos (he : lts.Execution s₁ μs s₂ ss) (hlen : 0 < μs.length) :
     lts.Execution (ss[1]'(by grind)) μs.tail s₂ ss.tail := by
   rcases he with (_ | ⟨_, he⟩)
@@ -175,6 +198,7 @@ theorem comp
   | refl => simpa [← h₂.head] using h₂
   | stepL htr he ih => exact (ih h₂).stepL htr
 
+/-- The states up to `ss[n]` form an execution. -/
 theorem take (he : lts.Execution s μs t ss) (n : ℕ) (hn : n < ss.length) :
     lts.Execution s (μs.take n) ss[n] (ss.take (n + 1)) := by
   induction he generalizing n with
@@ -184,6 +208,7 @@ theorem take (he : lts.Execution s μs t ss) (n : ℕ) (hn : n < ss.length) :
     · simpa using .refl _
     · simpa using (ih n (by grind)).stepL htr
 
+/-- The states from `ss[n]` onward form an execution. -/
 theorem drop (he : lts.Execution s μs t ss) (n : ℕ) (hn : n < ss.length) :
     lts.Execution ss[n] (μs.drop n) t (ss.drop n) := by
   induction he generalizing n with
@@ -196,16 +221,15 @@ theorem drop (he : lts.Execution s μs t ss) (n : ℕ) (hn : n < ss.length) :
       exact .stepL htr (ih 0 he.length_ss_pos)
     · apply ih
 
-theorem split' {lts : LTS State Label} {s t : State} {μs : List Label} {ss : List State}
-    (he : lts.Execution s μs t ss) (n : ℕ) (hn : n < ss.length) :
+/-- Split an execution at an intermediate state `ss[n]`. -/
+theorem split' (he : lts.Execution s μs t ss) {n : ℕ} (hn : n < ss.length) :
     lts.Execution s (μs.take n) ss[n] (ss.take (n + 1)) ∧
       lts.Execution ss[n] (μs.drop n) t (ss.drop n) := ⟨he.take n hn, he.drop n hn⟩
 
 /-- An execution can be split at any intermediate state into two executions. -/
-theorem split {lts : LTS State Label} {s t : State} {μs : List Label} {ss : List State}
-    (he : lts.Execution s μs t ss) (n : ℕ) (hn : n ≤ μs.length) :
+theorem split (he : lts.Execution s μs t ss) (n : ℕ) (hn : n ≤ μs.length) :
     lts.Execution s (μs.take n) (ss[n]'(by grind)) (ss.take (n + 1)) ∧
-      lts.Execution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := he.split' n (by grind)
+      lts.Execution (ss[n]'(by grind)) (μs.drop n) t (ss.drop n) := he.split' (by grind)
 
 end Execution
 
