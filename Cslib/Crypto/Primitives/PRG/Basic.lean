@@ -65,8 +65,8 @@ theorem secure_zero_iff_outputDist_eq (G : Generator Seed Output) :
   refine ⟨fun h => ?_, fun h => G.secure_zero_of_outputDist_eq h _⟩
   ext output
   apply (ENNReal.toReal_eq_toReal_iff' (PMF.apply_ne_top _ _) (PMF.apply_ne_top _ _)).mp
-  simpa [advantage, Game.winProbability, realExperiment, idealExperiment, PMF.bind_apply,
-    PMF.pure_apply, sub_eq_zero] using h (fun x => PMF.pure (decide (x = output))) trivial
+  simpa [advantage, Game.winProbability, realExperiment, idealExperiment, sub_eq_zero] using
+    h (fun x => PMF.pure (decide (x = output))) trivial
 
 @[deprecated secure_zero_iff_outputDist_eq (since := "2026-10-03")]
 alias secure_zero_iff_outputDist_eq_uniform := secure_zero_iff_outputDist_eq
