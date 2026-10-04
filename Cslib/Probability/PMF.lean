@@ -80,10 +80,9 @@ theorem toOuterMeasure_toReal_add_compl (p : PMF α) (event : Set α) :
     (p.toOuterMeasure event).toReal + (p.toOuterMeasure eventᶜ).toReal = 1 := by
   have h : p.toOuterMeasure event + p.toOuterMeasure eventᶜ = 1 := by
     rw [PMF.toOuterMeasure_apply, PMF.toOuterMeasure_apply, ← ENNReal.tsum_add]
-    convert p.tsum_coe using 1
-    simp
-  simpa [ENNReal.toReal_add (toOuterMeasure_ne_top p _) (toOuterMeasure_ne_top p _)]
-    using congrArg ENNReal.toReal h
+    simp [Set.indicator_self_add_compl_apply]
+  rw [← ENNReal.toReal_add (toOuterMeasure_ne_top p _) (toOuterMeasure_ne_top p _), h,
+    ENNReal.toReal_one]
 
 /-- An event has positive real probability exactly when it contains a possible outcome. -/
 theorem toOuterMeasure_toReal_pos_iff (p : PMF α) (event : Set α) :
