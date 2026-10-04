@@ -148,8 +148,9 @@ theorem dist_filter [Finite α] (p : PMF α) (event : Set α)
         rw [filter_apply_toReal, ite_eq_left ha]
         exact le_div_self ENNReal.toReal_nonneg hpositive hprobability
       rw [abs_of_nonpos (sub_nonpos.mpr hle)]
-      simp [ha, neg_sub]
-    · simp [ha]
+      simp [ha]
+    · simp only [filter_apply_toReal, ha, Set.mem_compl_iff, not_false_eq_true, ↓reduceIte,
+        sub_zero, ENNReal.abs_toReal]
       ring
   rw [dist_eq, toOuterMeasure_apply_toReal]
   simp only [habsolute, Finset.sum_add_distrib, Finset.sum_sub_distrib, sum_toReal, sub_self,
@@ -223,9 +224,8 @@ theorem dist_bind_pair [Fintype α] [Finite β] (p : PMF α) (f g : α → PMF �
         (p.bind (fun a => (g a).map (a, ·))) =
       ∑ a, (p a).toReal * dist (f a) (g a) := by
   let := Fintype.ofFinite β
-  simp only [dist_eq, Fintype.sum_prod_type, PMF.map, Function.comp_def, bind_pair_apply,
-    ENNReal.toReal_mul, ← mul_sub, abs_mul, abs_of_nonneg ENNReal.toReal_nonneg,
-    ← Finset.mul_sum, Finset.sum_div, mul_div_assoc]
+  simp only [dist_eq, Fintype.sum_prod_type, PMF.map, Function.comp_def, bind_pair_apply]
+  simp [← mul_sub, ← Finset.mul_sum, Finset.sum_div, mul_div_assoc]
 
 /-- Squared distance with a shared revealed input is at most the average squared distance. -/
 theorem dist_bind_pair_sq_le [Fintype α] [Finite β] (p : PMF α) (f g : α → PMF β) :
