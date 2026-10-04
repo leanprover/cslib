@@ -305,17 +305,6 @@ lemma runsInTime_iff {input : List Symbol} {t : ℕ} :
   rw [computationPath_last_eq_runFrom p, tm.runFrom_eq_of_halt _ hp h]
   exact h
 
-/-- A halted deterministic machine accepts exactly when its output is `[true]`. -/
-lemma accepts_iff_of_halted {tm : MultiTapeTM k Bool State} {input : List Bool} {t : ℕ}
-    (h : (tm.runFrom (tm.initCfg input) t).Halted) :
-    tm.Accepts input ↔ (tm.runFrom (tm.initCfg input) t).output = [true] := by
-  refine ⟨?_, fun hout ↦ ⟨computationPath tm input t, h, hout⟩⟩
-  rintro ⟨p, hp, hout⟩
-  rw [computationPath_last_eq_runFrom p] at hp hout
-  rcases le_total p.time t with hle | hle
-  · rwa [tm.runFrom_eq_of_halt _ hle hp]
-  · rwa [tm.runFrom_eq_of_halt _ hle h] at hout
-
 /-- Once a deterministic machine halts, the shared space bound is its space usage so far. -/
 lemma usesSpace_iff_of_halted {input : List Symbol} {t s : ℕ}
     (h : (tm.runFrom (tm.initCfg input) t).Halted) :
@@ -387,46 +376,10 @@ open Classical in
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
   fun x => if x ∈ L then true else false
 
-/-- For a deterministic machine, decision is computation of the Boolean indicator. -/
-lemma decidesInTimeAndSpace_iff {α : Type*} {tm : MultiTapeTM k Bool State}
-    {L : Set α} {enc : α ↪ List Bool} {t s : α → ℕ} :
-    tm.DecidesInTimeAndSpace L enc t s ↔
-      tm.ComputesFunInTimeAndSpace enc
-        ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ (indicator L) t s := by
-  classical
-  constructor
-  · intro h a
-    have hh := runsInTime_iff.mp (h a).2.1.1
-    refine ⟨t a, le_rfl, hh, ?_, (usesSpace_iff_of_halted hh).mp (h a).2.1.2⟩
-    change (tm.runFrom (tm.initCfg (enc a)) (t a)).output = [indicator L a]
-    by_cases ha : a ∈ L
-    · simp only [indicator, ite_eq_left ha]
-      exact (accepts_iff_of_halted hh).mp ((h a).1.mpr ha)
-    · rcases (h a).2.2 (computationPath tm (enc a) (t a)) hh with hout | hout
-      · exact (ha ((h a).1.mp ((accepts_iff_of_halted hh).mpr hout))).elim
-      · simp only [indicator, ite_eq_right ha]
-        exact hout
-  · intro h a
-    obtain ⟨u, hu, hh, hout, hs⟩ := h a
-    refine ⟨?_, ⟨(runsInTime_iff.mpr hh).mono hu, (usesSpace_iff_of_halted hh).mpr hs⟩,
-      fun p hp ↦ ?_⟩
-    · rw [accepts_iff_of_halted hh, hout]
-      simp [indicator]
-    · rw [computationPath_last_eq_runFrom p] at hp ⊢
-      have heq : tm.runFrom (tm.initCfg (enc a)) p.time =
-          tm.runFrom (tm.initCfg (enc a)) u := by
-        rcases le_total u p.time with hle | hle
-        · exact tm.runFrom_eq_of_halt _ hle hh
-        · exact (tm.runFrom_eq_of_halt _ hle hp).symm
-      rw [heq, hout]
-      cases indicator L a <;> simp
-
-/-- A set is decidable within the bounds by a deterministic machine, using the shared
-nondeterministic decision predicate. -/
+/-- A set is decidable within the given input-indexed bounds when its Boolean indicator is. -/
 def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
-  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
-    tm.DecidesInTimeAndSpace L enc t s
+  ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
 
 /-- The Turing machine `tm` halts after exactly `t` steps on input `input`
 if its state is `none` at step `t` and non-none at step `t - 1`.
