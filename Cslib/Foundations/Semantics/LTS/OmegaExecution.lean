@@ -17,8 +17,7 @@ public import Cslib.Foundations.Semantics.LTS.Execution
 
 namespace Cslib.LTS
 
-open ωSequence
-open Execution -- for `grind` annotations
+open ωSequence Execution -- the latter for `grind` annotations
 
 /-- An infinite execution is conceptually an infinite sequence of transitions. But it is
 technically more convenient to separate the states and the labels into two ω-sequences. -/
