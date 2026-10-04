@@ -331,16 +331,16 @@ theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
     exact (tm.step_spec _).length_output_le.trans (by omega)
 
 /-- The shared time bound is halting by that time for a deterministic machine. -/
-lemma runsInTime_iff {input : List Symbol} {t : ℕ} :
-    tm.RunsInTime input t ↔ (tm.runFrom (tm.initCfg input) t).Halted := by
+lemma computesInTime_iff {input : List Symbol} {t : ℕ} :
+    tm.ComputesInTime input t ↔ (tm.runFrom (tm.initCfg input) t).Halted := by
   refine ⟨fun h ↦ h (computationPath tm input t) le_rfl, fun h p hp ↦ ?_⟩
   rw [computationPath_last_eq_runFrom p, tm.runFrom_eq_of_halt _ hp h]
   exact h
 
 /-- Once a deterministic machine halts, the shared space bound is its space usage so far. -/
-lemma usesSpace_iff_of_halted {input : List Symbol} {t s : ℕ}
+lemma computesInSpace_iff_of_halted {input : List Symbol} {t s : ℕ}
     (h : (tm.runFrom (tm.initCfg input) t).Halted) :
-    tm.UsesSpace input s ↔ tm.spaceUsed (tm.initCfg input) t ≤ s := by
+    tm.ComputesInSpace input s ↔ tm.spaceUsed (tm.initCfg input) t ≤ s := by
   refine ⟨fun hs ↦ hs (computationPath tm input t), fun hs p ↦ le_trans ?_ hs⟩
   unfold MultiTapeNTM.ComputationPath.space MultiTapeNTM.RunPath.space spaceUsed
   apply Finset.sum_le_sum
