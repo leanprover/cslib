@@ -327,17 +327,20 @@ lemma reaches_write (h : ∀ a ∉ S, encOut (f a) = out) (a : α) :
 lemma computesFunInTimeAndSpace_almostConstTM (h : ∀ a ∉ S, encOut (f a) = out) :
     (almostConstTM encIn encOut f S out).ComputesFunInTimeAndSpace encIn encOut f
       (fun _ => almostConstTime encIn encOut f S out) (fun _ => 0) := by
-  apply ComputesFunInTimeAndSpace.of_runFrom (hs := by simp)
+  rw [ComputesFunInTimeAndSpace, ComputesFun, ← forall_and]
   intro a
   obtain ⟨j, hjle, hj, hrun⟩ := reaches_write (encIn := encIn) h a
-  use j + 1 + ((encOut (f a)).length + 1)
-  refine ⟨?_, ?_, ?_⟩
-  · simp only [almostConstTime]
-    omega
-  all_goals
-    simp only [runFrom] at hrun ⊢
-    rw [Nat.add_comm (j + 1), Function.iterate_add_apply, hrun, ← runFrom, runFrom_write_halted]
-  rfl
+  have hfinal := congrArg
+    (fun cfg ↦ (almostConstTM encIn encOut f S out).runFrom cfg ((encOut (f a)).length + 1))
+    hrun
+  rw [runFrom_write_halted] at hfinal
+  simp only [runFrom, ← Function.iterate_add_apply] at hfinal
+  refine ⟨⟨_, congrArg Cfg.state hfinal, congrArg Cfg.output hfinal⟩, ?_, by simp⟩
+  intro p hp
+  rw [computationPath_last_eq_runFrom p,
+    runFrom_eq_of_halt _ _ (by dsimp [almostConstTime] at hp; omega)
+      (congrArg Cfg.state hfinal)]
+  exact congrArg Cfg.state hfinal
 
 end AlmostConstFun
 

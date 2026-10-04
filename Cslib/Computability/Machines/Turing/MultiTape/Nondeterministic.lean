@@ -85,15 +85,6 @@ lemma step_of_halt {c c' : Cfg k Symbol State input} (h : c.Halted) :
     ntm.Step c c' ↔ c' = c := by
   simp [Step, h]
 
-/-- A step emits at most one symbol. -/
-lemma Step.length_output_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') :
-    c'.output.length ≤ c.output.length + 1 := by
-  unfold Step at h
-  split at h
-  · simp [h]
-  · obtain ⟨action, _, rfl⟩ := h
-    simp
-
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
 def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
@@ -119,14 +110,6 @@ lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.las
 lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
     (h : (p i).Halted) : p.last = p i := by
   simpa using last_eq_of_head_halted (p.drop i) (by simpa using h)
-
-/-- A run path emits at most one symbol per step. -/
-lemma length_output_le (p : ntm.RunPath input) :
-    p.last.output.length ≤ p.head.output.length + p.length := by
-  induction p using RelSeries.inductionOn' with
-  | singleton c => simp
-  | snoc p c h ih =>
-    simpa [Nat.add_assoc] using (Step.length_output_le h).trans (Nat.add_le_add_right ih 1)
 
 /-- The number of steps taken by a run path. -/
 def time (p : ntm.RunPath input) : ℕ := p.length

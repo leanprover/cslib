@@ -83,9 +83,14 @@ variable {α : Type*}
 public theorem computableInTimeAndSpace_id {enc : α ↪ List Bool} :
     ComputableInTimeAndSpace (id : α → α) enc enc
       (fun a => (enc a).length + 1) (fun _ => 0) := by
-  refine ⟨0, Unit, inferInstance, copy, ComputesFunInTimeAndSpace.of_runFrom
-    (fun a => ⟨(enc a).length + 1, le_rfl, ?_, ?_⟩) (by simp)⟩
-  · rw [Copy.runFrom_full]; rfl
-  · rw [Copy.runFrom_full]; simp [Copy.cfg]
+  refine ⟨0, Unit, inferInstance, copy, ?_, fun a ↦ ⟨?_, by simp⟩⟩
+  · intro a
+    refine ⟨(enc a).length + 1, ?_, ?_⟩
+    · rw [Copy.runFrom_full]; rfl
+    · rw [Copy.runFrom_full]; simp [Copy.cfg]
+  · intro p hp
+    rw [computationPath_last_eq_runFrom p,
+      copy.runFrom_eq_of_halt _ hp (by rw [Copy.runFrom_full]; rfl), Copy.runFrom_full]
+    rfl
 
 end Turing.MultiTapeTM

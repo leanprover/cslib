@@ -127,10 +127,6 @@ lemma step_iff {c c' : Cfg k Symbol State input} : tm.Step c c' ↔ tm.step c = 
   unfold step
   exact (ExistsUnique.choose_eq_iff _).symm
 
-/-- The successor returned by `step` is permitted by the inherited transition relation `Step`. -/
-lemma step_spec (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) :
-    tm.Step c (tm.step c) := step_iff.mpr rfl
-
 /-- A running configuration takes the action selected by the transition function. -/
 lemma step_of_state {cfg : Cfg k Symbol State input} {q : State} (h : cfg.state = some q) :
     tm.step cfg = (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg := by
@@ -182,13 +178,6 @@ lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
     change p.toFun i.succ = tm.step^[i.val + 1] p.head
     rw [Function.iterate_succ_apply', ← runFrom, ← ih]
     exact (step_iff.mp (p.step i)).symm
-
-private noncomputable def computationPath (tm : MultiTapeTM k Symbol State)
-    (input : List Symbol) (t : ℕ) : tm.ComputationPath input where
-  length := t
-  toFun n := tm.runFrom (tm.initCfg input) n
-  step n := by simp [runFrom, Function.iterate_succ_apply']
-  head_eq := rfl
 
 /-- A deterministic computation ends at the corresponding iterate. -/
 lemma computationPath_last_eq_runFrom (p : tm.ComputationPath input) :
@@ -322,39 +311,11 @@ lemma length_output_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol S
     | none => simp [step_of_halt h]
     | some q => simp [step_of_state h]
 
-/-- A machine emits at most one symbol per step. -/
-theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input) (t : ℕ) :
-    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
-  induction t with
-  | zero => simp [runFrom]
-  | succ t ih =>
-    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
-    exact (tm.step_spec _).length_output_le.trans (by omega)
-
-/-- The shared time bound is halting by that time for a deterministic machine. -/
-lemma runsInTime_iff {input : List Symbol} {t : ℕ} :
-    tm.RunsInTime input t ↔ (tm.runFrom (tm.initCfg input) t).Halted := by
-  refine ⟨fun h ↦ h (computationPath tm input t) le_rfl, fun h p hp ↦ ?_⟩
-  rw [computationPath_last_eq_runFrom p, tm.runFrom_eq_of_halt _ hp h]
-  exact h
-
 /-- On every encoded input, the machine eventually halts with the encoded function value. -/
 def ComputesFun {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) : Prop :=
   ∀ a, ∃ u, (tm.runFrom (tm.initCfg (encIn a)) u).Halted ∧
     (tm.runFrom (tm.initCfg (encIn a)) u).output = encOut (f a)
-
-/-- At any halting time, the output is the encoded function value. -/
-lemma ComputesFun.output_eq {α β : Type*}
-    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β}
-    (h : tm.ComputesFun encIn encOut f) (a : α) {t : ℕ}
-    (ht : (tm.runFrom (tm.initCfg (encIn a)) t).Halted) :
-    (tm.runFrom (tm.initCfg (encIn a)) t).output = encOut (f a) := by
-  obtain ⟨u, hu, hout⟩ := h a
-  rcases le_total u t with hle | hle
-  · rwa [tm.runFrom_eq_of_halt _ hle hu]
-  · rwa [tm.runFrom_eq_of_halt _ hle ht] at hout
 
 /-- The machine computes `f`, with every computation path subject to the supplied time and space
 bounds. -/
@@ -363,22 +324,6 @@ def ComputesFunInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
   tm.ComputesFun encIn encOut f ∧
     ∀ a, tm.RunsInTime (encIn a) (t a) ∧ tm.RunsInSpace (encIn a) (s a)
 
-/-- Halting with the correct output within the time bound, together with the shared space bound,
-establishes bounded function computation. -/
-theorem ComputesFunInTimeAndSpace.of_runFrom {α β : Type*}
-    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β} {t s : α → ℕ}
-    (h : ∀ a, ∃ u ≤ t a, (tm.runFrom (tm.initCfg (encIn a)) u).Halted ∧
-      (tm.runFrom (tm.initCfg (encIn a)) u).output = encOut (f a))
-    (hs : ∀ a, tm.RunsInSpace (encIn a) (s a)) :
-    tm.ComputesFunInTimeAndSpace encIn encOut f t s := by
-  constructor
-  · intro a
-    obtain ⟨u, _, hu, hout⟩ := h a
-    exact ⟨u, hu, hout⟩
-  · intro a
-    obtain ⟨u, hu, hhalt, _⟩ := h a
-    exact ⟨(runsInTime_iff.mpr hhalt).mono hu, hs a⟩
-
 /-- Resource bounds can be weakened independently on every input. -/
 theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
     {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β} {t s t' s' : α → ℕ}
@@ -386,15 +331,6 @@ theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
     tm.ComputesFunInTimeAndSpace encIn encOut f t' s' :=
   ⟨h.1, fun a ↦ ⟨(h.2 a).1.mono (ht a), (h.2 a).2.mono (hs a)⟩⟩
-
-/-- A machine emits at most one symbol per step, so the encoded result is no longer than its
-time bound. -/
-theorem ComputesFunInTimeAndSpace.length_encOut_le {α β : Type*}
-    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β} {t s : α → ℕ}
-    (h : tm.ComputesFunInTimeAndSpace encIn encOut f t s) (a : α) :
-    (encOut (f a)).length ≤ t a := by
-  rw [← h.1.output_eq a (runsInTime_iff.mp (h.2 a).1)]
-  simpa using tm.length_output_runFrom_le (tm.initCfg (encIn a)) (t a)
 
 /-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
 within the supplied input-indexed bounds. -/
