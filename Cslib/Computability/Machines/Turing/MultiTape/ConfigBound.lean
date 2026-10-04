@@ -25,27 +25,18 @@ the number of configurations the machine can be in, disregarding the write-only 
 
 ## Important Definitions
 
-The results are layered, from the purely combinatorial to the machine-specific:
-
-* `MultiTapeTM.encard_fitsIn_le` is a counting statement about the type `Storage` alone and does
-  not mention Turing machines: a memory whose non-blank cells and heads stay within per-tape
-  windows of total size `s` can hold at most `storageBound Symbol State k s` different values.
-* `MultiTapeTM.storage_fitsIn` is the geometric input: the storage reached after `t` steps stays
-  within the windows given by the space used up to step `t`.
-* `MultiTapeTM.encard_storages_le` combines the two: a machine bounded by space `s` passes through
-  at most `storageBound Symbol State k s` storages *during its whole run*, no matter how long it
-  runs and how long its input is. This is the form needed for arguments below logarithmic space,
-  where the number of storages is much smaller than the number of input head positions.
-* `MultiTapeTM.encard_cores_le` adds the input head position, giving the bound
-  `(n + 2) * storageBound Symbol State k s` on the number of reachable *cores* (`Cfg.core`,
-  a configuration without its output tape) for an input of length `n`.
-* `MultiTapeTM.storageBound_le_base_mul_pow` restates `storageBound Symbol State k s` as
-  `storageBoundBase Symbol State k * 2 ^ (storageBoundExp Symbol k * s)`, so that the bounds can
-  be used to time-bound space-bounded machines.
+* `encard_fitsIn_le` counts storages that fit in fixed per-tape windows.
+* `MultiTapeNTM.ComputationPath.storage_fitsIn` places every configuration on a path within
+  its space windows.
+* `MultiTapeNTM.ComputationPath.encard_storages_le` bounds the storages along one path.
+* `MultiTapeNTM.IsDeterministic.encard_storages_le` bounds all reachable storages when every
+  computation path is space-bounded. Determinism ensures that the paths share common windows.
+* `MultiTapeNTM.IsDeterministic.encard_cores_le` also counts input head positions.
+* `storageBound_le_base_mul_pow` expresses the bound exponentially in the total space.
 
 ## Design
 
-The write-only output tape is never read by `step`, so it can be dropped: what a machine can still
+The write-only output tape is never read by `Step`, so it can be dropped: what a machine can still
 react to is its `Cfg.core`, the pair of the input head position and the `Storage`. The input head
 position, in contrast, *is* read, so it cannot be dropped and has to be counted, which is where
 the factor `n + 2` comes from (the input head may move one step off the input in either direction).
@@ -62,8 +53,9 @@ alphabet exponent.
 We lose a factor of `2 * k` by simplifying the windows to `[-sᵢ, sᵢ]` instead of the actually used
 area, but this is absorbed by the `O(s)` exponent in the final bound.
 
-The windows for a whole run are available because a machine that is space-bounded at every point in
-time attains its per-tape space usage at a single step (`MultiTapeTM.exists_spaceUsedByTape_max`).
+For a deterministic machine, computation paths agree at common indices. A path attaining maximal
+space usage therefore supplies windows containing every reachable storage. For a nondeterministic
+machine, the bound applies to each path separately: different branches can visit different cells.
 -/
 
 @[expose] public section
@@ -271,84 +263,91 @@ lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.c
   | none => rw [MultiTapeTM.step_of_halt rfl, MultiTapeTM.step_of_halt rfl]; rfl
   | some q => rw [MultiTapeTM.step_of_state rfl, MultiTapeTM.step_of_state rfl]; rfl
 
-/-! ## The storages and cores of a space-bounded run
+namespace MultiTapeNTM
 
-These are the main results giving upper bounds on the number of storages and configuration cores
-reachable in bounded space.
--/
+variable {tm : MultiTapeNTM k Symbol State}
 
-/-- The storage at the end of a computation path fits within its per-tape space bounds. -/
-lemma MultiTapeNTM.ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol State}
-    (p : ntm.ComputationPath input) :
-    p.last.storage.FitsIn (MultiTapeNTM.RunPath.spaceUsedByTape p.toRunPath) := by
+/-! ## The storages and cores of a space-bounded computation -/
+
+/-- Every storage on a computation path fits in its per-tape space windows. -/
+lemma ComputationPath.storage_fitsIn (p : tm.ComputationPath input)
+    {c : Cfg k Symbol State input} (hc : c ∈ p.toRunPath) :
+    c.storage.FitsIn (RunPath.spaceUsedByTape p.toRunPath) := by
+  obtain ⟨n, rfl⟩ := hc
+  let q : tm.ComputationPath input := ⟨p.toRunPath.take n,
+    (RelSeries.head_take _ _).trans p.head_eq⟩
   constructor
-  · intro i
-    simpa [Cfg.storage, RelSeries.last, p.head_eq, MultiTapeNTM.initCfg] using
-      MultiTapeNTM.RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
-        (MultiTapeNTM.RunPath.mem_visitedByTapeHead_self p.toRunPath (Fin.last p.length) i)
-  · intro i
-    exact p.content_natAbs_le_spaceUsedByTape
+  · intro j
+    simpa [Cfg.storage, p.head_eq] using
+      RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
+        (RunPath.workTapePos_mem_visited (p := p.toRunPath) ⟨n, rfl⟩ j)
+  · intro j z hz
+    exact (q.content_natAbs_le_spaceUsedByTape j z hz).trans
+      (Finset.card_le_card (RunPath.visitedByTapeHead_take_subset p.toRunPath n j))
 
-namespace MultiTapeTM
+/-- A computation path encounters at most exponentially many storages in its space usage. -/
+theorem ComputationPath.encard_storages_le [Fintype Symbol] [Fintype State]
+    (p : tm.ComputationPath input) :
+    (Cfg.storage '' {c | c ∈ p.toRunPath}).encard ≤ storageBound Symbol State k p.space := by
+  refine le_trans (Set.encard_le_encard ?_)
+    (encard_fitsIn_le (w := RunPath.spaceUsedByTape p.toRunPath) le_rfl)
+  rintro _ ⟨c, hc, rfl⟩
+  exact p.storage_fitsIn hc
 
-/-- A machine that uses at most `s` cells of work-tape space at every point in time passes through
-at most `storageBound Symbol State k s` different storages during its whole run — independently of
-the length of the input and of how long it runs. -/
-theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : ∀ t, (tm.runPath (tm.initCfg input) t).space ≤ s) :
-    (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard
+/-- A deterministic machine using at most `s` cells on every computation path reaches at most
+`storageBound Symbol State k s` different storages, independently of input and running time. -/
+theorem IsDeterministic.encard_storages_le [Fintype Symbol] [Fintype State]
+    (hd : tm.IsDeterministic) {s : ℕ} (hs : tm.RunsInSpace input s) :
+    (Set.range fun p : tm.ComputationPath input ↦ p.last.storage).encard
       ≤ storageBound Symbol State k s := by
-  obtain ⟨T, hT⟩ := tm.exists_spaceUsedByTape_max (tm.initCfg input) hs
-  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs T))
-  rintro _ ⟨t, rfl⟩
-  exact Storage.FitsIn_mono (fun i => hT t i)
-    (MultiTapeNTM.ComputationPath.storage_fitsIn ⟨tm.runPath (tm.initCfg input) t, rfl⟩)
+  obtain ⟨p, hp⟩ := hd.exists_spaceUsedByTape_max hs
+  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs p))
+  rintro _ ⟨q, rfl⟩
+  exact Storage.FitsIn_mono (hp q) (q.storage_fitsIn (RelSeries.last_mem _))
 
-/-- The number of configuration cores that a machine bounded by space `s` can reach is at most
-`(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input. -/
-theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : ∀ t, (tm.runPath (tm.initCfg input) t).space ≤ s) :
-    (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+/-- The number of reachable configuration cores also accounts for the input head position. -/
+theorem IsDeterministic.encard_cores_le [Fintype Symbol] [Fintype State]
+    (hd : tm.IsDeterministic) {s : ℕ} (hs : tm.RunsInSpace input s) :
+    (Set.range fun p : tm.ComputationPath input ↦ p.last.core).encard
       ≤ (input.length + 2) * storageBound Symbol State k s := by
-  calc (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+  calc (Set.range fun p : tm.ComputationPath input ↦ p.last.core).encard
       ≤ ((Set.univ : Set (Fin (input.length + 2)))
-          ×ˢ (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage)).encard := by
+          ×ˢ (Set.range fun p : tm.ComputationPath input ↦ p.last.storage)).encard := by
         apply Set.encard_le_encard
-        rintro _ ⟨t, rfl⟩
-        exact ⟨Set.mem_univ _, t, rfl⟩
+        rintro _ ⟨p, rfl⟩
+        exact ⟨Set.mem_univ _, p, rfl⟩
     _ = (Set.univ : Set (Fin (input.length + 2))).encard
-          * (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard := Set.encard_prod
+          * (Set.range fun p : tm.ComputationPath input ↦ p.last.storage).encard := Set.encard_prod
     _ ≤ (input.length + 2) * storageBound Symbol State k s := by
-        refine mul_le_mul' ?_ (tm.encard_storages_le hs)
+        refine mul_le_mul' ?_ (hd.encard_storages_le hs)
         simp [Set.encard_univ, ENat.card_eq_coe_fintype_card]
 
-/-- The storage bound in exponential form: the number of storages a space-`s`-bounded machine
-passes through is at most `2 ^ (O(s))`, with constants depending only on the machine. -/
-theorem encard_storages_le_pow [Finite Symbol] [Finite State] :
+/-- The storage bound in exponential form, with constants depending only on the machine. -/
+theorem IsDeterministic.encard_storages_le_pow [Finite Symbol] [Finite State]
+    (hd : tm.IsDeterministic) :
     ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
-      (∀ t, (tm.runPath (tm.initCfg input) t).space ≤ s) →
-      (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard ≤ a * 2 ^ (c * s) := by
+      tm.RunsInSpace input s →
+      (Set.range fun p : tm.ComputationPath input ↦ p.last.storage).encard ≤ a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State
   obtain ⟨a, c, hpow⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
-  refine ⟨a, c, fun input s hs => (tm.encard_storages_le hs).trans ?_⟩
+  refine ⟨a, c, fun input s hs ↦ (hd.encard_storages_le hs).trans ?_⟩
   exact_mod_cast hpow s
 
-/-- The core bound in exponential form: the number of cores a space-`s`-bounded machine can reach
-is at most `(n + 2) * 2 ^ (O(s))`, with constants depending only on the machine and not on the
-input. -/
-theorem encard_cores_le_pow [Finite Symbol] [Finite State] :
+/-- The core bound in exponential form, including the input head position. -/
+theorem IsDeterministic.encard_cores_le_pow [Finite Symbol] [Finite State]
+    (hd : tm.IsDeterministic) :
     ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
-      (∀ t, (tm.runPath (tm.initCfg input) t).space ≤ s) →
-      (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+      tm.RunsInSpace input s →
+      (Set.range fun p : tm.ComputationPath input ↦ p.last.core).encard
         ≤ (input.length + 2) * a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State
   obtain ⟨a, c, hpow⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
-  refine ⟨a, c, fun input s hs => (tm.encard_cores_le hs).trans ?_⟩
+  refine ⟨a, c, fun input s hs ↦ (hd.encard_cores_le hs).trans ?_⟩
   calc ((input.length + 2) * storageBound Symbol State k s : ℕ∞)
       ≤ ((input.length + 2) * (a * 2 ^ (c * s)) : ℕ) := by
         exact_mod_cast Nat.mul_le_mul_left _ (hpow s)
     _ = (input.length + 2) * a * 2 ^ (c * s) := by push_cast; ring
 
-end Turing.MultiTapeTM
+end Turing.MultiTapeNTM
