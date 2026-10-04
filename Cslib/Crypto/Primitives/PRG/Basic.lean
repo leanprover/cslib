@@ -28,64 +28,65 @@ open scoped NNReal
 
 variable {Seed Output : Type*}
 
-variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
+variable {seed : PMF Seed} {ideal : PMF Output}
 
 /-- Advantage is nonnegative. -/
 theorem advantage_nonneg (G : Generator Seed Output) (adversary : Adversary Output) :
-    0 ≤ G.advantage adversary := abs_nonneg _
+    0 ≤ G.advantage adversary (seed := seed) (ideal := ideal) := Game.advantage_nonneg _ _
 
 /-- Advantage is at most one, with the normalization of Attack Game 3.1. -/
 theorem advantage_le_one (G : Generator Seed Output) (adversary : Adversary Output) :
-    G.advantage adversary ≤ 1 := by
-  have hreal := ENNReal.toReal_mono ENNReal.one_ne_top
-    (PMF.coe_le_one (G.realExperiment adversary) true)
-  have hideal := ENNReal.toReal_mono ENNReal.one_ne_top
-    (PMF.coe_le_one (idealExperiment adversary) true)
-  simp only [ENNReal.toReal_one] at hreal hideal
-  apply abs_sub_le_iff.mpr
-  constructor
-  · linarith [@ENNReal.toReal_nonneg (idealExperiment adversary true)]
-  · linarith [@ENNReal.toReal_nonneg (G.realExperiment adversary true)]
+    G.advantage adversary (seed := seed) (ideal := ideal) ≤ 1 := Game.advantage_le_one _ _
 
 /-- Error one imposes no restriction on a generator. -/
 theorem secure_one (G : Generator Seed Output) (Admissible : Adversary Output → Prop) :
-    G.Secure Admissible 1 := fun adversary _ => G.advantage_le_one adversary
+    G.Secure Admissible 1 (seed := seed) (ideal := ideal) :=
+  fun adversary _ => G.advantage_le_one adversary
 
 /-- A test whose output distribution is independent of its input has zero advantage. -/
 @[simp]
 theorem advantage_const (G : Generator Seed Output) (p : PMF Bool) :
-    G.advantage (fun _ => p) = 0 := by
+    G.advantage (fun _ => p) (seed := seed) (ideal := ideal) = 0 := by
   simp [advantage, realExperiment, idealExperiment, PMF.bind_const]
 
-/-- A generator with exactly uniform output is secure with zero error against any tests. -/
+/-- Matching the ideal distribution gives zero-error security against any tests. -/
 theorem secure_zero_of_outputDist_eq (G : Generator Seed Output)
-    (hG : G.outputDist = uniformOfFintype Output)
-    (Admissible : Adversary Output → Prop) : G.Secure Admissible 0 := by
+    (hG : G.outputDist (seed := seed) = ideal)
+    (Admissible : Adversary Output → Prop) :
+    G.Secure Admissible 0 (seed := seed) (ideal := ideal) := by
   intro adversary _
   simp [advantage, realExperiment, idealExperiment, hG]
 
-/-- Zero-error security against arbitrary tests is equivalent to exactly uniform output. -/
-theorem secure_zero_iff_outputDist_eq_uniform (G : Generator Seed Output) :
-    G.Secure (fun _ => True) 0 ↔ G.outputDist = uniformOfFintype Output := by
+/-- Zero-error security against arbitrary tests is equivalent to matching the ideal distribution. -/
+theorem secure_zero_iff_outputDist_eq (G : Generator Seed Output) :
+    G.Secure (fun _ => True) 0 (seed := seed) (ideal := ideal) ↔
+      G.outputDist (seed := seed) = ideal := by
   classical
   refine ⟨fun h => ?_, fun h => G.secure_zero_of_outputDist_eq h _⟩
   ext output
   apply (ENNReal.toReal_eq_toReal_iff' (PMF.apply_ne_top _ _) (PMF.apply_ne_top _ _)).mp
-  simpa [advantage, realExperiment, idealExperiment, PMF.bind_apply, PMF.pure_apply,
-    sub_eq_zero] using h (fun x => PMF.pure (decide (x = output))) trivial
+  simpa [advantage, Game.winProbability, realExperiment, idealExperiment, PMF.bind_apply,
+    PMF.pure_apply, sub_eq_zero] using h (fun x => PMF.pure (decide (x = output))) trivial
+
+@[deprecated secure_zero_iff_outputDist_eq (since := "2026-10-03")]
+alias secure_zero_iff_outputDist_eq_uniform := secure_zero_iff_outputDist_eq
 
 /-- Enlarging the allowed advantage preserves security. -/
 theorem Secure.mono {G : Generator Seed Output} {Admissible : Adversary Output → Prop} :
-    Monotone (G.Secure Admissible) :=
+    Monotone (G.Secure Admissible (seed := seed) (ideal := ideal)) :=
   fun _ _ hεδ h adversary ha => (h adversary ha).trans (by exact_mod_cast hεδ)
 
 /-- Security against a larger class of adversaries implies security against a smaller class. -/
 theorem Secure.of_admissible {G : Generator Seed Output}
     {Admissible Restricted : Adversary Output → Prop} {ε : ℝ≥0}
-    (h : G.Secure Admissible ε) (hsub : ∀ adversary, Restricted adversary → Admissible adversary) :
-    G.Secure Restricted ε := fun adversary ha => h adversary (hsub adversary ha)
+    (h : G.Secure Admissible ε (seed := seed) (ideal := ideal))
+    (hsub : ∀ adversary, Restricted adversary → Admissible adversary) :
+    G.Secure Restricted ε (seed := seed) (ideal := ideal) :=
+  fun adversary ha => h adversary (hsub adversary ha)
 
 section RangeTests
+
+variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
 
 variable [DecidableEq Output]
 
@@ -111,7 +112,7 @@ omit [Nonempty Seed] in
 /-- The range test's acceptance probability under uniform sampling is the fraction
 of outputs in the range. -/
 theorem idealExperiment_rangeAdversary (G : Generator Seed Output) :
-    (idealExperiment G.rangeAdversary true).toReal =
+    (idealExperiment G.rangeAdversary (ideal := uniformOfFintype Output) true).toReal =
       Nat.card (Set.range G) / (Fintype.card Output : ℝ) := by
   simp only [idealExperiment, rangeAdversary, rangeTest, PMF.bind_apply, PMF.pure_apply,
     uniformOfFintype_apply, tsum_fintype]
@@ -123,11 +124,12 @@ theorem idealExperiment_rangeAdversary (G : Generator Seed Output) :
 theorem advantage_rangeAdversary (G : Generator Seed Output) :
     G.advantage G.rangeAdversary =
       1 - Nat.card (Set.range G) / (Fintype.card Output : ℝ) := by
-  have hprob : (idealExperiment G.rangeAdversary true).toReal ≤ 1 :=
+  have hprob :
+      (idealExperiment G.rangeAdversary (ideal := uniformOfFintype Output) true).toReal ≤ 1 :=
     (ENNReal.toReal_le_toReal (PMF.apply_ne_top _ _) ENNReal.one_ne_top).mpr
       (PMF.coe_le_one _ _)
   rw [advantage, realExperiment_rangeAdversary]
-  simp only [PMF.pure_apply, ↓reduceIte, ENNReal.toReal_one]
+  simp only [Game.advantage, Game.winProbability, PMF.pure_apply, ↓reduceIte, ENNReal.toReal_one]
   rw [abs_of_nonneg (sub_nonneg.mpr hprob), idealExperiment_rangeAdversary]
 
 /-- Every generator has an unbounded distinguisher with advantage at least
@@ -150,6 +152,8 @@ theorem not_secure_of_rangeAdversary (G : Generator Seed Output)
   exact (hε.trans_le G.one_sub_card_div_le_advantage_rangeAdversary).not_ge (h _ ha)
 
 end RangeTests
+
+variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
 
 /-- An expanding generator cannot be perfectly secure against arbitrary adversaries. -/
 theorem not_secure_zero_of_isExpanding (G : Generator Seed Output) (hG : G.IsExpanding) :

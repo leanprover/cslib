@@ -33,8 +33,11 @@ security of Boolean experiments.
 PMFs. `Generator.Secure G Admissible ε` bounds the distinguishing advantage of every
 admissible randomized test. `Family.SecureWithError` allows a parameter-dependent error bound;
 `Family.Secure` requires negligible advantage separately for each admissible family, using
-Mathlib's `SuperpolynomialDecay`. A negligible error bound implies this asymptotic notion.
+`Negligible`, Mathlib's `SuperpolynomialDecay` at natural parameters. A negligible error bound
+implies this asymptotic notion.
 The caller supplies `Admissible`; these definitions do not assert computational efficiency.
+The seed and ideal distributions are explicit parameters, defaulting to uniform sampling on
+finite types, so the same experiments apply to distributions on infinite types.
 
 The range-membership adversary has advantage exactly `1 - |range G| / |Output|`, and hence
 at least `1 - |Seed| / |Output|`. Any non-negligible lower bound on the image gap rules out
@@ -42,7 +45,8 @@ asymptotic security when the range-test family is admissible. The executable `ra
 requires `DecidableEq Output`. Bitstring families eventually stretching by at least one bit
 are consequently insecure against any class admitting this test, with both `Fin n → Bool`
 and `BitVec n` versions and nonexistence corollaries. Zero-error security against all tests
-is equivalent to exactly uniform output; the identity generator is a nonexpanding example.
+is equivalent to matching the ideal distribution; with the defaults, this means exactly uniform
+output. The identity generator is a nonexpanding example.
 
 ## Plans and notes
 
