@@ -46,7 +46,7 @@ theorem infinite_strictMono {ns : Set ℕ} (h : ns.Infinite) :
 /-- There is a gap between two successive occurrences of a predicate `p : ℕ → Prop`,
 assuming `p` (as a set) is infinite. -/
 theorem nth_succ_gap {p : ℕ → Prop} (hf : (ofPred p).Infinite) (n : ℕ) :
-    ∀ k < nth p (n + 1) - nth p n, k > 0 → ¬ p (k + nth p n) := by
+    ∀ k < nth p (n + 1) - nth p n, 0 < k → ¬ p (k + nth p n) := by
   classical
   intro k h_k1 h_k0 h_p_k
   let m := count p (k + nth p n)
@@ -71,7 +71,7 @@ theorem nth_of_strictMono (hm : StrictMono f) (n : ℕ) :
 open scoped Classical in
 /-- If `f 0 = 0`, then `0` is below any `n` not in the range of `f`. -/
 theorem count_notMem_range_pos (h0 : f 0 = 0) (n : ℕ) (hn : n ∉ range f) :
-    count (· ∈ range f) n > 0 := by
+    0 < count (· ∈ range f) n := by
   have := count_monotone (· ∈ range f) (show 1 ≤ n by grind)
   grind
 
@@ -140,7 +140,7 @@ theorem segment_lower_bound (hm : StrictMono f) (h0 : f 0 = 0) (k : ℕ) :
   rw [nth_of_strictMono hm (segment f k), segment]
   rcases Classical.em (k ∈ range f) with h_k | h_k
   · simp_all [count_succ_eq_succ_count]
-  · have h1 : count (· ∈ range f) k > 0 := count_notMem_range_pos h0 k h_k
+  · have h1 : 0 < count (· ∈ range f) k := count_notMem_range_pos h0 k h_k
     have h2 : count (· ∈ range f) (k + 1) = count (· ∈ range f) k :=
       count_succ_eq_count h_k
     rw [h2]
@@ -213,7 +213,7 @@ theorem segment'_eq_segment (hm : StrictMono f) :
     segment' f = segment f := by
   classical
   ext k; unfold segment'
-  rcases (show k < f 0 ∨ k ≥ f 0 by omega) with h_k | h_k
+  obtain (h_k | h_k) : k < f 0 ∨ f 0 ≤ k := k.lt_or_ge (f 0)
   · grind
   unfold segment; congr 1
   simp only [count_eq_card_filter_range]
