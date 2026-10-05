@@ -32,5 +32,6 @@ import CslibTests.PFunctor
 import CslibTests.PFunctorFree
 import CslibTests.PRG
 import CslibTests.Reduction
+import CslibTests.RelationAlgebra
 import CslibTests.StatefulProcesses
 import CslibTests.Synthesis
