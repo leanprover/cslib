@@ -6,7 +6,9 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
+public import Mathlib.Algebra.Group.TypeTags.Finite
+public import Mathlib.Data.ZMod.Basic
 
 /-!
 # Catalogue algebra ⟨1, 3, 0⟩, number 42
@@ -15,7 +17,7 @@ Entry 42 in the ⟨1, 3, 0⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `aac abb acc bbc`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+The representation below partitions the cyclic group of order 10.
 -/
 
 @[expose] public section
@@ -47,8 +49,20 @@ theorem cycles_iff (x y z : Atom 3 0) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
-/-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+/-- The nonidentity blocks are `a = {4, 6}`, `b = {1, 3, 5, 7, 9}`,
+and `c = {2, 8}` modulo 10. -/
+def representation : GroupAtomRepresentation table (Multiplicative (ZMod 10)) where
+  label g :=
+    if g.toAdd = 0 then none
+    else some (Sum.inl (if g.toAdd ∈ ({4, 6} : Finset (ZMod 10)) then 0
+      else if g.toAdd ∈ ({1, 3, 5, 7, 9} : Finset (ZMod 10)) then 1 else 2))
+  surjective := by decide +kernel
+  identity := by decide +kernel
+  converse := by decide +kernel
+  composition := by decide +kernel
+
+/-- This catalogue algebra has a representation on 10 points. -/
+theorem representable : Representable Algebra :=
+  representation.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S3N0.Ra42
