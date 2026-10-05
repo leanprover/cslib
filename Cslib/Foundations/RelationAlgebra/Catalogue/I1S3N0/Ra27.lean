@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.OrderedColorRepresentation
 
 /-!
 # Catalogue algebra ⟨1, 3, 0⟩, number 27
@@ -15,7 +15,7 @@ Entry 27 in the ⟨1, 3, 0⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `abb abc acc bbc bcc aaa`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+Its representation uses three dense colors in a linear order.
 -/
 
 @[expose] public section
@@ -47,8 +47,14 @@ theorem cycles_iff (x y z : Atom 3 0) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
-/-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+/-- Increasing pairs are labelled by the difference of their colors modulo three. -/
+def orderedColorPolicy : OrderedColorRepresentation.Policy table 3 where
+  positive := by decide
+  up i l := l - i
+  diagonal := by decide +kernel
+  increasing := by decide +kernel
+
+/-- This catalogue algebra has a representation on a countable dense colored order. -/
+theorem representable : Representable Algebra := orderedColorPolicy.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S3N0.Ra27
