@@ -6,7 +6,8 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
+public import Mathlib.GroupTheory.SpecificGroups.Quaternion
 
 /-!
 # Catalogue algebra ⟨1, 1, 1⟩, number 10
@@ -15,7 +16,7 @@ Entry 10 in the ⟨1, 1, 1⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `abb~ bbb~ bbb`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+The representation below partitions the quaternion group of order eight.
 -/
 
 @[expose] public section
@@ -47,8 +48,22 @@ theorem cycles_iff (x y z : Atom 1 1) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
-/-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+/-- The central involution is the symmetric atom; choose one element of each inverse pair
+for the forward atom, and put its inverses in the backward atom. -/
+def representation : GroupAtomRepresentation table (QuaternionGroup 2) where
+  label g :=
+    if g = 1 then none
+    else if g = QuaternionGroup.a 2 then some (Sum.inl 0)
+    else some (Sum.inr (0, !(g ∈
+      ({QuaternionGroup.a 1, QuaternionGroup.xa 0, QuaternionGroup.xa 1} :
+        Finset (QuaternionGroup 2)))))
+  surjective := by decide +kernel
+  identity := by decide +kernel
+  converse := by decide +kernel
+  composition := by decide +kernel
+
+/-- This catalogue algebra has a representation on eight points. -/
+theorem representable : Representable Algebra :=
+  representation.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S1N1.Ra10
