@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
 
 /-!
 # Catalogue algebra ⟨1, 1, 0⟩, number 1
@@ -15,7 +15,7 @@ Entry 1 in the ⟨1, 1, 0⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `1'1'1' aa1'`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+The representation below uses equality and disequality on two points.
 -/
 
 @[expose] public section
@@ -44,8 +44,16 @@ theorem cycles_iff (x y z : Atom 1 0) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
-/-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+/-- Label the diagonal by identity and all other edges by the diversity atom. -/
+def representation : AtomRepresentation table (Fin 2) where
+  label x y := if x = y then none else some (Sum.inl 0)
+  surjective := by decide +kernel
+  identity := by decide +kernel
+  converse := by decide +kernel
+  composition := by decide +kernel
+
+/-- This catalogue algebra has a representation on two points. -/
+theorem representable : Representable Algebra :=
+  representation.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S1N0.Ra01
