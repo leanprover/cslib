@@ -6,13 +6,18 @@ Authors: Quang Dao, Devon Tuma
 
 module
 
+public import Cslib.Foundations.Data.PFunctor.Basic
 public import Cslib.Foundations.Data.PFunctor.Free
 
 /-!
-# Polynomial free monads with an empty result type
+# Polynomial free monads as W-types
 
-When `α` is empty, a tree in `P.FreeM α` has only operation nodes. The equivalence
-`PFunctor.FreeM.equivWOfIsEmpty` identifies these trees with the W-type `P.W`.
+A tree in `P.FreeM α` is a W-tree whose nodes either return a value of `α` or perform an operation
+of `P`: `PFunctor.FreeM.equivW` identifies `P.FreeM α` with the W-type of `C α + P`, the
+polynomial of the functor `X ↦ α ⊕ P X` whose initial algebra is the free monad.
+
+When `α` is empty, a tree has only operation nodes, and `PFunctor.FreeM.equivWOfIsEmpty` identifies
+these trees with the W-type `P.W` itself.
 -/
 
 @[expose] public section
@@ -68,5 +73,51 @@ def FreeM.equivWOfIsEmpty [IsEmpty α] : P.FreeM α ≃ P.W where
   invFun := W.toFreeM
   left_inv := W.toFreeM_toWOfIsEmpty
   right_inv := toWOfIsEmpty_toFreeM
+
+/-- Regard a free program as a W-tree of `C α + P`, whose leaves carry the returned values. -/
+def FreeM.toW : P.FreeM α → (C.{u, uB} α + P).W
+  | .pure a => W.mk ⟨.inl a, PEmpty.elim⟩
+  | .liftBind a cont => W.mk ⟨.inr a, fun b => FreeM.toW (cont b)⟩
+
+/-- Read a W-tree of `C α + P` as a free program. -/
+def FreeM.ofW : (C.{u, uB} α + P).W → P.FreeM α
+  | ⟨.inl a, _⟩ => .pure a
+  | ⟨.inr a, cont⟩ => .liftBind a fun b => FreeM.ofW (cont b)
+
+@[simp]
+theorem FreeM.toW_pure (a : α) :
+    toW (pure a : P.FreeM α) = (W.mk ⟨.inl a, PEmpty.elim⟩ : (C.{u, uB} α + P).W) := rfl
+
+@[simp]
+theorem FreeM.toW_lift_bind (a : P.A) (cont : P.B a → P.FreeM α) :
+    toW ((lift a).bind (α := no_index (P.B a)) cont) =
+      (W.mk ⟨.inr a, fun b => toW (cont b)⟩ : (C.{u, uB} α + P).W) := rfl
+
+@[simp]
+theorem FreeM.toW_lift_bind' {α : Type uB} (a : P.A) (cont : P.B a → P.FreeM α) :
+    toW (Bind.bind (α := no_index (P.B a)) (lift a) cont) =
+      (W.mk ⟨.inr a, fun b => toW (cont b)⟩ : (C.{uB, uB} α + P).W) := rfl
+
+@[simp]
+theorem FreeM.ofW_toW (x : P.FreeM α) : ofW (toW x) = x := by
+  induction x with
+  | pure a => rfl
+  | lift_bind a cont ih => exact congrArg (liftBind a) (funext ih)
+
+@[simp]
+theorem FreeM.toW_ofW (w : (C.{u, uB} α + P).W) : toW (ofW w) = w := by
+  induction w with
+  | mk a f ih =>
+    cases a with
+    | inl a => exact congrArg (fun f => (W.mk ⟨.inl a, f⟩ : (C α + P).W)) (funext (·.elim))
+    | inr a => exact congrArg (fun f => (W.mk ⟨.inr a, f⟩ : (C α + P).W)) (funext ih)
+
+/-- Free programs are the W-trees of `C α + P`. -/
+@[simps]
+def FreeM.equivW : P.FreeM α ≃ (C.{u, uB} α + P).W where
+  toFun := toW
+  invFun := ofW
+  left_inv := ofW_toW
+  right_inv := toW_ofW
 
 end PFunctor

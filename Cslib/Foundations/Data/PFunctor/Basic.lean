@@ -21,7 +21,8 @@ Special cases `C`, `linear`, `selfMonomial`, `purePower`, the indeterminate `y`,
 and canonical choices of `0` and `1` are defined as abbreviations or instances over `monomial`.
 The scoped notations `A y^ B` and `y^ B` denote `monomial A B` and `purePower B`, respectively.
 
-The child-map API includes `const`, `Unary`, and `DecidableEqChildren`.
+The child-map API includes `const`, `Unary`, and `DecidableEqChildren`. `W.induction` is an
+induction principle for `P.W` through `W.mk`.
 -/
 
 @[expose] public section
@@ -154,6 +155,20 @@ defined as the product of the head types and the sum of the child types. -/
     P.prod Q = P * Q := rfl
 
 end prod
+
+section W
+
+variable {P : PFunctor.{uA, uB}}
+
+/-- Induction on `P.W` through `W.mk`, keeping subtrees typed as `P.W` rather than `WType P.B`. -/
+@[elab_as_elim, induction_eliminator]
+protected theorem W.induction {motive : P.W → Prop}
+    (mk : ∀ (a : P.A) (f : P.B a → P.W), (∀ i, motive (f i)) → motive (W.mk ⟨a, f⟩))
+    (w : P.W) : motive w := by
+  induction w using WType.rec with
+  | mk a f ih => exact mk a f ih
+
+end W
 
 section Unary
 
