@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.WitnessRepresentation
 
 /-!
 # Catalogue algebra ⟨1, 1, 1⟩, number 25
@@ -15,7 +15,7 @@ Entry 25 in the ⟨1, 1, 1⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `aab ab~b~ aaa bbb`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+Representability follows by successively adding the witnesses specified by a finite policy.
 -/
 
 @[expose] public section
@@ -47,8 +47,71 @@ theorem cycles_iff (x y z : Atom 1 1) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
+/-- Numeric names for the identity and the three diversity atoms. -/
+def atomCode : Atom 1 1 → ℕ
+  | none => 0
+  | some (.inl _) => 1
+  | some (.inr (_, false)) => 2
+  | some (.inr (_, true)) => 3
+
+/-- Labels of new witness edges, as a function of the two endpoint labels. -/
+def witnessLabel (a b c d e : Atom 1 1) : Atom 1 1 :=
+  if d = none then a else if e = none then Atom.converse b else
+  match atomCode a, atomCode b, atomCode c, atomCode d, atomCode e with
+  | 1, 2, 1, 1, 2 => some (.inr (0, true))
+  | 1, 2, 1, 3, 3 => some (.inr (0, false))
+  | 1, 3, 1, 1, 3 => some (.inr (0, false))
+  | 1, 3, 1, 3, 3 => some (.inr (0, false))
+  | 1, 3, 3, 3, 3 => some (.inr (0, false))
+  | 2, 1, 1, 3, 1 => some (.inr (0, false))
+  | 2, 1, 1, 3, 3 => some (.inr (0, false))
+  | 2, 1, 2, 3, 3 => some (.inr (0, false))
+  | 2, 2, 2, 2, 2 => some (.inr (0, true))
+  | 2, 2, 2, 3, 3 => some (.inr (0, false))
+  | 2, 3, 0, 3, 3 => some (.inr (0, false))
+  | 2, 3, 2, 2, 3 => some (.inr (0, false))
+  | 2, 3, 2, 3, 3 => some (.inr (0, false))
+  | 2, 3, 3, 3, 2 => some (.inr (0, false))
+  | 2, 3, 3, 3, 3 => some (.inr (0, false))
+  | 3, 1, 1, 2, 1 => some (.inr (0, true))
+  | 3, 1, 1, 3, 3 => some (.inr (0, false))
+  | 3, 2, 0, 2, 2 => some (.inr (0, true))
+  | 3, 2, 1, 1, 1 => some (.inr (0, true))
+  | 3, 2, 1, 1, 2 => some (.inr (0, true))
+  | 3, 2, 1, 1, 3 => some (.inr (0, true))
+  | 3, 2, 1, 2, 1 => some (.inr (0, true))
+  | 3, 2, 1, 3, 1 => some (.inr (0, true))
+  | 3, 2, 2, 2, 1 => some (.inr (0, true))
+  | 3, 2, 2, 2, 2 => some (.inr (0, true))
+  | 3, 2, 2, 2, 3 => some (.inr (0, true))
+  | 3, 2, 3, 1, 2 => some (.inr (0, true))
+  | 3, 2, 3, 2, 2 => some (.inr (0, true))
+  | 3, 2, 3, 3, 2 => some (.inr (0, true))
+  | 3, 3, 3, 2, 2 => some (.inr (0, true))
+  | 3, 3, 3, 3, 3 => some (.inr (0, false))
+  | _, _, _, _, _ => some (.inl 0)
+
+set_option synthInstance.maxSize 1024 in
+/-- The finite extension policy for composition witnesses. -/
+def witnessPolicy : WitnessPolicy table where
+  label := witnessLabel
+  diversity := by decide +kernel
+  left := by decide +kernel
+  right := by decide +kernel
+  triangle := by
+    have check : ∀ (a b c : Atom 1 1), a ≠ none → b ≠ none →
+        cycleClosure cycles a b c → ∀ d e,
+        cycleClosure cycles d (Atom.converse e) c → (d, e) ≠ (a, Atom.converse b) →
+        ∀ d' e', cycleClosure cycles d' (Atom.converse e') c →
+        (d', e') ≠ (a, Atom.converse b) → ∀ h,
+        cycleClosure cycles d h d' → cycleClosure cycles e h e' →
+        cycleClosure cycles h (witnessLabel a b c d' e') (witnessLabel a b c d e) := by
+      decide +kernel
+    intro a b c d e d' e' h ha hb hc hp hp' hne hne' hd he
+    exact check a b c ha hb hc d e hp hne d' e' hp' hne' h hd he
+
 /-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+theorem representable : Representable Algebra :=
+  witnessPolicy.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S1N1.Ra25
