@@ -21,13 +21,14 @@ Special cases `C`, `linear`, `selfMonomial`, `purePower`, the indeterminate `y`,
 and canonical choices of `0` and `1` are defined as abbreviations or instances over `monomial`.
 The scoped notations `A y^ B` and `y^ B` denote `monomial A B` and `purePower B`, respectively.
 
+The extensions of `P + Q` and `C A` are described by `addObjEquiv` and `constObjEquiv`.
 The child-map API includes `const`, `Unary`, and `DecidableEqChildren`. `W.induction` is an
 induction principle for `P.W` through `W.mk`.
 -/
 
 @[expose] public section
 
-universe uA uB uA₁ uA₂ uB₁ uB₂
+universe uA uB uA₁ uA₂ uB₁ uB₂ v w
 
 namespace PFunctor
 
@@ -155,6 +156,61 @@ defined as the product of the head types and the sum of the child types. -/
     P.prod Q = P * Q := rfl
 
 end prod
+
+section Obj
+
+variable {X : Type v} {Y : Type w}
+
+@[simp]
+theorem map_id' (P : PFunctor.{uA, uB}) : P.map (id : X → X) = id :=
+  funext P.id_map
+
+@[simp]
+theorem map_comp_map (P : PFunctor.{uA, uB}) {Z : Type*} (f : X → Y) (g : Y → Z) :
+    P.map g ∘ P.map f = P.map (g ∘ f) :=
+  funext (P.map_map f g)
+
+/-- The extension of a sum of polynomial functors is the sum of their extensions. -/
+def addObjEquiv (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) (X : Type v) :
+    (P + Q).Obj X ≃ P.Obj X ⊕ Q.Obj X where
+  toFun
+    | .mk (.inl a) f => .inl (.mk a f)
+    | .mk (.inr a) f => .inr (.mk a f)
+  invFun
+    | .inl (.mk a f) => .mk (.inl a) f
+    | .inr (.mk a f) => .mk (.inr a) f
+  left_inv x := by cases x with | mk s f => cases s <;> rfl
+  right_inv x := by rcases x with (x | x) <;> cases x <;> rfl
+
+@[simp]
+theorem addObjEquiv_mk_inl (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) (a : P.A)
+    (f : P.B a → X) : addObjEquiv P Q X (.mk (.inl a) f) = .inl (.mk a f) := rfl
+
+@[simp]
+theorem addObjEquiv_mk_inr (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) (a : Q.A)
+    (f : Q.B a → X) : addObjEquiv P Q X (.mk (.inr a) f) = .inr (.mk a f) := rfl
+
+theorem addObjEquiv_map (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) (f : X → Y)
+    (x : (P + Q).Obj X) :
+    addObjEquiv P Q Y ((P + Q).map f x) = Sum.map (P.map f) (Q.map f) (addObjEquiv P Q X x) := by
+  cases x with | mk s g => cases s <;> rfl
+
+/-- The extension of a constant polynomial functor is the constant. -/
+def constObjEquiv (A : Type uA) (X : Type v) : (C.{uA, uB} A).Obj X ≃ A where
+  toFun x := x.fst
+  invFun a := .mk a PEmpty.elim
+  left_inv x := by cases x with | mk a f => exact congrArg (Obj.mk a) (funext (·.elim))
+  right_inv _ := rfl
+
+@[simp]
+theorem constObjEquiv_mk (A : Type uA) (a : A) (f : PEmpty.{uB + 1} → X) :
+    constObjEquiv A X (.mk a f) = a := rfl
+
+@[simp]
+theorem constObjEquiv_map (A : Type uA) (f : X → Y) (x : (C.{uA, uB} A).Obj X) :
+    constObjEquiv A Y ((C A).map f x) = constObjEquiv A X x := rfl
+
+end Obj
 
 section W
 

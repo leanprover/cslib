@@ -1,0 +1,356 @@
+/-
+Copyright (c) 2026 PolyFun Contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Devon Tuma
+-/
+
+module
+
+public import Cslib.Foundations.Data.PFunctor.Free.W
+public import Cslib.Foundations.Data.PFunctor.M
+
+/-!
+# Coinductive resumptions
+
+A resumption `r : PFunctor.Resumption P α` is a possibly non-terminating program that either
+returns a value of `α` or performs an operation `a : P.A` and continues with a response
+`b : P.B a`. It is the M-type of the polynomial `C α + P`, i.e. the final coalgebra of
+`X ↦ α ⊕ P X`. The initial algebra of the same functor is the free monad `P.FreeM α`, which is the
+W-type of `C α + P` (`PFunctor.FreeM.equivW`).
+
+`PFunctor.FreeM.toResumption` is an injective monad morphism whose image is exactly the
+well-founded resumptions (`PFunctor.FreeM.equivWellFounded`), so resumptions extend free programs
+by infinite runs. Over the indeterminate `y`, with a single operation and a unit response,
+resumptions form Capretta's delay monad [Capretta2005]. They give semantics to loops whose
+termination is not structural, such as rejection sampling or the execution of a machine.
+
+This is the resumption monad of [PirogGibbons2014], the identity-monad case of the coalgebraic
+resumptions of [GoncharovMiliusRauch2016]. Unlike the cofree comonad, whose one-step view
+`α × P X` labels every node, a resumption returns a value only at a leaf.
+
+## Main definitions
+
+- `PFunctor.Resumption.dest`: the one-step view, an equivalence `destEquiv`, with the constructors
+  `pure` and `query` and a `cases` eliminator.
+- `PFunctor.Resumption.corec`: the corecursor, characterized by `corec_unique`.
+- `PFunctor.Resumption.bisim`: coinduction through the relation lifting `StepRel`.
+- `PFunctor.Resumption.bind`: sequencing, giving a lawful monad.
+- `PFunctor.FreeM.toResumption`: the embedding of free programs.
+
+## References
+
+* [Piróg and Gibbons, *The Coinductive Resumption Monad*][PirogGibbons2014]
+* [Capretta, *General Recursion via Coinductive Types*][Capretta2005]
+* [Goncharov, Milius and Rauch, *Complete Elgot Monads and Coalgebraic
+  Resumptions*][GoncharovMiliusRauch2016]
+-/
+
+@[expose] public section
+
+universe uA uB u v w
+
+namespace PFunctor
+
+/-- Possibly non-terminating programs over `P` returning a value of `α`: the M-type of `C α + P`,
+whose W-type is `P.FreeM α`. -/
+abbrev Resumption (P : PFunctor.{uA, uB}) (α : Type u) : Type (max u uA uB) :=
+  M (C.{u, uB} α + P : PFunctor.{max u uA, uB})
+
+namespace Resumption
+
+variable {P : PFunctor.{uA, uB}} {α : Type u} {β : Type v} {γ : Type w}
+
+/-- One step of a program over `P` returning `α`: a returned value or an operation with its
+continuation. -/
+def stepEquiv (P : PFunctor.{uA, uB}) (α : Type u) (X : Type v) :
+    (C.{u, uB} α + P).Obj X ≃ α ⊕ P.Obj X :=
+  (addObjEquiv _ _ X).trans ((constObjEquiv α X).sumCongr (Equiv.refl _))
+
+@[simp]
+theorem stepEquiv_mk_inl {X : Type v} (a : α) (f : (C.{u, uB} α + P).B (.inl a) → X) :
+    stepEquiv P α X (.mk (.inl a) f) = .inl a := rfl
+
+@[simp]
+theorem stepEquiv_mk_inr {X : Type v} (a : P.A) (f : (C.{u, uB} α + P).B (.inr a) → X) :
+    stepEquiv P α X (.mk (.inr a) f) = .inr (.mk a f) := rfl
+
+theorem stepEquiv_map {X : Type v} {Y : Type w} (f : X → Y) (x : (C.{u, uB} α + P).Obj X) :
+    stepEquiv P α Y ((C α + P).map f x) = Sum.map id (P.map f) (stepEquiv P α X x) := by
+  cases x with | mk s g => cases s <;> rfl
+
+/-- The one-step view of a resumption. -/
+def destEquiv : Resumption P α ≃ α ⊕ P.Obj (Resumption P α) :=
+  M.destEquiv.trans (stepEquiv P α _)
+
+/-- Observe whether a resumption returns a value or performs an operation. -/
+def dest (r : Resumption P α) : α ⊕ P.Obj (Resumption P α) :=
+  destEquiv r
+
+/-- The resumption returning `a` immediately. -/
+protected def pure (a : α) : Resumption P α :=
+  destEquiv.symm (.inl a)
+
+/-- The resumption performing the operation `a` and continuing with `k`. -/
+def query (a : P.A) (k : P.B a → Resumption P α) : Resumption P α :=
+  destEquiv.symm (.inr (.mk a k))
+
+instance : Pure (Resumption P) where
+  pure := Resumption.pure
+
+@[simp]
+theorem pure_eq_pure : (Resumption.pure : α → Resumption P α) = pure := rfl
+
+@[simp]
+theorem dest_mk (x : (C.{u, uB} α + P).Obj (Resumption P α)) :
+    dest (M.mk x) = stepEquiv P α _ x := rfl
+
+@[simp]
+theorem dest_pure (a : α) : dest (pure a : Resumption P α) = .inl a :=
+  destEquiv.apply_symm_apply _
+
+@[simp]
+theorem dest_query (a : P.A) (k : P.B a → Resumption P α) :
+    dest (query a k) = .inr (.mk a k) :=
+  destEquiv.apply_symm_apply _
+
+theorem dest_injective : Function.Injective (dest : Resumption P α → _) :=
+  destEquiv.injective
+
+@[simp]
+theorem dest_inj {r s : Resumption P α} : dest r = dest s ↔ r = s :=
+  dest_injective.eq_iff
+
+/-- Case analysis on whether a resumption returns a value or performs an operation. -/
+@[elab_as_elim, cases_eliminator]
+protected theorem cases {motive : Resumption P α → Prop} (pure : ∀ a, motive (pure a))
+    (query : ∀ a k, motive (query a k)) (r : Resumption P α) : motive r := by
+  rw [← destEquiv.symm_apply_apply r]
+  rcases destEquiv r with a | x
+  · exact pure a
+  · cases x with | mk a k => exact query a k
+
+/-- The resumption unfolding from a state by a step function. -/
+def corec {X : Type v} (f : X → α ⊕ P.Obj X) : X → Resumption P α :=
+  M.corec fun x => (stepEquiv P α X).symm (f x)
+
+@[simp]
+theorem dest_corec {X : Type v} (f : X → α ⊕ P.Obj X) (x : X) :
+    dest (corec f x) = Sum.map id (P.map (corec f)) (f x) := by
+  simp [dest, destEquiv, corec, M.dest_corec, stepEquiv_map]
+
+/-- Finality: `corec f` is the only map into resumptions that unfolds by `f`. -/
+theorem corec_unique {X : Type v} (f : X → α ⊕ P.Obj X) (g : X → Resumption P α)
+    (hg : ∀ x, dest (g x) = Sum.map id (P.map g) (f x)) : g = corec f :=
+  M.corec_unique _ g fun x =>
+    (stepEquiv P α _).injective (by rw [stepEquiv_map, Equiv.apply_symm_apply]; exact hg x)
+
+@[simp]
+theorem corec_dest : corec (dest : Resumption P α → _) = id :=
+  (corec_unique _ _ fun r => by cases r <;> simp).symm
+
+/-- Corecursion is natural in maps of states that commute with the step functions. -/
+theorem corec_comp {X : Type v} {Y : Type w} (f : X → α ⊕ P.Obj X) (g : Y → α ⊕ P.Obj Y)
+    (h : X → Y) (hh : ∀ x, g (h x) = Sum.map id (P.map h) (f x)) : corec g ∘ h = corec f :=
+  corec_unique f _ fun x => by simp [hh, Sum.map_map]
+
+/-- Lift a relation through one step: both sides return the same value, or perform the same
+operation with related continuations. -/
+inductive StepRel {X : Type v} {Y : Type w} (R : X → Y → Prop) :
+    α ⊕ P.Obj X → α ⊕ P.Obj Y → Prop
+  | pure (a : α) : StepRel R (.inl a) (.inl a)
+  | query (a : P.A) {k : P.B a → X} {k' : P.B a → Y} (h : ∀ i, R (k i) (k' i)) :
+      StepRel R (.inr (.mk a k)) (.inr (.mk a k'))
+
+theorem StepRel.refl {X : Type v} {R : X → X → Prop} (hR : ∀ x, R x x) :
+    ∀ s : α ⊕ P.Obj X, StepRel R s s
+  | .inl a => .pure a
+  | .inr (.mk a _) => .query a fun _ => hR _
+
+/-- Coinduction: related resumptions are equal when related resumptions take related steps. -/
+theorem bisim (R : Resumption P α → Resumption P α → Prop)
+    (h : ∀ r s, R r s → StepRel R (dest r) (dest s)) {r s : Resumption P α} (hrs : R r s) :
+    r = s := by
+  have step : ∀ {x y}, StepRel R x y → ∃ a f f', (stepEquiv P α _).symm x = .mk a f ∧
+      (stepEquiv P α _).symm y = .mk a f' ∧ ∀ i, R (f i) (f' i) := by
+    rintro _ _ (⟨a⟩ | ⟨a, hk⟩)
+    exacts [⟨.inl a, PEmpty.elim, PEmpty.elim, rfl, rfl, (·.elim)⟩, ⟨.inr a, _, _, rfl, rfl, hk⟩]
+  refine M.bisim R (fun r s hrs => ?_) r s hrs
+  rw [← (stepEquiv P α _).symm_apply_apply (M.dest r),
+    ← (stepEquiv P α _).symm_apply_apply (M.dest s)]
+  exact step (h r s hrs)
+
+/-- Perform the operation `a`, returning its response. -/
+def lift (a : P.A) : Resumption P (P.B a) :=
+  query a pure
+
+@[simp]
+theorem lift_eq_query (a : P.A) : lift a = query (P := P) a pure := rfl
+
+/-- The step function of `bind`: run the first resumption, then the continuation of its result. -/
+def bindStep (k : α → Resumption P β) :
+    Resumption P α ⊕ Resumption P β → β ⊕ P.Obj (Resumption P α ⊕ Resumption P β)
+  | .inl r => (dest r).elim (fun a => Sum.map id (P.map .inr) (dest (k a)))
+      fun x => .inr (P.map .inl x)
+  | .inr r => Sum.map id (P.map .inr) (dest r)
+
+/-- Sequence a resumption with a continuation for its returned value.
+
+The builtin `>>=` notation should be preferred when `α` and `β` are in the same universe. -/
+protected def bind (r : Resumption P α) (k : α → Resumption P β) : Resumption P β :=
+  corec (bindStep k) (.inl r)
+
+/-- Apply a function to the returned value.
+
+The builtin `<$>` notation should be preferred when `α` and `β` are in the same universe. -/
+protected def map (f : α → β) (r : Resumption P α) : Resumption P β :=
+  r.bind (pure ∘ f)
+
+@[simp]
+theorem corec_bindStep_comp_inr (k : α → Resumption P β) : corec (bindStep k) ∘ Sum.inr = id :=
+  (corec_comp dest (bindStep k) Sum.inr fun _ => rfl).trans corec_dest
+
+@[simp]
+theorem pure_bind (a : α) (k : α → Resumption P β) : (pure a : Resumption P α).bind k = k a :=
+  dest_injective (by simp [Resumption.bind, bindStep, Sum.map_map])
+
+@[simp]
+theorem query_bind (a : P.A) (f : P.B a → Resumption P α) (k : α → Resumption P β) :
+    (query a f).bind k = query a fun i => (f i).bind k :=
+  dest_injective (by simp [Resumption.bind, bindStep]; rfl)
+
+@[simp]
+theorem bind_pure (r : Resumption P α) : r.bind pure = r :=
+  bisim (fun x y => x = y.bind pure) (fun _ y h => by
+    subst h
+    cases y with
+    | pure a => simp only [pure_bind, dest_pure]; exact .pure a
+    | query a k => simp only [query_bind, dest_query]; exact .query a fun _ => rfl) rfl
+
+theorem bind_assoc (r : Resumption P α) (k : α → Resumption P β) (k' : β → Resumption P γ) :
+    (r.bind k).bind k' = r.bind fun a => (k a).bind k' :=
+  bisim (fun x y => x = y ∨ ∃ r, x = (r.bind k).bind k' ∧ y = r.bind fun a => (k a).bind k')
+    (fun x y h => by
+      obtain rfl | ⟨r, rfl, rfl⟩ := h
+      · exact StepRel.refl (fun _ => .inl rfl) _
+      · cases r with
+        | pure a => simp only [pure_bind]; exact StepRel.refl (fun _ => .inl rfl) _
+        | query a f =>
+          simp only [query_bind, dest_query]
+          exact .query a fun i => .inr ⟨f i, rfl, rfl⟩)
+    (.inr ⟨r, rfl, rfl⟩)
+
+@[simp]
+theorem map_pure (f : α → β) (a : α) : (pure a : Resumption P α).map f = pure (f a) :=
+  pure_bind _ _
+
+@[simp]
+theorem map_query (f : α → β) (a : P.A) (k : P.B a → Resumption P α) :
+    (query a k).map f = query a fun i => (k i).map f :=
+  query_bind _ _ _
+
+section Monad
+
+variable {α β : Type u}
+
+instance : Monad (Resumption P) where
+  bind := Resumption.bind
+  map := Resumption.map
+
+/-- Note that this lemma does not always apply, as it is universe-constrained by `Bind.bind`. -/
+@[simp]
+theorem bind_eq_bind : (Resumption.bind : Resumption P α → _ → Resumption P β) = Bind.bind := rfl
+
+/-- Note that this lemma does not always apply, as it is universe-constrained by `Functor.map`. -/
+@[simp]
+theorem map_eq_map : (Resumption.map : (α → β) → Resumption P α → _) = Functor.map := rfl
+
+instance : LawfulMonad (Resumption P) := LawfulMonad.mk'
+  (id_map := bind_pure)
+  (pure_bind := pure_bind)
+  (bind_assoc := bind_assoc)
+  (bind_pure_comp := fun _ _ => rfl)
+
+@[simp]
+theorem query_bind' (a : P.A) (f : P.B a → Resumption P α) (k : α → Resumption P β) :
+    query a f >>= k = query a fun i => f i >>= k :=
+  query_bind a f k
+
+@[simp]
+theorem map_query' (f : α → β) (a : P.A) (k : P.B a → Resumption P α) :
+    f <$> query a k = query a fun i => f <$> k i :=
+  map_query f a k
+
+end Monad
+
+end Resumption
+
+namespace FreeM
+
+variable {P : PFunctor.{uA, uB}} {α : Type u} {β : Type v}
+
+/-- Regard a free program as a resumption. Free programs are exactly the well-founded
+resumptions (`equivWellFounded`). -/
+def toResumption (x : P.FreeM α) : Resumption P α :=
+  (toW x).toM
+
+@[simp]
+theorem toResumption_pure (a : α) : toResumption (pure a : P.FreeM α) = pure a :=
+  Resumption.dest_injective (by rw [toResumption, toW_pure, W.toM_mk]; rfl)
+
+theorem toResumption_lift_bind (a : P.A) (cont : P.B a → P.FreeM α) :
+    toResumption ((lift a).bind cont) = .query a fun b => toResumption (cont b) :=
+  Resumption.dest_injective (by simp [toResumption]; rfl)
+
+@[simp]
+theorem toResumption_lift (a : P.A) :
+    toResumption (α := no_index (P.B a)) (lift a) = .query a pure := by
+  simpa using toResumption_lift_bind a (pure : P.B a → P.FreeM (P.B a))
+
+@[simp]
+theorem toResumption_bind (x : P.FreeM α) (f : α → P.FreeM β) :
+    toResumption (x.bind f) = (toResumption x).bind fun a => toResumption (f a) := by
+  induction x with
+  | pure a => simp
+  | lift_bind a cont ih => simp [toResumption_lift_bind, ih]
+
+@[simp]
+theorem toResumption_map (f : α → β) (x : P.FreeM α) :
+    toResumption (x.map f) = (toResumption x).map f := by
+  simp [← bind_pure_comp, Resumption.map, Function.comp_def]
+
+theorem isMonadHom_toResumption :
+    Cslib.IsMonadHom P.FreeM (Resumption P) toResumption :=
+  .mk' toResumption_pure toResumption_bind
+
+@[simp]
+theorem toResumption_bind' {α β : Type u} (x : P.FreeM α) (f : α → P.FreeM β) :
+    toResumption (x >>= f) = toResumption x >>= fun a => toResumption (f a) :=
+  toResumption_bind x f
+
+@[simp]
+theorem toResumption_map' {α β : Type u} (f : α → β) (x : P.FreeM α) :
+    toResumption (f <$> x) = f <$> toResumption x :=
+  toResumption_map f x
+
+/-- `toResumption` interprets each operation as the corresponding resumption operation. -/
+theorem toResumption_eq_liftM {α : Type uB} (x : P.FreeM α) :
+    toResumption x = x.liftM Resumption.lift := by
+  induction x <;> simp [*]
+
+theorem toResumption_injective : Function.Injective (toResumption : P.FreeM α → _) :=
+  fun _ _ h => equivW.injective (W.toM_injective h)
+
+theorem isWellFounded_toResumption (x : P.FreeM α) : (toResumption x).IsWellFounded :=
+  W.isWellFounded_toM _
+
+/-- Free programs are exactly the well-founded resumptions. -/
+def equivWellFounded : P.FreeM α ≃ {r : Resumption P α // r.IsWellFounded} :=
+  equivW.trans W.equivM
+
+@[simp]
+theorem equivWellFounded_apply (x : P.FreeM α) :
+    (equivWellFounded x : Resumption P α) = toResumption x := rfl
+
+end FreeM
+
+end PFunctor
