@@ -38,7 +38,9 @@ the row's `Model : Fin N → Type` uses zero-based indices. Each row's `classifi
 that an algebra with the given finite signature is isomorphic to exactly one listed model.
 
 The cycle data and operations are concrete. The algebra laws, cycle characterizations,
-classification, and representability results are currently **statements with deferred proofs**,
-marked by `sorry`. Computational tests of the tables do not replace these proof obligations.
+classifications, and representability decisions have kernel-checked proofs. Executable sanity
+checks independently audit the cycle tables and distinguish the entries in each row.
 Representations may have infinite bases, as required even for some of these finite algebras.
+The constructions use finite groups, dense orders, finitely supported sequences, or successive
+composition witnesses. Nonrepresentability is certified by finite network obstructions.
 -/

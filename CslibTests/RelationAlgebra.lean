@@ -10,8 +10,8 @@ import Mathlib.Data.Fintype.Perm
 /-!
 # Relation algebra sanity checks
 
-These executable checks inspect the concrete cycle lists and algebra operations without using
-any of the deferred associativity, classification, or representability proofs. They check the
+These executable checks inspect the concrete cycle lists and algebra operations independently
+of the associativity, classification, and representability proofs. They check the
 atom laws for every catalogue entry and distinguish each row under all atom permutations that
 preserve identity and converse. They do not prove exhaustiveness or representability.
 -/
@@ -64,7 +64,7 @@ private def checkRow {j k : ℕ} (name : String) (row : List (Finset (Cycle j k)
   unless distinctTables row do
     throw <| IO.userError s!"{name}: isomorphic entries found"
 
--- Keep compiled audits independent of the admitted certificates in the indexed tables.
+-- Keep compiled audits independent of the law certificates in the indexed tables.
 -- The equality checks below also verify that these lists enumerate the actual indexed families.
 private def rowI1S0N0 : List (Finset (Cycle 0 0)) :=
   [I1S0N0.Ra01.cycles]
@@ -137,7 +137,7 @@ private def rowI1S3N0 : List (Finset (Cycle 3 0)) :=
 #guard rowI1S3N0 == List.ofFn (fun idx : Fin 65 => (I1S3N0.table idx).cycles)
 #eval checkRow "I1S3N0" rowI1S3N0 65
 
--- Concrete powerset operations must compute despite the deferred law certificates.
+-- Concrete powerset operations compute independently of their law certificates.
 private def c2Generator : I1S1N0.Ra01.Algebra :=
   Complex.atom I1S1N0.Ra01.table (some (.inl 0))
 
@@ -176,4 +176,3 @@ example (a : A) : ((RelationAlgebraHom.id A).comp (RelationAlgebraHom.id A)) a =
 end Morphisms
 
 end CslibTests.RelationAlgebra
-
