@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.NetworkRefutation
 
 /-!
 # Catalogue algebra ⟨1, 3, 0⟩, number 58
@@ -15,7 +15,7 @@ Entry 58 in the ⟨1, 3, 0⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `aab aac abb acc bbc bcc`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+A checked finite-network obstruction proves that no representation exists.
 -/
 
 @[expose] public section
@@ -47,8 +47,18 @@ theorem cycles_iff (x y z : Atom 3 0) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
+/-- A finite tree of impossible composition-witness extensions. -/
+def obstruction : NetworkRefutation.Certificate 3 0 :=
+  let a : Atom 3 0 := some (.inl 0)
+  let b : Atom 3 0 := some (.inl 1)
+  let c : Atom 3 0 := some (.inl 2)
+  .node 0 1 a b [
+    .node 0 1 b b [
+      .node 0 1 a c [
+        .node 0 1 c c []]]]
+
 /-- This catalogue algebra has no representation by binary relations. -/
-theorem not_representable : ¬ Representable Algebra := by
-  sorry
+theorem not_representable : ¬ Representable Algebra :=
+  NetworkRefutation.not_representable table (some (.inl 0)) obstruction (by decide +kernel)
 
 end Cslib.RelationAlgebra.Catalogue.I1S3N0.Ra58
