@@ -194,6 +194,38 @@ theorem canReturn_of_liftM {m : Type uB → Type w}
     (h : MonadAttach.CanReturn (x.liftM interp) a) : MonadAttach.CanReturn x a :=
   mem_possibleOutputs_of_canReturn_liftM _ interp (fun _ _ _ => trivial) x h
 
+section attachWith
+
+variable {m : Type uB → Type w} [Monad m] {α : Type uB} (responses : (op : P.A) → Set (P.B op))
+  (interp : (op : P.A) → m {b // b ∈ responses op})
+
+/-- Interpret `x` by a handler whose responses carry proofs of membership in `responses`, labelling
+the result with a proof that it is a possible output. -/
+def attachWith : (x : P.FreeM α) → m {a // a ∈ x.possibleOutputs responses}
+  | .pure a => pure ⟨a, rfl⟩
+  | .liftBind op cont => do
+    let b ← interp op
+    let a ← attachWith (cont b.1)
+    pure ⟨a.1, Set.mem_biUnion b.2 a.2⟩
+
+@[simp]
+theorem attachWith_pure (a : α) :
+    (pure a : P.FreeM α).attachWith responses interp = pure ⟨a, rfl⟩ := rfl
+
+@[simp]
+theorem attachWith_lift_bind (op : P.A) (cont : P.B op → P.FreeM α) :
+    (lift op >>= cont).attachWith responses interp = (do
+      let b ← interp op
+      let a ← (cont b.1).attachWith responses interp
+      pure ⟨a.1, Set.mem_biUnion b.2 a.2⟩) := rfl
+
+/-- Erasing the attached proofs recovers interpretation by the underlying handler. -/
+theorem map_attachWith [LawfulMonad m] (x : P.FreeM α) :
+    Subtype.val <$> x.attachWith responses interp = x.liftM (Subtype.val <$> interp ·) := by
+  induction x <;> simp [*]
+
+end attachWith
+
 /-- A program has a possible result when every operation has a response. -/
 theorem exists_canReturn [∀ op, Nonempty (P.B op)] (x : P.FreeM α) :
     ∃ a, MonadAttach.CanReturn x a := by
