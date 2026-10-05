@@ -112,7 +112,7 @@ private def flips : coin.FreeM Bool := do
   let c ← FreeM.lift ()
   pure (b && !c)
 
-example : FreeM.possibleOutputs (P := coin) (fun _ => {true}) flips = {false} := by
+example : flips.possibleOutputs (fun _ => {true}) = {false} := by
   simp [flips]
 
 example : MonadAttach.CanReturn flips true := by

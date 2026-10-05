@@ -14,10 +14,10 @@ public import Mathlib.Data.Set.Functor
 /-!
 # Possible outputs of polynomial free programs
 
-`PFunctor.FreeM.possibleOutputs responses x` is the set of results `x` can return when each
-operation `op` may answer with any response in `responses op`. It is the fold of `x` into
-Mathlib's set monad (`possibleOutputs_eq_liftM`), stated as a fold so that the response and result
-universes stay independent.
+`x.possibleOutputs responses` is the set of results `x` can return when each operation `op` may
+answer with any response in `responses op`. It is the fold of `x` into Mathlib's set monad
+(`possibleOutputs_eq_liftM`), stated as a fold so that the response and result universes stay
+independent.
 
 Allowing every response gives the lawful `MonadAttach` instance on `P.FreeM`: `CanReturn x a`
 means `a` is reachable along some branch of `x`, and `attach` labels every leaf with a proof of
@@ -35,71 +35,72 @@ namespace PFunctor.FreeM
 
 variable {P : PFunctor.{uA, uB}} {α : Type v} {β : Type w}
 
+/-- The results `x` can return when each operation `op` answers with a response in
+`responses op`. -/
+def possibleOutputs (x : P.FreeM α) (responses : (op : P.A) → Set (P.B op)) : Set α :=
+  x.foldFreeM (fun a => {a}) fun op cont => ⋃ b ∈ responses op, cont b
+
 section possibleOutputs
 
 variable (responses : (op : P.A) → Set (P.B op))
 
-/-- The results reachable when each operation `op` answers with a response in `responses op`. -/
-def possibleOutputs : P.FreeM α → Set α :=
-  foldFreeM (fun a => {a}) fun op cont => ⋃ b ∈ responses op, cont b
-
 @[simp]
-theorem possibleOutputs_pure (a : α) : possibleOutputs responses (pure a : P.FreeM α) = {a} := rfl
+theorem possibleOutputs_pure (a : α) : (pure a : P.FreeM α).possibleOutputs responses = {a} := rfl
 
 theorem possibleOutputs_lift_bind (op : P.A) (cont : P.B op → P.FreeM α) :
-    possibleOutputs responses ((lift op).bind cont) =
-      ⋃ b ∈ responses op, possibleOutputs responses (cont b) := rfl
+    ((lift op).bind cont).possibleOutputs responses =
+      ⋃ b ∈ responses op, (cont b).possibleOutputs responses := rfl
 
 @[simp]
 theorem possibleOutputs_lift (op : P.A) :
-    possibleOutputs (α := no_index (P.B op)) responses (lift op) = responses op :=
+    possibleOutputs (α := no_index (P.B op)) (lift op) responses = responses op :=
   Set.biUnion_of_singleton _
 
 @[simp]
 theorem possibleOutputs_bind (x : P.FreeM α) (f : α → P.FreeM β) :
-    possibleOutputs responses (x.bind f) =
-      ⋃ a ∈ possibleOutputs responses x, possibleOutputs responses (f a) := by
+    (x.bind f).possibleOutputs responses =
+      ⋃ a ∈ x.possibleOutputs responses, (f a).possibleOutputs responses := by
   induction x with
   | pure a => simp
   | lift_bind op cont ih => simp [possibleOutputs_lift_bind, ih]
 
 @[simp]
 theorem possibleOutputs_map (f : α → β) (x : P.FreeM α) :
-    possibleOutputs responses (x.map f) = f '' possibleOutputs responses x := by
+    (x.map f).possibleOutputs responses = f '' x.possibleOutputs responses := by
   simp [← bind_pure_comp, Set.image_eq_iUnion]
 
 @[simp]
 theorem possibleOutputs_bind' {α β : Type v} (x : P.FreeM α) (f : α → P.FreeM β) :
-    possibleOutputs responses (x >>= f) =
-      ⋃ a ∈ possibleOutputs responses x, possibleOutputs responses (f a) :=
+    (x >>= f).possibleOutputs responses =
+      ⋃ a ∈ x.possibleOutputs responses, (f a).possibleOutputs responses :=
   possibleOutputs_bind responses x f
 
 @[simp]
 theorem possibleOutputs_map' {α β : Type v} (f : α → β) (x : P.FreeM α) :
-    possibleOutputs responses (f <$> x) = f '' possibleOutputs responses x :=
+    (f <$> x).possibleOutputs responses = f '' x.possibleOutputs responses :=
   possibleOutputs_map responses f x
 
 /-- `possibleOutputs` is the interpretation into the set monad. -/
 theorem possibleOutputs_eq_liftM {α : Type uB} (x : P.FreeM α) :
-    possibleOutputs responses x = (x.liftM (m := SetM) responses).run :=
+    x.possibleOutputs responses = (x.liftM (m := SetM) responses).run :=
   (congrFun (liftM_eq_foldFreeM (m := SetM) responses) x).symm
 
 /-- Allowing more responses can only add possible results. -/
 theorem possibleOutputs_mono {responses' : (op : P.A) → Set (P.B op)}
     (h : ∀ op, responses op ⊆ responses' op) (x : P.FreeM α) :
-    possibleOutputs responses x ⊆ possibleOutputs responses' x := by
+    x.possibleOutputs responses ⊆ x.possibleOutputs responses' := by
   induction x with
   | pure a => rfl
   | lift_bind op cont ih => exact Set.biUnion_mono (h op) fun b _ => ih b
 
 theorem possibleOutputs_countable (h : ∀ op, (responses op).Countable) (x : P.FreeM α) :
-    (possibleOutputs responses x).Countable := by
+    (x.possibleOutputs responses).Countable := by
   induction x with
   | pure a => exact Set.countable_singleton a
   | lift_bind op cont ih => exact (h op).biUnion fun b _ => ih b
 
 theorem possibleOutputs_finite (h : ∀ op, (responses op).Finite) (x : P.FreeM α) :
-    (possibleOutputs responses x).Finite := by
+    (x.possibleOutputs responses).Finite := by
   induction x with
   | pure a => exact Set.finite_singleton a
   | lift_bind op cont ih => exact (h op).biUnion fun b _ => ih b
@@ -107,7 +108,7 @@ theorem possibleOutputs_finite (h : ∀ op, (responses op).Finite) (x : P.FreeM 
 end possibleOutputs
 
 /-- Label each result with a proof that it is reachable, keeping every branch of the program. -/
-def attach : (x : P.FreeM α) → P.FreeM {a // a ∈ possibleOutputs (fun _ => Set.univ) x}
+def attach : (x : P.FreeM α) → P.FreeM {a // a ∈ x.possibleOutputs fun _ => Set.univ}
   | .pure a => pure ⟨a, rfl⟩
   | .liftBind op cont => .liftBind op fun b =>
       (attach (cont b)).map fun a => ⟨a.1, Set.mem_biUnion (Set.mem_univ b) a.2⟩
@@ -118,11 +119,11 @@ theorem map_attach (x : P.FreeM α) : (attach x).map Subtype.val = x := by
   | lift_bind op cont ih => exact congrArg (liftBind op) (funext fun b => by simpa using ih b)
 
 instance : MonadAttach P.FreeM where
-  CanReturn x a := a ∈ possibleOutputs (fun _ => Set.univ) x
+  CanReturn x a := a ∈ x.possibleOutputs fun _ => Set.univ
   attach := attach
 
 theorem canReturn_iff (x : P.FreeM α) (a : α) :
-    MonadAttach.CanReturn x a ↔ a ∈ possibleOutputs (fun _ => Set.univ) x := Iff.rfl
+    MonadAttach.CanReturn x a ↔ a ∈ x.possibleOutputs fun _ => Set.univ := Iff.rfl
 
 @[simp]
 theorem canReturn_pure (a b : α) : MonadAttach.CanReturn (pure a : P.FreeM α) b ↔ b = a :=
@@ -179,7 +180,7 @@ theorem mem_possibleOutputs_of_canReturn_liftM {m : Type uB → Type w}
     (responses : (op : P.A) → Set (P.B op)) (interp : (op : P.A) → m (P.B op))
     (hinterp : ∀ op b, MonadAttach.CanReturn (interp op) b → b ∈ responses op)
     (x : P.FreeM α) {a : α} (h : MonadAttach.CanReturn (x.liftM interp) a) :
-    a ∈ possibleOutputs responses x := by
+    a ∈ x.possibleOutputs responses := by
   induction x with
   | pure b => exact (LawfulMonadAttach.eq_of_canReturn_pure h).symm
   | lift_bind op cont ih =>
@@ -198,8 +199,6 @@ theorem exists_canReturn [∀ op, Nonempty (P.B op)] (x : P.FreeM α) :
     ∃ a, MonadAttach.CanReturn x a := by
   induction x with
   | pure a => exact ⟨a, rfl⟩
-  | lift_bind op cont ih =>
-    obtain ⟨a, ha⟩ := ih (Classical.arbitrary _)
-    exact ⟨a, Set.mem_biUnion (Set.mem_univ _) ha⟩
+  | lift_bind op cont ih => exact (ih (Classical.arbitrary _)).imp fun _ => Set.mem_biUnion trivial
 
 end PFunctor.FreeM
