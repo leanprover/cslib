@@ -49,17 +49,14 @@ theorem polynomiallyBounded_iff_isBigO {f : ℕ → ℕ} :
 theorem polynomiallyBounded_iff_le {f : ℕ → ℕ} :
     PolynomiallyBounded f ↔ ∃ c d : ℕ, ∀ n, f n ≤ c * (n + 1) ^ d := by
   constructor
-  · intro hf
-    obtain ⟨d, hd⟩ := polynomiallyBounded_iff_isBigO.mp hf
-    have hshift : (fun n => (f n : ℝ)) =O[atTop] (fun n => ((n + 1 : ℕ) : ℝ) ^ d) :=
-      hd.trans (.of_bound' (Eventually.of_forall fun n => by
-        simp only [norm_pow, Real.norm_natCast]
-        exact_mod_cast Nat.pow_le_pow_left (Nat.le_succ n) d))
-    obtain ⟨c, _, hc⟩ := bound_of_isBigO_nat_atTop hshift
-    refine ⟨⌈c⌉₊, d, fun n => ?_⟩
-    have hn : (f n : ℝ) ≤ c * ((n + 1 : ℕ) : ℝ) ^ d := by
-      simpa only [norm_pow, Real.norm_natCast] using hc (x := n) (by positivity)
-    exact_mod_cast hn.trans (mul_le_mul_of_nonneg_right (Nat.le_ceil c) (by positivity))
+  · simp_rw [PolynomiallyBounded, EventuallyLE, eventually_atTop]
+    intro ⟨d, m, h⟩
+    have ⟨c, hc⟩ := (Set.finite_Iio m).image f |>.exists_le
+    use c + 1, d
+    intro n
+    obtain (hn | hn) := n.lt_or_ge m
+    · grw [hc _ ⟨n, hn, rfl⟩, c.le_add_right 1, ← d.one_le_pow' n, mul_one]
+    · grw [h n hn, n.le_add_right 1, ← Nat.le_add_left 1 c, one_mul]
   · rintro ⟨c, d, hf⟩
     refine ⟨d + 1, ?_⟩
     filter_upwards [eventually_ge_atTop 1, eventually_ge_atTop (c * 2 ^ d)] with n hn hc
