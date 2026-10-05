@@ -5,6 +5,7 @@ Authors: Devon Tuma
 -/
 
 import Cslib.Foundations.Control.Monad.Free.Fold
+import Cslib.Foundations.Control.Monad.Free.PFunctor
 import Cslib.Foundations.Data.PFunctor.Free.Fold
 import Cslib.Foundations.Data.PFunctor.Free.W
 
@@ -77,6 +78,20 @@ example {F : Type u → Type v} {G : Type u → Type w}
     (x.liftM first).liftM second =
       Cslib.FreeM.foldFreeM pure (fun op k => (first op).liftM second >>= k) x := by
   rw [Cslib.FreeM.liftM_comp, Cslib.FreeM.liftM_eq_foldFreeM]
+
+-- Converting between the two free monads must push through `do` blocks, which use `>>=` and
+-- `<$>` rather than the universe-polymorphic `bind` and `map`.
+example {F : Type u → Type v} {δ ε : Type u} (x : Cslib.FreeM F δ) (f : δ → Cslib.FreeM F ε)
+    (g : ε → δ) :
+    Cslib.FreeM.toPFunctorFreeM (do let a ← x; let b ← f a; pure (g b)) =
+      (do let a ← x.toPFunctorFreeM; let b ← (f a).toPFunctorFreeM; pure (g b)) := by
+  simp
+
+example {F : Type u → Type v} {δ ε : Type u} (x : Cslib.FreeM F δ)
+    (p : δ → (PFunctor.ofFamily F).FreeM ε) (g : ε → δ) :
+    Cslib.FreeM.ofPFunctorFreeM (do let a ← x.toPFunctorFreeM; let b ← p a; pure (g b)) =
+      (do let a ← x; let b ← Cslib.FreeM.ofPFunctorFreeM (p a); pure (g b)) := by
+  simp
 
 -- A nullary operation makes these W-type checks nonvacuous.
 private abbrev arity : PFunctor := ⟨Nat, Fin⟩

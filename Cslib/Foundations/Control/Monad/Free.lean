@@ -41,7 +41,8 @@ This unique interpreter is `FreeM.liftM f`
 
 For elimination and interpretation theory, see `Free/Fold.lean`.
 For polynomial effect signatures with explicit operation shapes and positions, see
-`Cslib.Foundations.Data.PFunctor.Free`.
+`Cslib.Foundations.Data.PFunctor.Free`; `Cslib.Foundations.Control.Monad.Free.PFunctor` relates
+the two free monads.
 
 See the Haskell [freer-simple](https://hackage.haskell.org/package/freer-simple) library for the
 Haskell implementation that inspired this approach.
