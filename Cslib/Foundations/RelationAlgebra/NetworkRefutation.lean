@@ -7,6 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.AtomicRepresentation
+public import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Mathlib.Data.Fin.VecNotation
 import Mathlib.Tactic.FinCases
 
@@ -84,6 +85,26 @@ def extensions (T : IntegralCycleTable j k) (N : Network j k n)
       fun row => decide
     (some (row x) = a ∧ Atom.converse (some (row y)) = b ∧
       ∀ i q, i < q → cycleClosure T.cycles (N i q) (some (row q)) (some (row i)))
+
+/-- Enumerate extensions using the packed table for each cycle lookup. -/
+def extensionsCode (code : ℕ) (N : Network j k n)
+    (x y : Fin n) (a b : Atom j k) : List (Fin n → DiversityAtom j k) :=
+  (rows j k n (rowChoices x y a b)
+    (fun i q c d => Code.bitAt code
+      (Code.index (atomCount j k) (N i q).code (Atom.code (some d)) (Atom.code (some c))))).filter
+      fun row => decide
+    (some (row x) = a ∧ Atom.converse (some (row y)) = b ∧
+      ∀ i q, i < q → Code.bitAt code
+        (Code.index (atomCount j k) (N i q).code
+          (Atom.code (some (row q))) (Atom.code (some (row i)))) = true)
+
+/-- A verified table code gives exactly the same permitted network extensions. -/
+theorem extensions_eq_of_encodes {T : IntegralCycleTable j k} {code : ℕ}
+    (hcode : EncodesTable T.cycles code) (N : Network j k n)
+    (x y : Fin n) (a b : Atom j k) :
+    extensions T N x y a b = extensionsCode code N x y a b := by
+  unfold EncodesTable at hcode
+  simp only [extensions, extensionsCode, hcode, decide_eq_true_eq]
 
 /-- Read a concrete matrix, defaulting missing entries to the identity atom. -/
 def ofMatrix (M : List (List (Atom j k))) : Network j k n :=

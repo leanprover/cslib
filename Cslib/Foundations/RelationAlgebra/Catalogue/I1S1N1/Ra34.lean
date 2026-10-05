@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 module
+public import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Cslib.Foundations.RelationAlgebra.NetworkRefutation
 /-!
 # Catalogue algebra ⟨1, 1, 1⟩, number 34
@@ -21,10 +22,14 @@ def cycles : Finset (Cycle 1 1) :=
   let b : DiversityAtom 1 1 := Sum.inr (0, false)
   let b' : DiversityAtom 1 1 := Sum.inr (0, true)
   {(a, a, b), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b)}
+private theorem tableCode_eq : tableCode cycles = 12675652614354011169 := by decide +kernel
+
 /-- The cycle table, with associativity checked by the kernel. -/
 def table : IntegralCycleTable 1 1 where
   cycles := cycles
-  associative := by decide +kernel
+  associative := atomCompositionAssociative_of_assocCheck (by
+    rw [tableCode_eq]
+    decide +kernel)
 /-- The finite relation algebra determined by this table. -/
 abbrev Algebra : Type := Complex table
 /-- This algebra has the signature of its catalogue row. -/
@@ -58,6 +63,8 @@ private theorem checked0 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix0) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -78,6 +85,8 @@ private theorem checked1 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix1) ⟨0, by decide⟩ ⟨4, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -98,6 +107,8 @@ private theorem checked2 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix2) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -118,6 +129,8 @@ private theorem checked3 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix3) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -138,6 +151,8 @@ private theorem checked4 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix4) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -165,7 +180,10 @@ private theorem checked5 :
         ![db, da, dc, db, dc, da],
         ![dc, da, dc, db, dc, da],
         ![dc, da, dc, dc, dc, da],
-        ![dc, dc, dc, dc, dc, da]] := by decide +kernel
+        ![dc, dc, dc, dc, dc, da]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked0, checked1, checked2, checked3, checked4]
@@ -187,6 +205,8 @@ private theorem checked6 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix6) ⟨3, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -207,6 +227,8 @@ private theorem checked7 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix7) ⟨3, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -227,6 +249,8 @@ private theorem checked8 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix8) ⟨3, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -250,7 +274,10 @@ private theorem checked9 :
       (NetworkRefutation.ofMatrix (n := 6) matrix9) ⟨3, by decide⟩ ⟨4, by decide⟩ a c = [
         ![da, db, db, da, db, db],
         ![db, da, db, da, db, db],
-        ![db, db, db, da, db, db]] := by decide +kernel
+        ![db, db, db, da, db, db]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked6, checked7, checked8]
@@ -272,6 +299,8 @@ private theorem checked10 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix10) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -291,7 +320,10 @@ private theorem checked11 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 6) matrix11) ⟨4, by decide⟩ ⟨5, by decide⟩ b b = [
-        ![dc, da, db, da, db, dc]] := by decide +kernel
+        ![dc, da, db, da, db, dc]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked10]
@@ -313,6 +345,8 @@ private theorem checked12 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix12) ⟨4, by decide⟩ ⟨5, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -332,7 +366,10 @@ private theorem checked13 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 6) matrix13) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [
-        ![db, da, dc, db, dc, da]] := by decide +kernel
+        ![db, da, dc, db, dc, da]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked12]
@@ -354,6 +391,8 @@ private theorem checked14 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix14) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -373,7 +412,10 @@ private theorem checked15 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 6) matrix15) ⟨4, by decide⟩ ⟨5, by decide⟩ b b = [
-        ![dc, da, db, da, db, dc]] := by decide +kernel
+        ![dc, da, db, da, db, dc]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked14]
@@ -395,6 +437,8 @@ private theorem checked16 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix16) ⟨5, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -415,6 +459,8 @@ private theorem checked17 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix17) ⟨4, by decide⟩ ⟨5, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -435,6 +481,8 @@ private theorem checked18 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix18) ⟨5, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -455,6 +503,8 @@ private theorem checked19 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix19) ⟨4, by decide⟩ ⟨5, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -475,6 +525,8 @@ private theorem checked20 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix20) ⟨4, by decide⟩ ⟨5, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -495,6 +547,8 @@ private theorem checked21 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix21) ⟨5, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -515,6 +569,8 @@ private theorem checked22 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix22) ⟨4, by decide⟩ ⟨5, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -535,6 +591,8 @@ private theorem checked23 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix23) ⟨5, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -555,6 +613,8 @@ private theorem checked24 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix24) ⟨5, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -590,7 +650,10 @@ private theorem checked25 :
         ![db, db, da, db, db, da],
         ![db, db, da, db, dc, da],
         ![db, db, db, db, db, da],
-        ![db, db, db, db, dc, da]] := by decide +kernel
+        ![db, db, db, db, dc, da]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked16, checked17, checked18, checked19, checked20, checked21, checked22, checked23,
@@ -612,6 +675,8 @@ private theorem checked26 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 6) matrix26) ⟨4, by decide⟩ ⟨5, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -642,7 +707,10 @@ private theorem checked27 :
         ![dc, dc, db, da, da],
         ![dc, dc, db, dc, da],
         ![dc, dc, dc, da, da],
-        ![dc, dc, dc, dc, da]] := by decide +kernel
+        ![dc, dc, dc, dc, da]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked5, checked9, checked11, checked13, checked15, checked25, checked26]
@@ -661,7 +729,10 @@ private theorem checked28 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 4) matrix28) ⟨0, by decide⟩ ⟨3, by decide⟩ a c = [
-        ![da, db, db, db]] := by decide +kernel
+        ![da, db, db, db]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked27]
@@ -683,6 +754,8 @@ private theorem checked29 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix29) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -703,6 +776,8 @@ private theorem checked30 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix30) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -723,6 +798,8 @@ private theorem checked31 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix31) ⟨2, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -743,6 +820,8 @@ private theorem checked32 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix32) ⟨2, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -763,6 +842,8 @@ private theorem checked33 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix33) ⟨2, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -783,6 +864,8 @@ private theorem checked34 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix34) ⟨1, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -803,6 +886,8 @@ private theorem checked35 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix35) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -823,6 +908,8 @@ private theorem checked36 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix36) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -856,7 +943,10 @@ private theorem checked37 :
         ![dc, da, db, dc, dc, da],
         ![dc, da, dc, dc, dc, da],
         ![dc, dc, db, dc, dc, da],
-        ![dc, dc, dc, dc, dc, da]] := by decide +kernel
+        ![dc, dc, dc, dc, dc, da]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked29, checked30, checked31, checked32, checked33, checked34, checked35, checked36]
@@ -878,6 +968,8 @@ private theorem checked38 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix38) ⟨2, by decide⟩ ⟨4, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -898,6 +990,8 @@ private theorem checked39 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix39) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -918,6 +1012,8 @@ private theorem checked40 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix40) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -938,6 +1034,8 @@ private theorem checked41 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix41) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -958,6 +1056,8 @@ private theorem checked42 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix42) ⟨2, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -978,6 +1078,8 @@ private theorem checked43 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix43) ⟨2, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -998,6 +1100,8 @@ private theorem checked44 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix44) ⟨1, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1018,6 +1122,8 @@ private theorem checked45 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix45) ⟨2, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1038,6 +1144,8 @@ private theorem checked46 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix46) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1058,6 +1166,8 @@ private theorem checked47 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix47) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1078,6 +1188,8 @@ private theorem checked48 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix48) ⟨2, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1098,6 +1210,8 @@ private theorem checked49 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix49) ⟨2, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1118,6 +1232,8 @@ private theorem checked50 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix50) ⟨1, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1138,6 +1254,8 @@ private theorem checked51 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix51) ⟨1, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1158,6 +1276,8 @@ private theorem checked52 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix52) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1178,6 +1298,8 @@ private theorem checked53 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix53) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1198,6 +1320,8 @@ private theorem checked54 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix54) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1218,6 +1342,8 @@ private theorem checked55 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix55) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1271,7 +1397,10 @@ private theorem checked56 :
         ![dc, dc, db, da, dc, da],
         ![dc, dc, db, dc, dc, da],
         ![dc, dc, dc, da, dc, da],
-        ![dc, dc, dc, dc, dc, da]] := by decide +kernel
+        ![dc, dc, dc, dc, dc, da]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked38, checked39, checked40, checked41, checked42, checked43, checked44, checked45,
@@ -1295,7 +1424,10 @@ private theorem checked57 :
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 5) matrix57) ⟨1, by decide⟩ ⟨2, by decide⟩ b a = [
         ![db, db, da, da, db],
-        ![db, db, da, db, db]] := by decide +kernel
+        ![db, db, da, db, db]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked37, checked56]
@@ -1317,6 +1449,8 @@ private theorem checked58 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix58) ⟨4, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1337,6 +1471,8 @@ private theorem checked59 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix59) ⟨4, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1357,6 +1493,8 @@ private theorem checked60 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix60) ⟨4, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1380,7 +1518,10 @@ private theorem checked61 :
       (NetworkRefutation.ofMatrix (n := 6) matrix61) ⟨0, by decide⟩ ⟨4, by decide⟩ b a = [
         ![db, da, db, db, da, db],
         ![db, db, db, db, da, da],
-        ![db, db, db, db, da, db]] := by decide +kernel
+        ![db, db, db, db, da, db]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked58, checked59, checked60]
@@ -1402,6 +1543,8 @@ private theorem checked62 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix62) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1422,6 +1565,8 @@ private theorem checked63 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix63) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1442,6 +1587,8 @@ private theorem checked64 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix64) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1462,6 +1609,8 @@ private theorem checked65 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix65) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1487,7 +1636,10 @@ private theorem checked66 :
         ![da, dc, db, dc, dc, da],
         ![da, dc, dc, da, dc, dc],
         ![da, dc, dc, dc, dc, da],
-        ![da, dc, dc, dc, dc, dc]] := by decide +kernel
+        ![da, dc, dc, dc, dc, dc]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked62, checked63, checked64, checked65]
@@ -1509,7 +1661,10 @@ private theorem checked67 :
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 5) matrix67) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [
         ![db, da, dc, da, db],
-        ![db, dc, dc, da, db]] := by decide +kernel
+        ![db, dc, dc, da, db]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked61, checked66]
@@ -1531,6 +1686,8 @@ private theorem checked68 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix68) ⟨3, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1551,6 +1708,8 @@ private theorem checked69 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix69) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1571,6 +1730,8 @@ private theorem checked70 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix70) ⟨4, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1591,6 +1752,8 @@ private theorem checked71 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix71) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1611,6 +1774,8 @@ private theorem checked72 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix72) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1631,6 +1796,8 @@ private theorem checked73 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix73) ⟨3, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1651,6 +1818,8 @@ private theorem checked74 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix74) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1671,6 +1840,8 @@ private theorem checked75 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix75) ⟨4, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1691,6 +1862,8 @@ private theorem checked76 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix76) ⟨4, by decide⟩ ⟨6, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1711,6 +1884,8 @@ private theorem checked77 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix77) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1731,6 +1906,8 @@ private theorem checked78 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix78) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1770,7 +1947,10 @@ private theorem checked79 :
         ![db, db, db, db, da, db],
         ![db, db, db, db, da, dc],
         ![db, dc, db, da, da, dc],
-        ![db, dc, dc, da, da, dc]] := by decide +kernel
+        ![db, dc, dc, da, da, dc]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked68, checked69, checked70, checked71, checked72, checked73, checked74, checked75,
@@ -1793,6 +1973,8 @@ private theorem checked80 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix80) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1813,6 +1995,8 @@ private theorem checked81 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix81) ⟨3, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1833,6 +2017,8 @@ private theorem checked82 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix82) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1853,6 +2039,8 @@ private theorem checked83 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix83) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1873,6 +2061,8 @@ private theorem checked84 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix84) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1893,6 +2083,8 @@ private theorem checked85 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix85) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1913,6 +2105,8 @@ private theorem checked86 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix86) ⟨3, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1933,6 +2127,8 @@ private theorem checked87 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix87) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1953,6 +2149,8 @@ private theorem checked88 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix88) ⟨5, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -1988,7 +2186,10 @@ private theorem checked89 :
         ![dc, dc, dc, da, db, da],
         ![dc, dc, dc, da, dc, da],
         ![dc, dc, dc, dc, db, da],
-        ![dc, dc, dc, dc, dc, da]] := by decide +kernel
+        ![dc, dc, dc, dc, dc, da]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked80, checked81, checked82, checked83, checked84, checked85, checked86, checked87,
@@ -2010,6 +2211,8 @@ private theorem checked90 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 6) matrix90) ⟨4, by decide⟩ ⟨5, by decide⟩ c c = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2030,6 +2233,8 @@ private theorem checked91 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix91) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2050,6 +2255,8 @@ private theorem checked92 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix92) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2070,6 +2277,8 @@ private theorem checked93 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix93) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2090,6 +2299,8 @@ private theorem checked94 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix94) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2110,6 +2321,8 @@ private theorem checked95 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix95) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2130,6 +2343,8 @@ private theorem checked96 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix96) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2150,6 +2365,8 @@ private theorem checked97 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix97) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2170,6 +2387,8 @@ private theorem checked98 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix98) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2190,6 +2409,8 @@ private theorem checked99 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix99) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2226,7 +2447,10 @@ private theorem checked100 :
         ![da, dc, dc, da, dc, da],
         ![da, dc, dc, da, dc, dc],
         ![da, dc, dc, dc, dc, da],
-        ![da, dc, dc, dc, dc, dc]] := by decide +kernel
+        ![da, dc, dc, dc, dc, dc]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked91, checked92, checked93, checked94, checked95, checked96, checked97, checked98,
@@ -2250,6 +2474,8 @@ private theorem checked101 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix101) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2271,6 +2497,8 @@ private theorem checked102 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix102) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2292,6 +2520,8 @@ private theorem checked103 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix103) ⟨0, by decide⟩ ⟨2, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2313,6 +2543,8 @@ private theorem checked104 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix104) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2334,6 +2566,8 @@ private theorem checked105 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix105) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2355,6 +2589,8 @@ private theorem checked106 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix106) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2376,6 +2612,8 @@ private theorem checked107 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix107) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2397,6 +2635,8 @@ private theorem checked108 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 7) matrix108) ⟨0, by decide⟩ ⟨6, by decide⟩ b b = [] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
     decide +kernel
   rw [hrows]
   rfl
@@ -2431,7 +2671,10 @@ private theorem checked109 :
         ![da, dc, dc, da, dc, da],
         ![da, dc, dc, da, dc, dc],
         ![da, dc, dc, dc, dc, da],
-        ![da, dc, dc, dc, dc, dc]] := by decide +kernel
+        ![da, dc, dc, dc, dc, dc]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked101, checked102, checked103, checked104, checked105, checked106, checked107, checked108]
@@ -2460,7 +2703,10 @@ private theorem checked110 :
         ![db, da, db, db, da],
         ![db, db, db, db, da],
         ![dc, da, db, db, da],
-        ![dc, db, db, db, da]] := by decide +kernel
+        ![dc, db, db, db, da]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked79, checked89, checked90, checked100, checked109]
@@ -2484,7 +2730,10 @@ private theorem checked111 :
       (NetworkRefutation.ofMatrix (n := 4) matrix111) ⟨1, by decide⟩ ⟨2, by decide⟩ c a = [
         ![db, dc, da, da],
         ![dc, dc, da, da],
-        ![dc, dc, da, dc]] := by decide +kernel
+        ![dc, dc, da, dc]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked57, checked67, checked110]
@@ -2505,7 +2754,10 @@ private theorem checked112 :
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 3) matrix112) ⟨0, by decide⟩ ⟨1, by decide⟩ c c = [
         ![dc, db, da],
-        ![dc, db, db]] := by decide +kernel
+        ![dc, db, db]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked28, checked111]
@@ -2523,7 +2775,10 @@ private theorem checked113 :
     (by decide +kernel)
   have hrows : NetworkRefutation.extensions table
       (NetworkRefutation.ofMatrix (n := 2) matrix113) ⟨0, by decide⟩ ⟨1, by decide⟩ a b = [
-        ![da, dc]] := by decide +kernel
+        ![da, dc]] := by
+    rw [NetworkRefutation.extensions_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel
   rw [hrows]
   simp only [NetworkRefutation.checkChildren, NetworkRefutation.check_cache,
     checked112]

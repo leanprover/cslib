@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Cslib.Foundations.RelationAlgebra.WitnessRepresentation
 
 /-!
@@ -29,10 +30,18 @@ def cycles : Finset (Cycle 3 0) :=
   let c : DiversityAtom 3 0 := Sum.inl 2
   {(a, a, c), (a, b, c), (a, c, c), (b, b, c), (b, c, c), (a, a, a), (c, c, c)}
 
+private theorem tableCode_eq : tableCode cycles = 18368187837279536161 := by decide +kernel
+
+private theorem tableCode_encodes : EncodesTable cycles 18368187837279536161 := by
+  rw [← tableCode_eq]
+  exact encodesTable_tableCode cycles
+
 /-- The cycle table, with associativity checked by the kernel. -/
 def table : IntegralCycleTable 3 0 where
   cycles := cycles
-  associative := by decide +kernel
+  associative := atomCompositionAssociative_of_assocCheck (by
+    rw [tableCode_eq]
+    decide +kernel)
 
 /-- The finite relation algebra determined by this table. -/
 abbrev Algebra : Type := Complex table
@@ -111,8 +120,12 @@ set_option synthInstance.maxSize 1024 in
 def witnessPolicy : WitnessPolicy table where
   label := witnessLabel
   diversity := by decide +kernel
-  left := by decide +kernel
-  right := by decide +kernel
+  left := by
+    simp only [table, cycleClosure_iff_bitAt tableCode_encodes]
+    decide +kernel
+  right := by
+    simp only [table, cycleClosure_iff_bitAt tableCode_encodes]
+    decide +kernel
   triangle := by
     have check : ∀ (a b c : Atom 3 0), a ≠ none → b ≠ none →
         cycleClosure cycles a b c → ∀ d e,
@@ -121,6 +134,7 @@ def witnessPolicy : WitnessPolicy table where
         (d', e') ≠ (a, Atom.converse b) → ∀ h,
         cycleClosure cycles d h d' → cycleClosure cycles e h e' →
         cycleClosure cycles h (witnessLabel a b c d' e') (witnessLabel a b c d e) := by
+      simp only [cycleClosure_iff_bitAt tableCode_encodes]
       decide +kernel
     intro a b c d e d' e' h ha hb hc hp hp' hne hne' hd he
     exact check a b c ha hb hc d e hp hne d' e' hp' hne' h hd he

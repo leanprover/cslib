@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
 public import Mathlib.Algebra.Group.TypeTags.Finite
 public import Mathlib.Data.ZMod.Basic
@@ -31,10 +32,18 @@ def cycles : Finset (Cycle 1 1) :=
   let b' : DiversityAtom 1 1 := Sum.inr (0, true)
   {(a, a, b), (b, b, b'), (a, a, a), (b, b, b)}
 
+private theorem tableCode_eq : tableCode cycles = 14783307824606905377 := by decide +kernel
+
+private theorem tableCode_encodes : EncodesTable cycles 14783307824606905377 := by
+  rw [← tableCode_eq]
+  exact encodesTable_tableCode cycles
+
 /-- The cycle table, with associativity checked by the kernel. -/
 def table : IntegralCycleTable 1 1 where
   cycles := cycles
-  associative := by decide +kernel
+  associative := atomCompositionAssociative_of_assocCheck (by
+    rw [tableCode_eq]
+    decide +kernel)
 
 /-- The finite relation algebra determined by this table. -/
 abbrev Algebra : Type := Complex table
@@ -61,7 +70,9 @@ def representation : GroupAtomRepresentation table (Multiplicative (ZMod 21)) wh
   surjective := by decide +kernel
   identity := by decide +kernel
   converse := by decide +kernel
-  composition := by decide +kernel
+  composition := by
+    simp only [table, cycleClosure_iff_bitAt tableCode_encodes]
+    decide +kernel
 
 /-- This catalogue algebra has a representation on 21 points. -/
 theorem representable : Representable Algebra :=

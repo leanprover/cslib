@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
 public import Mathlib.Algebra.Order.Field.Rat
 import Mathlib.Algebra.Order.Field.Basic
@@ -29,10 +30,14 @@ def cycles : Finset (Cycle 0 1) :=
   let a : DiversityAtom 0 1 := Sum.inr (0, false)
   {(a, a, a)}
 
+private theorem tableCode_eq : tableCode cycles = 83076369 := by decide +kernel
+
 /-- The cycle table, with associativity checked by the kernel. -/
 def table : IntegralCycleTable 0 1 where
   cycles := cycles
-  associative := by decide +kernel
+  associative := atomCompositionAssociative_of_assocCheck (by
+    rw [tableCode_eq]
+    decide +kernel)
 
 /-- The finite relation algebra determined by this table. -/
 abbrev Algebra : Type := Complex table

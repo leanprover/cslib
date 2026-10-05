@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
 
 /-!
@@ -27,10 +28,18 @@ def cycles : Finset (Cycle 1 0) :=
   let a : DiversityAtom 1 0 := Sum.inl 0
   {(a, a, a)}
 
+private theorem tableCode_eq : tableCode cycles = 233 := by decide +kernel
+
+private theorem tableCode_encodes : EncodesTable cycles 233 := by
+  rw [← tableCode_eq]
+  exact encodesTable_tableCode cycles
+
 /-- The cycle table, with associativity checked by the kernel. -/
 def table : IntegralCycleTable 1 0 where
   cycles := cycles
-  associative := by decide +kernel
+  associative := atomCompositionAssociative_of_assocCheck (by
+    rw [tableCode_eq]
+    decide +kernel)
 
 /-- The finite relation algebra determined by this table. -/
 abbrev Algebra : Type := Complex table
@@ -51,7 +60,9 @@ def representation : AtomRepresentation table (Fin 3) where
   surjective := by decide +kernel
   identity := by decide +kernel
   converse := by decide +kernel
-  composition := by decide +kernel
+  composition := by
+    simp only [table, cycleClosure_iff_bitAt tableCode_encodes]
+    decide +kernel
 
 /-- This catalogue algebra has a representation on three points. -/
 theorem representable : Representable Algebra :=

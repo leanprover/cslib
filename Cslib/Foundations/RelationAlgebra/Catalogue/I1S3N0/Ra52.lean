@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Cslib.Foundations.RelationAlgebra.NetworkRefutation
 
 /-!
@@ -29,10 +30,14 @@ def cycles : Finset (Cycle 3 0) :=
   let c : DiversityAtom 3 0 := Sum.inl 2
   {(a, a, c), (a, b, b), (a, b, c), (a, c, c), (b, b, c), (b, c, c), (b, b, b)}
 
+private theorem tableCode_eq : tableCode cycles = 9144822672437445665 := by decide +kernel
+
 /-- The cycle table, with associativity checked by the kernel. -/
 def table : IntegralCycleTable 3 0 where
   cycles := cycles
-  associative := by decide +kernel
+  associative := atomCompositionAssociative_of_assocCheck (by
+    rw [tableCode_eq]
+    decide +kernel)
 
 /-- The finite relation algebra determined by this table. -/
 abbrev Algebra : Type := Complex table

@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
 public import Mathlib.GroupTheory.SpecificGroups.Quaternion
 
@@ -30,10 +31,18 @@ def cycles : Finset (Cycle 1 1) :=
   let b' : DiversityAtom 1 1 := Sum.inr (0, true)
   {(a, b, b'), (b, b, b'), (b, b, b)}
 
+private theorem tableCode_eq : tableCode cycles = 17098160645038310433 := by decide +kernel
+
+private theorem tableCode_encodes : EncodesTable cycles 17098160645038310433 := by
+  rw [← tableCode_eq]
+  exact encodesTable_tableCode cycles
+
 /-- The cycle table, with associativity checked by the kernel. -/
 def table : IntegralCycleTable 1 1 where
   cycles := cycles
-  associative := by decide +kernel
+  associative := atomCompositionAssociative_of_assocCheck (by
+    rw [tableCode_eq]
+    decide +kernel)
 
 /-- The finite relation algebra determined by this table. -/
 abbrev Algebra : Type := Complex table
@@ -60,7 +69,9 @@ def representation : GroupAtomRepresentation table (QuaternionGroup 2) where
   surjective := by decide +kernel
   identity := by decide +kernel
   converse := by decide +kernel
-  composition := by decide +kernel
+  composition := by
+    simp only [table, cycleClosure_iff_bitAt tableCode_encodes]
+    decide +kernel
 
 /-- This catalogue algebra has a representation on eight points. -/
 theorem representable : Representable Algebra :=

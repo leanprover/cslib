@@ -43,7 +43,7 @@ public import Cslib.Foundations.RelationAlgebra.Catalogue.I1S1N1.Ra34
 public import Cslib.Foundations.RelationAlgebra.Catalogue.I1S1N1.Ra35
 public import Cslib.Foundations.RelationAlgebra.Catalogue.I1S1N1.Ra36
 public import Cslib.Foundations.RelationAlgebra.Catalogue.I1S1N1.Ra37
-public import Cslib.Foundations.RelationAlgebra.FiniteClassification
+public import Cslib.Foundations.RelationAlgebra.FastClassification
 
 /-!
 # Classification of the ⟨1, 1, 1⟩ catalogue row
@@ -104,12 +104,6 @@ def table : Fin 37 → IntegralCycleTable 1 1
 /-- The explicitly listed algebras, indexed in the source's order. -/
 abbrev Model (idx : Fin 37) : Type := Complex (table idx)
 
-private abbrev a : DiversityAtom 1 1 := .inl 0
-
-private abbrev b : DiversityAtom 1 1 := .inr (0, false)
-
-private abbrev b' : DiversityAtom 1 1 := .inr (0, true)
-
 private def cycleReps : Fin 7 → Cycle 1 1
   | 0 => (.inl 0, .inl 0, .inl 0)
   | 1 => (.inl 0, .inl 0, .inr (0, false))
@@ -135,51 +129,50 @@ private def cycleMask (bits : Fin 7 → Bool) : ℕ :=
     (if bits 5 then 32 else 0) +
     (if bits 6 then 64 else 0)
 
-private def classificationWitness (bits : Fin 7 → Bool) : Fin 37 × Bool :=
-  match cycleMask bits with
-  | 8 => (0, false)
-  | 29 => (3, false)
-  | 31 => (6, false)
-  | 34 => (16, false)
-  | 35 => (17, false)
-  | 39 => (24, true)
-  | 42 => (20, false)
-  | 43 => (21, false)
-  | 46 => (25, true)
-  | 47 => (26, true)
-  | 51 => (24, false)
-  | 52 => (10, false)
-  | 53 => (11, false)
-  | 54 => (29, false)
-  | 55 => (30, false)
-  | 58 => (25, false)
-  | 59 => (26, false)
-  | 61 => (14, false)
-  | 62 => (33, false)
-  | 63 => (34, false)
-  | 66 => (4, false)
-  | 67 => (5, false)
-  | 84 => (1, false)
-  | 85 => (2, false)
-  | 94 => (7, false)
-  | 95 => (8, false)
-  | 98 => (18, false)
-  | 99 => (19, false)
-  | 104 => (9, false)
-  | 106 => (22, false)
-  | 107 => (23, false)
-  | 110 => (27, true)
-  | 111 => (28, true)
-  | 116 => (12, false)
-  | 117 => (13, false)
-  | 118 => (31, false)
-  | 119 => (32, false)
-  | 122 => (27, false)
-  | 123 => (28, false)
-  | 125 => (15, false)
-  | 126 => (35, false)
-  | 127 => (36, false)
-  | _ => (0, false)
+private def classificationWitness : ℕ → Fin 37 × Fin 2
+  | 8 => (0, 0)
+  | 29 => (3, 0)
+  | 31 => (6, 0)
+  | 34 => (16, 0)
+  | 35 => (17, 0)
+  | 39 => (24, 1)
+  | 42 => (20, 0)
+  | 43 => (21, 0)
+  | 46 => (25, 1)
+  | 47 => (26, 1)
+  | 51 => (24, 0)
+  | 52 => (10, 0)
+  | 53 => (11, 0)
+  | 54 => (29, 0)
+  | 55 => (30, 0)
+  | 58 => (25, 0)
+  | 59 => (26, 0)
+  | 61 => (14, 0)
+  | 62 => (33, 0)
+  | 63 => (34, 0)
+  | 66 => (4, 0)
+  | 67 => (5, 0)
+  | 84 => (1, 0)
+  | 85 => (2, 0)
+  | 94 => (7, 0)
+  | 95 => (8, 0)
+  | 98 => (18, 0)
+  | 99 => (19, 0)
+  | 104 => (9, 0)
+  | 106 => (22, 0)
+  | 107 => (23, 0)
+  | 110 => (27, 1)
+  | 111 => (28, 1)
+  | 116 => (12, 0)
+  | 117 => (13, 0)
+  | 118 => (31, 0)
+  | 119 => (32, 0)
+  | 122 => (27, 0)
+  | 123 => (28, 0)
+  | 125 => (15, 0)
+  | 126 => (35, 0)
+  | 127 => (36, 0)
+  | _ => (0, 0)
 
 private def profileCode : Fin 37 → Bool → ℕ
   | 0, false => 8
@@ -258,727 +251,73 @@ private def profileCode : Fin 37 → Bool → ℕ
   | 36, true => 127
   | ⟨v + 37, h⟩, _ => False.elim (by omega)
 
-private def bitsVector (b0 b1 b2 b3 b4 b5 b6 : Bool) : Fin 7 → Bool
-  | 0 => b0
-  | 1 => b1
-  | 2 => b2
-  | 3 => b3
-  | 4 => b4
-  | 5 => b5
-  | 6 => b6
+private def modelCode : Fin 37 → ℕ
+  | 0 => 2398187160928945185
+  | 1 => 4866201264298558497
+  | 2 => 4866201264300655649
+  | 3 => 2578366607490450465
+  | 4 => 4695029155015853089
+  | 5 => 4695029155017950241
+  | 6 => 2587373944767153185
+  | 7 => 7199068759285466145
+  | 8 => 7199068759287563297
+  | 9 => 17098160645038310433
+  | 10 => 10342785119367103521
+  | 11 => 10342785119369200673
+  | 12 => 14954479933887513633
+  | 13 => 14954479933889610785
+  | 14 => 12666645277079405601
+  | 15 => 17278340091599815713
+  | 16 => 10171613010084398113
+  | 17 => 10171613010086495265
+  | 18 => 14783307824604808225
+  | 19 => 14783307824606905377
+  | 20 => 12495473167794603041
+  | 21 => 12495473167796700193
+  | 22 => 17107167982315013153
+  | 23 => 17107167982317110305
+  | 24 => 10315728475187741729
+  | 25 => 12639588632895849505
+  | 26 => 12639588632897946657
+  | 27 => 17251283447416259617
+  | 28 => 17251283447418356769
+  | 29 => 10351792456643806241
+  | 30 => 10351792456645903393
+  | 31 => 14963487271164216353
+  | 32 => 14963487271166313505
+  | 33 => 12675652614354011169
+  | 34 => 12675652614356108321
+  | 35 => 17287347428874421281
+  | 36 => 17287347428876518433
+  | ⟨n + 37, h⟩ => False.elim (by omega)
 
-private theorem bitsVector_eq (bits : Fin 7 → Bool) :
-    bitsVector (bits 0) (bits 1) (bits 2) (bits 3) (bits 4) (bits 5) (bits 6) = bits := by
-  funext i
-  rcases (show i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4 ∨ i = 5 ∨ i = 6 by omega)
-    with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> rfl
+private theorem modelCode_eq : ∀ idx, tableCode (table idx).cycles = modelCode idx := by
+  decide +kernel
+
+private theorem modelCode_encodes (idx : Fin 37) :
+    EncodesTable (table idx).cycles (modelCode idx) := by
+  rw [← modelCode_eq]
+  exact encodesTable_tableCode _
+
+private def renames (p : Fin 2) : Atom 1 1 → Atom 1 1 := rename (Nat.beq p.val 1)
+
+private def renameCodes (p : Fin 2) (x : ℕ) : ℕ :=
+  cond (Nat.beq p.val 0) x (Code.conv 1 x)
+
+private theorem renames_code : ∀ p x, (renames p x).code = renameCodes p x.code := by
+  decide +kernel
+
+private theorem renames_laws : ∀ p, Function.Injective (renames p) ∧ renames p none = none ∧
+    ∀ x, renames p x.converse = (renames p x).converse := by
+  unfold Function.Injective
+  decide +kernel
 
 private theorem cycles_exhaustive : ∀ bits : Fin 7 → Bool,
     AtomCompositionAssociative (selectedCycles cycleReps bits) →
       ∃ idx : Fin 37, ∃ f,
-        AtomRelabelling (selectedCycles cycleReps bits) (table idx).cycles f := by
-  have h : ∀ b0 b1 b2 b3 b4 b5 b6 : Bool,
-      let bits := bitsVector b0 b1 b2 b3 b4 b5 b6
-      AtomRelabelling (selectedCycles cycleReps bits)
-        (table (classificationWitness bits).1).cycles (rename (classificationWitness bits).2) ∨
-          ¬ AtomCompositionAssociative (selectedCycles cycleReps bits) := by
-    intro b0 b1 b2 b3 b4 b5 b6
-    cases b0 <;> cases b1 <;> cases b2 <;> cases b3 <;> cases b4 <;> cases b5 <;> cases b6
-    · right
-      change ¬ AtomCompositionAssociative ∅
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b', b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b', b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, b, b')}
-        (table 0).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, b, b'), (b, b, b), (b, b, b')}
-        (table 9).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b'), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b'), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b'), (a, b', b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b'), (a, b', b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (a, b', b')}
-      intro ha
-      have hbad := ha (some b) (some b) (some b') (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, b, b), (a, b', b'), (b, b, b')}
-        (table 1).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, b, b), (a, b', b'), (b, b, b)}
-        (table 10).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, b, b), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 12).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (a, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (a, b, b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (a, b, b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (a, b, b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (a, b, b'), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (a, b, b'), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, b, b), (a, b, b'), (a, b', b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative
-        {(a, b, b), (a, b, b'), (a, b', b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (b, b, b')}
-        (table 4).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (b, b, b)}
-        (table 16).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (b, b, b), (b, b, b')}
-        (table 18).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some a) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some a) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b', b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some a) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b', b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some a) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b'), (b, b, b)}
-        (table 20).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b'), (b, b, b), (b, b, b')}
-        (table 22).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b'), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b'), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b'), (a, b', b'), (b, b, b)}
-        (table 25).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b'), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 27).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some a) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some a) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some a) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some a) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b), (a, b', b'), (b, b, b)}
-        (table 29).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 31).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b), (a, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b), (a, b, b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b), (a, b, b'), (b, b, b)}
-        (table 25).cycles (rename true)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b), (a, b, b'), (b, b, b), (b, b, b')}
-        (table 27).cycles (rename true)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, b), (a, b, b), (a, b, b'), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b')}
-        (table 7).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b)}
-        (table 33).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, b), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 35).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b', b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b', b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b'), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some a) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b'), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some a) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b'), (a, b', b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some b) (some a) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative
-        {(a, a, a), (a, b, b'), (a, b', b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some a) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b), (a, b', b')}
-      intro ha
-      have hbad := ha (some b) (some b) (some b') (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, b, b), (a, b', b'), (b, b, b')}
-        (table 2).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, b, b), (a, b', b'), (b, b, b)}
-        (table 11).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, b, b), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 13).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b), (a, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some a) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b), (a, b, b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some a) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b), (a, b, b'), (b, b, b)}
-      intro ha
-      have hbad := ha (some a) (some b) (some a) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, b, b), (a, b, b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some a) (some b')
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, b, b), (a, b, b'), (a, b', b')}
-        (table 3).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative
-        {(a, a, a), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b)}
-        (table 14).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 15).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (b, b, b')}
-        (table 5).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (b, b, b)}
-        (table 17).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (b, b, b), (b, b, b')}
-        (table 19).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b', b'), (b, b, b)}
-        (table 24).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b', b'), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b'), (b, b, b)}
-        (table 21).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b'), (b, b, b), (b, b, b')}
-        (table 23).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b'), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative
-        {(a, a, a), (a, a, b), (a, b, b'), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b'), (a, b', b'), (b, b, b)}
-        (table 26).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b'), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 28).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b)}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b), (b, b, b)}
-        (table 24).cycles (rename true)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b), (b, b, b), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b), (a, b', b')}
-      intro ha
-      have hbad := ha (some a) (some a) (some b) (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b), (a, b', b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b) (some b)
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b), (a, b', b'), (b, b, b)}
-        (table 30).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 32).cycles (rename false)
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b), (a, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · right
-      change ¬ AtomCompositionAssociative {(a, a, a), (a, a, b), (a, b, b), (a, b, b'), (b, b, b')}
-      intro ha
-      have hbad := ha (some a) (some b) (some b') (some b')
-      revert hbad
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b), (a, b, b'), (b, b, b)}
-        (table 26).cycles (rename true)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b), (a, b, b'), (b, b, b), (b, b, b')}
-        (table 28).cycles (rename true)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b), (a, b, b'), (a, b', b')}
-        (table 6).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b')}
-        (table 8).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling {(a, a, a), (a, a, b), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b)}
-        (table 34).cycles (rename false)
-      decide +kernel
-    · left
-      change AtomRelabelling
-        {(a, a, a), (a, a, b), (a, b, b), (a, b, b'), (a, b', b'), (b, b, b), (b, b, b')}
-        (table 36).cycles (rename false)
-      decide +kernel
-  intro bits hb
-  have hh := h (bits 0) (bits 1) (bits 2) (bits 3) (bits 4) (bits 5) (bits 6)
-  dsimp only at hh
-  rw [bitsVector_eq] at hh
-  exact ⟨(classificationWitness bits).1, rename (classificationWitness bits).2,
-    hh.resolve_right (not_not_intro hb)⟩
+        AtomRelabelling (selectedCycles cycleReps bits) (table idx).cycles f :=
+  cycles_exhaustive_of_check cycleReps table modelCode modelCode_encodes
+    renames renameCodes renames_code renames_laws classificationWitness (by decide +kernel)
 
 private theorem renamings_exhaustive : ∀ f : Atom 1 1 → Atom 1 1,
     Function.Injective f → f none = none →
@@ -993,6 +332,7 @@ private theorem profileCode_eq : ∀ idx : Fin 37, ∀ p : Bool,
     cycleMask (fun c => decide (cycleClosure (table idx).cycles
       (rename p (some (cycleReps c).1)) (rename p (some (cycleReps c).2.1))
       (rename p (some (cycleReps c).2.2)))) = profileCode idx p := by
+  simp only [cycleClosure_iff_bitAt (modelCode_encodes _), Bool.decide_eq_true]
   decide +kernel
 
 private theorem profileCode_injective : ∀ i j : Fin 37, ∀ p : Bool,
