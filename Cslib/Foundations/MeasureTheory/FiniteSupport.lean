@@ -20,7 +20,8 @@ theory measure failure events of *arbitrary* (non-measurable) learners under
 finitely supported adversarial distributions.
 
 `HasFiniteSupport` records this property as a typeclass, with an instance for
-finite products.
+finite products. Given an instance of that typeclass, we provide a canonical
+witness `μ.supp` of a finite set such that `μ μ.suppᶜ = 0`.
 
 The [PFR project](https://github.com/teorth/pfr/blob/master/PFR/ForMathlib/Entropy/Measure.lean)
 has an equivalent `ProbabilityTheory.FiniteSupport` class, expressed using an almost-everywhere
