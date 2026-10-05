@@ -14,19 +14,28 @@ public import Cslib.Foundations.Data.PFunctor.M
 
 A resumption `r : PFunctor.Resumption P α` is a possibly non-terminating program that either
 returns a value of `α` or performs an operation `a : P.A` and continues with a response
-`b : P.B a`. It is the M-type of the polynomial `C α + P`, i.e. the final coalgebra of
-`X ↦ α ⊕ P X`. The initial algebra of the same functor is the free monad `P.FreeM α`, which is the
-W-type of `C α + P` (`PFunctor.FreeM.equivW`).
+`b : P.B a`. It completes the polynomial tree types: `P.W` and `P.M` are the initial algebra and
+final coalgebra of `P`, while `P.FreeM α` and `Resumption P α` are those of `X ↦ α ⊕ P X`, that
+is, the W-type and M-type of `C α + P` (`PFunctor.FreeM.equivW`).
 
-`PFunctor.FreeM.toResumption` is an injective monad morphism whose image is exactly the
-well-founded resumptions (`PFunctor.FreeM.equivWellFounded`), so resumptions extend free programs
-by infinite runs. Over the indeterminate `y`, with a single operation and a unit response,
-resumptions form Capretta's delay monad [Capretta2005]. They give semantics to loops whose
-termination is not structural, such as rejection sampling or the execution of a machine.
+The representations are related by
+```
+P.W        ──── W.toM ────▶  P.M
+ │ W.toFreeM                  │ M.toResumption
+ ▼                            ▼
+P.FreeM α  ── toResumption ─▶ Resumption P α
+```
+which commutes (`PFunctor.FreeM.toResumption_toFreeM`). The horizontal maps are injective, with
+image the well-founded trees (`W.equivM`, `FreeM.equivWellFounded`), and `FreeM.toResumption` is a
+monad morphism. The vertical maps are equivalences when `α` is empty (`FreeM.equivWOfIsEmpty`,
+`Resumption.equivMOfIsEmpty`).
 
-This is the resumption monad of [PirogGibbons2014], the identity-monad case of the coalgebraic
-resumptions of [GoncharovMiliusRauch2016]. Unlike the cofree comonad, whose one-step view
-`α × P X` labels every node, a resumption returns a value only at a leaf.
+Resumptions extend free programs by infinite runs. Over the indeterminate `y`, with a single
+operation and a unit response, they form Capretta's delay monad [Capretta2005], and they give
+semantics to loops whose termination is not structural, such as rejection sampling or the
+execution of a machine. This is the resumption monad of [PirogGibbons2014], the identity-monad
+case of the coalgebraic resumptions of [GoncharovMiliusRauch2016]. Unlike the cofree comonad,
+whose one-step view `α × P X` labels every node, a resumption returns a value only at a leaf.
 
 ## Main definitions
 
@@ -37,6 +46,7 @@ resumptions of [GoncharovMiliusRauch2016]. Unlike the cofree comonad, whose one-
 - `PFunctor.Resumption.bisim`: coinduction through the relation lifting `StepRel`.
 - `PFunctor.Resumption.bind`: sequencing, giving a lawful monad.
 - `PFunctor.FreeM.toResumption`: the embedding of free programs.
+- `PFunctor.Resumption.equivMOfIsEmpty`: resumptions with no return value are M-trees.
 
 ## References
 
@@ -367,5 +377,69 @@ theorem equivWellFounded_apply (x : P.FreeM α) :
     (equivWellFounded x : Resumption P α) = toResumption x := rfl
 
 end FreeM
+
+/-! ### Resumptions that never return -/
+
+section IsEmpty
+
+variable {P : PFunctor.{uA, uB}} {α : Type u}
+
+/-- Regard an M-tree as a resumption that never returns. -/
+def M.toResumption : P.M → Resumption P α :=
+  Resumption.corec fun t => .inr (M.dest t)
+
+@[simp]
+theorem M.toResumption_mk (a : P.A) (f : P.B a → P.M) :
+    (M.mk (.mk a f)).toResumption (α := α) =
+      (Resumption.lift a).bind fun i => (f i).toResumption :=
+  Resumption.dest_injective (by simp [M.toResumption]; rfl)
+
+/-- Regard a resumption that cannot return as an M-tree. -/
+def Resumption.toMOfIsEmpty [IsEmpty α] : Resumption P α → P.M :=
+  M.corec fun r => (Resumption.dest r).elim isEmptyElim id
+
+@[simp]
+theorem Resumption.toMOfIsEmpty_lift_bind [IsEmpty α] (a : P.A) (k : P.B a → Resumption P α) :
+    toMOfIsEmpty ((lift a).bind (α := no_index (P.B a)) k) =
+      M.mk (.mk a fun i => toMOfIsEmpty (k i)) :=
+  M.dest_injective (by simp [toMOfIsEmpty, M.dest_corec]; rfl)
+
+@[simp]
+theorem Resumption.toMOfIsEmpty_lift_bind' {α : Type uB} [IsEmpty α] (a : P.A)
+    (k : P.B a → Resumption P α) :
+    toMOfIsEmpty (Bind.bind (α := no_index (P.B a)) (lift a) k) =
+      M.mk (.mk a fun i => toMOfIsEmpty (k i)) :=
+  toMOfIsEmpty_lift_bind a k
+
+@[simp]
+theorem Resumption.toMOfIsEmpty_toResumption [IsEmpty α] (t : P.M) :
+    toMOfIsEmpty (t.toResumption (α := α)) = t :=
+  congrFun ((M.corec_comp M.dest _ M.toResumption fun _ => by simp [M.toResumption]).trans
+    M.corec_dest) t
+
+@[simp]
+theorem M.toResumption_toMOfIsEmpty [IsEmpty α] (r : Resumption P α) :
+    (Resumption.toMOfIsEmpty r).toResumption = r :=
+  congrFun ((Resumption.corec_comp Resumption.dest _ Resumption.toMOfIsEmpty fun r => by
+    cases r with
+    | pure a => exact isEmptyElim a
+    | lift_bind a k => simp [Function.comp_def]).trans Resumption.corec_dest) r
+
+/-- With no possible return value, resumptions are exactly the M-trees. -/
+@[simps]
+def Resumption.equivMOfIsEmpty [IsEmpty α] : Resumption P α ≃ P.M where
+  toFun := toMOfIsEmpty
+  invFun := M.toResumption
+  left_inv := M.toResumption_toMOfIsEmpty
+  right_inv := toMOfIsEmpty_toResumption
+
+/-- Embedding W-trees is compatible with the never-returning embeddings into free programs and
+resumptions. -/
+theorem FreeM.toResumption_toFreeM (w : P.W) :
+    (W.toFreeM w : P.FreeM α).toResumption = M.toResumption w.toM := by
+  induction w with
+  | mk a f ih => simp [ih]
+
+end IsEmpty
 
 end PFunctor

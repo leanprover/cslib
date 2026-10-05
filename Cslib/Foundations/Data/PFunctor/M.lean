@@ -41,6 +41,15 @@ theorem M.dest_injective : Function.Injective (M.dest (F := P)) := M.destEquiv.i
 @[simp]
 theorem M.dest_inj {x y : P.M} : M.dest x = M.dest y ↔ x = y := M.dest_injective.eq_iff
 
+@[simp]
+theorem M.corec_dest : M.corec (M.dest (F := P)) = id :=
+  (M.corec_unique _ _ fun _ => (P.id_map _).symm).symm
+
+/-- Corecursion is natural in maps of states that commute with the step functions. -/
+theorem M.corec_comp {X Y : Type*} (g : X → P X) (h : Y → P Y) (f : X → Y)
+    (hf : ∀ x, h (f x) = P.map f (g x)) : M.corec h ∘ f = M.corec g :=
+  M.corec_unique g _ fun x => by simp [M.dest_corec, hf]
+
 /-- The canonical map from the initial algebra into the final coalgebra, regarding a well-founded
 tree as a possibly infinite one. -/
 def W.toM : P.W → P.M :=
