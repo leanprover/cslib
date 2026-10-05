@@ -7,6 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
+import Cslib.Foundations.RelationAlgebra.FastCycles
 public import Mathlib.Algebra.Order.Field.Rat
 import Mathlib.Algebra.Order.Field.Basic
 
@@ -44,6 +45,15 @@ def clusteredCycles (large : Bool) : Finset (Cycle 1 1) :=
   let b : DiversityAtom 1 1 := .inr (0, false)
   let b' : DiversityAtom 1 1 := .inr (0, true)
   {(a, b, b), (a, b', b'), (b, b, b)} ∪ if large then {(a, a, a)} else ∅
+
+private theorem clusteredCode_encodes (large : Bool) :
+    EncodesTable (clusteredCycles large)
+      (if large then 10342785119369200673 else 10342785119367103521) := by
+  have hcode : tableCode (clusteredCycles large) =
+      (if large then 10342785119369200673 else 10342785119367103521) := by
+    cases large <;> decide +kernel
+  rw [← hcode]
+  exact encodesTable_tableCode _
 
 /-- Label equal rational coordinates by equality or symmetric diversity; order the others. -/
 def clusteredLabel {large : Bool} (x y : ℚ × Fiber large) : Atom 1 1 :=
@@ -90,44 +100,53 @@ private theorem clusteredLabel_converse {large : Bool} (x y : ℚ × Fiber large
 private theorem clustered_ss (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inl 0)) (some (.inl 0)) c ↔
       c = none ∨ large = true ∧ c = some (.inl 0) := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem clustered_sf (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inl 0)) (some (.inr (0, false))) c ↔
       c = some (.inr (0, false)) := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem clustered_sb (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inl 0)) (some (.inr (0, true))) c ↔
       c = some (.inr (0, true)) := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem clustered_fs (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inr (0, false))) (some (.inl 0)) c ↔
       c = some (.inr (0, false)) := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem clustered_bs (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inr (0, true))) (some (.inl 0)) c ↔
       c = some (.inr (0, true)) := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem clustered_ff (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inr (0, false))) (some (.inr (0, false))) c ↔
       c = some (.inr (0, false)) := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem clustered_bb (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inr (0, true))) (some (.inr (0, true))) c ↔
       c = some (.inr (0, true)) := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem clustered_fb (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inr (0, false))) (some (.inr (0, true))) c := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem clustered_bf (large : Bool) (c : Atom 1 1) :
     cycleClosure (clusteredCycles large) (some (.inr (0, true))) (some (.inr (0, false))) c := by
+  simp only [cycleClosure_iff_bitAt (clusteredCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 /-- A representation with a symmetric atom inside each finite fiber of the rational order. -/
@@ -232,6 +251,15 @@ def separatedCycles (large : Bool) : Finset (Cycle 1 1) :=
   let b : DiversityAtom 1 1 := .inr (0, false)
   {(a, a, b), (b, b, b)} ∪ if large then {(a, a, a)} else ∅
 
+private theorem separatedCode_encodes (large : Bool) :
+    EncodesTable (separatedCycles large)
+      (if large then 10171613010086495265 else 10171613010084398113) := by
+  have hcode : tableCode (separatedCycles large) =
+      (if large then 10171613010086495265 else 10171613010084398113) := by
+    cases large <;> decide +kernel
+  rw [← hcode]
+  exact encodesTable_tableCode _
+
 /-- Label different fibers by symmetric diversity and order points within one fiber. -/
 def separatedLabel {large : Bool} (x y : ℚ × Fiber large) : Atom 1 1 :=
   if x.2 = y.2 then
@@ -279,46 +307,55 @@ private theorem separatedLabel_converse {large : Bool} (x y : ℚ × Fiber large
 private theorem separated_ss (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inl 0)) (some (.inl 0)) c ↔
       large = true ∨ c ≠ some (.inl 0) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem separated_sf (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inl 0)) (some (.inr (0, false))) c ↔
       c = some (.inl 0) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem separated_sb (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inl 0)) (some (.inr (0, true))) c ↔
       c = some (.inl 0) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem separated_fs (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inr (0, false))) (some (.inl 0)) c ↔
       c = some (.inl 0) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem separated_bs (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inr (0, true))) (some (.inl 0)) c ↔
       c = some (.inl 0) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem separated_ff (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inr (0, false))) (some (.inr (0, false))) c ↔
       c = some (.inr (0, false)) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem separated_bb (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inr (0, true))) (some (.inr (0, true))) c ↔
       c = some (.inr (0, true)) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem separated_fb (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inr (0, false))) (some (.inr (0, true))) c ↔
       c ≠ some (.inl 0) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 private theorem separated_bf (large : Bool) (c : Atom 1 1) :
     cycleClosure (separatedCycles large) (some (.inr (0, true))) (some (.inr (0, false))) c ↔
       c ≠ some (.inl 0) := by
+  simp only [cycleClosure_iff_bitAt (separatedCode_encodes large)]
   cases large <;> revert c <;> decide +kernel
 
 /-- A representation with a symmetric atom between disjoint copies of the rational order. -/

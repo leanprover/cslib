@@ -64,6 +64,9 @@ def obstruction : NetworkRefutation.Certificate 3 0 :=
 
 /-- This catalogue algebra has no representation by binary relations. -/
 theorem not_representable : ¬ Representable Algebra :=
-  NetworkRefutation.not_representable table (some (.inl 0)) obstruction (by decide +kernel)
+  NetworkRefutation.not_representable table (some (.inl 0)) obstruction (by
+    rw [NetworkRefutation.check_eq_of_encodes
+      (tableCode_eq ▸ encodesTable_tableCode cycles)]
+    decide +kernel)
 
 end Cslib.RelationAlgebra.Catalogue.I1S3N0.Ra52

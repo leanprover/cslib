@@ -60,14 +60,14 @@ theorem finset_sup_mul {ι : Type*} (s : Finset ι) (f : ι → A) (b : A) :
   classical
   induction s using Finset.induction_on with
   | empty => simp
-  | @insert x s hx ih => simp [sup_mul, ih]
+  | @insert x s hx ih => simp only [Finset.sup_insert, sup_mul, ih]
 
 theorem mul_finset_sup {ι : Type*} (a : A) (s : Finset ι) (f : ι → A) :
     a * s.sup f = s.sup (fun x => a * f x) := by
   classical
   induction s using Finset.induction_on with
   | empty => simp
-  | @insert x s hx ih => simp [mul_sup, ih]
+  | @insert x s hx ih => simp only [Finset.sup_insert, mul_sup, ih]
 
 /-- A finite list of all Boolean atoms respecting identity and converse. -/
 structure AtomLabelling (A : Type*) [RelationAlgebra A] (j k : ℕ) where
@@ -116,7 +116,7 @@ def decode (s : Finset (Atom j k)) : A := s.sup e.val
 @[simp]
 theorem mem_encode (a : A) (x : Atom j k) : x ∈ e.encode a ↔ e.val x ≤ a := by
   classical
-  simp [encode]
+  simp only [encode, Finset.mem_filter, Finset.mem_univ, true_and]
 
 @[simp]
 theorem val_le_decode (s : Finset (Atom j k)) (x : Atom j k) :
@@ -166,7 +166,11 @@ theorem val_le_mul_iff [Finite A] (a b : A) (z : Atom j k) :
       rw [decode_encode, decode_encode]
     _ ↔ _ := by
       simp only [decode, finset_sup_mul, mul_finset_sup, atom_le_finset_sup (e.isAtom_val z)]
-      aesop
+      constructor
+      · rintro ⟨y, hy, x, hx, h⟩
+        exact ⟨x, hx, y, hy, h⟩
+      · rintro ⟨x, hx, y, hy, h⟩
+        exact ⟨y, hy, x, hx, h⟩
 
 /-- All the diversity cycles true of the named atoms. -/
 noncomputable def cycles : Finset (Cycle j k) := by
@@ -178,7 +182,7 @@ noncomputable def cycles : Finset (Cycle j k) := by
 theorem mem_cycles (c : Cycle j k) :
     c ∈ e.cycles ↔ e.val (some c.2.2) ≤ e.val (some c.1) * e.val (some c.2.1) := by
   classical
-  simp [cycles]
+  simp only [cycles, Finset.mem_filter, Finset.mem_univ, true_and]
 
 theorem composition_converse {x y z : Atom j k} (h : e.val z ≤ e.val x * e.val y) :
     e.val z.converse ≤ e.val y.converse * e.val x.converse := by

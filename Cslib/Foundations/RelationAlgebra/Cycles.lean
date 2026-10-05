@@ -96,39 +96,46 @@ theorem cycleOrbit_converse {c : Cycle j k} {x y z : Atom j k}
   simp only [cycleOrbit, Finset.mem_insert, Finset.mem_singleton, Prod.mk.injEq] at h
   rcases h with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ |
     ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
-    simp [cycleOrbit]
+    simp only [cycleOrbit, Atom.converse_some, Finset.mem_insert, Prod.mk.injEq, Option.some.injEq,
+      Finset.mem_singleton, true_or, or_true, DiversityAtom.converse_converse]
 
 theorem cycleOrbit_peirce {c : Cycle j k} {x y z : Atom j k}
     (h : (x, y, z) ∈ cycleOrbit c) : (x.converse, z, y) ∈ cycleOrbit c := by
   simp only [cycleOrbit, Finset.mem_insert, Finset.mem_singleton, Prod.mk.injEq] at h
   rcases h with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ |
     ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
-    simp [cycleOrbit]
+    simp only [cycleOrbit, Atom.converse_some, Finset.mem_insert, Prod.mk.injEq, Option.some.injEq,
+      Finset.mem_singleton, true_or, or_true, DiversityAtom.converse_converse]
 
 @[simp]
 theorem cycleClosure_none_left (cycles : Finset (Cycle j k)) (y z : Atom j k) :
     cycleClosure cycles none y z ↔ y = z := by
-  cases y <;> cases z <;> simp [cycleClosure, cycleOrbit]
+  cases y <;> cases z <;> simp only [cycleClosure, and_self, Atom.converse_none, cycleOrbit,
+    Atom.converse_some, Finset.mem_insert, Prod.mk.injEq, reduceCtorEq, Finset.mem_singleton,
+    or_self, and_false, exists_false, or_false, and_true, Option.some.injEq, false_and, true_and]
 
 @[simp]
 theorem cycleClosure_none_right (cycles : Finset (Cycle j k)) (x z : Atom j k) :
     cycleClosure cycles x none z ↔ x = z := by
-  cases x <;> cases z <;> simp [cycleClosure, cycleOrbit]
+  cases x <;> cases z <;> simp only [cycleClosure, and_self, Atom.converse_none, cycleOrbit,
+    Atom.converse_some, Finset.mem_insert, Prod.mk.injEq, reduceCtorEq, Finset.mem_singleton,
+    or_self, and_false, exists_false, or_false, and_true, Option.some.injEq, false_and, true_and,
+    false_or]
 
 theorem cycleClosure_converse {cycles : Finset (Cycle j k)} {x y z : Atom j k}
     (h : cycleClosure cycles x y z) : cycleClosure cycles y.converse x.converse z.converse := by
   rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨c, hc, h⟩
-  · simp
-  · simp
-  · simp [cycleClosure]
+  · simp only [Atom.converse_none, cycleClosure_none_right]
+  · simp only [Atom.converse_none, cycleClosure_none_left]
+  · simp only [cycleClosure, Atom.converse_converse, Atom.converse_none, and_self, true_or, or_true]
   · exact Or.inr (Or.inr (Or.inr ⟨c, hc, cycleOrbit_converse h⟩))
 
 theorem cycleClosure_peirce {cycles : Finset (Cycle j k)} {x y z : Atom j k}
     (h : cycleClosure cycles x y z) : cycleClosure cycles x.converse z y := by
   rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨c, hc, h⟩
-  · simp
-  · simp [cycleClosure]
-  · simp
+  · simp only [Atom.converse_none, cycleClosure_none_left]
+  · simp only [cycleClosure, Atom.converse_converse, and_self, true_or, or_true]
+  · simp only [cycleClosure_none_right]
   · exact Or.inr (Or.inr (Or.inr ⟨c, hc, cycleOrbit_peirce h⟩))
 
 instance (cycles : Finset (Cycle j k)) (x y z : Atom j k) :
@@ -252,19 +259,19 @@ instance : Monoid (Complex T) where
     apply ext
     apply Finset.ext
     intro z
-    simp [mem_mul]
+    simp only [mem_mul, mem_one, exists_eq_left, cycleClosure_none_left, exists_eq_right]
   mul_one a := by
     apply ext
     apply Finset.ext
     intro z
-    simp [mem_mul]
+    simp only [mem_mul, mem_one, exists_eq_left, cycleClosure_none_right, exists_eq_right]
 
 instance : StarMul (Complex T) where
   star_involutive a := by
     apply ext
     apply Finset.ext
     intro z
-    simp
+    simp only [mem_star, Atom.converse_converse]
   star_mul a b := by
     apply ext
     apply Finset.ext

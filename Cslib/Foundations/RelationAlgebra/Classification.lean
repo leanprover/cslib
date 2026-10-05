@@ -61,7 +61,8 @@ theorem diversity_atom_of_hasSignature_one_one (h : HasSignature A 1 1 0) :
 /-- Complementary atoms give the four possible Boolean elements. -/
 theorem eq_bot_or_eq_one_or_eq_compl_or_eq_top (h1 : IsAtom (1 : A))
     (hd : IsAtom (1 : A)ᶜ) (a : A) : a = ⊥ ∨ a = 1 ∨ a = (1 : A)ᶜ ∨ a = ⊤ := by
-  have he : a = (a ⊓ 1) ⊔ (a ⊓ (1 : A)ᶜ) := by simp [← inf_sup_left]
+  have he : a = (a ⊓ 1) ⊔ (a ⊓ (1 : A)ᶜ) := by
+    rw [← inf_sup_left, sup_compl_eq_top, inf_top_eq]
   rcases h1.le_iff.mp (inf_le_right : a ⊓ 1 ≤ (1 : A)) with h | h <;>
     rcases hd.le_iff.mp (inf_le_right : a ⊓ (1 : A)ᶜ ≤ (1 : A)ᶜ) with h' | h' <;>
     simp only [h, h', bot_sup_eq, sup_bot_eq, sup_compl_eq_top] at he
@@ -136,10 +137,12 @@ noncomputable def orderIsoOfHasSignatureOneOne (hA : HasSignature A 1 1 0)
     rcases eq_bot_or_eq_one_or_eq_compl_or_eq_top hB1 hBd b with rfl | rfl | rfl | rfl <;>
       simp only [hf0, hf1, hfd, hft, hg0, hg1, hgd, hgt]
   · intro a b
+    change twoAtomMap B a ≤ twoAtomMap B b ↔ a ≤ b
     rcases eq_bot_or_eq_one_or_eq_compl_or_eq_top hA1 hAd a with rfl | rfl | rfl | rfl <;>
       rcases eq_bot_or_eq_one_or_eq_compl_or_eq_top hA1 hAd b with rfl | rfl | rfl | rfl <;>
-      simp [hf0, hf1, hfd, hft, hA1.ne_bot, hAd.ne_bot, hB1.ne_bot, hBd.ne_bot,
-        hAtop, hBtop]
+      simp only [hf0, hf1, hfd, hft, bot_le, le_top, le_refl, le_bot_iff, top_le_iff,
+        compl_le_self, le_compl_self, compl_eq_top, hA1.ne_bot, hAd.ne_bot, hB1.ne_bot,
+        hBd.ne_bot, hAtop, hBtop, top_ne_bot]
 
 /-- The diversity-square equation is invariant under relation-algebra isomorphism. -/
 theorem diversity_sq_eq_one_iff (e : RelationAlgebraEquiv A B) :

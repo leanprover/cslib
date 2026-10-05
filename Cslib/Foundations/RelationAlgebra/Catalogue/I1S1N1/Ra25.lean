@@ -7,7 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.FastCycles
-public import Cslib.Foundations.RelationAlgebra.WitnessRepresentation
+public import Cslib.Foundations.RelationAlgebra.FastWitnessRepresentation
 
 /-!
 # Catalogue algebra ⟨1, 1, 1⟩, number 25
@@ -63,42 +63,28 @@ def atomCode : Atom 1 1 → ℕ
   | some (.inr (_, false)) => 2
   | some (.inr (_, true)) => 3
 
+/-- Packed two-bit labels, indexed by the four remaining atom codes. -/
+def witnessCode : ℕ → ℕ
+  | 1 => 0x955555555955955555555555555955755555555555555555555555555555555555555555
+  | 2 => 0xa55565955555565555555565755555555555555565555995555555555555555555555555
+  | 3 => 0x95d55555555555555575d755fd55d7fd5755555555555957555555555555555555555555
+  | _ => 0x555555555555555555555555555555555555555555555555555555555555555555555555
+
+/-- The same witness labels, expressed directly on numeric atom codes. -/
+def witnessLabelCode (a b c d e : ℕ) : ℕ :=
+  if d = 0 then a else if e = 0 then Code.conv 1 b else
+  let i := ((b * 4 + c) * 3 + (d - 1)) * 3 + (e - 1)
+  Nat.land (Nat.shiftRight (witnessCode a) (2 * i)) 3
+
 /-- Labels of new witness edges, as a function of the two endpoint labels. -/
 def witnessLabel (a b c d e : Atom 1 1) : Atom 1 1 :=
   if d = none then a else if e = none then Atom.converse b else
-  match atomCode a, atomCode b, atomCode c, atomCode d, atomCode e with
-  | 1, 2, 1, 1, 2 => some (.inr (0, true))
-  | 1, 2, 1, 3, 3 => some (.inr (0, false))
-  | 1, 3, 1, 1, 3 => some (.inr (0, false))
-  | 1, 3, 1, 3, 3 => some (.inr (0, false))
-  | 1, 3, 3, 3, 3 => some (.inr (0, false))
-  | 2, 1, 1, 3, 1 => some (.inr (0, false))
-  | 2, 1, 1, 3, 3 => some (.inr (0, false))
-  | 2, 1, 2, 3, 3 => some (.inr (0, false))
-  | 2, 2, 2, 2, 2 => some (.inr (0, true))
-  | 2, 2, 2, 3, 3 => some (.inr (0, false))
-  | 2, 3, 0, 3, 3 => some (.inr (0, false))
-  | 2, 3, 2, 2, 3 => some (.inr (0, false))
-  | 2, 3, 2, 3, 3 => some (.inr (0, false))
-  | 2, 3, 3, 3, 2 => some (.inr (0, false))
-  | 2, 3, 3, 3, 3 => some (.inr (0, false))
-  | 3, 1, 1, 2, 1 => some (.inr (0, true))
-  | 3, 1, 1, 3, 3 => some (.inr (0, false))
-  | 3, 2, 0, 2, 2 => some (.inr (0, true))
-  | 3, 2, 1, 1, 1 => some (.inr (0, true))
-  | 3, 2, 1, 1, 2 => some (.inr (0, true))
-  | 3, 2, 1, 1, 3 => some (.inr (0, true))
-  | 3, 2, 1, 2, 1 => some (.inr (0, true))
-  | 3, 2, 1, 3, 1 => some (.inr (0, true))
-  | 3, 2, 2, 2, 1 => some (.inr (0, true))
-  | 3, 2, 2, 2, 2 => some (.inr (0, true))
-  | 3, 2, 2, 2, 3 => some (.inr (0, true))
-  | 3, 2, 3, 1, 2 => some (.inr (0, true))
-  | 3, 2, 3, 2, 2 => some (.inr (0, true))
-  | 3, 2, 3, 3, 2 => some (.inr (0, true))
-  | 3, 3, 3, 2, 2 => some (.inr (0, true))
-  | 3, 3, 3, 3, 3 => some (.inr (0, false))
-  | _, _, _, _, _ => some (.inl 0)
+  let i := ((atomCode b * 4 + atomCode c) * 3 + (atomCode d - 1)) * 3 +
+    (atomCode e - 1)
+  match Nat.land (Nat.shiftRight (witnessCode (atomCode a)) (2 * i)) 3 with
+  | 1 => some (.inl 0)
+  | 2 => some (.inr (0, false))
+  | _ => some (.inr (0, true))
 
 set_option synthInstance.maxSize 1024 in
 /-- The finite extension policy for composition witnesses. -/
@@ -112,17 +98,8 @@ def witnessPolicy : WitnessPolicy table where
     simp only [table, cycleClosure_iff_bitAt tableCode_encodes]
     decide +kernel
   triangle := by
-    have check : ∀ (a b c : Atom 1 1), a ≠ none → b ≠ none →
-        cycleClosure cycles a b c → ∀ d e,
-        cycleClosure cycles d (Atom.converse e) c → (d, e) ≠ (a, Atom.converse b) →
-        ∀ d' e', cycleClosure cycles d' (Atom.converse e') c →
-        (d', e') ≠ (a, Atom.converse b) → ∀ h,
-        cycleClosure cycles d h d' → cycleClosure cycles e h e' →
-        cycleClosure cycles h (witnessLabel a b c d' e') (witnessLabel a b c d e) := by
-      simp only [cycleClosure_iff_bitAt tableCode_encodes]
-      decide +kernel
-    intro a b c d e d' e' h ha hb hc hp hp' hne hne' hd he
-    exact check a b c ha hb hc d e hp hne d' e' hp' hne' h hd he
+    exact witnessTriangle_of_check tableCode_encodes witnessLabel witnessLabelCode
+      (by decide +kernel) (by decide +kernel)
 
 /-- This catalogue algebra has a representation, with no restriction to finite bases. -/
 theorem representable : Representable Algebra :=

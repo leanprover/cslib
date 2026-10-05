@@ -7,7 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.FastCycles
-public import Cslib.Foundations.RelationAlgebra.WitnessRepresentation
+public import Cslib.Foundations.RelationAlgebra.FastWitnessRepresentation
 
 /-!
 # Catalogue algebra ⟨1, 1, 1⟩, number 7
@@ -56,6 +56,10 @@ theorem cycles_iff (x y z : Atom 1 1) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
+/-- The same witness labels, expressed directly on numeric atom codes. -/
+def witnessLabelCode (a b _c d e : ℕ) : ℕ :=
+  if d = 0 then a else if e = 0 then Code.conv 1 b else 1
+
 /-- A fresh edge has the endpoint label, or the symmetric diversity atom otherwise. -/
 def witnessLabel (a b _c d e : Atom 1 1) : Atom 1 1 :=
   if d = none then a else if e = none then Atom.converse b else some (.inl 0)
@@ -72,17 +76,8 @@ def witnessPolicy : WitnessPolicy table where
     simp only [table, cycleClosure_iff_bitAt tableCode_encodes]
     decide +kernel
   triangle := by
-    have check : ∀ (a b c : Atom 1 1), a ≠ none → b ≠ none →
-        cycleClosure cycles a b c → ∀ d e,
-        cycleClosure cycles d (Atom.converse e) c → (d, e) ≠ (a, Atom.converse b) →
-        ∀ d' e', cycleClosure cycles d' (Atom.converse e') c →
-        (d', e') ≠ (a, Atom.converse b) → ∀ h,
-        cycleClosure cycles d h d' → cycleClosure cycles e h e' →
-        cycleClosure cycles h (witnessLabel a b c d' e') (witnessLabel a b c d e) := by
-      simp only [cycleClosure_iff_bitAt tableCode_encodes]
-      decide +kernel
-    intro a b c d e d' e' h ha hb hc hp hp' hne hne' hd he
-    exact check a b c ha hb hc d e hp hne d' e' hp' hne' h hd he
+    exact witnessTriangle_of_check tableCode_encodes witnessLabel witnessLabelCode
+      (by decide +kernel) (by decide +kernel)
 
 /-- This catalogue algebra has a representation, with no restriction to finite bases. -/
 theorem representable : Representable Algebra :=

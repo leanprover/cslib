@@ -6,8 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.FastCycles
-public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
+public import Cslib.Foundations.RelationAlgebra.FastGroupRepresentation
 public import Mathlib.Algebra.Group.TypeTags.Finite
 public import Mathlib.Data.ZMod.Basic
 
@@ -62,17 +61,26 @@ theorem cycles_iff (x y z : Atom 3 0) :
 `a = {12}`,
 `b = {1, 2, 5, 7, 10, 11, 13, 14, 17, 19, 22, 23}`,
 and `c = {3, 4, 6, 8, 9, 15, 16, 18, 20, 21}`. -/
+def groupLabel (g : Multiplicative (ZMod 24)) : Atom 3 0 :=
+  if g.toAdd = 0 then none
+  else some (Sum.inl (if g.toAdd ∈ ({12} : Finset (ZMod 24)) then 0
+    else if g.toAdd ∈ ({1, 2, 5, 7, 10, 11, 13, 14, 17, 19, 22, 23} : Finset (ZMod 24)) then
+      1 else 2))
+
+private theorem groupLabel_code (g : Multiplicative (ZMod 24)) :
+    (groupLabel g).code = Code.field 193221614353384 (Nat.mul g.toAdd.val 2) 2 := by
+  revert g
+  decide +kernel
+
+/-- The group partition with the prescribed atomic products. -/
 def representation : GroupAtomRepresentation table (Multiplicative (ZMod 24)) where
-  label g :=
-    if g.toAdd = 0 then none
-    else some (Sum.inl (if g.toAdd ∈ ({12} : Finset (ZMod 24)) then 0
-      else if g.toAdd ∈ ({1, 2, 5, 7, 10, 11, 13, 14, 17, 19, 22, 23} : Finset (ZMod 24)) then
-        1 else 2))
+  label := groupLabel
   surjective := by decide +kernel
   identity := by decide +kernel
   converse := by decide +kernel
   composition := by
-    simp only [table, cycleClosure_iff_bitAt tableCode_encodes]
+    apply zmodComposition_of_check tableCode_encodes
+    simp only [Code.groupCompositionCheck, Code.groupFactorMask, groupLabel_code]
     decide +kernel
 
 /-- This catalogue algebra has a representation on 24 points. -/

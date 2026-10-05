@@ -50,7 +50,8 @@ theorem cycleOrbit_symm {c d : Cycle j k}
     Prod.mk.injEq, Option.some.injEq] at h
   rcases h with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ |
     ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
-    simp [cycleOrbit]
+    simp only [cycleOrbit, Atom.converse_some, DiversityAtom.converse_converse,
+      Finset.mem_insert, Finset.mem_singleton, Prod.mk.injEq, true_or, or_true]
 
 /-- Choose the listed diversity cycles according to a finite vector of Boolean choices. -/
 def selectedCycles (reps : Fin n → Cycle j k) (bits : Fin n → Bool) : Finset (Cycle j k) :=
@@ -81,7 +82,7 @@ theorem exists_selectedCycles (reps : Fin n → Cycle j k)
       have hrep : cycleClosure cycles (some (reps i).1)
           (some (reps i).2.1) (some (reps i).2.2) :=
         cycleClosure_of_mem_orbit
-          (Or.inr (Or.inr (Or.inr ⟨c, hc, by simp [cycleOrbit]⟩))) (cycleOrbit_symm hi)
+          (Or.inr (Or.inr (Or.inr ⟨c, hc, Finset.mem_insert_self _ _⟩))) (cycleOrbit_symm hi)
       have hm : reps i ∈ selectedCycles reps bits := by
         apply Finset.mem_image.mpr
         exact ⟨i, Finset.mem_filter.mpr ⟨Finset.mem_univ _, decide_eq_true hrep⟩, rfl⟩
@@ -133,7 +134,12 @@ theorem cycleClosure_map_of_mem_orbit {cycles : Finset (Cycle j k)}
 /-- An atom product contains the identity exactly when the factors are converses. -/
 theorem cycleClosure_none_result (cycles : Finset (Cycle j k)) (x y : Atom j k) :
     cycleClosure cycles x y none ↔ y = x.converse := by
-  cases x <;> cases y <;> simp [cycleClosure, cycleOrbit]
+  constructor
+  · intro h
+    exact ((cycleClosure_none_right cycles x.converse y).mp (cycleClosure_peirce h)).symm
+  · intro h
+    have hc := (cycleClosure_none_right cycles x.converse y).mpr h.symm
+    simpa only [Atom.converse_converse] using cycleClosure_peirce hc
 
 /-- A renaming preserves all cycles if it preserves a list meeting every Peircean orbit. -/
 theorem atomRelabelling_of_cycle_basis (reps : Fin n → Cycle j k)

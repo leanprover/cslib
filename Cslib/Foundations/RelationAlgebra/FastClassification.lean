@@ -138,4 +138,74 @@ theorem cycles_exhaustive_of_check {m p : ℕ} (reps : Fin r → Cycle j k)
     (renames w.2) (renameCodes w.2) (hcodes w.2) (hrenames w.2).1
     (hrenames w.2).2.1 (hrenames w.2).2.2 hr⟩
 
+namespace Code
+
+/-- Check a predicate on `Fin n` using the primitive bounded loop. -/
+def allFin {n : ℕ} (p : Fin n → Bool) : Bool :=
+  allBelow (fun i => if h : i < n then p ⟨i, h⟩ else false) n
+
+theorem allFin_eq_true {n : ℕ} {p : Fin n → Bool} : allFin p = true ↔ ∀ i, p i = true := by
+  rw [allFin, allBelow_eq_true]
+  constructor
+  · intro h i
+    simpa only [dite_eq_left i.isLt] using h i i.isLt
+  · intro h i hi
+    simpa only [dite_eq_left hi] using h ⟨i, hi⟩
+
+/-- Check that the identity profiles of different models are not related by any renaming. -/
+def profileDistinctCheck {m p : ℕ} (profiles : Fin m → Fin p → ℕ) (identity : Fin p) : Bool :=
+  allFin fun i => allFin fun j => allFin fun q =>
+    !Nat.beq (profiles i identity) (profiles j q) || Nat.beq i.val j.val
+
+/-- Match a cycle profile first, checking associativity only for unmatched choices. -/
+def profileClassificationCheck (n r : ℕ) (source profile : ℕ → ℕ) : Bool :=
+  allBelow (fun mask => Nat.beq mask (profile mask) || !assocCheck n (source mask)) (2 ^ r)
+
+end Code
+
+/-- A numeric profile certificate proves that no two listed models are isomorphic. -/
+theorem profileCode_injective_of_check {m p : ℕ} (profiles : Fin m → Fin p → ℕ)
+    (identity : Fin p) (h : profileDistinctCheck profiles identity = true) :
+    ∀ i j q, profiles i identity = profiles j q → i = j := by
+  intro i j q he
+  have h := allFin_eq_true.mp (allFin_eq_true.mp (allFin_eq_true.mp h i) j) q
+  apply Fin.ext
+  exact Nat.beq_eq.mp (not_or_eq_true.mp h (Nat.beq_eq.mpr he))
+
+/-- Certified cycle profiles give an exhaustive classification without comparing full tables. -/
+theorem cycles_exhaustive_of_profileCheck {m p : ℕ} (reps : Fin r → Cycle j k)
+    (cover : ∀ c : Cycle j k, ∃ i, (some c.1, some c.2.1, some c.2.2) ∈ cycleOrbit (reps i))
+    (distinct : ∀ i l, (some (reps i).1, some (reps i).2.1, some (reps i).2.2) ∈
+      cycleOrbit (reps l) ↔ i = l)
+    (models : Fin m → IntegralCycleTable j k) (renames : Fin p → Atom j k → Atom j k)
+    (hrenames : ∀ i, Function.Injective (renames i) ∧ renames i none = none ∧
+      ∀ x, renames i x.converse = (renames i x).converse)
+    (profiles : Fin m → Fin p → ℕ)
+    (hprofiles : ∀ i p, choiceMask (fun c => decide (cycleClosure (models i).cycles
+      (renames p (some (reps c).1)) (renames p (some (reps c).2.1))
+      (renames p (some (reps c).2.2)))) = profiles i p)
+    (witness : ℕ → Fin m × Fin p)
+    (h : profileClassificationCheck (atomCount j k) r (cycleChoiceCode reps)
+      (fun mask => profiles (witness mask).1 (witness mask).2) = true) :
+    ∀ bits : Fin r → Bool, AtomCompositionAssociative (selectedCycles reps bits) →
+      ∃ i : Fin m, ∃ f, AtomRelabelling (selectedCycles reps bits) (models i).cycles f := by
+  intro bits ha
+  let mask := choiceMask bits
+  have he : EncodesTable (selectedCycles reps bits) (cycleChoiceCode reps mask) := by
+    simpa only [mask, bitAt_choiceMask] using encodesTable_cycleChoiceCode reps mask
+  have hc := (assocCheck_iff he).mpr ha
+  have hh := allBelow_eq_true.mp h mask (choiceMask_lt bits)
+  rw [hc, Bool.not_true, Bool.or_false, Nat.beq_eq] at hh
+  let w := witness mask
+  refine ⟨w.1, renames w.2, atomRelabelling_of_cycle_basis reps cover
+    (hrenames w.2).1 (hrenames w.2).2.1 (hrenames w.2).2.2 ?_⟩
+  intro i
+  rw [cycleClosure_selectedCycles_rep reps distinct]
+  have hm : choiceMask bits = choiceMask (fun c => decide (cycleClosure (models w.1).cycles
+      (renames w.2 (some (reps c).1)) (renames w.2 (some (reps c).2.1))
+      (renames w.2 (some (reps c).2.2)))) := hh.trans (hprofiles w.1 w.2).symm
+  have hb := congrArg (fun code => bitAt code i) hm
+  simp only [bitAt_choiceMask] at hb
+  rw [hb, decide_eq_true_iff]
+
 end Cslib.RelationAlgebra
