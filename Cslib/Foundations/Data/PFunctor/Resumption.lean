@@ -30,8 +30,9 @@ resumptions of [GoncharovMiliusRauch2016]. Unlike the cofree comonad, whose one-
 
 ## Main definitions
 
-- `PFunctor.Resumption.dest`: the one-step view, an equivalence `destEquiv`, with the constructors
-  `pure` and `query` and a `cases` eliminator.
+- `PFunctor.Resumption.dest`: the one-step view, an equivalence `destEquiv`, with a `cases`
+  eliminator into returned values `pure a` and operations `(lift a).bind k`, as for
+  `PFunctor.FreeM`.
 - `PFunctor.Resumption.corec`: the corecursor, characterized by `corec_unique`.
 - `PFunctor.Resumption.bisim`: coinduction through the relation lifting `StepRel`.
 - `PFunctor.Resumption.bind`: sequencing, giving a lawful monad.
@@ -90,9 +91,15 @@ def dest (r : Resumption P α) : α ⊕ P.Obj (Resumption P α) :=
 protected def pure (a : α) : Resumption P α :=
   destEquiv.symm (.inl a)
 
-/-- The resumption performing the operation `a` and continuing with `k`. -/
-def query (a : P.A) (k : P.B a → Resumption P α) : Resumption P α :=
+/-- The resumption performing the operation `a` and continuing with `k`.
+
+This is an implementation detail; the simp-normal form is `(lift a).bind k` (see `liftBind_eq`). -/
+def liftBind (a : P.A) (k : P.B a → Resumption P α) : Resumption P α :=
   destEquiv.symm (.inr (.mk a k))
+
+/-- Perform the operation `a`, returning its response. -/
+def lift (a : P.A) : Resumption P (P.B a) :=
+  liftBind a .pure
 
 instance : Pure (Resumption P) where
   pure := Resumption.pure
@@ -108,10 +115,13 @@ theorem dest_mk (x : (C.{u, uB} α + P).Obj (Resumption P α)) :
 theorem dest_pure (a : α) : dest (pure a : Resumption P α) = .inl a :=
   destEquiv.apply_symm_apply _
 
-@[simp]
-theorem dest_query (a : P.A) (k : P.B a → Resumption P α) :
-    dest (query a k) = .inr (.mk a k) :=
+theorem dest_liftBind (a : P.A) (k : P.B a → Resumption P α) :
+    dest (liftBind a k) = .inr (.mk a k) :=
   destEquiv.apply_symm_apply _
+
+@[simp]
+theorem dest_lift (a : P.A) : dest (lift (P := P) a) = .inr (.mk a pure) :=
+  dest_liftBind _ _
 
 theorem dest_injective : Function.Injective (dest : Resumption P α → _) :=
   destEquiv.injective
@@ -119,15 +129,6 @@ theorem dest_injective : Function.Injective (dest : Resumption P α → _) :=
 @[simp]
 theorem dest_inj {r s : Resumption P α} : dest r = dest s ↔ r = s :=
   dest_injective.eq_iff
-
-/-- Case analysis on whether a resumption returns a value or performs an operation. -/
-@[elab_as_elim, cases_eliminator]
-protected theorem cases {motive : Resumption P α → Prop} (pure : ∀ a, motive (pure a))
-    (query : ∀ a k, motive (query a k)) (r : Resumption P α) : motive r := by
-  rw [← destEquiv.symm_apply_apply r]
-  rcases destEquiv r with a | x
-  · exact pure a
-  · cases x with | mk a k => exact query a k
 
 /-- The resumption unfolding from a state by a step function. -/
 def corec {X : Type v} (f : X → α ⊕ P.Obj X) : X → Resumption P α :=
@@ -146,7 +147,7 @@ theorem corec_unique {X : Type v} (f : X → α ⊕ P.Obj X) (g : X → Resumpti
 
 @[simp]
 theorem corec_dest : corec (dest : Resumption P α → _) = id :=
-  (corec_unique _ _ fun r => by cases r <;> simp).symm
+  (corec_unique _ _ fun _ => by simp).symm
 
 /-- Corecursion is natural in maps of states that commute with the step functions. -/
 theorem corec_comp {X : Type v} {Y : Type w} (f : X → α ⊕ P.Obj X) (g : Y → α ⊕ P.Obj Y)
@@ -158,13 +159,13 @@ operation with related continuations. -/
 inductive StepRel {X : Type v} {Y : Type w} (R : X → Y → Prop) :
     α ⊕ P.Obj X → α ⊕ P.Obj Y → Prop
   | pure (a : α) : StepRel R (.inl a) (.inl a)
-  | query (a : P.A) {k : P.B a → X} {k' : P.B a → Y} (h : ∀ i, R (k i) (k' i)) :
+  | liftBind (a : P.A) {k : P.B a → X} {k' : P.B a → Y} (h : ∀ i, R (k i) (k' i)) :
       StepRel R (.inr (.mk a k)) (.inr (.mk a k'))
 
 theorem StepRel.refl {X : Type v} {R : X → X → Prop} (hR : ∀ x, R x x) :
     ∀ s : α ⊕ P.Obj X, StepRel R s s
   | .inl a => .pure a
-  | .inr (.mk a _) => .query a fun _ => hR _
+  | .inr (.mk a _) => .liftBind a fun _ => hR _
 
 /-- Coinduction: related resumptions are equal when related resumptions take related steps. -/
 theorem bisim (R : Resumption P α → Resumption P α → Prop)
@@ -178,13 +179,6 @@ theorem bisim (R : Resumption P α → Resumption P α → Prop)
   rw [← (stepEquiv P α _).symm_apply_apply (M.dest r),
     ← (stepEquiv P α _).symm_apply_apply (M.dest s)]
   exact step (h r s hrs)
-
-/-- Perform the operation `a`, returning its response. -/
-def lift (a : P.A) : Resumption P (P.B a) :=
-  query a pure
-
-@[simp]
-theorem lift_eq_query (a : P.A) : lift a = query (P := P) a pure := rfl
 
 /-- The step function of `bind`: run the first resumption, then the continuation of its result. -/
 def bindStep (k : α → Resumption P β) :
@@ -213,10 +207,32 @@ theorem corec_bindStep_comp_inr (k : α → Resumption P β) : corec (bindStep k
 theorem pure_bind (a : α) (k : α → Resumption P β) : (pure a : Resumption P α).bind k = k a :=
   dest_injective (by simp [Resumption.bind, bindStep, Sum.map_map])
 
+theorem liftBind_bind_eq (a : P.A) (f : P.B a → Resumption P α) (k : α → Resumption P β) :
+    (liftBind a f).bind k = liftBind a fun i => (f i).bind k :=
+  dest_injective (by simp [Resumption.bind, bindStep, dest_liftBind]; rfl)
+
 @[simp]
-theorem query_bind (a : P.A) (f : P.B a → Resumption P α) (k : α → Resumption P β) :
-    (query a f).bind k = query a fun i => (f i).bind k :=
-  dest_injective (by simp [Resumption.bind, bindStep]; rfl)
+theorem liftBind_eq (a : P.A) (k : P.B a → Resumption P α) : liftBind a k = (lift a).bind k := by
+  simp [lift, liftBind_bind_eq]
+
+/-- Case analysis on whether a resumption returns a value or performs an operation. -/
+@[elab_as_elim, cases_eliminator]
+protected theorem cases {motive : Resumption P α → Prop} (pure : ∀ a, motive (pure a))
+    (lift_bind : ∀ a k, motive ((lift a).bind k)) (r : Resumption P α) : motive r := by
+  rw [← destEquiv.symm_apply_apply r]
+  rcases destEquiv r with a | x
+  · exact pure a
+  · cases x with | mk a k => exact (liftBind_eq a k ▸ lift_bind a k : motive (liftBind a k))
+
+@[simp]
+theorem dest_lift_bind (a : P.A) (k : P.B a → Resumption P α) :
+    dest ((lift a).bind (α := no_index (P.B a)) k) = .inr (.mk a k) := by
+  rw [← liftBind_eq, dest_liftBind]
+
+@[simp]
+theorem liftBind_bind (a : P.A) (k : P.B a → Resumption P α) (k' : α → Resumption P β) :
+    ((lift a).bind k).bind k' = (lift a).bind fun i => (k i).bind k' := by
+  simp only [← liftBind_eq, liftBind_bind_eq]
 
 @[simp]
 theorem bind_pure (r : Resumption P α) : r.bind pure = r :=
@@ -224,29 +240,33 @@ theorem bind_pure (r : Resumption P α) : r.bind pure = r :=
     subst h
     cases y with
     | pure a => simp only [pure_bind, dest_pure]; exact .pure a
-    | query a k => simp only [query_bind, dest_query]; exact .query a fun _ => rfl) rfl
+    | lift_bind a k => simp only [liftBind_bind, dest_lift_bind]; exact .liftBind a fun _ => rfl)
+    rfl
 
-theorem bind_assoc (r : Resumption P α) (k : α → Resumption P β) (k' : β → Resumption P γ) :
-    (r.bind k).bind k' = r.bind fun a => (k a).bind k' :=
+protected theorem bind_assoc (r : Resumption P α) (k : α → Resumption P β)
+    (k' : β → Resumption P γ) : (r.bind k).bind k' = r.bind fun a => (k a).bind k' :=
   bisim (fun x y => x = y ∨ ∃ r, x = (r.bind k).bind k' ∧ y = r.bind fun a => (k a).bind k')
     (fun x y h => by
       obtain rfl | ⟨r, rfl, rfl⟩ := h
       · exact StepRel.refl (fun _ => .inl rfl) _
       · cases r with
         | pure a => simp only [pure_bind]; exact StepRel.refl (fun _ => .inl rfl) _
-        | query a f =>
-          simp only [query_bind, dest_query]
-          exact .query a fun i => .inr ⟨f i, rfl, rfl⟩)
+        | lift_bind a f =>
+          simp only [liftBind_bind, dest_lift_bind]
+          exact .liftBind a fun i => .inr ⟨f i, rfl, rfl⟩)
     (.inr ⟨r, rfl, rfl⟩)
+
+@[simp]
+theorem bind_pure_comp (f : α → β) (r : Resumption P α) : r.bind (pure ∘ f) = r.map f := rfl
 
 @[simp]
 theorem map_pure (f : α → β) (a : α) : (pure a : Resumption P α).map f = pure (f a) :=
   pure_bind _ _
 
 @[simp]
-theorem map_query (f : α → β) (a : P.A) (k : P.B a → Resumption P α) :
-    (query a k).map f = query a fun i => (k i).map f :=
-  query_bind _ _ _
+theorem map_bind (f : β → γ) (r : Resumption P α) (k : α → Resumption P β) :
+    (r.bind k).map f = r.bind fun a => (k a).map f :=
+  Resumption.bind_assoc _ _ _
 
 section Monad
 
@@ -267,18 +287,13 @@ theorem map_eq_map : (Resumption.map : (α → β) → Resumption P α → _) = 
 instance : LawfulMonad (Resumption P) := LawfulMonad.mk'
   (id_map := bind_pure)
   (pure_bind := pure_bind)
-  (bind_assoc := bind_assoc)
-  (bind_pure_comp := fun _ _ => rfl)
+  (bind_assoc := Resumption.bind_assoc)
+  (bind_pure_comp := bind_pure_comp)
 
 @[simp]
-theorem query_bind' (a : P.A) (f : P.B a → Resumption P α) (k : α → Resumption P β) :
-    query a f >>= k = query a fun i => f i >>= k :=
-  query_bind a f k
-
-@[simp]
-theorem map_query' (f : α → β) (a : P.A) (k : P.B a → Resumption P α) :
-    f <$> query a k = query a fun i => f <$> k i :=
-  map_query f a k
+theorem dest_lift_bind' (a : P.A) {α : Type uB} (k : P.B a → Resumption P α) :
+    dest (Bind.bind (α := no_index (P.B a)) (lift a) k) = .inr (.mk a k) :=
+  dest_lift_bind a k
 
 end Monad
 
@@ -298,12 +313,12 @@ theorem toResumption_pure (a : α) : toResumption (pure a : P.FreeM α) = pure a
   Resumption.dest_injective (by rw [toResumption, toW_pure, W.toM_mk]; rfl)
 
 theorem toResumption_lift_bind (a : P.A) (cont : P.B a → P.FreeM α) :
-    toResumption ((lift a).bind cont) = .query a fun b => toResumption (cont b) :=
+    toResumption ((lift a).bind cont) = (Resumption.lift a).bind fun b => toResumption (cont b) :=
   Resumption.dest_injective (by simp [toResumption]; rfl)
 
 @[simp]
 theorem toResumption_lift (a : P.A) :
-    toResumption (α := no_index (P.B a)) (lift a) = .query a pure := by
+    toResumption (α := no_index (P.B a)) (lift a) = Resumption.lift a := by
   simpa using toResumption_lift_bind a (pure : P.B a → P.FreeM (P.B a))
 
 @[simp]

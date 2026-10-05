@@ -18,9 +18,11 @@ private def flips : (y^ Bool).FreeM Bool := do
   pure (b && !c)
 
 -- Embedding a `do` program, which uses `>>=` and `<$>` rather than the universe-polymorphic
--- `bind` and `map`, normalizes to explicit queries.
-example : flips.toResumption =
-    Resumption.query () fun b => Resumption.query () fun c => pure (b && !c) := by
+-- `bind` and `map`, gives the same program over resumptions.
+example : flips.toResumption = (do
+    let b ← Resumption.lift ()
+    let c ← Resumption.lift ()
+    pure (b && !c)) := by
   simp [flips]
 
 end CslibTests.Resumption
