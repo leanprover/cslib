@@ -284,6 +284,7 @@ public import Cslib.Foundations.RelationAlgebra.Cycles
 public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
 public import Cslib.Foundations.RelationAlgebra.GeneralLemmas
 public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.OrderedRepresentation
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS

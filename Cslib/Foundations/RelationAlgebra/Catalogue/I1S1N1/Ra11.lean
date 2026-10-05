@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.OrderedRepresentation
 
 /-!
 # Catalogue algebra ⟨1, 1, 1⟩, number 11
@@ -15,7 +15,7 @@ Entry 11 in the ⟨1, 1, 1⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `abb ab~b~ bbb`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+The algebra is represented by replacing each rational point with a 2-point fiber.
 -/
 
 @[expose] public section
@@ -47,8 +47,12 @@ theorem cycles_iff (x y z : Atom 1 1) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
-/-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+/-- The atomic representation on the rational order and a 2-point finite fiber. -/
+def representation : AtomRepresentation table (ℚ × Fin 2) :=
+  OrderedRepresentation.clustered false table (by decide +kernel)
+
+/-- This catalogue algebra has a representation on an infinite rational base. -/
+theorem representable : Representable Algebra :=
+  representation.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S1N1.Ra11
