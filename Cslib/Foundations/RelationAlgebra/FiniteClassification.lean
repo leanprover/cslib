@@ -108,6 +108,94 @@ instance (c d : Finset (Cycle j k)) (f : Atom j k → Atom j k) :
   unfold AtomRelabelling Function.Injective
   infer_instance
 
+/-- A converse-preserving map transports every Peircean transform of a cycle. -/
+theorem cycleClosure_map_of_mem_orbit {cycles : Finset (Cycle j k)}
+    {f : Atom j k → Atom j k} (hf : ∀ x, f x.converse = (f x).converse)
+    {c : Cycle j k}
+    (hc : cycleClosure cycles (f (some c.1)) (f (some c.2.1)) (f (some c.2.2)))
+    {x y z : Atom j k} (h : (x, y, z) ∈ cycleOrbit c) :
+    cycleClosure cycles (f x) (f y) (f z) := by
+  have h1 := cycleClosure_peirce hc
+  have h3 := cycleClosure_converse hc
+  have h4 := cycleClosure_peirce h3
+  have h2 := cycleClosure_converse h4
+  have h5 := cycleClosure_converse h1
+  simp only [cycleOrbit, Finset.mem_insert, Finset.mem_singleton, Prod.mk.injEq] at h
+  rcases h with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ |
+    ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+  · exact hc
+  · simpa only [hf] using h1
+  · simpa only [hf, Atom.converse_converse] using h2
+  · simpa only [hf] using h3
+  · simpa only [hf, Atom.converse_converse] using h4
+  · simpa only [hf, Atom.converse_converse] using h5
+
+/-- An atom product contains the identity exactly when the factors are converses. -/
+theorem cycleClosure_none_result (cycles : Finset (Cycle j k)) (x y : Atom j k) :
+    cycleClosure cycles x y none ↔ y = x.converse := by
+  cases x <;> cases y <;> simp [cycleClosure, cycleOrbit]
+
+/-- A renaming preserves all cycles if it preserves a list meeting every Peircean orbit. -/
+theorem atomRelabelling_of_cycle_basis (reps : Fin n → Cycle j k)
+    (cover : ∀ c : Cycle j k, ∃ i, (some c.1, some c.2.1, some c.2.2) ∈ cycleOrbit (reps i))
+    {S T : Finset (Cycle j k)} {f : Atom j k → Atom j k}
+    (hf : Function.Injective f) (hn : f none = none)
+    (hc : ∀ x, f x.converse = (f x).converse)
+    (hp : ∀ i, cycleClosure S (some (reps i).1) (some (reps i).2.1) (some (reps i).2.2) ↔
+      cycleClosure T (f (some (reps i).1)) (f (some (reps i).2.1)) (f (some (reps i).2.2))) :
+    AtomRelabelling S T f := by
+  refine ⟨hf, hn, hc, ?_⟩
+  intro x y z
+  rcases x with _ | x
+  · simp only [hn, cycleClosure_none_left, hf.eq_iff]
+  rcases y with _ | y
+  · simp only [hn, cycleClosure_none_right, hf.eq_iff]
+  rcases z with _ | z
+  · simp only [hn, cycleClosure_none_result, ← hc, hf.eq_iff]
+  obtain ⟨i, hi⟩ := cover (x, y, z)
+  constructor
+  · intro h
+    have hs := cycleClosure_of_mem_orbit h (cycleOrbit_symm hi)
+    exact cycleClosure_map_of_mem_orbit hc ((hp i).mp hs) hi
+  · intro h
+    have ht := cycleClosure_map_of_mem_orbit hc h (cycleOrbit_symm hi)
+    exact cycleClosure_of_mem_orbit ((hp i).mpr ht) hi
+
+/-- Evaluate selected cycles from their Boolean choices, without constructing a finset. -/
+theorem cycleClosure_selectedCycles (reps : Fin n → Cycle j k) (bits : Fin n → Bool)
+    (x y z : Atom j k) :
+    cycleClosure (selectedCycles reps bits) x y z ↔
+      (x = none ∧ y = z) ∨ (y = none ∧ x = z) ∨
+        (z = none ∧ y = x.converse) ∨
+          ∃ i : Fin n, bits i = true ∧ (x, y, z) ∈ cycleOrbit (reps i) := by
+  constructor
+  · rintro (h | h | h | ⟨c, hc, h⟩)
+    · exact Or.inl h
+    · exact Or.inr (Or.inl h)
+    · exact Or.inr (Or.inr (Or.inl h))
+    · obtain ⟨i, hi, rfl⟩ := Finset.mem_image.mp hc
+      exact Or.inr (Or.inr (Or.inr ⟨i, (Finset.mem_filter.mp hi).2, h⟩))
+  · rintro (h | h | h | ⟨i, hi, h⟩)
+    · exact Or.inl h
+    · exact Or.inr (Or.inl h)
+    · exact Or.inr (Or.inr (Or.inl h))
+    · refine Or.inr (Or.inr (Or.inr ⟨reps i, ?_, h⟩))
+      exact Finset.mem_image.mpr ⟨i, Finset.mem_filter.mpr ⟨Finset.mem_univ _, hi⟩, rfl⟩
+
+/-- For distinct Peircean orbits, a representative is selected exactly when its bit is true. -/
+theorem cycleClosure_selectedCycles_rep (reps : Fin n → Cycle j k)
+    (distinct : ∀ i l, (some (reps i).1, some (reps i).2.1, some (reps i).2.2) ∈
+      cycleOrbit (reps l) ↔ i = l) (bits : Fin n → Bool) (i : Fin n) :
+    cycleClosure (selectedCycles reps bits)
+      (some (reps i).1) (some (reps i).2.1) (some (reps i).2.2) ↔ bits i = true := by
+  rw [cycleClosure_selectedCycles]
+  simp only [Option.some_ne_none, false_and, false_or, distinct]
+  constructor
+  · rintro ⟨l, hl, rfl⟩
+    exact hl
+  · intro hi
+    exact ⟨i, hi, rfl⟩
+
 /-- Singletons identify the atom indices with the Boolean atoms of a complex algebra. -/
 noncomputable def Complex.atomLabelling (T : IntegralCycleTable j k) :
     AtomLabelling (Complex T) j k where
