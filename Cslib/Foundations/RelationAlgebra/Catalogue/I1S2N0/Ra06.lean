@@ -6,7 +6,9 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
+public import Mathlib.Algebra.Group.TypeTags.Finite
+public import Mathlib.Data.ZMod.Basic
 
 /-!
 # Catalogue algebra ⟨1, 2, 0⟩, number 6
@@ -15,7 +17,7 @@ Entry 6 in the ⟨1, 2, 0⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `aab abb aaa`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+The representation below partitions the cyclic group of order 8.
 -/
 
 @[expose] public section
@@ -46,8 +48,18 @@ theorem cycles_iff (x y z : Atom 2 0) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
-/-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+/-- The blocks are identity, `a = {2, 3, 5, 6}`, and `b = {1, 4, 7}` modulo 8. -/
+def representation : GroupAtomRepresentation table (Multiplicative (ZMod 8)) where
+  label g :=
+    if g.toAdd = 0 then none
+    else some (Sum.inl (if g.toAdd ∈ ({2, 3, 5, 6} : Finset (ZMod 8)) then 0 else 1))
+  surjective := by decide +kernel
+  identity := by decide +kernel
+  converse := by decide +kernel
+  composition := by decide +kernel
+
+/-- This catalogue algebra has a representation on 8 points. -/
+theorem representable : Representable Algebra :=
+  representation.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S2N0.Ra06
