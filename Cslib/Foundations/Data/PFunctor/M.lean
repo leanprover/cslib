@@ -48,14 +48,14 @@ def W.toM : P.W → P.M :=
 
 @[simp]
 theorem W.toM_mk (a : P.A) (f : P.B a → P.W) :
-    (W.mk ⟨a, f⟩).toM = M.mk ⟨a, fun i => (f i).toM⟩ :=
+    (W.mk (.mk a f)).toM = M.mk (.mk a fun i => (f i).toM) :=
   M.dest_injective (M.dest_corec _ _)
 
 namespace M
 
 /-- `c` is an immediate subtree of `t`. -/
 def IsChild (c t : P.M) : Prop :=
-  ∃ i, (M.dest t).2 i = c
+  ∃ i, (M.dest t).snd i = c
 
 /-- An M-tree is well-founded when it is accessible for the immediate-subtree relation, i.e. it has
 no infinite descending path. Its branches need not have a common depth bound. -/
@@ -63,16 +63,17 @@ abbrev IsWellFounded (t : P.M) : Prop :=
   Acc IsChild t
 
 theorem isWellFounded_mk {a : P.A} {f : P.B a → P.M} :
-    (M.mk ⟨a, f⟩).IsWellFounded ↔ ∀ i, (f i).IsWellFounded :=
+    (M.mk (.mk a f)).IsWellFounded ↔ ∀ i, (f i).IsWellFounded :=
   ⟨fun h i => h.inv ⟨i, rfl⟩, fun h => ⟨_, fun _ ⟨i, hi⟩ => hi ▸ h i⟩⟩
 
 /-- The W-tree represented by a well-founded M-tree. -/
 def toW (t : P.M) (h : t.IsWellFounded) : P.W :=
-  Acc.rec (motive := fun _ _ => P.W) (fun t _ ih => W.mk ⟨(M.dest t).1, fun i => ih _ ⟨i, rfl⟩⟩) h
+  Acc.rec (motive := fun _ _ => P.W)
+    (fun t _ ih => W.mk (.mk (M.dest t).fst fun i => ih _ ⟨i, rfl⟩)) h
 
 @[simp]
-theorem toW_mk (a : P.A) (f : P.B a → P.M) (h : (M.mk ⟨a, f⟩).IsWellFounded) :
-    (M.mk ⟨a, f⟩).toW h = W.mk ⟨a, fun i => (f i).toW (isWellFounded_mk.1 h i)⟩ := by
+theorem toW_mk (a : P.A) (f : P.B a → P.M) (h : (M.mk (.mk a f)).IsWellFounded) :
+    (M.mk (.mk a f)).toW h = W.mk (.mk a fun i => (f i).toW (isWellFounded_mk.1 h i)) := by
   cases h; rfl
 
 end M
@@ -91,9 +92,10 @@ theorem W.toM_toW (t : P.M) (h : t.IsWellFounded) : (t.toW h).toM = t := by
   | intro t _ ih =>
     induction t using M.cases with
     | f x =>
-      obtain ⟨a, f⟩ := x
-      rw [M.toW_mk, W.toM_mk]
-      exact congrArg (M.mk ⟨a, ·⟩) (funext fun i => ih _ ⟨i, rfl⟩)
+      cases x with
+      | mk a f =>
+        rw [M.toW_mk, W.toM_mk]
+        exact congrArg (M.mk <| .mk a ·) (funext fun i => ih _ ⟨i, rfl⟩)
 
 /-- W-trees are exactly the well-founded M-trees. -/
 @[simps]

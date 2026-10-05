@@ -76,27 +76,27 @@ def FreeM.equivWOfIsEmpty [IsEmpty α] : P.FreeM α ≃ P.W where
 
 /-- Regard a free program as a W-tree of `C α + P`, whose leaves carry the returned values. -/
 def FreeM.toW : P.FreeM α → (C.{u, uB} α + P).W
-  | .pure a => W.mk ⟨.inl a, PEmpty.elim⟩
-  | .liftBind a cont => W.mk ⟨.inr a, fun b => FreeM.toW (cont b)⟩
+  | .pure a => W.mk (.mk (.inl a) PEmpty.elim)
+  | .liftBind a cont => W.mk (.mk (.inr a) fun b => FreeM.toW (cont b))
 
 /-- Read a W-tree of `C α + P` as a free program. -/
 def FreeM.ofW : (C.{u, uB} α + P).W → P.FreeM α
-  | ⟨.inl a, _⟩ => .pure a
-  | ⟨.inr a, cont⟩ => .liftBind a fun b => FreeM.ofW (cont b)
+  | WType.mk (.inl a) _ => .pure a
+  | WType.mk (.inr a) cont => .liftBind a fun b => FreeM.ofW (cont b)
 
 @[simp]
 theorem FreeM.toW_pure (a : α) :
-    toW (pure a : P.FreeM α) = (W.mk ⟨.inl a, PEmpty.elim⟩ : (C.{u, uB} α + P).W) := rfl
+    toW (pure a : P.FreeM α) = (W.mk (.mk (.inl a) PEmpty.elim) : (C.{u, uB} α + P).W) := rfl
 
 @[simp]
 theorem FreeM.toW_lift_bind (a : P.A) (cont : P.B a → P.FreeM α) :
     toW ((lift a).bind (α := no_index (P.B a)) cont) =
-      (W.mk ⟨.inr a, fun b => toW (cont b)⟩ : (C.{u, uB} α + P).W) := rfl
+      (W.mk (.mk (.inr a) fun b => toW (cont b)) : (C.{u, uB} α + P).W) := rfl
 
 @[simp]
 theorem FreeM.toW_lift_bind' {α : Type uB} (a : P.A) (cont : P.B a → P.FreeM α) :
     toW (Bind.bind (α := no_index (P.B a)) (lift a) cont) =
-      (W.mk ⟨.inr a, fun b => toW (cont b)⟩ : (C.{uB, uB} α + P).W) := rfl
+      (W.mk (.mk (.inr a) fun b => toW (cont b)) : (C.{uB, uB} α + P).W) := rfl
 
 @[simp]
 theorem FreeM.ofW_toW (x : P.FreeM α) : ofW (toW x) = x := by
@@ -109,8 +109,8 @@ theorem FreeM.toW_ofW (w : (C.{u, uB} α + P).W) : toW (ofW w) = w := by
   induction w with
   | mk a f ih =>
     cases a with
-    | inl a => exact congrArg (fun f => (W.mk ⟨.inl a, f⟩ : (C α + P).W)) (funext (·.elim))
-    | inr a => exact congrArg (fun f => (W.mk ⟨.inr a, f⟩ : (C α + P).W)) (funext ih)
+    | inl a => exact congrArg (fun f => (W.mk (.mk (.inl a) f) : (C α + P).W)) (funext (·.elim))
+    | inr a => exact congrArg (fun f => (W.mk (.mk (.inr a) f) : (C α + P).W)) (funext ih)
 
 /-- Free programs are the W-trees of `C α + P`. -/
 @[simps]

@@ -163,7 +163,7 @@ variable {P : PFunctor.{uA, uB}}
 /-- Induction on `P.W` through `W.mk`, keeping subtrees typed as `P.W` rather than `WType P.B`. -/
 @[elab_as_elim, induction_eliminator]
 protected theorem W.induction {motive : P.W → Prop}
-    (mk : ∀ (a : P.A) (f : P.B a → P.W), (∀ i, motive (f i)) → motive (W.mk ⟨a, f⟩))
+    (mk : ∀ (a : P.A) (f : P.B a → P.W), (∀ i, motive (f i)) → motive (W.mk (.mk a f)))
     (w : P.W) : motive w := by
   induction w using WType.rec with
   | mk a f ih => exact mk a f ih
