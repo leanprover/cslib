@@ -28,23 +28,23 @@ def cycles : Finset (Cycle 2 0) :=
   let b : DiversityAtom 2 0 := Sum.inl 1
   {(a, a, b), (a, b, b)}
 
-/-- The cycle table, with its associativity obligation deferred. -/
+/-- The cycle table, with associativity checked by the kernel. -/
 def table : IntegralCycleTable 2 0 where
   cycles := cycles
-  associative := by sorry
+  associative := by decide +kernel
 
 /-- The finite relation algebra determined by this table. -/
 abbrev Algebra : Type := Complex table
 
 /-- This algebra has the signature of its catalogue row. -/
-theorem signature : HasSignature Algebra 1 2 0 := by
-  sorry
+theorem signature : HasSignature Algebra 1 2 0 :=
+  Complex.hasSignature table
 
 /-- Atomic multiplication is characterized exactly by the listed cycles and their closure. -/
 theorem cycles_iff (x y z : Atom 2 0) :
     Complex.atom table z ≤ Complex.atom table x * Complex.atom table y ↔
-      cycleClosure cycles x y z := by
-  sorry
+      cycleClosure cycles x y z :=
+  Complex.atom_le_mul_iff table x y z
 
 /-- This catalogue algebra has a representation, with no restriction to finite bases. -/
 theorem representable : Representable Algebra := by

@@ -279,7 +279,10 @@ public import Cslib.Foundations.RelationAlgebra.Catalogue.I1S3N0.Ra62
 public import Cslib.Foundations.RelationAlgebra.Catalogue.I1S3N0.Ra63
 public import Cslib.Foundations.RelationAlgebra.Catalogue.I1S3N0.Ra64
 public import Cslib.Foundations.RelationAlgebra.Catalogue.I1S3N0.Ra65
+public import Cslib.Foundations.RelationAlgebra.Classification
 public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
+public import Cslib.Foundations.RelationAlgebra.GeneralLemmas
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.Semantics.FLTS.Basic
