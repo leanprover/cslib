@@ -6,9 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Init
-public import Mathlib.Data.Finset.Basic
-public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+public import Cslib.Probability.Measure
 
 /-!
 # Secret Sharing Schemes
@@ -32,13 +30,16 @@ coalitions.
 
 @[expose] public section
 
+open MeasureTheory ProbabilityTheory Cslib.Probability.Measure
+
 namespace Cslib.Crypto.Protocols.SecretSharing
 
 /-- The view distribution induced by raw sharing data. -/
 noncomputable def viewDistOf {Secret Randomness Party Share : Type*}
-    (gen : PMF Randomness) (share : Randomness → Secret → Party → Share)
-    (s : Finset Party) (secret : Secret) : PMF (s → Share) :=
-  PMF.map (fun r : Randomness => (fun i : s => share r secret i : s → Share)) gen
+    [MeasurableSpace Randomness] [MeasurableSpace Share]
+    (gen : Measure Randomness) (share : Randomness → Secret → Party → Share)
+    (s : Finset Party) (secret : Secret) : Measure (s → Share) :=
+  Measure.map (fun r : Randomness => (fun i : s => share r secret i : s → Share)) gen
 
 /--
 A secret-sharing scheme over secret space `Secret`, randomness space
@@ -49,11 +50,16 @@ secret from the shares generated using any randomness seed. Privacy is
 distributional: unauthorized coalitions have the same view distribution for all
 secrets.
 -/
-structure Scheme (Secret Randomness Party Share : Type*) where
+structure Scheme (Secret Randomness Party Share : Type*)
+    [MeasurableSpace Secret] [MeasurableSpace Randomness] [MeasurableSpace Share] where
   /-- The distribution used to sample the protocol's randomness. -/
-  gen : PMF Randomness
+  gen : Measure Randomness
+  /-- Randomness sampling has total mass one. -/
+  gen_isProbabilityMeasure : IsProbabilityMeasure gen
   /-- Sharing algorithm: one randomness seed determines one share per party. -/
   share : Randomness → Secret → Party → Share
+  /-- Sharing is jointly measurable in its randomness and secret. -/
+  share_measurable : Measurable (Function.uncurry share)
   /-- Reconstruction from a coalition's observed shares. -/
   reconstruct (s : Finset Party) : (s → Share) → Secret
   /-- Authorized coalitions. -/
@@ -69,14 +75,28 @@ structure Scheme (Secret Randomness Party Share : Type*) where
     ∀ (s : Finset Party), ¬ authorized s → ∀ secret₀ secret₁ : Secret,
       viewDistOf gen share s secret₀ = viewDistOf gen share s secret₁
 
+attribute [instance] Scheme.gen_isProbabilityMeasure
+
 namespace Scheme
 
 variable {Secret Randomness Party Share : Type*}
+variable [MeasurableSpace Secret] [MeasurableSpace Randomness] [MeasurableSpace Share]
 
 /-- The restricted shares observed by the coalition `s`. -/
 def view (scheme : Scheme Secret Randomness Party Share) (s : Finset Party)
     (r : Randomness) (secret : Secret) : s → Share :=
   fun i => scheme.share r secret i
+
+/-- The measurable channel from secrets to coalition views. -/
+noncomputable def viewKernel (scheme : Scheme Secret Randomness Party Share)
+    (s : Finset Party) : Kernel Secret (s → Share) :=
+  sampleKernel scheme.gen (scheme.view s) <|
+    Measurable.of_eval fun i => (measurable_pi_apply (i : Party)).comp scheme.share_measurable
+
+instance (scheme : Scheme Secret Randomness Party Share) (s : Finset Party) :
+    IsMarkovKernel (scheme.viewKernel s) := by
+  dsimp [viewKernel]
+  infer_instance
 
 @[simp]
 theorem view_apply (scheme : Scheme Secret Randomness Party Share) (s : Finset Party)

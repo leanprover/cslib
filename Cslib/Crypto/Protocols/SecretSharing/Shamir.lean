@@ -7,9 +7,8 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
-public import Mathlib.Probability.Distributions.Uniform
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir.Polynomial
-import Cslib.Probability.PMF
+import Mathlib.MeasureTheory.Group.Arithmetic
 
 /-!
 # Shamir Secret Sharing
@@ -63,7 +62,7 @@ noncomputable section
 
 namespace Cslib.Crypto.Protocols.SecretSharing.Shamir
 
-open Cslib.Probability.PMF
+open MeasureTheory ProbabilityTheory Cslib.Probability.Measure
 
 variable {F Party : Type*} [Field F] [Fintype Party]
 
@@ -109,21 +108,49 @@ noncomputable def reconstruct (params : Params F Party)
     (s : Finset Party) (σ : s → F) : F :=
   Polynomial.reconstruct (fun i : s => params.point i) σ
 
+section Sampling
+
+variable [MeasurableSpace F]
+
+/-- The polynomial sharing operation is jointly measurable in the coefficients and secret. -/
+theorem share_measurable [MeasurableAdd₂ F] [MeasurableMul₂ F] (params : Params F Party) :
+    Measurable (Function.uncurry (share params)) := by
+  have heval (coeffs : Randomness params) (x : F) :
+      (Polynomial.tailPolynomial params.threshold coeffs).eval x =
+        ∑ i : Fin params.threshold, coeffs i * x ^ (i : ℕ) := by
+    simpa [Polynomial.tailPolynomial] using
+      _root_.Polynomial.eval_eq_sum_degreeLTEquiv
+        (((_root_.Polynomial.degreeLTEquiv F params.threshold).symm coeffs).property) x
+  apply Measurable.of_eval
+  intro i
+  change Measurable (fun x : Randomness params × F =>
+    (Polynomial.sharingPolynomial x.2
+      (Polynomial.tailPolynomial params.threshold x.1)).eval (params.point i))
+  simp_rw [Polynomial.sharingPolynomial_eval, heval]
+  fun_prop
+
 /-- A sampler on Shamir tail coefficients is privacy-compatible when its
 distribution is invariant under translation by any coefficient vector. This is
 the exact symmetry needed in the privacy proof. -/
 structure TailSampler (params : Params F Party) where
   /-- The underlying coefficient distribution. -/
-  gen : PMF (Randomness params)
+  gen : Measure (Randomness params)
+  /-- The sampler has total mass one. -/
+  gen_isProbabilityMeasure : IsProbabilityMeasure gen
   /-- Translating the coefficients does not change the distribution. -/
   map_add_eq_self : ∀ δ : Randomness params, gen.map (fun coeffs => coeffs + δ) = gen
 
+attribute [instance] TailSampler.gen_isProbabilityMeasure
+
 /-- Uniform tail coefficients form the canonical privacy-compatible sampler. -/
 noncomputable def uniformTailSampler (params : Params F Party)
-    [Fintype F] [Nonempty F] : TailSampler params where
-  gen := PMF.uniformOfFintype (Randomness params)
+    [Fintype F] [Nonempty F] [MeasurableSingletonClass F] : TailSampler params where
+  gen := uniformOfFintype (Randomness params)
+  gen_isProbabilityMeasure := inferInstance
   map_add_eq_self δ := by
-    simpa using uniformOfFintype_map_equiv (Equiv.addRight δ)
+    simpa using uniformOn_univ_map_equiv (Equiv.addRight δ)
+
+end Sampling
 
 private noncomputable def privacyCorrectionPolynomial
     (params : Params F Party) (s : Finset Party)
@@ -204,6 +231,8 @@ private theorem view_eq_view_add_privacyCorrection
   field_simp [params.point_nonzero i]
   ring
 
+variable [MeasurableSpace F] [MeasurableAdd₂ F] [MeasurableMul₂ F]
+
 /-- Translation-invariant Shamir tail samplers induce secret-independent views
 for unauthorized coalitions. -/
 theorem view_indist_of_tailSampler (params : Params F Party)
@@ -218,9 +247,9 @@ theorem view_indist_of_tailSampler (params : Params F Party)
     exact Nat.lt_succ_iff.mp (Nat.not_le.mp hs')
   unfold viewDistOf
   calc
-    PMF.map (fun coeffs : Randomness params =>
+    Measure.map (fun coeffs : Randomness params =>
         (fun i : s => share params coeffs secret₀ i : s → F)) sampler.gen =
-      PMF.map
+      Measure.map
         (fun coeffs : Randomness params => (fun i : s =>
           share params
             (coeffs + privacyCorrection (F := F) params s hcard secret₀ secret₁)
@@ -229,14 +258,18 @@ theorem view_indist_of_tailSampler (params : Params F Party)
         funext coeffs
         exact view_eq_view_add_privacyCorrection
           (F := F) params s hcard secret₀ secret₁ coeffs
-    _ = PMF.map (fun coeffs : Randomness params =>
+    _ = Measure.map (fun coeffs : Randomness params =>
           (fun i : s => share params coeffs secret₁ i : s → F))
-        (PMF.map
+        (Measure.map
           (fun coeffs => coeffs + privacyCorrection (F := F) params s hcard secret₀ secret₁)
           sampler.gen) := by
-          rw [PMF.map_comp]
-          rfl
-    _ = PMF.map (fun coeffs : Randomness params =>
+          rw [Measure.map_map]
+          · rfl
+          · exact Measurable.of_eval fun i =>
+              (measurable_pi_apply (i : Party)).comp
+                ((share_measurable params).comp (measurable_id.prodMk measurable_const))
+          · fun_prop
+    _ = Measure.map (fun coeffs : Randomness params =>
           (fun i : s => share params coeffs secret₁ i : s → F)) sampler.gen := by
           rw [sampler.map_add_eq_self]
 
@@ -245,7 +278,9 @@ noncomputable def schemeWith (params : Params F Party) (sampler : TailSampler pa
     :
     SecretSharing.Scheme F (Randomness params) Party F :=
   { gen := sampler.gen
+    gen_isProbabilityMeasure := inferInstance
     share := share params
+    share_measurable := share_measurable params
     reconstruct := reconstruct params
     authorized := authorized params
     authorized_mono := fun _ _ hsu hs => le_trans hs (Finset.card_le_card hsu)
@@ -280,7 +315,7 @@ noncomputable def schemeWith (params : Params F Party) (sampler : TailSampler pa
 /-- The canonical finite-field Shamir scheme with uniformly sampled tail
 coefficients. -/
 noncomputable def scheme (params : Params F Party)
-    [Fintype F] [Nonempty F] :
+    [Fintype F] [Nonempty F] [MeasurableSingletonClass F] :
     SecretSharing.Scheme F (Randomness params) Party F :=
   schemeWith params (uniformTailSampler params)
 
@@ -292,7 +327,7 @@ theorem schemeWith_authorized_iff (params : Params F Party)
 
 @[simp]
 theorem scheme_authorized_iff (params : Params F Party)
-    [Fintype F] [Nonempty F] (s : Finset Party) :
+    [Fintype F] [Nonempty F] [MeasurableSingletonClass F] (s : Finset Party) :
     (scheme params).authorized s ↔ params.threshold + 1 ≤ s.card :=
   Iff.rfl
 

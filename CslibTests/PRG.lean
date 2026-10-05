@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 import Cslib.Crypto.Primitives.PRG.Asymptotic
 
-open Cslib.Crypto.PRG Filter
+open Cslib.Crypto.PRG Cslib.Probability.Measure MeasureTheory Filter
 open scoped NNReal Topology
 
 namespace CslibTests.PRG
@@ -18,12 +18,13 @@ example {Seed Output : Type*} (G H : Generator Seed Output)
 -- The identity generator is secure with zero error.
 example : (Generator.mk (id : Bool → Bool)).Secure (fun _ => True) 0 := by
   apply Generator.secure_zero_of_outputDist_eq
-  exact PMF.map_id _
+  exact Measure.map_id
 
 -- Zero-error security implies uniform output.
-example {Seed Output : Type*} [Fintype Seed] [Nonempty Seed]
+example {Seed Output : Type*} [MeasurableSpace Seed] [MeasurableSingletonClass Seed]
+    [MeasurableSpace Output] [MeasurableSingletonClass Output] [Fintype Seed] [Nonempty Seed]
     [Fintype Output] [Nonempty Output] (G : Generator Seed Output)
-    (h : G.Secure (fun _ => True) 0) : G.outputDist = PMF.uniformOfFintype Output :=
+    (h : G.Secure (fun _ => True) 0) : G.outputDist = uniformOfFintype Output :=
   G.secure_zero_iff_outputDist_eq_uniform.mp h
 
 example (G : Generator Bool (Bool × Bool)) (Admissible : Adversary (Bool × Bool) → Prop)
@@ -32,7 +33,7 @@ example (G : Generator Bool (Bool × Bool)) (Admissible : Adversary (Bool × Boo
 
 -- Tests that ignore their input have zero advantage.
 example (G : Generator Bool (Bool × Bool)) :
-    G.Secure (fun adversary => ∃ p : PMF Bool, adversary = fun _ => p) 0 := by
+    G.Secure (fun adversary => ∃ p : ProbabilityMeasure Bool, adversary = fun _ => p) 0 := by
   rintro adversary ⟨p, rfl⟩
   simp
 
@@ -65,7 +66,7 @@ example : Family.Secure (fun n => Generator.mk (id : (Fin n → Bool) → (Fin n
       (fun _ => True) (fun _ => 0) := by
     intro adversary_family _ n
     simp [Generator.advantage, Generator.realExperiment, Generator.idealExperiment,
-      Generator.outputDist, PMF.map_id]
+      Generator.outputDist, Measure.map_id]
   exact h.secure (Asymptotics.superpolynomialDecay_zero _ _)
 
 -- The inverse-polynomial gap 1 / (n + 2) rules out asymptotic security.

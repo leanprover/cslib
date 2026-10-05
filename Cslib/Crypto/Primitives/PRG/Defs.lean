@@ -6,9 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Init
-public import Mathlib.Probability.Distributions.Uniform
-public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+public import Cslib.Probability.Measure
 
 /-!
 # Pseudorandom generators: games and concrete security
@@ -31,6 +29,7 @@ In particular, a generator need not expand, and an expanding generator need not 
 
 namespace Cslib.Crypto.PRG
 
+open MeasureTheory ProbabilityTheory Cslib.Probability.Measure
 open scoped NNReal
 
 /-- A deterministic generator with seed space `Seed` and output space `Output`.
@@ -41,7 +40,11 @@ structure Generator (Seed Output : Type*) where
   toFun : Seed → Output
 
 /-- A randomized statistical test on the output space. -/
-abbrev Adversary (Output : Type*) := Output → PMF Bool
+abbrev Adversary (Output : Type*) := Output → ProbabilityMeasure Bool
+
+/-- A deterministic Boolean test, viewed as a randomized adversary. -/
+noncomputable def Adversary.ofPure {Output : Type*} (f : Output → Bool) : Adversary Output :=
+  fun output => (Measure.dirac (f output)).toProbabilityMeasure
 
 namespace Generator
 
@@ -58,25 +61,40 @@ theorem coe_mk (f : Seed → Output) : ⇑(Generator.mk f) = f := rfl
 def IsExpanding [Fintype Seed] [Fintype Output] (_G : Generator Seed Output) : Prop :=
   Fintype.card Seed < Fintype.card Output
 
+variable [MeasurableSpace Seed] [MeasurableSingletonClass Seed]
+variable [MeasurableSpace Output] [MeasurableSingletonClass Output]
 variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
 
 /-- The distribution obtained by applying the generator to a uniform seed. -/
-noncomputable def outputDist (G : Generator Seed Output) : PMF Output :=
-  (PMF.uniformOfFintype Seed).map G
+noncomputable def outputDist (G : Generator Seed Output) : Measure Output :=
+  (uniformOfFintype Seed : Measure Seed).map G
+
+instance (G : Generator Seed Output) : IsProbabilityMeasure G.outputDist :=
+  (Measure.isProbabilityMeasure_map_iff (measurable_of_countable G).aemeasurable).2 inferInstance
 
 /-- Experiment 0 of Attack Game 3.1: give the adversary a generated output. -/
 noncomputable def realExperiment (G : Generator Seed Output)
-    (adversary : Adversary Output) : PMF Bool :=
-  G.outputDist.bind adversary
+    (adversary : Adversary Output) : Measure Bool :=
+  G.outputDist.bind (fun output => (adversary output : Measure Bool))
+
+omit [Fintype Output] in
+instance [Countable Output] (G : Generator Seed Output) (adversary : Adversary Output) :
+    IsProbabilityMeasure (G.realExperiment adversary) :=
+  isProbabilityMeasure_bind (measurable_of_countable _).aemeasurable
+    (Filter.Eventually.of_forall fun _ => inferInstance)
 
 /-- Experiment 1 of Attack Game 3.1: give the adversary a uniform output. -/
-noncomputable def idealExperiment (adversary : Adversary Output) : PMF Bool :=
-  (PMF.uniformOfFintype Output).bind adversary
+noncomputable def idealExperiment (adversary : Adversary Output) : Measure Bool :=
+  (uniformOfFintype Output : Measure Output).bind (fun output => (adversary output : Measure Bool))
+
+instance (adversary : Adversary Output) : IsProbabilityMeasure (idealExperiment adversary) :=
+  isProbabilityMeasure_bind (measurable_of_countable _).aemeasurable
+    (Filter.Eventually.of_forall fun _ => inferInstance)
 
 /-- The absolute difference of the probabilities of outputting `true` in the two
 experiments, as in Attack Game 3.1 of [BonehShoup2023]. -/
 noncomputable def advantage (G : Generator Seed Output) (adversary : Adversary Output) : ℝ :=
-  |(G.realExperiment adversary true).toReal - (idealExperiment adversary true).toReal|
+  |(G.realExperiment adversary {true}).toReal - (idealExperiment adversary {true}).toReal|
 
 /-- Concrete security against admissible adversaries. The predicate is supplied by the
 caller, for example to restrict tests to a chosen computational resource bound.
