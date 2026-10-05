@@ -60,6 +60,15 @@ theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠β�
 theorem redex_app_r_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app N M ↠βᶠ app N M' := by
   induction redex <;> grind
 
+lemma transgen_app_l (lc_N : LC N) (steps : Relation.TransGen FullBeta M M') :
+    Relation.TransGen FullBeta (app M N) (app M' N) := by
+  induction steps <;> grind
+
+lemma transgen_app_r (lc_N : LC N) (steps : Relation.TransGen FullBeta M M') :
+    Relation.TransGen FullBeta (app N M) (app N M') := by
+  induction steps <;> grind
+
+
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /- Single reduction `app M (fvar x) ⭢βᶠ N` implies reduction on `M` or a root beta step. -/
 @[scoped grind →]
@@ -87,6 +96,14 @@ lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (
   | abs  => grind [Xi.abs <| free_union Var]
   | _ => grind
 
+lemma steps_subst_cong (s s' t : Term Var) (x : Var) (steps : s ↠βᶠ s') (h_lc : LC t) :
+    s[ x := t ] ↠βᶠ s'[ x := t ] := by
+  induction steps with grind [redex_subst_cong_lc]
+
+lemma transgen_subst_cong (s s' t : Term Var) (x : Var) (steps : Relation.TransGen FullBeta s s')
+  (h_lc : LC t) :Relation.TransGen FullBeta (s[ x := t ]) (s'[ x := t ]) := by
+  induction steps with grind [redex_subst_cong_lc]
+
 /-- Substitution respects a single reduction step of a free variable. -/
 lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
     s[x := fvar y] ⭢βᶠ s'[x := fvar y] :=
@@ -113,12 +130,26 @@ lemma redex_abs_close {x : Var} (step : M ↠βᶠ M') : (M⟦0 ↜ x⟧.abs ↠
   case single ih => exact Relation.ReflTransGen.single (step_abs_close ih)
   case trans l r => exact Relation.ReflTransGen.trans l r
 
+lemma transgen_abs_close (x : Var) (steps : Relation.TransGen FullBeta M M') :
+    Relation.TransGen FullBeta (abs (M ^* x)) (abs (M' ^* x)) := by
+  induction steps with
+  | single step => exact .single (step_abs_close step)
+  | tail _ step ih => apply ih.tail (step_abs_close step)
+
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
 theorem step_abs_cong (xs : Finset Var) (cofin : ∀ x ∉ xs, (M ^ fvar x) ⭢βᶠ (M' ^ fvar x)) :
     M.abs ⭢βᶠ M'.abs := by
   have ⟨fresh, _⟩ := fresh_exists <| free_union [fv] Var
   rw [open_close fresh M 0 ?_, open_close fresh M' 0 ?_]
   all_goals grind [step_abs_close]
+
+/-- Multiple reduction of opening implies multiple reduction of abstraction. -/
+theorem transgen_abs_cong (xs : Finset Var)
+    (cofin : ∀ x ∉ xs, Relation.TransGen FullBeta (M ^ fvar x) (M' ^ fvar x)) :
+    Relation.TransGen FullBeta M.abs M'.abs := by
+  have ⟨fresh, _⟩ := fresh_exists <| free_union [fv] Var
+  rw [open_close_var fresh M (by grind), open_close_var fresh M' (by grind)]
+  grind [transgen_abs_close]
 
 /-- Multiple reduction of opening implies multiple reduction of abstraction. -/
 theorem redex_abs_cong (xs : Finset Var) (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠βᶠ (M' ^ fvar x)) :
