@@ -6,7 +6,10 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
+public import Mathlib.Algebra.Group.Prod
+public import Mathlib.Algebra.Group.TypeTags.Finite
+public import Mathlib.Data.ZMod.Basic
 
 /-!
 # Catalogue algebra ⟨1, 1, 1⟩, number 37
@@ -15,7 +18,7 @@ Entry 37 in the ⟨1, 1, 1⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `aab abb abb~ ab~b~ bbb~ aaa bbb`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+The representation below partitions the product group `ZMod 3 × ZMod 3 × ZMod 3`.
 -/
 
 @[expose] public section
@@ -47,8 +50,24 @@ theorem cycles_iff (x y z : Atom 1 1) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
-/-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+/-- An explicit partition of the product group; inversion exchanges the two directed blocks. -/
+def representation : GroupAtomRepresentation table (Multiplicative (ZMod 3 × ZMod 3 × ZMod 3)) where
+  label g :=
+    if g.toAdd = 0 then none
+    else if g.toAdd ∈ ({(0, 0, 1), (0, 0, 2), (0, 1, 0), (0, 2, 0),
+      (1, 0, 0), (2, 0, 0), (1, 1, 1), (2, 2, 2)} :
+        Finset (ZMod 3 × ZMod 3 × ZMod 3)) then some (Sum.inl 0)
+    else some (Sum.inr (0, !(g.toAdd ∈ ({(0, 1, 1), (0, 1, 2), (1, 0, 1), (1, 0, 2),
+      (1, 1, 0), (2, 2, 1), (1, 2, 0), (2, 1, 2),
+      (2, 1, 1)} :
+        Finset (ZMod 3 × ZMod 3 × ZMod 3)))))
+  surjective := by decide +kernel
+  identity := by decide +kernel
+  converse := by decide +kernel
+  composition := by decide +kernel
+
+/-- This catalogue algebra has a representation on 27 points. -/
+theorem representable : Representable Algebra :=
+  representation.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S1N1.Ra37
