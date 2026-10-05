@@ -19,6 +19,11 @@ The aim is to build end-to-end models where cryptographic operations appear insi
 
 To this end, we expect to leverage the combination of `Crypto` and [Languages](../Languages) to define and formally reason about security protocols. CSLib's common semantics APIs connecting [Languages](../Languages) and [Logics](../Logics) should enable such reasoning.
 
+## Security games
+
+[`Negligible`](Negligible.lean) specializes Mathlib's `SuperpolynomialDecay` to natural security
+parameters, with zero, comparison, and polynomial-loss bounds.
+
 ## Pseudorandom generators
 
 [`Primitives/PRG`](Primitives/PRG) formalizes Boneh and Shoup's Attack Game 3.1 using
