@@ -6,7 +6,9 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Cycles
+public import Cslib.Foundations.RelationAlgebra.FiniteRepresentation
+public import Mathlib.Algebra.Group.TypeTags.Finite
+public import Mathlib.Data.ZMod.Basic
 
 /-!
 # Catalogue algebra ⟨1, 3, 0⟩, number 57
@@ -15,7 +17,7 @@ Entry 57 in the ⟨1, 3, 0⟩ row of
 [Jipsen’s catalogue](https://www1.chapman.edu/~jipsen/gap/ramaddux.html).
 The source lists cycles `aac abb abc acc bbc bcc aaa bbb ccc`.
 Identity cycles are supplied by `cycleClosure`; only diversity cycles are stored below.
-The algebraic and classification results are stated with proofs deferred.
+The representation below partitions the cyclic group of order 30.
 -/
 
 @[expose] public section
@@ -48,8 +50,23 @@ theorem cycles_iff (x y z : Atom 3 0) :
       cycleClosure cycles x y z :=
   Complex.atom_le_mul_iff table x y z
 
-/-- This catalogue algebra has a representation, with no restriction to finite bases. -/
-theorem representable : Representable Algebra := by
-  sorry
+/-- The nonidentity blocks modulo 30 are
+`a = {3, 13, 14, 16, 17, 27}`,
+`b = {5, 7, 8, 9, 12, 15, 18, 21, 22, 23, 25}`,
+and `c = {1, 2, 4, 6, 10, 11, 19, 20, 24, 26, 28, 29}`. -/
+def representation : GroupAtomRepresentation table (Multiplicative (ZMod 30)) where
+  label g :=
+    if g.toAdd = 0 then none
+    else some (Sum.inl (if g.toAdd ∈ ({3, 13, 14, 16, 17, 27} : Finset (ZMod 30)) then 0
+      else if g.toAdd ∈ ({5, 7, 8, 9, 12, 15, 18, 21, 22, 23, 25} : Finset (ZMod 30)) then
+        1 else 2))
+  surjective := by decide +kernel
+  identity := by decide +kernel
+  converse := by decide +kernel
+  composition := by decide +kernel
+
+/-- This catalogue algebra has a representation on 30 points. -/
+theorem representable : Representable Algebra :=
+  representation.representable
 
 end Cslib.RelationAlgebra.Catalogue.I1S3N0.Ra57
