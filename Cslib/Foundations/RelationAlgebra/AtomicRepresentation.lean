@@ -141,7 +141,8 @@ theorem representable_iff_nonempty_atomRepresentation {j k : ℕ} (T : IntegralC
       simp at hmem
     obtain ⟨i, hi⟩ := hex
     let := hi
-    exact ⟨Base i, ⟨AtomRepresentation.ofHom (r.hom i)⟩⟩
+    exact ⟨Base i,
+      ⟨AtomRepresentation.ofHom ((RelationAlgebraHom.eval _ i).comp r.hom)⟩⟩
   · rintro ⟨Base, ⟨r⟩⟩
     exact r.representable
 

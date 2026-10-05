@@ -290,6 +290,7 @@ public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.NetworkRefutation
 public import Cslib.Foundations.RelationAlgebra.OrderedColorRepresentation
 public import Cslib.Foundations.RelationAlgebra.OrderedRepresentation
+public import Cslib.Foundations.RelationAlgebra.Pi
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.RelationAlgebra.Signature
 public import Cslib.Foundations.RelationAlgebra.WitnessRepresentation

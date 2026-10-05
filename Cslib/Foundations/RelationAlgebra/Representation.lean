@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.Pi
 public import Mathlib.Basic.Rel
 
 /-!
@@ -65,14 +65,14 @@ instance (Base : Type u) : RelationAlgebra (SquareRelations Base) where
 
 end SquareRelations
 
-/-- A representation by a family of full square relation algebras. Injectivity is required for
-the whole family; individual component homomorphisms need not be injective. -/
+/-- A representation as an injective homomorphism into a product of full square relation algebras.
+Individual component homomorphisms need not be injective. -/
 structure Representation (A : Type u) [RelationAlgebra A]
     (ι : Type v) (Base : ι → Type w) where
-  /-- The component homomorphisms. -/
-  hom : ∀ i, RelationAlgebraHom A (SquareRelations (Base i))
-  /-- The component homomorphisms jointly distinguish all algebra elements. -/
-  injective : Function.Injective (fun a i => hom i a)
+  /-- The homomorphism into the product of full square relation algebras. -/
+  hom : RelationAlgebraHom A (∀ i, SquareRelations (Base i))
+  /-- The homomorphism distinguishes all algebra elements. -/
+  injective : Function.Injective hom
 
 /-- A relation algebra is representable when it embeds into a product of full square relation
 algebras. The index and base types are taken in the universe of the algebra; no finiteness
@@ -182,9 +182,10 @@ the source universe and preserves all relational operations. -/
 theorem representable {ι : Type v} {Family : ι → Type w}
     (r : Representation A ι Family) : Representable A := by
   classical
+  let component := (RelationAlgebraHom.piEquiv A (fun i => SquareRelations (Family i))).symm r.hom
   let Pair := {p : A × A // p.1 ≠ p.2}
   have separates (p : Pair) :
-      ∃ i, ∃ x y, r.hom i p.1.1 (x, y) ≠ r.hom i p.1.2 (x, y) := by
+      ∃ i, ∃ x y, component i p.1.1 (x, y) ≠ component i p.1.2 (x, y) := by
     by_contra h
     push Not at h
     apply p.2
@@ -193,8 +194,8 @@ theorem representable {ι : Type v} {Family : ι → Type w}
     funext q
     exact h i q.1 q.2
   choose index x y distinct using separates
-  refine ⟨Pair, fun p => SmallBase (r.hom (index p)) (x p) (y p),
-    ⟨⟨fun p => smallHom (r.hom (index p)) (x p) (y p), ?_⟩⟩⟩
+  refine ⟨Pair, fun p => SmallBase (component (index p)) (x p) (y p),
+    ⟨⟨RelationAlgebraHom.pi (fun p => smallHom (component (index p)) (x p) (y p)), ?_⟩⟩⟩
   intro a b h
   by_contra hab
   let p : Pair := ⟨(a, b), hab⟩
@@ -209,7 +210,7 @@ end Representation
 theorem representable_of_injective_hom {A Base : Type u} [RelationAlgebra A]
     (f : RelationAlgebraHom A (SquareRelations Base)) (hf : Function.Injective f) :
     Representable A := by
-  refine ⟨PUnit.{u + 1}, fun _ => Base, ⟨⟨fun _ => f, ?_⟩⟩⟩
+  refine ⟨PUnit.{u + 1}, fun _ => Base, ⟨⟨RelationAlgebraHom.pi (fun _ => f), ?_⟩⟩⟩
   intro a b h
   exact hf (congrFun h PUnit.unit)
 
@@ -222,7 +223,7 @@ theorem representable_of_injective {A B : Type u} [RelationAlgebra A] [RelationA
     (f : RelationAlgebraHom A B) (hf : Function.Injective f) (hB : Representable B) :
     Representable A := by
   obtain ⟨ι, Base, ⟨r⟩⟩ := hB
-  refine ⟨ι, Base, ⟨⟨fun i => (r.hom i).comp f, ?_⟩⟩⟩
+  refine ⟨ι, Base, ⟨⟨r.hom.comp f, ?_⟩⟩⟩
   exact r.injective.comp hf
 
 /-- Representability is invariant under relation-algebra isomorphism. -/
@@ -232,11 +233,11 @@ theorem representable_iff_of_equiv {A : Type u} {B : Type v}
   constructor
   · rintro ⟨ι, Base, ⟨r⟩⟩
     apply Representation.representable
-    refine ⟨fun i => (r.hom i).comp e.symm.toHom, ?_⟩
+    refine ⟨r.hom.comp e.symm.toHom, ?_⟩
     exact r.injective.comp (EquivLike.injective e.symm)
   · rintro ⟨ι, Base, ⟨r⟩⟩
     apply Representation.representable
-    refine ⟨fun i => (r.hom i).comp e.toHom, ?_⟩
+    refine ⟨r.hom.comp e.toHom, ?_⟩
     exact r.injective.comp (EquivLike.injective e)
 
 end Cslib.RelationAlgebra
