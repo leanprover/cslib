@@ -9,6 +9,7 @@ module
 public import Cslib.Init
 public import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Algebra.Order.Archimedean.Real.Basic
+import Mathlib.Data.Fintype.Order
 
 /-!
 # Polynomial bounds on natural-valued functions
@@ -49,7 +50,7 @@ theorem polynomiallyBounded_iff_isBigO {f : ℕ → ℕ} :
 theorem polynomiallyBounded_iff_le {f : ℕ → ℕ} :
     PolynomiallyBounded f ↔ ∃ c d : ℕ, ∀ n, f n ≤ c * (n + 1) ^ d := by
   constructor
-  · simp_rw [PolynomiallyBounded, EventuallyLE, eventually_atTop]
+  · simp_rw [PolynomiallyBounded, eventually_atTop]
     intro ⟨d, m, h⟩
     have ⟨c, hc⟩ := (Set.finite_Iio m).image f |>.exists_le
     use c + 1, d
