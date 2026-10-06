@@ -16,8 +16,8 @@ This file proves the **Church-Rosser** theorem for the SKI calculus, that is, if
 `a ↠ c`, `b ↠ d` and `c ↠ d` for some term `d`. More strongly (though equivalently), we show
 that the relation of having a common reduct is transitive — in the above situation, `a` and `b`,
 and `a` and `c` have common reducts, so the result implies the same of `b` and `c`. Note that
-`MJoin Red` is symmetric (trivially) and reflexive (since `↠` is), so we in fact show that
-`MJoin Red` is an equivalence.
+`Join (ReflTransGen Red)` is symmetric (trivially) and reflexive (since `↠` is), so we in fact show
+that `Join (ReflTransGen Red)` is an equivalence.
 
 Our proof
 follows the method of Tait and Martin-Löf for the lambda calculus, as presented for instance in
@@ -33,7 +33,7 @@ reduction on the head and tail of a term.
 
 - `parallelReduction_diamond` : parallel reduction satisfies the diamond property, that is, it is
 confluent in a single step.
-- `mJoin_red_equivalence` : by a general result, the diamond property for `⭢ₚ` implies the same
+- `join_mRed_equivalence` : by a general result, the diamond property for `⭢ₚ` implies the same
 for its reflexive-transitive closure. This closure is exactly `↠`, which implies the
 **Church-Rosser** theorem as sketched above.
 -/
@@ -205,20 +205,20 @@ theorem parallelReduction_diamond : Diamond ParallelReduction := by
     case red_S => exact ⟨a ⬝ c ⬝ (b ⬝ c), .refl _, .refl _,⟩
 
 theorem join_parallelReduction_equivalence :
-    Equivalence (MJoin ParallelReduction) :=
+    Equivalence (Join (ReflTransGen ParallelReduction)) :=
   Confluent.equivalence_join_reflTransGen <| Diamond.to_confluent parallelReduction_diamond
 
 /-- The **Church-Rosser** theorem in its general form. -/
-theorem mJoin_red_equivalence : Equivalence (MJoin Red) := by
-  rw [MJoin, ←reflTransGen_parallelReduction_mRed]
+theorem join_mRed_equivalence : Equivalence (Join (ReflTransGen Red)) := by
+  rw [←reflTransGen_parallelReduction_mRed]
   exact join_parallelReduction_equivalence
 
 /-- The **Church-Rosser** theorem in the form it is usually stated. -/
 theorem MRed.diamond : Confluent Red := by
   intro a b c hab hac
-  apply mJoin_red_equivalence.trans (y := a)
-  · exact mJoin_red_equivalence.symm (MJoin.single hab)
-  · exact MJoin.single hac
+  apply join_mRed_equivalence.trans (y := a)
+  · exact join_mRed_equivalence.symm (Join.single hab)
+  · exact Join.single hac
 
 end SKI
 

@@ -115,7 +115,7 @@ private lemma encrypt_key_injective (scheme : EncScheme M K C)
 ([KatzLindell2020], Theorem 2.12). -/
 theorem perfectlySecret_keySpace_ge [Finite K]
     (scheme : EncScheme M K C) (h : scheme.PerfectlySecret) :
-    Nat.card K ≥ Nat.card M := by
+    Nat.card M ≤ Nat.card K := by
   classical
   have hci := (perfectlySecret_iff_ciphertextIndist scheme).mp h
   by_cases hM : IsEmpty M; · simp
