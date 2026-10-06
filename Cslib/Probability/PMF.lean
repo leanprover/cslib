@@ -21,11 +21,11 @@ structure. They should be upstreamed to Mathlib
 `Mathlib.Probability.ProbabilityMassFunction.Prod`). Once accepted upstream,
 these lemmas should be removed and their consumers should import the Mathlib module instead.
 
-The uniform samplers retain the PMF interface removed by Mathlib commit
-`be31cde2c2cb07d7562e5e891b302f9286cd0a68`, pending a decision on CSLib's probability API.
-Their definitions and proofs are adapted from `Mathlib.Probability.Distributions.Uniform`
-at `9a6fbe02d04cd1f582eac50a8a4e34ad67582169`, by Josha Dekker, Devon Tuma, and Kexing Ying,
-under the Apache 2.0 license.
+The uniform samplers retain the PMF interface removed in
+[mathlib#42909](https://github.com/leanprover-community/mathlib4/pull/42909),
+pending a decision on CSLib's probability API. Their definitions and proofs are adapted from
+`Mathlib.Probability.Distributions.Uniform` before that PR, by Josha Dekker, Devon Tuma,
+and Kexing Ying, under the Apache 2.0 license.
 Original sampler copyright (c) 2024 Josha Dekker. All rights reserved.
 
 ## Main results
