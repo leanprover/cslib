@@ -22,7 +22,7 @@ To this end, we expect to leverage the combination of `Crypto` and [Languages](.
 ## Pseudorandom generators
 
 [`Primitives/PRG`](Primitives/PRG) formalizes Boneh and Shoup's Attack Game 3.1 using
-Mathlib probability measures. `Generator.Secure G Admissible ε` bounds the distinguishing advantage of every
+PMFs. `Generator.Secure G Admissible ε` bounds the distinguishing advantage of every
 admissible randomized test. `Family.SecureWithError` allows a parameter-dependent error bound;
 `Family.Secure` requires negligible advantage separately for each admissible family, using
 Mathlib's `SuperpolynomialDecay`. A negligible error bound implies this asymptotic notion.
@@ -35,27 +35,6 @@ requires `DecidableEq Output`. Bitstring families eventually stretching by at le
 are consequently insecure against any class admitting this test, with both `Fin n → Bool`
 and `BitVec n` versions and nonexistence corollaries. Zero-error security against all tests
 is equivalent to exactly uniform output; the identity generator is a nonexpanding example.
-
-## Information-theoretic protocols
-
-Perfect secrecy and secret sharing use Mathlib's `Measure` and measurable `Kernel` interfaces.
-Normalization is recorded by `IsProbabilityMeasure` and `IsMarkovKernel`. Secrecy means equality
-of the joint measure and the product of its marginals, for every probability prior.
-This supports continuous distributions as well as discrete ones.
-
-Encryption correctness requires that almost every generated key work for every message,
-with decryption succeeding almost surely over encryption randomness. The exceptional set of
-keys is shared by all messages. For countable message spaces, Mathlib's `ae_all_iff` shows that
-this is equivalent to a separate almost-sure correctness guarantee for each message.
-
-Posterior distributions use Mathlib's regular conditional kernel `ProbabilityTheory.posterior`.
-These APIs require a nonempty standard Borel message or secret space, and posterior equality
-holds almost everywhere under the observation distribution. On countable observation spaces,
-Mathlib's `ae_iff_of_countable` recovers equality at every observation with positive mass.
-The core independence definitions do not require standard Borel spaces.
-
-Finite samplers, including the one-time pad and Shamir's finite-field sampler, use Mathlib's
-`uniformOn`. The finite PRG games retain their finite-space assumptions.
 
 ## Plans and notes
 

@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
+public import Cslib.Probability.PMF
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
 
 /-!
@@ -24,9 +25,9 @@ consequences of the built-in privacy field.
 - `Cslib.Crypto.Protocols.SecretSharing.Scheme.posteriorSecretDist`:
   the posterior distribution on secrets after observing one view
 - `Cslib.Crypto.Protocols.SecretSharing.Scheme.PerfectlyPrivate`:
-  independence of secrets and unauthorized views
+  posterior equals prior for unauthorized coalitions
 - `Cslib.Crypto.Protocols.SecretSharing.Scheme.perfectlyPrivate`:
-  every scheme has measure-theoretic privacy
+  every scheme has posterior privacy
 
 ## References
 
@@ -40,20 +41,19 @@ namespace Cslib.Crypto.Protocols.SecretSharing
 
 namespace Scheme
 
-open MeasureTheory ProbabilityTheory Cslib.Probability.Measure
+open Cslib.Probability.PMF
 
 variable {Secret Randomness Party Share : Type*}
-variable [MeasurableSpace Secret] [MeasurableSpace Randomness] [MeasurableSpace Share]
 
 /-- The distribution of the full share assignment for one secret. -/
-noncomputable abbrev shareDist (scheme : Scheme Secret Randomness Party Share)
-    (secret : Secret) : Measure (Party → Share) :=
+noncomputable def shareDist (scheme : Scheme Secret Randomness Party Share)
+    (secret : Secret) : PMF (Party → Share) :=
   scheme.gen.map (fun r => scheme.share r secret)
 
 /-- The view distribution induced on the coalition `s`. -/
-noncomputable abbrev viewDist (scheme : Scheme Secret Randomness Party Share)
-    (s : Finset Party) (secret : Secret) : Measure (s → Share) :=
-  scheme.viewKernel s secret
+noncomputable def viewDist (scheme : Scheme Secret Randomness Party Share)
+    (s : Finset Party) (secret : Secret) : PMF (s → Share) :=
+  viewDistOf scheme.gen scheme.share s secret
 
 /-- Unauthorized coalitions receive secret-independent view distributions. -/
 theorem viewDist_eq_of_not_authorized
@@ -61,41 +61,42 @@ theorem viewDist_eq_of_not_authorized
     {s : Finset Party} (hs : ¬ scheme.authorized s)
     (secret₀ secret₁ : Secret) :
     scheme.viewDist s secret₀ = scheme.viewDist s secret₁ :=
-  by
-    simp only [viewDist, viewKernel, sampleKernel_apply]
-    exact scheme.view_indist s hs secret₀ secret₁
+  scheme.view_indist s hs secret₀ secret₁
 
-/-- Mathlib's regular conditional distribution on secrets given a coalition view. -/
-noncomputable abbrev posteriorSecretDist [StandardBorelSpace Secret] [Nonempty Secret]
+/-- The posterior distribution on secrets after observing the coalition view
+`v`. -/
+noncomputable def posteriorSecretDist
     (scheme : Scheme Secret Randomness Party Share)
-    (s : Finset Party) (secretDist : Measure Secret) [IsProbabilityMeasure secretDist] :
-    Kernel (s → Share) Secret :=
-  posterior (scheme.viewKernel s) secretDist
+    (s : Finset Party) (secretDist : PMF Secret) (v : s → Share)
+    (hv : v ∈ (secretDist.bind (scheme.viewDist s)).support) : PMF Secret :=
+  posteriorDist (p := secretDist) (f := scheme.viewDist s) v hv
 
-/-- Unauthorized views and secrets are independent for every probability prior.
-Equality of joint measures also handles observations of zero singleton mass. -/
+@[simp]
+theorem posteriorSecretDist_apply
+    (scheme : Scheme Secret Randomness Party Share)
+    (s : Finset Party) (secretDist : PMF Secret) (v : s → Share)
+    (hv : v ∈ (secretDist.bind (scheme.viewDist s)).support) (secret : Secret) :
+    scheme.posteriorSecretDist s secretDist v hv secret =
+      (secretDist.bind fun secret' =>
+        (scheme.viewDist s secret').bind fun v' => PMF.pure (secret', v')) (secret, v) /
+        (secretDist.bind (scheme.viewDist s)) v :=
+  posteriorDist_apply secretDist (scheme.viewDist s) v hv secret
+
+/-- Perfect privacy for unauthorized coalitions: conditioning on a view does not
+change the prior on secrets. -/
 def PerfectlyPrivate (scheme : Scheme Secret Randomness Party Share) : Prop :=
-  ∀ (s : Finset Party), ¬ scheme.authorized s →
-    ∀ (secretDist : Measure Secret) [IsProbabilityMeasure secretDist],
-      secretDist ⊗ₘ scheme.viewKernel s =
-        secretDist.prod (scheme.viewKernel s ∘ₘ secretDist)
+  ∀ (s : Finset Party) (_hs : ¬ scheme.authorized s)
+    (secretDist : PMF Secret) (v : s → Share)
+    (hv : v ∈ (secretDist.bind (scheme.viewDist s)).support),
+      scheme.posteriorSecretDist s secretDist v hv = secretDist
 
-/-- Every scheme has measure-theoretic privacy by its view-indistinguishability field. -/
-theorem perfectlyPrivate (scheme : Scheme Secret Randomness Party Share) :
-    scheme.PerfectlyPrivate := by
-  intro s hs secretDist _
-  exact compProd_eq_prod_of_outputIndist secretDist (scheme.viewKernel s)
-    (scheme.viewDist_eq_of_not_authorized hs)
-
-/-- Conditioning on an unauthorized view leaves the prior unchanged almost surely. -/
-theorem posteriorSecretDist_eq_prior [StandardBorelSpace Secret] [Nonempty Secret]
-    (scheme : Scheme Secret Randomness Party Share)
-    {s : Finset Party} (hs : ¬ scheme.authorized s)
-    (secretDist : Measure Secret) [IsProbabilityMeasure secretDist] :
-    scheme.posteriorSecretDist s secretDist =ᵐ[scheme.viewKernel s ∘ₘ secretDist]
-      fun _ => secretDist :=
-  posterior_eq_prior_of_compProd_eq_prod secretDist (scheme.viewKernel s)
-    (scheme.perfectlyPrivate s hs secretDist)
+/-- Every scheme has posterior privacy by definition of `Scheme`. -/
+theorem perfectlyPrivate
+    (scheme : Scheme Secret Randomness Party Share) :
+    scheme.PerfectlyPrivate :=
+  fun s hs secretDist v hv =>
+    posteriorDist_eq_prior_of_outputIndist secretDist (scheme.viewDist s)
+      (scheme.viewDist_eq_of_not_authorized hs) v hv
 
 end Scheme
 

@@ -34,104 +34,98 @@ Shannon's key-space bound.
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 
-open MeasureTheory ProbabilityTheory Cslib.Probability.Measure
+open Cslib.Probability.PMF
 
-variable {M K C : Type*} [MeasurableSpace M] [MeasurableSpace K] [MeasurableSpace C]
+universe u
+variable {M K C : Type u}
 
-/-- The joint measure on a rectangle is obtained by integrating the encryption channel. -/
-theorem jointDist_apply_prod (scheme : EncScheme M K C) (msgDist : Measure M) [SFinite msgDist]
-    {messages : Set M} {ciphertexts : Set C}
-    (hm : MeasurableSet messages) (hc : MeasurableSet ciphertexts) :
-    scheme.jointDist msgDist (messages ×ˢ ciphertexts) =
-      ∫⁻ m in messages, scheme.ciphertextDist m ciphertexts ∂msgDist :=
-  Measure.compProd_apply_prod hm hc
+/-- The joint distribution at `(m, c)` equals `msgDist m * ciphertextDist m c`. -/
+theorem jointDist_eq (scheme : EncScheme M K C) (msgDist : PMF M)
+    (m : M) (c : C) :
+    scheme.jointDist msgDist (m, c) = msgDist m * scheme.ciphertextDist m c :=
+  bind_pair_apply msgDist scheme.ciphertextDist m c
 
-/-- The second marginal of the joint distribution is the ciphertext distribution. -/
-theorem jointDist_snd (scheme : EncScheme M K C) (msgDist : Measure M) [SFinite msgDist] :
-    (scheme.jointDist msgDist).snd = scheme.marginalCiphertextDist msgDist :=
-  Measure.snd_compProd _ _
+/-- Summing the joint distribution over messages gives the marginal ciphertext
+distribution. -/
+theorem jointDist_tsum_fst (scheme : EncScheme M K C) (msgDist : PMF M) (c : C) :
+    ∑' m, scheme.jointDist msgDist (m, c) = scheme.marginalCiphertextDist msgDist c :=
+  bind_pair_tsum_fst msgDist scheme.ciphertextDist c
 
-/-- Perfect secrecy is equivalent to independence on all measurable events. -/
+/-- Perfect secrecy is equivalent to message-ciphertext independence.
+The two formulations are related by multiplying/dividing by `marginal(c)`. -/
 theorem perfectlySecret_iff_indep (scheme : EncScheme M K C) :
     scheme.PerfectlySecret ↔
-      ∀ (msgDist : Measure M) [IsProbabilityMeasure msgDist]
-        (messages : Set M) (ciphertexts : Set C),
-        MeasurableSet messages → MeasurableSet ciphertexts →
-        scheme.jointDist msgDist (messages ×ˢ ciphertexts) =
-          msgDist messages * scheme.marginalCiphertextDist msgDist ciphertexts := by
-  constructor
-  · intro h μ _ messages ciphertexts _ _
-    rw [h μ, Measure.prod_prod]
-  · intro h μ _
-    exact Measure.ext_prod fun hm hc => (h μ _ _ hm hc).trans (Measure.prod_prod _ _).symm
+    ∀ (msgDist : PMF M) (m : M) (c : C),
+      scheme.jointDist msgDist (m, c) =
+        msgDist m * scheme.marginalCiphertextDist msgDist c := by
+  refine ⟨fun h msgDist m c => ?_, fun h msgDist c hc => ?_⟩
+  · by_cases hc : (scheme.marginalCiphertextDist msgDist) c = 0
+    · have := ENNReal.tsum_eq_zero.mp
+        ((jointDist_tsum_fst scheme msgDist c).trans hc) m
+      rw [this, hc, mul_zero]
+    · have hne_top := PMF.apply_ne_top (scheme.marginalCiphertextDist msgDist) c
+      have := DFunLike.congr_fun (h msgDist c ((PMF.mem_support_iff _ _).mpr hc)) m
+      simp only [posteriorMsgDist_apply] at this
+      rw [← this, ENNReal.div_mul_cancel hc hne_top]
+  · ext m
+    simp only [posteriorMsgDist_apply]
+    rw [h msgDist m c, ENNReal.mul_div_cancel_right
+      ((PMF.mem_support_iff _ _).mp hc) (PMF.apply_ne_top _ c)]
 
-/-- A scheme is perfectly secret iff its ciphertext law is independent of the message
-([KatzLindell2020], Lemma 2.5). Only the message singletons need to be measurable. -/
-theorem perfectlySecret_iff_ciphertextIndist [MeasurableSingletonClass M]
-    (scheme : EncScheme M K C) : scheme.PerfectlySecret ↔ scheme.CiphertextIndist := by
+/-- A scheme is perfectly secret iff the ciphertext distribution is
+independent of the plaintext ([KatzLindell2020], Lemma 2.5). -/
+theorem perfectlySecret_iff_ciphertextIndist (scheme : EncScheme M K C) :
+    scheme.PerfectlySecret ↔ scheme.CiphertextIndist := by
   classical
-  refine ⟨fun h m₀ m₁ => ?_, fun h μ _ => compProd_eq_prod_of_outputIndist μ _ h⟩
-  let messages : Finset M := {m₀, m₁}
-  let μ := uniformOn (messages : Set M)
-  have : IsProbabilityMeasure μ :=
-    isProbabilityMeasure_uniformOn messages.finite_toSet (by simp [messages])
-  have key : ∀ m ∈ messages, scheme.ciphertextDist m = scheme.marginalCiphertextDist μ := by
-    intro m hm
-    apply Measure.ext
-    intro ciphertexts hc
-    have he := (perfectlySecret_iff_indep scheme).mp h μ {m} ciphertexts
-      (measurableSet_singleton m) hc
-    rw [jointDist_apply_prod _ _ (measurableSet_singleton m) hc, lintegral_singleton,
-      mul_comm] at he
-    have hmass : μ {m} ≠ 0 := by
-      change uniformOn (messages : Set M) {m} ≠ 0
-      intro hz
-      have he := (uniformOn_eq_zero_iff messages.finite_toSet).mp hz
-      have hm' : m ∈ (messages : Set M) ∩ {m} := ⟨hm, rfl⟩
-      simp only [he, Set.mem_empty_iff_false] at hm'
-    exact (ENNReal.mul_right_inj hmass (measure_ne_top μ {m})).mp he
-  exact (key m₀ (by simp [messages])).trans (key m₁ (by simp [messages])).symm
+  refine ⟨fun h => ?_, fun h msgDist c hc =>
+    posteriorDist_eq_prior_of_outputIndist msgDist scheme.ciphertextDist h c hc⟩
+  rw [perfectlySecret_iff_indep] at h
+  intro m₀ m₁; ext c
+  have hs : ({m₀, m₁} : Finset M).Nonempty := ⟨m₀, Finset.mem_insert_self ..⟩
+  set μ := uniformOfFinset _ hs
+  suffices key : ∀ m ∈ ({m₀, m₁} : Finset M),
+      scheme.ciphertextDist m c = scheme.marginalCiphertextDist μ c by
+    exact (key m₀ (by simp)).trans (key m₁ (by simp)).symm
+  intro m hm
+  have hne := (mem_support_uniformOfFinset_iff hs m).mpr hm
+  have hne_top := PMF.apply_ne_top μ m
+  exact (ENNReal.mul_right_inj hne hne_top).mp (by rw [← jointDist_eq]; exact h μ m c)
 
 /-- Ciphertext indistinguishability implies message-ciphertext independence. -/
 theorem indep_of_ciphertextIndist (scheme : EncScheme M K C)
-    (h : scheme.CiphertextIndist) (msgDist : Measure M) [IsProbabilityMeasure msgDist] :
-    scheme.jointDist msgDist = msgDist.prod (scheme.marginalCiphertextDist msgDist) :=
-  compProd_eq_prod_of_outputIndist msgDist _ h
+    (h : scheme.CiphertextIndist) (msgDist : PMF M) (m : M) (c : C) :
+    scheme.jointDist msgDist (m, c) =
+      msgDist m * scheme.marginalCiphertextDist msgDist c :=
+  (perfectlySecret_iff_indep scheme).mp
+    ((perfectlySecret_iff_ciphertextIndist scheme).mpr h) msgDist m c
 
-/-- Under perfect secrecy, Mathlib's posterior equals the prior almost surely. -/
-theorem posteriorMsgDist_eq_prior [StandardBorelSpace M] [Nonempty M]
-    (scheme : EncScheme M K C) (h : scheme.PerfectlySecret)
-    (msgDist : Measure M) [IsProbabilityMeasure msgDist] :
-    scheme.posteriorMsgDist msgDist =ᵐ[scheme.marginalCiphertextDist msgDist]
-      fun _ => msgDist :=
-  posterior_eq_prior_of_compProd_eq_prod msgDist _ (h msgDist)
+/-- If each message maps to a key that encrypts it to a common ciphertext,
+then the key assignment is injective (by correctness of decryption). -/
+private lemma encrypt_key_injective (scheme : EncScheme M K C)
+    (f : M → K) (c₀ : C)
+    (hf_mem : ∀ m, f m ∈ scheme.gen.support)
+    (hf_enc : ∀ m, c₀ ∈ (scheme.enc (f m) m).support) :
+    Function.Injective f :=
+  fun m₁ m₂ heq =>
+    (scheme.correct _ (hf_mem m₁) m₁ c₀ (hf_enc m₁)).symm.trans
+      (heq ▸ scheme.correct _ (hf_mem m₂) m₂ c₀ (hf_enc m₂))
 
-/-- Perfect secrecy requires `|K| ≥ |M|` — Shannon's theorem.
-Ciphertexts may have a continuous distribution; correctness is used almost surely
+/-- Perfect secrecy requires `|K| ≥ |M|` — Shannon's theorem
 ([KatzLindell2020], Theorem 2.12). -/
-theorem perfectlySecret_keySpace_ge [Finite K] [MeasurableSingletonClass M]
+theorem perfectlySecret_keySpace_ge [Finite K]
     (scheme : EncScheme M K C) (h : scheme.PerfectlySecret) :
     Nat.card M ≤ Nat.card K := by
   classical
-  cases finite_or_infinite M with
-  | inr hM => simp [Nat.card_eq_zero_of_infinite]
-  | inl hM =>
-    have hci := (perfectlySecret_iff_ciphertextIndist scheme).mp h
-    by_cases hM : IsEmpty M
-    · simp
-    obtain ⟨m₀⟩ := not_isEmpty_iff.mp hM
-    have key_exists (m : M) : ∀ᵐ c ∂scheme.ciphertextDist m₀, ∃ k, scheme.dec k c = m := by
-      rw [← hci m m₀, ciphertextDist_eq_comp]
-      apply Measure.ae_comp_of_ae_ae
-      · have hk (k : K) : Measurable (scheme.dec k) :=
-          scheme.dec_measurable.comp measurable_prodMk_left
-        simpa only [Set.ofPred_exists, Set.preimage, Set.mem_singleton_iff] using
-          MeasurableSet.iUnion (fun k => hk k (measurableSet_singleton m))
-      · filter_upwards [scheme.correct] with k hk
-        exact (hk m).mono fun c hc => ⟨k, hc⟩
-    obtain ⟨c, hc⟩ := (ae_all_iff.mpr key_exists).exists
-    choose f hf using hc
-    exact Nat.card_le_card_of_injective f fun m₁ m₂ heq =>
-      (hf m₁).symm.trans (heq ▸ hf m₂)
+  have hci := (perfectlySecret_iff_ciphertextIndist scheme).mp h
+  by_cases hM : IsEmpty M; · simp
+  obtain ⟨m₀⟩ := not_isEmpty_iff.mp hM
+  obtain ⟨c₀, hc₀⟩ := (scheme.ciphertextDist m₀).support_nonempty
+  have key_exists : ∀ m, ∃ k ∈ scheme.gen.support, c₀ ∈ (scheme.enc k m).support := by
+    intro m
+    exact (PMF.mem_support_bind_iff _ _ _).mp
+      (show c₀ ∈ (scheme.ciphertextDist m).support by rw [hci m m₀]; exact hc₀)
+  choose f hf_mem hf_enc using key_exists
+  exact Nat.card_le_card_of_injective f
+    (encrypt_key_injective scheme f c₀ hf_mem hf_enc)
 
 end Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme

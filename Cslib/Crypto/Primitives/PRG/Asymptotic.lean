@@ -7,7 +7,6 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Primitives.PRG.Basic
-public import Cslib.Foundations.Data.BitVec
 public import Mathlib.Analysis.Asymptotics.SuperpolynomialDecay
 public import Mathlib.Data.FinEnum
 
@@ -42,8 +41,6 @@ abbrev Family (Seed Output : ℕ → Type*) := ∀ n, Generator (Seed n) (Output
 namespace Family
 
 variable {Seed Output : ℕ → Type*}
-variable [∀ n, MeasurableSpace (Seed n)]
-variable [∀ n, MeasurableSpace (Output n)]
 variable [∀ n, Fintype (Seed n)] [∀ n, Nonempty (Seed n)]
 variable [∀ n, Fintype (Output n)] [∀ n, Nonempty (Output n)]
 
@@ -83,7 +80,6 @@ theorem SecureWithError.secure {G : Family Seed Output}
 
 section RangeTests
 
-variable [∀ n, MeasurableSingletonClass (Seed n)] [∀ n, MeasurableSingletonClass (Output n)]
 variable [∀ n, DecidableEq (Output n)]
 
 /-- A non-negligible lower bound on the fraction of outputs outside the image rules out

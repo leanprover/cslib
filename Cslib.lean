@@ -121,7 +121,6 @@ public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Cslib.Foundations.Control.Monad.IsMonadHom.List
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.BitString
-public import Cslib.Foundations.Data.BitVec
 public import Cslib.Foundations.Data.DecidableEqZero
 public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
@@ -254,6 +253,6 @@ public import Cslib.MachineLearning.PACLearning.Defs
 public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
 public import Cslib.MachineLearning.PACLearning.VersionSpaceLattice
-public import Cslib.Probability.Measure
+public import Cslib.Probability.PMF
 public import Cslib.Probability.StatisticalDistance
 public import Cslib.Tactic.GrindAttrs

@@ -7,8 +7,8 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
-public import Cslib.Foundations.Data.BitVec
 public import Mathlib.Data.FinEnum
+import Cslib.Probability.PMF
 import Mathlib.Data.LawfulXor.Equiv
 
 /-!
@@ -35,26 +35,24 @@ The one-time pad (Vernam cipher) over `BitVec l`
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy
 
-open MeasureTheory ProbabilityTheory Cslib.Probability.Measure
+open Cslib.Probability.PMF
 
 /-- The one-time pad over `l`-bit strings. Encryption and decryption
 are XOR ([KatzLindell2020], Construction 2.9). -/
 noncomputable def otp (l : ℕ) :
     EncScheme (BitVec l) (BitVec l) (BitVec l) :=
-  .ofPure (uniformOfFintype (BitVec l)) (· ^^^ ·) (· ^^^ ·)
-    (measurable_of_countable _) (measurable_of_countable _) fun k m => by
-      simp [xor_cancel_left]
+  .ofPure (uniformOfFintype _) (· ^^^ ·) (· ^^^ ·) fun k m => by
+    simp [xor_cancel_left]
 
 /-- The ciphertext distribution of the OTP is uniform, regardless of the
 message: masking with a uniform key is the permutation `Equiv.xor` of the
 uniform distribution. -/
 theorem otp_ciphertextDist_eq_uniform (l : ℕ) (m : BitVec l) :
     (otp l).ciphertextDist m = uniformOfFintype (BitVec l) := by
-  rw [EncScheme.ciphertextDist_eq_comp]
-  change (uniformOfFintype (BitVec l) : Measure (BitVec l)).bind
-    (fun key => Measure.dirac (key ^^^ m)) = _
-  rw [Measure.bind_dirac_eq_map _ (measurable_of_countable _), xor_right_eq]
-  exact uniformOn_univ_map_equiv (Equiv.xor m)
+  have h : (fun k : BitVec l => PMF.pure (k ^^^ m)) = (PMF.pure ∘ ⇑(Equiv.xor m)) :=
+    congrArg (PMF.pure ∘ ·) xor_right_eq
+  change (uniformOfFintype (BitVec l)).bind (fun k => PMF.pure (k ^^^ m)) = _
+  rw [h, PMF.bind_pure_comp, uniformOfFintype_map_equiv]
 
 /-- The one-time pad is perfectly secret ([KatzLindell2020], Theorem 2.10). -/
 theorem otp_perfectlySecret (l : ℕ) : (otp l).PerfectlySecret :=

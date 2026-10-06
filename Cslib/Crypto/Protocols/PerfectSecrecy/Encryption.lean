@@ -6,7 +6,8 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Probability.Measure
+public import Cslib.Init
+public import Mathlib.Probability.ProbabilityMassFunction.Monad
 
 /-!
 # Private-Key Encryption Schemes (Information-Theoretic)
@@ -28,52 +29,33 @@ constraints.
 
 @[expose] public section
 
-open MeasureTheory ProbabilityTheory
-
 namespace Cslib.Crypto.Protocols.PerfectSecrecy
 
 /--
 A private-key encryption scheme over message space `M`, key space `K`,
 and ciphertext space `C` ([KatzLindell2020], Definition 2.1).
 -/
-structure EncScheme (Message Key Ciphertext : Type*)
-    [MeasurableSpace Message] [MeasurableSpace Key] [MeasurableSpace Ciphertext] where
+structure EncScheme (Message Key Ciphertext : Type*) where
   /-- Probabilistic key generation. -/
-  gen : Measure Key
-  /-- Key generation has total mass one. -/
-  gen_isProbabilityMeasure : IsProbabilityMeasure gen
-  /-- Jointly measurable, possibly randomized encryption. -/
-  enc : Kernel (Key × Message) Ciphertext
-  /-- Encryption has total mass one for every key and message. -/
-  enc_isMarkovKernel : IsMarkovKernel enc
+  gen : PMF Key
+  /-- (Possibly randomized) encryption. -/
+  enc (key : Key) (message : Message) : PMF Ciphertext
   /-- Deterministic decryption. -/
   dec (key : Key) (ciphertext : Ciphertext) : Message
-  /-- Decryption is jointly measurable. -/
-  dec_measurable : Measurable (Function.uncurry dec)
-  /-- Almost every generated key decrypts correctly for every message, almost surely over
-  encryption randomness. The exceptional set of keys is independent of the message. -/
-  correct : ∀ᵐ key ∂gen, ∀ message, ∀ᵐ ciphertext ∂enc (key, message),
-    dec key ciphertext = message
+  /-- Decryption inverts encryption for all keys in the support of `gen`. -/
+  correct : ∀ key, key ∈ gen.support → ∀ message ciphertext,
+    ciphertext ∈ (enc key message).support → dec key ciphertext = message
 
-attribute [instance] EncScheme.gen_isProbabilityMeasure EncScheme.enc_isMarkovKernel
-
-/-- Build an encryption scheme from measurable deterministic encryption/decryption
+/-- Build an encryption scheme from deterministic pure encryption/decryption
 where decryption is a left inverse of encryption for every key. -/
-noncomputable def EncScheme.ofPure {Message Key Ciphertext : Type*}
-    [MeasurableSpace Message] [MeasurableSpace Key] [MeasurableSpace Ciphertext]
-    [MeasurableSingletonClass Message] (gen : Measure Key) [IsProbabilityMeasure gen]
+noncomputable def EncScheme.ofPure.{u} {Message Key Ciphertext : Type u} (gen : PMF Key)
     (enc : Key → Message → Ciphertext) (dec : Key → Ciphertext → Message)
-    (henc : Measurable (Function.uncurry enc)) (hdec : Measurable (Function.uncurry dec))
     (h : ∀ key, Function.LeftInverse (dec key) (enc key)) :
     EncScheme Message Key Ciphertext where
   gen := gen
-  gen_isProbabilityMeasure := inferInstance
-  enc := Kernel.deterministic (Function.uncurry enc) henc
-  enc_isMarkovKernel := inferInstance
+  enc key message := PMF.pure (enc key message)
   dec := dec
-  dec_measurable := hdec
-  correct := Filter.Eventually.of_forall fun key message => by
-    exact (ae_dirac_iff ((hdec.comp measurable_prodMk_left)
-      (measurableSet_singleton message))).2 (h key message)
+  correct key _ message _ hc := by
+    rw [PMF.mem_support_pure_iff] at hc; subst hc; exact h key message
 
 end Cslib.Crypto.Protocols.PerfectSecrecy
