@@ -139,12 +139,13 @@ def bob : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
 
 /-! ## Semantics -/
 
-/-- Implementation of local function call evaluation. -/
+/-- Implementation of local function call evaluation.
+Calls with a mismatched modulus are rejected. -/
 def funEval : FunCallEval FunId params.Val
   | .computePublicMessage, [.nat p, .zMod g, .nat privateExp], v =>
-    (h : p = params.p) → v = (.zMod <| h ▸ computePublicMessage p (h ▸ g) privateExp)
+    p = params.p ∧ v = .zMod (computePublicMessage params.p g privateExp)
   | .computeSharedSecret, [.nat p, .zMod msg, .nat privateExp], v =>
-    (h : p = params.p) → v = (.zMod <| h ▸ computeSharedSecret p (h ▸ msg) privateExp)
+    p = params.p ∧ v = .zMod (computeSharedSecret params.p msg privateExp)
   | _, _, _ => False
 
 /-- DH network. -/
