@@ -112,7 +112,7 @@ abbrev aliceComputeMesg : Expr Var params.Val FunId :=
 
 /-- Alice's expression for computing the shared secret. -/
 abbrev aliceComputeSharedSecret : Expr Var params.Val FunId :=
-  Expr.call .computeSharedSecret [params.y, .val <| .nat params.a]
+  Expr.call .computeSharedSecret [.val <| .nat params.p, params.y, .val <| .nat params.a]
 
 /-- Bob's expression for computing the public message. -/
 abbrev bobComputeMesg : Expr Var params.Val FunId :=
@@ -121,7 +121,7 @@ abbrev bobComputeMesg : Expr Var params.Val FunId :=
 
 /-- Bob's expression for computing the shared secret. -/
 abbrev bobComputeSharedSecret : Expr Var params.Val FunId :=
-  Expr.call .computeSharedSecret [params.x, .val <| .nat params.a]
+  Expr.call .computeSharedSecret [.val <| .nat params.p, params.x, .val <| .nat params.a]
 
 /-- Alice's program. -/
 def alice : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
