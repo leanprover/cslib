@@ -108,7 +108,7 @@ inductive Params.Val | nat (n : ℕ) | zMod (z : ZMod params.p)
 /-- Alice's expression for computing the public message. -/
 abbrev aliceComputeMesg : Expr Var params.Val FunId :=
   Expr.call .computePublicMessage
-    [.val <| .nat params.p, .val <| .zMod params.g, .val <| .nat params.b]
+    [.val <| .nat params.p, .val <| .zMod params.g, .val <| .nat params.a]
 
 /-- Alice's expression for computing the shared secret. -/
 abbrev aliceComputeSharedSecret : Expr Var params.Val FunId :=
@@ -121,7 +121,7 @@ abbrev bobComputeMesg : Expr Var params.Val FunId :=
 
 /-- Bob's expression for computing the shared secret. -/
 abbrev bobComputeSharedSecret : Expr Var params.Val FunId :=
-  Expr.call .computeSharedSecret [.val <| .nat params.p, params.x, .val <| .nat params.a]
+  Expr.call .computeSharedSecret [.val <| .nat params.p, params.x, .val <| .nat params.b]
 
 /-- Alice's program. -/
 def alice : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
@@ -139,12 +139,13 @@ def bob : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
 
 /-! ## Semantics -/
 
-/-- Implementation of local function call evaluation. -/
+/-- Implementation of local function call evaluation.
+Calls with a mismatched modulus are rejected. -/
 def funEval : FunCallEval FunId params.Val
   | .computePublicMessage, [.nat p, .zMod g, .nat privateExp], v =>
-    (h : p = params.p) → v = (.zMod <| h ▸ computePublicMessage p (h ▸ g) privateExp)
+    p = params.p ∧ v = .zMod (computePublicMessage params.p g privateExp)
   | .computeSharedSecret, [.nat p, .zMod msg, .nat privateExp], v =>
-    (h : p = params.p) → v = (.zMod <| h ▸ computeSharedSecret p (h ▸ msg) privateExp)
+    p = params.p ∧ v = .zMod (computeSharedSecret params.p msg privateExp)
   | _, _, _ => False
 
 /-- DH network. -/
@@ -194,9 +195,9 @@ abbrev Params.cfgLts {SelLabel ProcName : Type*} :=
   Cfg.lts (Pid := Pid) (Var := Var) (SelLabel := SelLabel) (ProcName := ProcName)
     (fun _ => False) (funEval params)
 
-/- Functional correctness of the Diffie-Hellman protocol. -/
+/- Functional correctness of the Diffie-Hellman protocol over complete executions. -/
 proof_wanted net_fun_correct
-    (hmtr : params.cfgLts.Tr ⟨net params, gs⟩ μs ⟨0, gs'⟩) :
+    (hmtr : params.cfgLts.MTr ⟨net params, gs⟩ μs ⟨0, gs'⟩) :
     (gs' params.alice) params.s = (gs' params.bob) params.s
 
 end Cslib.Algorithms.StatefulProcesses.DiffieHellman
