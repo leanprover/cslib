@@ -7,6 +7,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Primitives.PRG.Defs
+public import Cslib.Probability.PMF
 
 /-!
 # Pseudorandom generators against arbitrary adversaries
@@ -164,7 +165,7 @@ theorem not_exists_isExpanding_secure_zero :
   rintro ⟨G, hG, hsecure⟩
   exact G.not_secure_zero_of_isExpanding hG hsecure
 
-section Parallel
+section ParallelComposition
 
 /-- Independent uniform sampling on `α` and `β` equals uniform sampling on `α × β`. -/
 theorem uniformOfFintype_prod (α β : Type*)
@@ -193,7 +194,8 @@ omit [Fintype Output] [Nonempty Output] in
 theorem outputDist_prod (G : Generator Seed Output) :
     G.prod.outputDist =
       G.outputDist.bind fun y₁ => G.outputDist.map fun y₂ => (y₁, y₂) := by
-  simp only [outputDist, prod, coe_mk, ← uniformOfFintype_prod Seed Seed,
+  simp_rw [outputDist, prod, coe_mk,
+    ← uniformOfFintype_prod Seed Seed,
     PMF.map_bind, PMF.bind_map, PMF.map_comp, Function.comp_def]
 
 omit [Fintype Output] [Nonempty Output] in
@@ -262,6 +264,6 @@ theorem Secure.prod {G : Generator Seed Output}
   push_cast
   linarith
 
-end Parallel
+end ParallelComposition
 
 end Cslib.Crypto.PRG.Generator
