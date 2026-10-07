@@ -66,7 +66,7 @@ area, but this is absorbed by the `O(s)` exponent in the final bound.
 
 The windows for a whole run are available because a deterministic machine that is space-bounded
 on every computation path attains its per-tape space usage on a single path
-(`MultiTapeNTM.IsDeterministic.exists_spaceUsedByTape_max`). For a nondeterministic machine the
+(`MultiTapeTM.exists_spaceUsedByTape_max`). For a nondeterministic machine the
 bound above applies to each path separately, since different branches can visit different cells.
 -/
 
@@ -320,7 +320,7 @@ theorem encard_storages_le [Fintype Symbol] [Fintype State]
     {s : ℕ} (hs : tm.RunsInSpace input s) :
     (Set.range fun p : tm.ComputationPath input ↦ p.last.storage).encard
       ≤ storageBound Symbol State k s := by
-  obtain ⟨p, hp, hmax⟩ := tm.deterministic.exists_spaceUsedByTape_max (tm.initCfg input)
+  obtain ⟨p, hp, hmax⟩ := tm.exists_spaceUsedByTape_max (tm.initCfg input)
     fun p hp ↦ hs ⟨p, hp⟩
   refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs ⟨p, hp⟩))
   rintro _ ⟨q, rfl⟩
