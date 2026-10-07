@@ -33,5 +33,6 @@ import CslibTests.PFunctor
 import CslibTests.PFunctorFree
 import CslibTests.PRG
 import CslibTests.Reduction
+import CslibTests.Resumption
 import CslibTests.StatefulProcesses
 import CslibTests.Synthesis
