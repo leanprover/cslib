@@ -7,7 +7,6 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
-import Mathlib.Probability.Distributions.Uniform
 
 /-!
 # Perfect Secrecy
@@ -83,12 +82,12 @@ theorem perfectlySecret_iff_ciphertextIndist (scheme : EncScheme M K C) :
   rw [perfectlySecret_iff_indep] at h
   intro m₀ m₁; ext c
   have hs : ({m₀, m₁} : Finset M).Nonempty := ⟨m₀, Finset.mem_insert_self ..⟩
-  set μ := PMF.uniformOfFinset _ hs
+  set μ := uniformOfFinset _ hs
   suffices key : ∀ m ∈ ({m₀, m₁} : Finset M),
       scheme.ciphertextDist m c = scheme.marginalCiphertextDist μ c by
     exact (key m₀ (by simp)).trans (key m₁ (by simp)).symm
   intro m hm
-  have hne := (PMF.mem_support_uniformOfFinset_iff hs m).mpr hm
+  have hne := (mem_support_uniformOfFinset_iff hs m).mpr hm
   have hne_top := PMF.apply_ne_top μ m
   exact (ENNReal.mul_right_inj hne hne_top).mp (by rw [← jointDist_eq]; exact h μ m c)
 

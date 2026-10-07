@@ -22,6 +22,7 @@ every smaller error bound. No injectivity assumption on the generator is needed.
 
 namespace Cslib.Crypto.PRG.Generator
 
+open Cslib.Probability.PMF
 open scoped NNReal
 
 variable {Seed Output : Type*}
@@ -57,14 +58,14 @@ theorem advantage_const (G : Generator Seed Output) (p : PMF Bool) :
 
 /-- A generator with exactly uniform output is secure with zero error against any tests. -/
 theorem secure_zero_of_outputDist_eq (G : Generator Seed Output)
-    (hG : G.outputDist = PMF.uniformOfFintype Output)
+    (hG : G.outputDist = uniformOfFintype Output)
     (Admissible : Adversary Output → Prop) : G.Secure Admissible 0 := by
   intro adversary _
   simp [advantage, realExperiment, idealExperiment, hG]
 
 /-- Zero-error security against arbitrary tests is equivalent to exactly uniform output. -/
 theorem secure_zero_iff_outputDist_eq_uniform (G : Generator Seed Output) :
-    G.Secure (fun _ => True) 0 ↔ G.outputDist = PMF.uniformOfFintype Output := by
+    G.Secure (fun _ => True) 0 ↔ G.outputDist = uniformOfFintype Output := by
   classical
   refine ⟨fun h => ?_, fun h => G.secure_zero_of_outputDist_eq h _⟩
   ext output
@@ -112,7 +113,7 @@ theorem idealExperiment_rangeAdversary (G : Generator Seed Output) :
     (idealExperiment G.rangeAdversary true).toReal =
       Nat.card (Set.range G) / (Fintype.card Output : ℝ) := by
   simp only [idealExperiment, rangeAdversary, rangeTest, PMF.bind_apply, PMF.pure_apply,
-    PMF.uniformOfFintype_apply, tsum_fintype]
+    uniformOfFintype_apply, tsum_fintype]
   simp only [mul_ite, mul_one, mul_zero, eq_comm (a := true), decide_eq_true_eq]
   rw [← Finset.sum_filter]
   simp [Nat.card_eq_fintype_card, Fintype.card_subtype, div_eq_mul_inv]
