@@ -49,11 +49,27 @@ namespace Turing
 
 variable {k : ℕ} {State Symbol : Type*}
 
+namespace MultiTapeNTM
+
 /-- Every state and tuple of read symbols is related to exactly one action by `ntm`'s transition
 relation. -/
-def MultiTapeNTM.IsDeterministic (ntm : MultiTapeNTM k Symbol State) : Prop :=
+def IsDeterministic (ntm : MultiTapeNTM k Symbol State) : Prop :=
   ∀ (q : State) (input : Option Symbol) (work : Fin k → Option Symbol),
     ∃! action, ntm.Tr q input work action
+
+/-- A deterministic machine has at most one successor configuration. -/
+lemma IsDeterministic.step_rightUnique {ntm : MultiTapeNTM k Symbol State}
+    (h : ntm.IsDeterministic) {input : List Symbol} :
+    Relator.RightUnique (ntm.Step (input := input)) := by
+  intro c c' c'' hc hc'
+  cases hq : c.state with
+  | none => exact ((step_of_halt hq).mp hc).trans ((step_of_halt hq).mp hc').symm
+  | some q =>
+    obtain ⟨a, ha, rfl⟩ := (step_of_state hq).mp hc
+    obtain ⟨b, hb, rfl⟩ := (step_of_state hq).mp hc'
+    rw [(h q c.inputSymbol c.workTapeSymbols).unique ha hb]
+
+end MultiTapeNTM
 
 /--
 A multi-tape Turing machine with `k` work tapes over the alphabet of `Option Symbol` (where `none`
@@ -333,35 +349,5 @@ lemma not_halts_of_repeat_nonhalt
   simp [hloop t', h_not_halt] at h₁
 
 end MultiTapeTM
-
-namespace MultiTapeNTM
-
-/-- A deterministic machine has at most one successor configuration. -/
-lemma IsDeterministic.step_rightUnique {ntm : MultiTapeNTM k Symbol State}
-    (h : ntm.IsDeterministic) {input : List Symbol} {c c' c'' : Cfg k Symbol State input}
-    (hc : ntm.Step c c') (hc' : ntm.Step c c'') : c' = c'' := by
-  cases hq : c.state with
-  | none => exact ((step_of_halt hq).mp hc).trans ((step_of_halt hq).mp hc').symm
-  | some q =>
-    obtain ⟨a, ha, rfl⟩ := (step_of_state hq).mp hc
-    obtain ⟨b, hb, rfl⟩ := (step_of_state hq).mp hc'
-    rw [(h q c.inputSymbol c.workTapeSymbols).unique ha hb]
-
-/-- Paths of a deterministic machine with the same start agree at every common index. -/
-lemma IsDeterministic.apply_eq {ntm : MultiTapeNTM k Symbol State} (h : ntm.IsDeterministic)
-    {input : List Symbol} (p q : ntm.RunPath input) (hh : p.head = q.head)
-    (i : Fin (p.length + 1)) (j : Fin (q.length + 1)) (hij : i.val = j.val) : p i = q j := by
-  induction i using Fin.induction generalizing j with
-  | zero =>
-    have hj : j = 0 := Fin.ext hij.symm
-    subst j
-    exact hh
-  | succ i ih =>
-    obtain ⟨j, rfl⟩ := j.eq_succ_of_ne_zero (by intro hj; simp [hj] at hij)
-    have hp := p.step i
-    rw [ih j.castSucc (Nat.succ.inj hij)] at hp
-    exact h.step_rightUnique hp (q.step j)
-
-end MultiTapeNTM
 
 end Turing

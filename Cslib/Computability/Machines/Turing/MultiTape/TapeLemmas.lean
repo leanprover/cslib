@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Foundations.Relation.RelSeries
 public import Mathlib.Data.Int.Interval
 public import Mathlib.Order.Lattice.Nat
 
@@ -295,7 +296,8 @@ lemma IsDeterministic.exists_spaceUsedByTape_max (hd : ntm.IsDeterministic)
     intro z hz
     obtain ⟨c, ⟨n, rfl⟩, rfl⟩ := (RunPath.mem_visitedByTapeHead _ _ _).mp hz
     have hn : n.val < q.val.length + 1 := lt_of_lt_of_le n.isLt (Nat.add_le_add_right ht 1)
-    have he := hd.apply_eq p.val q.val (p.property.trans q.property.symm) n ⟨n.val, hn⟩ rfl
+    have he := p.val.apply_eq_of_rightUnique q.val hd.step_rightUnique
+      (p.property.trans q.property.symm) n ⟨n.val, hn⟩ rfl
     rw [he]
     exact RunPath.workTapePos_mem_visited (p := q.val) ⟨⟨n.val, hn⟩, rfl⟩ i
   have hb : BddAbove (Set.range fun p : paths ↦ p.val.space) :=
