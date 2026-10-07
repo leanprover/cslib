@@ -59,63 +59,136 @@ to learn about it as well!
 **Init Imports**
 - `CheckInitImports.lean` (run by `lake exe checkInitImports`) checks that all files transitively import `Cslib.Init`.
 
-**Relation algebra catalogue generation**
+**Relation algebra counting certificates**
 
-- `RelationAlgebra/generate.py` reproduces the individual five-atom algebra modules for
-  signatures ⟨1,2,1⟩ and ⟨1,4,0⟩, containing 1,316 and 3,013 isomorphism classes respectively.
-  It uses `RelationAlgebra/enumerate.cpp` to enumerate all cycle masks, then independently checks
-  each rejected mask's associativity counterexample, each renaming witness, and every canonical
-  model in Python. No external Python packages or network access are needed. Requirements are
-  Python 3.10 or newer and a C++20 compiler supporting `unsigned __int128` (GCC or Clang).
+- `RelationAlgebra/count.py` runs the C++20 search in `RelationAlgebra/count.cpp` and writes
+  reproducible JSON certificates. It supports all integral signatures through six atoms.
+  Requirements are Python 3.10 or newer and a C++20 compiler; no third-party Python packages
+  or network access are needed. `--cxx` or the `CXX` environment variable selects the compiler.
+  Compilation and intermediate files use a temporary directory.
 
-  Run from the repository root:
+- `RelationAlgebra/count_lean.py` renders those certificates as Lean count theorems in
+  `Cslib/Foundations/RelationAlgebra/Catalogue/Counts/`. The committed count rows cover the
+  five-atom signatures `I1S0N2`, `I1S2N1`, `I1S4N0` and the six-atom signatures `I1S1N2`,
+  `I1S3N1`, `I1S5N0`. The explicit models and representability proofs through four atoms
+  remain in their original catalogue modules.
 
-  ```bash
-  # Re-enumerate and check both complete rows without changing source files.
-  python3 scripts/RelationAlgebra/generate.py --check --include-classifications
+- `RelationAlgebra/test_count.py` runs regression tests for certificate validation, including
+  invalid reason records, incorrect uses of valid reasons, and malformed search trees.
+  Run `python3 scripts/RelationAlgebra/test_count.py` from the repository root.
 
-  # Regenerate one row's individual algebra modules.
-  python3 scripts/RelationAlgebra/generate.py --row I1S2N1
+- `RelationAlgebra/benchmark.py` selects representative independent certificate fragments,
+  prepares standalone Lean profiling inputs, and summarizes their timing reports. It keeps
+  metadata verification in the measured input. Run the script with `--help` for its commands.
+  Fragment measurements help identify costs; acceptance requires rebuilding the complete row.
 
-  # Export enumeration data for generating the row classification certificates.
-  python3 scripts/RelationAlgebra/generate.py --data-only --data-dir /tmp/cslib-ra-data
-  ```
-
-  With no options, the script regenerates the entries in both rows. `--row` may be repeated.
-  Add `--include-classifications` to also generate or check model dispatch, row proofs, and
-  coverage certificates. The complete check re-enumerates once and needs no saved JSON files.
-  `--output-root` selects a different repository root, and `--cxx` or the `CXX` environment
-  variable selects the compiler. Compilation and intermediate files use a temporary directory.
-  `--check` reports missing, changed, or unexpected entry files and never rewrites sources.
-  It cannot be combined with data output options. The generator does not modify `Cslib.lean`;
-  run `lake exe mk_all` after adding modules and perform the usual project validation.
-
-  [Jipsen's table](https://www1.chapman.edu/~jipsen/gap/ramaddux.html) publishes the class counts
-  but does not list the individual algebras in these two rows. Their numbering here is therefore
-  independent: choose the lexicographically least representative of each Peircean cycle orbit,
-  order those triples by `Atom.code`, and use their indices as mask bits. For each algebra,
-  choose the least mask under all identity- and converse-preserving atom permutations. Increasing
-  canonical masks receive the names `Ra0001`, `Ra0002`, and so on. This is not Maddux numbering.
-
-  Exported files `cslib-i1s2n1-data.json` and `cslib-i1s4n0-data.json` include the orbit basis,
-  canonical masks, packed multiplication tables, atom renamings, successful renaming witnesses,
-  and associativity counterexamples. Atom code 0 denotes identity; the other codes follow
-  `Atom.code`. Each `[mask, model, rename]` witness maps the source mask to the canonical model,
-  with zero-based model and rename indices. Large table codes are decimal strings. These data
-  files are reproducible intermediates and need not be committed. The scripts are certificate
-  generators, not trusted proof procedures: generated Lean proofs still require kernel checking.
-
-- `RelationAlgebra/rows.py` renders the cycle basis, atom renamings, certified model dispatch,
-  and the two unique-index classification statements. `RelationAlgebra/coverage.py` renders
-  coverage certificates in blocks of 64 models, then combines them with the associativity
-  truth table. Both use the shared comparison logic in `generate.py`. To check these files
-  separately against previously exported data, run:
+  Run from the repository root, for example:
 
   ```bash
-  python3 scripts/RelationAlgebra/rows.py --data-dir /tmp/cslib-ra-data --check
-  python3 scripts/RelationAlgebra/coverage.py --data-dir /tmp/cslib-ra-data --check
+  # Generate a certificate and independently verify every search step in Python.
+  python3 scripts/RelationAlgebra/count.py --row I1S1N2 --data-dir /tmp/cslib-ra-counts --verify
+
+  # Render its kernel-checked Lean count theorem.
+  python3 scripts/RelationAlgebra/count_lean.py --row I1S1N2 --data-dir /tmp/cslib-ra-counts
+
+  # Check reproducibility without rewriting either the JSON or Lean source.
+  python3 scripts/RelationAlgebra/count.py --row I1S1N2 --data-dir /tmp/cslib-ra-counts --check --verify
+  python3 scripts/RelationAlgebra/count_lean.py --row I1S1N2 --data-dir /tmp/cslib-ra-counts --check
   ```
 
-  Both accept the same `--row` and `--output-root` options as the entry generator. Omit `--check`
-  to regenerate their files. Their inputs are untrusted certificate data; neither script runs
-  Lean or changes the public mathematical statements based on an unchecked proof claim.
+  Both scripts accept repeated `--row` arguments. Omitting `--row` makes `count.py` process all
+  twelve supported signatures, while `count_lean.py` renders the six committed count modules.
+  `count.py` prints the count and search statistics, and saves JSON only when
+  `--data-dir` is supplied. `count_lean.py` requires that directory; `--output-root` selects a
+  different destination repository, and `--metadata-only` isolates the problem-encoding proofs
+  for development. `--chunk-size` bounds each independently checked fragment; the default is
+  8,000 search nodes. Neither script updates `Cslib.lean`. Run `lake exe mk_all` after adding modules,
+  then perform the normal build, test and lint validation. JSON files are reproducible intermediates
+  and need not be committed.
+
+  The search follows the partial-assignment methods in Jipsen's
+  [findra3.p](https://math.chapman.edu/~jipsen/relalg/ra1/findra3.p) and
+  [findra4.p](https://math.chapman.edu/~jipsen/relalg/ra1/findra4.p).
+  It chooses one Boolean variable for each Peircean cycle orbit, expresses atomic associativity
+  as equations between positive Boolean expressions, and propagates forced values. Partial
+  lexicographic comparisons eliminate noncanonical atom labellings. Constraints proved true for
+  every completion are retired, allowing an entire remaining family to be counted at once.
+  Masks store cycle variables and active constraints; their width does not grow as one bit per
+  complete assignment.
+
+  Certificate format 3 records splits, forced assignments, cached contradiction reasons, and
+  bundles of constraint retirements. Each reason identifies a constraint, its required truth
+  value, and sufficient positive and negative assignment masks. Lean validates every reason once
+  with the original constraint checker, in independent blocks of 256 entries. Subsequent uses
+  check the reason's polarity, active constraint, and two mask inclusions. Consecutive retirements
+  share one bundle containing the unions of their constraint and requirement masks. In blocks of
+  256 entries, Lean checks each constituent reason's positivity and requirement inclusions, and
+  verifies that their constraint masks cover exactly the bundle. Composition witnesses use packed
+  index sequences that are decoded only during this validation. Blocks of 32 sequences carry
+  their own field widths, keeping both short and long witnesses compact. Each subsequent bundle use
+  checks three mask inclusions and retires the whole constraint mask at once. This removes more than
+  half a million search steps from `I1S5N0`. Formats 1 and 2 are obsolete; regenerate old JSON with
+  `count.py` before rendering it. Unknown versions are also rejected.
+
+  Generated proofs are divided into bounded checks with exact boundary-state references,
+  so that the kernel need not retain the reduction of the whole search at once. Identical certificate
+  subtrees share syntax declarations. Numeric reference records contain only states and counts;
+  separate opaque proofs establish their validity before the final count can be concluded.
+  A generic equality-transport lemma assembles these proofs without reducing the finite-set
+  definition of model counts at concrete states. A 35-variable regression guards this boundary.
+  Permutations use packed natural-number fields. Reason and bundle records are packed in blocks
+  of 32, with balanced lookup between blocks; equation lookups also use balanced dispatch.
+  The `nat_lit%` elaborator turns decimal strings into ordinary natural-number literals, allowing
+  large data constants to span source lines without adding parsing or arithmetic to kernel reduction.
+  The `certificate_lit%` elaborator similarly turns compact instruction strings into ordinary
+  certificate constructor trees, preserving shared helper declarations. This avoids repeatedly
+  parsing and elaborating verbose constructor syntax; the kernel checker traverses the resulting
+  trees directly. Both elaborators produce data only and do not establish any proof. A proved byte
+  population table accelerates the count of free variables. Associativity coverage is also checked
+  in small blocks.
+  Generated data definitions explicitly use `noncomputable def` to avoid emitting runtime code;
+  the kernel still reduces and checks every certificate. The generated rows disable asynchronous
+  elaboration: thousands of dependent proof tasks otherwise create excessive worker threads and
+  scheduling overhead. Independent rows can still be built concurrently by Lake.
+  Lean verifies the cycle basis, the complete
+  associativity equation cover, the atom-renaming group and its action, and every search step. The general
+  counting theorem identifies the resulting canonical masks with relation-algebra isomorphism
+  classes. Each row exports `count : isomorphismClassCount symmetric pairs = N`.
+
+  The C++ search, Python validation, JSON counts and rendering are untrusted. `--verify` is an
+  independent development check; only the generated kernel-checked Lean proofs establish the
+  count theorems. Their statements concern isomorphism classes and do not assert representability.
+
+  Measurements on 2026-10-07 used Lean 4.35.0-rc3 on an AMD Ryzen AI 5 PRO 340
+  (6 cores, 12 threads), with 86 GiB usable RAM. The acceptance command was:
+
+  ```bash
+  lake build --wfail --iofail Cslib.Foundations.RelationAlgebra.Catalogue.Counts.I1S5N0
+  ```
+
+  Dependencies were cached, but every `I1S5N0.*` artifact under both `.lake/build/lib/lean/`
+  and `.lake/build/ir/` was removed before each run. These are complete isolated row builds,
+  including elaboration, kernel checking and output generation. No other Lean build or benchmark
+  ran concurrently. Source hashes were recorded to verify that repeated runs used identical code.
+
+  | Fresh build | Wall time | User CPU | System CPU | Peak child RSS |
+  | --- | ---: | ---: | ---: | ---: |
+  | 1 | 536.66 s (8 min 56.66 s) | 533.63 s | 3.41 s | 5,593,892 KiB (5.33 GiB) |
+  | 2 | 547.13 s (9 min 7.13 s) | 543.89 s | 3.65 s | 5,597,516 KiB (5.34 GiB) |
+
+  Both fresh builds passed the 600-second target, with every count checked by the Lean kernel.
+
+  GNU `time -v` reports peak memory for the largest child process, rather than aggregate memory
+  across Lake and other processes. These measurements apply to the hardware and cache conditions
+  above; they are not timing guarantees for other machines.
+
+  The generated public theorems establish the following counts:
+
+  | Row | Signature | Isomorphism classes |
+  | --- | --- | ---: |
+  | `I1S0N2` | ⟨1, 0, 2⟩ | 83 |
+  | `I1S2N1` | ⟨1, 2, 1⟩ | 1,316 |
+  | `I1S4N0` | ⟨1, 4, 0⟩ | 3,013 |
+  | `I1S1N2` | ⟨1, 1, 2⟩ | 47,965 |
+  | `I1S3N1` | ⟨1, 3, 1⟩ | 988,464 |
+  | `I1S5N0` | ⟨1, 5, 0⟩ | 3,849,920 |
