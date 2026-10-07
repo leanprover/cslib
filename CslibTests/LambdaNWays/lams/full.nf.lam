@@ -1,0 +1,5 @@
+-- numSubsts:  2
+-- bind depth: 2
+-- depth:      5
+-- substs:     1,1,2,False 0,2,9,False
+\x2.x2
