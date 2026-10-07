@@ -7,7 +7,6 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
-public import Cslib.Foundations.Relation.RelSeries
 public import Mathlib.Data.Int.Interval
 public import Mathlib.Order.Lattice.Nat
 
@@ -293,13 +292,18 @@ lemma IsDeterministic.exists_spaceUsedByTape_max (hd : ntm.IsDeterministic)
   let paths := {p : ntm.RunPath input // p.head = cfg}
   have hsub (p q : paths) (ht : p.val.length ≤ q.val.length) (i : Fin k) :
       p.val.visitedByTapeHead i ⊆ q.val.visitedByTapeHead i := by
+    have he (n : Fin (p.val.length + 1)) :
+        p.val n = q.val (n.castLE (Nat.add_le_add_right ht 1)) := by
+      induction n using Fin.induction with
+      | zero => exact p.property.trans q.property.symm
+      | succ n ih =>
+        have hp := p.val.step n
+        rw [ih] at hp
+        exact hd.step_rightUnique hp (q.val.step (n.castLE ht))
     intro z hz
     obtain ⟨c, ⟨n, rfl⟩, rfl⟩ := (RunPath.mem_visitedByTapeHead _ _ _).mp hz
-    have hn : n.val < q.val.length + 1 := lt_of_lt_of_le n.isLt (Nat.add_le_add_right ht 1)
-    have he := p.val.apply_eq_of_rightUnique q.val hd.step_rightUnique
-      (p.property.trans q.property.symm) n ⟨n.val, hn⟩ rfl
-    rw [he]
-    exact RunPath.workTapePos_mem_visited (p := q.val) ⟨⟨n.val, hn⟩, rfl⟩ i
+    rw [he n]
+    exact RunPath.workTapePos_mem_visited (p := q.val) ⟨_, rfl⟩ i
   have hb : BddAbove (Set.range fun p : paths ↦ p.val.space) :=
     ⟨s, by rintro _ ⟨p, rfl⟩; exact hs p.val p.property⟩
   have hn : (Set.range fun p : paths ↦ p.val.space).Nonempty :=
