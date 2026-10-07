@@ -11,8 +11,22 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsT
 /-!
 # Sequential composition of machines on shared tapes
 
-The halting transition of the first machine starts the second machine, so the handoff costs no
-extra step. Correctness joins the two witnessing paths at that configuration.
+`seq tm₀ tm₁` behaves like `tm₀` until `tm₀` would halt, at which point it continues as `tm₁`,
+started in its initial state on the tapes as `tm₀` left them. The state space is
+`State₀ ⊕ State₁`, and the *halting transition* of the first phase is mapped to the initial state
+of the second, so the handoff costs no extra step.
+
+At the specification level this is `transformsTapes_seq`: transformations compose, with the time
+and space bounds adding. The postcondition of `TransformsTapes` is what makes the proof direct:
+the first machine halts in a full `wordsCfg`, which is exactly a starting configuration for the
+second.
+
+## Main results
+
+* `Turing.MultiTapeNTM.seq`: the composed machine.
+* `Turing.MultiTapeNTM.RunPath.exists_seq`: paths compose from arbitrary configurations, with
+  time and space bounds adding; repeated halted configurations in the first path are discarded.
+* `Turing.MultiTapeNTM.transformsTapes_seq`: transformations compose, bounds adding.
 -/
 
 @[expose] public section
@@ -21,7 +35,9 @@ namespace Turing.MultiTapeNTM
 
 variable {k : ℕ} {Symbol State₀ State₁ : Type*} {input : List Symbol}
 
-/-- Run the first machine until it halts, then start the second on the resulting tapes. -/
+/-- The sequential composition of `tm₀` and `tm₁`: it behaves like `tm₀` until `tm₀` would halt,
+at which point it switches to the initial state of `tm₁` and behaves like `tm₁`. The switch is
+folded into the halting transition of `tm₀`, so it costs no step. -/
 def seq (tm₀ : MultiTapeNTM k Symbol State₀) (tm₁ : MultiTapeNTM k Symbol State₁) :
     MultiTapeNTM k Symbol (State₀ ⊕ State₁) where
   q₀ := .inl tm₀.q₀
@@ -50,12 +66,15 @@ variable {tm₀ : MultiTapeNTM k Symbol State₀} {tm₁ : MultiTapeNTM k Symbol
 
 namespace Sequential
 
-/-- Embed the first phase, sending its halted configuration to the second machine's start. -/
+/-- A configuration of the first phase: a configuration of `tm₀`, with a halted state mapped to
+the initial state of the second phase. Under this map, the whole first phase of `seq` mirrors the
+run of `tm₀`, *including* its halting step. -/
 def leftCfg (tm₁ : MultiTapeNTM k Symbol State₁) (cfg : Cfg k Symbol State₀ input) :
     Cfg k Symbol (State₀ ⊕ State₁) input :=
   cfg.mapState (fun st ↦ some (st.elim (.inr tm₁.q₀) .inl))
 
-/-- Embed a configuration of the second phase. -/
+/-- A configuration of the second phase. Under this map, the second phase of `seq` mirrors the
+run of `tm₁`. -/
 def rightCfg (cfg : Cfg k Symbol State₁ input) : Cfg k Symbol (State₀ ⊕ State₁) input :=
   cfg.mapState (Option.map .inr)
 
@@ -80,10 +99,54 @@ lemma step_rightCfg {c c' : Cfg k Symbol State₁ input} (h : tm₁.Step c c') :
       simp [rightCfg, hq]
     exact (step_of_state hright).mpr ⟨_, ⟨a, ha, rfl⟩, rfl⟩
 
+@[simp]
+lemma workTapePos_leftCfg (cfg : Cfg k Symbol State₀ input) :
+    (leftCfg tm₁ cfg).workTapePos = cfg.workTapePos := rfl
+
+@[simp]
+lemma workTapePos_rightCfg (cfg : Cfg k Symbol State₁ input) :
+    (rightCfg (State₀ := State₀) cfg).workTapePos = cfg.workTapePos := rfl
+
+/-- A halted configuration of the first phase is the start of the second phase. -/
+lemma leftCfg_of_halt {cfg : Cfg k Symbol State₀ input} (h : cfg.state = none) :
+    leftCfg tm₁ cfg = rightCfg (cfg.withState (some tm₁.q₀)) := by
+  simp [leftCfg, rightCfg, Cfg.withState, Cfg.mapState, h]
+
 end Sequential
 
 open Sequential in
-/-- Tape transformations compose with their time and space bounds adding. -/
+/-- **Sequential composition of paths.** If `p` halts, and `q` starts where `p` halted with the
+second machine's initial state, the composed machine has a path with the same endpoints and
+with time and space bounded by the sums of the two bounds. The first path may have halted before
+its last step; repeated halted configurations are discarded before starting the second phase. -/
+theorem RunPath.exists_seq (p : tm₀.RunPath input) (q : tm₁.RunPath input)
+    (hmid : p.last.Halted) (hq : q.head = p.last.withState (some tm₁.q₀)) :
+    ∃ r : (tm₀.seq tm₁).RunPath input,
+      r.head = leftCfg tm₁ p.head ∧ r.last = rightCfg q.last ∧
+      r.length ≤ p.length + q.length ∧ r.space ≤ p.space + q.space := by
+  obtain ⟨i, hi, hactive⟩ := p.exists_first_halt hmid
+  let left : (tm₀.seq tm₁).RunPath input :=
+    { length := i
+      toFun n := leftCfg tm₁ (p.take i n)
+      step n := step_leftCfg (hactive _ (by exact n.isLt)) ((p.take i).step n) }
+  let right : (tm₀.seq tm₁).RunPath input := q.map ⟨rightCfg, step_rightCfg⟩
+  have hjoin : left.last = right.head := by
+    change leftCfg tm₁ (p.take i).last = rightCfg q.head
+    rw [RelSeries.last_take, hi, leftCfg_of_halt hmid, hq]
+  refine ⟨left.smash right hjoin, ?_, ?_, ?_, ?_⟩
+  · rw [RelSeries.head_smash]
+    exact congrArg (leftCfg tm₁) (RelSeries.head_take p i)
+  · rw [RelSeries.last_smash]
+    rfl
+  · change i.val + q.length ≤ p.length + q.length
+    exact Nat.add_le_add_right (Nat.le_of_lt_succ i.isLt) _
+  · exact (space_smash_le left right hjoin).trans
+      (Nat.add_le_add_right (space_take_le p i) _)
+
+open Sequential in
+/-- **Sequential composition of transformations.** If the postcondition of the first
+transformation implies the precondition of the second, the composed machine performs the two
+transformations one after the other, with the time and space bounds adding. -/
 theorem transformsTapes_seq
     {P₀ P₁ : (input : List Symbol) → (Fin k → List Symbol) → Prop}
     {Q₀ Q₁ : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
@@ -96,29 +159,13 @@ theorem transformsTapes_seq
   intro input ws out hP₀
   obtain ⟨ws', p, hp, hlast, hQ₀, ht₀, hs₀⟩ := h₀ input ws out hP₀
   obtain ⟨ws'', q, hq, hlast', hQ₁, ht₁, hs₁⟩ := h₁ input ws' out (hmid input ws ws' hP₀ hQ₀)
-  obtain ⟨i, hi, hactive⟩ := p.exists_first_halt (by rw [hlast]; rfl)
-  let left : (tm₀.seq tm₁).RunPath input :=
-    { length := i
-      toFun n := leftCfg tm₁ (p.take i n)
-      step n := step_leftCfg (hactive _ (by exact n.isLt)) ((p.take i).step n) }
-  let right : (tm₀.seq tm₁).RunPath input := q.map ⟨rightCfg, step_rightCfg⟩
-  have hjoin : left.last = right.head := by
-    change leftCfg tm₁ (p.take i).last = rightCfg q.head
-    rw [RelSeries.last_take, hi, hlast, hq]
+  obtain ⟨r, hr, hr', ht, hs⟩ := p.exists_seq q (by rw [hlast]; rfl)
+    (by rw [hq, hlast]; rfl)
+  refine ⟨ws'', r, ?_, ?_, ⟨ws', hQ₀, hQ₁⟩,
+    ht.trans (Nat.add_le_add ht₀ ht₁), hs.trans (Nat.add_le_add hs₀ hs₁)⟩
+  · rw [hr, hp]
     rfl
-  refine ⟨ws'', left.smash right hjoin, ?_, ?_, ⟨ws', hQ₀, hQ₁⟩, ?_, ?_⟩
-  · rw [RelSeries.head_smash]
-    change leftCfg tm₁ (p.take i).head = _
-    rw [RelSeries.head_take, hp]
+  · rw [hr', hlast']
     rfl
-  · rw [RelSeries.last_smash]
-    change rightCfg q.last = _
-    rw [hlast']
-    rfl
-  · change i.val + q.length ≤ t₀ + t₁
-    have := i.isLt
-    omega
-  · exact (RunPath.space_smash_le left right hjoin).trans
-      (Nat.add_le_add ((RunPath.space_take_le p i).trans hs₀) hs₁)
 
 end Turing.MultiTapeNTM

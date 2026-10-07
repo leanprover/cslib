@@ -32,6 +32,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `MultiTapeTM`: the TM itself
 * `tr`, `ofTr`: the derived transition function and construction from a function
 * `step`, `runFrom`: the successor configuration and iteration of this function
+* `HaltsAt`: the run from a configuration halts at exactly a given step
 * `Computes`: the machine halts with the given output on an input
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
@@ -193,6 +194,48 @@ lemma runFrom_eq_of_halt
     tm.runFrom cfg t = tm.runFrom cfg τ := by
   rw [runFrom, ← Nat.sub_add_cancel hle, Function.iterate_add_apply]
   exact Function.iterate_fixed (step_of_halt hhalt) _
+
+/-- The machine `tm` started in `cfg` halts at step `t`: it is halted after `t` steps and not
+halted after any smaller number of steps. -/
+def HaltsAt (tm : MultiTapeTM k Symbol State) {input : List Symbol}
+    (cfg : Cfg k Symbol State input) (t : ℕ) : Prop :=
+  (tm.runFrom cfg t).Halted ∧ ∀ s < t, ¬(tm.runFrom cfg s).Halted
+
+namespace HaltsAt
+
+variable {input : List Symbol} {cfg : Cfg k Symbol State input} {s t : ℕ}
+
+lemma halted (h : tm.HaltsAt cfg t) : (tm.runFrom cfg t).Halted := h.1
+
+lemma not_halted (h : tm.HaltsAt cfg t) (hs : s < t) : ¬(tm.runFrom cfg s).Halted := h.2 s hs
+
+/-- The halting step is the first step at which the machine is halted. -/
+lemma le_of_halted (h : tm.HaltsAt cfg t) (hs : (tm.runFrom cfg s).Halted) : t ≤ s :=
+  Nat.le_of_not_lt fun hlt => h.not_halted hlt hs
+
+/-- The halting step is unique. -/
+lemma unique (h₁ : tm.HaltsAt cfg s) (h₂ : tm.HaltsAt cfg t) : s = t :=
+  Nat.le_antisymm (h₁.le_of_halted h₂.halted) (h₂.le_of_halted h₁.halted)
+
+/-- From the halting step on, the configuration does not change. -/
+lemma runFrom_eq (h : tm.HaltsAt cfg t) (hts : t ≤ s) : tm.runFrom cfg s = tm.runFrom cfg t :=
+  runFrom_eq_of_halt tm cfg hts h.halted
+
+end HaltsAt
+
+/-- A run that is halted after `t` steps halts at some step `u ≤ t`. -/
+lemma exists_haltsAt {input : List Symbol} {cfg : Cfg k Symbol State input} {t : ℕ}
+    (hhalt : (tm.runFrom cfg t).Halted) : ∃ u ≤ t, tm.HaltsAt cfg u := by
+  classical
+  have hex : ∃ n, (tm.runFrom cfg n).Halted := ⟨t, hhalt⟩
+  exact ⟨Nat.find hex, Nat.find_min' hex hhalt, Nat.find_spec hex,
+    fun s hs => Nat.find_min hex hs⟩
+
+/-- A run that is halted after some number of steps halts at exactly one step. -/
+lemma existsUnique_haltsAt {input : List Symbol} {cfg : Cfg k Symbol State input} {t : ℕ}
+    (hhalt : (tm.runFrom cfg t).Halted) : ∃! u, tm.HaltsAt cfg u :=
+  let ⟨u, _, hu⟩ := exists_haltsAt hhalt
+  ⟨u, hu, fun _ h => h.unique hu⟩
 
 end Cfg
 

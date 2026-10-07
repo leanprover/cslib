@@ -88,7 +88,7 @@ public lemma outCfg_workTapeSymbols_castSucc (c : Cfg k Symbol State input) (j :
     (outCfg c).workTapeSymbols j.castSucc = c.workTapeSymbols j := by
   simp [Cfg.workTapeSymbols]
 
-/-- Redirecting the output preserves the step relation. -/
+/-- The redirection preserves steps. `RelSeries.map` transports the whole path. -/
 public lemma step_outCfg (tm : MultiTapeNTM k Symbol State)
     {c c' : Cfg k Symbol State input} (h : tm.Step c c') :
     tm.outputToTape.Step (outCfg c) (outCfg c') := by
@@ -104,7 +104,7 @@ public lemma step_outCfg (tm : MultiTapeNTM k Symbol State)
     | cast j => simp
     | last => cases ha : a.output <;> simp [ha, tapeOfList_append_single, SignType.cast]
 
-/-- The redirected machine never changes the real output tape. -/
+/-- `outputToTape tm` never writes the real output, so replacing it preserves the step relation. -/
 public lemma step_outputToTape_withOutput (tm : MultiTapeNTM k Symbol State)
     {c c' : Cfg (k + 1) Symbol State input} (h : tm.outputToTape.Step c c') (out : List Symbol) :
     tm.outputToTape.Step (c.withOutput out) (c'.withOutput out) := by
@@ -117,7 +117,7 @@ public lemma step_outputToTape_withOutput (tm : MultiTapeNTM k Symbol State)
     refine (step_of_state (c := c.withOutput out) hq).mpr ⟨_, ⟨a, ha, rfl⟩, ?_⟩
     exact Cfg.ext rfl rfl rfl rfl (by simp)
 
-/-- Replacing the real output leaves space unchanged along a redirected path. -/
+/-- `outputToTape`'s space does not depend on the real output already present. -/
 public lemma spaceUsed_outputToTape_withOutput (tm : MultiTapeNTM k Symbol State)
     (p : tm.outputToTape.RunPath input) (out : List Symbol) :
     RunPath.space (p.map ⟨(Cfg.withOutput · out), (step_outputToTape_withOutput tm · out)⟩)
@@ -130,7 +130,9 @@ public lemma initCfg_outputToTape (tm : MultiTapeNTM k Symbol State) (input : Li
   refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
     simp [MultiTapeNTM.initCfg, Cfg.init]
 
-/-- The output tape adds at most the final output length plus one to the space bound. -/
+/-- **Space of the output-redirected machine.** The `k` inner tapes visit exactly what the original
+does, and the frontier head only walks between the initial and the final length of the output, so
+the redirection costs at most the final output length plus one. -/
 public lemma spaceUsed_outputToTape (tm : MultiTapeNTM k Symbol State) (p : tm.RunPath input) :
     RunPath.space (p.map ⟨outCfg, step_outCfg tm⟩) ≤ p.space + (p.last.output.length + 1) := by
   simpa using RunPath.space_map_le p outCfg (step_outCfg tm) Fin.castSuccEmb

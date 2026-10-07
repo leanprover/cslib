@@ -12,9 +12,33 @@ public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 /-!
 # Machines as transformers of tape words
 
-A tape transformation has a run path between configurations holding words, with the heads reset
-and the output unchanged. The same path witnesses the postcondition and both resource bounds.
-The time bound allows earlier halting.
+The interface through which combinators use machines: a machine reads words from its work tapes
+and leaves words on them. A combinator composing such machines talks about words only, never about
+individual cells, head positions or the set of tapes a machine has touched.
+
+Configurations are described by *equalities*: `wordsCfg input q ws out` is the configuration whose
+work tape `i` holds exactly the word `ws i` (contents `tapeOfList (ws i)`, head at the start), with
+the input head at the start of the input and output `out`. A specification
+`TransformsTapes tm P Q t s` says: started on word-holding tapes satisfying `P`, the machine has
+a path of at most `t` steps to the halted *normal form* `wordsCfg input none ws' out` (every head
+reset to its initial position, tapes blank outside their words, output untouched), with the new
+words related to the old ones by `Q` and using at most `s` work-tape cells. The same path witnesses
+the postcondition and both bounds; other paths of a nondeterministic machine are unrestricted.
+Requiring this normal form is what lets specifications compose by rewriting: the halting
+configuration of one machine is already a valid start for the next, so which words survived a step
+is read off the equation, not re-established cell by cell.
+
+## Main definitions
+
+* `Turing.MultiTapeNTM.TransformsTapes`: the specification format described above.
+* `Turing.MultiTapeNTM.nop`: the machine that does nothing.
+
+## Main results
+
+* `Turing.MultiTapeNTM.TransformsTapes.imp`: strengthen the precondition, weaken the postcondition
+  and raise the bounds.
+* `Turing.MultiTapeNTM.transformsTapes_nop`: `nop` leaves every word as it was, the first machine of
+  the interface and the check that the format is inhabited as intended.
 -/
 
 @[expose] public section
@@ -23,8 +47,13 @@ namespace Turing.MultiTapeNTM
 
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 
-/-- A machine has a path from tapes satisfying `P` to tapes satisfying `Q`, within `t` steps and
-`s` cells. Both endpoints have their heads reset and the same output. -/
+/-- `TransformsTapes tm P Q t s`: started in its initial state on tapes holding words `ws` that
+satisfy the precondition `P`, the machine has a path of at most `t` steps to the halted
+configuration whose tapes hold words `ws'` with `Q input ws ws'`, having used at most `s` work-tape
+cells along that path. Every head is reset and the output is unchanged.
+
+The bounds are numbers; a specification whose bounds depend on the data is a *family*
+`∀ j, TransformsTapes tm (P j) (Q j) (t j) (s j)` over one fixed machine. -/
 def TransformsTapes (tm : MultiTapeNTM k Symbol State)
     (P : (input : List Symbol) → (Fin k → List Symbol) → Prop)
     (Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop)
@@ -34,7 +63,8 @@ def TransformsTapes (tm : MultiTapeNTM k Symbol State)
       p.head = wordsCfg input (some tm.q₀) ws out ∧
       p.last = wordsCfg input none ws' out ∧ Q input ws ws' ∧ p.length ≤ t ∧ p.space ≤ s
 
-/-- Strengthen the precondition, weaken the postcondition, and enlarge the resource bounds. -/
+/-- A `TransformsTapes` statement can be read with a stronger precondition, a weaker postcondition
+and larger bounds. -/
 theorem TransformsTapes.imp {tm : MultiTapeNTM k Symbol State}
     {P P' : (input : List Symbol) → (Fin k → List Symbol) → Prop}
     {Q Q' : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
@@ -46,7 +76,8 @@ theorem TransformsTapes.imp {tm : MultiTapeNTM k Symbol State}
   obtain ⟨ws', p, hp, hlast, hQ', htime, hspace⟩ := h input ws out (hP input ws hP')
   exact ⟨ws', p, hp, hlast, hQ input ws ws' hP' hQ', htime.trans ht, hspace.trans hs⟩
 
-/-- The machine that halts on its first step without changing its tapes or output. -/
+/-- The machine that does nothing: it halts on its first step, leaving the tapes and their heads
+unchanged. -/
 def nop (k : ℕ) (Symbol : Type*) : MultiTapeNTM k Symbol Unit where
   q₀ := ()
   Tr _ _ _ a :=
@@ -64,7 +95,9 @@ lemma step_nop (ws : Fin k → List Symbol) (out : List Symbol) :
   refine ⟨_, rfl, ?_⟩
   simp [Action.apply, wordsCfg, SignType.cast]
 
-/-- The machine that does nothing leaves every word as it was in one step and one cell per tape. -/
+/-- **The machine that does nothing** halts in one step, leaving every word as it was. Its heads
+never move, so it visits one cell per tape. This is the first machine of the interface: it checks
+that the specification format is inhabited exactly as intended. -/
 theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
     TransformsTapes (nop k Symbol) (fun _ _ ↦ True) (fun _ ws ws' ↦ ws' = ws) 1 k := by
   intro input ws out _
