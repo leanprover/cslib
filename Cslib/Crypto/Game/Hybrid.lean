@@ -25,6 +25,8 @@ grows with the parameter. The common bound may depend on the distinguisher.
 
 namespace Cslib.Crypto.Game
 
+open Probability
+
 /-- A uniformly selected experiment accepts with the average of its acceptance probabilities. -/
 theorem winProbability_uniform {α : Type*} [Fintype α] [Nonempty α] (games : α → Game) :
     winProbability ((PMF.uniformOfFintype α).bind games) =
