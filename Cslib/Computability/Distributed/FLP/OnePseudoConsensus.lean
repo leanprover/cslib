@@ -238,7 +238,7 @@ theorem inpN_card_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1)
 
 /-- Assuming `a.PseudoConsensus 1` and there are at least 2 processes, there must exist an input
 that gives rise to a non-uniform initial state. This theorem formalizes Lemma 1 of [Volzer2004]. -/
-theorem nonUniform_inp (hpc1 : a.PseudoConsensus 1) (hc : card P ≥ 2) :
+theorem nonUniform_inp (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) :
     ∃ inp : P → Bool, a.NonUniform (a.start inp) := by
   let pn := Fintype.equivFin P
   let uniF (n : ℕ) := ¬ a.Uniform (a.start (inpN pn n)) false

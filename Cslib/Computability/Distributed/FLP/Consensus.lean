@@ -121,7 +121,7 @@ theorem AdmissibleRun.fault_mono [Fintype P] {f f' : ℕ}
 /-- If `a` is a consensus algorithm tolerating up to `f` faulty processes,
 then it is also a consensus algorithm tolerating up to `f' ≤ f` faulty processes. -/
 theorem Consensus.fault_mono [Fintype P] {f f' : ℕ}
-    (hle : f ≥ f') (hc : a.Consensus f) : a.Consensus f' := by
+    (hle : f' ≤ f) (hc : a.Consensus f) : a.Consensus f' := by
   obtain ⟨h_sc, h_f⟩ := hc
   use h_sc
   intro inp

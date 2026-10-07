@@ -23,6 +23,7 @@ every smaller error bound. No injectivity assumption on the generator is needed.
 
 namespace Cslib.Crypto.PRG.Generator
 
+open Cslib.Probability.PMF
 open scoped NNReal
 
 variable {Seed Output : Type*}
@@ -58,14 +59,14 @@ theorem advantage_const (G : Generator Seed Output) (p : PMF Bool) :
 
 /-- A generator with exactly uniform output is secure with zero error against any tests. -/
 theorem secure_zero_of_outputDist_eq (G : Generator Seed Output)
-    (hG : G.outputDist = PMF.uniformOfFintype Output)
+    (hG : G.outputDist = uniformOfFintype Output)
     (Admissible : Adversary Output → Prop) : G.Secure Admissible 0 := by
   intro adversary _
   simp [advantage, realExperiment, idealExperiment, hG]
 
 /-- Zero-error security against arbitrary tests is equivalent to exactly uniform output. -/
 theorem secure_zero_iff_outputDist_eq_uniform (G : Generator Seed Output) :
-    G.Secure (fun _ => True) 0 ↔ G.outputDist = PMF.uniformOfFintype Output := by
+    G.Secure (fun _ => True) 0 ↔ G.outputDist = uniformOfFintype Output := by
   classical
   refine ⟨fun h => ?_, fun h => G.secure_zero_of_outputDist_eq h _⟩
   ext output
@@ -113,7 +114,7 @@ theorem idealExperiment_rangeAdversary (G : Generator Seed Output) :
     (idealExperiment G.rangeAdversary true).toReal =
       Nat.card (Set.range G) / (Fintype.card Output : ℝ) := by
   simp only [idealExperiment, rangeAdversary, rangeTest, PMF.bind_apply, PMF.pure_apply,
-    PMF.uniformOfFintype_apply, tsum_fintype]
+    uniformOfFintype_apply, tsum_fintype]
   simp only [mul_ite, mul_one, mul_zero, eq_comm (a := true), decide_eq_true_eq]
   rw [← Finset.sum_filter]
   simp [Nat.card_eq_fintype_card, Fintype.card_subtype, div_eq_mul_inv]
@@ -168,6 +169,7 @@ theorem not_exists_isExpanding_secure_zero :
 section ParallelComposition
 
 omit [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output] in
+/-- Apply `G` separately to each component of a pair of seeds. -/
 def prod (G : Generator Seed Output) : Generator (Seed × Seed) (Output × Output) :=
   ⟨fun x => (G x.1, G x.2)⟩
 
@@ -182,52 +184,52 @@ theorem outputDist_prod (G : Generator Seed Output) :
 
 omit [Fintype Output] [Nonempty Output] in
 /-- First hybrid distinguisher: given `y₁`, sample `y₂ ← G.outputDist` and run `A (y₁, y₂)`. -/
-noncomputable def LeftReduction (G : Generator Seed Output)
+noncomputable def leftReduction (G : Generator Seed Output)
     (A : Adversary (Output × Output)) : Adversary Output :=
   fun y₁ => G.outputDist.bind fun y₂ => A (y₁, y₂)
 
 /-- Second hybrid distinguisher: given `y₂`, sample `u₁ ←$ Output` and run `A (u₁, y₂)`. -/
-noncomputable def RightReduction
+noncomputable def rightReduction
     (A : Adversary (Output × Output)) : Adversary Output :=
-  fun y₂ => (PMF.uniformOfFintype Output).bind fun u₁ => A (u₁, y₂)
+  fun y₂ => (uniformOfFintype Output).bind fun u₁ => A (u₁, y₂)
 
 omit [Fintype Output] [Nonempty Output] in
 /-- Real experiment for `G.prod` equals the real experiment for `G` against
-`LeftReduction`. -/
+`leftReduction`. -/
 theorem realExperiment_prod (G : Generator Seed Output)
     (A : Adversary (Output × Output)) :
-    G.prod.realExperiment A = G.realExperiment (G.LeftReduction A) := by
+    G.prod.realExperiment A = G.realExperiment (G.leftReduction A) := by
   rw [realExperiment, realExperiment, outputDist_prod, PMF.bind_bind]
   congr 1
   ext y₂
-  rw [LeftReduction, PMF.bind_map]
+  rw [leftReduction, PMF.bind_map]
   rfl
 
-/-- Ideal experiment against `LeftReduction` equals the real experiment against
-`RightReduction` (both equal the hybrid distribution `(u₁, G(x₂))`). -/
-theorem idealExperiment_LeftReduction (G : Generator Seed Output)
+/-- Ideal experiment against `leftReduction` equals the real experiment against
+`rightReduction` (both equal the hybrid distribution `(u₁, G(x₂))`). -/
+theorem idealExperiment_leftReduction (G : Generator Seed Output)
     (A : Adversary (Output × Output)) :
-    idealExperiment (G.LeftReduction A) = G.realExperiment (RightReduction A) := by
-  dsimp only [idealExperiment, realExperiment, LeftReduction, RightReduction]
-  exact PMF.bind_comm (PMF.uniformOfFintype Output) G.outputDist (fun u₁ y₂ => A (u₁, y₂))
+    idealExperiment (G.leftReduction A) = G.realExperiment (rightReduction A) := by
+  dsimp only [idealExperiment, realExperiment, leftReduction, rightReduction]
+  exact PMF.bind_comm (uniformOfFintype Output) G.outputDist (fun u₁ y₂ => A (u₁, y₂))
 
-/-- Ideal experiment against `RightReduction` equals the ideal experiment for `G.prod`. -/
-theorem idealExperiment_RightReduction (A : Adversary (Output × Output)) :
-    idealExperiment (RightReduction A) = idealExperiment A := by
+/-- Ideal experiment against `rightReduction` equals the ideal experiment for `G.prod`. -/
+theorem idealExperiment_rightReduction (A : Adversary (Output × Output)) :
+    idealExperiment (rightReduction A) = idealExperiment A := by
   simp only [idealExperiment, ← Probability.PMF.uniformOfFintype_prod Output Output,
     PMF.bind_bind, PMF.bind_map, Function.comp_def]
-  exact PMF.bind_comm (PMF.uniformOfFintype Output) (PMF.uniformOfFintype Output)
+  exact PMF.bind_comm (uniformOfFintype Output) (uniformOfFintype Output)
     (fun u₂ u₁ => A (u₁, u₂))
 
-/-- Hybrid advantage bound: `Adv(G.prod, A) ≤ Adv(G, LeftReduction) + Adv(G, RightReduction)`. -/
+/-- Hybrid advantage bound: `Adv(G.prod, A) ≤ Adv(G, leftReduction) + Adv(G, rightReduction)`. -/
 theorem advantage_prod_le (G : Generator Seed Output)
     (A : Adversary (Output × Output)) :
     G.prod.advantage A ≤
-      G.advantage (G.LeftReduction A) + G.advantage (RightReduction A) := by
+      G.advantage (G.leftReduction A) + G.advantage (rightReduction A) := by
   rw [advantage, advantage, advantage,
     realExperiment_prod,
-    idealExperiment_LeftReduction,
-    ← idealExperiment_RightReduction]
+    idealExperiment_leftReduction,
+    ← idealExperiment_rightReduction]
   exact abs_sub_le _ _ _
 
 /-- Concrete security of `H(x₁, x₂) = (G(x₁), G(x₂))` via a two-step hybrid argument. -/
@@ -236,13 +238,13 @@ theorem Secure.prod {G : Generator Seed Output}
     {Admissible₂ : Adversary (Output × Output) → Prop}
     {ε : ℝ≥0}
     (hG : G.Secure Admissible₁ ε)
-    (hLeft : ∀ A, Admissible₂ A → Admissible₁ (G.LeftReduction A))
-    (hRight : ∀ A, Admissible₂ A → Admissible₁ (RightReduction A)) :
+    (hLeft : ∀ A, Admissible₂ A → Admissible₁ (G.leftReduction A))
+    (hRight : ∀ A, Admissible₂ A → Admissible₁ (rightReduction A)) :
     G.prod.Secure Admissible₂ (2 * ε) := by
   intro A hA
   have hle := G.advantage_prod_le A
-  have h₁ := hG (G.LeftReduction A) (hLeft A hA)
-  have h₂ := hG (RightReduction A) (hRight A hA)
+  have h₁ := hG (G.leftReduction A) (hLeft A hA)
+  have h₂ := hG (rightReduction A) (hRight A hA)
   push_cast
   linarith
 

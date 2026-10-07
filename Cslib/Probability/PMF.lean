@@ -1,26 +1,32 @@
 /-
 Copyright (c) 2026 Samuel Schlesinger. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Samuel Schlesinger
+Authors: Josha Dekker, Devon Tuma, Kexing Ying, Samuel Schlesinger
 -/
 
 module
 
 public import Cslib.Init
 public import Mathlib.Probability.ProbabilityMassFunction.Monad
-public import Mathlib.Probability.Distributions.Uniform
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 /-!
 # PMF Utilities
 
 ## NB: This module is temporary
 
-Everything here is a general PMF bind/pure lemma with no dependence on
-any domain-specific structure. It should be upstreamed to Mathlib
+The bind/pure and posterior lemmas here have no dependence on any domain-specific
+structure. They should be upstreamed to Mathlib
 (likely `Mathlib.Probability.ProbabilityMassFunction.Monad` or a new
-`Mathlib.Probability.ProbabilityMassFunction.Prod`). Once accepted
-upstream, this file should be deleted and its consumers should import
-the Mathlib module instead.
+`Mathlib.Probability.ProbabilityMassFunction.Prod`). Once accepted upstream,
+these lemmas should be removed and their consumers should import the Mathlib module instead.
+
+The uniform samplers retain the PMF interface removed in
+[mathlib#42909](https://github.com/leanprover-community/mathlib4/pull/42909),
+pending a decision on CSLib's probability API. Their definitions and proofs are adapted from
+`Mathlib.Probability.Distributions.Uniform` before that PR, by Josha Dekker, Devon Tuma,
+and Kexing Ying, under the Apache 2.0 license.
+Original sampler copyright (c) 2024 Josha Dekker. All rights reserved.
 
 ## Main results
 
@@ -43,6 +49,37 @@ open ENNReal
 universe u v
 variable {α : Type u} {β : Type v}
 
+/-- Uniform probability mass function on a nonempty finite set. -/
+noncomputable def uniformOfFinset (s : Finset α) (hs : s.Nonempty) : PMF α := by
+  classical
+  refine PMF.ofFinset (fun a => if a ∈ s then s.card⁻¹ else 0) s ?_ ?_
+  · simp only [Finset.sum_ite_mem, Finset.inter_self, Finset.sum_const, nsmul_eq_mul]
+    have : (s.card : ℝ≥0∞) ≠ 0 := by
+      simpa only [Ne, Nat.cast_eq_zero, Finset.card_eq_zero] using
+        Finset.nonempty_iff_ne_empty.1 hs
+    exact ENNReal.mul_inv_cancel this <| ENNReal.natCast_ne_top s.card
+  · exact fun x hx => by simp only [hx, ite_false]
+
+open scoped Classical in
+@[simp]
+theorem uniformOfFinset_apply (s : Finset α) (hs : s.Nonempty) (a : α) :
+    uniformOfFinset s hs a = if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0 :=
+  rfl
+
+theorem mem_support_uniformOfFinset_iff {s : Finset α} (hs : s.Nonempty) (a : α) :
+    a ∈ (uniformOfFinset s hs).support ↔ a ∈ s := by
+  classical
+  simp [PMF.mem_support_iff]
+
+/-- Uniform probability mass function on a nonempty finite type. -/
+noncomputable def uniformOfFintype (α : Type*) [Fintype α] [Nonempty α] : PMF α :=
+  uniformOfFinset Finset.univ Finset.univ_nonempty
+
+@[simp]
+theorem uniformOfFintype_apply [Fintype α] [Nonempty α] (a : α) :
+    uniformOfFintype α a = (Fintype.card α : ℝ≥0∞)⁻¹ := by
+  simp [uniformOfFintype]
+
 /-- Evaluating the "pairing" bind `(do let a ← p; return (a, ← f a))` at `(a, b)`
 gives the product `p a * f a b`. -/
 theorem bind_pair_apply (p : PMF α) (f : α → PMF β) (a : α) (b : β) :
@@ -62,7 +99,7 @@ theorem bind_pair_tsum_fst (p : PMF α) (f : α → PMF β) (b : β) :
 /-- A uniform distribution on a finite type is invariant under any equivalence. -/
 theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [Nonempty α] [Nonempty γ]
     (e : α ≃ γ) :
-    (PMF.uniformOfFintype α).map e = PMF.uniformOfFintype γ := by
+    (uniformOfFintype α).map e = uniformOfFintype γ := by
   ext c
   rw [PMF.map_apply, tsum_eq_single (e.symm c)]
   · simp [Fintype.card_congr e]
