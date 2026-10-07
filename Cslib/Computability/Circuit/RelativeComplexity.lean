@@ -36,13 +36,18 @@ variable {σ : Signature.{v}} {U : Type u} {n m k l : ℕ}
 def graph (g : (Fin n → U) → Fin k → U) : Set (Fin (n + k) → U) :=
   Set.range fun x => Fin.append x (g x)
 
-/-- The complexity `C(f | g)` of `f` relative to `g`: the least size of a circuit that, reading
-an input followed by the values of `g` on it, outputs the values of `f` on that input; `⊤` if
-there is none. Such a circuit only ever sees inputs on the graph of `g`, so this is the complexity
-of `f` of the first `n` inputs on that graph. -/
+/-- Apply `f` to the first `n` inputs, ignoring the last `k` inputs. -/
+def onFirstInputs (k : ℕ) (f : (Fin n → U) → Fin m → U) : (Fin (n + k) → U) → Fin m → U :=
+  fun z => f (z ∘ Fin.castAdd k)
+
+/-- The complexity `C(f | g)` of `f` relative to `g`: the least size of a single circuit satisfying
+`c.eval I (Fin.append x (g x)) = f x` for every `x`, or `⊤` if there is none.
+Each evaluation supplies only `x` and `g x`; values of `g` at other inputs are not provided.
+`graph g` specifies the inputs on which the circuit must be correct, and `onFirstInputs k f`
+specifies its required output on those inputs. -/
 noncomputable def ecomplexityGiven (I : Interpretation σ U) (f : (Fin n → U) → Fin m → U)
     (g : (Fin n → U) → Fin k → U) : ℕ∞ :=
-  ecomplexityOn I (graph g) (fun z => f (z ∘ Fin.castAdd k))
+  ecomplexityOn I (graph g) (onFirstInputs k f)
 
 variable {I : Interpretation σ U} {s : ℕ}
 
@@ -50,13 +55,13 @@ variable {I : Interpretation σ U} {s : ℕ}
 input followed by the values of `g` on it, it outputs the values of `f` on that input. -/
 theorem Circuit.computesOn_graph_iff {f : (Fin n → U) → Fin m → U} {g : (Fin n → U) → Fin k → U}
     (c : Circuit σ (n + k) m) :
-    c.ComputesOn I (graph g) (fun z => f (z ∘ Fin.castAdd k)) ↔
+    c.ComputesOn I (graph g) (onFirstInputs k f) ↔
       ∀ x, c.eval I (Fin.append x (g x)) = f x := by
   constructor
   · intro hc x
-    simpa using hc ⟨x, rfl⟩
+    simpa [onFirstInputs] using hc ⟨x, rfl⟩
   · rintro hc _ ⟨x, rfl⟩
-    simpa using hc x
+    simpa [onFirstInputs] using hc x
 
 theorem ecomplexityGiven_le_of_eval (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U)
     (c : Circuit σ (n + k) m) (hc : ∀ x, c.eval I (Fin.append x (g x)) = f x) :
@@ -68,12 +73,20 @@ theorem ecomplexityGiven_le_iff (f : (Fin n → U) → Fin m → U) (g : (Fin n 
       ∃ c : Circuit σ (n + k) m, (∀ x, c.eval I (Fin.append x (g x)) = f x) ∧ c.size ≤ s := by
   simp only [ecomplexityGiven, ecomplexityOn_le_iff, Circuit.computesOn_graph_iff]
 
-/-- Keeping the input while computing `g` costs no more than computing `g`. -/
+/-- Computing the graph map `x ↦ (x, g x)` costs no more than computing `g`. -/
 theorem ecomplexity_append_self_le (g : (Fin n → U) → Fin k → U) :
     ecomplexity I (fun x => Fin.append x (g x)) ≤ ecomplexity I g := by
   have h := ecomplexityOn_append_le (I := I) (S := Set.univ) (fun x => x ∘ id) g
   rw [ecomplexityOn_wiring, zero_add] at h
   exact h
+
+/-- Every function is free given itself: `C(f | f) = 0`. -/
+@[simp] theorem ecomplexityGiven_self (f : (Fin n → U) → Fin m → U) :
+    ecomplexityGiven I f f = 0 := by
+  rw [ecomplexityGiven]
+  refine (ecomplexityOn_congr ?_).trans (ecomplexityOn_wiring (Fin.natAdd n))
+  rintro _ ⟨x, rfl⟩
+  simp [onFirstInputs]
 
 /-- Knowing `g` never makes `f` harder: `C(f | g) ≤ C(f)`. -/
 theorem ecomplexityGiven_le_ecomplexity (f : (Fin n → U) → Fin m → U)
@@ -160,14 +173,6 @@ theorem ecomplexityGiven_le_add (f : (Fin n → U) → Fin m → U) (g : (Fin n 
           (fun z => z ∘ Fin.castAdd l) (fun z => g (z ∘ Fin.castAdd l))
         rwa [ecomplexityOn_wiring, zero_add] at h
 
-/-- Every function is free given itself: `C(f | f) = 0`. -/
-@[simp] theorem ecomplexityGiven_self (f : (Fin n → U) → Fin m → U) :
-    ecomplexityGiven I f f = 0 := by
-  rw [ecomplexityGiven]
-  refine (ecomplexityOn_congr ?_).trans (ecomplexityOn_wiring (Fin.natAdd n))
-  rintro _ ⟨x, rfl⟩
-  simp
-
 /-- Knowing more never makes `f` harder: `C(f | g, g') ≤ C(f | g)`. -/
 theorem ecomplexityGiven_append_le (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U)
     (g' : (Fin n → U) → Fin l → U) :
@@ -178,7 +183,7 @@ theorem ecomplexityGiven_append_le (f : (Fin n → U) → Fin m → U) (g : (Fin
       (ecomplexityOn_wiring fun j => Fin.natAdd n (Fin.castAdd l j))
     rintro _ ⟨x, rfl⟩
     funext j
-    simp
+    simp [onFirstInputs]
   simpa [hG] using ecomplexityGiven_le_add (I := I) f g (fun x => Fin.append (g x) (g' x))
 
 /-! ### Over a complete basis -/
@@ -193,7 +198,7 @@ theorem ecomplexityGiven_ne_top [I.IsComplete] (f : (Fin n → U) → Fin m → 
 number. -/
 noncomputable def complexityGiven (I : Interpretation σ U) [I.IsComplete]
     (f : (Fin n → U) → Fin m → U) (g : (Fin n → U) → Fin k → U) : ℕ :=
-  complexityOn I (graph g) (fun z => f (z ∘ Fin.castAdd k))
+  complexityOn I (graph g) (onFirstInputs k f)
 
 variable [I.IsComplete]
 
