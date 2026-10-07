@@ -203,10 +203,10 @@ private theorem exists_circuit_of_split {n k d s : ℕ} (h : k + d = n) (hs : 0 
 /-- Lupanov's upper bound: every Boolean function on `n` inputs has a De Morgan circuit
 with at most `(1 + ε) 2ⁿ/n` gates, uniformly for sufficiently large `n`.
 
-Pick a natural number `P > 1 / ε`, so that `(P + 1) / P < 1 + ε`; then the threshold `N`
+Pick a natural number `P > 1 / ε`, so that `(P + 1) / P < 1 + ε`; then the threshold `m`
 comes from `eventually_bound_le P`. -/
 theorem exists_circuit (ε : ℝ) (hε : 0 < ε) :
-    ∃ N : ℕ, ∀ n ≥ N, ∀ f : BooleanFunction n,
+    ∃ m : ℕ, ∀ n ≥ m, ∀ f : BooleanFunction n,
       ∃ c : Circuit signature n 1,
         c.Computes interpretation (single f) ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
   apply eventually_atTop.mp
@@ -236,11 +236,11 @@ theorem exists_circuit (ε : ℝ) (hε : 0 < ε) :
 /-- Lupanov's upper bound for circuit complexity: every Boolean function on `n` inputs has
 complexity at most `(1 + ε) 2ⁿ/n`, uniformly for sufficiently large `n`. -/
 theorem complexity_le (ε : ℝ) (hε : 0 < ε) :
-    ∃ N : ℕ, ∀ n ≥ N, ∀ f : BooleanFunction n,
+    ∃ m : ℕ, ∀ n ≥ m, ∀ f : BooleanFunction n,
       (complexity interpretation (single f) : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
-  obtain ⟨N, hN⟩ := exists_circuit ε hε
-  refine ⟨N, fun n hn f => ?_⟩
-  obtain ⟨c, hc, hsize⟩ := hN n hn f
+  obtain ⟨m, hm⟩ := exists_circuit ε hε
+  refine ⟨m, fun n hn f => ?_⟩
+  obtain ⟨c, hc, hsize⟩ := hm n hn f
   calc
     (complexity interpretation (single f) : ℝ) ≤ c.size := by
       exact_mod_cast complexity_le_of_computes c hc
