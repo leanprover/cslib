@@ -18,8 +18,9 @@ frontier.
 
 Since the output is append-only, the frontier position is a *function of the configuration* —
 the length of the output so far — so the redirected machine mirrors the original through the
-configuration map `outCfg`. The main lemmas show that one step and an entire run of the redirected
-machine mirror the corresponding step and run of `tm`.
+configuration map `outCfg`. `RunPath.outputToTape` transports a path through this map. The main
+lemmas show that one step and an entire run of the redirected machine mirror the corresponding
+step and run of `tm`.
 -/
 
 namespace Turing.MultiTapeNTM
@@ -88,7 +89,7 @@ public lemma outCfg_workTapeSymbols_castSucc (c : Cfg k Symbol State input) (j :
     (outCfg c).workTapeSymbols j.castSucc = c.workTapeSymbols j := by
   simp [Cfg.workTapeSymbols]
 
-/-- The redirection preserves steps. `RelSeries.map` transports the whole path. -/
+/-- The redirection preserves steps. `RunPath.outputToTape` transports the whole path. -/
 public lemma step_outCfg (tm : MultiTapeNTM k Symbol State)
     {c c' : Cfg k Symbol State input} (h : tm.Step c c') :
     tm.outputToTape.Step (outCfg c) (outCfg c') := by
@@ -104,6 +105,11 @@ public lemma step_outCfg (tm : MultiTapeNTM k Symbol State)
     | cast j => simp
     | last => cases ha : a.output <;> simp [ha, tapeOfList_append_single, SignType.cast]
 
+/-- A path with its output redirected to the last work tape. -/
+@[expose] public def RunPath.outputToTape {tm : MultiTapeNTM k Symbol State}
+    (p : tm.RunPath input) : tm.outputToTape.RunPath input :=
+  p.map ⟨outCfg, step_outCfg tm⟩
+
 /-- `outputToTape tm` never writes the real output, so replacing it preserves the step relation. -/
 public lemma step_outputToTape_withOutput (tm : MultiTapeNTM k Symbol State)
     {c c' : Cfg (k + 1) Symbol State input} (h : tm.outputToTape.Step c c') (out : List Symbol) :
@@ -117,12 +123,16 @@ public lemma step_outputToTape_withOutput (tm : MultiTapeNTM k Symbol State)
     refine (step_of_state (c := c.withOutput out) hq).mpr ⟨_, ⟨a, ha, rfl⟩, ?_⟩
     exact Cfg.ext rfl rfl rfl rfl (by simp)
 
+/-- Replace the real output along a path of `outputToTape tm`, which never writes to it. -/
+@[expose] public def RunPath.withOutput {tm : MultiTapeNTM k Symbol State}
+    (p : tm.outputToTape.RunPath input) (out : List Symbol) : tm.outputToTape.RunPath input :=
+  p.map ⟨(Cfg.withOutput · out), (step_outputToTape_withOutput tm · out)⟩
+
 /-- `outputToTape`'s space does not depend on the real output already present. -/
-public lemma spaceUsed_outputToTape_withOutput (tm : MultiTapeNTM k Symbol State)
+public lemma RunPath.space_withOutput {tm : MultiTapeNTM k Symbol State}
     (p : tm.outputToTape.RunPath input) (out : List Symbol) :
-    RunPath.space (p.map ⟨(Cfg.withOutput · out), (step_outputToTape_withOutput tm · out)⟩)
-      = p.space :=
-  RunPath.space_map_eq p _ _ fun _ _ ↦ rfl
+    (p.withOutput out).space = p.space :=
+  p.space_map_eq _ fun _ _ ↦ rfl
 
 /-- The initial configuration of the redirected machine is the original's through `outCfg`. -/
 public lemma initCfg_outputToTape (tm : MultiTapeNTM k Symbol State) (input : List Symbol) :
@@ -133,9 +143,10 @@ public lemma initCfg_outputToTape (tm : MultiTapeNTM k Symbol State) (input : Li
 /-- **Space of the output-redirected machine.** The `k` inner tapes visit exactly what the original
 does, and the frontier head only walks between the initial and the final length of the output, so
 the redirection costs at most the final output length plus one. -/
-public lemma spaceUsed_outputToTape (tm : MultiTapeNTM k Symbol State) (p : tm.RunPath input) :
-    RunPath.space (p.map ⟨outCfg, step_outCfg tm⟩) ≤ p.space + (p.last.output.length + 1) := by
-  simpa using RunPath.space_map_le p outCfg (step_outCfg tm) Fin.castSuccEmb
+public lemma RunPath.space_outputToTape_le {tm : MultiTapeNTM k Symbol State}
+    (p : tm.RunPath input) :
+    p.outputToTape.space ≤ p.space + (p.last.output.length + 1) := by
+  simpa [RunPath.outputToTape] using p.space_map_le ⟨outCfg, step_outCfg tm⟩ Fin.castSuccEmb
     (p.last.output.length + 1) (fun _ _ _ ↦ by simp) fun l hl ↦ by
       induction l using Fin.lastCases with
       | cast j => exact absurd ⟨j, rfl⟩ hl
