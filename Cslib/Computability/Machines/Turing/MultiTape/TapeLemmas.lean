@@ -18,7 +18,7 @@ This file collects lemmas about the set of positions visited by a work-tape head
 (`MultiTapeNTM.RunPath.spaceUsedByTape`, `MultiTapeNTM.RunPath.space`) and how the tape head
 positions influence the cells that are modified on a tape.
 
-`MultiTapeNTM.IsDeterministic.exists_spaceUsedByTape_max` shows that a deterministic computation
+`MultiTapeTM.exists_spaceUsedByTape_max` shows that a deterministic computation
 whose space usage is bounded attains its per-tape space usage on a single path. This makes a bound
 on every path from a starting configuration usable as a bound for the whole run.
 
@@ -26,9 +26,12 @@ on every path from a starting configuration usable as a bound for the whole run.
 
 @[expose] public section
 
-namespace Turing.MultiTapeNTM
+namespace Turing
 
 variable {k : ℕ} {State Symbol : Type*} {input : List Symbol}
+
+namespace MultiTapeNTM
+
 variable {ntm : MultiTapeNTM k Symbol State}
 
 /-- If the work tape head is not at position `z`, then the tape does not change there. -/
@@ -281,15 +284,21 @@ lemma ComputationPath.content_natAbs_le_spaceUsedByTape (p : ntm.ComputationPath
     RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
     (RunPath.mem_visitedByTapeHead_of_workTapes_ne p.toRunPath i z (hh ▸ h))
 
+end MultiTapeNTM
+
+namespace MultiTapeTM
+
+open MultiTapeNTM
+
 /-- A deterministic computation whose total space usage stays below a bound has a path at which
 *every* tape's space usage is maximal. This turns a bound on every path from an arbitrary starting
 configuration into common per-tape windows for the whole run. -/
-lemma IsDeterministic.exists_spaceUsedByTape_max (hd : ntm.IsDeterministic)
+lemma exists_spaceUsedByTape_max (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {s : ℕ}
-    (hs : ∀ p : ntm.RunPath input, p.head = cfg → p.space ≤ s) :
-    ∃ p : ntm.RunPath input, p.head = cfg ∧ ∀ q : ntm.RunPath input,
+    (hs : ∀ p : tm.RunPath input, p.head = cfg → p.space ≤ s) :
+    ∃ p : tm.RunPath input, p.head = cfg ∧ ∀ q : tm.RunPath input,
       q.head = cfg → q.spaceUsedByTape ≤ p.spaceUsedByTape := by
-  let paths := {p : ntm.RunPath input // p.head = cfg}
+  let paths := {p : tm.RunPath input // p.head = cfg}
   have hsub (p q : paths) (ht : p.val.length ≤ q.val.length) (i : Fin k) :
       p.val.visitedByTapeHead i ⊆ q.val.visitedByTapeHead i := by
     have he (n : Fin (p.val.length + 1)) :
@@ -299,7 +308,7 @@ lemma IsDeterministic.exists_spaceUsedByTape_max (hd : ntm.IsDeterministic)
       | succ n ih =>
         have hp := p.val.step n
         rw [ih] at hp
-        exact hd.step_rightUnique hp (q.val.step (n.castLE ht))
+        exact tm.deterministic.step_rightUnique hp (q.val.step (n.castLE ht))
     intro z hz
     obtain ⟨c, ⟨n, rfl⟩, rfl⟩ := (RunPath.mem_visitedByTapeHead _ _ _).mp hz
     rw [he n]
@@ -322,4 +331,6 @@ lemma IsDeterministic.exists_spaceUsedByTape_max (hd : ntm.IsDeterministic)
       le_antisymm (Finset.sum_le_sum fun j _ ↦ hle j) hmax
     exact ((Finset.sum_eq_sum_iff_of_le (fun j _ ↦ hle j)).mp he i (Finset.mem_univ i)).ge
 
-end Turing.MultiTapeNTM
+end MultiTapeTM
+
+end Turing
