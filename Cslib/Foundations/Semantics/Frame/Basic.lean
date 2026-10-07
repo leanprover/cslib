@@ -27,12 +27,15 @@ we generalise here to arbitrary polynomial functors.
 
 namespace Cslib
 
-/-- A frame is an indexed structure of potentially heterogeneous relations.
+/-- A frame is an indexed structure of general relations that can differ in argument positions.
 
 Frames are typically used in combination with modal logics or akin concepts. This is why we use
 `op` (for operator) to range over relation indexes.
+
+The definition generalises Definition 1.23 in [Blackburn2001] to general operator signatures given
+as `PFunctor`s and possibly-empty world types.
 -/
-structure Frame World (τ : PFunctor) where
+structure Frame (World : Type u) (τ : PFunctor) where
   /-- Accessibility relations. -/
   r : (op : τ.A) → World → (τ.B op → World) → Prop
 
@@ -67,6 +70,7 @@ whenever `w` accesses `ws₁` and `ws₁ i` accesses `ws₂`, then `w` accesses 
 class Trans (f : Frame World τ) (op : τ.A) where
   trans w ws₁ i ws₂ : f.r op w ws₁ → f.r op (ws₁ i) ws₂ → f.r op w ws₂
 
+/-- Frame transitivity at `op` implies transitivity of all its projected binary relations. -/
 instance (f : Frame World τ) [f.Trans op] (i : τ.B op) :
     IsTrans World (f.project op i) where
   trans w₁ w₂ w₃ h₁ h₂ := by
