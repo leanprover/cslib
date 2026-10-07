@@ -16,7 +16,9 @@ public import Mathlib.Data.PFunctor.Univariate.Basic
 We define the free monad on a **polynomial functor** (`PFunctor`), and prove some basic properties.
 
 The free monad `PFunctor.FreeM P` extends the W-type construction with an extra `pure`
-constructor, yielding a monad that is free over the polynomial functor `P`.
+constructor, yielding a monad that is free over the polynomial functor `P`. `FreeM.equivW`
+identifies `P.FreeM α` with the W-type of `C α + P`, and the M-type of the same polynomial gives
+the coinductive counterpart `PFunctor.Resumption`, whose programs may run forever.
 
 ## Comparison with `Cslib.FreeM`
 
