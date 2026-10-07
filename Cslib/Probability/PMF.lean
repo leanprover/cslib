@@ -80,32 +80,6 @@ theorem uniformOfFintype_apply [Fintype α] [Nonempty α] (a : α) :
     uniformOfFintype α a = (Fintype.card α : ℝ≥0∞)⁻¹ := by
   simp [uniformOfFintype]
 
-/-- Real-valued probability masses are summable, even on an infinite ambient type. -/
-theorem summable_toReal (p : PMF α) : Summable (fun a => (p a).toReal) :=
-  ENNReal.summable_toReal p.tsum_coe_ne_top
-
-/-- The real-valued masses of any discrete distribution sum to one. -/
-@[simp] theorem tsum_toReal (p : PMF α) : ∑' a, (p a).toReal = 1 := by
-  rw [← ENNReal.tsum_toReal_eq p.apply_ne_top, p.tsum_coe, ENNReal.toReal_one]
-
-/-- The real-valued probabilities of a finite distribution sum to one. -/
-theorem sum_toReal [Fintype α] (p : PMF α) :
-    ∑ a, (p a).toReal = 1 := by simpa using tsum_toReal p
-
-/-- Randomized postprocessing averages the outcome probabilities over any discrete input. -/
-theorem bind_apply_toReal_tsum (p : PMF α) (kernel : α → PMF β) (b : β) :
-    (p.bind kernel b).toReal = ∑' a, (p a).toReal * (kernel a b).toReal := by
-  rw [PMF.bind_apply, ENNReal.tsum_toReal_eq (fun a =>
-    ENNReal.mul_ne_top (p.apply_ne_top a) ((kernel a).apply_ne_top b))]
-  simp
-
-/-- The probability of an outcome after a finite random choice is its weighted average. -/
-theorem bind_apply_toReal [Fintype α] (p : PMF α)
-    (kernel : α → PMF β) (b : β) :
-    (p.bind kernel b).toReal =
-      ∑ a, (p a).toReal * (kernel a b).toReal := by
-  simpa using bind_apply_toReal_tsum p kernel b
-
 /-- Evaluating the "pairing" bind `(do let a ← p; return (a, ← f a))` at `(a, b)`
 gives the product `p a * f a b`. -/
 theorem bind_pair_apply (p : PMF α) (f : α → PMF β) (a : α) (b : β) :
@@ -172,5 +146,31 @@ theorem posteriorDist_eq_prior_of_outputIndist (p : PMF α) (f : α → PMF β)
   rw [posteriorDist_apply, bind_pair_apply, hbind]
   exact ENNReal.mul_div_cancel_right ((PMF.mem_support_iff _ _).mp (hbind ▸ hb))
     (PMF.apply_ne_top _ _)
+
+/-- Real-valued probability masses are summable, even on an infinite ambient type. -/
+theorem summable_toReal (p : PMF α) : Summable (fun a => (p a).toReal) :=
+  ENNReal.summable_toReal p.tsum_coe_ne_top
+
+/-- The real-valued masses of any discrete distribution sum to one. -/
+@[simp] theorem tsum_toReal (p : PMF α) : ∑' a, (p a).toReal = 1 := by
+  rw [← ENNReal.tsum_toReal_eq p.apply_ne_top, p.tsum_coe, ENNReal.toReal_one]
+
+/-- The real-valued probabilities of a finite distribution sum to one. -/
+theorem sum_toReal [Fintype α] (p : PMF α) :
+    ∑ a, (p a).toReal = 1 := by simpa using tsum_toReal p
+
+/-- Randomized postprocessing averages the outcome probabilities over any discrete input. -/
+theorem bind_apply_toReal_tsum (p : PMF α) (kernel : α → PMF β) (b : β) :
+    (p.bind kernel b).toReal = ∑' a, (p a).toReal * (kernel a b).toReal := by
+  rw [PMF.bind_apply, ENNReal.tsum_toReal_eq (fun a =>
+    ENNReal.mul_ne_top (p.apply_ne_top a) ((kernel a).apply_ne_top b))]
+  simp
+
+/-- The probability of an outcome after a finite random choice is its weighted average. -/
+theorem bind_apply_toReal [Fintype α] (p : PMF α)
+    (kernel : α → PMF β) (b : β) :
+    (p.bind kernel b).toReal =
+      ∑ a, (p a).toReal * (kernel a b).toReal := by
+  simpa using bind_apply_toReal_tsum p kernel b
 
 end Cslib.Probability.PMF
