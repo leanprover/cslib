@@ -27,11 +27,21 @@ step and run of `tm`.
 * `Turing.MultiTapeNTM.partialInv`: the partial inverse of the tape embedding.
 * `Turing.MultiTapeNTM.extendTapes`: the machine with reindexed work tapes.
 * `Turing.MultiTapeNTM.embed`: the corresponding configuration map.
+* `Turing.MultiTapeNTM.tapeEmb`: the embedding placing the only tape of a one-tape machine on
+  tape `i`, and `Turing.MultiTapeNTM.noTapes`: the embedding of a machine without work tapes.
 
 ## Main results
 
-* `Turing.MultiTapeNTM.step_embed`: preserves steps, so `RelSeries.map` transports paths.
+* `Turing.MultiTapeNTM.step_embed`: the one-step mirroring lemma. `RelSeries.map` lifts this
+  to paths, keeping the extra tapes fixed throughout.
+* `Turing.MultiTapeNTM.workTapePos_embed_of_not_range`: the extra tapes never move.
 * `Turing.MultiTapeNTM.spaceUsed_embed_le`: the resulting space bound.
+* `Turing.MultiTapeNTM.oneTapeCfg`: the one-tape view of a configuration.
+* `Turing.MultiTapeNTM.step_tapeEmb`, `Turing.MultiTapeNTM.spaceUsed_tapeEmb_le`: the steps and the
+  space of a one-tape machine placed on work tape `i`.
+* `Turing.MultiTapeNTM.TransformsTapes.tapeEmb`: a one-tape specification, read on tape `i`.
+* `Turing.MultiTapeNTM.step_noTapes`, `Turing.MultiTapeNTM.spaceUsed_noTapes_le`: the steps and the
+  space of a machine without work tapes, placed in a machine with `k` of them.
 -/
 
 namespace Turing.MultiTapeNTM
@@ -63,6 +73,10 @@ moves. -/
         | none => (none, 0)
       output := a.output
       state := a.state }
+
+@[simp]
+public lemma extendTapes_q₀ (tm : MultiTapeNTM k Symbol State) (e : Fin k ↪ Fin k') :
+    (tm.extendTapes e).q₀ = tm.q₀ := rfl
 
 /-- Extending the tapes preserves determinism. -/
 public lemma IsDeterministic.extendTapes {tm : MultiTapeNTM k Symbol State}
@@ -119,13 +133,21 @@ public lemma embed_workTapePos_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol 
     (embed e cfg extraTapes extraPos).workTapePos (e j) = cfg.workTapePos j := by
   simp [embed]
 
+/-- A head on a tape outside the range of `e` stays at its original position. -/
+public lemma workTapePos_embed_of_not_range (e : Fin k ↪ Fin k')
+    (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
+    (extraPos : Fin k' → ℤ) {l : Fin k'} (hl : l ∉ Set.range e) :
+    (embed e cfg extraTapes extraPos).workTapePos l = extraPos l := by
+  simp [embed, partialInv_eq_none e hl]
+
 @[simp]
 public lemma embed_workTapeSymbols_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
     (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) (j : Fin k) :
     (embed e cfg extraTapes extraPos).workTapeSymbols (e j) = cfg.workTapeSymbols j := by
   simp [Cfg.workTapeSymbols]
 
-/-- Reindexing preserves the step relation and leaves the extra tapes untouched. -/
+/-- Reindexing preserves steps: the reindexed machine acts on the embedded tapes exactly
+as `tm` does, and never touches the extra tapes. `RelSeries.map` transports an entire path. -/
 public lemma step_embed (tm : MultiTapeNTM k Symbol State) (e : Fin k ↪ Fin k')
     (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ)
     {c c' : Cfg k Symbol State input} (h : tm.Step c c') :
@@ -141,7 +163,8 @@ public lemma step_embed (tm : MultiTapeNTM k Symbol State) (e : Fin k ↪ Fin k'
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> simp only [Action.apply, embed] <;>
       cases partialInv e l <;> simp
 
-/-- The embedded path uses the source's space plus at most one cell per extra tape. -/
+/-- **Space bound for a reindexed path.** The embedded tapes contribute the space used by `tm`,
+while each of the remaining `k' - k` tapes never moves and contributes at most one cell. -/
 public lemma spaceUsed_embed_le (tm : MultiTapeNTM k Symbol State) (e : Fin k ↪ Fin k')
     (p : tm.RunPath input) (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
     RunPath.space (p.map ⟨(embed e · extraTapes extraPos), step_embed tm e extraTapes extraPos⟩)
@@ -152,7 +175,7 @@ public lemma spaceUsed_embed_le (tm : MultiTapeNTM k Symbol State) (e : Fin k �
       rintro _ ⟨n, rfl⟩
       change (embed e (p n) extraTapes extraPos).workTapePos i =
         (embed e p.head extraTapes extraPos).workTapePos i
-      simp [embed, partialInv_eq_none e hi]
+      rw [workTapePos_embed_of_not_range e _ _ _ hi, workTapePos_embed_of_not_range e _ _ _ hi]
 
 /-! ### Placing a one-tape machine on a single work tape -/
 
@@ -200,7 +223,10 @@ public lemma embed_oneTapeCfg (i : Fin k) (cfg : Cfg k Symbol State input) :
   rw [embed_tapeEmb]
   simp [oneTapeCfg]
 
-/-- Placing a one-tape machine on tape `i` preserves its steps and fixes all other tapes. -/
+/-- **Running a one-tape machine on work tape `i`.** A step is a step on the one-tape view of the
+configuration, placed back on tape `i`; every other tape and head keeps its starting value. Combine
+with `embed_tapeEmb` to read off the resulting configuration, or `RelSeries.map` to transport a
+path. -/
 public lemma step_tapeEmb (tm : MultiTapeNTM 1 Symbol State) (i : Fin k)
     (cfg : Cfg k Symbol State input) {c' : Cfg 1 Symbol State input}
     (h : tm.Step (oneTapeCfg i cfg) c') :
@@ -208,14 +234,17 @@ public lemma step_tapeEmb (tm : MultiTapeNTM 1 Symbol State) (i : Fin k)
       (embed (tapeEmb i) c' cfg.workTapes cfg.workTapePos) := by
   simpa only [embed_oneTapeCfg] using step_embed tm (tapeEmb i) cfg.workTapes cfg.workTapePos h
 
-/-- A one-tape path placed on tape `i` uses one additional cell for each unused tape. -/
+/-- **Space bound for a one-tape machine placed on tape `i`:** the space of the one-tape path, plus
+one cell for each tape the machine does not use. -/
 public lemma spaceUsed_tapeEmb_le (tm : MultiTapeNTM 1 Symbol State) (i : Fin k)
     (p : tm.RunPath input) (tapes : Fin k → ℤ → Option Symbol) (heads : Fin k → ℤ) :
     RunPath.space (p.map ⟨(embed (tapeEmb i) · tapes heads), step_embed tm (tapeEmb i) tapes heads⟩)
       ≤ p.space + (k - 1) :=
   spaceUsed_embed_le tm (tapeEmb i) p tapes heads
 
-/-- A one-tape transformation placed on tape `i` leaves every other word unchanged. -/
+/-- **A one-tape specification on tape `i`.** A one-tape machine placed on tape `i` transforms the
+word on that tape as it did on its own tape and leaves every other word alone; each remaining tape
+costs one cell. -/
 public theorem TransformsTapes.tapeEmb {tm : MultiTapeNTM 1 Symbol State}
     {P : (input : List Symbol) → (Fin 1 → List Symbol) → Prop}
     {Q : (input : List Symbol) → (Fin 1 → List Symbol) → (Fin 1 → List Symbol) → Prop} {t s : ℕ}
@@ -272,7 +301,8 @@ public lemma embed_noTapesCfg (cfg : Cfg k Symbol State input) :
   rw [embed_noTapes]
   rfl
 
-/-- A machine without work tapes changes only the state, input head and output. -/
+/-- **Running a machine without work tapes inside a machine with `k` of them.** Only the state, the
+input head and the output change; every work tape and work head keeps its starting value. -/
 public lemma step_noTapes (tm : MultiTapeNTM 0 Symbol State) (cfg : Cfg k Symbol State input)
     {c' : Cfg 0 Symbol State input} (h : tm.Step (noTapesCfg cfg) c') :
     (tm.extendTapes (noTapes k)).Step cfg
@@ -280,7 +310,7 @@ public lemma step_noTapes (tm : MultiTapeNTM 0 Symbol State) (cfg : Cfg k Symbol
   simpa only [embed_noTapes, noTapesCfg] using
     step_embed tm (noTapes k) cfg.workTapes cfg.workTapePos h
 
-/-- A path without work tapes, embedded into `k` work tapes, visits one cell on each tape. -/
+/-- **Space bound for a machine without work tapes:** one cell for each tape it does not use. -/
 public lemma spaceUsed_noTapes_le (tm : MultiTapeNTM 0 Symbol State) (p : tm.RunPath input)
     (tapes : Fin k → ℤ → Option Symbol) (heads : Fin k → ℤ) :
     RunPath.space (p.map ⟨(embed (noTapes k) · tapes heads), step_embed tm (noTapes k) tapes heads⟩)

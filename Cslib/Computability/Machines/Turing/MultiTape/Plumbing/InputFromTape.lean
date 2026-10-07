@@ -160,7 +160,9 @@ public lemma val_moveInputPos_sub_one_eq_clampMove (mark : Symbol) (c : Cfg k Sy
     rw [inputSymbolInner (c.inputPos.val - 1) (by omega) (by omega)]
     rcases m with _ | _ | _ <;> simp only [clampMove, SignType.cast] <;> omega
 
-/-- Redirecting the input preserves the step relation. -/
+/-- **The redirection preserves steps.** One step of the machine reading its input from
+the virtual tape mirrors one step of the original, under the embedding `inCfg`. `RelSeries.map`
+transports the whole path. -/
 public lemma step_inCfg (tm : MultiTapeNTM k Symbol State) (mark : Symbol)
     (outerInput : List Symbol) {c c' : Cfg k Symbol State input} (h : tm.Step c c') :
     tm.inputFromTape.Step (inCfg mark c outerInput) (inCfg mark c' outerInput) := by
@@ -176,7 +178,9 @@ public lemma step_inCfg (tm : MultiTapeNTM k Symbol State) (mark : Symbol)
     refine Cfg.ext rfl (by simp [inCfg]) ?_ ?_ rfl <;> funext l <;>
       induction l using Fin.addCases <;> simp [inCfg, val_moveInputPos_sub_one_eq_clampMove mark]
 
-/-- The virtual input and flag tapes add at most twice the input length plus its boundaries. -/
+/-- **Space of the input-redirected machine.** The `k` inner tapes visit exactly what the original
+does; the two extra tapes (virtual input, flag) each move only with the simulated input head,
+which stays within `[-1, input.length]` — so they add at most `2 * (input.length + 2)`. -/
 public lemma spaceUsed_inputFromTape (tm : MultiTapeNTM k Symbol State) (mark : Symbol)
     (p : tm.RunPath input) (outerInput : List Symbol) :
     RunPath.space (p.map ⟨(inCfg mark · outerInput), step_inCfg tm mark outerInput⟩) ≤
