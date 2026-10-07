@@ -16,8 +16,7 @@ head to position 1 (the first input symbol when the input is nonempty, otherwise
 and halts there. It has no work tapes at all and never outputs, so running it in between two phases
 of a computation re-normalizes the input head without disturbing anything else: place it inside a
 machine with `k` work tapes with `Turing.MultiTapeNTM.noTapes` and transport its path with
-`RelSeries.map` and `Turing.MultiTapeNTM.step_embed`, which leave every work tape and head
-unchanged.
+`Turing.MultiTapeNTM.RunPath.extendTapes`, which leaves every work tape and head unchanged.
 
 In its initial state `start` the machine moves the input head one cell left and enters state `walk`.
 The input head is clamped at the left boundary, so this has no effect if the head already is at

@@ -226,22 +226,20 @@ variable {ntm' : MultiTapeNTM k' Symbol State'}
 
 /-- A simulation preserving head positions preserves space. -/
 lemma space_map_eq {ntm' : MultiTapeNTM k Symbol State'} (p : ntm.RunPath input)
-    (f : Cfg k Symbol State input → Cfg k Symbol State' input')
-    (hf : ∀ {c c'}, ntm.Step c c' → ntm'.Step (f c) (f c'))
-    (h : ∀ c ∈ p, (f c).workTapePos = c.workTapePos) : space (p.map ⟨f, hf⟩) = p.space := by
-  apply space_eq_of_workTapePos (p.map ⟨f, hf⟩) p rfl
+    (f : RelHom (ntm.Step (input := input)) (ntm'.Step (input := input')))
+    (h : ∀ c ∈ p, (f c).workTapePos = c.workTapePos) : space (p.map f) = p.space := by
+  apply space_eq_of_workTapePos (p.map f) p rfl
   intro n
   exact h (p n) ⟨n, rfl⟩
 
 /-- A simulation uses the source tapes' space plus the space of its extra tapes. -/
 lemma space_map_le (p : ntm.RunPath input)
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (hf : ∀ {c c'}, ntm.Step c c' → ntm'.Step (f c) (f c'))
+    (f : RelHom (ntm.Step (input := input)) (ntm'.Step (input := input')))
     (e : Fin k ↪ Fin k') (b : ℕ)
     (he : ∀ c ∈ p, ∀ i, (f c).workTapePos (e i) = c.workTapePos i)
-    (hrest : ∀ i ∉ Set.range e, spaceUsedByTape (p.map ⟨f, hf⟩) i ≤ b) :
-    space (p.map ⟨f, hf⟩) ≤ p.space + (k' - k) * b :=
-  space_le_of_workTapePos_embedding p (p.map ⟨f, hf⟩) rfl e b
+    (hrest : ∀ i ∉ Set.range e, spaceUsedByTape (p.map f) i ≤ b) :
+    space (p.map f) ≤ p.space + (k' - k) * b :=
+  space_le_of_workTapePos_embedding p (p.map f) rfl e b
     (fun n j ↦ (he (p n) ⟨n, rfl⟩ j).symm) hrest
 
 /-- After the machine has halted the heads no longer move, so the visited set stops growing. -/

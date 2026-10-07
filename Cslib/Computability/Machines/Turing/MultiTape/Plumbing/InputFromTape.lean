@@ -26,8 +26,9 @@ reading the flag. Reading blank on both the virtual input tape and the flag tape
 boundary.
 
 The configuration map `inCfg` places the simulated input on the virtual input tape, places the
-marker on the flag tape, and leaves the real input tape unused. The main lemmas show that one step
-and an entire run of the redirected machine mirror the corresponding step and run of `tm`.
+marker on the flag tape, and leaves the real input tape unused. `RunPath.inputFromTape` transports
+a path of `tm` to the redirected machine. The main lemmas show that one step and an entire run
+of the redirected machine mirror the corresponding step and run of `tm`.
 -/
 
 namespace Turing.MultiTapeNTM
@@ -161,8 +162,8 @@ public lemma val_moveInputPos_sub_one_eq_clampMove (mark : Symbol) (c : Cfg k Sy
     rcases m with _ | _ | _ <;> simp only [clampMove, SignType.cast] <;> omega
 
 /-- **The redirection preserves steps.** One step of the machine reading its input from
-the virtual tape mirrors one step of the original, under the embedding `inCfg`. `RelSeries.map`
-transports the whole path. -/
+the virtual tape mirrors one step of the original, under the embedding `inCfg`.
+`RunPath.inputFromTape` transports the whole path. -/
 public lemma step_inCfg (tm : MultiTapeNTM k Symbol State) (mark : Symbol)
     (outerInput : List Symbol) {c c' : Cfg k Symbol State input} (h : tm.Step c c') :
     tm.inputFromTape.Step (inCfg mark c outerInput) (inCfg mark c' outerInput) := by
@@ -178,15 +179,20 @@ public lemma step_inCfg (tm : MultiTapeNTM k Symbol State) (mark : Symbol)
     refine Cfg.ext rfl (by simp [inCfg]) ?_ ?_ rfl <;> funext l <;>
       induction l using Fin.addCases <;> simp [inCfg, val_moveInputPos_sub_one_eq_clampMove mark]
 
+/-- A path with its input placed on the virtual input tape, over an arbitrary ambient input. -/
+@[expose] public def RunPath.inputFromTape {tm : MultiTapeNTM k Symbol State}
+    (p : tm.RunPath input) (mark : Symbol) (outerInput : List Symbol) :
+    tm.inputFromTape.RunPath outerInput :=
+  p.map ⟨(inCfg mark · outerInput), step_inCfg tm mark outerInput⟩
+
 /-- **Space of the input-redirected machine.** The `k` inner tapes visit exactly what the original
 does; the two extra tapes (virtual input, flag) each move only with the simulated input head,
 which stays within `[-1, input.length]` — so they add at most `2 * (input.length + 2)`. -/
-public lemma spaceUsed_inputFromTape (tm : MultiTapeNTM k Symbol State) (mark : Symbol)
-    (p : tm.RunPath input) (outerInput : List Symbol) :
-    RunPath.space (p.map ⟨(inCfg mark · outerInput), step_inCfg tm mark outerInput⟩) ≤
-      p.space + 2 * (input.length + 2) := by
-  simpa using RunPath.space_map_le p (inCfg mark · outerInput)
-    (step_inCfg tm mark outerInput) (Fin.castAddEmb 2) (input.length + 2)
+public lemma RunPath.space_inputFromTape_le {tm : MultiTapeNTM k Symbol State}
+    (p : tm.RunPath input) (mark : Symbol) (outerInput : List Symbol) :
+    (p.inputFromTape mark outerInput).space ≤ p.space + 2 * (input.length + 2) := by
+  simpa [RunPath.inputFromTape] using p.space_map_le
+    ⟨(inCfg mark · outerInput), step_inCfg tm mark outerInput⟩ (Fin.castAddEmb 2) (input.length + 2)
     (fun _ _ _ ↦ by simp) fun l hl ↦ by
       induction l using Fin.addCases with
       | left j => exact absurd ⟨j, rfl⟩ hl
