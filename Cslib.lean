@@ -153,7 +153,6 @@ public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Relation.Euclidean
 public import Cslib.Foundations.Relation.Preserves
-public import Cslib.Foundations.Relation.RelSeries
 public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
