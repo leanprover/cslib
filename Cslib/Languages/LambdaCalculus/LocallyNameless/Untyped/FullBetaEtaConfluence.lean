@@ -96,9 +96,9 @@ open Commute in
 theorem confluent_beta_eta : Confluent (@FullBetaEta Var) := by
   apply join_confluent
   · exact confluent_fullBeta
-  · exact stronglyConfluent_eta.toConfluent
+  · exact stronglyConfluent_eta.to_confluent
   apply symm
-  exact stronglyCommute_eta_beta.toCommute
+  exact stronglyCommute_eta_beta.to_commute
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 

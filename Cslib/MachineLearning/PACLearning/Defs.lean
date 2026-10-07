@@ -7,7 +7,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Init
-public import Mathlib.MeasureTheory.Measure.MeasureSpace
+public import Mathlib.MeasureTheory.Measure.Basic
 public import Mathlib.MeasureTheory.Constructions.Pi
 public import Mathlib.Order.SymmDiff
 
@@ -161,7 +161,7 @@ def IsPACLearnerFor (m : ℕ) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
     ∀ (D : Measure (α × β)) [IsProbabilityMeasure D], D ∈ 𝒟 →
       (Measure.pi (fun _ : Fin m => D))
         {S : LabeledSample α β m |
-          error D (A S) > optimalError D C + ↑ε.val} ≤ ↑δ.val
+          optimalError D C + ↑ε.val < error D (A S)} ≤ ↑δ.val
 
 /-- `IsRPACLearnerFor m ε δ C 𝒟` asserts that there exists a *randomized* learner using
 `m` samples that is `(ε, δ)`-correct for the concept class `C` over the distribution family
@@ -185,10 +185,10 @@ def IsRPACLearnerFor (m : ℕ) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
     ∀ (D : Measure (α × β)) [IsProbabilityMeasure D], D ∈ 𝒟 →
       AEMeasurable (fun ω => (Measure.pi (fun _ : Fin m => D))
         {S : LabeledSample α β m |
-          error D ((A ω) S) > optimalError D C + ↑ε.val}) Q ∧
+          optimalError D C + ↑ε.val < error D ((A ω) S)}) Q ∧
       ∫⁻ ω, (Measure.pi (fun _ : Fin m => D))
         {S : LabeledSample α β m |
-          error D ((A ω) S) > optimalError D C + ↑ε.val} ∂Q ≤ ↑δ.val
+          optimalError D C + ↑ε.val < error D ((A ω) S)} ∂Q ≤ ↑δ.val
 
 /-- Every deterministic PAC learner is in particular a randomized PAC learner
 (with the trivial one-point randomness space `PUnit`). -/
@@ -200,7 +200,7 @@ theorem IsPACLearnerFor.toIsRPACLearnerFor {m : ℕ} {ε δ : Set.Ioo (0 : ℝ�
   refine ⟨PUnit, inferInstance, Measure.dirac PUnit.unit, inferInstance, fun _ => A, ?_⟩
   intro D _ hD
   refine ⟨measurable_const.aemeasurable, ?_⟩
-  simp only [gt_iff_lt, lintegral_const, measure_univ, mul_one]
+  simp only [lintegral_const, measure_univ, mul_one]
   exact hA D hD
 
 /-- The deterministic PAC learner predicate is antitone in the distribution family: a

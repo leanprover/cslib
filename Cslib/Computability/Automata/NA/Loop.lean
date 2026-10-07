@@ -100,7 +100,7 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     sl[0] = inl () ∧ sl[xl.length] = inl () ∧
     ∀ k, (_ : k < xl.length) → na.loop.Tr sl[k] xl[k] sl[k + 1] := by
   obtain ⟨_, _, _, _, h_mtr⟩ := h
-  obtain ⟨sl, _, _, _, _⟩ := LTS.Execution.of_mTr h_mtr
+  obtain ⟨sl, he⟩ := LTS.Execution.of_mTr h_mtr
   by_cases xl.length = 0
   · use [inl ()]
     grind
@@ -109,7 +109,8 @@ theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
     /-- This squeeze was required moving to nightly-2026-01-28 -/
     grind only [= length_append, = length_cons, = length_nil, = length_map, = List.length_take,
       = length_drop, = min_def, = getElem_append, = getElem_cons, = List.take_zero, FinAcc.loop,
-      = map_nil, = getElem_map, = getElem_take, = getElem_drop]
+      = map_nil, = getElem_map, = getElem_take, = getElem_drop, he.length, he.start, he.last,
+      he.trans]
 
 /-- For any finite word in `language na`, there is a corresponding multistep transition
 of `na.loop`. -/
@@ -129,7 +130,7 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
   let ts := ωSequence.const (inl () : Unit ⊕ State)
   have h_mtr (k : ℕ) : na.loop.MTr (ts k) (xls k) (ts (k + 1)) := by grind [loop_fin_run_mtr]
   have (k : ℕ) : xls k ≠ [] := by grind
-  have h_pos (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
+  have h_pos (k : ℕ) : 0 < (xls k).length := List.length_pos_iff.mpr (this k)
   obtain ⟨ss, _, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
   use ss
   grind [Run.mk, FinAcc.loop, cumLen_zero (ls := xls)]
@@ -160,10 +161,7 @@ theorem loop_language_eq [Inhabited Symbol] :
     use ss, h_run
     apply frequently_iff_strictMono.mpr
     use xls.cumLen, ?_, by grind
-    apply cumLen_strictMono
-    intro k
-    apply List.length_pos_iff.mpr
-    grind
+    grind [cumLen_strictMono, List.length_pos_iff]
 
 end Buchi
 
@@ -189,15 +187,13 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
   ext xl; constructor
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
     by_cases h_xl : xl = []
-    · grind [mem_add, mem_one]
+    · grind [Language.mem_add, Language.mem_one]
     · have : Nonempty na.start := by
         obtain ⟨_, s0, _, _⟩ := nonempty_iff_ne_empty.mpr h
         use s0
       obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.extend_omegaExecution h_mtr
       have h_run : na.finLoop.Run (xl ++ω xs) ss := by grind [Run]
-      obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by
-        simp only [mem_singleton_iff] at h_acc
-        grind
+      obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by grind
       obtain ⟨n, h_n, h_take, h_drop, h_ωtr'⟩ := loop_run_one_iter h_run h1 h2
       left; refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
       · #adaptation_note

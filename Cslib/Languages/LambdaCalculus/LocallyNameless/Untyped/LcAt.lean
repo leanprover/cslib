@@ -67,11 +67,11 @@ theorem depth_open_fvar_eq_depth (M : Term Var) (x : Var) : depth (M ^ fvar x) =
 /-- Opening for some free variable at i-th bound variable, increments `LcAt`. -/
 @[simp, scoped grind =]
 theorem lcAt_openRec_fvar_iff_lcAt (M : Term Var) (x : Var) (i : ℕ) :
-    LcAt i (M⟦i ↝ fvar x⟧) ↔ LcAt (i + 1) M := by
+    LcAt i (M⟦i ↝ fvar x⟧) = LcAt (i + 1) M := by
   induction M generalizing i <;> grind
 
 /-- Opening for some free variable is locally closed if and only if `M` is `LcAt 1`. -/
-theorem lcAt_open_fvar_iff_lcAt (M : Term Var) (x : Var) : LcAt 0 (M ^ fvar x) ↔ LcAt 1 M :=
+theorem lcAt_open_fvar_iff_lcAt (M : Term Var) (x : Var) : LcAt 0 (M ^ fvar x) = LcAt 1 M :=
   lcAt_openRec_fvar_iff_lcAt M x 0
 
 /-- Locally closed terms. -/

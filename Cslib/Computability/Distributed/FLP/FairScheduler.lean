@@ -7,7 +7,6 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Distributed.FLP.Consensus
-public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Mathlib.Data.List.ReduceOption
 
 /-! # Machinery for constructing infinite fair executions
@@ -24,7 +23,7 @@ predicate `r`.
 
 namespace Cslib.FLP
 
-open Function Set Multiset Filter ωSequence
+open Function Set Multiset ωSequence
 
 variable {P M S : Type*} [DecidableEq P] [DecidableEq M]
 
@@ -76,7 +75,7 @@ theorem foldList_forallActions {r : Action P M → Prop}
 
 end DeliverMsg
 
-/-- Starting from state `s0`, `a.fairSchedular d ps s0` constructs an infinite sequence of
+/-- Starting from state `s0`, `a.fairScheduler d ps s0` constructs an infinite sequence of
 finite executions of `a` by repeatedly applying `d.scheduleMsgs ps`. -/
 noncomputable def Algorithm.fairScheduler (a : Algorithm P M S) (d : DeliverMsg P M S) (ps : Set P)
     (s0 : State P M S) : ℕ → List (Action P M) × State P M S
@@ -155,7 +154,7 @@ theorem fairDeliverMsg_scheduleMsgs {d : DeliverMsg P M S} {ps : Set P} {q : Sta
     (hd : a.FairDeliverMsg d ps q) (s : State P M S) (hs : q s) :
     let xl := (d.scheduleMsgs ps s).fst
     let t := (d.scheduleMsgs ps s).snd
-    q t ∧ a.lts.MTr s xl t ∧ xl.length > 0 ∧ ∀ m, m ∈ s.msgs → m.dest ∈ ps → some m ∈ xl := by
+    q t ∧ a.lts.MTr s xl t ∧ 0 < xl.length ∧ ∀ m, m ∈ s.msgs → m.dest ∈ ps → some m ∈ xl := by
   classical
   intro xl t
   let ms := s.msgs.filter (fun m ↦ m.dest ∈ ps)
@@ -179,7 +178,7 @@ theorem fair_fairSegs {d : DeliverMsg P M S} {ps : Set P} {q : State P M S → P
     (hd : a.FairDeliverMsg d ps q) (s0 : State P M S) (hs0 : q s0) :
     let ts := a.fairSegEnds d ps s0
     let xls := a.fairSegActions d ps s0
-    ∀ k, q (ts k) ∧ a.lts.MTr (ts k) (xls k) (ts (k + 1)) ∧ (xls k).length > 0 ∧
+    ∀ k, q (ts k) ∧ a.lts.MTr (ts k) (xls k) (ts (k + 1)) ∧ 0 < (xls k).length ∧
       ∀ m, m ∈ (ts k).msgs → m.dest ∈ ps → some m ∈ xls k := by
   classical
   intro ts xls k
@@ -192,7 +191,7 @@ be concatenated into an infinite execution of `a` in which every process in `ps`
 theorem flatten_fairSegs {ps : Set P}
     {ts : ωSequence (State P M S)} {xls : ωSequence (List (Action P M))}
     (hmtr : ∀ k, a.lts.MTr (ts k) (xls k) (ts (k + 1)))
-    (hpos : ∀ k, (xls k).length > 0)
+    (hpos : ∀ k, 0 < (xls k).length)
     (hsch : ∀ k m, m ∈ (ts k).msgs → m.dest ∈ ps → some m ∈ xls k) :
     ∃ ss, a.lts.OmegaExecution ss xls.flatten ∧ (∀ k, ss (xls.cumLen k) = ts k) ∧
       ∀ p, p ∈ ps → ProcFair p ss xls.flatten := by
@@ -200,15 +199,12 @@ theorem flatten_fairSegs {ps : Set P}
   use ss, h_omega, h_ts
   rintro p h_m m ⟨rfl⟩
   by_contra! ⟨k, h_k, h_k'⟩
-  have h_xls : ∃ᶠ n in atTop, n ∈ xls.cumLen '' univ := by
-    apply frequently_iff_strictMono.mpr
-    use xls.cumLen
-    grind [cumLen_strictMono]
-  obtain ⟨j, _, h_j⟩ : ∃ j, k ≤ xls.cumLen j ∧ m ∈ (ts j).msgs := by
-    obtain ⟨n, _, j, _, _⟩ := frequently_atTop.mp h_xls k
-    grind [Algorithm.omega_notRcvd_enabled h_omega h_k h_k']
-  obtain ⟨i, _, _⟩ := List.getElem_of_mem <| hsch j m h_j h_m
-  grind [extract_flatten hpos j]
+  have h_le : k ≤ xls.cumLen k := (cumLen_strictMono hpos).id_le k
+  have h_enabled : m ∈ (ts k).msgs := by
+    rw [← h_ts]
+    exact Algorithm.omega_notRcvd_enabled h_omega h_k h_k' _ h_le
+  obtain ⟨i, _, _⟩ := List.getElem_of_mem <| hsch k m h_enabled h_m
+  grind [extract_flatten hpos k]
 
 /-- Under the assumption `a.FairDeliverMsg d ps q`, the infinite sequence of finite executions
 of `a` represented by `a.fairSegEnds d ps s0` and `a.fairSegActions d ps s0` can be concatenated
@@ -220,18 +216,17 @@ theorem fair_omegaExecution {d : DeliverMsg P M S} {ps : Set P} {q : State P M S
     let xls := a.fairSegActions d ps s0
     ∃ ss, a.lts.OmegaExecution ss xls.flatten ∧
       ss 0 = s0 ∧ (∀ k, ss (xls.cumLen k) = ts k) ∧
-      (∀ k, q (ss (xls.cumLen k))) ∧ (∀ k, (xls k).length > 0) ∧
+      (∀ k, q (ss (xls.cumLen k))) ∧ (∀ k, 0 < (xls k).length) ∧
       ∀ p, p ∈ ps → ProcFair p ss xls.flatten := by
   intro ts xls
   obtain ⟨h_q, hmtr, hpos, hsch⟩ :
       (∀ k, q (ts k)) ∧
       (∀ k, a.lts.MTr (ts k) (xls k) (ts (k + 1))) ∧
-      (∀ k, (xls k).length > 0) ∧
+      (∀ k, 0 < (xls k).length) ∧
       (∀ k m, m ∈ (ts k).msgs → m.dest ∈ ps → some m ∈ xls k) := by
     grind [fair_fairSegs hd s0 hs0]
   obtain ⟨ss, _, _, _⟩ := flatten_fairSegs hmtr hpos hsch
   have : ss 0 = s0 := by grind [fairScheduler_init]
-  use ss
   grind
 
 /-- If `d.ForallActions r`, then the concatenation of all `a.fairSegActions d ps s0` segments
@@ -241,7 +236,7 @@ theorem omega_forall_actions {d : DeliverMsg P M S} {ps : Set P}
     (hd : a.FairDeliverMsg d ps q) (s0 : State P M S) (hs0 : q s0)
     (ha : d.ForallActions r) (hn : r none) :
     ∀ k, r ((a.fairSegActions d ps s0).flatten k) := by
-  have hpos : ∀ k, (a.fairSegActions d ps s0 k).length > 0 := by grind [fair_fairSegs hd s0 hs0]
+  have hpos : ∀ k, 0 < (a.fairSegActions d ps s0 k).length := by grind [fair_fairSegs hd s0 hs0]
   simp only [forall_flatten_iff hpos]
   grind [fairSeg_forallActions]
 
