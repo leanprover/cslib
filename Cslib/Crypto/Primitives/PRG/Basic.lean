@@ -167,24 +167,6 @@ theorem not_exists_isExpanding_secure_zero :
 
 section ParallelComposition
 
-/-- Independent uniform sampling on `α` and `β` equals uniform sampling on `α × β`. -/
-theorem uniformOfFintype_prod (α β : Type*)
-    [Fintype α] [Nonempty α] [Fintype β] [Nonempty β] :
-    ((PMF.uniformOfFintype α).bind fun a =>
-      (PMF.uniformOfFintype β).map fun b => (a, b)) =
-    PMF.uniformOfFintype (α × β) := by
-  ext ⟨a, b⟩
-  simp only [PMF.bind_apply, PMF.map_apply, PMF.uniformOfFintype_apply, Fintype.card_prod,
-    Nat.cast_mul, ENNReal.mul_inv (Or.inl (Nat.cast_ne_zero.mpr Fintype.card_ne_zero))
-      (Or.inl (ENNReal.natCast_ne_top _))]
-  rw [tsum_eq_single a]
-  · rw [tsum_eq_single b]
-    · simp
-    · intro b' hb'
-      simp [hb'.symm]
-  · intro a' ha'
-    simp [ha'.symm]
-
 omit [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output] in
 def prod (G : Generator Seed Output) : Generator (Seed × Seed) (Output × Output) :=
   ⟨fun x => (G x.1, G x.2)⟩
@@ -195,7 +177,7 @@ theorem outputDist_prod (G : Generator Seed Output) :
     G.prod.outputDist =
       G.outputDist.bind fun y₁ => G.outputDist.map fun y₂ => (y₁, y₂) := by
   simp_rw [outputDist, prod, coe_mk,
-    ← uniformOfFintype_prod Seed Seed,
+    ← Probability.PMF.uniformOfFintype_prod Seed Seed,
     PMF.map_bind, PMF.bind_map, PMF.map_comp, Function.comp_def]
 
 omit [Fintype Output] [Nonempty Output] in
@@ -232,7 +214,7 @@ theorem idealExperiment_LeftReduction (G : Generator Seed Output)
 /-- Ideal experiment against `RightReduction` equals the ideal experiment for `G.prod`. -/
 theorem idealExperiment_RightReduction (A : Adversary (Output × Output)) :
     idealExperiment (RightReduction A) = idealExperiment A := by
-  simp only [idealExperiment, ← uniformOfFintype_prod Output Output,
+  simp only [idealExperiment, ← Probability.PMF.uniformOfFintype_prod Output Output,
     PMF.bind_bind, PMF.bind_map, Function.comp_def]
   exact PMF.bind_comm (PMF.uniformOfFintype Output) (PMF.uniformOfFintype Output)
     (fun u₂ u₁ => A (u₁, u₂))
