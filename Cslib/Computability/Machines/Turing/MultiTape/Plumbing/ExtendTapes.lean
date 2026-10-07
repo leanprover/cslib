@@ -29,12 +29,12 @@ step and run of `tm`.
 * `Turing.MultiTapeNTM.embed`: the corresponding configuration map.
 * `Turing.MultiTapeNTM.tapeEmb`: the embedding placing the only tape of a one-tape machine on
   tape `i`, and `Turing.MultiTapeNTM.noTapes`: the embedding of a machine without work tapes.
+* `Turing.MultiTapeNTM.RunPath.oneTape`: the one-tape view of a path of the extended machine.
 
 ## Main results
 
 * `Turing.MultiTapeNTM.step_embed`: the one-step mirroring lemma. `RelSeries.map` lifts this
   to paths, keeping the extra tapes fixed throughout.
-* `Turing.MultiTapeNTM.workTapePos_embed_of_not_range`: the extra tapes never move.
 * `Turing.MultiTapeNTM.spaceUsed_embed_le`: the resulting space bound.
 * `Turing.MultiTapeNTM.oneTapeCfg`: the one-tape view of a configuration.
 * `Turing.MultiTapeNTM.step_tapeEmb`, `Turing.MultiTapeNTM.spaceUsed_tapeEmb_le`: the steps and the
@@ -133,13 +133,6 @@ public lemma embed_workTapePos_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol 
     (embed e cfg extraTapes extraPos).workTapePos (e j) = cfg.workTapePos j := by
   simp [embed]
 
-/-- A head on a tape outside the range of `e` stays at its original position. -/
-public lemma workTapePos_embed_of_not_range (e : Fin k ↪ Fin k')
-    (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
-    (extraPos : Fin k' → ℤ) {l : Fin k'} (hl : l ∉ Set.range e) :
-    (embed e cfg extraTapes extraPos).workTapePos l = extraPos l := by
-  simp [embed, partialInv_eq_none e hl]
-
 @[simp]
 public lemma embed_workTapeSymbols_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
     (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) (j : Fin k) :
@@ -175,7 +168,7 @@ public lemma spaceUsed_embed_le (tm : MultiTapeNTM k Symbol State) (e : Fin k �
       rintro _ ⟨n, rfl⟩
       change (embed e (p n) extraTapes extraPos).workTapePos i =
         (embed e p.head extraTapes extraPos).workTapePos i
-      rw [workTapePos_embed_of_not_range e _ _ _ hi, workTapePos_embed_of_not_range e _ _ _ hi]
+      simp [embed, partialInv_eq_none e hi]
 
 /-! ### Placing a one-tape machine on a single work tape -/
 
@@ -223,24 +216,53 @@ public lemma embed_oneTapeCfg (i : Fin k) (cfg : Cfg k Symbol State input) :
   rw [embed_tapeEmb]
   simp [oneTapeCfg]
 
-/-- **Running a one-tape machine on work tape `i`.** A step is a step on the one-tape view of the
-configuration, placed back on tape `i`; every other tape and head keeps its starting value. Combine
-with `embed_tapeEmb` to read off the resulting configuration, or `RelSeries.map` to transport a
-path. -/
+/-- **Running a one-tape machine on work tape `i`.** A step is exactly a step on the one-tape view,
+placed back on tape `i`; every other tape and head keeps its starting value. Combine
+with `embed_tapeEmb` to read off the resulting configuration. -/
 public lemma step_tapeEmb (tm : MultiTapeNTM 1 Symbol State) (i : Fin k)
-    (cfg : Cfg k Symbol State input) {c' : Cfg 1 Symbol State input}
-    (h : tm.Step (oneTapeCfg i cfg) c') :
-    (tm.extendTapes (tapeEmb i)).Step cfg
-      (embed (tapeEmb i) c' cfg.workTapes cfg.workTapePos) := by
-  simpa only [embed_oneTapeCfg] using step_embed tm (tapeEmb i) cfg.workTapes cfg.workTapePos h
+    {c c' : Cfg k Symbol State input} :
+    (tm.extendTapes (tapeEmb i)).Step c c' ↔
+      tm.Step (oneTapeCfg i c) (oneTapeCfg i c') ∧
+      c' = embed (tapeEmb i) (oneTapeCfg i c') c.workTapes c.workTapePos := by
+  constructor
+  · intro h
+    cases hq : c.state with
+    | none =>
+      obtain rfl := (step_of_halt hq).mp h
+      exact ⟨(step_of_halt (c := oneTapeCfg i c') hq).mpr rfl,
+        (embed_oneTapeCfg i c').symm⟩
+    | some q =>
+      obtain ⟨_, ⟨a, ha, rfl⟩, rfl⟩ := (step_of_state hq).mp h
+      constructor
+      · refine (step_of_state (c := oneTapeCfg i c) hq).mpr ⟨a, ha, ?_⟩
+        refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext j <;>
+          simp [oneTapeCfg, Action.apply, Subsingleton.elim j 0]
+      · refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext j <;> by_cases hj : j = i <;>
+          simp [embed_tapeEmb, oneTapeCfg, Action.apply, partialInv_tapeEmb, hj]
+  · rintro ⟨h, he⟩
+    simpa only [embed_oneTapeCfg, ← he] using
+      step_embed tm (tapeEmb i) c.workTapes c.workTapePos h
+
+/-- The one-tape view of a path of a one-tape machine placed on work tape `i`. -/
+@[expose] public def RunPath.oneTape {tm : MultiTapeNTM 1 Symbol State} {i : Fin k}
+    (p : (tm.extendTapes (tapeEmb i)).RunPath input) : tm.RunPath input :=
+  p.map ⟨oneTapeCfg i, fun h ↦ ((step_tapeEmb tm i).mp h).1⟩
 
 /-- **Space bound for a one-tape machine placed on tape `i`:** the space of the one-tape path, plus
 one cell for each tape the machine does not use. -/
-public lemma spaceUsed_tapeEmb_le (tm : MultiTapeNTM 1 Symbol State) (i : Fin k)
-    (p : tm.RunPath input) (tapes : Fin k → ℤ → Option Symbol) (heads : Fin k → ℤ) :
-    RunPath.space (p.map ⟨(embed (tapeEmb i) · tapes heads), step_embed tm (tapeEmb i) tapes heads⟩)
-      ≤ p.space + (k - 1) :=
-  spaceUsed_embed_le tm (tapeEmb i) p tapes heads
+public lemma spaceUsed_tapeEmb_le {tm : MultiTapeNTM 1 Symbol State} {i : Fin k}
+    (p : (tm.extendTapes (tapeEmb i)).RunPath input) :
+    p.space ≤ p.oneTape.space + (k - 1) := by
+  simpa using RunPath.space_le_of_workTapePos_embedding p.oneTape p rfl
+    (tapeEmb i) 1 (fun _ _ ↦ rfl) fun j hj ↦ by
+      apply RunPath.spaceUsedByTape_le_one
+      rintro _ ⟨n, rfl⟩
+      induction n using Fin.induction with
+      | zero => rfl
+      | succ n ih =>
+        have he := ((step_tapeEmb tm i).mp (p.step n)).2
+        have hpos := congrArg (fun c ↦ c.workTapePos j) he
+        simpa [embed_tapeEmb, oneTapeCfg, show j ≠ i by simpa using hj, ih] using hpos
 
 /-- **A one-tape specification on tape `i`.** A one-tape machine placed on tape `i` transforms the
 word on that tape as it did on its own tape and leaves every other word alone; each remaining tape
@@ -261,7 +283,8 @@ public theorem TransformsTapes.tapeEmb {tm : MultiTapeNTM 1 Symbol State}
     p.map ⟨(embed (MultiTapeNTM.tapeEmb i) · tapes heads),
       step_embed tm (MultiTapeNTM.tapeEmb i) tapes heads⟩
   refine ⟨Function.update ws i (v 0), q, ?_, ?_, ⟨v, hQ, rfl⟩, ht,
-    (spaceUsed_tapeEmb_le tm i p tapes heads).trans (Nat.add_le_add_right hs _)⟩
+    (spaceUsed_embed_le tm (MultiTapeNTM.tapeEmb i) p tapes heads).trans
+      (Nat.add_le_add_right hs _)⟩
   · change embed _ p.head _ _ = _
     rw [hp, embed_tapeEmb]
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> simp [tapes, heads, wordsCfg]
