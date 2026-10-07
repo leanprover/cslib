@@ -79,6 +79,7 @@ theorem advantage_le_one (real ideal : Game) : advantage real ideal ≤ 1 := by
     advantage game (PMF.pure false) = winProbability game := by
   simp [advantage, winProbability]
 
+open Probability in
 /-- Comparing with a fair coin measures absolute prediction bias. -/
 @[simp] theorem advantage_uniform_bool (game : Game) :
     advantage game (PMF.uniformOfFintype Bool) = |winProbability game - 1 / 2| := by
