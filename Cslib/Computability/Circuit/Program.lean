@@ -22,6 +22,9 @@ This file defines
 * programs, their evaluation `Program.eval`, the input-and-gate valuation
   `Program.trace`, gate depths, and the bounded-fan-in predicate
   `Program.FanInAtMost`;
+* folds over program lines in execution order (`Program.foldl`) and reverse
+  execution order (`Program.foldr`), with `Program.foldl_rel` and `Program.foldr_rel`
+  for proving that the steps preserve a relation between accumulators;
 * the scalar views `Program.gateFunction` and `Program.wireFunction`, and the
   widened line collection `Program.lines` with `Program.lines_eval`.
 
@@ -38,6 +41,7 @@ universe v u u₁ u₂
 variable {σ : Signature.{v}} {inputCount gateCount : Nat}
 variable {sourceInputCount targetInputCount sourceGateCount targetGateCount : Nat}
 variable {U : Type u} {U₁ : Type u₁} {U₂ : Type u₂}
+variable {α : Type u₁} {β : Type u₂}
 
 /-- One gate together with the wires supplying its arguments. -/
 structure Line (σ : Signature) (inputCount gateCount : Nat) where
@@ -95,6 +99,64 @@ def Program.gateEquiv (σ : Signature) (inputCount gateCount : Nat) :
   invFun p := p.1.gate p.2
   left_inv p := by cases p; rfl
   right_inv _ := rfl
+
+/-- Fold the lines from the first gate to the last. The step accepts a line at any gate count,
+retaining its original bound on references to previous gates. -/
+def Program.foldl {gateCount : Nat} (p : Program σ inputCount gateCount)
+    (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α) : α :=
+  match p with
+  | .empty => init
+  | .gate q line => f (q.foldl f init) line
+
+@[simp] theorem Program.foldl_empty
+    (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α) :
+    (Program.empty : Program σ inputCount 0).foldl f init = init := rfl
+
+@[simp] theorem Program.foldl_gate (p : Program σ inputCount gateCount)
+    (line : Line σ inputCount gateCount)
+    (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α) :
+    (p.gate line).foldl f init = f (p.foldl f init) line := rfl
+
+/-- Two left folds preserve a relation if their initial accumulators are related and each
+pair of steps preserves it. For example, use equality or an order relation. -/
+theorem Program.foldl_rel (p : Program σ inputCount gateCount) (R : α → β → Prop)
+    {f : ∀ {k : Nat}, α → Line σ inputCount k → α}
+    {f' : ∀ {k : Nat}, β → Line σ inputCount k → β}
+    {a : α} {b : β} (hinit : R a b)
+    (hstep : ∀ {k : Nat} {a : α} {b : β} (line : Line σ inputCount k),
+      R a b → R (f a line) (f' b line)) : R (p.foldl f a) (p.foldl f' b) := by
+  induction p with
+  | empty => exact hinit
+  | gate q line ih => exact hstep line ih
+
+/-- Fold the lines from the last gate to the first. Each line retains its original bound on
+references to previous gates, and the step receives the line before the accumulator. -/
+def Program.foldr {gateCount : Nat} (p : Program σ inputCount gateCount)
+    (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α) : α :=
+  match p with
+  | .empty => init
+  | .gate q line => q.foldr f (f line init)
+
+@[simp] theorem Program.foldr_empty
+    (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α) :
+    (Program.empty : Program σ inputCount 0).foldr f init = init := rfl
+
+@[simp] theorem Program.foldr_gate (p : Program σ inputCount gateCount)
+    (line : Line σ inputCount gateCount)
+    (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α) :
+    (p.gate line).foldr f init = p.foldr f (f line init) := rfl
+
+/-- Two right folds preserve a relation if their initial accumulators are related and each
+pair of steps preserves it. -/
+theorem Program.foldr_rel (p : Program σ inputCount gateCount) (R : α → β → Prop)
+    {f : ∀ {k : Nat}, Line σ inputCount k → α → α}
+    {f' : ∀ {k : Nat}, Line σ inputCount k → β → β}
+    {a : α} {b : β} (hinit : R a b)
+    (hstep : ∀ {k : Nat} {a : α} {b : β} (line : Line σ inputCount k),
+      R a b → R (f line a) (f' line b)) : R (p.foldr f a) (p.foldr f' b) := by
+  induction p generalizing a b with
+  | empty => exact hinit
+  | gate q line ih => exact ih (hstep line hinit)
 
 /-- Every gate in a program has at most `r` arguments. -/
 def Program.FanInAtMost {gateCount : Nat} : (program : Program σ inputCount gateCount) → Nat → Prop
@@ -235,17 +297,10 @@ theorem Program.map_eval
     (x : Fin inputCount → U₁) :
     h.map ∘ p.eval i₁ x = p.eval i₂ (h.map ∘ x) := by
   induction p with
-  | empty =>
-      funext k
-      exact Fin.elim0 k
-  | gate p line ih =>
-      funext k
-      refine Fin.lastCases ?_ ?_ k
-      · simpa only [Program.eval, Function.comp_apply, Fin.lastCases_last, ih] using
-          line.map_eval h x (p.eval i₁ x)
-      · intro j
-        simpa only [Program.eval, Function.comp_apply, Fin.lastCases_castSucc] using
-          congrFun ih j
+  | empty => exact Subsingleton.elim _ _
+  | gate q line ih =>
+    funext k
+    cases k using Fin.lastCases <;> simp [Program.eval, ← ih, Line.map_eval]
 
 /-- The value of every input and gate wire. -/
 def Program.trace

@@ -17,6 +17,7 @@ total gate count at most `Program.cost`. The interpretations share a carrier, bu
 signatures and gate arities may differ. A budget may be zero when wiring suffices.
 
 `Program.simulate` constructs the replacement program and wire map from supplied circuits.
+`Program.simulateProgram` and `Program.simulateRenaming` name these two components.
 `Program.trace_simulate` proves that this construction preserves every wire value.
 -/
 
@@ -55,9 +56,7 @@ theorem Interpretation.simulates_iff :
 
 /-- Given a cost per operation, this is the sum of the costs along a straight-line program. -/
 def Program.cost {g : ℕ} (p : Program σ n g) (cost : σ.Op → ℕ) : ℕ :=
-  match p with
-  | .empty => 0
-  | .gate p line => p.cost cost + cost line.op
+  p.foldl (fun total line => total + cost line.op) 0
 
 @[simp] theorem Program.cost_empty (cost : σ.Op → ℕ) :
     (Program.empty : Program σ n 0).cost cost = 0 := rfl
@@ -70,10 +69,8 @@ def Program.cost {g : ℕ} (p : Program σ n g) (cost : σ.Op → ℕ) : ℕ :=
   induction p <;> simp_all [Nat.mul_add]
 
 theorem Program.cost_mono (p : Program σ n g) {cost cost' : σ.Op → ℕ}
-    (h : ∀ op, cost op ≤ cost' op) : p.cost cost ≤ p.cost cost' := by
-  induction p with
-  | empty => exact le_rfl
-  | gate p line ih => exact Nat.add_le_add ih (h line.op)
+    (h : ∀ op, cost op ≤ cost' op) : p.cost cost ≤ p.cost cost' :=
+  p.foldl_rel (· ≤ ·) le_rfl fun line htotal => Nat.add_le_add htotal (h line.op)
 
 /-- Replace each operation by its supplied circuit, returning the resulting program and
 a map from the original wires to their replacements. The gate count is the sum of the
@@ -84,41 +81,51 @@ def Program.simulate {g : ℕ} (p : Program σ n g)
       Wire.Renaming n g (p.cost fun op => (impl op).size) :=
   match p with
   | .empty => ⟨.empty, .id⟩
-  | .gate p line =>
-    let result := p.simulate impl
-    let q := result.1
-    let ρ := result.2
+  | .gate q line =>
+    let (r, ρ) := q.simulate impl
     let c := impl line.op
     let feed := ρ ∘ line.wires
     let prior : Wire.Renaming n _ _ := ⟨fun j => (ρ.gates j).castAdd c.size⟩
-    ⟨q.append feed c.program, prior.skipLast (Program.appendedWire feed (c.outputs 0))⟩
+    ⟨r.append feed c.program, prior.skipLast (Program.appendedWire feed (c.outputs 0))⟩
+
+/-- The program obtained by replacing each operation by its supplied circuit. -/
+abbrev Program.simulateProgram (p : Program σ n g)
+    (impl : ∀ op : σ.Op, Circuit τ (σ.Arity op) 1) :
+    Program τ n (p.cost fun op => (impl op).size) :=
+  (p.simulate impl).1
+
+/-- The map from original wires to their replacements in `Program.simulateProgram`. -/
+abbrev Program.simulateRenaming (p : Program σ n g)
+    (impl : ∀ op : σ.Op, Circuit τ (σ.Arity op) 1) :
+    Wire.Renaming n g (p.cost fun op => (impl op).size) :=
+  (p.simulate impl).2
 
 /-- Replacing each operation by a circuit computing it preserves every wire value. -/
 theorem Program.trace_simulate (p : Program σ n g)
     (impl : ∀ op : σ.Op, Circuit τ (σ.Arity op) 1)
     (h : ∀ op, (impl op).Computes J (single (I op))) (x : Fin n → U) :
-    (p.simulate impl).1.trace J x ∘ (p.simulate impl).2 = p.trace I x := by
+    (p.simulateProgram impl).trace J x ∘ p.simulateRenaming impl = p.trace I x := by
   induction p with
   | empty =>
     funext w
     cases w <;> rfl
-  | gate p line ih =>
-    let q := (p.simulate impl).1
-    let ρ := (p.simulate impl).2
+  | gate q line ih =>
+    let r := q.simulateProgram impl
+    let ρ := q.simulateRenaming impl
     let c := impl line.op
     let feed := ρ ∘ line.wires
     funext w
-    dsimp only [simulate, cost_gate, Function.comp_apply]
+    dsimp only [simulateProgram, simulateRenaming, simulate, cost_gate, Function.comp_apply]
     refine Wire.lastCases ?_ (fun w => ?_) w
     · simp only [Wire.Renaming.apply_gate, Wire.Renaming.skipLast_gates_last]
       rw [Program.trace_append_appendedWire]
       change c.eval J _ 0 = _
       rw [h line.op]
-      change I line.op ((q.trace J x ∘ ρ) ∘ line.wires) = _
+      change I line.op ((r.trace J x ∘ ρ) ∘ line.wires) = _
       rw [ih]
-      exact (Program.eval_gate_last p line I x).symm
+      exact (Program.eval_gate_last q line I x).symm
     · rw [Wire.Renaming.skipLast_castSucc, Program.trace_gate_castSucc]
-      have hold := (Program.trace_append_castAdd q feed J x c.program (ρ w)).trans
+      have hold := (Program.trace_append_castAdd r feed J x c.program (ρ w)).trans
         (congrFun ih w)
       cases w <;> exact hold
 
@@ -136,7 +143,7 @@ theorem Program.exists_simulationWithCost (p : Program σ n g) (cost : σ.Op →
     ∃ k : ℕ, ∃ q : Program τ n k, ∃ ρ : Wire.Renaming n g k,
       k ≤ p.cost cost ∧ ∀ x : Fin n → U, q.trace J x ∘ ρ = p.trace I x := by
   choose impl himpl hsize using h
-  exact ⟨_, (p.simulate impl).1, (p.simulate impl).2,
-    p.cost_mono hsize, p.trace_simulate impl himpl⟩
+  use p.cost fun op => (impl op).size, p.simulateProgram impl, p.simulateRenaming impl,
+    p.cost_mono hsize, p.trace_simulate impl himpl
 
 end Cslib.Circuits
