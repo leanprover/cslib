@@ -333,10 +333,8 @@ lemma computesFunInTimeAndSpace_almostConstTM (h : ∀ a ∉ S, encOut (f a) = o
     ((almostConstTM encIn encOut f S out).runFrom · ((encOut (f a)).length + 1)) hrun
   rw [runFrom_write_halted, runFrom, runFrom, ← Function.iterate_add_apply] at hfinal
   have hhalt := congrArg Cfg.state hfinal
-  refine ⟨⟨_, hhalt, congrArg Cfg.output hfinal⟩, fun p hp ↦ ?_, by simp⟩
-  rw [computationPath_last_eq_runFrom p,
-    runFrom_eq_of_halt _ _ (by dsimp [almostConstTime] at hp; omega) hhalt]
-  exact hhalt
+  exact ⟨⟨_, hhalt, congrArg Cfg.output hfinal⟩,
+    (runsInTime_of_halted hhalt).mono (by dsimp [almostConstTime]; omega), by simp⟩
 
 end AlmostConstFun
 

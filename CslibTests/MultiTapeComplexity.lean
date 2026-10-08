@@ -19,19 +19,12 @@ private def bit : Bool ↪ List Bool := ⟨fun b => [b], by intro a b h; simpa u
 private lemma constant_computable (symbol : Bool) :
     ComputableInTimeAndSpace (fun _ : Bool => symbol) bit bit
       (fun b => if b then 1 else 2) (fun _ => 0) := by
-  refine ⟨0, Unit, inferInstance, finish 0 symbol, ?_⟩
-  intro b
-  have hb : 1 ≤ (if b then 1 else 2 : ℕ) := by cases b <;> decide
-  have hh : ((finish 0 symbol).runFrom ((finish 0 symbol).initCfg (bit b)) 1).Halted := by
+  refine ⟨0, Unit, inferInstance, finish 0 symbol, fun b ↦ ?_⟩
+  have h : ((finish 0 symbol).runFrom ((finish 0 symbol).initCfg (bit b)) 1).Halted ∧
+      ((finish 0 symbol).runFrom ((finish 0 symbol).initCfg (bit b)) 1).output = bit symbol := by
     rw [runFrom, Function.iterate_one, step_of_state rfl]
-    simp [finish, Turing.Cfg.Halted]
-  refine ⟨⟨1, hh, ?_⟩, ?_, by simp⟩
-  · rw [runFrom, Function.iterate_one, step_of_state rfl]
-    simp [finish]; rfl
-  · intro p hp
-    rw [computationPath_last_eq_runFrom p,
-      runFrom_eq_of_halt _ _ (hb.trans hp) hh]
-    exact hh
+    simp [finish, Turing.Cfg.Halted]; rfl
+  exact ⟨⟨1, h⟩, (runsInTime_of_halted h.1).mono (by cases b <;> decide), by simp⟩
 
 -- A theorem about nondeterministic steps applies directly to a deterministic machine.
 example {tm : Turing.MultiTapeTM k Symbol State} {input : List Symbol}
