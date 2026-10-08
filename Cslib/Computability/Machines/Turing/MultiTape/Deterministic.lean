@@ -349,7 +349,7 @@ open Classical in
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
   fun x => if x ∈ L then true else false
 
-/-- A set is decidable within the given input-indexed bounds when its Boolean indicator is. -/
+/-- A set is decidable within the given input-indexed bounds when its Boolean indicator is computable in those bounds. -/
 def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
