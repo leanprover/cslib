@@ -7,9 +7,8 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
-public import Mathlib.Probability.Distributions.Uniform
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir.Polynomial
-import Cslib.Probability.PMF
+public import Cslib.Probability.PMF
 
 /-!
 # Shamir Secret Sharing
@@ -121,7 +120,7 @@ structure TailSampler (params : Params F Party) where
 /-- Uniform tail coefficients form the canonical privacy-compatible sampler. -/
 noncomputable def uniformTailSampler (params : Params F Party)
     [Fintype F] [Nonempty F] : TailSampler params where
-  gen := PMF.uniformOfFintype (Randomness params)
+  gen := uniformOfFintype (Randomness params)
   map_add_eq_self δ := by
     simpa using uniformOfFintype_map_equiv (Equiv.addRight δ)
 
