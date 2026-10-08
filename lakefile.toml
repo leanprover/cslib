@@ -18,7 +18,7 @@ weak.linter.unicodeLinter = false
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4-nightly-testing"
-rev = "44b9fdf49f8fdc509ed08a576120d61ae04980cf"
+rev = "8d9bdd00a73b330f1bd9335084e0b90b033d861c"
 
 [[lean_lib]]
 name = "Cslib"
