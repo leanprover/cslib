@@ -313,7 +313,7 @@ def ComputesInTimeAndSpace (tm : MultiTapeTM k Symbol State)
     (input output : List Symbol) (t s : ℕ) : Prop :=
   tm.Computes input output ∧ tm.RunsInTime input t ∧ tm.RunsInSpace input s
 
-/-- The machine computes `f`, with every computation path subject to the supplied time and space
+/-- The machine computes `f` relative to given encodings within the given time and space bounds.
 bounds. -/
 def ComputesFunInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
