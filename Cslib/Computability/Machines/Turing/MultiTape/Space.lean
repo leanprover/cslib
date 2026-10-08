@@ -18,8 +18,9 @@ usage counts the positions visited by each work-tape head along the path and sum
 ## Design
 
 The input tape is read-only with bounded head movement, and the output tape is write-only, so we
-ignore both for space usage. The space usage is defined as the total number of cells the work tape
-heads visited along a run path.
+ignore both for space usage. A work-tape cell is visited when its head occupies that position in any
+configuration of the path, including the initial and final configurations. Each cell counts once,
+regardless of repeated visits.
 
 Instead of considering the cells _visited_ by the work tape heads, some textbooks
 (including [AroraBarak09]) only consider the number of cells that contain
