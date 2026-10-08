@@ -79,10 +79,8 @@ lemma runFrom_full (input : List Symbol) :
 theorem computesInTimeAndSpace (input : List Symbol) :
     ComputesInTimeAndSpace copy input input (input.length + 1) 0 := by
   have hhalt := congrArg Cfg.state (runFrom_full input)
-  refine ⟨⟨input.length + 1, hhalt, by rw [runFrom_full]; simp [cfg]⟩,
-    fun p hp ↦ ?_, by simp⟩
-  rw [computationPath_last_eq_runFrom p, copy.runFrom_eq_of_halt _ hp hhalt]
-  exact hhalt
+  exact ⟨⟨input.length + 1, hhalt, by rw [runFrom_full]; simp [cfg]⟩,
+    runsInTime_of_halted hhalt, by simp⟩
 
 end Copy
 

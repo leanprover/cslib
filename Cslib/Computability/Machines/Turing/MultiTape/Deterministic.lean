@@ -211,6 +211,13 @@ lemma runFrom_eq_of_halt
   rw [runFrom, ← Nat.sub_add_cancel hle, Function.iterate_add_apply]
   exact Function.iterate_fixed (step_of_halt hhalt) _
 
+/-- A deterministic machine halted after `t` steps satisfies the shared time bound. -/
+lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}
+    (h : (tm.runFrom (tm.initCfg input) t).Halted) : tm.RunsInTime input t := by
+  intro p hp
+  rw [computationPath_last_eq_runFrom p, runFrom_eq_of_halt _ _ hp h]
+  exact h
+
 /-- The machine `tm` started in `cfg` halts at step `t`: it is halted after `t` steps and not
 halted after any smaller number of steps. -/
 def HaltsAt (tm : MultiTapeTM k Symbol State) {input : List Symbol}

@@ -28,6 +28,9 @@ relates the state `q` and the read symbols `input` and `work` to `action`.
 A halted configuration steps to itself, so once a machine has halted it has a run of every length.
 A time bound is therefore an upper bound, with no separate account of the step at which it halted.
 
+The transition relation may be empty at a running configuration. Such a configuration has no
+successor configuration and is called stuck.
+
 Time bounds apply to every computation path, regardless of its outcome. `RunsInTime input t`
 requires every path of at least `t` steps to end in a halted configuration. A path that gets stuck
 after `u` steps therefore requires a bound strictly greater than `u`. Function computation and
