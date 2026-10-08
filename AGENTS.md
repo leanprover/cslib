@@ -126,7 +126,7 @@ where $YEAR should be replaced with the current year, $AUTHOR_NAME with the name
 
 ### 5. Always Read Local README.md Files
 
-Before working on any file or directory, **always read** all `README.md` files in all directories throughout the entire repository.
+Before working on any file or directory, **always read** the `CODESTYLE.md` file in the root directory and all `README.md` files in all directories throughout the entire repository.
 
 These files contain essential context that must be understood before making changes.
 
