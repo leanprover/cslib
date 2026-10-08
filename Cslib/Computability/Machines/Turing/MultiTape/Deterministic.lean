@@ -283,8 +283,7 @@ def ComputesInTimeAndSpace (tm : MultiTapeTM k Symbol State)
     (input output : List Symbol) (t s : ℕ) : Prop :=
   tm.Computes input output ∧ tm.RunsInTime input t ∧ tm.RunsInSpace input s
 
-/-- The machine computes `f`, with every computation path subject to the supplied time and space
-bounds. -/
+/-- The machine computes `f` relative to given encodings within the given time and space bounds. -/
 def ComputesFunInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
   ∀ a, tm.ComputesInTimeAndSpace (encIn a) (encOut (f a)) (t a) (s a)
@@ -314,12 +313,22 @@ abbrev ComputableInTimeAndSpaceOfLength {α β : Type*}
   ComputableInTimeAndSpace f encIn encOut
     (fun a => t (encIn a).length) (fun a => s (encIn a).length)
 
+/-- Computability is monotone in the resource bounds. -/
+theorem ComputableInTimeAndSpace.mono {α β : Type*}
+    {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {t s t' s' : α → ℕ}
+    (h : ComputableInTimeAndSpace f encIn encOut t s)
+    (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
+    ComputableInTimeAndSpace f encIn encOut t' s' := by
+  obtain ⟨k, State, hfinite, tm, htm⟩ := h
+  exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
+
 open Classical in
 /-- The Boolean indicator function of a set. -/
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
   fun x => if x ∈ L then true else false
 
-/-- A set is decidable within the given input-indexed bounds when its Boolean indicator is. -/
+/-- A set is decidable within the given input-indexed bounds when its Boolean indicator is
+computable in those bounds. -/
 def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s

@@ -43,9 +43,8 @@ example {tm : Turing.MultiTapeTM k Symbol State} {input : List Symbol}
 example {α β : Type*} {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool}
     {t s t' s' : α → ℕ} (h : ComputableInTimeAndSpace f encIn encOut t s)
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
-    ComputableInTimeAndSpace f encIn encOut t' s' := by
-  obtain ⟨k, State, hfinite, tm, htm⟩ := h
-  exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
+    ComputableInTimeAndSpace f encIn encOut t' s' :=
+  h.mono ht hs
 
 -- Deterministic function computation satisfies the shared resource bounds.
 example {α β : Type*} {tm : Turing.MultiTapeTM k Symbol State}
