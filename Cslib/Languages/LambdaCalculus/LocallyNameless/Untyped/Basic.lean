@@ -45,7 +45,7 @@ namespace Term
 
 variable {Var : Type u} {i i' k : ℕ} {x x' : Var} {s l r M : Term Var}
 
-section Opening
+/-! ## Opening -/
 
 /-- Variable opening of the ith bound variable. -/
 @[scoped grind =]
@@ -73,11 +73,9 @@ def open' (e u : Term Var) : Term Var := e⟦0 ↝ u⟧
 @[inherit_doc]
 scoped infixr:80 " ^ " => Term.open'
 
-end Opening
-
 variable [DecidableEq Var]
 
-section Closing
+/-! ## Closing -/
 
 /-- Variable closing, replacing a free `fvar x` with `bvar k` -/
 @[scoped grind =]
@@ -105,9 +103,7 @@ lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x�
 
 lemma closeRec_abs : M.abs⟦k ↜ x⟧ = M⟦k + 1 ↜ x⟧.abs := rfl
 
-end Closing
-
-section Substitution
+/-! ## Substitution -/
 
 /-- Substitution of a free variable to a term. -/
 @[scoped grind =]
@@ -134,9 +130,7 @@ lemma subst_def : M.subst x s = M[x := s] := rfl
 
 attribute [scoped grind =] subst_bvar subst_fvar subst_app subst_abs subst_def
 
-end Substitution
-
-section FreeVariables
+/-! ## Free variables -/
 
 /-- Free variables of a term. -/
 @[simp, scoped grind =]
@@ -145,8 +139,6 @@ def fv : Term Var → Finset Var
 | fvar x => {x}
 | abs e1 => e1.fv
 | app l r => l.fv ∪ r.fv
-
-end FreeVariables
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
