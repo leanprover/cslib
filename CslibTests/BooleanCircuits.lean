@@ -56,10 +56,10 @@ example : ∃ c : Circuit signature 2 1,
     c.Computes interpretation (fun x _ => conjunction x) ∧ c.size ≤ 1 :=
   complexity_le_iff.mp conjunction_synthesis.complexity_le
 
-example {n m : ℕ} (f : BitString n → BitString m) : ecomplexity interpretation f ≠ ⊤ :=
+example {n m : ℕ} (f : (Fin n → Bool) → Fin m → Bool) : ecomplexity interpretation f ≠ ⊤ :=
   ecomplexity_ne_top
 
-example {n m : ℕ} (f : BitString n → BitString m) :
+example {n m : ℕ} (f : (Fin n → Bool) → Fin m → Bool) :
     ∃ c : Circuit signature n m,
       c.Computes interpretation f ∧ c.size = complexity interpretation f :=
   exists_computes_size_eq_complexity

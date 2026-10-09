@@ -19,7 +19,7 @@ namespace CslibTests.CircuitComplexity
 
 open Cslib Cslib.Circuits Cslib.Circuits.Boolean
 
-example : ecomplexity interpretation (single fun x : BitString 2 => x 0 && x 1) ≤ 1 := by
+example : ecomplexity interpretation (single fun x : Fin 2 → Bool => x 0 && x 1) ≤ 1 := by
   have h := (Synthesis.of_mem (I := interpretation) (s := inputs 2) ⟨0, rfl⟩).and
     (Synthesis.of_mem (I := interpretation) (s := inputs 2) ⟨1, rfl⟩)
   exact h.ecomplexity_le
@@ -33,18 +33,18 @@ section Complete
 
 variable [interpretation.IsComplete]
 
-example : complexity interpretation (single fun x : BitString 2 => !(x 0 && x 1)) ≤ 2 := by
+example : complexity interpretation (single fun x : Fin 2 → Bool => !(x 0 && x 1)) ≤ 2 := by
   have h := (Synthesis.of_mem (I := interpretation) (s := inputs 2) ⟨0, rfl⟩).and
     (Synthesis.of_mem (I := interpretation) (s := inputs 2) ⟨1, rfl⟩)
   have hnot := (Synthesis.of_mem (I := interpretation) (s := inputs 1) ⟨0, rfl⟩).not
-  exact (complexity_comp_le (single fun x : BitString 2 => x 0 && x 1)
-    (single fun x : BitString 1 => !x 0)).trans (Nat.add_le_add h.complexity_le hnot.complexity_le)
+  exact (complexity_comp_le (single fun x : Fin 2 → Bool => x 0 && x 1)
+    (single fun x : Fin 1 → Bool => !x 0)).trans (Nat.add_le_add h.complexity_le hnot.complexity_le)
 
 -- On inputs whose second bit is true, conjunction is just a free projection.
-example : complexityOn interpretation {x : BitString 2 | x 1 = true}
+example : complexityOn interpretation {x : Fin 2 → Bool | x 1 = true}
     (single fun x => x 0 && x 1) = 0 := by
   calc
-    _ = complexityOn interpretation {x : BitString 2 | x 1 = true}
+    _ = complexityOn interpretation {x : Fin 2 → Bool | x 1 = true}
         (fun x => x ∘ fun _ : Fin 1 => 0) :=
       complexityOn_congr fun x hx => by
         funext i
@@ -55,7 +55,7 @@ example : complexityOn interpretation {x : BitString 2 | x 1 = true}
 end Complete
 
 -- Even on an empty support, a zero-input circuit needs a gate to provide its output.
-example : ecomplexityOn interpretation ∅ (single fun _ : BitString 0 => false) = 1 := by
+example : ecomplexityOn interpretation ∅ (single fun _ : Fin 0 → Bool => false) = 1 := by
   apply le_antisymm
   · have h : Synthesis interpretation (inputs 0) {fun _ => false} 1 := Synthesis.const false
     exact ecomplexityOn_le_ecomplexity.trans h.ecomplexity_le
@@ -69,24 +69,24 @@ example : ecomplexityOn interpretation ∅ (single fun _ : BitString 0 => false)
 
 variable {n m k : ℕ}
 
-example (S : Set (BitString n)) (f : BitString n → BitString m) :
+example (S : Set (Fin n → Bool)) (f : (Fin n → Bool) → Fin m → Bool) :
     ecomplexityOn interpretation S f ≤ ecomplexity interpretation f :=
   ecomplexityOn_le_ecomplexity
 
-example (f : BitString n → BitString m) (g : BitString n → BitString k) :
+example (f : (Fin n → Bool) → Fin m → Bool) (g : (Fin n → Bool) → Fin k → Bool) :
     ecomplexityGiven interpretation f g ≤ ecomplexity interpretation f ∧
       ecomplexity interpretation f ≤
         ecomplexity interpretation g + ecomplexityGiven interpretation f g :=
   ⟨ecomplexityGiven_le_ecomplexity f g, ecomplexity_le_add_ecomplexityGiven f g⟩
 
 -- A circuit reading `x` and `g x` that outputs `f x` bounds the relative complexity.
-example (f : BitString n → BitString m) (g : BitString n → BitString k)
+example (f : (Fin n → Bool) → Fin m → Bool) (g : (Fin n → Bool) → Fin k → Bool)
     (c : Circuit signature (n + k) m) (hc : ∀ x, c.eval interpretation (Fin.append x (g x)) = f x) :
     ecomplexityGiven interpretation f g ≤ c.size :=
   (ecomplexityGiven_le_iff f g).mpr ⟨c, hc, le_rfl⟩
 
 -- Given `f` together with more information, `f` itself is free.
-example (f : BitString n → BitString m) (g : BitString n → BitString k) :
+example (f : (Fin n → Bool) → Fin m → Bool) (g : (Fin n → Bool) → Fin k → Bool) :
     ecomplexityGiven interpretation f (fun x => Fin.append (f x) (g x)) = 0 :=
   nonpos_iff_eq_zero.mp ((ecomplexityGiven_append_le f f g).trans_eq (ecomplexityGiven_self f))
 

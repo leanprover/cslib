@@ -8,20 +8,20 @@ module
 public import Cslib.Init
 
 /-!
-# Fixed-length bit strings and Boolean functions
+# Bit strings and Boolean functions
 
-A bit string is indexed by its coordinates, so selecting or updating one bit uses the usual
-functions on `Fin n → Bool`.
+Bit strings are lists of bits. Boolean functions of a fixed number of input bits use
+`Fin n → Bool`, with the usual coordinate selection and update operations.
 -/
 
 @[expose] public section
 
 namespace Cslib
 
-/-- A string of `n` bits, indexed by its coordinates. -/
-abbrev BitString (n : ℕ) : Type := Fin n → Bool
+/-- A finite string of bits. -/
+abbrev BitString : Type := List Bool
 
 /-- A Boolean function of `n` input bits. -/
-abbrev BooleanFunction (n : ℕ) : Type := BitString n → Bool
+abbrev BooleanFunction (n : ℕ) : Type := (Fin n → Bool) → Bool
 
 end Cslib

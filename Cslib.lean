@@ -38,10 +38,14 @@ public import Cslib.Computability.Circuit.Basic
 public import Cslib.Computability.Circuit.Boolean.Basic
 public import Cslib.Computability.Circuit.Boolean.Complexity
 public import Cslib.Computability.Circuit.Boolean.Counting
+public import Cslib.Computability.Circuit.Boolean.Encoding
+public import Cslib.Computability.Circuit.Boolean.FPPoly
+public import Cslib.Computability.Circuit.Boolean.FiniteSynthesis
 public import Cslib.Computability.Circuit.Boolean.Lupanov
 public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 public import Cslib.Computability.Circuit.Boolean.Shannon
 public import Cslib.Computability.Circuit.Boolean.Synthesis
+public import Cslib.Computability.Circuit.Boolean.WordSynthesis
 public import Cslib.Computability.Circuit.Complexity
 public import Cslib.Computability.Circuit.Composition
 public import Cslib.Computability.Circuit.Counting
@@ -125,6 +129,7 @@ public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Cslib.Foundations.Control.Monad.IsMonadHom.List
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.BitString
+public import Cslib.Foundations.Data.BitString.Encoding
 public import Cslib.Foundations.Data.DecidableEqZero
 public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
@@ -133,6 +138,7 @@ public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.List.IsChainFromTo
 public import Cslib.Foundations.Data.Nat.Asymptotics
 public import Cslib.Foundations.Data.Nat.Factorial
+public import Cslib.Foundations.Data.Nat.PolynomialBound
 public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
@@ -144,6 +150,7 @@ public import Cslib.Foundations.Data.PFunctor.Basic
 public import Cslib.Foundations.Data.PFunctor.Free
 public import Cslib.Foundations.Data.PFunctor.Free.Fold
 public import Cslib.Foundations.Data.PFunctor.Free.W
+public import Cslib.Foundations.Data.Polynomial.Growth
 public import Cslib.Foundations.Data.Polynomial.Monotone
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape

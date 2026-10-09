@@ -328,6 +328,20 @@ theorem complexity_le_iff :
     complexity I f ≤ k ↔ ∃ c : Circuit σ n m, c.Computes I f ∧ c.size ≤ k := by
   simpa [complexity] using complexityOn_le_iff (I := I) (S := Set.univ) (f := f) (k := k)
 
+/-- Feed a least-size circuit with available functions while retaining earlier wires. -/
+theorem Synthesis.of_complexity {s : Set ((Fin n → U) → U)}
+    (F : (Fin k → U) → Fin m → U)
+    (args : Fin k → (Fin n → U) → U) (hargs : ∀ i, args i ∈ s) :
+    Synthesis I s (Set.range fun j x => F (fun i => args i x) j) (complexity I F) := by
+  obtain ⟨c, hc, hsize⟩ := exists_computes_size_eq_complexity (I := I) (f := F)
+  simpa only [hsize] using Synthesis.of_circuit c hc args hargs
+
+/-- The inputs compute a single-valued function within its complexity. -/
+theorem Synthesis.of_complexity_single (f : (Fin n → U) → U) :
+    Synthesis I (inputs n) {f} (complexity I (single f)) := by
+  simpa only [single_apply, Set.range_const] using
+    Synthesis.of_complexity (I := I) (s := inputs n) (single f) (fun i x => x i) (fun i => ⟨i, rfl⟩)
+
 /-- Over a complete basis, lower bounds on complexity are exactly lower bounds on the size
 of every circuit. -/
 theorem le_complexity_iff :

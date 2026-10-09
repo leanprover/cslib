@@ -5,7 +5,7 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuit.Basic
+public import Cslib.Computability.Circuit.Composition
 public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 public import Mathlib.Data.Finset.Fold
 public import Mathlib.Data.Fintype.Basic
@@ -91,6 +91,18 @@ theorem mono (h : Synthesis I s t a) {s' t' : Set ((Fin n → U) → U)}
   intro g₁ p hp
   obtain ⟨g₂, q, hq, hkeep, hout⟩ := h g₁ p (hs.trans hp)
   exact ⟨g₂, q, by omega, hkeep, ht.trans hout⟩
+
+/-- A construction remains valid with a larger family of available functions. -/
+theorem mono_sources (h : Synthesis I s t a) {s' : Set ((Fin n → U) → U)} (hs : s ⊆ s') :
+    Synthesis I s' t a := h.mono hs Set.Subset.rfl le_rfl
+
+/-- A construction remains valid with a larger gate budget. -/
+theorem mono_cost (h : Synthesis I s t a) (hab : a ≤ b) : Synthesis I s t b :=
+  h.mono Set.Subset.rfl Set.Subset.rfl hab
+
+/-- Replace a single output function by a pointwise equal one. -/
+theorem congr (h : Synthesis I s {f} a) (hfg : ∀ x, f x = g x) : Synthesis I s {g} a := by
+  simpa only [funext hfg] using h
 
 /-- Successive constructions add their gate budgets. The second construction may use the
 targets of the first, and both target families remain available. -/
@@ -224,6 +236,23 @@ theorem finset_fold (op : U → U → U) [Std.Commutative op] [Std.Associative o
     simpa [Finset.fold_insert hi, Finset.sum_insert hi,
       Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using step
 
+/-- Feed a circuit with available functions, retaining every previously computed wire. -/
+theorem of_circuit {k m : ℕ} (c : Circuit σ k m)
+    {F : (Fin k → U) → Fin m → U} (hc : c.Computes I F)
+    (args : Fin k → (Fin n → U) → U) (hargs : ∀ i, args i ∈ s) :
+    Synthesis I s (Set.range fun j x => F (fun i => args i x) j) c.size := by
+  classical
+  intro g p hp
+  choose wires hw using fun i => mem_available.mp (hp (hargs i))
+  refine ⟨g + c.size, p.append wires c.program, le_rfl, ?_, ?_⟩
+  · rintro f ⟨w, rfl⟩
+    exact mem_available.mpr ⟨w.castAdd c.size,
+      fun x => Program.trace_append_castAdd p wires I x c.program w⟩
+  · rintro f ⟨j, rfl⟩
+    refine mem_available.mpr ⟨Program.appendedWire wires (c.outputs j), fun x => ?_⟩
+    rw [Program.trace_append_appendedWire]
+    simpa [Circuit.eval, hw] using congrFun (hc (fun i => args i x)) j
+
 /-- Select a tuple of outputs from a synthesis bound. Selecting outputs, including repeated
 outputs or none at all, requires no additional gates. -/
 theorem exists_circuit_outputs {m cost : ℕ} {f : Fin m → (Fin n → U) → U}
@@ -233,6 +262,22 @@ theorem exists_circuit_outputs {m cost : ℕ} {f : Fin m → (Fin n → U) → U
   obtain ⟨g, p, hg, _, hout⟩ := h 0 .empty (inputs_subset_available _)
   choose wires hw using fun j => mem_available.mp (hout ⟨j, rfl⟩)
   exact ⟨⟨p, wires⟩, fun x => funext fun j => hw j x, by simpa using hg⟩
+
+/-- Substitute available functions for the inputs of a finite synthesis problem. -/
+theorem substitute {k cost : ℕ} [Finite ι] {targets : ι → (Fin k → U) → U}
+    (h : Synthesis I (inputs k) (Set.range targets) cost)
+    (args : Fin k → (Fin n → U) → U) (hargs : ∀ i, args i ∈ s) :
+    Synthesis I s (Set.range fun j x => targets j (fun i => args i x)) cost := by
+  classical
+  let := Fintype.ofFinite ι
+  let e := Fintype.equivFin ι
+  have h' : Synthesis I (inputs k) (Set.range fun j => targets (e.symm j)) cost := by
+    simpa only [← Function.comp_def, EquivLike.range_comp] using h
+  obtain ⟨c, hc, hsize⟩ := h'.exists_circuit_outputs
+  have hs := (of_circuit c hc args hargs).mono_cost hsize
+  apply hs.mono Set.Subset.rfl ?_ le_rfl
+  rintro f ⟨j, rfl⟩
+  exact ⟨e j, by simp⟩
 
 /-- Extract a single-output circuit from a synthesis bound on the input projections. -/
 theorem exists_circuit {cost : ℕ} (h : Synthesis I (inputs n) {f} cost) :

@@ -7,6 +7,7 @@ module
 
 public import Cslib.Computability.Circuit.Boolean.Basic
 public import Cslib.Computability.Circuit.Synthesis
+public import Cslib.Foundations.Data.BitString
 public import Mathlib.Data.Fintype.Card
 
 /-!
@@ -48,6 +49,13 @@ theorem and (hf : Synthesis interpretation s {f} a) (hg : Synthesis interpretati
 theorem or (hf : Synthesis interpretation s {f} a) (hg : Synthesis interpretation s {g} b) :
     Synthesis interpretation s {fun x => f x || g x} (a + b + 1) := by
   simpa [interpretation] using hf.binary hg .or
+
+/-- A Boolean conditional uses four gates beyond its arguments. -/
+theorem ite {h : BooleanFunction n} {c : ℕ}
+    (hf : Synthesis interpretation s {f} a) (hg : Synthesis interpretation s {g} b)
+    (hh : Synthesis interpretation s {h} c) :
+    Synthesis interpretation s {fun x => if f x then g x else h x} (2 * a + b + c + 4) :=
+  (((hf.and hg).or (hf.not.and hh)).congr fun x => by cases f x <;> simp).mono_cost (by lia)
 
 /-- Disjoin a finite family of functions. The extra gate supplies the empty disjunction. -/
 theorem exists_mem (indices : Finset ι) (f : ι → BooleanFunction n) (cost : ι → ℕ)
