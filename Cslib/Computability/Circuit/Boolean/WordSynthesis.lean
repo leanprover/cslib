@@ -288,6 +288,76 @@ theorem synthesis_eq {m k : ℕ} (hf : ∀ x, (f x).length ≤ m) (hg : ∀ x, (
   · intro h i _
     simp [h]
 
+/-- Prepend an optional symbol to a word, updating its length and symbol observations. -/
+theorem synthesis_cons {s : Set (BooleanFunction n)}
+    (head : (Fin n → Bool) → Option Bool)
+    (hp : (fun x => (head x).isSome) ∈ s) (hv : (fun x => (head x).getD false) ∈ s)
+    (ht : observations f capacity ⊆ s) :
+    Synthesis interpretation s (observations (fun x => (head x).toList ++ f x) capacity)
+      (4 * (capacity + 1) * 6) := by
+  have hPresent := Synthesis.of_mem (I := interpretation) hp
+  have hHead (b : Option Bool) :
+      Synthesis interpretation s {fun x => decide (some ((head x).getD false) = b)} 1 := by
+    cases b with
+    | none => simpa using Synthesis.const false
+    | some b =>
+      cases b
+      · simpa using (Synthesis.of_mem hv).not
+      · simpa using (Synthesis.of_mem (I := interpretation) hv).mono_cost (Nat.zero_le 1)
+  -- Give each branch a one-gate budget, so every conditional below has the same cost.
+  have hLength i := ((synthesis_length (f := f) (capacity := capacity) i).mono_sources ht).mono_cost
+    (Nat.zero_le 1)
+  have hSymbol i b := ((synthesis_symbol (f := f) (capacity := capacity) i b).mono_sources
+    ht).mono_cost (Nat.zero_le 1)
+  apply synthesis_observations
+  · intro i
+    refine Fin.cases ?_ (fun j => ?_) i
+    · refine (hPresent.ite (Synthesis.const false) (hLength 0)).congr ?_
+      intro x
+      cases head x <;> simp
+    · refine (hPresent.ite (hLength j.castSucc) (hLength j.succ)).congr ?_
+      intro x
+      cases head x with
+      | none => rfl
+      | some b => simp
+  · intro i b
+    refine Fin.cases ?_ (fun j => ?_) i
+    · refine (hPresent.ite (hHead b) (hSymbol 0 b)).congr ?_
+      intro x
+      cases head x <;> rfl
+    · refine (hPresent.ite (hSymbol j.castSucc b) (hSymbol j.succ b)).congr ?_
+      intro x
+      cases head x <;> rfl
+
+/-- Pack a stream of optional symbols, such as the outputs emitted by a Turing machine.
+The induction only threads word observations; its one-symbol step is `synthesis_cons`. -/
+theorem synthesis_filterMap {s : Set (BooleanFunction n)} {ι : Type*}
+    (symbols : ι → (Fin n → Bool) → Option Bool) (indices : List ι)
+    (hp : ∀ i ∈ indices, (fun x => (symbols i x).isSome) ∈ s)
+    (hv : ∀ i ∈ indices, (fun x => (symbols i x).getD false) ∈ s) :
+    Synthesis interpretation s
+      (observations (fun x => indices.filterMap (fun i => symbols i x)) capacity)
+      (4 * (capacity + 1) * (1 + 6 * indices.length)) := by
+  induction indices with
+  | nil =>
+    apply synthesis_observations
+    · intro i
+      convert Synthesis.const (s := s) (decide (0 = i.val)) using 1
+      rfl
+    · intro i b
+      simpa using Synthesis.const (s := s) (decide (none = b))
+  | cons i indices ih =>
+    have h := (ih (fun j hj => hp j (by simp [hj]))
+      (fun j hj => hv j (by simp [hj]))).trans
+      (synthesis_cons (symbols i) (Set.mem_union_left _ (hp i (by simp)))
+        (Set.mem_union_left _ (hv i (by simp))) Set.subset_union_right)
+    convert h using 1
+    · congr 1
+      funext x
+      cases hs : symbols i x <;> simp [hs]
+    · simp only [List.length_cons]
+      ring
+
 end Word
 
 /-- A word function fitting a capacity, with its observations synthesized from `s` within a
@@ -394,6 +464,14 @@ theorem getElem (hf : WordSynthesis s f m a) (i : ℕ) (b : Option Bool) :
     Synthesis interpretation s {fun x => decide ((f x)[i]? = b)} (a + 1) :=
   hf.synthesis.trans ((Word.synthesis_getElem hf.length_le i b).mono_sources
     Set.subset_union_right)
+
+/-- A stream of optional symbols packed into a word of capacity the number of symbols. -/
+theorem filterMap {ι : Type*} (symbols : ι → (Fin n → Bool) → Option Bool) (indices : List ι)
+    (hp : ∀ i ∈ indices, (fun x => (symbols i x).isSome) ∈ s)
+    (hv : ∀ i ∈ indices, (fun x => (symbols i x).getD false) ∈ s) :
+    WordSynthesis s (fun x => indices.filterMap (fun i => symbols i x)) indices.length
+      (4 * (indices.length + 1) * (1 + 6 * indices.length)) :=
+  ⟨fun _ => List.length_filterMap_le _ _, Word.synthesis_filterMap symbols indices hp hv⟩
 
 end WordSynthesis
 end Cslib.Circuits.Boolean

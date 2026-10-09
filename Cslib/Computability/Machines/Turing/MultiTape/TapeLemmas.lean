@@ -34,6 +34,18 @@ variable {input : List Symbol}
 variable {tm : MultiTapeTM k Symbol State}
 variable {cfg : Cfg k Symbol State input}
 
+/-- A work head is at most `t` cells from its initial position after `t` steps. -/
+theorem abs_workTapePos_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
+    |(tm.runFrom cfg t).workTapePos i - cfg.workTapePos i| ≤ (t : ℤ) := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
+    have hs := tm.workTapePos_step_le (tm.runFrom cfg t) i
+    simp only [abs_le, Nat.cast_add, Nat.cast_one] at ih hs ⊢
+    lia
+
 /-- If the work tape head is not at position `z`, then the tape does not change there. -/
 lemma step_workTapes_eq_of_ne
     (cfg : Cfg k Symbol State input)

@@ -325,6 +325,28 @@ def ComputesFunInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
   ∀ a, tm.ComputesInTimeAndSpace (encIn a) (encOut (f a)) (t a) (s a)
 
+/-- A shared time bound halts the iterated deterministic run at that bound. -/
+theorem halted_of_runsInTime {input : List Symbol} {t : ℕ}
+    (h : tm.RunsInTime input t) : (tm.runFrom (tm.initCfg input) t).Halted := by
+  let path : tm.ComputationPath input :=
+    { length := t
+      toFun := fun i => tm.runFrom (tm.initCfg input) i.val
+      step := fun i => step_iff.mpr (by
+        simp only [runFrom, Fin.val_succ, Fin.val_castSucc, Function.iterate_succ_apply'])
+      head_eq := rfl }
+  exact h path le_rfl
+
+/-- Running through the time bound produces the computed output. -/
+theorem ComputesInTimeAndSpace.runFrom_output {input output : List Symbol} {t s u : ℕ}
+    (h : tm.ComputesInTimeAndSpace input output t s) (hu : t ≤ u) :
+    (tm.runFrom (tm.initCfg input) u).output = output := by
+  obtain ⟨⟨v, hv, hout⟩, ht, _⟩ := h
+  have hh := halted_of_runsInTime (ht.mono hu)
+  have hv' := tm.runFrom_eq_of_halt (tm.initCfg input) (Nat.le_max_left v u) hv
+  have hu' := tm.runFrom_eq_of_halt (tm.initCfg input) (Nat.le_max_right v u) hh
+  rw [← hu', hv']
+  exact hout
+
 /-- Resource bounds can be weakened independently on every input. -/
 theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
     {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β} {t s t' s' : α → ℕ}
@@ -393,6 +415,40 @@ lemma not_halts_of_repeat_nonhalt
     have hle : t' ≤ t' * (t + 1) := by grind
     rwa [tm.runFrom_eq_of_halt cfg hle hnh]
   simp [hloop t', h_not_halt] at h₁
+
+/-- The symbol optionally emitted by the next step; halted machines emit nothing. -/
+noncomputable def outputSymbol (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) : Option Symbol :=
+  match cfg.state with
+  | none => none
+  | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).output
+
+/-- One step appends its optional emitted symbol to the output. -/
+@[simp] theorem step_output (cfg : Cfg k Symbol State input) :
+    (tm.step cfg).output = cfg.output ++ (tm.outputSymbol cfg).toList := by
+  cases hq : cfg.state with
+  | none => simp [outputSymbol, hq]
+  | some q => simp [step_of_state hq, outputSymbol, hq, Action.apply]
+
+/-- The output of a run is the initial output followed by the emitted symbols. -/
+theorem runFrom_output_eq_filterMap (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runFrom cfg t).output = cfg.output ++
+      (List.range t).filterMap (fun i => tm.outputSymbol (tm.runFrom cfg i)) := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom, step_output, ih]
+    rw [List.range_succ, List.filterMap_append]
+    simp only [List.filterMap_cons, List.filterMap_nil, List.append_assoc]
+    cases tm.outputSymbol (tm.runFrom cfg t) <;> rfl
+
+/-- At most one symbol is emitted per step. -/
+theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
+  rw [runFrom_output_eq_filterMap, List.length_append]
+  exact Nat.add_le_add_left ((List.length_filterMap_le _ _).trans_eq List.length_range) _
 
 end MultiTapeTM
 

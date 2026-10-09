@@ -81,6 +81,25 @@ theorem select {ι : Type*} [DecidableEq ι] (indices : Finset ι)
     (fun _ => a + b + 1) (fun i hi' => (hi i hi').and (hb i hi'))
   simpa [hindex, Nat.add_assoc] using h
 
+/-- Select using two bounded indices, combining their equality indicators once per branch. -/
+theorem select₂ {ι κ : Type*} [DecidableEq ι] [DecidableEq κ]
+    (is : Finset ι) (js : Finset κ) (i : (Fin n → Bool) → ι) (j : (Fin n → Bool) → κ)
+    (branch : ι → κ → BooleanFunction n) {a b c : ℕ}
+    (hi : ∀ x, i x ∈ is) (hj : ∀ x, j x ∈ js)
+    (hieq : ∀ v ∈ is, Synthesis interpretation s {fun x => decide (i x = v)} a)
+    (hjeq : ∀ v ∈ js, Synthesis interpretation s {fun x => decide (j x = v)} b)
+    (hb : ∀ v ∈ is, ∀ w ∈ js, Synthesis interpretation s {branch v w} c) :
+    Synthesis interpretation s {fun x => branch (i x) (j x) x}
+      (is.card * js.card * (a + b + c + 3) + 1) := by
+  have h := select (is ×ˢ js) (fun x => (i x, j x)) (fun p => branch p.1 p.2)
+    (fun x => Finset.mem_product.mpr ⟨hi x, hj x⟩)
+    (fun p hp => by
+      obtain ⟨v, w⟩ := p
+      simpa [Prod.mk.injEq, Bool.decide_and] using
+        (hieq v (Finset.mem_product.mp hp).1).and (hjeq w (Finset.mem_product.mp hp).2))
+    (fun p hp => hb p.1 (Finset.mem_product.mp hp).1 p.2 (Finset.mem_product.mp hp).2)
+  simpa [Finset.card_product, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
 end Synthesis
 
 end Cslib.Circuits

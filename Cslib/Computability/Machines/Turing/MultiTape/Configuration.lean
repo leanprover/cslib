@@ -167,6 +167,11 @@ lemma val_moveInputPos_eq {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
     ((moveInputPos pos m).val : ℤ) = min ((n : ℤ) + 1) (max 0 ((pos.val : ℤ) + (m.cast : ℤ))) := by
   grind
 
+/-- Natural-number form of the clamped input-head movement. -/
+theorem val_moveInputPos_eq_min {n : ℕ} (pos : Fin (n + 2)) (move : SignType) :
+    (moveInputPos pos move).val = min (n + 1) (((pos.val : ℤ) + (move : ℤ)).toNat) := by
+  grind
+
 /-- The input head moves by at most one position. -/
 lemma val_moveInputPos_le {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
     (moveInputPos pos m).val ≤ pos.val + 1 := by
@@ -197,6 +202,12 @@ lemma inputSymbolInner {cfg : Cfg k Symbol State input} (p : ℕ)
 /-- The symbol read by work tape `i`. -/
 def Cfg.workTapeSymbols (cfg : Cfg k Symbol State input) (i : Fin k) : Option Symbol :=
   cfg.workTapes i (cfg.workTapePos i)
+
+/-- Reading the input uses ordinary optional indexing away from the left marker. -/
+theorem Cfg.inputSymbol_eq_getElem?
+    (cfg : Cfg k Symbol State input) :
+    cfg.inputSymbol = if cfg.inputPos.val = 0 then none else input[cfg.inputPos.val - 1]? := by
+  grind [Cfg.inputSymbol, List.getElem?_eq_getElem, List.getElem?_eq_none]
 
 /-- A configuration is halted when it has no state to continue from. -/
 abbrev Cfg.Halted (cfg : Cfg k Symbol State input) : Prop := cfg.state = none
