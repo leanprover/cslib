@@ -36,6 +36,8 @@ step and run of `tm`.
   mirroring lemmas.
 * `Turing.MultiTapeTM.workTapePos_embed_of_not_range`: the extra tapes never move.
 * `Turing.MultiTapeTM.spaceUsed_embed_le`: the resulting space bound.
+* `Turing.MultiTapeTM.TransformsTapes.extendTapes`: a specification, read on the tapes selected by
+  `e`.
 * `Turing.MultiTapeTM.oneTapeCfg`: the one-tape view of a configuration.
 * `Turing.MultiTapeTM.runFrom_tapeEmb`, `Turing.MultiTapeTM.spaceUsed_tapeEmb_le`: the run and the
   space of a one-tape machine placed on work tape `i`.
@@ -179,6 +181,48 @@ public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪
       simp only [embed, partialInv_eq_none e hl]
 
 end Space
+
+/-! ### Specifications on the selected tapes -/
+
+/-- Placing the words `v` on the tapes selected by `e` and the words `ws` on the others gives the
+`wordsCfg` configuration of any `ws'` that agrees with `v` through `e` and with `ws` elsewhere. -/
+public lemma embed_wordsCfg (e : Fin k ↪ Fin k') {q : Option State} {v : Fin k → List Symbol}
+    {ws ws' : Fin k' → List Symbol} {out : List Symbol} (h : ∀ j, ws' (e j) = v j)
+    (hx : ∀ l ∉ Set.range e, ws' l = ws l) :
+    embed e (wordsCfg input q v out) (fun l => tapeOfList (ws l)) (fun _ => 0) =
+      wordsCfg input q ws' out := by
+  refine Cfg.ext rfl rfl (funext fun l => ?_) (funext fun l => ?_) rfl
+  · rcases hl : partialInv e l with _ | j
+    · simp [embed, hl, wordsCfg, hx l fun ⟨j, hj⟩ => by simp [← hj] at hl]
+    · simp [embed, wordsCfg, ← partialInv_eq_some e hl, h]
+  · simp only [embed]
+    cases partialInv e l <;> rfl
+
+/-- **A specification on the tapes selected by `e`.** `tm.extendTapes e` transforms the words on the
+selected tapes as `tm` does and leaves every other word alone; each other tape costs one cell. -/
+public theorem TransformsTapes.extendTapes {tm : MultiTapeTM k Symbol State}
+    {P : (input : List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop} {t s : ℕ}
+    (h : TransformsTapes tm P Q t s) (e : Fin k ↪ Fin k') :
+    TransformsTapes (tm.extendTapes e) (fun input ws => P input fun j => ws (e j))
+      (fun input ws ws' emitted => Q input (fun j => ws (e j)) (fun j => ws' (e j)) emitted ∧
+        ∀ l ∉ Set.range e, ws' l = ws l)
+      t (s + (k' - k)) := by
+  intro input ws out hP
+  obtain ⟨v, emitted, hrun, hQ, hspace⟩ := h input (fun j => ws (e j)) out hP
+  -- `v` on the selected tapes, `ws` on the others
+  let ws' : Fin k' → List Symbol := fun l => (partialInv e l).elim (ws l) v
+  have hv : ∀ j, ws' (e j) = v j := by simp [ws']
+  have hx : ∀ l ∉ Set.range e, ws' l = ws l := fun l hl => by simp [ws', partialInv_eq_none e hl]
+  have hstart : wordsCfg input (some tm.q₀) ws out =
+      embed e (wordsCfg input (some tm.q₀) (fun j => ws (e j)) out)
+        (fun l => tapeOfList (ws l)) (fun _ => 0) :=
+    (embed_wordsCfg e (fun _ => rfl) fun _ _ => rfl).symm
+  refine ⟨ws', emitted, ?_, ⟨by simpa only [hv] using hQ, hx⟩, ?_⟩
+  · rw [extendTapes_q₀, hstart, runFrom_embed, hrun, embed_wordsCfg e hv hx]
+  · rw [extendTapes_q₀, hstart]
+    exact (spaceUsed_embed_le _ _ _ _ _ _).trans (Nat.add_le_add_right hspace _)
 
 /-! ### Placing a one-tape machine on a single work tape -/
 
