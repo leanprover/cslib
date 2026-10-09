@@ -26,7 +26,7 @@ variable {State Label : Type*}
 def IsSyncTrace (flts : FLTS State Label) (μs : List Label) : Prop :=
   ∀ s₁ s₂ : State, flts.mtr s₁ μs = flts.mtr s₂ μs
 
-/-- `flts` has at least one synchronising trace. -/
+/-- `flts` is synchronising, i.e., it has at least one synchronising trace. -/
 def HasSyncTrace (flts : FLTS State Label) : Prop :=
   ∃ μs : List Label, flts.IsSyncTrace μs
 
