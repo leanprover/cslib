@@ -16,7 +16,7 @@ consensus when there is no fault.  Assume that there are `n` processes numbered 
 The algorithm works as follows:
 (1) Process 0 receives its input value and sends that value to all processes (including itself).
     All other processes ignore their inputs upon receiving them.
-(2) Upon receiving the value sent by process 0 in the previpus step, every process (including
+(2) Upon receiving the value sent by process 0 in the previous step, every process (including
     process 0) decides on that value.
 Clearly, if there is no fault and all messages are eventually delivered, every process will
 eventually decide on the same value, namely, the input value at process 0.
