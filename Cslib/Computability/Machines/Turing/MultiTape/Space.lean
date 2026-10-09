@@ -64,7 +64,7 @@ end RunPath
 def ComputationPath.space (p : ntm.ComputationPath input) : ℕ := RunPath.space p.toRunPath
 
 /-- Every computation prefix on `input` visits at most `s` work-tape cells, regardless of its
-outcome. This does not require termination. -/
+outcome. -/
 def RunsInSpace (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (s : ℕ) : Prop :=
   ∀ p : ntm.ComputationPath input, p.space ≤ s
 
