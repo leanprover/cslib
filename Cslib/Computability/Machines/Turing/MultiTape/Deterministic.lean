@@ -10,7 +10,7 @@ public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Basic.Sign.Defs
-public import Cslib.Foundations.Data.RelatesInSteps
+public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
 /-!
@@ -67,6 +67,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `MultiTapeTM`: the TM itself
 * `spaceUsed`: the number of work tape cells touched by the heads until a certain step
 * `TransitionRelation`: the transition relation from one configuration to the next
+* `HaltsAt`: the run from a configuration halts at exactly a given step
 * `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
 * `ComputesInTimeAndSpace`: a proof that a specific TM computes an output from an input in a certain
     number of steps and using a certain number of tape cells
@@ -136,11 +137,42 @@ def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
   | none => cfg
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg
 
+/-- One step at a live state is the transition's action applied to the configuration. -/
+public lemma step_apply_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) :
+    tm.step cfg = (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg := by
+  rw [step, h]
+
 /-- The symbol (optionally) output when executing one step starting from configuration `cfg`. -/
 def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   match cfg.state with
   | none => none
   | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).output
+
+/-- The input head after a live step. -/
+public lemma step_inputPos_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) :
+    (tm.step cfg).inputPos =
+      moveInputPos cfg.inputPos (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).inputTape := by
+  rw [step_apply_of_state h, Action.apply_inputPos]
+
+/-- A work tape after a live step. -/
+public lemma step_workTapes_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) (i : Fin k) :
+    (tm.step cfg).workTapes i =
+      match (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i |>.1 with
+      | none => cfg.workTapes i
+      | some s => Function.update (cfg.workTapes i) (cfg.workTapePos i) s := by
+  rw [step_apply_of_state h]
+  rfl
+
+/-- A work tape head after a live step. -/
+public lemma step_workTapePos_of_state {cfg : Cfg k Symbol State input} {q : State}
+    (h : cfg.state = some q) (i : Fin k) :
+    (tm.step cfg).workTapePos i =
+      cfg.workTapePos i + ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes i).2 := by
+  rw [step_apply_of_state h]
+  rfl
 
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
@@ -156,60 +188,56 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
 If the Turing machine halts, it will stay at the halting configuration. -/
 def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input := tm.step^[t] cfg
 
-@[simp]
-lemma runFrom_zero {cfg : Cfg k Symbol State input} :
-    tm.runFrom cfg 0 = cfg := by
-  simp [runFrom]
-
-lemma runFrom_succ_eq_step {cfg : Cfg k Symbol State input} {t : ℕ} :
-    tm.runFrom cfg (t + 1) = tm.runFrom (tm.step cfg) t := by
-  simp [runFrom, Function.iterate_succ_apply]
-
-lemma runFrom_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
-    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := by
-  simp [runFrom, Function.iterate_succ_apply']
-
-/-- Running `a + b` steps equals running `b` steps from the configuration reached after `a`. -/
-lemma runFrom_add (cfg : Cfg k Symbol State input) (a b : ℕ) :
-    tm.runFrom cfg (a + b) = tm.runFrom (tm.runFrom cfg a) b := by
-  unfold runFrom
-  rw [Nat.add_comm, Function.iterate_add_apply]
-
-/-- If a function `f` that maps the configurations of one TM to those of another one commutes with
-their `step` function, then it also commutes with their `runFrom` function. -/
-lemma runFrom_comm_of_step {k' : ℕ} {State' : Type*} {input input' : List Symbol}
-    {tm : MultiTapeTM k Symbol State} {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (hstep : ∀ cfg, tm'.step (f cfg) = f (tm.step cfg))
-    (cfg : Cfg k Symbol State input) (n : ℕ) :
-    tm'.runFrom (f cfg) n = f (tm.runFrom cfg n) :=
-  (Function.Semiconj.iterate_right (fun c => (hstep c).symm) n cfg).symm
-
-/-- Running from a halting configuration stays at that configuration. -/
-@[simp]
-lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
-    tm.runFrom cfg n = cfg :=
-  Function.iterate_fixed (step_of_halt h) n
-
 /-- Nothing changes after the machine has halted. -/
 lemma runFrom_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
     tm.runFrom cfg t = tm.runFrom cfg τ := by
-  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
-  rw [runFrom_add, runFrom_of_halt _ hhalt]
+  rw [runFrom, ← Nat.sub_add_cancel hle, Function.iterate_add_apply]
+  exact Function.iterate_fixed (step_of_halt hhalt) _
 
-/-- Every halted run has a first halting time no later than the supplied one. -/
-lemma exists_minimal_halting_time
-    (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input) (t : ℕ)
-    (hhalt : (tm.runFrom cfg t).state = none) :
-    ∃ u ≤ t, (tm.runFrom cfg u).state = none ∧ ∀ s < u, (tm.runFrom cfg s).state ≠ none := by
+/-- The machine `tm` started in `cfg` halts at step `t`: it is halted after `t` steps and not
+halted after any smaller number of steps. -/
+def HaltsAt (tm : MultiTapeTM k Symbol State) {input : List Symbol}
+    (cfg : Cfg k Symbol State input) (t : ℕ) : Prop :=
+  (tm.runFrom cfg t).Halted ∧ ∀ s < t, ¬(tm.runFrom cfg s).Halted
+
+namespace HaltsAt
+
+variable {input : List Symbol} {cfg : Cfg k Symbol State input} {s t : ℕ}
+
+lemma halted (h : tm.HaltsAt cfg t) : (tm.runFrom cfg t).Halted := h.1
+
+lemma not_halted (h : tm.HaltsAt cfg t) (hs : s < t) : ¬(tm.runFrom cfg s).Halted := h.2 s hs
+
+/-- The halting step is the first step at which the machine is halted. -/
+lemma le_of_halted (h : tm.HaltsAt cfg t) (hs : (tm.runFrom cfg s).Halted) : t ≤ s :=
+  Nat.le_of_not_lt fun hlt => h.not_halted hlt hs
+
+/-- The halting step is unique. -/
+lemma unique (h₁ : tm.HaltsAt cfg s) (h₂ : tm.HaltsAt cfg t) : s = t :=
+  Nat.le_antisymm (h₁.le_of_halted h₂.halted) (h₂.le_of_halted h₁.halted)
+
+/-- From the halting step on, the configuration does not change. -/
+lemma runFrom_eq (h : tm.HaltsAt cfg t) (hts : t ≤ s) : tm.runFrom cfg s = tm.runFrom cfg t :=
+  runFrom_eq_of_halt tm cfg hts h.halted
+
+end HaltsAt
+
+/-- A run that is halted after `t` steps halts at some step `u ≤ t`. -/
+lemma exists_haltsAt {input : List Symbol} {cfg : Cfg k Symbol State input} {t : ℕ}
+    (hhalt : (tm.runFrom cfg t).Halted) : ∃ u ≤ t, tm.HaltsAt cfg u := by
   classical
-  have hex : ∃ n, (tm.runFrom cfg n).state = none := ⟨t, hhalt⟩
+  have hex : ∃ n, (tm.runFrom cfg n).Halted := ⟨t, hhalt⟩
   exact ⟨Nat.find hex, Nat.find_min' hex hhalt, Nat.find_spec hex,
     fun s hs => Nat.find_min hex hs⟩
+
+/-- A run that is halted after some number of steps halts at exactly one step. -/
+lemma existsUnique_haltsAt {input : List Symbol} {cfg : Cfg k Symbol State input} {t : ℕ}
+    (hhalt : (tm.runFrom cfg t).Halted) : ∃! u, tm.HaltsAt cfg u :=
+  let ⟨u, _, hu⟩ := exists_haltsAt hhalt
+  ⟨u, hu, fun _ h => h.unique hu⟩
 
 @[simp]
 lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
@@ -232,7 +260,7 @@ section Space
 /-- The set of positions visited by the head of work tape `i` in the computation starting from
 configuration `cfg` up to step `t`. -/
 def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : Finset ℤ :=
-  (Finset.range (t + 1)).image fun t' => (tm.runFrom cfg t').workTapePos i
+  Finset.univ.image fun n : Fin (t + 1) => (tm.runFrom cfg n).workTapePos i
 
 /--
 The number of work tape cells touched by the head of tape `i` in the computation starting from
@@ -260,14 +288,6 @@ lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i
     tm.spaceUsedByTape cfg t i ≤ tm.spaceUsed cfg t :=
   Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
 
-/-- The space used up to step `t` is the space touched by the configurations up to step `t`. -/
-lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t = spaceUsedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) := by
-  unfold spaceUsed spaceUsedByTape spaceUsedOfCfgs
-  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card ?_
-  ext z
-  simp [visitedByTapeHead, visitedOfCfgs]
-
 end Space
 
 open Cfg
@@ -287,14 +307,47 @@ lemma step_output (cfg : Cfg k Symbol State input) :
   unfold step outputSymbol Action.apply
   cases cfg.state <;> simp
 
+/-- In `t` steps the input head moves at most `t` positions to the right. -/
+lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    ((tm.runFrom cfg t).inputPos : ℕ) ≤ (cfg.inputPos : ℕ) + t := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
+    by_cases hq : (tm.runFrom cfg t).state = none
+    · rw [step_of_halt hq]
+      omega
+    · obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp hq
+      have h : ((tm.step (tm.runFrom cfg t)).inputPos : ℕ) ≤
+          ((tm.runFrom cfg t).inputPos : ℕ) + 1 := by
+        rw [step_inputPos_of_state hq]
+        exact val_moveInputPos_le _ _
+      omega
+
 /-- The output does not change after the machine has halted. -/
 lemma runFrom_output_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
-    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output := by
-  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
-  rw [runFrom_add, runFrom_of_halt _ hhalt]
+    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output :=
+  congrArg Cfg.output (tm.runFrom_eq_of_halt cfg hle hhalt)
+
+/-- The output only grows during a run. -/
+public lemma length_output_mono (tm : MultiTapeTM k Symbol State) (cfg : Cfg k Symbol State input) :
+    Monotone fun t => (tm.runFrom cfg t).output.length :=
+  monotone_nat_of_le_succ fun t => by simp [runFrom, Function.iterate_succ_apply']
+
+/-- A machine emits at most one symbol per step. -/
+theorem length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom, step_output, List.length_append]
+    have := (tm.outputSymbol (tm.runFrom cfg t)).length_toList_le
+    omega
 
 /-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
 and uses exactly `s` space.
@@ -352,6 +405,20 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
 
+/-- A machine emits at most one symbol per step, so the encoded result of a computation is no
+longer than its time bound. This is the only bound available on the length of an intermediate
+result: a machine can produce an output much longer than the space it uses. -/
+theorem ComputableInTimeAndSpace.length_encOut_le {α β : Type*}
+    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β} {t s : α → ℕ}
+    (h : ComputableInTimeAndSpace f encIn encOut t s) (a : α) :
+    (encOut (f a)).length ≤ t a := by
+  obtain ⟨k, State, _, tm, htm⟩ := h
+  obtain ⟨t', ht', s', _, _, hout, _⟩ := htm a
+  have hlen := length_output_runFrom_le tm (tm.initCfg (encIn a)) t'
+  rw [hout] at hlen
+  have h0 : (tm.initCfg (encIn a)).output.length = 0 := rfl
+  omega
+
 open Classical in
 /-- The Boolean indicator function of a set. -/
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
@@ -381,40 +448,10 @@ lemma relatesInSteps_iff_runFrom_eq
       use tm.step^[t] cfg₁
       grind
 
-/-- The Turing machine `tm` halts after exactly `t` steps on input `input`
-if its state is `none` at step `t` and non-none at step `t - 1`.
-Note that every Turing machine hast to perform at least one step to halt. -/
-def haltsAtStep (tm : MultiTapeTM k Symbol State) (input : List Symbol) (t : ℕ) : Bool :=
-  (tm.runFrom (tm.initCfg input) t).state.isNone &&
-  !(tm.runFrom (tm.initCfg input) (t - 1)).state.isNone
-
-/-- If a Turing machine halts, the time step is uniquely determined. -/
-lemma halting_step_unique
-    {tm : MultiTapeTM k Symbol State}
-    {input : List Symbol}
-    {t₁ t₂ : ℕ}
-    (h_halts₁ : tm.haltsAtStep input t₁)
-    (h_halts₂ : tm.haltsAtStep input t₂) :
-    t₁ = t₂ := by
-  wlog h : t₁ ≤ t₂
-  · exact (this h_halts₂ h_halts₁ (Nat.le_of_not_le h)).symm
-  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
-  cases d with
-  | zero => rfl
-  | succ d =>
-    have halts₁ : (tm.runFrom (tm.initCfg input) t₁).state = none := by
-      simp [haltsAtStep] at h_halts₁
-      exact h_halts₁.left
-    have halts₂ : (tm.runFrom (tm.initCfg input) (d + t₁)).state ≠ none := by
-      grind [haltsAtStep, runFrom]
-    refine absurd ?_ halts₂
-    rw [Nat.add_comm, runFrom_add, tm.runFrom_of_halt _ halts₁]
-    exact halts₁
-
 /-- If a deterministic machine repeats a non-halting configuration, it never halts,
 because the sequence between the two configurations will loop forever.
 Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `tm.runFrom_add`. -/
+using `Function.iterate_add_apply`. -/
 lemma not_halts_of_repeat_nonhalt
     (cfg : Cfg k Symbol State input)
     (h_not_halt : cfg.state ≠ none)
@@ -432,9 +469,7 @@ lemma not_halts_of_repeat_nonhalt
   -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
   have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
     have hle : t' ≤ t' * (t + 1) := by grind
-    obtain ⟨tΔ , htΔ⟩ := Nat.exists_eq_add_of_le hle
-    rw [htΔ, tm.runFrom_add]
-    simp [hnh]
+    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
   simp [hloop t', h_not_halt] at h₁
 
 end MultiTapeTM

@@ -24,7 +24,7 @@ The core rules compose bounds, combine finite families, and apply operations of 
 either to functions that are already available or to functions synthesized in turn. Composition
 keeps everything built along the way available to later steps. The fold rules accept a bound
 for combining two arguments, which may itself use several gates.
-`Synthesis.exists_circuit_family` selects any finite family of outputs without adding gates;
+`Synthesis.exists_circuit_outputs` selects any tuple of outputs without adding gates;
 `Synthesis.exists_circuit` specializes this to a single output.
 -/
 
@@ -125,8 +125,7 @@ theorem gate (op : σ.Op) (args : Fin (σ.Arity op) → (Fin n → U) → U)
     exact mem_available.mpr
       ⟨w.castSucc, fun x => (Program.trace_gate_castSucc _ _ _ _ _).trans (hw' x)⟩
   · rw [Set.singleton_subset_iff, mem_available]
-    refine ⟨Fin.last (n + g₁), fun x => ?_⟩
-    rw [Program.trace_gate_last]
+    refine ⟨.gate (Fin.last g₁), fun x => (Program.eval_gate_last p line I x).trans ?_⟩
     change I op (fun i => p.trace I x (wires i)) = _
     simp only [hw]
 
@@ -225,23 +224,22 @@ theorem finset_fold (op : U → U → U) [Std.Commutative op] [Std.Associative o
     simpa [Finset.fold_insert hi, Finset.sum_insert hi,
       Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using step
 
-/-- Select a finite family of outputs from a synthesis bound. Selecting outputs, including
-repeated outputs or an empty family, requires no additional gates. -/
-theorem exists_circuit_family {m cost : ℕ} {f : Fin m → (Fin n → U) → U}
+/-- Select a tuple of outputs from a synthesis bound. Selecting outputs, including repeated
+outputs or none at all, requires no additional gates. -/
+theorem exists_circuit_outputs {m cost : ℕ} {f : Fin m → (Fin n → U) → U}
     (h : Synthesis I (inputs n) (Set.range f) cost) :
-    ∃ g ≤ cost, ∃ c : Circuit σ n g m, ∀ x j, c.eval I x j = f j x := by
+    ∃ c : Circuit σ n m, c.Computes I (fun x j => f j x) ∧ c.size ≤ cost := by
   classical
   obtain ⟨g, p, hg, _, hout⟩ := h 0 .empty (inputs_subset_available _)
   choose wires hw using fun j => mem_available.mp (hout ⟨j, rfl⟩)
-  exact ⟨g, by simpa using hg, ⟨p, wires⟩, fun x j => hw j x⟩
+  exact ⟨⟨p, wires⟩, fun x => funext fun j => hw j x, by simpa using hg⟩
 
 /-- Extract a single-output circuit from a synthesis bound on the input projections. -/
 theorem exists_circuit {cost : ℕ} (h : Synthesis I (inputs n) {f} cost) :
-    ∃ g ≤ cost, ∃ c : Circuit σ n g 1, c.Computes I f := by
+    ∃ c : Circuit σ n 1, c.Computes I (single f) ∧ c.size ≤ cost := by
   have h' : Synthesis I (inputs n) (Set.range fun _ : Fin 1 => f) cost := by
     simpa using h
-  obtain ⟨g, hg, c, hc⟩ := h'.exists_circuit_family
-  exact ⟨g, hg, c, fun x => hc x 0⟩
+  exact h'.exists_circuit_outputs
 
 end Synthesis
 end Cslib.Circuits

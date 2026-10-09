@@ -6,8 +6,8 @@ Authors: Aviv Bar Natan
 
 module
 
-public import Mathlib.Data.List.Chain
-public import Cslib.Foundations.Data.List.IsChainFromTo
+public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
+public import Mathlib.Order.RelSeries
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
 /-!
@@ -26,16 +26,16 @@ transition function is replaced by a transition relation: `Tr q input work actio
 A halted configuration steps to itself, so once a machine has halted it has a run of every length.
 A time bound is therefore an upper bound, with no separate account of the step at which it halted.
 
-The transition relation may be empty at a running configuration, so a machine can get stuck. Every
-notion below asks for a computation ending in a halted configuration, so a stuck one is not a
+The transition relation may be empty at a running configuration, so a machine can get stuck. The
+computation predicates ask for a path ending in a halted configuration, so a stuck one is not a
 witness.
 
 ## Important Declarations
 
 * `MultiTapeNTM`: the machine, an initial state and a transition relation
 * `Step`: the one-step relation on configurations
-* `ComputationPath`: a run of the machine: a series of configurations from the initial one, each
-    reached from the previous by a step
+* `RunPath`: finite relation series of steps
+* `ComputationPath`: a run path starting at the initial configuration
 * `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
 * `Computes`, `ComputesInExactTime`, `ComputesInExactSpace`, `ComputesInExactTimeAndSpace`:
     its instances, whose
@@ -90,25 +90,41 @@ def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
     Cfg k Symbol State input :=
   Cfg.init ntm.q₀ input
 
-/-- A computation path of `ntm` on `input`: the configurations it passes through, forming a chain
-of steps from the initial configuration to the one it ends at. -/
-structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) where
-  /-- the configurations passed through, starting with the initial one -/
-  cfgs : List (Cfg k Symbol State input)
-  /-- the configuration the path ends at -/
-  last : Cfg k Symbol State input
-  /-- consecutive configurations are joined by a step, from the initial configuration to `last` -/
-  isChainFromTo : cfgs.IsChainFromTo ntm.Step (ntm.initCfg input) last
+/-- A finite nonempty list of configurations joined by steps of `ntm`. -/
+abbrev RunPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :=
+  RelSeries {(c, c') | ntm.Step (input := input) c c'}
+
+namespace RunPath
+
+/-- The number of steps taken by a run path. -/
+def time (p : ntm.RunPath input) : ℕ := p.length
+
+/-- The set of positions visited by the head of work tape `i` along a run path. -/
+def visitedByTapeHead (p : ntm.RunPath input) (i : Fin k) : Finset ℤ :=
+  Finset.univ.image fun n => (p n).workTapePos i
+
+/-- The number of cells touched by the head of work tape `i` along a run path. -/
+def spaceUsedByTape (p : ntm.RunPath input) (i : Fin k) : ℕ :=
+  (p.visitedByTapeHead i).card
+
+/-- The number of work tape cells touched along a run path. -/
+def space (p : ntm.RunPath input) : ℕ := ∑ i, p.spaceUsedByTape i
+
+end RunPath
+
+/-- A run path starting at the initial configuration for `input`. -/
+structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol)
+    extends toRunPath : ntm.RunPath input where
+  /-- the path starts at the initial configuration -/
+  head_eq : toRunPath.head = ntm.initCfg input
 
 namespace ComputationPath
 
-variable {ntm : MultiTapeNTM k Symbol State} {input : List Symbol}
+/-- The number of steps taken by a computation path. -/
+def time (p : ntm.ComputationPath input) : ℕ := RunPath.time p.toRunPath
 
-/-- The number of steps taken, the time the computation takes. -/
-def time (p : ntm.ComputationPath input) : ℕ := p.cfgs.length - 1
-
-/-- The number of work tape cells touched. -/
-def space (p : ntm.ComputationPath input) : ℕ := spaceUsedOfCfgs p.cfgs
+/-- The number of work tape cells touched along a computation path. -/
+def space (p : ntm.ComputationPath input) : ℕ := RunPath.space p.toRunPath
 
 end ComputationPath
 
