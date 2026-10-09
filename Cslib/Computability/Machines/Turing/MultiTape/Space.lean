@@ -12,8 +12,8 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 /-!
 # Space usage of multi-tape Turing machines
 
-Defines the space used by a run path and space bounds for multi-tape Turing machines. Space
-usage counts the positions visited by each work-tape head along the path and sums over the tapes.
+Defines the space used by a run path of a multi-tape Turing machine. Space usage counts the
+positions visited by each work-tape head along the path and sums over the tapes.
 
 ## Design
 
@@ -33,9 +33,6 @@ without writing).
 Defining space usage via "cells visited" thus yields the more fine-grained "complexity world" in
 which `DSPACE(1)` is exactly the class of regular languages.
 
-Space bounds apply to every computation prefix, regardless of its outcome.
-`RunsInSpace` does not require termination.
-
 ## References
 
 * [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09]
@@ -54,11 +51,11 @@ namespace RunPath
 def visitedByTapeHead (p : ntm.RunPath input) (i : Fin k) : Finset ℤ :=
   Finset.univ.image fun n ↦ (p n).workTapePos i
 
-/-- The number of cells touched by the head of work tape `i` along a run path. -/
+/-- The number of positions visited by the head of work tape `i` along a run path. -/
 def spaceUsedByTape (p : ntm.RunPath input) (i : Fin k) : ℕ :=
   (p.visitedByTapeHead i).card
 
-/-- The number of work tape cells touched along a run path. -/
+/-- The number of work tape cells visited along a run path. -/
 def space (p : ntm.RunPath input) : ℕ := ∑ i, p.spaceUsedByTape i
 
 /-- Each tape's space usage is bounded by the total space used. -/
@@ -74,10 +71,10 @@ lemma space_zero_tapes {ntm : MultiTapeNTM 0 Symbol State} (p : ntm.RunPath inpu
 
 end RunPath
 
-/-- The number of work tape cells touched along a computation path. -/
+/-- The number of work tape cells visited along a computation path. -/
 def ComputationPath.space (p : ntm.ComputationPath input) : ℕ := RunPath.space p.toRunPath
 
-/-- Every computation prefix on `input` touches at most `s` work-tape cells, regardless of its
+/-- Every computation prefix on `input` visits at most `s` work-tape cells, regardless of its
 outcome. This does not require termination. -/
 def RunsInSpace (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (s : ℕ) : Prop :=
   ∀ p : ntm.ComputationPath input, p.space ≤ s
