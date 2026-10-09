@@ -34,15 +34,15 @@ Use these commands at validation checkpoints, not after every proof edit.
 
 ### Essential Commands (in order of typical usage)
 
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `lake build` | Build the library | After completing Lean code changes; use MCP during iteration |
-| `lake build --wfail --iofail` | Build with CI strictness (fails on warnings) | Before committing |
-| `lake test` | Run all tests (builds CslibTests + checks init imports) | After completing Lean code changes |
-| `lake lint` | Run environment linters (Batteries/Mathlib) | Before committing |
-| `lake exe lint-style` | Run text-based style linters | Before committing |
-| `lake exe mk_all --check` | Verify Cslib.lean imports all modules | After adding new files |
-| `lake exe mk_all` | Auto-update Cslib.lean imports | After adding new files |
+| Command                       | Purpose                                                 | When to Use                                                  |
+|-------------------------------|---------------------------------------------------------|--------------------------------------------------------------|
+| `lake build`                  | Build the library                                       | After completing Lean code changes; use MCP during iteration |
+| `lake build --wfail --iofail` | Build with CI strictness (fails on warnings)            | Before committing                                            |
+| `lake test`                   | Run all tests (builds CslibTests + checks init imports) | After completing Lean code changes                           |
+| `lake lint`                   | Run environment linters (Batteries/Mathlib)             | Before committing                                            |
+| `lake exe lint-style`         | Run text-based style linters                            | Before committing                                            |
+| `lake exe mk_all --check`     | Verify Cslib.lean imports all modules                   | After adding new files                                       |
+| `lake exe mk_all`             | Auto-update Cslib.lean imports                          | After adding new files                                       |
 
 ### Full CI Validation Sequence
 
@@ -59,12 +59,12 @@ lake exe lint-style
 
 ### Additional Commands
 
-| Command | Purpose |
-|---------|---------|
-| `lake clean` | Remove build outputs (use if build state is corrupted) |
-| `lake update` | Update dependencies (rarely needed) |
-| `lake exe lint-style --fix` | Auto-fix style errors |
-| `lake exe shake Cslib` | Check for minimized imports |
+| Command                     | Purpose                                                |
+|-----------------------------|--------------------------------------------------------|
+| `lake clean`                | Remove build outputs (use if build state is corrupted) |
+| `lake update`               | Update dependencies (rarely needed)                    |
+| `lake exe lint-style --fix` | Auto-fix style errors                                  |
+| `lake exe shake Cslib`      | Check for minimized imports                            |
 
 ## Project Structure
 
@@ -78,10 +78,15 @@ lake exe lint-style
 ├── lake-manifest.json   # Locked dependency versions
 ├── Cslib/               # Main library source
 │   ├── Init.lean        # Must be imported by all Cslib modules
-│   ├── Foundations/     # General-purpose definitions (semantics, data types, etc.)
+│   ├── Algorithms/      # Verified algorithms and complexity (e.g., sorting, TimeM)
 │   ├── Computability/   # Automata and computability theory
+│   ├── Crypto/          # Cryptographic primitives and protocols
+│   ├── Foundations/     # General-purpose definitions (semantics, data types, etc.)
 │   ├── Languages/       # Programming language formalisations (e.g., Calculus of Communicating Systems, Lambda Calculus)
-│   └── Logics/          # Logic formalisations (e.g., Linear Logic, Hennessy-Milner Logic)
+│   ├── Logics/          # Logic formalisations (e.g., Linear Logic, Hennessy-Milner Logic)
+│   ├── MachineLearning/ # Learning theory (e.g., PAC learning)
+│   ├── Probability/     # Probability (e.g., PMFs, statistical distance)
+│   └── Tactic/          # Tactic infrastructure (e.g., grind attributes)
 ├── CslibTests/          # Test files
 ├── scripts/             # Build and maintenance scripts
 │   └── noshake.json     # Import exceptions for shake tool
@@ -91,7 +96,7 @@ lake exe lint-style
 ## Critical Requirements
 
 ### 1. All Cslib Modules Must Import Cslib.Init
-Every file in `Cslib/` must transitively import `Cslib/Init.lean`. This sets up default linters and tactics. The test suite verifies this.
+Every file in `Cslib/` must import `Cslib/Init.lean`, directly or transitively, through a chain of `public import`s. This sets up default linters and tactics. The test suite verifies this.
 
 **Exceptions** (documented in `scripts/CheckInitImports.lean`):
 - `Cslib.Foundations.Lint.Basic` (circular dependency)
@@ -127,17 +132,9 @@ where $YEAR should be replaced with the current year, $AUTHOR_NAME with the name
 ### 5. Follow Coding Guidelines
 
 As part of ensuring that your plans and code consider the relevant guidelines or information, always review against the guidelines set in:
+- `/CONTRIBUTING.md`,
 - `/CODESTYLE.md`, and
-- relevant `README.md` files, starting from the one nearest to the directory where the agent is run.
-
-## Code Style
-
-- Follow everything written in /CONTRIBUTING.md
-- Follow the [Mathlib code style](https://leanprover-community.github.io/contribute/style.html)
-- Use domain-specific variable names when dealing with APIs that have a clear intention (e.g., `State` for state types, `μ` for transition labels).
-- Keep proofs readable; golfing is welcome if proofs remain clear.
-- Use existing typeclasses for common concepts (`Congruence`, `Context`, etc.).
-- Use the `module` keyword at the start of files with `public import` statements.
+- relevant `README.md` files, starting from the one closest to the files being changed or added.
 
 ## Linter Configuration
 
@@ -147,7 +144,7 @@ Linters are configured in `lakefile.toml`.
 
 ### Creating a New Module
 1. Create file in appropriate `Cslib/` subdirectory
-2. Add `import Cslib.Init` (or import a module that imports it)
+2. Start the file with the `module` keyword and make sure it imports `Cslib.Init`, directly or transitively, through a chain of `public import`s
 3. Run `lake exe mk_all`
 4. Run `lake build --wfail --iofail`
 5. Run `lake test` to verify init imports
