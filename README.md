@@ -32,6 +32,22 @@ require cslib from git "https://github.com/leanprover/cslib" @ "main"
 
 Then run `lake update cslib` to fetch the dependency. You can also use a release tag instead of `main` for the `rev` value.
 
+Download Mathlib's prebuilt files before the first build, or Lake compiles Mathlib from source:
+
+```sh
+lake exe cache get
+```
+
+`lake exe cache get` does not store CSLib's own build products. To reuse a local CSLib build across checkouts of the same Lean toolchain, opt in to Lake's artifact cache:
+
+```sh
+export LAKE_ARTIFACT_CACHE=true
+```
+
+Left unset, Lake may read cached artifacts and will not write this package's outputs into the shared cache. `LAKE_RESTORE_ARTIFACTS=true` copies them back into `.lake/build` when a tool expects that layout.
+
+Uploading those artifacts for other people is separate, and this repository does not do it in CI. After a build with `LAKE_ARTIFACT_CACHE=true`, `lake cache put` publishes the local cache. That command needs `LAKE_CACHE_KEY` and a cache service (`LAKE_CACHE_SERVICE`, or `LAKE_CACHE_ARTIFACT_ENDPOINT` together with `LAKE_CACHE_REVISION_ENDPOINT`).
+
 # Contributing and discussion
 
 Please see our [contribution guide](/CONTRIBUTING.md) and [code of conduct](/CODE_OF_CONDUCT.md).
