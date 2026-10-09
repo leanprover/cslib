@@ -41,13 +41,13 @@ variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 
 /-- `tm`, with its output redirected onto a fresh last work tape whose head is then rewound to the
 start: `outputToTape tm` followed by `rewindWork` placed on the last tape. -/
-public noncomputable def outputToWord (tm : MultiTapeTM k Symbol State) :
+noncomputable def outputToWord (tm : MultiTapeTM k Symbol State) :
     MultiTapeTM (k + 1) Symbol (State ⊕ RewindWorkState) :=
   tm.outputToTape.seq ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k)))
 
 /-- **Glue.** The redirected view of a word configuration with no output is the word configuration
 on `k + 1` tapes whose last word is empty. -/
-public lemma outCfg_wordsCfg (q : Option State) (ws : Fin k → List Symbol) :
+lemma outCfg_wordsCfg (q : Option State) (ws : Fin k → List Symbol) :
     outCfg (wordsCfg input q ws []) = wordsCfg input q (Fin.snoc ws []) [] := by
   refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
     simp [outCfg, wordsCfg]
@@ -56,7 +56,7 @@ open Sequential in
 /-- **A tidy computation becomes a word-to-word tape transformation.** Started on blank tapes,
 `outputToWord tm` halts with every tape blank except the fresh last tape, which holds the emitted
 word with its head back at the start. -/
-public theorem ComputesTidilyInTimeAndSpace.outputToWord {k : ℕ} {Symbol State : Type*}
+theorem ComputesTidilyInTimeAndSpace.outputToWord {k : ℕ} {Symbol State : Type*}
     {tm : MultiTapeTM k Symbol State} {input output : List Symbol} {t s : ℕ}
     (h : tm.ComputesTidilyInTimeAndSpace input output t s) :
     TransformsTapes tm.outputToWord
@@ -73,13 +73,18 @@ public theorem ComputesTidilyInTimeAndSpace.outputToWord {k : ℕ} {Symbol State
   set mid : Cfg (k + 1) Symbol State input := outCfg (wordsCfg input none (fun _ => []) output)
     with hmid_def
   have hwo : tm.outputToWord = tm.outputToTape.seq tm₁ := rfl
+  -- the blank `k + 1` tapes are the blank `k` tapes with a blank last tape adjoined
+  have hsnoc : (fun _ : Fin (k + 1) => ([] : List Symbol)) =
+      Fin.snoc (fun _ : Fin k => ([] : List Symbol)) [] :=
+    funext fun l => by induction l using Fin.lastCases <;> simp
+  -- the starting configuration, handed over to the sequential composition
+  have hstart : wordsCfg input (some (tm.outputToTape.seq tm₁).q₀) (fun _ => []) [] =
+      leftCfg tm₁ (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) []) := rfl
   -- PHASE 1: outputToTape mirrors `tm` through `outCfg`
   have hphase1 : tm.outputToTape.runFrom
       (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) []) t = mid := by
-    rw [hmid_def, show (fun _ : Fin (k + 1) => ([] : List Symbol)) =
-        Fin.snoc (fun _ : Fin k => ([] : List Symbol)) [] from
-      funext fun l => by induction l using Fin.lastCases <;> simp, ← outCfg_wordsCfg,
-      show tm.outputToTape.q₀ = tm.q₀ from rfl, runFrom_outCfg, hrun]
+    rw [hmid_def, hsnoc, ← outCfg_wordsCfg, show tm.outputToTape.q₀ = tm.q₀ from rfl,
+      runFrom_outCfg, hrun]
   have hmid_halt : mid.Halted := by rw [hmid_def]; rfl
   -- PHASE 2: rewind the last tape's head from the frontier back to the start
   have hphase2 : tm₁.runFrom (mid.withState (some tm₁.q₀)) (output.length + 2) =
@@ -101,25 +106,18 @@ public theorem ComputesTidilyInTimeAndSpace.outputToWord {k : ℕ} {Symbol State
           Cfg.withState]
   refine ⟨Function.update (fun _ => []) (Fin.last k) output, [], ?_, ⟨rfl, rfl⟩, ?_⟩
   · -- chain the two phases at run level; the junction `mid` is not a `wordsCfg`
-    have hstart : wordsCfg input (some (tm.outputToTape.seq tm₁).q₀) (fun _ => []) [] =
-        leftCfg tm₁ (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) []) := rfl
     rw [show t + output.length + 2 = t + (output.length + 2) by omega, hwo,
       hstart, runFrom_seq hphase1 hmid_halt hphase2 rfl]
     rw [rightCfg, mapState_wordsCfg]
     rfl
   · -- SPACE: phase 1 costs `s + output.length + 1`, phase 2 costs `output.length + 2 + k`
-    have hstart : wordsCfg input (some (tm.outputToTape.seq tm₁).q₀) (fun _ => []) [] =
-        leftCfg tm₁ (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) []) := rfl
     rw [show t + output.length + 2 = t + (output.length + 2) by omega, hwo,
       hstart]
     refine (spaceUsed_seq_le hphase1 hmid_halt (by rw [hphase2]; rfl)).trans ?_
     -- phase 1 space
     have h1 : tm.outputToTape.spaceUsed
         (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) []) t ≤ s + output.length + 1 := by
-      rw [show (fun _ : Fin (k + 1) => ([] : List Symbol)) =
-            Fin.snoc (fun _ : Fin k => ([] : List Symbol)) [] from
-          funext fun l => by induction l using Fin.lastCases <;> simp, ← outCfg_wordsCfg,
-        show tm.outputToTape.q₀ = tm.q₀ from rfl]
+      rw [hsnoc, ← outCfg_wordsCfg, show tm.outputToTape.q₀ = tm.q₀ from rfl]
       refine (spaceUsed_outputToTape tm (wordsCfg input (some tm.q₀) (fun _ => []) []) t).trans ?_
       rw [hrun]
       simp only [wordsCfg_output]
@@ -134,7 +132,7 @@ public theorem ComputesTidilyInTimeAndSpace.outputToWord {k : ℕ} {Symbol State
           (output.length + 2) ≤ output.length + 2 := by
         rw [spaceUsed, Fin.sum_univ_one]
         refine (spaceUsedByTape_le_card _ (S := .Icc (-1) (output.length : ℤ)) fun m _ => ?_).trans
-          (by simp; omega)
+          (by rw [Int.card_Icc]; omega)
         have hpos := workTapePos_runFrom_rewindWork (input := input) (Symbol := Symbol) none 1
           (tapeOfList output) [] (w := output) rfl (p := output.length) le_rfl m
         refine Finset.mem_Icc.2 ?_

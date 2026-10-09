@@ -111,18 +111,18 @@ private lemma runFrom_bookkeeping {input : List Symbol} (write : Option Symbol)
   · simpa using update_append_flag WS vip flag (Function.update flag (-1) write)
   · funext l; simp [Function.update_apply]
 
-/-- Pushing `tapeOfList` through an appended family of words: the tapes of an appended word family
-are the appended family of tapes. -/
-private lemma tapeOfList_append_words (ws₀ : Fin k' → List Symbol) (w : List Symbol) :
-    (fun i => tapeOfList ((Fin.append ws₀ ![w, []]) i)) =
-      Fin.append (fun j => tapeOfList (ws₀ j)) ![tapeOfList w, (fun _ => none)] := by
-  funext l
-  refine Fin.addCases (fun j => ?_) (fun i => ?_) l
-  · rw [Fin.append_left, Fin.append_left]
-  · rw [Fin.append_right, Fin.append_right]
-    match i with
-    | 0 => simp
-    | 1 => simp
+/-- A word configuration whose last two words are `w` and the empty flag word, as an explicit
+configuration: the shape in which a bookkeeping phase starts and finishes. -/
+private lemma wordsCfg_append_words {State' : Type*} {outer : List Symbol} (q : Option State')
+    (ws : Fin k' → List Symbol) (w out : List Symbol) :
+    wordsCfg outer q (Fin.append ws ![w, []]) out =
+      ⟨q, 1, Fin.append (fun j => tapeOfList (ws j)) ![tapeOfList w, fun _ => none],
+        fun _ => 0, out⟩ := by
+  refine Cfg.ext rfl rfl
+    ((tapeOfList_comp_append ws ![w, []]).trans (congrArg _ (funext fun i => ?_))) rfl rfl
+  match i with
+  | 0 => simp
+  | 1 => simp
 
 /-- The one-tape `markWork` machine visits at most two cells: its head stays within `[p-1, p]`. -/
 private lemma spaceUsed_markWork_le {input : List Symbol} (write : Option Symbol)
@@ -188,39 +188,23 @@ public theorem transformsTapes_inputFromWord_of_runFrom {k' : ℕ} {Symbol State
     with hmidSet
   have hmid₀ : setter.runFrom
       (wordsCfg outer (some setter.q₀) (Fin.append ws₀ ![w, []]) []) 2 = midSet := by
-    rw [hsetter, show wordsCfg outer (some ((markWork Symbol (some mark)).extendTapes
-      (tapeEmb (Fin.natAdd k' (1 : Fin 2)))).q₀) (Fin.append ws₀ ![w, []]) [] =
-        ⟨some ((markWork Symbol (some mark)).extendTapes
-            (tapeEmb (Fin.natAdd k' (1 : Fin 2)))).q₀, 1,
-          Fin.append (fun j => tapeOfList (ws₀ j)) ![tapeOfList w, fun _ => none],
-          fun _ => 0, []⟩ by
-        exact Cfg.ext rfl rfl (tapeOfList_append_words ws₀ w) rfl rfl]
-    rw [runFrom_bookkeeping (some mark) (fun j => tapeOfList (ws₀ j)) (tapeOfList w)
-      (fun _ => none) [] 1]
+    rw [hsetter, wordsCfg_append_words, runFrom_bookkeeping]
   -- the core mirrors the run of `M`, leaving the junction for the eraser
   have hmid₁ : core.runFrom cfgCore t = midCore := by
     rw [hcfgCore, hmidCore, hcore, runFrom_inCfg, hrun]
+  -- the junction the core halts in, seen as the eraser's starting configuration
+  have hjunction : midCore.withState (some eraser.q₀) =
+      ⟨some eraser.q₀, 1, Fin.append (fun j => tapeOfList (ws₁ j))
+          ![tapeOfList w, Function.update (fun _ => none) (-1) (some mark)], fun _ => 0, e⟩ := by
+    rw [hmidCore, inCfg_wordsCfg mark (State := State) none ws₁ e outer]
+    rfl
   -- the eraser clears the flag, returning to the word normal form
   have hmid₂ : eraser.runFrom (midCore.withState (some eraser.q₀)) 2 =
       wordsCfg outer none (Fin.append ws₁ ![w, []]) e := by
-    rw [hmidCore, heraser, inCfg_wordsCfg mark (State := State) none ws₁ e outer,
-      show (⟨none, (1 : Fin (outer.length + 2)),
-          Fin.append (fun j => tapeOfList (ws₁ j))
-            ![tapeOfList w, Function.update (fun _ => none) (-1) (some mark)],
-          fun _ => 0, e⟩ : Cfg (k' + 2) Symbol State outer).withState
-          (some ((markWork Symbol none).extendTapes
-            (tapeEmb (Fin.natAdd k' (1 : Fin 2)))).q₀) =
-        ⟨some ((markWork Symbol none).extendTapes
-            (tapeEmb (Fin.natAdd k' (1 : Fin 2)))).q₀, 1,
-          Fin.append (fun j => tapeOfList (ws₁ j))
-            ![tapeOfList w, Function.update (fun _ => none) (-1) (some mark)],
-          fun _ => 0, e⟩ from rfl]
-    rw [runFrom_bookkeeping none (fun j => tapeOfList (ws₁ j)) (tapeOfList w)
-      (Function.update (fun _ => none) (-1) (some mark)) e 1]
+    rw [hjunction, heraser, runFrom_bookkeeping, wordsCfg_append_words]
     refine Cfg.ext rfl rfl ?_ rfl rfl
     rw [show Function.update (Function.update (fun _ : ℤ => none) (-1) (some mark)) (-1) none =
       (fun _ => none) by rw [Function.update_idem]; simp]
-    exact (tapeOfList_append_words ws₁ w).symm
   -- the inner sequential composition: core, then eraser
   have hinner := runFrom_seq (tm₀ := core) (tm₁ := eraser) hmid₁ rfl hmid₂ rfl
   -- the handoff from the setter to the inner machine agrees on the state-free part
@@ -228,60 +212,33 @@ public theorem transformsTapes_inputFromWord_of_runFrom {k' : ℕ} {Symbol State
     rw [hmidSet, hcfgCore, inCfg_wordsCfg mark (State := State) (some M.q₀) ws₀ [] outer]
     refine Cfg.ext rfl rfl rfl rfl rfl
   -- the outer composition: setter, then the inner machine
-  refine ⟨Fin.append ws₁ ![w, []], e, ?_, ⟨rfl, rfl⟩, ?_⟩
-  · have hseq := runFrom_seq (tm₀ := setter) (tm₁ := core.seq eraser) hmid₀ rfl
-      (hhandoff ▸ hinner) rfl
-    rw [show (M.inputFromWord mark) = setter.seq (core.seq eraser) from rfl]
-    rw [show wordsCfg outer (some (setter.seq (core.seq eraser)).q₀)
+  have hwo : M.inputFromWord mark = setter.seq (core.seq eraser) := rfl
+  have hstart : wordsCfg outer (some (setter.seq (core.seq eraser)).q₀)
       (Fin.append ws₀ ![w, []]) [] =
-        leftCfg (core.seq eraser) (wordsCfg outer (some setter.q₀) (Fin.append ws₀ ![w, []]) [])
-        from rfl, show t + 4 = 2 + (t + 2) from by omega, hseq]
+      leftCfg (core.seq eraser)
+        (wordsCfg outer (some setter.q₀) (Fin.append ws₀ ![w, []]) []) := rfl
+  have ht : t + 4 = 2 + (t + 2) := by omega
+  refine ⟨Fin.append ws₁ ![w, []], e, ?_, ⟨rfl, rfl⟩, ?_⟩
+  · rw [hwo, hstart, ht, runFrom_seq hmid₀ rfl (hhandoff ▸ hinner) rfl]
     rfl
-  · rw [show (M.inputFromWord mark) = setter.seq (core.seq eraser) from rfl,
-      show wordsCfg outer (some (setter.seq (core.seq eraser)).q₀)
-        (Fin.append ws₀ ![w, []]) [] =
-          leftCfg (core.seq eraser) (wordsCfg outer (some setter.q₀) (Fin.append ws₀ ![w, []]) [])
-          from rfl, show t + 4 = 2 + (t + 2) from by omega]
-    -- the halting of the inner machine, needed to split the outer space
-    have hinnerHalt : ((core.seq eraser).runFrom
-        (midSet.withState (some (core.seq eraser).q₀)) (t + 2)).Halted := by
-      rw [hhandoff, hinner]; rfl
-    -- the setter: a bookkeeping phase
+  · rw [hwo, hstart, ht]
+    -- the setter and the eraser: bookkeeping phases; the core: the inner run on the virtual word
     have hsetSpace : setter.spaceUsed
         (wordsCfg outer (some setter.q₀) (Fin.append ws₀ ![w, []]) []) 2 ≤ k' + 3 := by
-      rw [hsetter, show wordsCfg outer (some ((markWork Symbol (some mark)).extendTapes
-        (tapeEmb (Fin.natAdd k' (1 : Fin 2)))).q₀) (Fin.append ws₀ ![w, []]) [] =
-          ⟨some ((markWork Symbol (some mark)).extendTapes
-              (tapeEmb (Fin.natAdd k' (1 : Fin 2)))).q₀, 1,
-            Fin.append (fun j => tapeOfList (ws₀ j)) ![tapeOfList w, fun _ => none],
-            fun _ => 0, []⟩ by
-          exact Cfg.ext rfl rfl (tapeOfList_append_words ws₀ w) rfl rfl]
+      rw [hsetter, wordsCfg_append_words]
       exact spaceUsed_bookkeeping_le (some mark) _ _ _ [] 1
-    -- the core: the inner run on the virtual input word
     have hcoreSpace : core.spaceUsed cfgCore t ≤ s + 2 * (w.length + 2) := by
       rw [hcfgCore, hcore]
       exact (spaceUsed_inputFromTape M mark (wordsCfg w (some M.q₀) ws₀ []) outer t).trans
         (Nat.add_le_add_right hspace _)
-    -- the eraser: a bookkeeping phase
     have herSpace : eraser.spaceUsed (midCore.withState (some eraser.q₀)) 2 ≤ k' + 3 := by
-      rw [hmidCore, heraser, inCfg_wordsCfg mark (State := State) none ws₁ e outer,
-        show (⟨none, (1 : Fin (outer.length + 2)),
-            Fin.append (fun j => tapeOfList (ws₁ j))
-              ![tapeOfList w, Function.update (fun _ => none) (-1) (some mark)],
-            fun _ => 0, e⟩ : Cfg (k' + 2) Symbol State outer).withState
-            (some ((markWork Symbol none).extendTapes
-              (tapeEmb (Fin.natAdd k' (1 : Fin 2)))).q₀) =
-          ⟨some ((markWork Symbol none).extendTapes
-              (tapeEmb (Fin.natAdd k' (1 : Fin 2)))).q₀, 1,
-            Fin.append (fun j => tapeOfList (ws₁ j))
-              ![tapeOfList w, Function.update (fun _ => none) (-1) (some mark)],
-            fun _ => 0, e⟩ from rfl]
+      rw [hjunction, heraser]
       exact spaceUsed_bookkeeping_le none _ _ _ e 1
     -- split outer, then inner, and bound each phase
     have hinnerSpace :=
       spaceUsed_seq_le (tm₀ := core) (tm₁ := eraser) hmid₁ rfl (by rw [hmid₂]; rfl)
-    have houterSpace :=
-      spaceUsed_seq_le (tm₀ := setter) (tm₁ := core.seq eraser) hmid₀ rfl hinnerHalt
+    have houterSpace := spaceUsed_seq_le (tm₀ := setter) (tm₁ := core.seq eraser) hmid₀ rfl
+      (by rw [hhandoff, hinner]; rfl)
     rw [hhandoff] at houterSpace
     omega
 
