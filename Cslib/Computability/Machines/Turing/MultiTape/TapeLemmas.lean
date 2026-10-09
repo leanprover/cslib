@@ -42,9 +42,9 @@ lemma step_workTapes_eq_of_ne
     (hz : z ≠ cfg.workTapePos j) :
     (tm.step cfg).workTapes j z = cfg.workTapes j z := by
   cases hst : cfg.state with
-  | none => simp_all
+  | none => simp [step_of_halt hst]
   | some q =>
-    rw [step_apply_of_state hst, Action.apply_workTapes]
+    rw [step_of_state hst, Action.apply_workTapes]
     rcases hw : ((tm.tr q cfg.inputSymbol cfg.workTapeSymbols).workTapes j).1 <;> simp_all
 
 lemma mem_visitedByTapeHead {t : ℕ} {i : Fin k} {z : ℤ} :
@@ -125,7 +125,7 @@ lemma content_natAbs_le_spaceUsedByTape
   simpa using tm.natAbs_le_spaceUsedByTape_of_mem_visited
     (tm.mem_visitedByTapeHead_of_workTapes_ne i t z h)
 
-/-- The number of cells touched by a single work tape grows by at most one each step. -/
+/-- The number of cells visited by a single work-tape head grows by at most one each step. -/
 lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     tm.spaceUsedByTape cfg t i ≤ t + 1 :=
   Finset.card_image_le.trans_eq (by simp)
@@ -284,8 +284,8 @@ lemma step_prependOutput (cfg : Cfg k Symbol State input) (pre : List Symbol) :
   cases hq : cfg.state with
   | none => simp [step_of_halt, hq, Cfg.prependOutput]
   | some q =>
-    rw [step_apply_of_state (cfg := cfg.prependOutput pre) (by simpa [Cfg.prependOutput] using hq),
-      step_apply_of_state hq]
+    rw [step_of_state (cfg := cfg.prependOutput pre) (by simpa [Cfg.prependOutput] using hq),
+      step_of_state hq]
     exact Cfg.ext rfl rfl rfl rfl (by simp [Cfg.prependOutput, Action.apply]; rfl)
 
 /-- **A word already on the output tape is inert.** The run is the run without it, with the word

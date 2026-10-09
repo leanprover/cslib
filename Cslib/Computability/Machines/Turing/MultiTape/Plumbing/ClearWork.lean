@@ -6,6 +6,7 @@ Authors: Christian Reitwiessner
 
 module
 
+public import Mathlib.Algebra.BigOperators.Fin
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ForwardWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
@@ -41,7 +42,8 @@ variable {k : ℕ} {Symbol : Type*} {input : List Symbol}
 
 /-- The one-tape machine that clears its tape: it moves to the end of the word and erases it on
 the way back. -/
-public def clearWork (Symbol : Type*) : MultiTapeTM 1 Symbol (Unit ⊕ RewindWorkState) :=
+public noncomputable def clearWork (Symbol : Type*) :
+    MultiTapeTM 1 Symbol (Unit ⊕ RewindWorkState) :=
   (forwardWork Symbol).seq (rewindWork Symbol (some none))
 
 open Sequential in

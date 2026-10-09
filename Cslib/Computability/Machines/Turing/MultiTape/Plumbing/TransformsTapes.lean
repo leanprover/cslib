@@ -137,16 +137,16 @@ section Nop
 
 /-- The machine that does nothing: it halts on its first step, leaving the configuration
 unchanged. -/
-def nop (k : ℕ) (Symbol : Type*) : MultiTapeTM k Symbol Unit where
-  q₀ := ()
-  tr _ _ _ := { inputTape := 0, workTapes := fun _ => (none, 0), output := none, state := none }
+def nop (k : ℕ) (Symbol : Type*) : MultiTapeTM k Symbol Unit :=
+  ofTr () fun _ _ _ =>
+    { inputTape := 0, workTapes := fun _ => (none, 0), output := none, state := none }
 
 /-- A single step of `nop` halts and leaves the words alone. -/
 @[simp]
 lemma step_nop (ws : Fin k → List Symbol) (out : List Symbol) :
     (nop k Symbol).step (wordsCfg input (some ()) ws out) = wordsCfg input none ws out := by
-  refine Cfg.ext rfl ?_ ?_ ?_ ?_ <;>
-    simp [step, nop, Action.apply, wordsCfg, SignType.cast]
+  rw [step_of_state (by rfl)]
+  simp [nop, Action.apply, wordsCfg, SignType.cast]
 
 /-- `nop` reaches its halting configuration after exactly one step. -/
 @[simp]
@@ -161,7 +161,7 @@ theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
     TransformsTapes (nop k Symbol) (fun _ _ => True)
       (fun _ ws ws' emitted => ws' = ws ∧ emitted = []) 1 k := by
   intro input ws out _
-  -- the heads never move, so each tape touches only the single cell `0`
+  -- the heads never move, so each head visits only the single cell `0`
   refine ⟨ws, [], by rw [List.append_nil]; exact runFrom_nop_one ws out, ⟨rfl, rfl⟩,
     spaceUsed_le_of_workTapePos_const _ 1 fun m hm => ?_⟩
   rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl

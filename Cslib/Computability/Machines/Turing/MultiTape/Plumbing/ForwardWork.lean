@@ -38,9 +38,8 @@ variable {Symbol : Type*} {input : List Symbol}
 
 /-- The one-tape machine that moves its head to the end of its word. Over a symbol it moves right;
 on the first blank it halts without moving. -/
-public def forwardWork (Symbol : Type*) : MultiTapeTM 1 Symbol Unit where
-  q₀ := ()
-  tr _ _ work :=
+public def forwardWork (Symbol : Type*) : MultiTapeTM 1 Symbol Unit :=
+  ofTr () fun _ _ work ↦
     match work 0 with
     | some _ => ⟨0, fun _ => (none, 1), none, some ()⟩
     | none => ⟨0, fun _ => (none, 0), none, none⟩
@@ -61,7 +60,7 @@ lemma runFrom_walk {w : List Symbol} {p : ℕ} (n : ℕ) (hn : p + n ≤ w.lengt
     have hsym : tapeOfList w ((p : ℤ) + n) = some (w[p + n]'(by lia)) := by
       rw [← Nat.cast_add, tapeOfList_ofNat]
       exact List.getElem?_eq_getElem (by lia)
-    rw [runFrom, Function.iterate_succ_apply', ← runFrom, ih (by lia), step_apply_of_state rfl]
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom, ih (by lia), step_of_state rfl]
     simp [forwardWork, Action.apply, Cfg.workTapeSymbols, hsym, add_assoc]
 
 end ForwardWork
@@ -77,7 +76,7 @@ public theorem runFrom_forwardWork (inpos : Fin (input.length + 2)) (w : List Sy
         (n + 1) =
       ⟨none, inpos, fun _ => tapeOfList w, fun _ => (w.length : ℤ), out⟩ := by
   rw [runFrom, Function.iterate_succ_apply', ← runFrom, runFrom_walk _ hpn.le,
-    show (p : ℤ) + n = w.length by lia, step_apply_of_state rfl]
+    show (p : ℤ) + n = w.length by lia, step_of_state rfl]
   simp [forwardWork, Action.apply, Cfg.workTapeSymbols]
 
 /-- At every step, the head is within `[p, w.length]`. -/
