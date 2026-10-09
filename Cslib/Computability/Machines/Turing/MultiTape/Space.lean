@@ -33,9 +33,7 @@ without writing).
 Defining space usage via "cells visited" thus yields the more fine-grained "complexity world" in
 which `DSPACE(1)` is exactly the class of regular languages.
 
-Space bounds apply to every computation prefix, regardless of its outcome, following the
-visited-cell convention in [Watrous, §2.1]
-(https://cs.uwaterloo.ca/~watrous/Papers/SpaceBoundedQuantumSimulation.pdf).
+Space bounds apply to every computation prefix, regardless of its outcome.
 `RunsInSpace` does not require termination.
 
 ## References
