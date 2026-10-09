@@ -60,4 +60,57 @@ example : 1 ~[lts1] 5 := by
   --   (add unsafe apply Bisimulation.follow_fst)
   --   (add unsafe apply Bisimulation.follow_snd)
 
+section Heterogeneous
+
+variable {State₁ State₂ Label : Type*} {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+variable {s₁ : State₁} {s₂ : State₂}
+
+-- Symmetry must support different state types and universes, as the relations do.
+example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ := h.symm
+
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := h.symm
+
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by
+  symm
+  exact h
+
+open scoped Bisimilarity in
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by grind
+
+-- The named state-type arguments match the heterogeneous symmetry statements.
+example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ :=
+  SimulationEquiv.symm (State₁ := State₁) (s2 := s₂) h
+
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ :=
+  Bisimilarity.symm (State₁ := State₁) h
+
+end Heterogeneous
+
+-- A relation can be a bisimulation up to bisimilarity without itself being a bisimulation.
+-- Soundness gives a bisimulation on its closure and bisimilarity of its related states.
+private def completeLTS : LTS Bool Unit := ⟨fun _ _ _ => True⟩
+
+private def onlyFalse (s t : Bool) : Prop := s = false ∧ t = false
+
+private theorem completeLTS_bisimilar (s t : Bool) : s ~[completeLTS] t := by
+  refine ⟨fun _ _ => True, trivial, ?_⟩
+  intro _ _ _ _
+  exact ⟨fun _ _ => ⟨false, trivial, trivial⟩, fun _ _ => ⟨false, trivial, trivial⟩⟩
+
+private theorem onlyFalse_closure (s t : Bool) :
+    UpToHomBisimilarity completeLTS completeLTS onlyFalse s t :=
+  ⟨false, completeLTS_bisimilar s false, false, ⟨rfl, rfl⟩, completeLTS_bisimilar false t⟩
+
+private theorem onlyFalse_upTo : IsBisimulationUpTo completeLTS completeLTS onlyFalse := by
+  intro _ _ _ _
+  exact ⟨fun s _ => ⟨false, trivial, onlyFalse_closure s false⟩,
+    fun t _ => ⟨false, trivial, onlyFalse_closure false t⟩⟩
+
+example : onlyFalse ≤ HomBisimilarity completeLTS := onlyFalse_upTo.le_bisimilarity
+
+example : ¬ IsHomBisimulation completeLTS onlyFalse := by
+  intro h
+  obtain ⟨_, _, hr⟩ := (h (show onlyFalse false false from ⟨rfl, rfl⟩) ()).1 true trivial
+  exact Bool.noConfusion hr.1
+
 end CslibTests

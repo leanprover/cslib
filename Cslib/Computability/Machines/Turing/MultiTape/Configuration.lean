@@ -21,15 +21,38 @@ public import Cslib.Init
 Configurations of a multi-tape Turing machine with a read-only input tape, `k` work tapes and one
 write-only output tape, together with what a single transition does to a configuration.
 
+The configurations are used by both deterministic and nondeterministic multi-tape Turing machines
+and give instantaneous descriptions of their state. An `Action` describes how one configuration
+transitions to the next. It records which way the input head moves, what is written and where the
+work heads move, which symbol is emitted and which state follows. `Action.apply` carries out the
+action on a configuration.
+
 ## Design
 
-Nothing here mentions a machine. A step is described in two parts: an `Action`, recording
-which way the input head moves, what is written and where the work heads move, which symbol is
-emitted and which state follows; and `Action.apply`, which carries it out on a
-configuration.
+Configurations and actions are defined independently of a machine.
 
 The output tape is part of the configuration, so the string emitted along a run can be read off
-the configuration the run ends in.
+the configuration the run ends in. An action can optionally output one symbol, which models the
+write-only output tape.
+
+The input head can move freely on the input, but any move attempt beyond one cell outside the input
+results in no movement. Restricting the movement of the input head is not essential, but useful
+because it allows us to easily bound the number of possible configurations of a space-bounded
+machine. Most textbooks have this restriction.
+
+This definition is adapted from the one in [Papadimitriou94], chapter 2.3 including
+the sub-linear space modifications from chapter 2.5 with the following changes:
+
+- We allow Turing machines to choose to not write on a tape. This is equivalent to
+  writing the read symbol again but makes it easier to reason about the semantics.
+- Our tapes are infinite in both directions instead of just to the right. This definition is
+  equivalent (see [AroraBarak09], Claim 1.4). It saves us from having to add a "start marker" to
+  the alphabet.
+- We only have a single halting state. The different ways to halt (accepting, rejecting, etc) can
+  be distinguished based on the output.
+- The input-head restriction is enforced by `Action.apply`, rather than by restricting the
+  transition relation. The two definitions are equivalent, but allowing all actions makes it
+  easier to define a universal machine.
 
 ## Important Declarations
 
@@ -38,7 +61,11 @@ the configuration the run ends in.
 * `Action`: what a machine does in one step
 * `Action.apply`: the effect of one action on a configuration
 * `Cfg.Halted`, `Cfg.init`: halting, and the configuration a machine starts in
-* `tapeOfList`, `wordsCfg`: tapes and configurations holding given words
+
+## References
+
+* [C. Papadimitriou, *Computational Complexity*][Papadimitriou94]
+* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09]
 -/
 
 @[expose] public section
@@ -179,10 +206,23 @@ abbrev Cfg.Halted (cfg : Cfg k Symbol State input) : Prop := cfg.state = none
     Cfg k Symbol State input :=
   ⟨c.state, c.inputPos, c.workTapes, c.workTapePos, out⟩
 
+/-- The same configuration with a word prepended to the output tape. A machine never reads its
+output, so prepending to it commutes with running: cf.
+`Turing.MultiTapeTM.runFrom_prependOutput`. -/
+@[simps] def Cfg.prependOutput (c : Cfg k Symbol State input) (pre : List Symbol) :
+    Cfg k Symbol State input :=
+  ⟨c.state, c.inputPos, c.workTapes, c.workTapePos, pre ++ c.output⟩
+
 /-- The same configuration in a different control state, possibly of a different state type. -/
 @[simps] def Cfg.withState (cfg : Cfg k Symbol State input)
     {State' : Type*} (q : Option State') : Cfg k Symbol State' input :=
   ⟨q, cfg.inputPos, cfg.workTapes, cfg.workTapePos, cfg.output⟩
+
+/-- Forget the control state of a configuration, keeping the input head, the work tapes, the
+work-tape heads and the output. A property of this part of a configuration makes sense for every
+machine, whatever its state type. -/
+@[simps] def Cfg.forgetState (cfg : Cfg k Symbol State input) : Cfg k Symbol Unit input :=
+  ⟨some (), cfg.inputPos, cfg.workTapes, cfg.workTapePos, cfg.output⟩
 
 /-- Remap the (optional) state of a configuration through `φ`, leaving the input head, the work
 tapes, the work-tape heads and the output alone. Control-flow combinators such as `seq` embed a
@@ -195,58 +235,6 @@ sub-machine's configurations into the combined machine by exactly such a state r
 @[simp]
 def Cfg.init (q₀ : State) (input : List Symbol) : Cfg k Symbol State input :=
   ⟨some q₀, 1, fun _ _ => none, fun _ => 0, []⟩
-
-/-- A tape containing exactly the symbols of `xs` at positions `0, ..., xs.length - 1`. -/
-def tapeOfList (xs : List Symbol) : ℤ → Option Symbol
-  | .ofNat n => xs[n]?
-  | .negSucc _ => none
-
-@[simp]
-lemma tapeOfList_ofNat (xs : List Symbol) (n : ℕ) : tapeOfList xs n = xs[n]? := rfl
-
-@[simp]
-lemma tapeOfList_negSucc (xs : List Symbol) (n : ℕ) :
-    tapeOfList xs (.negSucc n) = none := rfl
-
-/-- Appending one symbol writes precisely the cell after the existing word. -/
-lemma tapeOfList_append_single (xs : List Symbol) (x : Symbol) :
-    tapeOfList (xs ++ [x]) = Function.update (tapeOfList xs) (xs.length : ℤ) (some x) := by
-  funext z
-  cases z with
-  | negSucc n => simp [tapeOfList]
-  | ofNat n => grind [tapeOfList]
-
-/-- The blank tape holds the empty word. -/
-@[simp]
-lemma tapeOfList_nil : tapeOfList ([] : List Symbol) = fun _ => none := by
-  funext z
-  cases z <;> simp
-
-/-- The cell at position `0` holds the first symbol of the word. -/
-lemma tapeOfList_zero (xs : List Symbol) : tapeOfList xs 0 = xs.head? := by
-  have h : (0 : ℤ) = ((0 : ℕ) : ℤ) := rfl
-  rw [h, tapeOfList_ofNat]
-  cases xs <;> rfl
-
-/-- The configuration whose work tape `i` holds exactly the word `ws i` with its head at the
-start, whose input head is at the start of the input, in state `q` with output `out`. -/
-@[simps]
-def wordsCfg (input : List Symbol) (q : Option State)
-    (ws : Fin k → List Symbol) (out : List Symbol) : Cfg k Symbol State input :=
-  ⟨q, 1, fun i => tapeOfList (ws i), fun _ => 0, out⟩
-
-/-- Remapping the state of a `wordsCfg` remaps its state and leaves the words alone. -/
-@[simp]
-lemma mapState_wordsCfg {State' : Type*} (φ : Option State → Option State')
-    (input : List Symbol) (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol) :
-    (wordsCfg input q ws out).mapState φ = wordsCfg input (φ q) ws out := rfl
-
-/-- The initial configuration is the word configuration with blank tapes and no output. -/
-lemma Cfg.init_eq_wordsCfg (q₀ : State) (input : List Symbol) :
-    Cfg.init (k := k) q₀ input = wordsCfg input (some q₀) (fun _ => []) [] := by
-  refine Cfg.ext rfl rfl ?_ rfl rfl
-  funext i
-  simp [Cfg.init, wordsCfg]
 
 /--
 The effect of an action on a configuration: move the input head, write and move on the work tapes,

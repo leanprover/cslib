@@ -41,17 +41,17 @@ open Cslib.Probability.PMF
 are XOR ([KatzLindell2020], Construction 2.9). -/
 noncomputable def otp (l : ℕ) :
     EncScheme (BitVec l) (BitVec l) (BitVec l) :=
-  .ofPure (PMF.uniformOfFintype _) (· ^^^ ·) (· ^^^ ·) fun k m => by
+  .ofPure (uniformOfFintype _) (· ^^^ ·) (· ^^^ ·) fun k m => by
     simp [xor_cancel_left]
 
 /-- The ciphertext distribution of the OTP is uniform, regardless of the
 message: masking with a uniform key is the permutation `Equiv.xor` of the
 uniform distribution. -/
 theorem otp_ciphertextDist_eq_uniform (l : ℕ) (m : BitVec l) :
-    (otp l).ciphertextDist m = PMF.uniformOfFintype (BitVec l) := by
+    (otp l).ciphertextDist m = uniformOfFintype (BitVec l) := by
   have h : (fun k : BitVec l => PMF.pure (k ^^^ m)) = (PMF.pure ∘ ⇑(Equiv.xor m)) :=
     congrArg (PMF.pure ∘ ·) xor_right_eq
-  change (PMF.uniformOfFintype (BitVec l)).bind (fun k => PMF.pure (k ^^^ m)) = _
+  change (uniformOfFintype (BitVec l)).bind (fun k => PMF.pure (k ^^^ m)) = _
   rw [h, PMF.bind_pure_comp, uniformOfFintype_map_equiv]
 
 /-- The one-time pad is perfectly secret ([KatzLindell2020], Theorem 2.10). -/
