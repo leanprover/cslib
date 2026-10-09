@@ -124,7 +124,7 @@ lemma natAbs_le_spaceUsedByTape_of_mem_visited (p : ntm.RunPath input) {i : Fin 
   change _ ≤ (p.visitedByTapeHead i).card
   omega
 
-/-- The number of cells touched by a single work tape grows by at most one each step. -/
+/-- The number of cells visited by a single work-tape head grows by at most one each step. -/
 lemma spaceUsedByTape_le (p : ntm.RunPath input) (i : Fin k) :
     p.spaceUsedByTape i ≤ p.length + 1 :=
   Finset.card_image_le.trans_eq (by simp)
