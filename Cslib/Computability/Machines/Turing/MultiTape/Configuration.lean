@@ -178,6 +178,13 @@ abbrev Cfg.Halted (cfg : Cfg k Symbol State input) : Prop := cfg.state = none
     Cfg k Symbol State input :=
   ⟨c.state, c.inputPos, c.workTapes, c.workTapePos, out⟩
 
+/-- The same configuration with a word prepended to the output tape. A machine never reads its
+output, so prepending to it commutes with running: cf.
+`Turing.MultiTapeTM.runFrom_prependOutput`. -/
+@[simps] def Cfg.prependOutput (c : Cfg k Symbol State input) (pre : List Symbol) :
+    Cfg k Symbol State input :=
+  ⟨c.state, c.inputPos, c.workTapes, c.workTapePos, pre ++ c.output⟩
+
 /-- The same configuration in a different control state, possibly of a different state type. -/
 @[simps] def Cfg.withState (cfg : Cfg k Symbol State input)
     {State' : Type*} (q : Option State') : Cfg k Symbol State' input :=
