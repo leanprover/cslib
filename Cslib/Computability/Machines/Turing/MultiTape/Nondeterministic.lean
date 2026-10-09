@@ -105,13 +105,8 @@ lemma length_output_mono (p : ntm.RunPath input) :
     Monotone fun i ↦ (p i).output.length := by
   apply Fin.monotone_iff_le_succ.mpr
   intro i
-  have hstep := p.step i
-  change ntm.Step (p i.castSucc) (p i.succ) at hstep
-  unfold Step at hstep
-  split at hstep
-  · simp [hstep]
-  · obtain ⟨action, _, hstep⟩ := hstep
-    simp [hstep]
+  have : ntm.Step (p i.castSucc) (p i.succ) := p.step i
+  grind [Step, Action.apply_output]
 
 /-- Once a run path is halted, its configuration stays unchanged. -/
 lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.last = p.head := by
