@@ -50,6 +50,7 @@ public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Normalization
 public import Cslib.Computability.Circuit.Program
+public import Cslib.Computability.Circuit.RelativeComplexity
 public import Cslib.Computability.Circuit.Shannon
 public import Cslib.Computability.Circuit.Signature
 public import Cslib.Computability.Circuit.Synthesis
@@ -81,7 +82,9 @@ public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ClearWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ForwardWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput
@@ -141,6 +144,7 @@ public import Cslib.Foundations.Data.PFunctor.Basic
 public import Cslib.Foundations.Data.PFunctor.Free
 public import Cslib.Foundations.Data.PFunctor.Free.Fold
 public import Cslib.Foundations.Data.PFunctor.Free.W
+public import Cslib.Foundations.Data.Polynomial.Monotone
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic

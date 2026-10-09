@@ -105,6 +105,17 @@ theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [None
   · simp [Fintype.card_congr e]
   · exact fun a ha => ite_eq_right fun h => ha (by simp [h])
 
+/-- Independent uniform sampling on `α` and `β` equals uniform sampling on `α × β`. -/
+theorem uniformOfFintype_prod (α β : Type*)
+    [Fintype α] [Nonempty α] [Fintype β] [Nonempty β] :
+    ((PMF.uniformOfFintype α).bind fun a =>
+      (PMF.uniformOfFintype β).map fun b => (a, b)) =
+    PMF.uniformOfFintype (α × β) := by
+  ext ⟨a, b⟩
+  simp only [PMF.map, Function.comp_def, bind_pair_apply,
+    PMF.uniformOfFintype_apply]
+  simp [Fintype.card_prod, ENNReal.mul_inv]
+
 /-- The posterior distribution `Pr[A = a | B = b]` as a `PMF`,
 given `a ← p`, `b ← f a`, and that `b` has positive marginal probability:
 the joint distribution's slice at `b`, normalized. -/

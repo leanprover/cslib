@@ -27,6 +27,8 @@ second.
 * `Turing.MultiTapeTM.HaltsAt.runFrom_seq`: once `tm₀` halts, `seq` mirrors `tm₁`.
 * `Turing.MultiTapeTM.runFrom_seq`: runs compose; each machine only has to have halted by the end
   of its time bound.
+* `Turing.MultiTapeTM.forgetState_runFrom_seq`: invariants of the state-free part of a
+  configuration compose, which bounds the space of the composed run.
 * `Turing.MultiTapeTM.transformsTapes_seq`: transformations compose, bounds adding.
 -/
 
@@ -114,6 +116,14 @@ lemma workTapePos_leftCfg (cfg : Cfg k Symbol State₀ input) :
 lemma workTapePos_rightCfg (cfg : Cfg k Symbol State₁ input) :
     (rightCfg (State₀ := State₀) cfg).workTapePos = cfg.workTapePos := rfl
 
+@[simp]
+lemma forgetState_leftCfg (cfg : Cfg k Symbol State₀ input) :
+    (leftCfg tm₁ cfg).forgetState = cfg.forgetState := rfl
+
+@[simp]
+lemma forgetState_rightCfg (cfg : Cfg k Symbol State₁ input) :
+    (rightCfg (State₀ := State₀) cfg).forgetState = cfg.forgetState := rfl
+
 /-- A halted configuration of the first phase is the start of the second phase. -/
 lemma leftCfg_of_halt {cfg : Cfg k Symbol State₀ input} (h : cfg.state = none) :
     leftCfg tm₁ cfg = rightCfg (cfg.withState (some tm₁.q₀)) := by
@@ -151,6 +161,24 @@ theorem runFrom_seq {cfg mid : Cfg k Symbol State₀ input} {fin : Cfg k Symbol 
     simp only [hrun, Cfg.Halted] at hfin ⊢
     simp [rightCfg, hfin]
   rw [runFrom_eq_of_halt _ _ (by omega) hhalt, hrun]
+
+open Sequential in
+/-- **Invariants of a sequential run.** If `tm₀` has halted in `mid` by step `t₀`, then a property
+of the state-free part of a configuration holds throughout the run of the composed machine if it
+holds before step `t₀` of the run of `tm₀` and throughout the run of `tm₁` started where `tm₀`
+halted. -/
+theorem forgetState_runFrom_seq {P : Cfg k Symbol Unit input → Prop}
+    {cfg mid : Cfg k Symbol State₀ input} {t₀ : ℕ} (h₀ : tm₀.runFrom cfg t₀ = mid)
+    (hmid : mid.Halted) (hP₀ : ∀ m < t₀, P (tm₀.runFrom cfg m).forgetState)
+    (hP₁ : ∀ n, P (tm₁.runFrom (mid.withState (some tm₁.q₀)) n).forgetState) (m : ℕ) :
+    P ((tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) m).forgetState := by
+  obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt (tm := tm₀) (cfg := cfg) (h₀ ▸ hmid)
+  rcases Nat.lt_or_ge m u with hm | hm
+  · rw [runFrom_leftCfg cfg m fun _ hr => hhaltsAt.not_halted (by lia), forgetState_leftCfg]
+    exact hP₀ m (by lia)
+  · obtain ⟨n, rfl⟩ := Nat.exists_eq_add_of_le hm
+    rw [hhaltsAt.runFrom_seq, ← hhaltsAt.runFrom_eq hu, h₀, forgetState_rightCfg]
+    exact hP₁ n
 
 open Sequential in
 /-- **Sequential composition of transformations.** If the postcondition of the first

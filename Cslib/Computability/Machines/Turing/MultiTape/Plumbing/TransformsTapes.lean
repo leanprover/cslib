@@ -86,6 +86,14 @@ theorem TransformsTapes.imp {tm : MultiTapeTM k Symbol State}
   · rw [spaceUsed_eq_of_halt _ ht hhalt]
     exact hspace.trans hs
 
+/-- A `TransformsTapes` statement can be read with larger bounds. -/
+theorem TransformsTapes.mono {tm : MultiTapeTM k Symbol State}
+    {P : (input : List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
+    {t s t' s' : ℕ} (h : TransformsTapes tm P Q t s) (ht : t ≤ t') (hs : s ≤ s') :
+    TransformsTapes tm P Q t' s' :=
+  h.imp (fun _ _ => id) (fun _ _ _ _ => id) ht hs
+
 section Nop
 
 /-- The machine that does nothing: it halts on its first step, leaving the configuration

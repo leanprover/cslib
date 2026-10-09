@@ -5,13 +5,13 @@ Authors: Samuel Schlesinger
 -/
 
 import Cslib.Computability.Circuit.Boolean.Synthesis
-import Cslib.Computability.Circuit.Complexity
+import Cslib.Computability.Circuit.RelativeComplexity
 
 /-!
 # Circuit complexity tests
 
 Upper bounds on the extended and natural-number complexity of De Morgan circuits from synthesis,
-and the calculus of support complexity, including the empty support on zero inputs.
+and the calculus of support and relative complexity, including the empty support on zero inputs.
 The natural-number examples assume completeness of the basis.
 -/
 
@@ -67,10 +67,27 @@ example : ecomplexityOn interpretation ∅ (single fun _ : BitString 0 => false)
       | gate i => have := i.isLt; omega
     exact_mod_cast hsize
 
-variable {n m : ℕ}
+variable {n m k : ℕ}
 
 example (S : Set (BitString n)) (f : BitString n → BitString m) :
     ecomplexityOn interpretation S f ≤ ecomplexity interpretation f :=
   ecomplexityOn_le_ecomplexity
+
+example (f : BitString n → BitString m) (g : BitString n → BitString k) :
+    ecomplexityGiven interpretation f g ≤ ecomplexity interpretation f ∧
+      ecomplexity interpretation f ≤
+        ecomplexity interpretation g + ecomplexityGiven interpretation f g :=
+  ⟨ecomplexityGiven_le_ecomplexity f g, ecomplexity_le_add_ecomplexityGiven f g⟩
+
+-- A circuit reading `x` and `g x` that outputs `f x` bounds the relative complexity.
+example (f : BitString n → BitString m) (g : BitString n → BitString k)
+    (c : Circuit signature (n + k) m) (hc : ∀ x, c.eval interpretation (Fin.append x (g x)) = f x) :
+    ecomplexityGiven interpretation f g ≤ c.size :=
+  (ecomplexityGiven_le_iff f g).mpr ⟨c, hc, le_rfl⟩
+
+-- Given `f` together with more information, `f` itself is free.
+example (f : BitString n → BitString m) (g : BitString n → BitString k) :
+    ecomplexityGiven interpretation f (fun x => Fin.append (f x) (g x)) = 0 :=
+  nonpos_iff_eq_zero.mp ((ecomplexityGiven_append_le f f g).trans_eq (ecomplexityGiven_self f))
 
 end CslibTests.CircuitComplexity
