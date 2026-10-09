@@ -6,6 +6,7 @@ Authors: Devon Tuma
 
 import Cslib.Foundations.Control.Monad.Free.Fold
 import Cslib.Foundations.Data.PFunctor.Free.Fold
+import Cslib.Foundations.Data.PFunctor.Free.MonadAttach
 import Cslib.Foundations.Data.PFunctor.Free.W
 
 /-! Tests for polynomial free monads across independent universes and ordinary module imports. -/
@@ -100,5 +101,21 @@ example : W.toFreeM (α := Nat) leaf = (FreeM.lift (P := arity) 0).bind (fun b =
   congr 1
   funext b
   exact Fin.elim0 b
+
+-- Possible outputs must see through dependent response types such as `coin.B () = Bool`, and
+-- through `do` blocks, which use `>>=` and `<$>` rather than the universe-polymorphic `bind`
+-- and `map`.
+private abbrev coin : PFunctor := ⟨Unit, fun _ => Bool⟩
+
+private def flips : coin.FreeM Bool := do
+  let b ← FreeM.lift ()
+  let c ← FreeM.lift ()
+  pure (b && !c)
+
+example : flips.possibleOutputs (fun _ => {true}) = {false} := by
+  simp [flips]
+
+example : MonadAttach.CanReturn flips true := by
+  simp [flips]
 
 end CslibTests.PFunctorFree
