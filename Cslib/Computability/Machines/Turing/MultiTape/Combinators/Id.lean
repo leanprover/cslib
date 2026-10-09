@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.TidyZeroSpace
 
 /-!
 # Complexity of the identity function
@@ -15,10 +16,16 @@ A machine with a single state and no work tapes scans the input from left to rig
 symbol to the output tape, and halts on the blank at the right end of the input. On input `w` it
 outputs `w` after `w.length + 1` steps, and having no work tapes it uses zero space.
 
+The copy machine halts with the input head at the right end of the input, so it does not compute
+tidily by itself; but it computes in zero space, so tidiness comes for free in one further pass
+over the input.
+
 ## Main results
 
 * `Turing.MultiTapeTM.computableInTimeAndSpace_id`: the identity is computable in one step per
   input symbol and zero space.
+* `Turing.MultiTapeTM.computableTidilyInTimeAndSpace_id`: the identity is computable *tidily* in
+  two steps per input symbol and zero space.
 -/
 
 namespace Turing.MultiTapeTM
@@ -91,5 +98,13 @@ public theorem computableInTimeAndSpace_id {enc : α ↪ List Bool} :
     ComputableInTimeAndSpace (id : α → α) enc enc
       (fun a => (enc a).length + 1) (fun _ => 0) :=
   ⟨0, Unit, inferInstance, copy, fun a ↦ Copy.computesInTimeAndSpace (enc a)⟩
+
+/-- The identity function is computable *tidily* in two steps per input symbol and zero space:
+it is computable in zero space, so tidiness is free at the price of doubling the time. -/
+public theorem computableTidilyInTimeAndSpace_id {enc : α ↪ List Bool} :
+    ComputableTidilyInTimeAndSpace (id : α → α) enc enc
+      (fun a => 2 * (enc a).length + 4) (fun _ => 0) :=
+  computableInTimeAndSpace_id.computableTidilyInTimeAndSpace.mono
+    (fun a => by omega) fun _ => le_rfl
 
 end Turing.MultiTapeTM

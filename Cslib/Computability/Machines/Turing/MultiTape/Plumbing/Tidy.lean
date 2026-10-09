@@ -34,9 +34,7 @@ Tidiness is said once, as a tape transformation, and then read at two levels:
   *computational* reading, mirroring `Turing.MultiTapeTM.ComputesInTimeAndSpace`,
   `Turing.MultiTapeTM.ComputesFunInTimeAndSpace` and
   `Turing.MultiTapeTM.ComputableInTimeAndSpace` rung for rung. Each is the ordinary notion plus
-  the requirement that the machine clean up after itself, and
-  `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.computableInTimeAndSpace` discharges the
-  extra requirement to recover the ordinary one.
+  the requirement that the machine clean up after itself.
 
 Saying the computational notions *as* tape transformations is what lets the combinators of the
 plumbing layer consume a whole computation directly, with no change of vocabulary. The equation
@@ -83,8 +81,6 @@ body, neither of them in this file:
   enters.
 * `Turing.MultiTapeTM.transformsTidy_seq`, `Turing.MultiTapeTM.computesTidily_seq`: two tidy
   machines compose, and their emitted words concatenate.
-* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.computableInTimeAndSpace`: a tidy computation
-  is a computation.
 -/
 
 @[expose] public section
@@ -182,17 +178,6 @@ theorem computesTidily_of_runFrom {input output : List Symbol}
     tm.ComputesTidilyInTimeAndSpace input output t s :=
   computesTidily_iff.mpr ⟨hrun, hspace⟩
 
-/-- **A tidy computation is a computation.** The space bound of
-`Turing.MultiTapeTM.ComputesInTimeAndSpace` is exact, so it is met by the space actually used,
-which is at most `s`. -/
-theorem ComputesTidilyInTimeAndSpace.computesInTimeAndSpace {input output : List Symbol}
-    (h : tm.ComputesTidilyInTimeAndSpace input output t s) :
-    ∃ s' ≤ s, tm.ComputesInTimeAndSpace input output t s' := by
-  obtain ⟨hrun, hspace⟩ := computesTidily_iff.mp h
-  have hinit : tm.initCfg input = wordsCfg input (some tm.q₀) (fun _ => []) [] :=
-    Cfg.init_eq_wordsCfg tm.q₀ input
-  exact ⟨_, by rw [hinit]; exact hspace, by rw [hinit, hrun]; rfl, by rw [hinit, hrun]; rfl, rfl⟩
-
 /-- **Two tidy computations compose, and their outputs concatenate.** -/
 theorem computesTidily_seq {input output₀ output₁ : List Symbol} {t₀ s₀ t₁ s₁ : ℕ}
     (h₀ : tm₀.ComputesTidilyInTimeAndSpace input output₀ t₀ s₀)
@@ -233,12 +218,6 @@ theorem mono (h : ComputesFunTidilyInTimeAndSpace tm encIn encOut f t s) {t' s' 
     ComputesFunTidilyInTimeAndSpace tm encIn encOut f t' s' :=
   fun a => (h a).mono (ht a) (hs a)
 
-/-- **Tidily computing a function is computing it.** -/
-theorem computesFunInTimeAndSpace (h : ComputesFunTidilyInTimeAndSpace tm encIn encOut f t s) :
-    ComputesFunInTimeAndSpace tm encIn encOut f t s := fun a =>
-  let ⟨s', hs', hc⟩ := (h a).computesInTimeAndSpace
-  ⟨t a, le_rfl, s', hs', hc⟩
-
 end ComputesFunTidilyInTimeAndSpace
 
 /-! ### Tidy computability -/
@@ -265,13 +244,6 @@ theorem mono (h : ComputableTidilyInTimeAndSpace f encIn encOut t s) {t' s' : α
     ComputableTidilyInTimeAndSpace f encIn encOut t' s' := by
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
-
-/-- **Tidy computability is computability.** The converse is not available here: cleaning up the
-tapes costs time and space, which this definition charges to the same bounds. -/
-theorem computableInTimeAndSpace (h : ComputableTidilyInTimeAndSpace f encIn encOut t s) :
-    ComputableInTimeAndSpace f encIn encOut t s := by
-  obtain ⟨k, State, hfinite, tm, htm⟩ := h
-  exact ⟨k, State, hfinite, tm, htm.computesFunInTimeAndSpace⟩
 
 end ComputableTidilyInTimeAndSpace
 

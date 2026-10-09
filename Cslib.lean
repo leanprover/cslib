@@ -78,6 +78,7 @@ public import Cslib.Computability.Languages.Slice
 public import Cslib.Computability.Languages.SyntacticMonoid
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.TidyZeroSpace
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
@@ -90,6 +91,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTap
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Tidy
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.Space
