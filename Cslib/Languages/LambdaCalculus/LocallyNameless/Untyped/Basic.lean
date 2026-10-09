@@ -43,13 +43,13 @@ deriving DecidableEq
 
 namespace Term
 
-variable {Var : Type u}
+variable {Var : Type u} {i i' k : ℕ} {x x' : Var} {s l r M : Term Var}
 
 section Opening
 
 /-- Variable opening of the ith bound variable. -/
 @[scoped grind =]
-def openRec {Var : Type u} (i : ℕ) (sub : Term Var) : Term Var → Term Var
+def openRec (i : ℕ) (sub : Term Var) : Term Var → Term Var
 | bvar i' => if i = i' then sub else bvar i'
 | fvar x  => fvar x
 | app l r => app (openRec i sub l) (openRec i sub r)
@@ -57,8 +57,6 @@ def openRec {Var : Type u} (i : ℕ) (sub : Term Var) : Term Var → Term Var
 
 @[inherit_doc]
 scoped notation:68 e "⟦" i " ↝ " sub "⟧" => Term.openRec i sub e
-
-variable {i i' : ℕ} {x : Var} {s l r M : Term Var}
 
 lemma openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else bvar i' := rfl
 
@@ -70,7 +68,7 @@ lemma openRec_abs : M.abs⟦i ↝ s⟧ = M⟦i + 1 ↝ s⟧.abs := rfl
 
 /-- Variable opening of the closest binding. -/
 @[scoped grind =]
-def open' (e u : Term Var) := e⟦0 ↝ u⟧
+def open' (e u : Term Var) : Term Var := e⟦0 ↝ u⟧
 
 @[inherit_doc]
 scoped infixr:80 " ^ " => Term.open'
@@ -94,12 +92,10 @@ scoped notation:68 e "⟦" k " ↜ " x "⟧" => Term.closeRec k x e
 
 /-- Variable closing of the closest binding. -/
 @[scoped grind =]
-def close (e : Term Var) (u : Var) := e⟦0 ↜ u⟧
+def close (e : Term Var) (x : Var) : Term Var := e⟦0 ↜ x⟧
 
 @[inherit_doc]
 scoped infixr:80 " ^* " => Term.close
-
-variable {i k : ℕ} {x x' : Var} {l r M : Term Var}
 
 lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := rfl
 
@@ -125,8 +121,6 @@ def subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
 instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var (Term Var) where
   subst := Term.subst
-
-variable {i : ℕ} {x x' : Var} {s l r M : Term Var}
 
 lemma subst_bvar : (bvar i : Term Var)[x := s] = bvar i := rfl
 
