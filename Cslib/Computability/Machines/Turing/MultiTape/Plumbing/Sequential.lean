@@ -26,6 +26,8 @@ second.
 * `Turing.MultiTapeNTM.seq`: the composed machine.
 * `Turing.MultiTapeNTM.RunPath.exists_seq`: paths compose from arbitrary configurations, with
   time and space bounds adding; repeated halted configurations in the first path are discarded.
+* `Turing.MultiTapeNTM.RunPath.exists_seq_of_invariant`: invariants of state-free configurations
+  compose, allowing tighter space bounds when the phases revisit cells.
 * `Turing.MultiTapeNTM.transformsTapes_seq`: transformations compose, bounds adding.
 -/
 
@@ -107,12 +109,59 @@ lemma workTapePos_leftCfg (cfg : Cfg k Symbol State₀ input) :
 lemma workTapePos_rightCfg (cfg : Cfg k Symbol State₁ input) :
     (rightCfg (State₀ := State₀) cfg).workTapePos = cfg.workTapePos := rfl
 
+@[simp]
+lemma forgetState_leftCfg (cfg : Cfg k Symbol State₀ input) :
+    (leftCfg tm₁ cfg).forgetState = cfg.forgetState := rfl
+
+@[simp]
+lemma forgetState_rightCfg (cfg : Cfg k Symbol State₁ input) :
+    (rightCfg (State₀ := State₀) cfg).forgetState = cfg.forgetState := rfl
+
 /-- A halted configuration of the first phase is the start of the second phase. -/
 lemma leftCfg_of_halt {cfg : Cfg k Symbol State₀ input} (h : cfg.state = none) :
     leftCfg tm₁ cfg = rightCfg (cfg.withState (some tm₁.q₀)) := by
   simp [leftCfg, rightCfg, Cfg.withState, Cfg.mapState, h]
 
 end Sequential
+
+open Sequential in
+/-- **Invariants of sequential composition.** A property of the state-free configurations is
+preserved when it holds before the first path halts and throughout the second path. The composed
+path has the same endpoints, and its time and space are bounded by the sums of the two bounds. -/
+theorem RunPath.exists_seq_of_invariant (p : tm₀.RunPath input) (q : tm₁.RunPath input)
+    (hmid : p.last.Halted) (hq : q.head = p.last.withState (some tm₁.q₀))
+    {P : Cfg k Symbol Unit input → Prop}
+    (hp : ∀ c ∈ p, ¬c.Halted → P c.forgetState) (hq' : ∀ c ∈ q, P c.forgetState) :
+    ∃ r : (tm₀.seq tm₁).RunPath input,
+      r.head = leftCfg tm₁ p.head ∧ r.last = rightCfg q.last ∧
+      r.length ≤ p.length + q.length ∧ r.space ≤ p.space + q.space ∧ ∀ c ∈ r, P c.forgetState := by
+  obtain ⟨i, hi, hactive⟩ := p.exists_first_halt hmid
+  let left : (tm₀.seq tm₁).RunPath input :=
+    { length := i
+      toFun n := leftCfg tm₁ (p.take i n)
+      step n := step_leftCfg (hactive _ (by exact n.isLt)) ((p.take i).step n) }
+  let right : (tm₀.seq tm₁).RunPath input := q.map ⟨rightCfg, step_rightCfg⟩
+  have hjoin : left.last = right.head := by
+    change leftCfg tm₁ (p.take i).last = rightCfg q.head
+    rw [RelSeries.last_take, hi, leftCfg_of_halt hmid, hq]
+  refine ⟨left.smash right hjoin, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [RelSeries.head_smash]
+    exact congrArg (leftCfg tm₁) (RelSeries.head_take p i)
+  · rw [RelSeries.last_smash]
+    rfl
+  · change i.val + q.length ≤ p.length + q.length
+    exact Nat.add_le_add_right (Nat.le_of_lt_succ i.isLt) _
+  · exact (space_smash_le left right hjoin).trans
+      (Nat.add_le_add_right (space_take_le p i) _)
+  · rintro _ ⟨n, rfl⟩
+    induction n using Fin.addCases (m := i.val) (n := q.length + 1) with
+    | left n =>
+      simpa only [RelSeries.smash, left, right, RelSeries.map, Fin.addCases_left,
+        Function.comp_apply, forgetState_leftCfg] using
+        hp (p.take i n.castSucc) ⟨_, rfl⟩ (hactive _ n.isLt)
+    | right n =>
+      simpa only [RelSeries.smash, left, right, RelSeries.map, Fin.addCases_right,
+        Function.comp_apply, forgetState_rightCfg] using hq' (q n) ⟨n, rfl⟩
 
 open Sequential in
 /-- **Sequential composition of paths.** If `p` halts, and `q` starts where `p` halted with the
@@ -124,24 +173,9 @@ theorem RunPath.exists_seq (p : tm₀.RunPath input) (q : tm₁.RunPath input)
     ∃ r : (tm₀.seq tm₁).RunPath input,
       r.head = leftCfg tm₁ p.head ∧ r.last = rightCfg q.last ∧
       r.length ≤ p.length + q.length ∧ r.space ≤ p.space + q.space := by
-  obtain ⟨i, hi, hactive⟩ := p.exists_first_halt hmid
-  let left : (tm₀.seq tm₁).RunPath input :=
-    { length := i
-      toFun n := leftCfg tm₁ (p.take i n)
-      step n := step_leftCfg (hactive _ (by exact n.isLt)) ((p.take i).step n) }
-  let right : (tm₀.seq tm₁).RunPath input := q.map ⟨rightCfg, step_rightCfg⟩
-  have hjoin : left.last = right.head := by
-    change leftCfg tm₁ (p.take i).last = rightCfg q.head
-    rw [RelSeries.last_take, hi, leftCfg_of_halt hmid, hq]
-  refine ⟨left.smash right hjoin, ?_, ?_, ?_, ?_⟩
-  · rw [RelSeries.head_smash]
-    exact congrArg (leftCfg tm₁) (RelSeries.head_take p i)
-  · rw [RelSeries.last_smash]
-    rfl
-  · change i.val + q.length ≤ p.length + q.length
-    exact Nat.add_le_add_right (Nat.le_of_lt_succ i.isLt) _
-  · exact (space_smash_le left right hjoin).trans
-      (Nat.add_le_add_right (space_take_le p i) _)
+  obtain ⟨r, hr, hr', ht, hs, _⟩ := p.exists_seq_of_invariant q hmid hq
+    (P := fun _ ↦ True) (fun _ _ _ ↦ trivial) (fun _ _ ↦ trivial)
+  exact ⟨r, hr, hr', ht, hs⟩
 
 open Sequential in
 /-- **Sequential composition of transformations.** If the postcondition of the first

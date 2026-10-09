@@ -48,10 +48,7 @@ variable {M M' N N' : Term Var}
 
 /-- The left side of a reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_l (step : M ⭢βᶠ M') : LC M := by
-  induction step with
-  | abs => constructor; assumption
-  | _ => grind
+lemma step_lc_l (step : M ⭢βᶠ M') : LC M := Xi.step_lc_l (by grind) step
 
 /-- Left congruence rule for application in multiple reduction. -/
 @[scoped grind ←]

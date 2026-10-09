@@ -76,6 +76,14 @@ theorem TransformsTapes.imp {tm : MultiTapeNTM k Symbol State}
   obtain ⟨ws', p, hp, hlast, hQ', htime, hspace⟩ := h input ws out (hP input ws hP')
   exact ⟨ws', p, hp, hlast, hQ input ws ws' hP' hQ', htime.trans ht, hspace.trans hs⟩
 
+/-- A `TransformsTapes` statement can be read with larger bounds. -/
+theorem TransformsTapes.mono {tm : MultiTapeNTM k Symbol State}
+    {P : (input : List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
+    {t s t' s' : ℕ} (h : TransformsTapes tm P Q t s) (ht : t ≤ t') (hs : s ≤ s') :
+    TransformsTapes tm P Q t' s' :=
+  h.imp (fun _ _ => id) (fun _ _ _ _ => id) ht hs
+
 /-- The machine that does nothing: it halts on its first step, leaving the tapes and their heads
 unchanged. -/
 def nop (k : ℕ) (Symbol : Type*) : MultiTapeNTM k Symbol Unit where
