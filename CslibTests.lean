@@ -32,6 +32,7 @@ import CslibTests.MultiTapeComplexity
 import CslibTests.PACLearning
 import CslibTests.PFunctor
 import CslibTests.PFunctorFree
+import CslibTests.PPoly
 import CslibTests.PRG
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses

@@ -172,4 +172,68 @@ theorem wordSynthesis_comp {m : ℕ} (F : (Fin n → Bool) → Frame m) :
       (complexity interpretation F + observationsCost m m) :=
   ⟨fun _ => length_decode_le _, synthesis_observations_comp F⟩
 
+/-- Circuits for all ordinary input lengths up to `n` give a circuit on frames of capacity `n`.
+The construction decodes the frame once, then selects the circuit for the decoded length. -/
+theorem complexity_decode_le (f : BitString → Bool) (n bound : ℕ)
+    (hbound : ∀ m ≤ n, complexity interpretation
+      (single fun x : Fin m → Bool => f (List.ofFn x)) ≤ bound) :
+    complexity interpretation (single fun x : Frame n => f (decode x)) ≤
+      observationsCost n n + (n + 1) * (bound + 2) + 1 := by
+  let args (m : ℕ) (i : Fin m) (x : Frame n) := decide ((decode x)[i.val]? = some true)
+  have hargs (x : Frame n) (m : ℕ) (hm : (decode x).length = m) :
+      List.ofFn (fun i => args m i x) = decode x := by
+    apply List.ext_getElem (by simp [hm])
+    intro i hi hj
+    simp only [List.getElem_ofFn, args, List.getElem?_eq_getElem hj, Option.some.injEq]
+    simp
+  let s := inputs (width n) ∪ Word.observations decode n
+  have hb (m : ℕ) (hm : m ∈ Finset.range (n + 1)) : Synthesis interpretation s
+      {fun x => f (List.ofFn (fun i => args m i x))} bound := by
+    have hm := Finset.mem_range.mp hm
+    have ha (i : Fin m) : args m i ∈ s :=
+      Set.mem_union_right _ (Word.symbol_mem_observations ⟨i.val, by lia⟩ (some true))
+    have hc := (Synthesis.of_complexity (I := interpretation)
+      (single fun x : Fin m → Bool => f (List.ofFn x)) (args m) ha).mono_cost (hbound m (by lia))
+    simpa only [single_apply, Set.range_const] using hc
+  have hs := Synthesis.select (s := s) (Finset.range (n + 1)) (fun x => (decode x).length)
+    (fun m x => f (List.ofFn (fun i => args m i x)))
+    (fun x => Finset.mem_range.mpr (Nat.lt_succ_of_le (length_decode_le x)))
+    (fun m hm => Synthesis.of_mem (Set.mem_union_right _
+      (Word.length_mem_observations ⟨m, Finset.mem_range.mp hm⟩))) hb
+  have hs' : Synthesis interpretation s {fun x => f (decode x)}
+      ((n + 1) * (bound + 2) + 1) := by
+    simpa only [hargs _ _ rfl, Finset.card_range, zero_add] using hs
+  simpa [Nat.add_assoc] using ((synthesis_observations n n).trans hs').complexity_le
+
+/-- Encoding a fixed-length input uses only constants and input projections. -/
+theorem complexity_encode_ofFn_le (m capacity : ℕ) :
+    complexity interpretation (fun x : Fin m → Bool => encode capacity (List.ofFn x)) ≤
+      width capacity := by
+  have h (i : Fin (width capacity)) : Synthesis interpretation (inputs m)
+      {fun x => encode capacity (List.ofFn x) i} 1 := by
+    refine Fin.addCases (fun j => ?_) (fun j => ?_) i
+    · simpa only [encode, Fin.append_left, List.length_ofFn] using
+        Synthesis.const ((min m capacity).testBit j.val)
+    · by_cases hj : j.val < m
+      · have h : Synthesis interpretation (inputs m) {fun x => x ⟨j.val, hj⟩} 0 :=
+          Synthesis.of_mem ⟨_, rfl⟩
+        simpa [encode, Fin.append_right, List.getElem?_ofFn, hj] using
+          h.mono_cost (Nat.zero_le 1)
+      · simpa [encode, Fin.append_right, List.getElem?_ofFn, hj] using
+          Synthesis.const (n := m) false
+  exact complexity_le_iff.mpr
+    (by simpa using (Synthesis.family _ (fun _ => 1) h).exists_circuit_outputs)
+
+/-- Restrict a predicate on frames to ordinary inputs of one fixed length. -/
+theorem complexity_ofFn_le (f : BitString → Bool) (n : ℕ) :
+    complexity interpretation (single fun x : Fin n → Bool => f (List.ofFn x)) ≤
+      width n + complexity interpretation (single fun x : Frame n => f (decode x)) := by
+  have h := complexity_comp_le (I := interpretation)
+    (fun x : Fin n → Bool => encode n (List.ofFn x)) (single fun x => f (decode x))
+  convert h.trans (Nat.add_le_add_right (complexity_encode_ofFn_le n n) _) using 1
+  congr 1
+  funext x i
+  simp [Function.comp_apply, single_apply, List.take_of_length_le (by simp :
+    (List.ofFn x).length ≤ n)]
+
 end Cslib.Circuits.Boolean.Encoding
