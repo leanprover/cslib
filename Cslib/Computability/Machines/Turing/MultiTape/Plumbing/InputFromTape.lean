@@ -6,8 +6,8 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
-public import Mathlib.Algebra.BigOperators.Fin
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
+public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
 /-!
 # Reading the input from a work tape
@@ -48,10 +48,9 @@ are. -/
 /-- `tm`, reading its input from the virtual input tape `Fin.natAdd k 0`, with the flag tape
 `Fin.natAdd k 1` marking the cell left of the input. The real input tape is never read and never
 moved. -/
-@[expose] public def inputFromTape (tm : MultiTapeTM k Symbol State) :
-    MultiTapeTM (k + 2) Symbol State where
-  q₀ := tm.q₀
-  tr q _ work :=
+@[expose] public noncomputable def inputFromTape (tm : MultiTapeTM k Symbol State) :
+    MultiTapeTM (k + 2) Symbol State :=
+  ofTr tm.q₀ fun q _ work =>
     let a := tm.tr q (work (Fin.natAdd k 0)) fun j => work (j.castAdd 2)
     let m := clampMove (work (Fin.natAdd k 0)) (work (Fin.natAdd k 1)) a.inputTape
     { a with
@@ -163,8 +162,8 @@ public lemma step_inCfg (tm : MultiTapeTM k Symbol State) (mark : Symbol)
   cases hq : c.state with
   | none => simp [inCfg, hq]
   | some q =>
-    rw [step_apply_of_state (cfg := inCfg mark c outerInput) hq, step_apply_of_state hq]
-    simp only [inputFromTape, inCfg_workTapeSymbols_vip, inCfg_workTapeSymbols_flag,
+    rw [step_of_state (cfg := inCfg mark c outerInput) hq, step_of_state hq]
+    simp only [inputFromTape, tr_ofTr, inCfg_workTapeSymbols_vip, inCfg_workTapeSymbols_flag,
       inCfg_workTapeSymbols_castAdd]
     refine Cfg.ext rfl (by simp [inCfg]) ?_ ?_ rfl <;> funext l <;>
       induction l using Fin.addCases <;> simp [inCfg, val_moveInputPos_sub_one_eq_clampMove mark]
