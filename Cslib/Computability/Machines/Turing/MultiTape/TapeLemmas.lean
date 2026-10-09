@@ -273,5 +273,33 @@ lemma spaceUsed_le_of_workTapePos_const (cfg : Cfg k Symbol State input) (u : �
     fun i _ => tm.spaceUsedByTape_le_one cfg fun m hm => congrFun (h m hm) i
   simpa [spaceUsed] using Finset.sum_le_card_nsmul _ _ 1 hcard
 
+/-! ### Output already present -/
+
+section PrependOutput
+
+/-- A machine never reads its output tape, so a word already present there is simply carried
+along by a step. -/
+lemma step_prependOutput (cfg : Cfg k Symbol State input) (pre : List Symbol) :
+    tm.step (cfg.prependOutput pre) = (tm.step cfg).prependOutput pre := by
+  cases hq : cfg.state with
+  | none => simp [step_of_halt, hq, Cfg.prependOutput]
+  | some q =>
+    rw [step_apply_of_state (cfg := cfg.prependOutput pre) (by simpa [Cfg.prependOutput] using hq),
+      step_apply_of_state hq]
+    exact Cfg.ext rfl rfl rfl rfl (by simp [Cfg.prependOutput, Action.apply]; rfl)
+
+/-- **A word already on the output tape is inert.** The run is the run without it, with the word
+prepended to whatever the machine emits. -/
+lemma runFrom_prependOutput (cfg : Cfg k Symbol State input) (pre : List Symbol) (n : ℕ) :
+    tm.runFrom (cfg.prependOutput pre) n = (tm.runFrom cfg n).prependOutput pre :=
+  (Function.Semiconj.iterate_right (f := (Cfg.prependOutput · pre))
+    (fun c => (step_prependOutput c pre).symm) n cfg).symm
+
+/-- A word already on the output tape does not affect the space used. -/
+lemma spaceUsed_prependOutput (cfg : Cfg k Symbol State input) (pre : List Symbol) (n : ℕ) :
+    tm.spaceUsed (cfg.prependOutput pre) n = tm.spaceUsed cfg n :=
+  spaceUsed_eq_of_workTapePos _ _ n fun m _ => by rw [runFrom_prependOutput]; rfl
+
+end PrependOutput
 
 end Turing.MultiTapeTM

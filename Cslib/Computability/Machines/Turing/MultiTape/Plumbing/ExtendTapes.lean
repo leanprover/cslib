@@ -248,16 +248,18 @@ word on that tape as it did on its own tape and leaves every other word alone; e
 costs one cell. -/
 public theorem TransformsTapes.tapeEmb {tm : MultiTapeTM 1 Symbol State}
     {P : (input : List Symbol) → (Fin 1 → List Symbol) → Prop}
-    {Q : (input : List Symbol) → (Fin 1 → List Symbol) → (Fin 1 → List Symbol) → Prop} {t s : ℕ}
+    {Q : (input : List Symbol) → (Fin 1 → List Symbol) → (Fin 1 → List Symbol) →
+      List Symbol → Prop} {t s : ℕ}
     (h : TransformsTapes tm P Q t s) (i : Fin k) :
     TransformsTapes (tm.extendTapes (MultiTapeTM.tapeEmb i))
       (fun input ws => P input fun _ => ws i)
-      (fun input ws ws' => ∃ v, Q input (fun _ => ws i) v ∧ ws' = Function.update ws i (v 0))
+      (fun input ws ws' emitted =>
+        ∃ v, Q input (fun _ => ws i) v emitted ∧ ws' = Function.update ws i (v 0))
       t (s + (k - 1)) := by
   intro input ws out hP
-  obtain ⟨v, hrun, hQ, hspace⟩ := h input (fun _ => ws i) out hP
+  obtain ⟨v, emitted, hrun, hQ, hspace⟩ := h input (fun _ => ws i) out hP
   simp only [wordsCfg] at hrun hspace
-  refine ⟨Function.update ws i (v 0), ?_, ⟨v, hQ, rfl⟩, ?_⟩
+  refine ⟨Function.update ws i (v 0), emitted, ?_, ⟨v, hQ, rfl⟩, ?_⟩
   · rw [extendTapes_q₀, runFrom_tapeEmb]
     simp only [oneTapeCfg, wordsCfg, hrun]
     rw [embed_tapeEmb]
