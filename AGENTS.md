@@ -9,17 +9,36 @@
 - **Primary Dependency:** Mathlib (leanprover-community/mathlib4)
 - **Project Type:** Lean library
 
+## Lean Development: Use the Lean MCP Server First
+
+**Use the Lean MCP server for routine Lean development whenever its tools are available.**
+Before running Lean or Lake commands, check the tools exposed in the current session (including
+tool discovery, if available) for the Lean MCP server.
+
+- Use MCP goal inspection, diagnostics, hover/type information, and theorem search when available
+  to understand and develop proofs.
+- During proof iteration, check the affected file through MCP diagnostics after edits. Wait for
+  elaboration to finish and resolve errors before continuing.
+- Do not repeatedly run `lake build`, `lake env lean`, or shell-based Lean probes when an available
+  MCP tool can provide the needed feedback.
+- Reserve Lake commands for final project validation, building missing or stale dependencies,
+  import generation, tests, linters, and tasks the MCP tools do not support.
+- If the Lean MCP tools are unavailable or fail, briefly report the limitation and use the smallest
+  relevant command-line check as a fallback. Do not silently skip checking for MCP availability.
+- MCP diagnostics do not replace the final build and CI checks required below.
+
 ## Build & Validation Commands
 
 **Always run commands from the repository root.** The project uses `lake`.
+Use these commands at validation checkpoints, not after every proof edit.
 
 ### Essential Commands (in order of typical usage)
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `lake build` | Build the library | After any code change |
+| `lake build` | Build the library | After completing Lean code changes; use MCP during iteration |
 | `lake build --wfail --iofail` | Build with CI strictness (fails on warnings) | Before committing |
-| `lake test` | Run all tests (builds CslibTests + checks init imports) | After changes to verify correctness |
+| `lake test` | Run all tests (builds CslibTests + checks init imports) | After completing Lean code changes |
 | `lake lint` | Run environment linters (Batteries/Mathlib) | Before committing |
 | `lake exe lint-style` | Run text-based style linters | Before committing |
 | `lake exe mk_all --check` | Verify Cslib.lean imports all modules | After adding new files |
@@ -27,7 +46,8 @@
 
 ### Full CI Validation Sequence
 
-Run these commands **in order** to replicate CI checks locally:
+Run these commands **in order** before committing Lean code changes or when full CI validation is
+requested. The strict build also satisfies the `lake build` checkpoint; do not run both redundantly.
 
 ```bash
 lake build --wfail --iofail
@@ -104,11 +124,11 @@ Authors: $LIST_OF_AUTHORS
 ```
 where $YEAR should be replaced with the current year, $AUTHOR_NAME with the name of the file creator, and $LIST_OF_AUTHORS with the list of authors (this is just the file creator if there are no additional authors).
 
-### 5. Always Read Local README.md Files
+### 5. Follow Coding Guidelines
 
-Before working on any file or directory, **always read** all `README.md` files in all directories throughout the entire repository.
-
-These files contain essential context that must be understood before making changes.
+As part of ensuring that your plans and code consider the relevant guidelines or information, always review against the guidelines set in:
+- `/CODESTYLE.md`, and
+- relevant `README.md` files, starting from the one nearest to the directory where the agent is run.
 
 ## Code Style
 

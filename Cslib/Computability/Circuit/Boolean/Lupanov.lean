@@ -5,6 +5,7 @@ Authors: Samuel Schlesinger
 -/
 module
 
+public import Cslib.Computability.Circuit.Boolean.Complexity
 public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 public import Mathlib.Basic.Real.Basic
 import Cslib.Foundations.Data.Nat.Asymptotics
@@ -42,7 +43,8 @@ Write `l = log₂ n`. We take `k = 3 l` address bits, `d = n - 3 l` data bits, a
 `Nat.eventually_mul_pow_le_pow` and `error_le` show that the polynomial and the exponential
 term are each `o(2 ^ n / n)`. Then `eventually_bound_le` combines everything into
 `P · n · bound ≤ (P + 1) · 2 ^ n` for all large `n`, for any natural number `P`.
-Taking `P > 1 / ε` in `exists_circuit` gives the theorem.
+Taking `P > 1 / ε` in `exists_circuit` gives the theorem; `complexity_le` states it as a
+bound on circuit complexity.
 
 ## References
 
@@ -193,20 +195,20 @@ private theorem eventually_bound_le (P : ℕ) :
 
 /-- Transport `synthesis` along `k + d = n`. -/
 private theorem exists_circuit_of_split {n k d s : ℕ} (h : k + d = n) (hs : 0 < s)
-    (f : BooleanFunction n) : ∃ g ≤ bound k d s, ∃ c : Circuit signature n g 1,
-      c.Computes interpretation f := by
+    (f : BooleanFunction n) : ∃ c : Circuit signature n 1,
+      c.Computes interpretation (single f) ∧ c.size ≤ bound k d s := by
   subst n
   exact (synthesis f hs).exists_circuit
 
 /-- Lupanov's upper bound: every Boolean function on `n` inputs has a De Morgan circuit
 with at most `(1 + ε) 2ⁿ/n` gates, uniformly for sufficiently large `n`.
 
-Pick a natural number `P > 1 / ε`, so that `(P + 1) / P < 1 + ε`; then the threshold `N`
+Pick a natural number `P > 1 / ε`, so that `(P + 1) / P < 1 + ε`; then the threshold `m`
 comes from `eventually_bound_le P`. -/
 theorem exists_circuit (ε : ℝ) (hε : 0 < ε) :
-    ∃ N : ℕ, ∀ n ≥ N, ∀ f : BooleanFunction n,
-      ∃ g, ∃ c : Circuit signature n g 1,
-        c.Computes interpretation f ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
+    ∃ m : ℕ, ∀ n ≥ m, ∀ f : BooleanFunction n,
+      ∃ c : Circuit signature n 1,
+        c.Computes interpretation (single f) ∧ (c.size : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
   apply eventually_atTop.mp
   obtain ⟨P, hP⟩ := exists_nat_gt (1 / ε)
   have hP0 : (0 : ℝ) < P := lt_trans (by positivity) hP
@@ -218,17 +220,30 @@ theorem exists_circuit (ε : ℝ) (hε : 0 < ε) :
   intro f
   have hlog : 0 < Nat.log2 n := (Nat.le_log2 (by omega)).mpr (by simpa using hn)
   have hsplit : 3 * Nat.log2 n + (n - 3 * Nat.log2 n) = n := by omega
-  obtain ⟨g, hg, c, hc⟩ := exists_circuit_of_split (s := n - 5 * Nat.log2 n)
+  obtain ⟨c, hc, hg⟩ := exists_circuit_of_split (s := n - 5 * Nat.log2 n)
     hsplit (by omega) f
-  refine ⟨g, c, hc, ?_⟩
-  have hcost : (P : ℝ) * n * g ≤ (P + 1 : ℝ) * 2 ^ n := by
+  refine ⟨c, hc, ?_⟩
+  have hcost : (P : ℝ) * n * c.size ≤ (P + 1 : ℝ) * 2 ^ n := by
     exact_mod_cast (Nat.mul_le_mul_left (P * n) hg).trans hb
   apply (le_div_iff₀ (by exact_mod_cast (by omega : 0 < n) : (0 : ℝ) < n)).mpr
   apply (mul_le_mul_iff_right₀ hP0).mp
   calc
-    (P : ℝ) * (g * n) = P * n * g := by ring
+    (P : ℝ) * (c.size * n) = P * n * c.size := by ring
     _ ≤ (P + 1) * 2 ^ n := hcost
     _ ≤ P * ((1 + ε) * 2 ^ n) := by
       nlinarith [mul_le_mul_of_nonneg_right hcoefficient (by positivity : (0 : ℝ) ≤ 2 ^ n)]
+
+/-- Lupanov's upper bound for circuit complexity: every Boolean function on `n` inputs has
+complexity at most `(1 + ε) 2ⁿ/n`, uniformly for sufficiently large `n`. -/
+theorem complexity_le (ε : ℝ) (hε : 0 < ε) :
+    ∃ m : ℕ, ∀ n ≥ m, ∀ f : BooleanFunction n,
+      (complexity interpretation (single f) : ℝ) ≤ (1 + ε) * 2 ^ n / n := by
+  obtain ⟨m, hm⟩ := exists_circuit ε hε
+  refine ⟨m, fun n hn f => ?_⟩
+  obtain ⟨c, hc, hsize⟩ := hm n hn f
+  calc
+    (complexity interpretation (single f) : ℝ) ≤ c.size := by
+      exact_mod_cast complexity_le_of_computes c hc
+    _ ≤ (1 + ε) * 2 ^ n / n := hsize
 
 end Cslib.Circuits.Boolean.Lupanov

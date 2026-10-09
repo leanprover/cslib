@@ -282,7 +282,7 @@ theorem synthesis (f : BooleanFunction (k + d)) (hs : 0 < s) :
   simp only [Finset.mem_univ, true_and, hsum] at h
   change Synthesis interpretation _ {table f s} _ at h
   rw [table_eq f hs] at h
-  simpa [bound, Nat.add_assoc] using minterms_synthesis.comp
+  simpa [bound, Nat.add_assoc] using minterms_synthesis.trans
     (h.mono Set.subset_union_right Set.Subset.rfl le_rfl)
 
 end Cslib.Circuits.Boolean.Lupanov

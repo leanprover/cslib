@@ -21,8 +21,7 @@ open PFunctor
 variable (lts : LTS State Label)
 
 /-- Transforms `lts` into a corresponding unary `Frame`. -/
-def toFrame : Frame State (mkUnary Label) :=
-  Frame.ofRelations (fun μ s s' => lts.Tr s μ s')
+def toFrame : Frame State (mkUnary Label) := Frame.ofRelations (fun μ s s' => lts.Tr s μ s')
 
 instance : Coe (LTS State Label) (Frame State (PFunctor.mkUnary Label)) := ⟨LTS.toFrame⟩
 

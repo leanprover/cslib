@@ -29,7 +29,7 @@ public import Mathlib.Data.Set.Card
 
 namespace Cslib.Language
 
-open Set List Prod Automata Acceptor RightCongruence
+open Set List Prod Automata Acceptor
 open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
 variable {Symbol Symbol' : Type*}
@@ -202,6 +202,7 @@ theorem IsRegular.kstar {l : Language Symbol}
       obtain ⟨State, h_fin, nfa, rfl⟩ := h
       use Unit ⊕ Option State, inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
 
+open _root_.Language RightCongruence in
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
 theorem IsRegular.congr_fin_index {Symbol : Type}
@@ -240,15 +241,19 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
   rw [IsRegular.iff_dfa]
   classical
   let flts := FLTS.mk (fun (s : Fin 3) (x : Symbol) ↦ if (s = 0 ∧ x = a) then 1 else 2)
+  have h_eq1 (s : Fin 3) (x : Symbol) : flts.tr s x = 1 ↔ s = 0 ∧ x = a := by grind
+  have h_ne_0 (s : Fin 3) (x : Symbol) : flts.tr s x ≠ 0 := by grind
   use Fin 3, inferInstance, ⟨DA.mk flts 0, {1}⟩
   ext xs
   induction xs using List.reverseRec with
   | nil => grind [Accepts, Language.mem_singleton]
   | append_singleton xs x ih =>
-    simp only [mem_language, Accepts, Language.mem_singleton, FLTS.mtr_concat_eq] at ih ⊢
-    constructor
-    · induction xs using List.reverseRec <;> grind
-    · simp_all [flts, List.append_eq_cons_iff]
+    obtain (rfl | ⟨xs, x, rfl⟩) : xs = [] ∨ ∃ xs' x, xs = xs' ++ [x] := xs.eq_nil_or_concat'
+    · simp [Accepts, flts, FLTS.mtr]
+    · simp_rw [Language.mem_singleton, mem_language, Accepts, FLTS.mtr_concat_eq,
+        Set.mem_singleton_iff, h_eq1, h_ne_0, false_and, append_assoc, false_iff]
+      intro h
+      simpa using congr(List.length $h)
 
 /-- Languages matching regular expressions are regular. -/
 theorem IsRegular.regex {r : RegularExpression Symbol} :

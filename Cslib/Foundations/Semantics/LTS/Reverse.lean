@@ -27,6 +27,8 @@ namespace Cslib.LTS
 
 variable {State Label : Type*}
 
+open Execution
+
 section Reverse
 
 /-- Constructs an LTS by reversing the transitions of an existing LTS. -/
@@ -46,17 +48,27 @@ theorem reverse_reverse (lts : LTS State Label) : lts.reverse.reverse = lts := r
 theorem reverse_involutive : Function.Involutive (reverse (Label := Label) (State := State)) :=
   reverse_reverse
 
+theorem Execution.reverse {lts : LTS State Label} (h : lts.Execution s μs s' ss) :
+    lts.reverse.Execution s' μs.reverse s ss.reverse := by
+  induction h with
+  | refl s => exact .refl s
+  | stepL htr _ ih =>
+    simpa using ih.comp (.of_tr htr)
+
+/-- An execution of `lts.reverse` is an execution of `lts` with the labels, states
+and endpoints reversed. -/
+@[simp]
+theorem reverse_execution {lts : LTS State Label} :
+    lts.reverse.Execution s μs s' ss ↔ lts.Execution s' μs.reverse s ss.reverse :=
+  ⟨fun h => h.reverse, fun h => by simpa using h.reverse⟩
+
 /-- The multistep transitions of `lts.reverse` are exactly the reversed multistep transitions of
 `lts`. -/
 @[simp]
 theorem reverse_mTr {lts : LTS State Label} :
     lts.reverse.MTr s' μs s ↔ lts.MTr s μs.reverse s' := by
-  induction μs generalizing s s' with
-  | nil =>
-    simp [eq_comm]
-  | cons x xs ih =>
-    simp_rw [List.reverse_cons, MTr.append_iff, MTr.singleton_iff, MTr.cons_iff, and_comm, ih,
-      reverse_tr]
+  simp_rw [mTr_iff_execution, reverse_execution]
+  conv_rhs => rw [List.reverse_involutive.surjective.exists]
 
 /-- `lts.reverse` can reach `s'` from `s` iff `lts` can reach `s` from `s'`. -/
 @[simp]
@@ -100,20 +112,6 @@ theorem reverse_hasOutLabel {lts : LTS State Label} :
 theorem reverse_boundedUpTo {lts : LTS State Label} {n : ℕ} :
     lts.reverse.BoundedUpTo n ↔ lts.BoundedUpTo n := by
   constructor <;> intro h s₁ μs s₂ hmtr <;> simpa using h s₂ μs.reverse s₁ (by simpa using hmtr)
-
-/-- Reversing an execution of `lts` gives an execution of `lts.reverse`, with the labels, states
-and endpoints reversed. -/
-theorem Execution.reverse {lts : LTS State Label} (h : lts.Execution s μs s' ss) :
-    lts.reverse.Execution s' μs.reverse s ss.reverse := by
-  apply Execution.mk .. <;>
-    simp only [reverse_tr, List.getElem_reverse, List.length_reverse] <;> grind only
-
-/-- An execution of `lts.reverse` is an execution of `lts` with the labels, states
-and endpoints reversed. -/
-@[simp]
-theorem reverse_execution {lts : LTS State Label} :
-    lts.reverse.Execution s μs s' ss ↔ lts.Execution s' μs.reverse s ss.reverse :=
-  ⟨fun h => h.reverse, fun h => by simpa using h.reverse⟩
 
 end Reverse
 

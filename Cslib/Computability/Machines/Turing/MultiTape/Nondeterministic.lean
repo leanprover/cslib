@@ -6,40 +6,41 @@ Authors: Aviv Bar Natan
 
 module
 
-public import Mathlib.Data.List.Chain
-public import Cslib.Foundations.Data.List.IsChainFromTo
+public import Mathlib.Order.RelSeries
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
 /-!
 # Nondeterministic Multi-Tape Turing Machines
 
 Defines nondeterministic Turing machines with a read-only input tape, `k` work tapes and one
-write-only output tape, and what it means for one to compute an output within a time and space
-bound.
+write-only output tape, their computation paths, and time bounds.
 
 ## Design
 
+The design choices for configurations and actions are documented in
+`Cslib.Computability.Machines.Turing.MultiTape.Configuration`.
+
 Following [Papadimitriou94], chapter 2.7, a nondeterministic machine is a Turing machine whose
-transition function is replaced by a transition relation: `Tr q input work action` holds when
-`action` is one of the actions permitted in that situation.
+transition function is replaced by a transition relation: `Tr q input work action` holds when `Tr`
+relates the state `q` and the read symbols `input` and `work` to `action`.
 
 A halted configuration steps to itself, so once a machine has halted it has a run of every length.
 A time bound is therefore an upper bound, with no separate account of the step at which it halted.
 
-The transition relation may be empty at a running configuration, so a machine can get stuck. Every
-notion below asks for a computation ending in a halted configuration, so a stuck one is not a
-witness.
+The transition relation may be empty at a running configuration. Such a configuration has no
+successor configuration and is called stuck.
+
+Time bounds apply to every computation path, regardless of its outcome. `RunsInTime input t`
+requires every path of at least `t` steps to end in a halted configuration.
 
 ## Important Declarations
 
 * `MultiTapeNTM`: the machine, an initial state and a transition relation
 * `Step`: the one-step relation on configurations
-* `ComputationPath`: a run of the machine: a series of configurations from the initial one, each
-    reached from the previous by a step
-* `ComputesSuchThat`: some computation halts, emits a given output and meets a given constraint
-* `Computes`, `ComputesInExactTime`, `ComputesInExactSpace`, `ComputesInExactTimeAndSpace`:
-    its instances, whose
-    bounds all refer to a single computation
+* `RunPath`: finite relation series of steps
+* `ComputationPath`: a run path starting at the initial configuration
+* `RunsInTime`: every computation path of at least the given length ends in a halted
+  configuration
 
 ## References
 
@@ -70,8 +71,8 @@ namespace MultiTapeNTM
 
 variable {ntm : MultiTapeNTM k Symbol State}
 
-/-- The one-step relation on configurations. A halted configuration steps to itself; a running one
-steps by any permitted transition. -/
+/-- The one-step relation on configurations. A halted configuration steps only to itself. A running
+configuration steps by applying any action related to its state and read symbols by `Tr`. -/
 @[scoped grind =]
 def Step (ntm : MultiTapeNTM k Symbol State) (c₁ c₂ : Cfg k Symbol State input) : Prop :=
   match c₁.state with
@@ -90,54 +91,61 @@ def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
     Cfg k Symbol State input :=
   Cfg.init ntm.q₀ input
 
-/-- A computation path of `ntm` on `input`: the configurations it passes through, forming a chain
-of steps from the initial configuration to the one it ends at. -/
-structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) where
-  /-- the configurations passed through, starting with the initial one -/
-  cfgs : List (Cfg k Symbol State input)
-  /-- the configuration the path ends at -/
-  last : Cfg k Symbol State input
-  /-- consecutive configurations are joined by a step, from the initial configuration to `last` -/
-  isChainFromTo : cfgs.IsChainFromTo ntm.Step (ntm.initCfg input) last
+/-- A nonempty list of configurations joined by steps of `ntm`. -/
+abbrev RunPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :=
+  RelSeries {(c, c') | ntm.Step (input := input) c c'}
+
+namespace RunPath
+
+/-- The output only grows along a run path. -/
+lemma length_output_mono (p : ntm.RunPath input) :
+    Monotone fun i ↦ (p i).output.length := by
+  apply Fin.monotone_iff_le_succ.mpr
+  intro i
+  have : ntm.Step (p i.castSucc) (p i.succ) := p.step i
+  grind [Step, Action.apply_output]
+
+/-- Once a run path is halted, its configuration stays unchanged. -/
+lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.last = p.head := by
+  induction p using RelSeries.inductionOn' with
+  | singleton c => rfl
+  | snoc p c hc ih =>
+    have hp : p.last = p.head := ih (by simpa using h)
+    have hh : p.last.Halted := hp ▸ (show p.head.Halted by simpa using h)
+    simpa using ((step_of_halt hh).mp hc).trans hp
+
+/-- The last configuration equals any earlier halted configuration. -/
+lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
+    (h : (p i).Halted) : p.last = p i := by
+  simpa using last_eq_of_head_halted (p.drop i) (by simpa using h)
+
+/-- The number of steps taken by a run path. -/
+def time (p : ntm.RunPath input) : ℕ := p.length
+
+end RunPath
+
+/-- A run path starting at the initial configuration for `input`. -/
+structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol)
+    extends toRunPath : ntm.RunPath input where
+  /-- the path starts at the initial configuration -/
+  head_eq : toRunPath.head = ntm.initCfg input
 
 namespace ComputationPath
 
-variable {ntm : MultiTapeNTM k Symbol State} {input : List Symbol}
-
-/-- The number of steps taken, the time the computation takes. -/
-def time (p : ntm.ComputationPath input) : ℕ := p.cfgs.length - 1
-
-/-- The number of work tape cells touched. -/
-def space (p : ntm.ComputationPath input) : ℕ := spaceUsedOfCfgs p.cfgs
+/-- The number of steps taken by a computation path. -/
+def time (p : ntm.ComputationPath input) : ℕ := RunPath.time p.toRunPath
 
 end ComputationPath
 
-/-- `ntm` has a computation on `input` that starts at the initial configuration, halts, emits
-`output` and satisfies `P`. The notions below are its instances, so their constraints all refer to
-a single computation. -/
-def ComputesSuchThat (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
-    (P : ntm.ComputationPath input → Prop) : Prop :=
-  ∃ p : ntm.ComputationPath input, p.last.Halted ∧ p.last.output = output ∧ P p
+/-- Every computation path on `input` of at least `t` steps ends in a halted configuration.
+A path ending in a stuck configuration must have fewer than `t` steps. -/
+def RunsInTime (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (t : ℕ) : Prop :=
+  ∀ p : ntm.ComputationPath input, t ≤ p.time → p.last.Halted
 
-/-- `ntm` computes `output` from `input`, with no bound on resources. -/
-def Computes (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) : Prop :=
-  ntm.ComputesSuchThat input output fun _ => True
-
-/-- `ntm` computes `output` from `input` in exactly `t` steps. -/
-def ComputesInExactTime (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (t : ℕ) :
-    Prop :=
-  ntm.ComputesSuchThat input output fun p => p.time = t
-
-/-- `ntm` computes `output` from `input` touching exactly `s` work tape cells. -/
-def ComputesInExactSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol) (s : ℕ) :
-    Prop :=
-  ntm.ComputesSuchThat input output fun p => p.space = s
-
-/-- `ntm` computes `output` from `input` in `t` steps and `s` work tape cells, by a single
-computation. Nondeterministic analogue of `MultiTapeTM.ComputesInTimeAndSpace`. -/
-def ComputesInExactTimeAndSpace (ntm : MultiTapeNTM k Symbol State) (input output : List Symbol)
-    (t s : ℕ) : Prop :=
-  ntm.ComputesSuchThat input output fun p => p.time = t ∧ p.space = s
+/-- A time bound can be increased. -/
+lemma RunsInTime.mono {input : List Symbol} {t t' : ℕ}
+    (h : ntm.RunsInTime input t) (ht : t ≤ t') : ntm.RunsInTime input t' :=
+  fun p hp ↦ h p (ht.trans hp)
 
 end MultiTapeNTM
 
