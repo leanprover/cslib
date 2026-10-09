@@ -183,6 +183,12 @@ abbrev Cfg.Halted (cfg : Cfg k Symbol State input) : Prop := cfg.state = none
     {State' : Type*} (q : Option State') : Cfg k Symbol State' input :=
   ⟨q, cfg.inputPos, cfg.workTapes, cfg.workTapePos, cfg.output⟩
 
+/-- Forget the control state of a configuration, keeping the input head, the work tapes, the
+work-tape heads and the output. A property of this part of a configuration makes sense for every
+machine, whatever its state type. -/
+@[simps] def Cfg.forgetState (cfg : Cfg k Symbol State input) : Cfg k Symbol Unit input :=
+  ⟨some (), cfg.inputPos, cfg.workTapes, cfg.workTapePos, cfg.output⟩
+
 /-- Remap the (optional) state of a configuration through `φ`, leaving the input head, the work
 tapes, the work-tape heads and the output alone. Control-flow combinators such as `seq` embed a
 sub-machine's configurations into the combined machine by exactly such a state remap. -/
