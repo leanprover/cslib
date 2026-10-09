@@ -60,13 +60,13 @@ scoped notation:68 e "⟦" i " ↝ " sub "⟧" => Term.openRec i sub e
 
 variable {i i' : ℕ} {x : Var} {s l r M : Term Var}
 
-lemma openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else bvar i' := by rfl
+lemma openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else bvar i' := rfl
 
-lemma openRec_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := by rfl
+lemma openRec_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := rfl
 
-lemma openRec_app : (app l r)⟦i ↝ s⟧ = app (l⟦i ↝ s⟧) (r⟦i ↝ s⟧) := by rfl
+lemma openRec_app : (app l r)⟦i ↝ s⟧ = app (l⟦i ↝ s⟧) (r⟦i ↝ s⟧) := rfl
 
-lemma openRec_abs : M.abs⟦i ↝ s⟧ = M⟦i + 1 ↝ s⟧.abs := by rfl
+lemma openRec_abs : M.abs⟦i ↝ s⟧ = M⟦i + 1 ↝ s⟧.abs := rfl
 
 /-- Variable opening of the closest binding. -/
 @[scoped grind =]
@@ -101,13 +101,13 @@ scoped infixr:80 " ^* " => Term.close
 
 variable {i k : ℕ} {x x' : Var} {l r M : Term Var}
 
-lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := by rfl
+lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := rfl
 
-lemma closeRec_fvar : (fvar x')⟦k ↜ x⟧ = if x = x' then bvar k else fvar x' := by rfl
+lemma closeRec_fvar : (fvar x')⟦k ↜ x⟧ = if x = x' then bvar k else fvar x' := rfl
 
-lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x⟧) := by rfl
+lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x⟧) := rfl
 
-lemma closeRec_abs : M.abs⟦k ↜ x⟧ = M⟦k + 1 ↜ x⟧.abs := by rfl
+lemma closeRec_abs : M.abs⟦k ↜ x⟧ = M⟦k + 1 ↜ x⟧.abs := rfl
 
 end Closing
 
@@ -128,15 +128,15 @@ instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var (Term Var) whe
 
 variable {i : ℕ} {x x' : Var} {s l r M : Term Var}
 
-lemma subst_bvar : (bvar i : Term Var)[x := s] = bvar i := by rfl
+lemma subst_bvar : (bvar i : Term Var)[x := s] = bvar i := rfl
 
-lemma subst_fvar : (fvar x')[x := s] = if x = x' then s else fvar x' := by rfl
+lemma subst_fvar : (fvar x')[x := s] = if x = x' then s else fvar x' := rfl
 
-lemma subst_app {l r : Term Var} : (app l r)[x := s] = app (l[x := s]) (r[x := s]) := by rfl
+lemma subst_app : (app l r)[x := s] = app (l[x := s]) (r[x := s]) := rfl
 
-lemma subst_abs {M : Term Var} : M.abs[x := s] = M[x := s].abs := by rfl
+lemma subst_abs : M.abs[x := s] = M[x := s].abs := rfl
 
-lemma subst_def (m : Term Var) (x : Var) (s : Term Var) : m.subst x s = m[x := s] := by rfl
+lemma subst_def : M.subst x s = M[x := s] := rfl
 
 attribute [scoped grind =] subst_bvar subst_fvar subst_app subst_abs subst_def
 
