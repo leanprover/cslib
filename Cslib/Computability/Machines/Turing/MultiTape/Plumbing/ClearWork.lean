@@ -55,7 +55,8 @@ open Sequential in
 `3 * (w.length + 1)` steps and `w.length + 2` cells. -/
 public theorem transformsTapes_clearWork (w : List Symbol) :
     TransformsTapes (clearWork Symbol).toMultiTapeNTM (fun _ ws => ws 0 = w)
-      (fun _ _ ws' => ws' = fun _ => []) (3 * (w.length + 1)) (w.length + 2) := by
+      (fun _ _ ws' emitted => ws' = (fun _ => []) ∧ emitted = [])
+      (3 * (w.length + 1)) (w.length + 2) := by
   -- the forward pass takes `w.length + 1` steps, the erasing rewind `w.length + 2`
   refine TransformsTapes.mono (t := w.length + 1 + (w.length + 2)) ?_ (by lia) le_rfl
   dsimp only [clearWork]
@@ -83,8 +84,8 @@ public theorem transformsTapes_clearWork (w : List Symbol) :
       (workTapePos_runFrom_forwardWork (input := input) 1 w out (Nat.zero_le w.length) m))
     (fun _ ⟨n, hn⟩ ↦ hn ▸ workTapePos_runFrom_rewindWork (some none)
       (input := input) 1 (tapeOfList w) out rfl le_rfl n)
-  refine ⟨fun _ ↦ [], r, hr, ?_, rfl, ht, ?_⟩
-  · rw [hr', hq]
+  refine ⟨fun _ ↦ [], [], r, hr, ?_, ⟨rfl, rfl⟩, ht, ?_⟩
+  · rw [hr', hq, List.append_nil]
     rfl
   · rw [RunPath.space, Fin.sum_univ_one]
     exact (RunPath.spaceUsedByTape_le_card r (S := .Icc (-1) (w.length : ℤ))
@@ -97,8 +98,10 @@ word on that tape by the empty word and leaves every other tape unchanged, in at
 `3 * (w.length + 1)` steps and `w.length + 1 + k` cells. -/
 public theorem transformsTapes_clearWork_tapeEmb (i : Fin k) (w : List Symbol) :
     TransformsTapes ((clearWork Symbol).extendTapes (tapeEmb i)) (fun _ ws => ws i = w)
-      (fun _ ws ws' => ws' = Function.update ws i []) (3 * (w.length + 1)) (w.length + 1 + k) :=
+      (fun _ ws ws' emitted => ws' = Function.update ws i [] ∧ emitted = [])
+      (3 * (w.length + 1)) (w.length + 1 + k) :=
   ((transformsTapes_clearWork (Symbol := Symbol) w).tapeEmb i).imp (fun _ _ h => h)
-    (fun _ ws ws' _ ⟨v, hv, hws'⟩ => by rw [hws', hv]) le_rfl (by have := i.pos; lia)
+    (fun _ ws ws' _ _ ⟨v, ⟨hv, he⟩, hws'⟩ => ⟨by rw [hws', hv], he⟩) le_rfl
+    (by have := i.pos; lia)
 
 end Turing.MultiTapeTM

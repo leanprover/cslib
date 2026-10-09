@@ -328,18 +328,20 @@ word on that tape as it did on its own tape and leaves every other word alone; e
 costs one cell. -/
 public theorem TransformsTapes.tapeEmb {tm : MultiTapeNTM 1 Symbol State}
     {P : (input : List Symbol) → (Fin 1 → List Symbol) → Prop}
-    {Q : (input : List Symbol) → (Fin 1 → List Symbol) → (Fin 1 → List Symbol) → Prop} {t s : ℕ}
+    {Q : (input : List Symbol) → (Fin 1 → List Symbol) → (Fin 1 → List Symbol) →
+      List Symbol → Prop} {t s : ℕ}
     (h : TransformsTapes tm P Q t s) (i : Fin k) :
     TransformsTapes (tm.extendTapes (MultiTapeNTM.tapeEmb i))
       (fun input ws ↦ P input fun _ ↦ ws i)
-      (fun input ws ws' ↦ ∃ v, Q input (fun _ ↦ ws i) v ∧ ws' = Function.update ws i (v 0))
+      (fun input ws ws' emitted ↦
+        ∃ v, Q input (fun _ ↦ ws i) v emitted ∧ ws' = Function.update ws i (v 0))
       t (s + (k - 1)) := by
   intro input ws out hP
-  obtain ⟨v, p, hp, hlast, hQ, ht, hs⟩ := h input (fun _ ↦ ws i) out hP
+  obtain ⟨v, emitted, p, hp, hlast, hQ, ht, hs⟩ := h input (fun _ ↦ ws i) out hP
   let tapes := fun j ↦ tapeOfList (ws j)
   let heads := fun _ : Fin k ↦ (0 : ℤ)
   let q := p.extendTapes (MultiTapeNTM.tapeEmb i) tapes heads
-  refine ⟨Function.update ws i (v 0), q, ?_, ?_, ⟨v, hQ, rfl⟩, ht,
+  refine ⟨Function.update ws i (v 0), emitted, q, ?_, ?_, ⟨v, hQ, rfl⟩, ht,
     (p.space_extendTapes_le (MultiTapeNTM.tapeEmb i) tapes heads).trans
       (Nat.add_le_add_right hs _)⟩
   · change embed _ p.head _ _ = _

@@ -53,6 +53,19 @@ lemma Step.workTapePos_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') 
   · obtain ⟨a, _, rfl⟩ := h
     exact workTapePos_apply_le a c i
 
+/-- A machine never reads its output tape, so a word already present there is simply carried
+along by a step. -/
+lemma Step.prependOutput {c c' : Cfg k Symbol State input} (h : ntm.Step c c')
+    (pre : List Symbol) : ntm.Step (c.prependOutput pre) (c'.prependOutput pre) := by
+  cases hq : c.state with
+  | none =>
+    obtain rfl := (step_of_halt hq).mp h
+    exact (step_of_halt (c := c'.prependOutput pre) hq).mpr rfl
+  | some q =>
+    obtain ⟨a, ha, rfl⟩ := (step_of_state hq).mp h
+    refine (step_of_state (c := c.prependOutput pre) hq).mpr ⟨a, ha, ?_⟩
+    exact Cfg.ext rfl rfl rfl rfl (by simp [Cfg.prependOutput, Action.apply])
+
 namespace RunPath
 
 @[simp]
@@ -272,6 +285,19 @@ lemma space_le_of_workTapePos_const (p : ntm.RunPath input)
     fun i _ ↦ spaceUsedByTape_le_one p fun c hc ↦ congrFun (h c hc) i
   simpa [space] using Finset.sum_le_card_nsmul _ _ 1 hb
 
+/-! ### Output already present -/
+
+/-- **A word already on the output tape is inert.** The path is the path without it, with the word
+prepended to whatever the machine emits. -/
+def prependOutput (p : ntm.RunPath input) (pre : List Symbol) : ntm.RunPath input :=
+  p.map ⟨(·.prependOutput pre), fun h ↦ h.prependOutput pre⟩
+
+/-- A word already on the output tape does not affect the space used. -/
+@[simp]
+lemma space_prependOutput (p : ntm.RunPath input) (pre : List Symbol) :
+    (p.prependOutput pre).space = p.space :=
+  p.space_map_eq _ (fun _ _ ↦ rfl)
+
 end RunPath
 
 /-- Every non-blank cell on work tape `i` at the end of a computation path lies within
@@ -289,6 +315,21 @@ end MultiTapeNTM
 namespace MultiTapeTM
 
 open MultiTapeNTM
+
+/-- A machine never reads its output tape, so a word already present there is simply carried
+along by a step. -/
+lemma step_prependOutput {tm : MultiTapeTM k Symbol State}
+    (cfg : Cfg k Symbol State input) (pre : List Symbol) :
+    tm.step (cfg.prependOutput pre) = (tm.step cfg).prependOutput pre :=
+  step_iff.mp ((step_iff.mpr rfl).prependOutput pre)
+
+/-- **A word already on the output tape is inert.** The run is the run without it, with the word
+prepended to whatever the machine emits. -/
+lemma runFrom_prependOutput {tm : MultiTapeTM k Symbol State}
+    (cfg : Cfg k Symbol State input) (pre : List Symbol) (n : ℕ) :
+    tm.runFrom (cfg.prependOutput pre) n = (tm.runFrom cfg n).prependOutput pre :=
+  (Function.Semiconj.iterate_right (f := (Cfg.prependOutput · pre))
+    (fun c ↦ (step_prependOutput c pre).symm) n cfg).symm
 
 /-- A deterministic computation whose total space usage stays below a bound has a path at which
 *every* tape's space usage is maximal. This turns a bound on every path from an arbitrary starting

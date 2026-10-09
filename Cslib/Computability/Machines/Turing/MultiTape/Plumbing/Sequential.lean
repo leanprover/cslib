@@ -180,26 +180,30 @@ theorem RunPath.exists_seq (p : tm₀.RunPath input) (q : tm₁.RunPath input)
 open Sequential in
 /-- **Sequential composition of transformations.** If the postcondition of the first
 transformation implies the precondition of the second, the composed machine performs the two
-transformations one after the other, with the time and space bounds adding. -/
+transformations one after the other, with the time and space bounds adding and the emitted words
+concatenating. -/
 theorem transformsTapes_seq
     {P₀ P₁ : (input : List Symbol) → (Fin k → List Symbol) → Prop}
-    {Q₀ Q₁ : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q₀ Q₁ : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop}
     {t₀ s₀ t₁ s₁ : ℕ}
     (h₀ : TransformsTapes tm₀ P₀ Q₀ t₀ s₀) (h₁ : TransformsTapes tm₁ P₁ Q₁ t₁ s₁)
-    (hmid : ∀ input ws ws', P₀ input ws → Q₀ input ws ws' → P₁ input ws') :
+    (hmid : ∀ input ws ws' e, P₀ input ws → Q₀ input ws ws' e → P₁ input ws') :
     TransformsTapes (tm₀.seq tm₁) P₀
-      (fun input ws ws'' ↦ ∃ ws', Q₀ input ws ws' ∧ Q₁ input ws' ws'')
+      (fun input ws ws'' e ↦ ∃ ws' e₀ e₁, Q₀ input ws ws' e₀ ∧ Q₁ input ws' ws'' e₁ ∧
+        e = e₀ ++ e₁)
       (t₀ + t₁) (s₀ + s₁) := by
   intro input ws out hP₀
-  obtain ⟨ws', p, hp, hlast, hQ₀, ht₀, hs₀⟩ := h₀ input ws out hP₀
-  obtain ⟨ws'', q, hq, hlast', hQ₁, ht₁, hs₁⟩ := h₁ input ws' out (hmid input ws ws' hP₀ hQ₀)
+  obtain ⟨ws', e₀, p, hp, hlast, hQ₀, ht₀, hs₀⟩ := h₀ input ws out hP₀
+  obtain ⟨ws'', e₁, q, hq, hlast', hQ₁, ht₁, hs₁⟩ :=
+    h₁ input ws' (out ++ e₀) (hmid input ws ws' e₀ hP₀ hQ₀)
   obtain ⟨r, hr, hr', ht, hs⟩ := p.exists_seq q (by rw [hlast]; rfl)
     (by rw [hq, hlast]; rfl)
-  refine ⟨ws'', r, ?_, ?_, ⟨ws', hQ₀, hQ₁⟩,
+  refine ⟨ws'', e₀ ++ e₁, r, ?_, ?_, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩,
     ht.trans (Nat.add_le_add ht₀ ht₁), hs.trans (Nat.add_le_add hs₀ hs₁)⟩
   · rw [hr, hp]
     rfl
   · rw [hr', hlast']
-    rfl
+    simp [rightCfg, Cfg.mapState, wordsCfg, List.append_assoc]
 
 end Turing.MultiTapeNTM
