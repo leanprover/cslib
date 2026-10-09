@@ -31,9 +31,7 @@ The transition relation may be empty at a running configuration. Such a configur
 successor configuration and is called stuck.
 
 Time bounds apply to every computation path, regardless of its outcome. `RunsInTime input t`
-requires every path of at least `t` steps to end in a halted configuration. A path that gets stuck
-after `u` steps therefore requires a bound strictly greater than `u`. Function computation and
-decidability are defined only for deterministic machines.
+requires every path of at least `t` steps to end in a halted configuration.
 
 ## Important Declarations
 
@@ -47,7 +45,6 @@ decidability are defined only for deterministic machines.
 ## References
 
 * [C. Papadimitriou, *Computational Complexity*][Papadimitriou94]
-* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09]
 * [M. Sipser, *Introduction to the Theory of Computation*][Sipser2013]
 -/
 

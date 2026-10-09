@@ -33,7 +33,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `tr`, `ofTr`: the derived transition function and construction from a function
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `HaltsAt`: the run from a configuration halts at exactly a given step
-* `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
+* `spaceUsed`: the number of tape cells visited by work tape heads, our main space measure
 * `Computes`: the machine halts with the given output on an input
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
@@ -264,14 +264,14 @@ noncomputable def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (
   Finset.univ.image fun n : Fin (t + 1) => (tm.runFrom cfg n).workTapePos i
 
 /--
-The number of work tape cells touched by the head of tape `i` in the computation starting from
+The number of work tape cells visited by the head of tape `i` in the computation starting from
 configuration `cfg` up to step `t`.
 -/
 noncomputable def spaceUsedByTape (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : ℕ :=
   (tm.visitedByTapeHead cfg t i).card
 
 /--
-The number of work tape cells touched by a computation starting from configuration
+The number of work tape cells visited by a computation starting from configuration
 `cfg` up to step `t`.
 -/
 noncomputable def spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ :=

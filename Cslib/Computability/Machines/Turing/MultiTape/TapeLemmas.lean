@@ -125,7 +125,7 @@ lemma content_natAbs_le_spaceUsedByTape
   simpa using tm.natAbs_le_spaceUsedByTape_of_mem_visited
     (tm.mem_visitedByTapeHead_of_workTapes_ne i t z h)
 
-/-- The number of cells touched by a single work tape grows by at most one each step. -/
+/-- The number of cells visited by a single work-tape head grows by at most one each step. -/
 lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
     tm.spaceUsedByTape cfg t i ≤ t + 1 :=
   Finset.card_image_le.trans_eq (by simp)

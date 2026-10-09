@@ -121,7 +121,7 @@ that the specification format is inhabited exactly as intended. -/
 theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
     TransformsTapes (nop k Symbol) (fun _ _ => True) (fun _ ws ws' => ws' = ws) 1 k := by
   intro input ws out _
-  -- the heads never move, so each tape touches only the single cell `0`
+  -- the heads never move, so each head visits only the single cell `0`
   refine ⟨ws, runFrom_nop_one ws out, rfl,
     spaceUsed_le_of_workTapePos_const _ 1 fun m hm => ?_⟩
   rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
