@@ -284,8 +284,8 @@ lemma step_prependOutput (cfg : Cfg k Symbol State input) (pre : List Symbol) :
   cases hq : cfg.state with
   | none => simp [step_of_halt, hq, Cfg.prependOutput]
   | some q =>
-    rw [step_apply_of_state (cfg := cfg.prependOutput pre) (by simpa [Cfg.prependOutput] using hq),
-      step_apply_of_state hq]
+    rw [step_of_state (cfg := cfg.prependOutput pre) (by simpa [Cfg.prependOutput] using hq),
+      step_of_state hq]
     exact Cfg.ext rfl rfl rfl rfl (by simp [Cfg.prependOutput, Action.apply]; rfl)
 
 /-- **A word already on the output tape is inert.** The run is the run without it, with the word
