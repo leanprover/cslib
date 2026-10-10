@@ -95,7 +95,6 @@ private theorem exists_full_synthesis_point [DecidableEq U]
     (value default : U) (point : Fin n → U) :
     ∃ cost, Synthesis (fullInterpretation (k := 2)) (inputs n)
       {fun x => if x = point then value else default} cost := by
-  classical
   have step (indices : Finset (Fin n)) :
       ∃ cost, Synthesis (fullInterpretation (k := 2)) (inputs n)
         {fun x => if ∀ i ∈ indices, x i = point i then value else default} cost := by
@@ -115,7 +114,6 @@ private theorem exists_full_synthesis_finset [DecidableEq U]
     (tuples : Finset (Fin n → U)) :
     ∃ cost, Synthesis (fullInterpretation (k := 2)) (inputs n)
       {fun x => if x ∈ tuples then f x else default} cost := by
-  classical
   induction tuples using Finset.induction_on with
   | empty => exact ⟨1, by simpa using Synthesis.full_const default⟩
   | @insert point tuples hp ih =>
