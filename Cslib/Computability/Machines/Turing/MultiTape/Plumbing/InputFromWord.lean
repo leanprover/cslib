@@ -6,7 +6,6 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Mathlib.Algebra.BigOperators.Fin
 public import Cslib.Foundations.Data.Fin.Tuple
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.MarkWork
@@ -116,16 +115,6 @@ private lemma wordsCfg_append_words {State' : Type*} {outer : List Symbol} (q : 
   match i with
   | 0 => simp
   | 1 => simp
-
-/-- The one-tape `markWork` machine visits at most two cells: its head stays within `[p-1, p]`. -/
-private lemma spaceUsed_markWork_le {input : List Symbol} (write : Option Symbol)
-    (ip : Fin (input.length + 2)) (tp : ℤ → Option Symbol) (out : List Symbol) (p : ℤ) (n : ℕ) :
-    (markWork Symbol write).spaceUsed ⟨some (markWork Symbol write).q₀, ip,
-        fun _ => tp, fun _ => p, out⟩ n ≤ 2 := by
-  rw [spaceUsed, Fin.sum_univ_one]
-  refine (spaceUsedByTape_le_card _ (S := .Icc (p - 1) p) fun m _ => ?_).trans ?_
-  · exact Finset.mem_Icc.2 (workTapePos_runFrom_markWork write ip tp out p m)
-  · rw [Int.card_Icc]; omega
 
 /-- A bookkeeping phase visits at most `k' + 3` cells: two on the flag tape, one on each of the
 `k' + 1` tapes it never touches. -/

@@ -6,6 +6,7 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
+public import Mathlib.Algebra.BigOperators.Fin
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
@@ -29,6 +30,7 @@ input head, the output and every other tape are then untouched by construction.
 * `Turing.MultiTapeTM.markWork`: the one-tape machine that marks the cell left of its head.
 * `Turing.MultiTapeTM.runFrom_markWork`: its run from the initial state.
 * `Turing.MultiTapeTM.workTapePos_runFrom_markWork`: the head stays within `[p - 1, p]`.
+* `Turing.MultiTapeTM.spaceUsed_markWork_le`: hence the machine visits at most two cells.
 -/
 
 namespace Turing.MultiTapeTM
@@ -106,5 +108,15 @@ public theorem workTapePos_runFrom_markWork (write : Option Symbol) {input : Lis
       (by rw [runFrom_markWork]), runFrom_markWork]
     simp only [Set.mem_Icc]
     constructor <;> omega
+
+/-- The one-tape `markWork` machine visits at most two cells: its head stays within `[p-1, p]`. -/
+public theorem spaceUsed_markWork_le {input : List Symbol} (write : Option Symbol)
+    (ip : Fin (input.length + 2)) (tp : ℤ → Option Symbol) (out : List Symbol) (p : ℤ) (n : ℕ) :
+    (markWork Symbol write).spaceUsed ⟨some (markWork Symbol write).q₀, ip,
+        fun _ => tp, fun _ => p, out⟩ n ≤ 2 := by
+  rw [spaceUsed, Fin.sum_univ_one]
+  refine (spaceUsedByTape_le_card _ (S := .Icc (p - 1) p) fun m _ => ?_).trans ?_
+  · exact Finset.mem_Icc.2 (workTapePos_runFrom_markWork write ip tp out p m)
+  · rw [Int.card_Icc]; omega
 
 end Turing.MultiTapeTM

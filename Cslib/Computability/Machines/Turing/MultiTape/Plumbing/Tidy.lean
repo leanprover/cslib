@@ -72,15 +72,6 @@ theorem computesTidily_iff {input output : List Symbol} :
   · rintro ⟨hrun, hspace⟩ inp ws ⟨rfl, rfl⟩
     exact ⟨fun _ => [], output, hrun, ⟨rfl, rfl⟩, hspace⟩
 
-/-- **A single tidy run is a tape transformation.** This is how a concrete machine enters the
-interface. -/
-theorem computesTidily_of_runFrom {input output : List Symbol}
-    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
-      wordsCfg input none (fun _ => []) output)
-    (hspace : tm.spaceUsed (wordsCfg input (some tm.q₀) (fun _ => []) []) t ≤ s) :
-    tm.ComputesTidilyInTimeAndSpace input output t s :=
-  computesTidily_iff.mpr ⟨hrun, hspace⟩
-
 /-! ### Tidily computing a function -/
 
 variable {α β : Type*}

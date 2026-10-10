@@ -27,7 +27,6 @@ except the virtual input word go to blank tapes except the output word, emitting
 * `Turing.MultiTapeTM.onWords`: the composed machine.
 * `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace.onWords`: a tidy computation becomes a tape
   transformation placing the output on a designated tape, reading the input from another.
-* `Turing.MultiTapeTM.ComputesFunTidilyInTimeAndSpace.onWords`: the same for a computed function.
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.exists_onWords`: the conversion theorem — a
   tidily computable function is computed by some machine as a word-to-word tape transformer, with an
   input tape distinct from the output tape.
@@ -89,21 +88,6 @@ theorem ComputesTidilyInTimeAndSpace.onWords {k : ℕ} {Symbol State : Type*}
     (by omega) (by omega)
   · rw [hws, onWords_pre]
   · rw [hws, hws', onWords_post]
-
-/-- **A tidily computed function becomes a word-to-word tape transformation**, pointwise on every
-input: reading `encIn a` from the virtual input tape and leaving `encOut (f a)` on the output tape,
-emitting nothing. -/
-theorem ComputesFunTidilyInTimeAndSpace.onWords {k : ℕ} {Symbol State α β : Type*}
-    {tm : MultiTapeTM k Symbol State} {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol}
-    {f : α → β} {t s : α → ℕ} (mark : Symbol)
-    (h : ComputesFunTidilyInTimeAndSpace tm encIn encOut f t s) (a : α) :
-    TransformsTapes (tm.onWords mark)
-      (fun _ ws => ws = Function.update (fun _ => []) (Fin.natAdd (k + 1) 0) (encIn a))
-      (fun _ ws ws' emitted =>
-        ws' = Function.update ws ((Fin.last k).castAdd 2) (encOut (f a)) ∧ emitted = [])
-      (t a + (encOut (f a)).length + 6)
-      (s a + 2 * (encIn a).length + 2 * (encOut (f a)).length + 3 * k + 15) :=
-  (h a).onWords mark
 
 /-- **The conversion theorem.** A tidily computable function is computed by some machine with binary
 alphabet and finitely many states as a word-to-word tape transformer: it reads its input as a word

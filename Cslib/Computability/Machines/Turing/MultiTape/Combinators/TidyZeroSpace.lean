@@ -44,7 +44,7 @@ public theorem computesTidily_seq_rewindInput_of_runFrom {State : Type*}
       ⟨none, p, tapes, heads, output⟩) :
     (tm.seq (rewindInput Symbol)).ComputesTidilyInTimeAndSpace input output
       (t + (p.val - 1 + 2)) 0 := by
-  refine computesTidily_of_runFrom ?_ (le_of_eq (spaceUsed_zero_tapes_eq_zero _ _ rfl))
+  refine computesTidily_iff.mpr ⟨?_, (spaceUsed_zero_tapes_eq_zero _ _ rfl).le⟩
   have hfin : (rewindInput Symbol).runFrom
       ⟨some (rewindInput Symbol).q₀, p, tapes, heads, output⟩ (p.val - 1 + 2) =
       wordsCfg input none (fun _ => []) output :=
