@@ -27,7 +27,7 @@ variable {Symbol : Type*} {input : List Symbol}
 
 /-- The copy machine: a single state and no work tapes. It copies every input symbol to the output
 tape while moving right, and halts on reading the blank at the right end of the input. -/
-def copy : MultiTapeTM 0 Symbol Unit :=
+public def copy : MultiTapeTM 0 Symbol Unit :=
   ofTr () fun _ s _ =>
     match s with
     | some b => { inputTape := 1, workTapes := Fin.elim0, output := some b, state := some () }
@@ -76,11 +76,11 @@ lemma runFrom_full (input : List Symbol) :
   rw [runFrom, Function.iterate_succ_apply', ← runFrom, runFrom_scan _ le_rfl, step_halt]
 
 /-- The copy machine outputs its input unchanged, in `input.length + 1` steps and zero space. -/
-theorem computesInTimeAndSpace (input : List Symbol) :
+public theorem computesInTimeAndSpace (input : List Symbol) :
     ComputesInTimeAndSpace copy input input (input.length + 1) 0 := by
   have hhalt := congrArg Cfg.state (runFrom_full input)
   exact ⟨⟨input.length + 1, hhalt, by rw [runFrom_full]; simp [cfg]⟩,
-    runsInTime_of_halted hhalt, by simp⟩
+    runsInTime_iff_halted.mpr hhalt, by simp⟩
 
 end Copy
 

@@ -95,6 +95,13 @@ def ofTr (q₀ : State)
   Tr q input work action := tr q input work = action
   deterministic _ _ _ := by simp
 
+/-- The initial state of `ofTr` is the supplied one. -/
+@[simp]
+lemma q₀_ofTr (q₀ : State)
+    (tr : State → Option Symbol → (Fin k → Option Symbol) → Action k Symbol State) :
+    (ofTr q₀ tr).q₀ = q₀ :=
+  rfl
+
 /-- Extracting the transition of `ofTr` recovers the supplied function. -/
 @[simp]
 lemma tr_ofTr (q₀ : State)
@@ -169,6 +176,17 @@ If the Turing machine halts, it will stay at the halting configuration. -/
 noncomputable def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input :=
   tm.step^[t] cfg
 
+/-- One more step of a run. -/
+lemma runFrom_succ (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) :=
+  Function.iterate_succ_apply' _ _ _
+
+/-- A run splits at any intermediate step. -/
+lemma runFrom_add (cfg : Cfg k Symbol State input) (m n : ℕ) :
+    tm.runFrom cfg (m + n) = tm.runFrom (tm.runFrom cfg m) n := by
+  rw [runFrom, Nat.add_comm, Function.iterate_add_apply]
+  rfl
+
 /-- Every path of a deterministic machine follows its iterated step function. -/
 lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
     p i = tm.runFrom p.head i := by
@@ -196,12 +214,22 @@ lemma runFrom_eq_of_halt
   rw [runFrom, ← Nat.sub_add_cancel hle, Function.iterate_add_apply]
   exact Function.iterate_fixed (step_of_halt hhalt) _
 
-/-- A deterministic machine halted after `t` steps satisfies the shared time bound. -/
-lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}
-    (h : (tm.runFrom (tm.initCfg input) t).Halted) : tm.RunsInTime input t := by
-  intro p hp
-  rw [computationPath_last_eq_runFrom p, runFrom_eq_of_halt _ _ hp h]
-  exact h
+/-- A deterministic machine runs in time `t` exactly when it has halted after `t` steps. -/
+lemma runsInTime_iff_halted {input : List Symbol} {t : ℕ} :
+    tm.RunsInTime input t ↔ (tm.runFrom (tm.initCfg input) t).Halted := by
+  refine ⟨fun h => ?_, fun h p hp => ?_⟩
+  · -- apply the time bound to the computation path of length `t`
+    let p : tm.ComputationPath input :=
+      { toRunPath :=
+          { length := t
+            toFun := fun i => tm.runFrom (tm.initCfg input) i
+            step := fun i => by
+              simp only [Set.mem_ofPred_eq, Fin.val_succ, Fin.val_castSucc]
+              rw [step_iff, runFrom, runFrom, Function.iterate_succ_apply'] }
+        head_eq := rfl }
+    exact computationPath_last_eq_runFrom p ▸ h p le_rfl
+  · rw [computationPath_last_eq_runFrom p, runFrom_eq_of_halt _ _ hp h]
+    exact h
 
 /-- The machine `tm` started in `cfg` halts at step `t`: it is halted after `t` steps and not
 halted after any smaller number of steps. -/
@@ -292,6 +320,22 @@ lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i
 
 end Space
 
+/-- In `t` steps the machine emits at most `t` symbols. -/
+lemma length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
+    cases hq : (tm.runFrom cfg t).state with
+    | none => rw [step_of_halt hq]; omega
+    | some q =>
+      rw [step_of_state hq, Action.apply_output, List.length_append]
+      have : (tm.tr q (tm.runFrom cfg t).inputSymbol
+        (tm.runFrom cfg t).workTapeSymbols).output.toList.length ≤ 1 := Option.length_toList_le
+      omega
+
 /-- In `t` steps the input head moves at most `t` positions to the right. -/
 lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) (t : ℕ) :
@@ -358,6 +402,19 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
     ComputableInTimeAndSpace f encIn encOut t' s' := by
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
+
+/-- A function computable in zero space is computable by a machine without work tapes, within the
+same bounds, since every work tape costs at least one cell (`MultiTapeNTM.RunsInSpace.le`). The
+domain must be nonempty: otherwise the machine is never run and its number of tapes is arbitrary.
+-/
+theorem ComputableInTimeAndSpace.exists_no_work_tapes {α β : Type*} [Nonempty α]
+    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β} {t : α → ℕ}
+    (h : ComputableInTimeAndSpace f encIn encOut t (fun _ => 0)) :
+    ∃ (State : Type) (_ : Finite State) (tm : MultiTapeTM 0 Bool State),
+      ComputesFunInTimeAndSpace tm encIn encOut f t (fun _ => 0) := by
+  obtain ⟨k, State, hfin, tm, htm⟩ := h
+  obtain rfl : k = 0 := Nat.le_zero.mp (htm (Classical.arbitrary α)).2.2.le
+  exact ⟨State, hfin, tm, htm⟩
 
 open Classical in
 /-- The Boolean indicator function of a set. -/
