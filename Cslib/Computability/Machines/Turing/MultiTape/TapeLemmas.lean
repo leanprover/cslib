@@ -239,7 +239,8 @@ lemma visitedByTapeHead_subset (cfg : Cfg k Symbol State input) {t : ℕ} {i : F
 lemma spaceUsedByTape_le_card (cfg : Cfg k Symbol State input) {t : ℕ} {i : Fin k} {S : Finset ℤ}
     (h : ∀ m ≤ t, (tm.runFrom cfg m).workTapePos i ∈ S) :
     tm.spaceUsedByTape cfg t i ≤ S.card :=
-  Finset.card_le_card (tm.visitedByTapeHead_subset cfg h)
+  (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).spaceUsedByTape_le_card
+    fun _ ⟨m, hm⟩ => hm ▸ h m (Nat.lt_succ_iff.mp m.isLt)
 
 /-- A head that never moves uses a single cell. -/
 lemma spaceUsedByTape_le_one (cfg : Cfg k Symbol State input) {t : ℕ} {i : Fin k}

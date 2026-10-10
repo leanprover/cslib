@@ -171,14 +171,10 @@ public lemma step_inCfg (tm : MultiTapeTM k Symbol State) (mark : Symbol)
 
 /-- The redirection preserves steps, so it maps run paths of `tm` to run paths of the redirected
 machine. -/
-@[expose] public noncomputable def inCfgHom (tm : MultiTapeTM k Symbol State) (mark : Symbol)
-    (outerInput : List Symbol) : (tm.stepRel input).Hom (tm.inputFromTape.stepRel outerInput) :=
+@[expose, simps! apply] public noncomputable def inCfgHom (tm : MultiTapeTM k Symbol State)
+    (mark : Symbol) (outerInput : List Symbol) :
+    (tm.stepRel input).Hom (tm.inputFromTape.stepRel outerInput) :=
   stepHom (inCfg mark · outerInput) (step_inCfg tm mark · outerInput)
-
-@[simp]
-public lemma inCfgHom_apply (tm : MultiTapeTM k Symbol State) (mark : Symbol)
-    (outerInput : List Symbol) (c : Cfg k Symbol State input) :
-    inCfgHom tm mark outerInput c = inCfg mark c outerInput := rfl
 
 /-- **Space of the input-redirected path.** The `k` inner tapes visit exactly what the original
 path visits; the two extra tapes (virtual input, flag) each move only with the simulated input
