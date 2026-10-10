@@ -16,10 +16,12 @@ public import Mathlib.Logic.Relation
 
 * [*Term Rewriting and All That*][Baader1998]
 * [*Simple Laws about Nonprominent Properties of Binary Relations*][Burghardt2018]
-
+* [*Applied Combinatorics*][KellerTrotter2017]
 -/
 
 @[expose] public section
+
+variable {α β : Type*}
 
 namespace Relation
 
@@ -136,6 +138,33 @@ class LeftEuclidean (r : α → α → Prop) where
 /-- A relation `r` is serial if every element is `Reducible`, i.e. `Relator.LeftTotal`. -/
 class Serial (r : α → α → Prop) where
   serial : Relator.LeftTotal r
+
+/-! ### Relations and sets in the underlying types -/
+
+/-- The set of successors of an element `a` in a relation `r`. -/
+abbrev successors (r : α → β → Prop) (a : α) : Set β := {b | r a b}
+
+/-- The set of predecessors of an element `b` in a relation `r`. -/
+abbrev predecessors (r : α → β → Prop) (b : β) : Set α := {a | r a b}
+
+/-- The restriction of a relation `r` to a set `s`. -/
+def restrict (r : α → α → Prop) (s : Set α) : α → α → Prop :=
+  fun a b ↦ a ∈ s ∧ b ∈ s ∧ r a b
+
+/-- `IsStrictTotalOrderOn s r` means that `r` is a strict total order on the set `s`. -/
+def IsStrictTotalOrderOn (s : Set α) (r : α → α → Prop) : Prop :=
+  IsStrictOrder α r ∧
+  ∀ a b, a ∈ s → b ∈ s → a = b ∨ r a b ∨ r b a
+
+/-! ### Interval order -/
+
+/-- Fishburn's theorem (see sections 6.6 and 6.7 of [KellerTrotter2017]) shows that
+the definition below is a sufficient and necessary condition for a relation `r` to have
+a representation by closed intervals on the real line such that `r i1 i2` iff the right
+endpoint of `i1` is less than the left endpoint of `i2`. -/
+def IsIntervalOrder (r : α → α → Prop) : Prop :=
+  IsStrictOrder α r ∧
+  ∀ a1 b1 a2 b2, r a1 b1 ∧ r a2 b2 → r a1 b2 ∨ r a2 b1
 
 end Relation
 
