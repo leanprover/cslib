@@ -32,12 +32,15 @@ variable {Symbol : Type*} {input : List Symbol}
 
 /-! ### Machines without work tapes -/
 
+section NoWorkTapes
+
+variable {State : Type*} {tm : MultiTapeTM 0 Symbol State} {output : List Symbol} {t : ℕ}
+
 /-- If a machine without work tapes halts with output `output` and its input head at `p`, then
 following it with `Turing.MultiTapeTM.rewindInput` computes `output` tidily, with `p - 1 + 2`
 extra steps for the rewind. -/
-public theorem computesTidily_seq_rewindInput_of_runFrom {State : Type*}
-    {tm : MultiTapeTM 0 Symbol State} {output : List Symbol} {p : Fin (input.length + 2)}
-    {tapes : Fin 0 → ℤ → Option Symbol} {heads : Fin 0 → ℤ} {t : ℕ}
+public theorem computesTidily_seq_rewindInput_of_runFrom {p : Fin (input.length + 2)}
+    {tapes : Fin 0 → ℤ → Option Symbol} {heads : Fin 0 → ℤ}
     (hrun : tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
       ⟨none, p, tapes, heads, output⟩) :
     (tm.seq (rewindInput Symbol)).ComputesTidilyInTimeAndSpace input output
@@ -52,8 +55,7 @@ public theorem computesTidily_seq_rewindInput_of_runFrom {State : Type*}
 /-- A machine without work tapes that computes `output` in time `t`, followed by
 `Turing.MultiTapeTM.rewindInput`, computes `output` tidily in time `2 * t + 2`: in `t` steps the
 input head moves at most `t` cells, so the rewind takes at most `t + 2` steps. -/
-public theorem ComputesInTimeAndSpace.computesTidily_seq_rewindInput {State : Type*}
-    {tm : MultiTapeTM 0 Symbol State} {output : List Symbol} {t s : ℕ}
+public theorem ComputesInTimeAndSpace.computesTidily_seq_rewindInput {s : ℕ}
     (h : ComputesInTimeAndSpace tm input output t s) :
     (tm.seq (rewindInput Symbol)).ComputesTidilyInTimeAndSpace input output (2 * t + 2) 0 := by
   obtain ⟨⟨u, hu_halt, hu_out⟩, htime, -⟩ := h
@@ -71,6 +73,8 @@ public theorem ComputesInTimeAndSpace.computesTidily_seq_rewindInput {State : Ty
   have hpos := inputPos_runFrom_le tm (tm.initCfg input) t
   have hone : ((tm.initCfg input).inputPos : ℕ) = 1 := by simp [Cfg.init]
   exact (computesTidily_seq_rewindInput_of_runFrom hrun).mono (by omega) le_rfl
+
+end NoWorkTapes
 
 /-! ### Zero space -/
 
