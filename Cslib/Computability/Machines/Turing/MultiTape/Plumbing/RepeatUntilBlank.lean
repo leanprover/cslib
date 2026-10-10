@@ -96,8 +96,7 @@ lemma runFrom_runCfg {cfg : Cfg k Symbol State input} {u n : ℕ} (hhalt : tm.Ha
   induction n with
   | zero => rfl
   | succ n ih =>
-    simp only [runFrom, Function.iterate_succ_apply']
-    rw [← runFrom, ← runFrom, ih (by lia), step_runCfg _ (hhalt.not_halted (by lia))]
+    rw [runFrom_succ, runFrom_succ, ih (by lia), step_runCfg _ (hhalt.not_halted (by lia))]
 
 /-- From `check` on a `wordsCfg` configuration, the machine halts if the word on tape `i` is empty
 and otherwise restarts `tm`, leaving the words unchanged. -/
@@ -127,13 +126,13 @@ lemma exists_runFrom_round {c : Cfg k Symbol (RepeatUntilBlankState State) input
   -- up to step `u` the loop mirrors `tm`, and at step `u + 1` it inspects the flag
   have hround : (repeatUntilBlank i tm).runFrom (wordsCfg input (some (.run tm.q₀)) w out) (u + 1) =
       wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' out' := by
-    rw [runFrom, Function.iterate_succ_apply', ← runFrom, ← runCfg_wordsCfg_some,
+    rw [runFrom_succ, ← runCfg_wordsCfg_some,
       runFrom_runCfg hhalt le_rfl, ← hhalt.runFrom_eq hu, hrun, runCfg_wordsCfg_none, step_check]
   refine ⟨u, hu, ?_, fun l => ?_⟩
-  · rw [runFrom, Nat.add_comm, Function.iterate_add_apply, ← runFrom, ← runFrom, ht, hround]
+  · rw [runFrom_add, ht, hround]
   rw [visitedByTapeHead_add, ht]
   refine Finset.union_subset (hIcc l) (visitedByTapeHead_subset _ fun m hm => ?_)
-  rcases Nat.lt_or_eq_of_le hm with hlt | rfl
+  obtain hlt | rfl := hm.lt_or_eq
   · rw [← runCfg_wordsCfg_some, runFrom_runCfg hhalt (Nat.lt_succ_iff.mp hlt), workTapePos_runCfg]
     exact visitedByTapeHead_subset_Icc _ rfl ((spaceUsed_mono tm _ hu).trans hsp)
       (mem_visitedByTapeHead.mpr ⟨m, hlt, rfl⟩)
