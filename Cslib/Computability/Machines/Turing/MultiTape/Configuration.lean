@@ -201,11 +201,6 @@ def Cfg.workTapeSymbols (cfg : Cfg k Symbol State input) (i : Fin k) : Option Sy
 /-- A configuration is halted when it has no state to continue from. -/
 abbrev Cfg.Halted (cfg : Cfg k Symbol State input) : Prop := cfg.state = none
 
-/-- The same configuration with a different output tape. -/
-@[simps] def Cfg.withOutput (c : Cfg k Symbol State input) (out : List Symbol) :
-    Cfg k Symbol State input :=
-  ⟨c.state, c.inputPos, c.workTapes, c.workTapePos, out⟩
-
 /-- The same configuration with a word prepended to the output tape. A machine never reads its
 output, so prepending to it commutes with running: cf.
 `Turing.MultiTapeTM.runFrom_prependOutput`. -/
