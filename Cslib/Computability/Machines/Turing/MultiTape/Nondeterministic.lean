@@ -91,11 +91,24 @@ def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
     Cfg k Symbol State input :=
   Cfg.init ntm.q₀ input
 
+/-- The one-step relation on configurations for `input`, as a set of pairs. A map of configurations
+preserving it, an element of `SetRel.Hom`, maps run paths with `RelSeries.map`. -/
+abbrev stepRel (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
+    SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
+  {(c, c') | ntm.Step c c'}
+
 /-- A nonempty list of configurations joined by steps of `ntm`. -/
 abbrev RunPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :=
-  RelSeries {(c, c') | ntm.Step (input := input) c c'}
+  RelSeries (ntm.stepRel input)
 
 namespace RunPath
+
+/-- A run path mapped along a step-preserving map of configurations: `RelSeries.map`, typed as a
+run path of the target machine. -/
+abbrev map {k' : ℕ} {State' : Type*} {input' : List Symbol} {ntm' : MultiTapeNTM k' Symbol State'}
+    (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.stepRel input')) :
+    ntm'.RunPath input' :=
+  RelSeries.map p f
 
 /-- The output only grows along a run path. -/
 lemma length_output_mono (p : ntm.RunPath input) :
