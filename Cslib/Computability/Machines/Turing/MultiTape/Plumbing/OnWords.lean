@@ -51,31 +51,9 @@ the empty flag word is the family that is blank everywhere except the virtual in
 private lemma onWords_pre {k : ℕ} {Symbol : Type*} (input : List Symbol) :
     Fin.append (fun _ : Fin (k + 1) => ([] : List Symbol)) ![input, []] =
       Function.update (fun _ => []) (Fin.natAdd (k + 1) 0) input := by
-  funext l
-  refine Fin.addCases (fun j => ?_) (fun i => ?_) l
-  · have hne : Fin.castAdd 2 j ≠ Fin.natAdd (k + 1) 0 :=
-      Fin.ne_of_val_ne (by simp only [Fin.val_castAdd, Fin.val_natAdd]; omega)
-    rw [Fin.append_left, Function.update_of_ne hne]
-  · rw [Fin.append_right]
-    refine i.cases ?_ (fun i' => ?_)
-    · rw [Matrix.cons_val_zero, Function.update_self]
-    · have hne : Fin.natAdd (k + 1) i'.succ ≠ Fin.natAdd (k + 1) 0 :=
-        Fin.ne_of_val_ne (by simp only [Fin.val_natAdd, Fin.val_succ, Fin.val_zero]; omega)
-      rw [Function.update_of_ne hne]
-      simp
-
-/-- Updating the left-hand part of an appended family commutes with appending. -/
-private lemma append_update_left {α : Type*} {m n : ℕ} (a : Fin m → α) (b : Fin n → α)
-    (j : Fin m) (x : α) :
-    Fin.append (Function.update a j x) b = Function.update (Fin.append a b) (j.castAdd n) x := by
-  funext l
-  refine Fin.addCases (fun j' => ?_) (fun i => ?_) l
-  · rcases eq_or_ne j' j with rfl | hne
-    · rw [Fin.append_left, Function.update_self, Function.update_self]
-    · rw [Fin.append_left, Function.update_of_ne hne, Function.update_of_ne (by simpa using hne),
-        Fin.append_left]
-  · rw [Fin.append_right, Function.update_of_ne
-      (Fin.ne_of_val_ne (by simp only [Fin.val_natAdd, Fin.val_castAdd]; omega)), Fin.append_right]
+  rw [← Fin.append_const (m := k + 1) (n := 2) [], ← Fin.append_update_right]
+  congr 1
+  simp [funext_iff, Fin.forall_fin_two]
 
 /-- **Glue (postcondition).** The inner tapes holding `output` on the last tape, appended with the
 virtual input word `input` and the empty flag word, is the blank family updated with `input` on the
@@ -85,7 +63,7 @@ private lemma onWords_post {k : ℕ} {Symbol : Type*} (input output : List Symbo
         ![input, []] =
       Function.update (Function.update (fun _ => []) (Fin.natAdd (k + 1) 0) input)
         ((Fin.last k).castAdd 2) output := by
-  rw [append_update_left, onWords_pre]
+  rw [Fin.append_update_left, onWords_pre]
 
 /-- **A tidy computation becomes a word-to-word tape transformation.** Started on tapes blank except
 for the virtual input word on tape `Fin.natAdd (k + 1) 0`, `tm.onWords mark` halts leaving every

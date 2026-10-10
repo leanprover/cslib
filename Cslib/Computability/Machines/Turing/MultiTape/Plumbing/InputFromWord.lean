@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Mathlib.Algebra.BigOperators.Fin
+public import Cslib.Foundations.Data.Fin.Tuple
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.MarkWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
@@ -74,20 +75,12 @@ public lemma inCfg_wordsCfg (mark : Symbol) {w : List Symbol} (q : Option State)
     · simp
     · simp
 
-/-- Updating the flag tape of an appended tape family at the last index rewrites only the flag
-slot of the `![·, ·]` pair. -/
+/-- Updating the flag tape of an appended tape family rewrites only the flag slot. -/
 private lemma update_append_flag {α : Type*} (ws₀ : Fin k' → α) (a b c : α) :
     Function.update (Fin.append ws₀ ![a, b]) (Fin.natAdd k' 1) c = Fin.append ws₀ ![a, c] := by
-  funext l
-  refine Fin.addCases (fun j => ?_) (fun i => ?_) l
-  · rw [Function.update_of_ne (Fin.ne_of_val_ne (by simp [Fin.natAdd, Fin.castAdd]; omega)),
-      Fin.append_left, Fin.append_left]
-  · rw [Fin.append_right]
-    match i with
-    | 0 =>
-      rw [Function.update_of_ne (Fin.ne_of_val_ne (by simp [Fin.natAdd])), Fin.append_right]
-      simp
-    | 1 => rw [Function.update_self]; simp
+  rw [← Fin.append_update_right]
+  congr 1
+  simp [funext_iff, Fin.forall_fin_two]
 
 /-- One bookkeeping phase: placing `markWork write` on the flag tape `Fin.natAdd k' 1` and running
 it for its two steps writes `write` into the flag's cell `-1`, touching nothing else. -/
@@ -119,7 +112,7 @@ private lemma wordsCfg_append_words {State' : Type*} {outer : List Symbol} (q : 
       ⟨q, 1, Fin.append (fun j => tapeOfList (ws j)) ![tapeOfList w, fun _ => none],
         fun _ => 0, out⟩ := by
   refine Cfg.ext rfl rfl
-    ((tapeOfList_comp_append ws ![w, []]).trans (congrArg _ (funext fun i => ?_))) rfl rfl
+    ((Fin.comp_append tapeOfList ws ![w, []]).trans (congrArg _ (funext fun i => ?_))) rfl rfl
   match i with
   | 0 => simp
   | 1 => simp

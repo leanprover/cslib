@@ -6,7 +6,6 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Mathlib.Data.Fin.Tuple.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
 /-!
@@ -64,16 +63,6 @@ lemma tapeOfList_zero (xs : List Symbol) : tapeOfList xs 0 = xs.head? := by
   have h : (0 : ℤ) = ((0 : ℕ) : ℤ) := rfl
   rw [h, tapeOfList_ofNat]
   cases xs <;> rfl
-
-/-- `tapeOfList` distributes over `Fin.append`: the tapes of an appended family of words are the
-appended family of tapes. -/
-lemma tapeOfList_comp_append {m n : ℕ} (a : Fin m → List Symbol) (b : Fin n → List Symbol) :
-    (fun i => tapeOfList (Fin.append a b i)) =
-      Fin.append (fun i => tapeOfList (a i)) (fun i => tapeOfList (b i)) := by
-  funext i
-  refine Fin.addCases (fun j => ?_) (fun j => ?_) i
-  · rw [Fin.append_left, Fin.append_left]
-  · rw [Fin.append_right, Fin.append_right]
 
 /-- The configuration whose work tape `i` holds exactly the word `ws i` with its head at the
 start, whose input head is at the start of the input, in state `q` with output `out`. -/
