@@ -112,7 +112,7 @@ abbrev AlmostConstState (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (
     (S : Finset α) (out : List Bool) : Type :=
   {p : List Bool // p ∈ encPrefixes encIn S} ⊕ {w : List Bool // w ∈ outSuffixes encOut f S out}
 
-open Classical in
+open scoped Classical in
 /-- The function `f`, transported along the encodings of its domain and codomain: it maps the
 encoding of an element of `S` to the encoding of its value under `f`, and every other list to the
 default output. -/
@@ -141,7 +141,7 @@ lemma encodedFun_mem_outSuffixes (p : List Bool) :
   · next h => exact mem_outSuffixes h.choose_spec.1 (List.suffix_refl _)
   · exact suffix_out_mem_outSuffixes (List.suffix_refl _)
 
-open Classical in
+open scoped Classical in
 /-- The machine computing a function that is constant outside of `S`. It has no work tapes.
 
 While reading the input it remembers the prefix read so far. Once this prefix cannot be extended
@@ -278,7 +278,6 @@ lemma reaches_write (h : ∀ a ∉ S, encOut (f a) = out) (a : α) :
           workTapes := fun _ _ => none,
           workTapePos := fun _ => 0,
           output := [] } := by
-  classical
   set j := Nat.findGreatest (fun j => (encIn a).take j ∈ encPrefixes encIn S) (encIn a).length
     with hjdef
   have hmem : (encIn a).take j ∈ encPrefixes encIn S :=
