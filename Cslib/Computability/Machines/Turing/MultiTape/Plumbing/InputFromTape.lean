@@ -26,9 +26,8 @@ reading the flag. Reading blank on both the virtual input tape and the flag tape
 boundary.
 
 The configuration map `inCfg` places the simulated input on the virtual input tape, places the
-marker on the flag tape, and leaves the real input tape unused. One step of the redirected machine
-mirrors the corresponding step of `tm`, so `inCfgHom` maps every run path of `tm` to a run path of
-the redirected machine; the two extra tapes add at most `2 * (input.length + 2)` cells to its space.
+marker on the flag tape, and leaves the real input tape unused. The main lemmas show that one step
+and an entire run path of the redirected machine mirror the corresponding step and run path of `tm`.
 -/
 
 namespace Turing.MultiTapeTM
