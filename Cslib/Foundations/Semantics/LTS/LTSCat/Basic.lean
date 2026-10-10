@@ -53,7 +53,7 @@ A morphism between two labelled transition systems consists of (1) a function on
 states, (2) a partial function on labels, and a proof that (1) preserves each
 transition along (2).
 -/
-structure LTS.Morphism (lts₁ lts₂ : LTSCat) : Type where
+structure LTS.Morphism (lts₁ lts₂ : LTSCat.{u, v}) : Type (max u v) where
   /-- Mapping of states of `lts₁` to states of `lts₂` -/
   stateMap : lts₁.State → lts₂.State
   /-- Mapping of labels of `lts₁` to labels of `lts₂` -/
