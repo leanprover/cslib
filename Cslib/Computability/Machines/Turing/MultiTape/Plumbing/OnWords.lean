@@ -19,6 +19,10 @@ word on another, leaving every other tape alone. It is `tm` with its output redi
 work tape (`Turing.MultiTapeTM.outputToWord`) and its input read from another new work tape
 (`Turing.MultiTapeTM.inputFromWord`).
 
+Its `k + 1 + 2` work tapes are the `k` work tapes of `tm`, the *output work tape*
+`(Fin.last k).castAdd 2`, the *input work tape* `Fin.natAdd (k + 1) 0`, and the flag tape of
+`inputFromWord`.
+
 ## Main results
 
 * `Turing.MultiTapeTM.onWords`: the composed machine.
@@ -36,8 +40,9 @@ namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State : Type*}
 
-/-- `tm`, with its output written to the work tape `(Fin.last k).castAdd 2` and its input read
-from the work tape `Fin.natAdd (k + 1) 0`, using `mark` to flag the left end of the input. -/
+/-- `tm`, with its output written to a new work tape and its input read from another, using `mark`
+to flag the left end of the input. The output work tape is `(Fin.last k).castAdd 2`, the input
+work tape `Fin.natAdd (k + 1) 0`. -/
 noncomputable def onWords (tm : MultiTapeTM k Symbol State) (mark : Symbol) :
     MultiTapeTM (k + 1 + 2) Symbol (MarkWorkState ⊕ (State ⊕ RewindWorkState) ⊕ MarkWorkState) :=
   tm.outputToWord.inputFromWord mark
@@ -59,8 +64,8 @@ private lemma onWords_post (input output : List Symbol) :
   rw [Fin.append_update_left, onWords_pre]
 
 /-- If `tm` computes `output` from `input` tidily, then `onWords tm mark`, started with `input` on
-the work tape `Fin.natAdd (k + 1) 0` and all other work tapes blank, halts with `output` on the
-work tape `(Fin.last k).castAdd 2`, every other work tape unchanged, and nothing emitted. -/
+its input work tape and all other work tapes blank, halts with `output` on its output work tape,
+every other work tape unchanged, and nothing emitted. -/
 theorem ComputesTidilyInTimeAndSpace.onWords {tm : MultiTapeTM k Symbol State}
     {input output : List Symbol} {t s : ℕ} (mark : Symbol)
     (h : tm.ComputesTidilyInTimeAndSpace input output t s) :

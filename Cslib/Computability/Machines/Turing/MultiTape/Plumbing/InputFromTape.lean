@@ -16,14 +16,14 @@ public import Cslib.Foundations.Data.Fin.Tuple
 /-!
 # Reading the input from a word on a work tape
 
-`inputFromWord M mark` runs `M` with its input read from a word on the work tape `Fin.natAdd k 0`
-(the *virtual input tape*) instead of from the real input tape, which it never touches.
+`inputFromWord M mark` runs `M` with its input read from a word on a new work tape, the *virtual
+input tape* `Fin.natAdd k 0`, instead of from the real input tape, which it never touches.
 
 The head of the virtual input tape stands at cell `p - 1` when the input head of `M` is at position
 `p`, so the cells `0, …, w.length - 1` hold the input `w` and the blank cells `-1` and `w.length`
-are its two ends. To tell the ends apart, the work tape `Fin.natAdd k 1` (the *flag tape*) holds
-`mark` at cell `-1`, and its head moves together with the head of the virtual input tape: a blank
-on the virtual input tape is the left end if the flag tape shows `mark` and the right end
+are its two ends. To tell the ends apart, a second new work tape, the *flag tape* `Fin.natAdd k 1`,
+holds `mark` at cell `-1`, and its head moves together with the head of the virtual input tape: a
+blank on the virtual input tape is the left end if the flag tape shows `mark` and the right end
 otherwise.
 
 `inputFromWord M mark` runs three machines in sequence:
@@ -57,9 +57,9 @@ def clampMove (wvip wflag : Option Symbol) (m : SignType) : SignType :=
     | some _ => (match m with | SignType.neg => SignType.zero | _ => m)
     | none => (match m with | SignType.pos => SignType.zero | _ => m)
 
-/-- `tm`, reading its input from the virtual input tape `Fin.natAdd k 0`, with the flag tape
-`Fin.natAdd k 1` marking the cell left of the input. The real input tape is never read and never
-moved. -/
+/-- `tm`, reading its input from a new work tape, the virtual input tape `Fin.natAdd k 0`, with the
+cell left of the input marked on a second new work tape, the flag tape `Fin.natAdd k 1`. The real
+input tape is never read and never moved. -/
 noncomputable def inputFromTape (tm : MultiTapeTM k Symbol State) :
     MultiTapeTM (k + 2) Symbol State :=
   ofTr tm.q₀ fun q _ work =>
@@ -211,14 +211,14 @@ end Projections
 
 /-! ### Setting and erasing the flag -/
 
-/-- `markWork write` placed on the flag tape `Fin.natAdd k 1` of a machine with `k + 2` work
-tapes: it writes `write` to the cell left of the head of that tape. -/
+/-- `markWork write` placed on the flag tape, the last of `k + 2` work tapes: it writes `write` to
+the cell left of the head of that tape. -/
 public noncomputable def markFlag (k : ℕ) (write : Option Symbol) :
     MultiTapeTM (k + 2) Symbol MarkWorkState :=
   (markWork Symbol write).extendTapes (tapeEmb (Fin.natAdd k 1))
 
-/-- `M`, reading its input from the virtual input tape `Fin.natAdd k 0`, with the flag `mark`
-written to cell `-1` of the flag tape `Fin.natAdd k 1` before and erased after. -/
+/-- `M`, reading its input from a word on the virtual input tape `Fin.natAdd k 0`, with `mark`
+written to cell `-1` of the flag tape, the last work tape, before and erased after. -/
 public noncomputable def inputFromWord (M : MultiTapeTM k Symbol State) (mark : Symbol) :
     MultiTapeTM (k + 2) Symbol (MarkWorkState ⊕ State ⊕ MarkWorkState) :=
   (markFlag k (some mark)).seq (M.inputFromTape.seq (markFlag k none))
