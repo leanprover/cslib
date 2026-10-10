@@ -26,6 +26,8 @@ parameters, with zero, comparison, and polynomial-loss bounds.
 [`Game`](Game.lean) gives the acceptance probability, distinguishing advantage and negligible
 security of Boolean experiments.
 [`Game/Hybrid`](Game/Hybrid.lean) supplies hybrid arguments with polynomially many hops.
+[`Game/Statistical`](Game/Statistical.lean) identifies Boolean advantage with statistical
+distance, so a statistical approximation can be one hop of a computational argument.
 
 ## Pseudorandom generators
 
