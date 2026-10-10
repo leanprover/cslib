@@ -186,6 +186,17 @@ lemma spaceUsedByTape_le_card (cfg : Cfg k Symbol State input) {t : ℕ} {i : Fi
     tm.spaceUsedByTape cfg t i ≤ S.card :=
   Finset.card_le_card (tm.visitedByTapeHead_subset cfg h)
 
+/-- A run that starts with the head of tape `i` at cell `0` and uses at most `s` cells keeps that
+head within `[-s, s]`. -/
+lemma visitedByTapeHead_subset_Icc (cfg : Cfg k Symbol State input) {t s : ℕ} {i : Fin k}
+    (h0 : cfg.workTapePos i = 0) (hs : tm.spaceUsed cfg t ≤ s) :
+    tm.visitedByTapeHead cfg t i ⊆ Finset.Icc (-(s : ℤ)) (s : ℤ) := fun z hz => by
+  have hz := tm.natAbs_le_spaceUsedByTape_of_mem_visited hz
+  have := (tm.spaceUsedByTape_le_spaceUsed cfg t i).trans hs
+  rw [h0, sub_zero] at hz
+  rw [Finset.mem_Icc]
+  lia
+
 /-- A run whose heads all stay within `[-σ, σ]` uses at most `2 * σ + 1` cells per tape. -/
 lemma spaceUsed_le_of_visited_subset_Icc (cfg : Cfg k Symbol State input) (t : ℕ) {σ : ℕ}
     (h : ∀ i, tm.visitedByTapeHead cfg t i ⊆ Finset.Icc (-(σ : ℤ)) (σ : ℤ)) :
