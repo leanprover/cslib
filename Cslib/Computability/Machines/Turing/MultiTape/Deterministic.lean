@@ -164,6 +164,16 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
 
+/-- A configuration map that commutes with the step functions preserves the step relation, so it
+maps run paths with `RelSeries.map`. -/
+def stepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
+    {tm' : MultiTapeTM k' Symbol State'}
+    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
+    (h : ∀ c, tm'.step (f c) = f (tm.step c)) :
+    (tm.stepRel input).Hom (tm'.stepRel input') where
+  toFun := f
+  map_rel' hc := step_iff.mpr ((h _).trans (congrArg f (step_iff.mp hc)))
+
 end MultiTapeTM
 
 namespace MultiTapeNTM
@@ -198,6 +208,14 @@ lemma ComputationPath.eq_ofDeterministic (p : tm.ComputationPath input) :
   congr 1
   exact (RunPath.eq_ofDeterministic p).trans (by rw [hp]; rfl)
 
+/-- A step-preserving map sends the path of `t` steps from `cfg` to the path of `t` steps from the
+image of `cfg`. -/
+lemma RunPath.map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Symbol}
+    {tm' : MultiTapeTM k' Symbol State'} (f : (tm.stepRel input).Hom (tm'.stepRel input'))
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (RunPath.ofDeterministic tm cfg t).map f = .ofDeterministic tm' (f cfg) t :=
+  ((RunPath.ofDeterministic tm cfg t).map f).eq_ofDeterministic
+
 end MultiTapeNTM
 
 namespace MultiTapeTM
@@ -221,6 +239,14 @@ lemma computationPath_last_eq_runFrom (p : tm.ComputationPath input) :
     p.last = tm.runFrom (tm.initCfg input) p.time := by
   rw [p.eq_ofDeterministic]
   rfl
+
+/-- Running from the image of a configuration under a step-preserving map reaches the image of the
+original run. -/
+lemma runFrom_map {k' : ℕ} {State' : Type*} {input' : List Symbol}
+    {tm' : MultiTapeTM k' Symbol State'} (f : (tm.stepRel input).Hom (tm'.stepRel input'))
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm'.runFrom (f cfg) t = f (tm.runFrom cfg t) :=
+  congrArg RelSeries.last (MultiTapeNTM.RunPath.map_ofDeterministic f cfg t).symm
 
 /-- Nothing changes after the machine has halted. -/
 lemma runFrom_eq_of_halt
@@ -309,6 +335,11 @@ The number of work tape cells visited by a computation starting from configurati
 -/
 noncomputable def spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ :=
   ∑ i, tm.spaceUsedByTape cfg t i
+
+/-- The space used by the first `t` steps from `cfg` is the space of the corresponding path. -/
+lemma spaceUsed_eq_space (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.spaceUsed cfg t = (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).space :=
+  rfl
 
 /-- A zero-tape Turing machine uses zero space. -/
 @[simp]

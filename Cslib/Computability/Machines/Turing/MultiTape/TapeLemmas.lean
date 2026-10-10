@@ -22,9 +22,64 @@ influence the cells that are modified on a tape.
 attains its per-tape space usage at a single step, which makes a bound that holds at every point
 in time usable as a bound for the whole run.
 
+A simulation maps every run path of one machine to a run path of another with `RunPath.map`.
+`MultiTapeNTM.RunPath.space_map_le` and `MultiTapeNTM.RunPath.space_map_eq` compare the space of
+the two paths through the positions of the work-tape heads.
+
 -/
 
 @[expose] public section
+
+namespace Turing.MultiTapeNTM.RunPath
+
+variable {k k' : ℕ} {State State' Symbol : Type*} {input input' : List Symbol}
+variable {ntm : MultiTapeNTM k Symbol State} {ntm' : MultiTapeNTM k' Symbol State'}
+
+/-- A set containing every position of a head along a path bounds the space used by its tape. -/
+lemma spaceUsedByTape_le_card (p : ntm.RunPath input) {i : Fin k} {S : Finset ℤ}
+    (h : ∀ c ∈ p, c.workTapePos i ∈ S) : p.spaceUsedByTape i ≤ S.card :=
+  Finset.card_le_card (Finset.image_subset_iff.mpr fun n _ => h (p n) ⟨n, rfl⟩)
+
+/-! ### Mapped paths -/
+
+/-- If the head of tape `i'` of a mapped path follows the head of tape `i` of the source path, the
+two tapes visit the same cells. -/
+lemma visitedByTapeHead_map (p : ntm.RunPath input)
+    (f : (ntm.stepRel input).Hom (ntm'.stepRel input')) {i : Fin k} {i' : Fin k'}
+    (h : ∀ c ∈ p, (f c).workTapePos i' = c.workTapePos i) :
+    (p.map f).visitedByTapeHead i' = p.visitedByTapeHead i :=
+  Finset.image_congr fun n _ => h (p n) ⟨n, rfl⟩
+
+/-- A set containing the head position of every image of a configuration on the source path bounds
+the space used by that tape of the mapped path. -/
+lemma spaceUsedByTape_map_le_card (p : ntm.RunPath input)
+    (f : (ntm.stepRel input).Hom (ntm'.stepRel input')) {i : Fin k'} {S : Finset ℤ}
+    (h : ∀ c ∈ p, (f c).workTapePos i ∈ S) : (p.map f).spaceUsedByTape i ≤ S.card :=
+  (p.map f).spaceUsedByTape_le_card fun _ ⟨n, hn⟩ => hn ▸ h (p n) ⟨n, rfl⟩
+
+/-- A map preserving every head position preserves space. -/
+lemma space_map_eq {ntm' : MultiTapeNTM k Symbol State'} (p : ntm.RunPath input)
+    (f : (ntm.stepRel input).Hom (ntm'.stepRel input'))
+    (h : ∀ c ∈ p, (f c).workTapePos = c.workTapePos) : (p.map f).space = p.space :=
+  Finset.sum_congr rfl fun i _ =>
+    congrArg Finset.card (p.visitedByTapeHead_map f fun c hc => congrFun (h c hc) i)
+
+/-- **Space of a simulation.** If the heads of the tapes `e j` of a mapped path follow the heads of
+the tapes `j` of the source path, and each remaining tape of the mapped path visits at most `b`
+cells, then the mapped path uses the space of the source path plus at most `b` cells per remaining
+tape. -/
+lemma space_map_le (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.stepRel input'))
+    (e : Fin k ↪ Fin k') (b : ℕ) (he : ∀ c ∈ p, ∀ j, (f c).workTapePos (e j) = c.workTapePos j)
+    (hrest : ∀ l ∉ Set.range e, (p.map f).spaceUsedByTape l ≤ b) :
+    (p.map f).space ≤ p.space + (k' - k) * b := by
+  classical
+  rw [space, space, ← Finset.sum_add_sum_compl (Finset.univ.map e), Finset.sum_map]
+  refine add_le_add (Finset.sum_le_sum fun j _ => (congrArg Finset.card
+    (p.visitedByTapeHead_map f fun c hc => he c hc j)).le) ?_
+  refine (Finset.sum_le_card_nsmul _ _ b fun l hl => hrest l (by simpa using hl)).trans ?_
+  simp [Finset.card_compl]
+
+end Turing.MultiTapeNTM.RunPath
 
 namespace Turing.MultiTapeTM
 
@@ -230,22 +285,6 @@ lemma spaceUsed_eq_of_workTapePos {State' : Type*} {input' : List Symbol}
     tm.spaceUsed cfg t = tm'.spaceUsed cfg' t := by
   refine Finset.sum_congr rfl fun i _ => congrArg Finset.card (Finset.image_congr fun m _ => ?_)
   exact congrFun (h m (Nat.lt_succ_iff.mp m.isLt)) i
-
-/-- **Space of a simulation.** If the heads of `tm'` on the tapes `e j` follow the heads of `tm` on
-the tapes `j`, and each remaining tape of `tm'` visits at most `b` cells, then `tm'` uses the space
-of `tm` plus at most `b` cells per remaining tape. -/
-lemma spaceUsed_le_of_workTapePos_embedding {k' : ℕ} {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'} (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
-    (cfg' : Cfg k' Symbol State' input') {t : ℕ} (b : ℕ)
-    (he : ∀ m ≤ t, ∀ j, (tm.runFrom cfg m).workTapePos j = (tm'.runFrom cfg' m).workTapePos (e j))
-    (hrest : ∀ l ∉ Set.range e, tm'.spaceUsedByTape cfg' t l ≤ b) :
-    tm'.spaceUsed cfg' t ≤ tm.spaceUsed cfg t + (k' - k) * b := by
-  classical
-  rw [spaceUsed, spaceUsed, ← Finset.sum_add_sum_compl (Finset.univ.map e), Finset.sum_map]
-  refine add_le_add (Finset.sum_le_sum fun j _ => (congrArg Finset.card
-    (Finset.image_congr fun (m : Fin (t + 1)) _ => he m (Nat.lt_succ_iff.mp m.isLt) j)).ge) ?_
-  refine (Finset.sum_le_card_nsmul _ _ b fun l hl => hrest l (by simpa using hl)).trans ?_
-  simp [Finset.card_compl]
 
 /-- After the machine has halted the heads no longer move, so the visited set stops growing. -/
 lemma visitedByTapeHead_eq_of_halt (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
