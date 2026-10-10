@@ -133,7 +133,6 @@ private theorem fullInterpretation_isComplete_two [Finite U] :
     classical
     cases isEmpty_or_nonempty U with
     | inl h =>
-      let := h
       cases n with
       | zero => exact isEmptyElim (f Fin.elim0)
       | succ n => exact ⟨Circuit.wiring _ (fun _ => 0), fun x => isEmptyElim (x 0)⟩
