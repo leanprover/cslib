@@ -115,7 +115,6 @@ theorem union (h : Synthesis I s t a) (h' : Synthesis I s t₁ b) :
 theorem gate (op : σ.Op) (args : Fin (σ.Arity op) → (Fin n → U) → U)
     (hargs : ∀ i, args i ∈ s) :
     Synthesis I s {fun x => I op (fun i => args i x)} 1 := by
-  classical
   intro g₁ p hp
   choose wires hw using fun i => mem_available.mp (hp (hargs i))
   let line : Line σ n g₁ := ⟨op, wires⟩
@@ -229,7 +228,6 @@ outputs or none at all, requires no additional gates. -/
 theorem exists_circuit_outputs {m cost : ℕ} {f : Fin m → (Fin n → U) → U}
     (h : Synthesis I (inputs n) (Set.range f) cost) :
     ∃ c : Circuit σ n m, c.Computes I (fun x j => f j x) ∧ c.size ≤ cost := by
-  classical
   obtain ⟨g, p, hg, _, hout⟩ := h 0 .empty (inputs_subset_available _)
   choose wires hw using fun j => mem_available.mp (hout ⟨j, rfl⟩)
   exact ⟨⟨p, wires⟩, fun x => funext fun j => hw j x, by simpa using hg⟩

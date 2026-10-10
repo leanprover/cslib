@@ -35,7 +35,6 @@ theorem Program.exists_irredundant (p : Program σ n g) (i : Interpretation σ U
     ∃ k ≤ g, ∃ q : Program σ n k, ∃ ρ : Wire.Renaming n g k,
       (∀ x w, q.trace i x (ρ w) = p.trace i x w) ∧
         q.Irredundant i := by
-  classical
   induction p with
   | empty =>
       exact ⟨0, le_rfl, .empty, .id, by simp, fun w => Fin.elim0 w⟩
