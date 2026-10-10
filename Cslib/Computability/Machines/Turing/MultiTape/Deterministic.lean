@@ -208,13 +208,15 @@ lemma ComputationPath.eq_ofDeterministic (p : tm.ComputationPath input) :
   congr 1
   exact (RunPath.eq_ofDeterministic p).trans (by rw [hp]; rfl)
 
-/-- A step-preserving map sends the path of `t` steps from `cfg` to the path of `t` steps from the
-image of `cfg`. -/
-lemma RunPath.map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Symbol}
+/-- A path starting at the image of `cfg` under a step-preserving map is the image of the path of
+the same length from `cfg`. -/
+lemma RunPath.eq_map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Symbol}
     {tm' : MultiTapeTM k' Symbol State'} (f : (tm.stepRel input).Hom (tm'.stepRel input'))
-    (cfg : Cfg k Symbol State input) (t : ℕ) :
-    (RunPath.ofDeterministic tm cfg t).map f = .ofDeterministic tm' (f cfg) t :=
-  ((RunPath.ofDeterministic tm cfg t).map f).eq_ofDeterministic
+    {cfg : Cfg k Symbol State input} (p : tm'.RunPath input') (hp : p.head = f cfg) :
+    p = (RunPath.ofDeterministic tm cfg p.length).map f :=
+  p.eq_ofDeterministic.trans <| by
+    rw [hp]
+    exact ((RunPath.ofDeterministic tm cfg p.length).map f).eq_ofDeterministic.symm
 
 end MultiTapeNTM
 
@@ -246,7 +248,8 @@ lemma runFrom_map {k' : ℕ} {State' : Type*} {input' : List Symbol}
     {tm' : MultiTapeTM k' Symbol State'} (f : (tm.stepRel input).Hom (tm'.stepRel input'))
     (cfg : Cfg k Symbol State input) (t : ℕ) :
     tm'.runFrom (f cfg) t = f (tm.runFrom cfg t) :=
-  congrArg RelSeries.last (MultiTapeNTM.RunPath.map_ofDeterministic f cfg t).symm
+  congrArg RelSeries.last
+    (MultiTapeNTM.RunPath.eq_map_ofDeterministic f (.ofDeterministic tm' (f cfg) t) rfl)
 
 /-- Nothing changes after the machine has halted. -/
 lemma runFrom_eq_of_halt
@@ -335,11 +338,6 @@ The number of work tape cells visited by a computation starting from configurati
 -/
 noncomputable def spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ :=
   ∑ i, tm.spaceUsedByTape cfg t i
-
-/-- The space used by the first `t` steps from `cfg` is the space of the corresponding path. -/
-lemma spaceUsed_eq_space (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t = (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).space :=
-  rfl
 
 /-- A zero-tape Turing machine uses zero space. -/
 @[simp]

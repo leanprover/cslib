@@ -38,8 +38,7 @@ original by one cell for each remaining tape.
 * `Turing.MultiTapeTM.step_embed`: the one-step mirroring lemma.
 * `Turing.MultiTapeTM.space_map_embedHom_le`: the space bound for a mapped path.
 * `Turing.MultiTapeTM.oneTapeCfg`: the one-tape view of a configuration.
-* `Turing.MultiTapeTM.ofDeterministic_tapeEmb`, `Turing.MultiTapeTM.runFrom_tapeEmb`: the path and
-  the run of a one-tape machine placed on work tape `i`.
+* `Turing.MultiTapeTM.runFrom_tapeEmb`: the run of a one-tape machine placed on work tape `i`.
 * `Turing.MultiTapeTM.TransformsTapes.tapeEmb`: a one-tape specification, read on tape `i`.
 * `Turing.MultiTapeTM.runFrom_noTapes`: the run of a machine without work tapes, placed in a machine
   with `k` of them.
@@ -213,23 +212,14 @@ public lemma embed_oneTapeCfg (i : Fin k) (cfg : Cfg k Symbol State input) :
   rw [embed_tapeEmb]
   simp [oneTapeCfg]
 
-/-- **The path of a one-tape machine on work tape `i`** is the path from the one-tape view of the
-configuration, placed back on tape `i`; every other tape and head keeps its starting value. -/
-public lemma ofDeterministic_tapeEmb (tm : MultiTapeTM 1 Symbol State) (i : Fin k)
-    (cfg : Cfg k Symbol State input) (n : ℕ) :
-    MultiTapeNTM.RunPath.ofDeterministic (tm.extendTapes (tapeEmb i)) cfg n =
-      (MultiTapeNTM.RunPath.ofDeterministic tm (oneTapeCfg i cfg) n).map
-        (embedHom tm (tapeEmb i) cfg.workTapes cfg.workTapePos) := by
-  rw [MultiTapeNTM.RunPath.map_ofDeterministic, embedHom_apply, embed_oneTapeCfg]
-
 /-- **Running a one-tape machine on work tape `i`.** The run is the run on the one-tape view of the
 configuration, placed back on tape `i`; every other tape and head keeps its starting value. Combine
 with `embed_tapeEmb` to read off the resulting configuration. -/
 public lemma runFrom_tapeEmb (tm : MultiTapeTM 1 Symbol State) (i : Fin k)
     (cfg : Cfg k Symbol State input) (n : ℕ) :
     (tm.extendTapes (tapeEmb i)).runFrom cfg n =
-      embed (tapeEmb i) (tm.runFrom (oneTapeCfg i cfg) n) cfg.workTapes cfg.workTapePos :=
-  congrArg RelSeries.last (ofDeterministic_tapeEmb tm i cfg n)
+      embed (tapeEmb i) (tm.runFrom (oneTapeCfg i cfg) n) cfg.workTapes cfg.workTapePos := by
+  rw [← embedHom_apply tm, ← runFrom_map, embedHom_apply, embed_oneTapeCfg]
 
 /-- **A one-tape specification on tape `i`.** A one-tape machine placed on tape `i` transforms the
 word on that tape as it did on its own tape and leaves every other word alone; each remaining tape
@@ -246,14 +236,17 @@ public theorem TransformsTapes.tapeEmb {tm : MultiTapeTM 1 Symbol State}
       t (s + (k - 1)) := by
   intro input ws out hP
   obtain ⟨v, emitted, hrun, hQ, hspace⟩ := h input (fun _ => ws i) out hP
-  simp only [wordsCfg] at hrun hspace
+  simp only [wordsCfg] at hrun
   refine ⟨Function.update ws i (v 0), emitted, ?_, ⟨v, hQ, rfl⟩, ?_⟩
   · rw [extendTapes_q₀, runFrom_tapeEmb]
     simp only [oneTapeCfg, wordsCfg, hrun]
     rw [embed_tapeEmb]
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> by_cases hl : l = i <;> simp [hl]
-  · rw [extendTapes_q₀, spaceUsed_eq_space, ofDeterministic_tapeEmb]
-    exact (space_map_embedHom_le _ _ _ _ _).trans (Nat.add_le_add_right hspace _)
+  · -- a run of the placed machine is the one-tape run, mapped onto tape `i`
+    intro p hp
+    rw [extendTapes_q₀, ← embed_oneTapeCfg i (wordsCfg ..)] at hp
+    rw [MultiTapeNTM.RunPath.eq_map_ofDeterministic (embedHom ..) p hp]
+    exact (space_map_embedHom_le ..).trans (Nat.add_le_add_right (hspace _ rfl) _)
 
 end OneTape
 
