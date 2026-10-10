@@ -23,8 +23,6 @@ which `Turing.MultiTapeTM.rewindInput` does in at most `t + 2` further steps.
 * `Turing.MultiTapeTM.ComputableInTimeAndSpace.computableTidilyInTimeAndSpace`: a function
   computable in zero space is computable *tidily*, with the time bound doubled and the space
   bound still zero.
-* `Turing.MultiTapeTM.ComputesFunInTimeAndSpace.computableTidilyInTimeAndSpace` and the rungs
-  below it: the same with the machine in hand, stated for machines without work tapes.
 -/
 
 namespace Turing.MultiTapeTM
@@ -77,37 +75,12 @@ public theorem ComputesInTimeAndSpace.computesTidily_seq_rewindInput {State : Ty
   rw [hone] at hpos
   exact (computesTidily_seq_rewindInput_of_runFrom hrun).mono (by omega) le_rfl
 
-/-- A machine without work tapes that computes a function computes it tidily once the rewinding
-machine follows it, with the time bound doubled and the space bound still zero. -/
-public theorem ComputesFunInTimeAndSpace.computesFunTidily_seq_rewindInput
-    {α β State : Type*} {tm : MultiTapeTM 0 Symbol State}
-    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β} {t s : α → ℕ}
-    (h : ComputesFunInTimeAndSpace tm encIn encOut f t s) :
-    ComputesFunTidilyInTimeAndSpace (tm.seq (rewindInput Symbol)) encIn encOut f
-      (fun a => 2 * t a + 2) (fun _ => 0) := by
-  intro a
-  exact (h a).computesTidily_seq_rewindInput
-
-/-- **A function computed by a machine without work tapes is computable tidily**, with the time
-bound doubled and the space bound still zero: with no work tape to clean up, rewinding the input
-head is all there is to tidiness. -/
-public theorem ComputesFunInTimeAndSpace.computableTidilyInTimeAndSpace
-    {α β : Type*} {State : Type} [Finite State] {tm : MultiTapeTM 0 Bool State}
-    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β} {t s : α → ℕ}
-    (h : ComputesFunInTimeAndSpace tm encIn encOut f t s) :
-    ComputableTidilyInTimeAndSpace f encIn encOut (fun a => 2 * t a + 2) (fun _ => 0) :=
-  ⟨0, State ⊕ RewindState, inferInstance, tm.seq (rewindInput Bool),
-    h.computesFunTidily_seq_rewindInput⟩
-
-/-! ### Zero space is tidy
-
-Zero space forces a machine without work tapes
-(`Turing.MultiTapeTM.ComputableInTimeAndSpace.exists_no_work_tapes`), so the ladder above
-applies to every zero-space computation. -/
+/-! ### Zero space is tidy -/
 
 /-- **A computation in zero space can be made tidy**: zero space forces a machine without work
-tapes, and such a machine leaves nothing behind but its input head, which a final rewind returns.
-The time bound doubles; the space bound stays zero. -/
+tapes (`Turing.MultiTapeTM.ComputableInTimeAndSpace.exists_no_work_tapes`), and such a machine
+leaves nothing behind but its input head, which a final rewind returns. The time bound doubles;
+the space bound stays zero. -/
 public theorem ComputableInTimeAndSpace.computableTidilyInTimeAndSpace {α β : Type*}
     {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β} {t : α → ℕ}
     (h : ComputableInTimeAndSpace f encIn encOut t (fun _ => 0)) :
@@ -115,6 +88,7 @@ public theorem ComputableInTimeAndSpace.computableTidilyInTimeAndSpace {α β : 
   rcases isEmpty_or_nonempty α with hα | hα
   · exact ⟨0, Unit, inferInstance, nop 0 Bool, fun a => (hα.false a).elim⟩
   · obtain ⟨State, hfin, tm, htm⟩ := h.exists_no_work_tapes
-    exact htm.computableTidilyInTimeAndSpace
+    exact ⟨0, State ⊕ RewindState, inferInstance, tm.seq (rewindInput Bool),
+      fun a => (htm a).computesTidily_seq_rewindInput⟩
 
 end Turing.MultiTapeTM
