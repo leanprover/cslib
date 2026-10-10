@@ -52,20 +52,9 @@ theorem versionSpace_append {m n : ℕ} (C : ConceptClass α β)
     (S : LabeledSample α β m) (T : LabeledSample α β n) :
     VersionSpace C (Fin.append S T) = VersionSpace C S ∩ VersionSpace C T := by
   ext h
-  constructor
-  · intro hh
-    refine ⟨⟨hh.1, fun i => ?_⟩, hh.1, fun i => ?_⟩
-    · have hi := hh.2 (Fin.castAdd n i)
-      rwa [Fin.append_left] at hi
-    · have hi := hh.2 (Fin.natAdd m i)
-      rwa [Fin.append_right] at hi
-  · rintro ⟨⟨hC, hS⟩, ⟨-, hT⟩⟩
-    refine ⟨hC, fun i => ?_⟩
-    refine Fin.addCases (fun j => ?_) (fun j => ?_) i
-    · rw [Fin.append_left]
-      exact hS j
-    · rw [Fin.append_right]
-      exact hT j
+  simp only [VersionSpace, Set.mem_ofPred_eq, Set.mem_inter_iff, Fin.forall_fin_add,
+    Fin.append_left, Fin.append_right]
+  tauto
 
 /-- The family of all version spaces of a concept class, over labeled samples of every
 size. -/

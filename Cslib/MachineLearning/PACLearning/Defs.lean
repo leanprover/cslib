@@ -7,6 +7,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Init
+public import Mathlib.Data.ENat.Lattice
 public import Mathlib.MeasureTheory.Measure.Basic
 public import Mathlib.MeasureTheory.Constructions.Pi
 public import Mathlib.Order.SymmDiff
@@ -56,8 +57,9 @@ generic names like `error` and `optimalError` do not pollute the parent namespac
   `Type 0`; `IsRPACLearnerFor` itself remains universe-polymorphic for users who need it.
 - `LearnerModel`: the common predicate shape `ℕ → ε → δ → C → 𝒟 → Prop` abstracting both
   the deterministic and randomized learners so sample-complexity lemmas can be shared.
-- `sampleComplexity`: sample complexity of a generic learner model.
-- `rsampleComplexity`: randomized sample complexity, i.e. `sampleComplexity IsRPACLearnerFor`.
+- `esampleComplexity`: sample complexity of a generic learner model, with `⊤` when no
+  learner exists.
+- `sampleComplexity`, `rsampleComplexity`: natural-number values extracted when a learner exists.
 
 ## Binary classification
 
@@ -84,6 +86,7 @@ When `β = Bool`, concepts correspond to subsets of `α`. The section
 - `IsPACLearnable.toIsRPACLearnable`: deterministic learnability implies randomized.
 - `IsPACLearnable.antitone_family`, `.antitone_C`, `IsRPACLearnable.antitone_family`:
   PAC learnability is antitone in the distribution family and concept class.
+- `esampleComplexity_le_of_forall`: inclusion of admissible sample sizes reverses complexity.
 - `sampleComplexity_antitone_δ`, `_antitone_ε`, `_mono_family`, `_mono_C`: variation of
   deterministic sample complexity in confidence, accuracy, distribution family, and concept
   class (antitone in the numeric parameters, monotone under `⊆` in the set parameters). The
@@ -330,51 +333,110 @@ abbrev LearnerModel (α β : Type*) [MeasurableSpace α] [MeasurableSpace β] :=
   ℕ → Set.Ioo (0 : ℝ≥0) 1 → Set.Ioo (0 : ℝ≥0) 1 →
     ConceptClass α β → Set (Measure (α × β)) → Prop
 
-/-- The *sample complexity* of a concept class `C` under a learner model `L`, at accuracy
-`ε ∈ (0, 1)` and confidence `δ ∈ (0, 1)` over distribution family `𝒟`, is the smallest sample
-size `m` with `L m ε δ C 𝒟`. Specialize with `L := IsPACLearnerFor` for the deterministic model
-and `L := IsRPACLearnerFor` for the randomized one.
+/-- The *sample complexity* of `C` under learner model `L`: the least sample size `m`
+with `L m ε δ C 𝒟`, or `⊤` if no such size exists. Specialize with `L := IsPACLearnerFor`
+for deterministic learners and `L := IsRPACLearnerFor` for randomized learners.
 
-**Caveat**: because `sInf` on `ℕ` returns `0` for the empty set, this definition returns `0`
-when no learner exists (e.g., a concept class of infinite VC dimension). It is only meaningful
-when the defining set `{m | L m ε δ C 𝒟}` is nonempty. The `IsPACLearnable.sampleComplexity_*`
-variants below discharge this nonemptiness from a learnability hypothesis. -/
+When a learner exists, `sampleComplexity` extracts this same value as a natural number. -/
+noncomputable def esampleComplexity (L : LearnerModel α β) (C : ConceptClass α β)
+    (ε δ : Set.Ioo (0 : ℝ≥0) 1) (𝒟 : Set (Measure (α × β))) : ℕ∞ :=
+  ⨅ m : ℕ, ⨅ _ : L m ε δ C 𝒟, (m : ℕ∞)
+
+section
+variable {L : LearnerModel α β} {C : ConceptClass α β}
+variable {ε δ : Set.Ioo (0 : ℝ≥0) 1} {𝒟 : Set (Measure (α × β))}
+
+/-- Any admissible sample size bounds the extended sample complexity from above. -/
+theorem esampleComplexity_le {m : ℕ} (h : L m ε δ C 𝒟) :
+    esampleComplexity L C ε δ 𝒟 ≤ m :=
+  iInf₂_le_of_le m h le_rfl
+
+/-- A lower bound on extended sample complexity bounds every admissible sample size. -/
+theorem le_esampleComplexity_iff {n : ℕ∞} :
+    n ≤ esampleComplexity L C ε δ 𝒟 ↔ ∀ m, L m ε δ C 𝒟 → n ≤ m :=
+  le_iInf₂_iff
+
+/-- Sample complexity is infinite precisely when no sample size admits a learner. -/
+@[simp]
+theorem esampleComplexity_eq_top_iff :
+    esampleComplexity L C ε δ 𝒟 = ⊤ ↔ ¬ ∃ m, L m ε δ C 𝒟 := by
+  simp [esampleComplexity, iInf_eq_top]
+
+/-- Sample complexity is finite precisely when a learner exists. -/
+theorem esampleComplexity_ne_top_iff :
+    esampleComplexity L C ε δ 𝒟 ≠ ⊤ ↔ ∃ m, L m ε δ C 𝒟 := by
+  simp
+
+/-- A finite sample complexity is attained and is the least admissible sample size. -/
+theorem esampleComplexity_eq_natCast_iff {m : ℕ} :
+    esampleComplexity L C ε δ 𝒟 = m ↔
+      L m ε δ C 𝒟 ∧ ∀ n, L n ε δ C 𝒟 → m ≤ n := by
+  simp [esampleComplexity, ENat.iInf_eq_natCast_iff]
+
+/-- Zero sample complexity means that a learner can succeed without seeing any samples. -/
+@[simp]
+theorem esampleComplexity_eq_zero_iff :
+    esampleComplexity L C ε δ 𝒟 = 0 ↔ L 0 ε δ C 𝒟 := by
+  simpa using (esampleComplexity_eq_natCast_iff (L := L) (C := C) (ε := ε) (δ := δ)
+    (𝒟 := 𝒟) (m := 0))
+
+end
+
+/-- Pointwise inclusion of admissible sample sizes reverses extended sample complexity.
+No existence assumption is needed, since the infimum of the empty set is `⊤`. -/
+theorem esampleComplexity_le_of_forall {L₁ L₂ : LearnerModel α β}
+    {ε₁ δ₁ ε₂ δ₂ : Set.Ioo (0 : ℝ≥0) 1} {C₁ C₂ : ConceptClass α β}
+    {𝒟₁ 𝒟₂ : Set (Measure (α × β))}
+    (hL : ∀ {m : ℕ}, L₁ m ε₁ δ₁ C₁ 𝒟₁ → L₂ m ε₂ δ₂ C₂ 𝒟₂) :
+    esampleComplexity L₂ C₂ ε₂ δ₂ 𝒟₂ ≤ esampleComplexity L₁ C₁ ε₁ δ₁ 𝒟₁ :=
+  le_iInf₂ fun m hm => iInf₂_le_of_le m (hL hm) le_rfl
+
+/-! ### Finite Sample Complexity -/
+
+/-- The sample complexity as a natural number, given that a learner exists.
+This is `esampleComplexity` with its infinite case excluded by `h`. -/
 noncomputable def sampleComplexity (L : LearnerModel α β) (C : ConceptClass α β)
-    (ε δ : Set.Ioo (0 : ℝ≥0) 1) (𝒟 : Set (Measure (α × β))) : ℕ :=
-  sInf {m : ℕ | L m ε δ C 𝒟}
+    (ε δ : Set.Ioo (0 : ℝ≥0) 1) (𝒟 : Set (Measure (α × β)))
+    (h : ∃ m, L m ε δ C 𝒟) : ℕ :=
+  (esampleComplexity L C ε δ 𝒟).untop (esampleComplexity_ne_top_iff.mpr h)
 
-/-- The *randomized sample complexity* of `C`, i.e. `sampleComplexity` instantiated at the
-randomized learner model `IsRPACLearnerFor`. The randomness space is pinned to `Type 0`. -/
+/-- Randomized sample complexity as a natural number, given a randomized learner.
+The randomness space is pinned to `Type 0`. -/
 noncomputable def rsampleComplexity (C : ConceptClass α β) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
-    (𝒟 : Set (Measure (α × β))) : ℕ :=
-  sampleComplexity IsRPACLearnerFor.{_, _, 0} C ε δ 𝒟
+    (𝒟 : Set (Measure (α × β))) (h : ∃ m, IsRPACLearnerFor.{_, _, 0} m ε δ C 𝒟) : ℕ :=
+  sampleComplexity IsRPACLearnerFor.{_, _, 0} C ε δ 𝒟 h
 
-/-! ### Monotonicity of Sample Complexity
+/-- Casting finite sample complexity recovers the extended value. -/
+@[simp]
+theorem natCast_sampleComplexity {L : LearnerModel α β} {C : ConceptClass α β}
+    {ε δ : Set.Ioo (0 : ℝ≥0) 1} {𝒟 : Set (Measure (α × β))}
+    (h : ∃ m, L m ε δ C 𝒟) :
+    (sampleComplexity L C ε δ 𝒟 h : ℕ∞) = esampleComplexity L C ε δ 𝒟 :=
+  WithTop.coe_untop _ _
 
-These lemmas are all special cases of the following observation: if `{m | L₁ m ε₁ δ₁ C₁ 𝒟₁} ⊆
-{m | L₂ m ε₂ δ₂ C₂ 𝒟₂}` and the first set is nonempty, then the sample complexity under
-`(L₂, ε₂, δ₂, C₂, 𝒟₂)` is at most the sample complexity under `(L₁, ε₁, δ₁, C₁, 𝒟₁)`. The
-nonemptiness hypothesis is essential: `sInf` on `ℕ` returns `0` for an empty set, so without
-it the inequality can fail at the degenerate boundary. The `IsPACLearnable`-flavoured variants
-at the end of this section discharge that witness from a learnability hypothesis. -/
+/-- The finite sample complexity is an admissible sample size. -/
+theorem sampleComplexity_spec {L : LearnerModel α β} {C : ConceptClass α β}
+    {ε δ : Set.Ioo (0 : ℝ≥0) 1} {𝒟 : Set (Measure (α × β))}
+    (h : ∃ m, L m ε δ C 𝒟) : L (sampleComplexity L C ε δ 𝒟 h) ε δ C 𝒟 :=
+  (esampleComplexity_eq_natCast_iff.mp (natCast_sampleComplexity h).symm).1
 
-/-- General pointwise monotonicity of `sampleComplexity`: if every witness sample size for
-`(L₁, ε₁, δ₁, C₁, 𝒟₁)` is also a witness for `(L₂, ε₂, δ₂, C₂, 𝒟₂)`, then the latter's
-sample complexity is at most the former's (provided the former is attained). -/
+/-- Inclusion of admissible sample sizes reverses finite sample complexity. -/
 theorem sampleComplexity_le_of_forall {L₁ L₂ : LearnerModel α β}
     {ε₁ δ₁ ε₂ δ₂ : Set.Ioo (0 : ℝ≥0) 1} {C₁ C₂ : ConceptClass α β}
     {𝒟₁ 𝒟₂ : Set (Measure (α × β))}
     (hL : ∀ {m : ℕ}, L₁ m ε₁ δ₁ C₁ 𝒟₁ → L₂ m ε₂ δ₂ C₂ 𝒟₂)
     (h : ∃ m, L₁ m ε₁ δ₁ C₁ 𝒟₁) :
-    sampleComplexity L₂ C₂ ε₂ δ₂ 𝒟₂ ≤ sampleComplexity L₁ C₁ ε₁ δ₁ 𝒟₁ :=
-  Nat.sInf_le (hL (Nat.sInf_mem h))
+    sampleComplexity L₂ C₂ ε₂ δ₂ 𝒟₂ (h.imp fun _ hm => hL hm) ≤
+      sampleComplexity L₁ C₁ ε₁ δ₁ 𝒟₁ h :=
+  WithTop.untop_mono _ _ (esampleComplexity_le_of_forall hL)
 
 /-- Deterministic sample complexity is antitone in the confidence parameter `δ`: weaker
 confidence requires no more samples. -/
 theorem sampleComplexity_antitone_δ {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val)
     {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
     (h : ∃ m, IsPACLearnerFor m ε δ₁ C 𝒟) :
-    sampleComplexity IsPACLearnerFor C ε δ₂ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ₁ 𝒟 :=
+    sampleComplexity IsPACLearnerFor C ε δ₂ 𝒟 (h.imp fun _ hm => hm.mono_δ hδ) ≤
+      sampleComplexity IsPACLearnerFor C ε δ₁ 𝒟 h :=
   sampleComplexity_le_of_forall (fun h' => h'.mono_δ hδ) h
 
 /-- Deterministic sample complexity is antitone in the accuracy parameter `ε`: weaker
@@ -382,7 +444,8 @@ accuracy requires no more samples. -/
 theorem sampleComplexity_antitone_ε {ε₁ ε₂ δ : Set.Ioo (0 : ℝ≥0) 1} (hε : ε₁.val ≤ ε₂.val)
     {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
     (h : ∃ m, IsPACLearnerFor m ε₁ δ C 𝒟) :
-    sampleComplexity IsPACLearnerFor C ε₂ δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε₁ δ 𝒟 :=
+    sampleComplexity IsPACLearnerFor C ε₂ δ 𝒟 (h.imp fun _ hm => hm.mono_ε hε) ≤
+      sampleComplexity IsPACLearnerFor C ε₁ δ 𝒟 h :=
   sampleComplexity_le_of_forall (fun h' => h'.mono_ε hε) h
 
 /-- Deterministic sample complexity is monotone in the distribution family under `⊆`: a
@@ -390,7 +453,8 @@ smaller family (fewer distributions to cover) requires no more samples. -/
 theorem sampleComplexity_mono_family {ε δ : Set.Ioo (0 : ℝ≥0) 1}
     {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))} (h𝒟 : 𝒟 ⊆ 𝒟')
     (h : ∃ m, IsPACLearnerFor m ε δ C 𝒟') :
-    sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ 𝒟' :=
+    sampleComplexity IsPACLearnerFor C ε δ 𝒟 (h.imp fun _ hm => hm.antitone_family h𝒟) ≤
+      sampleComplexity IsPACLearnerFor C ε δ 𝒟' h :=
   sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) h
 
 /-- Deterministic sample complexity is monotone in the concept class under `⊆`: a smaller
@@ -398,42 +462,43 @@ class (weaker agnostic benchmark) requires no more samples. -/
 theorem sampleComplexity_mono_C {ε δ : Set.Ioo (0 : ℝ≥0) 1}
     {C C' : ConceptClass α β} (hC : C ⊆ C') {𝒟 : Set (Measure (α × β))}
     (h : ∃ m, IsPACLearnerFor m ε δ C' 𝒟) :
-    sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C' ε δ 𝒟 :=
+    sampleComplexity IsPACLearnerFor C ε δ 𝒟 (h.imp fun _ hm => hm.antitone_C hC) ≤
+      sampleComplexity IsPACLearnerFor C' ε δ 𝒟 h :=
   sampleComplexity_le_of_forall (fun h' => h'.antitone_C hC) h
 
 /-- Randomized sample complexity is antitone in the confidence parameter `δ`. -/
 theorem rsampleComplexity_antitone_δ {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1}
     (hδ : δ₁.val ≤ δ₂.val) {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
     (h : ∃ m, IsRPACLearnerFor.{_, _, 0} m ε δ₁ C 𝒟) :
-    rsampleComplexity C ε δ₂ 𝒟 ≤ rsampleComplexity C ε δ₁ 𝒟 :=
+    rsampleComplexity C ε δ₂ 𝒟 (h.imp fun _ hm => hm.mono_δ hδ) ≤
+      rsampleComplexity C ε δ₁ 𝒟 h :=
   sampleComplexity_le_of_forall (fun h' => h'.mono_δ hδ) h
 
 /-- Randomized sample complexity is monotone in the distribution family under `⊆`. -/
 theorem rsampleComplexity_mono_family {ε δ : Set.Ioo (0 : ℝ≥0) 1}
     {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))} (h𝒟 : 𝒟 ⊆ 𝒟')
     (h : ∃ m, IsRPACLearnerFor.{_, _, 0} m ε δ C 𝒟') :
-    rsampleComplexity C ε δ 𝒟 ≤ rsampleComplexity C ε δ 𝒟' :=
+    rsampleComplexity C ε δ 𝒟 (h.imp fun _ hm => hm.antitone_family h𝒟) ≤
+      rsampleComplexity C ε δ 𝒟' h :=
   sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) h
 
-/-! Convenience variants conditional on learnability, which discharge the nonemptiness
-hypothesis `(∃ m, IsPACLearnerFor m …)` from an `IsPACLearnable` / `IsRPACLearnable` witness.
-Bodies go through `sampleComplexity_le_of_forall` directly rather than the top-level
-`sampleComplexity_*` lemmas, whose unqualified names would resolve as self-recursion inside
-these theorems' `IsPACLearnable.*` / `IsRPACLearnable.*` namespaces. -/
+/-! Convenience variants using learnability to provide the existence proofs. -/
 
 /-- `sampleComplexity_antitone_δ` for a learnable class: the nonemptiness hypothesis comes
 for free from `IsPACLearnable`. -/
 theorem IsPACLearnable.sampleComplexity_antitone_δ
     {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} (hL : IsPACLearnable C 𝒟)
     {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val) :
-    sampleComplexity IsPACLearnerFor C ε δ₂ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ₁ 𝒟 :=
+    sampleComplexity IsPACLearnerFor C ε δ₂ 𝒟 (hL ε δ₂) ≤
+      sampleComplexity IsPACLearnerFor C ε δ₁ 𝒟 (hL ε δ₁) :=
   sampleComplexity_le_of_forall (fun h' => h'.mono_δ hδ) (hL ε δ₁)
 
 /-- `sampleComplexity_antitone_ε` for a learnable class. -/
 theorem IsPACLearnable.sampleComplexity_antitone_ε
     {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} (hL : IsPACLearnable C 𝒟)
     {ε₁ ε₂ δ : Set.Ioo (0 : ℝ≥0) 1} (hε : ε₁.val ≤ ε₂.val) :
-    sampleComplexity IsPACLearnerFor C ε₂ δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε₁ δ 𝒟 :=
+    sampleComplexity IsPACLearnerFor C ε₂ δ 𝒟 (hL ε₂ δ) ≤
+      sampleComplexity IsPACLearnerFor C ε₁ δ 𝒟 (hL ε₁ δ) :=
   sampleComplexity_le_of_forall (fun h' => h'.mono_ε hε) (hL ε₁ δ)
 
 /-- `sampleComplexity_mono_family` for a learnable class (learnability at the *larger*
@@ -441,7 +506,8 @@ family `𝒟'` is the hypothesis). -/
 theorem IsPACLearnable.sampleComplexity_mono_family
     {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
     (hL : IsPACLearnable C 𝒟') (h𝒟 : 𝒟 ⊆ 𝒟') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
-    sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C ε δ 𝒟' :=
+    sampleComplexity IsPACLearnerFor C ε δ 𝒟 (hL.antitone_family h𝒟 ε δ) ≤
+      sampleComplexity IsPACLearnerFor C ε δ 𝒟' (hL ε δ) :=
   sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) (hL ε δ)
 
 /-- `sampleComplexity_mono_C` for a learnable class (learnability at the *larger* class
@@ -449,21 +515,23 @@ theorem IsPACLearnable.sampleComplexity_mono_family
 theorem IsPACLearnable.sampleComplexity_mono_C
     {C C' : ConceptClass α β} {𝒟 : Set (Measure (α × β))}
     (hL : IsPACLearnable C' 𝒟) (hC : C ⊆ C') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
-    sampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤ sampleComplexity IsPACLearnerFor C' ε δ 𝒟 :=
+    sampleComplexity IsPACLearnerFor C ε δ 𝒟 (hL.antitone_C hC ε δ) ≤
+      sampleComplexity IsPACLearnerFor C' ε δ 𝒟 (hL ε δ) :=
   sampleComplexity_le_of_forall (fun h' => h'.antitone_C hC) (hL ε δ)
 
 /-- `rsampleComplexity_antitone_δ` for a randomized-learnable class. -/
 theorem IsRPACLearnable.rsampleComplexity_antitone_δ
     {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} (hL : IsRPACLearnable C 𝒟)
     {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1} (hδ : δ₁.val ≤ δ₂.val) :
-    rsampleComplexity C ε δ₂ 𝒟 ≤ rsampleComplexity C ε δ₁ 𝒟 :=
+    rsampleComplexity C ε δ₂ 𝒟 (hL ε δ₂) ≤ rsampleComplexity C ε δ₁ 𝒟 (hL ε δ₁) :=
   sampleComplexity_le_of_forall (fun h' => h'.mono_δ hδ) (hL ε δ₁)
 
 /-- `rsampleComplexity_mono_family` for a randomized-learnable class. -/
 theorem IsRPACLearnable.rsampleComplexity_mono_family
     {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))}
     (hL : IsRPACLearnable C 𝒟') (h𝒟 : 𝒟 ⊆ 𝒟') {ε δ : Set.Ioo (0 : ℝ≥0) 1} :
-    rsampleComplexity C ε δ 𝒟 ≤ rsampleComplexity C ε δ 𝒟' :=
+    rsampleComplexity C ε δ 𝒟 (hL.antitone_family h𝒟 ε δ) ≤
+      rsampleComplexity C ε δ 𝒟' (hL ε δ) :=
   sampleComplexity_le_of_forall (fun h' => h'.antitone_family h𝒟) (hL ε δ)
 
 end
