@@ -208,15 +208,13 @@ lemma ComputationPath.eq_ofDeterministic (p : tm.ComputationPath input) :
   congr 1
   exact (RunPath.eq_ofDeterministic p).trans (by rw [hp]; rfl)
 
-/-- A path starting at the image of `cfg` under a step-preserving map is the image of the path of
-the same length from `cfg`. -/
-lemma RunPath.eq_map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Symbol}
+/-- A step-preserving map sends the path of `t` steps from `cfg` to the path of `t` steps from the
+image of `cfg`. -/
+lemma RunPath.map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Symbol}
     {tm' : MultiTapeTM k' Symbol State'} (f : (tm.stepRel input).Hom (tm'.stepRel input'))
-    {cfg : Cfg k Symbol State input} (p : tm'.RunPath input') (hp : p.head = f cfg) :
-    p = (RunPath.ofDeterministic tm cfg p.length).map f :=
-  p.eq_ofDeterministic.trans <| by
-    rw [hp]
-    exact ((RunPath.ofDeterministic tm cfg p.length).map f).eq_ofDeterministic.symm
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (RunPath.ofDeterministic tm cfg t).map f = .ofDeterministic tm' (f cfg) t :=
+  ((RunPath.ofDeterministic tm cfg t).map f).eq_ofDeterministic
 
 end MultiTapeNTM
 
@@ -248,8 +246,7 @@ lemma runFrom_map {k' : ℕ} {State' : Type*} {input' : List Symbol}
     {tm' : MultiTapeTM k' Symbol State'} (f : (tm.stepRel input).Hom (tm'.stepRel input'))
     (cfg : Cfg k Symbol State input) (t : ℕ) :
     tm'.runFrom (f cfg) t = f (tm.runFrom cfg t) :=
-  congrArg RelSeries.last
-    (MultiTapeNTM.RunPath.eq_map_ofDeterministic f (.ofDeterministic tm' (f cfg) t) rfl)
+  congrArg RelSeries.last (MultiTapeNTM.RunPath.map_ofDeterministic f cfg t).symm
 
 /-- Nothing changes after the machine has halted. -/
 lemma runFrom_eq_of_halt
@@ -259,6 +256,15 @@ lemma runFrom_eq_of_halt
     tm.runFrom cfg t = tm.runFrom cfg τ :=
   (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).last_eq_of_halted
     ⟨τ, Nat.lt_succ_of_le hle⟩ hhalt
+
+/-- Every configuration of a run that has halted by step `t` lies on the path of its first `t`
+steps. -/
+lemma runFrom_mem_ofDeterministic {cfg : Cfg k Symbol State input} {t : ℕ}
+    (h : (tm.runFrom cfg t).Halted) (m : ℕ) :
+    tm.runFrom cfg m ∈ MultiTapeNTM.RunPath.ofDeterministic tm cfg t := by
+  rcases le_total m t with hm | hm
+  · exact ⟨⟨m, Nat.lt_succ_of_le hm⟩, rfl⟩
+  · exact runFrom_eq_of_halt tm cfg hm h ▸ RelSeries.last_mem _
 
 /-- A deterministic machine halted after `t` steps satisfies the shared time bound. -/
 lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}
