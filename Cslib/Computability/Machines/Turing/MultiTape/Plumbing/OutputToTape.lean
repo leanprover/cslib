@@ -96,13 +96,9 @@ public lemma step_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol Sta
 
 /-- The redirection preserves steps, so it maps run paths of `tm` to run paths of the redirected
 machine. -/
-@[expose] public noncomputable def outCfgHom (tm : MultiTapeTM k Symbol State) :
+@[expose, simps! apply] public noncomputable def outCfgHom (tm : MultiTapeTM k Symbol State) :
     (tm.stepRel input).Hom (tm.outputToTape.stepRel input) :=
   stepHom outCfg (step_outCfg tm)
-
-@[simp]
-public lemma outCfgHom_apply (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) :
-    outCfgHom tm c = outCfg c := rfl
 
 section WithOutput
 

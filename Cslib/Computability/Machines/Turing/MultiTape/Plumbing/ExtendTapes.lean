@@ -36,14 +36,13 @@ original by one cell for each remaining tape.
 ## Main results
 
 * `Turing.MultiTapeTM.step_embed`: the one-step mirroring lemma.
-* `Turing.MultiTapeTM.embed_workTapePos_of_not_range`: the extra tapes keep their head positions.
 * `Turing.MultiTapeTM.space_map_embedHom_le`: the space bound for a mapped path.
 * `Turing.MultiTapeTM.oneTapeCfg`: the one-tape view of a configuration.
 * `Turing.MultiTapeTM.ofDeterministic_tapeEmb`, `Turing.MultiTapeTM.runFrom_tapeEmb`: the path and
   the run of a one-tape machine placed on work tape `i`.
 * `Turing.MultiTapeTM.TransformsTapes.tapeEmb`: a one-tape specification, read on tape `i`.
-* `Turing.MultiTapeTM.runFrom_noTapes`, `Turing.MultiTapeTM.space_map_noTapes_le`: the run and the
-  space of a machine without work tapes, placed in a machine with `k` of them.
+* `Turing.MultiTapeTM.runFrom_noTapes`: the run of a machine without work tapes, placed in a machine
+  with `k` of them.
 -/
 
 namespace Turing.MultiTapeTM
@@ -149,24 +148,12 @@ public lemma step_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
 
 /-- Reindexing preserves steps, so it maps run paths of `tm` to run paths of the reindexed machine,
 with the extra tapes held fixed throughout. -/
-@[expose] public noncomputable def embedHom (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
-    (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
+@[expose, simps! apply] public noncomputable def embedHom (tm : MultiTapeTM k Symbol State)
+    (e : Fin k ↪ Fin k') (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
     (tm.stepRel input).Hom ((tm.extendTapes e).stepRel input) :=
   stepHom (embed e · extraTapes extraPos) (step_embed tm e · extraTapes extraPos)
 
-@[simp]
-public lemma embedHom_apply (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
-    (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ)
-    (cfg : Cfg k Symbol State input) :
-    embedHom tm e extraTapes extraPos cfg = embed e cfg extraTapes extraPos := rfl
-
 section Space
-
-/-- The head of a tape outside `range e` stands at its given position. -/
-public lemma embed_workTapePos_of_not_range (e : Fin k ↪ Fin k') (cfg : Cfg k Symbol State input)
-    (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) {l : Fin k'}
-    (hl : l ∉ Set.range e) : (embed e cfg extraTapes extraPos).workTapePos l = extraPos l := by
-  simp only [embed, partialInv_eq_none e hl]
 
 /-- **Space bound for a reindexed path.** The embedded tapes visit what the original path visits,
 while each of the remaining `k' - k` tapes never moves and contributes one cell. -/
@@ -176,7 +163,7 @@ public lemma space_map_embedHom_le (tm : MultiTapeTM k Symbol State) (e : Fin k 
   simpa using p.space_map_le (embedHom tm e extraTapes extraPos) e 1
     (fun c _ j => embed_workTapePos_embed e c extraTapes extraPos j) fun l hl => by
       simpa using p.spaceUsedByTape_map_le_card _ (S := {extraPos l}) fun c _ => by
-        simp [embed_workTapePos_of_not_range e c extraTapes extraPos hl]
+        simp [embed, partialInv_eq_none e hl]
 
 end Space
 
@@ -307,12 +294,6 @@ public lemma runFrom_noTapes (tm : MultiTapeTM 0 Symbol State) (cfg : Cfg k Symb
       ⟨(tm.runFrom (noTapesCfg cfg) n).state, (tm.runFrom (noTapesCfg cfg) n).inputPos,
         cfg.workTapes, cfg.workTapePos, (tm.runFrom (noTapesCfg cfg) n).output⟩ := by
   rw [← embed_noTapes, ← embedHom_apply tm, ← runFrom_map, embedHom_apply, embed_noTapesCfg]
-
-/-- **Space bound for a machine without work tapes:** one cell for each tape it does not use. -/
-public lemma space_map_noTapes_le (tm : MultiTapeTM 0 Symbol State)
-    (tapes : Fin k → ℤ → Option Symbol) (heads : Fin k → ℤ) (p : tm.RunPath input) :
-    (p.map (embedHom tm (noTapes k) tapes heads)).space ≤ k := by
-  simpa [MultiTapeNTM.RunPath.space] using space_map_embedHom_le tm (noTapes k) tapes heads p
 
 end NoTapes
 
