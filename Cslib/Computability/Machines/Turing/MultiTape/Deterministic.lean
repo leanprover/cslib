@@ -166,22 +166,23 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
 
+end Cfg
+
+end MultiTapeTM
+
+namespace MultiTapeNTM
+
+variable {tm : MultiTapeTM k Symbol State} {input : List Symbol}
+
 /-- The path of the first `t` steps from `cfg`. -/
-noncomputable def _root_.Turing.MultiTapeNTM.RunPath.ofDeterministic
-    (tm : MultiTapeTM k Symbol State)
+noncomputable def RunPath.ofDeterministic (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) (t : ℕ) : tm.RunPath input where
   length := t
   toFun n := tm.step^[n.val] cfg
-  step n := by simp [step_iff, Function.iterate_succ_apply']
-
-/-- The path of the first `t` steps on `input`, starting at the initial configuration. -/
-noncomputable def _root_.Turing.MultiTapeNTM.ComputationPath.ofDeterministic
-    (tm : MultiTapeTM k Symbol State)
-    (input : List Symbol) (t : ℕ) : tm.ComputationPath input :=
-  ⟨MultiTapeNTM.RunPath.ofDeterministic tm (tm.initCfg input) t, rfl⟩
+  step n := by simp [MultiTapeTM.step_iff, Function.iterate_succ_apply']
 
 /-- Every deterministic run path is the canonical path from its head for its duration. -/
-lemma _root_.Turing.MultiTapeNTM.RunPath.eq_ofDeterministic (p : tm.RunPath input) :
+lemma RunPath.eq_ofDeterministic (p : tm.RunPath input) :
     p = .ofDeterministic tm p.head p.time := by
   refine RelSeries.ext rfl ?_
   funext i
@@ -192,14 +193,27 @@ lemma _root_.Turing.MultiTapeNTM.RunPath.eq_ofDeterministic (p : tm.RunPath inpu
     simp only [Fin.val_castSucc] at ih
     change p.toFun i.succ = tm.step^[i.val + 1] p.head
     rw [Function.iterate_succ_apply', ← ih]
-    exact (step_iff.mp (p.step i)).symm
+    exact (MultiTapeTM.step_iff.mp (p.step i)).symm
+
+/-- The path of the first `t` steps on `input`, starting at the initial configuration. -/
+noncomputable def ComputationPath.ofDeterministic (tm : MultiTapeTM k Symbol State)
+    (input : List Symbol) (t : ℕ) : tm.ComputationPath input :=
+  ⟨RunPath.ofDeterministic tm (tm.initCfg input) t, rfl⟩
 
 /-- Every deterministic computation path is the canonical path for its duration. -/
-lemma _root_.Turing.MultiTapeNTM.ComputationPath.eq_ofDeterministic (p : tm.ComputationPath input) :
+lemma ComputationPath.eq_ofDeterministic (p : tm.ComputationPath input) :
     p = .ofDeterministic tm input p.time := by
   rcases p with ⟨p, hp⟩
   congr 1
-  exact (MultiTapeNTM.RunPath.eq_ofDeterministic p).trans (by rw [hp]; rfl)
+  exact (RunPath.eq_ofDeterministic p).trans (by rw [hp]; rfl)
+
+end MultiTapeNTM
+
+namespace MultiTapeTM
+
+variable {tm : MultiTapeTM k Symbol State}
+
+section Cfg
 
 /-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
