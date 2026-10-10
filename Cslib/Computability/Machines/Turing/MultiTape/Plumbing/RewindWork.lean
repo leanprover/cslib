@@ -6,6 +6,7 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
+public import Mathlib.Algebra.BigOperators.Fin
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
@@ -35,6 +36,7 @@ untouched by construction.
   `Turing.MultiTapeTM.runFrom_rewindWork_none` (nothing is written) and
   `Turing.MultiTapeTM.runFrom_rewindWork_erase` (the whole word is erased).
 * `Turing.MultiTapeTM.workTapePos_runFrom_rewindWork`: the rewound head stays within `[-1, p]`.
+* `Turing.MultiTapeTM.spaceUsed_rewindWork_le`: hence the machine visits at most `p + 2` cells.
 -/
 
 namespace Turing.MultiTapeTM
@@ -179,5 +181,17 @@ public theorem workTapePos_runFrom_rewindWork (write : Option (Option Symbol))
   · have hrun := runFrom_rewindWork write ip t out hw hp
     rw [runFrom_eq_of_halt _ _ (by omega : p + 2 ≤ m + 1) (by rw [hrun]), hrun]
     simp
+
+/-- The one-tape `rewindWork` machine visits at most `p + 2` cells: its head stays within
+`[-1, p]`. -/
+public theorem spaceUsed_rewindWork_le (write : Option (Option Symbol))
+    (ip : Fin (input.length + 2)) (t : ℤ → Option Symbol) (out : List Symbol) {w : List Symbol}
+    (hw : t = tapeOfList w) {p : ℕ} (hp : p ≤ w.length) (n : ℕ) :
+    (rewindWork Symbol write).spaceUsed
+        ⟨some (rewindWork Symbol write).q₀, ip, fun _ => t, fun _ => (p : ℤ), out⟩ n ≤ p + 2 := by
+  rw [spaceUsed, Fin.sum_univ_one]
+  refine (spaceUsedByTape_le_card _ (S := .Icc (-1) (p : ℤ)) fun m _ => ?_).trans ?_
+  · exact Finset.mem_Icc.2 (workTapePos_runFrom_rewindWork write ip t out hw hp m)
+  · rw [Int.card_Icc]; omega
 
 end Turing.MultiTapeTM

@@ -302,4 +302,25 @@ lemma spaceUsed_prependOutput (cfg : Cfg k Symbol State input) (pre : List Symbo
 
 end PrependOutput
 
+/-! ### Space of computation paths -/
+
+/-- The space of a computation path is the space of the run of the same length. -/
+lemma computationPath_space_eq (p : tm.ComputationPath input) :
+    p.space = tm.spaceUsed (tm.initCfg input) p.time := by
+  have hp (n : Fin (p.length + 1)) : p.toRunPath n = tm.runFrom (tm.initCfg input) n := by
+    rw [runPath_apply_eq_runFrom, p.head_eq]
+  simp only [MultiTapeNTM.ComputationPath.space, MultiTapeNTM.RunPath.space,
+    MultiTapeNTM.RunPath.spaceUsedByTape, MultiTapeNTM.RunPath.visitedByTapeHead, hp]
+  rfl
+
+/-- A machine that has halted by step `t`, using at most `s` cells, uses at most `s` cells on every
+computation path. -/
+lemma runsInSpace_of_halted {t s : ℕ} (hhalt : (tm.runFrom (tm.initCfg input) t).Halted)
+    (hs : tm.spaceUsed (tm.initCfg input) t ≤ s) : tm.RunsInSpace input s := by
+  intro p
+  rw [computationPath_space_eq]
+  rcases le_total p.time t with h | h
+  · exact (spaceUsed_mono tm _ h).trans hs
+  · rwa [spaceUsed_eq_of_halt _ h hhalt]
+
 end Turing.MultiTapeTM
