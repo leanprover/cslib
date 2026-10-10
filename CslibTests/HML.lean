@@ -24,12 +24,6 @@ example (m : HML.Model State Label Atom) (htr : m.lts.Tr s μ s')
 example (m : HML.Model State Label Atom) (hbox : ⇓HML[m,s ⊨ d[μ]φ])
     (htr : m.lts.Tr s μ s') : ⇓HML[m,s' ⊨ φ] := by grind only [modal]
 
-example (v : State → Atom → Prop) (htr : lts.Tr s μ s') (hφ : ⇓Modal[ofLTS lts v,s' ⊨ φ]) :
-    ⇓Modal[ofLTS lts v,s ⊨ d⟨μ⟩φ] := by grind only [modal]
-
-example (v : State → Atom → Prop) (hbox : ⇓Modal[Model.ofLTS lts v,s ⊨ d[μ]φ])
-    (htr : lts.Tr s μ s') : ⇓Modal[ofLTS lts v,s' ⊨ φ] := by grind only [modal]
-
 section LogicalEquivalence
 
 /-
