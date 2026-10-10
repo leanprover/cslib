@@ -183,8 +183,12 @@ theorem Satisfies.subst_apply_iff [DecidableEq (τ.B op)] {φs : PropositionMap 
       (j = i ∧ ⇓Modal[m,w ⊨ φ]) ∨ (j ≠ i ∧ ⇓Modal[m,w ⊨ φs j]) :=
   Function.pred_update (P := fun _ φ' => Satisfies m w φ') φs i φ j
 
+/-- Axiom K, valid for all frames.
+
+This is from Definition 4.13 in [Blackburn2001]. -/
 @[scoped grind ., modal .]
 theorem Satisfies.k (f : Frame World τ) {φs : PropositionMap τ op Atom} [DecidableEq (τ.B op)]
+    {i : τ.B op} {φ₁ φ₂ : Proposition τ Atom} (hi : φs i = (φ₁ → φ₂)) :
     Axiom f⇓(∇[op]φs → (∇[op]φs[i := φ₁] → ∇[op]φs[i := φ₂])) := by grind
 
 /-- The dual axiom, valid for all frames.
