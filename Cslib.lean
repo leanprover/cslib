@@ -67,6 +67,7 @@ public import Cslib.Computability.Languages.Congruences.Basic
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.MyhillCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
+public import Cslib.Computability.Languages.KleeneAlgorithm
 public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.LanguageHom
 public import Cslib.Computability.Languages.MyhillNerode
