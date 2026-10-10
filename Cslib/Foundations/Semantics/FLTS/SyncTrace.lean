@@ -7,9 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Semantics.FLTS.Basic
-public import Mathlib.Data.Fintype.Powerset
-public import Mathlib.Data.Fintype.Option
-public import Mathlib.Data.Fintype.Pi
+public import Mathlib.Data.Fintype.Card
 
 /-! # Synchronising traces
 
