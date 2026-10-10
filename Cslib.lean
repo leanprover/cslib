@@ -237,10 +237,7 @@ public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.HML.Basic
-<<<<<<< HEAD
 public import Cslib.Logics.LTL.Basic
-=======
->>>>>>> main
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
@@ -252,10 +249,6 @@ public import Cslib.Logics.Modal.Lean.Basic
 public import Cslib.Logics.Modal.LogicalEquivalence
 public import Cslib.Logics.Modal.Semantics
 public import Cslib.Logics.Modal.Unary.Basic
-<<<<<<< HEAD
-public import Cslib.Logics.Modal.Unary.LTS
-=======
->>>>>>> main
 public import Cslib.Logics.Modal.Unimodal.Basic
 public import Cslib.Logics.Modal.Unimodal.Cube
 public import Cslib.Logics.Modal.Unimodal.Lean.Basic
