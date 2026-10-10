@@ -90,10 +90,8 @@ def equiv (k : ℕ) (U : Type*) : FullOp k U ≃ (((Fin k → U) → U) ⊕ U) w
 instance {U : Type*} [Fintype U] [DecidableEq U] {k : ℕ} : Fintype (FullOp k U) :=
   Fintype.ofEquiv _ (equiv k U).symm
 
-instance {U : Type*} [Finite U] {k : ℕ} : Finite (FullOp k U) := by
-  classical
-  let := Fintype.ofFinite U
-  infer_instance
+instance {U : Type*} [Finite U] {k : ℕ} : Finite (FullOp k U) :=
+  Finite.of_equiv _ (equiv k U).symm
 
 /-- Full-basis operations consist of all function tables and all constants. -/
 @[simp] theorem card (k : ℕ) (U : Type*) [Fintype U] [DecidableEq U] :
