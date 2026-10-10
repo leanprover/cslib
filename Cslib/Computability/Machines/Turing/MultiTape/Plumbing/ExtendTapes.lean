@@ -19,9 +19,8 @@ tape `j`. The remaining tapes are left unchanged.
 The configuration map `embed e cfg extraTapes extraPos` places `cfg` on the selected tapes and
 initialises the remaining tapes from `extraTapes` and `extraPos`.
 
-One step of the larger machine mirrors the corresponding step of `tm`, so `embedHom` maps every run
-path of `tm` to a run path of the larger machine. The space of the mapped path exceeds that of the
-original by one cell for each remaining tape.
+The main lemmas show that one step and an entire run path of the larger machine mirror the
+corresponding step and run path of `tm`.
 
 ## Main definitions
 

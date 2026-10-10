@@ -18,9 +18,8 @@ frontier.
 
 Since the output is append-only, the frontier position is a *function of the configuration* —
 the length of the output so far — so the redirected machine mirrors the original through the
-configuration map `outCfg`. One step of the redirected machine mirrors the corresponding step of
-`tm`, so `outCfgHom` maps every run path of `tm` to a run path of the redirected machine; the space
-of the mapped path exceeds that of the original by at most the final output length plus one.
+configuration map `outCfg`. The main lemmas show that one step and an entire run path of the
+redirected machine mirror the corresponding step and run path of `tm`.
 -/
 
 namespace Turing.MultiTapeTM
