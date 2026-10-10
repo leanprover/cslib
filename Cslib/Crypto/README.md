@@ -23,6 +23,8 @@ To this end, we expect to leverage the combination of `Crypto` and [Languages](.
 
 [`Negligible`](Negligible.lean) specializes Mathlib's `SuperpolynomialDecay` to natural security
 parameters, with zero, comparison, and polynomial-loss bounds.
+[`Game`](Game.lean) gives the acceptance probability, distinguishing advantage and negligible
+security of Boolean experiments.
 
 ## Pseudorandom generators
 
