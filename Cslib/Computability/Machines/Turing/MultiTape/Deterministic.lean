@@ -32,7 +32,8 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `MultiTapeTM`: the TM itself
 * `tr`, `ofTr`: the derived transition function and construction from a function
 * `step`, `runFrom`: the successor configuration and iteration of this function
-* `runPath`, `computationPath`: paths of a given length from an arbitrary or initial configuration
+* `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
+    paths of a given length from an arbitrary or initial configuration
 * `HaltsAt`: the run from a configuration halts at exactly a given step
 * `spaceUsed`: the number of tape cells visited by work tape heads, our main space measure
 * `Computes`: the machine halts with the given output on an input
@@ -165,51 +166,57 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
 
-/-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
-If the Turing machine halts, it will stay at the halting configuration. -/
-noncomputable def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input :=
-  tm.step^[t] cfg
-
 /-- The path of the first `t` steps from `cfg`. -/
-noncomputable def runPath (tm : MultiTapeTM k Symbol State)
+noncomputable def _root_.Turing.MultiTapeNTM.RunPath.ofDeterministic
+    (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) (t : ℕ) : tm.RunPath input where
   length := t
-  toFun n := tm.runFrom cfg n
-  step n := by simp [step_iff, runFrom, Function.iterate_succ_apply']
+  toFun n := tm.step^[n.val] cfg
+  step n := by simp [step_iff, Function.iterate_succ_apply']
 
 /-- The path of the first `t` steps on `input`, starting at the initial configuration. -/
-noncomputable def computationPath (tm : MultiTapeTM k Symbol State)
+noncomputable def _root_.Turing.MultiTapeNTM.ComputationPath.ofDeterministic
+    (tm : MultiTapeTM k Symbol State)
     (input : List Symbol) (t : ℕ) : tm.ComputationPath input :=
-  ⟨tm.runPath (tm.initCfg input) t, rfl⟩
+  ⟨MultiTapeNTM.RunPath.ofDeterministic tm (tm.initCfg input) t, rfl⟩
 
-/-- Every path of a deterministic machine follows its iterated step function. -/
-lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
-    p i = tm.runFrom p.head i := by
+/-- Every deterministic run path is the canonical path from its head for its duration. -/
+lemma _root_.Turing.MultiTapeNTM.RunPath.eq_ofDeterministic (p : tm.RunPath input) :
+    p = .ofDeterministic tm p.head p.time := by
+  refine RelSeries.ext rfl ?_
+  funext i
+  change p i = tm.step^[i.val] p.head
   induction i using Fin.induction with
   | zero => rfl
   | succ i ih =>
     simp only [Fin.val_castSucc] at ih
     change p.toFun i.succ = tm.step^[i.val + 1] p.head
-    rw [Function.iterate_succ_apply', ← runFrom, ← ih]
+    rw [Function.iterate_succ_apply', ← ih]
     exact (step_iff.mp (p.step i)).symm
 
-/-- Every deterministic run path is the canonical path from its head for its duration. -/
-lemma eq_runPath (p : tm.RunPath input) : p = tm.runPath p.head p.time := by
-  refine RelSeries.ext rfl ?_
-  funext i
-  exact runPath_apply_eq_runFrom p i
-
 /-- Every deterministic computation path is the canonical path for its duration. -/
-lemma eq_computationPath (p : tm.ComputationPath input) :
-    p = tm.computationPath input p.time := by
+lemma _root_.Turing.MultiTapeNTM.ComputationPath.eq_ofDeterministic (p : tm.ComputationPath input) :
+    p = .ofDeterministic tm input p.time := by
   rcases p with ⟨p, hp⟩
   congr 1
-  exact (eq_runPath p).trans (by rw [hp]; rfl)
+  exact (MultiTapeNTM.RunPath.eq_ofDeterministic p).trans (by rw [hp]; rfl)
+
+/-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
+If the Turing machine halts, it will stay at the halting configuration. -/
+noncomputable def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input :=
+  tm.step^[t] cfg
+
+/-- Every path of a deterministic machine follows its iterated step function. -/
+lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
+    p i = tm.runFrom p.head i := by
+  revert i
+  rw [p.eq_ofDeterministic]
+  exact fun _ ↦ rfl
 
 /-- A deterministic computation ends at the corresponding iterate. -/
 lemma computationPath_last_eq_runFrom (p : tm.ComputationPath input) :
     p.last = tm.runFrom (tm.initCfg input) p.time := by
-  rw [eq_computationPath p]
+  rw [p.eq_ofDeterministic]
   rfl
 
 /-- Nothing changes after the machine has halted. -/
