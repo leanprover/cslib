@@ -128,7 +128,6 @@ theorem blockIndicator_mem [Zero U] (marker : U) (coords : Fin d → (Fin n → 
     (index : (Fin d → U) ↪ Fin B × Fin t) (hzero : (fun _ => 0) ∈ s)
     (hindicators : Set.range (indicator 0 marker coords) ⊆ s) (b : Fin B) (i : Fin t) :
     blockIndicator marker (fun x => index (fun j => coords j x)) b i ∈ s := by
-  classical
   by_cases h : ∃ a, index a = (b, i)
   · obtain ⟨a, ha⟩ := h
     convert hindicators ⟨a, rfl⟩ using 1
