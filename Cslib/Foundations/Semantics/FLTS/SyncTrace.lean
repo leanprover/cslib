@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Semantics.FLTS.Basic
-public import Mathlib.Data.Fintype.Card
+public import Mathlib.SetTheory.Cardinal.Finite
 
 /-! # Synchronising traces
 

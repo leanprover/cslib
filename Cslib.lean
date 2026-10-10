@@ -166,6 +166,7 @@ public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 public import Cslib.Foundations.Semantics.FLTS.Prod
+public import Cslib.Foundations.Semantics.FLTS.SyncTrace
 public import Cslib.Foundations.Semantics.Frame.Basic
 public import Cslib.Foundations.Semantics.Frame.LTS
 public import Cslib.Foundations.Semantics.LTS.Basic
