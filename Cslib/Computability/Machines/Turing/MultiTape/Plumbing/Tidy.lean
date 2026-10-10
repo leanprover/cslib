@@ -27,6 +27,8 @@ notions below add tidiness to `Turing.MultiTapeTM.ComputesInTimeAndSpace`,
 * `Turing.MultiTapeTM.ComputesFunTidilyInTimeAndSpace`: a machine computes a function tidily.
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace`: some machine with binary alphabet and
   finitely many states computes a function tidily.
+* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpaceOfLength`: the same, with bounds on the length
+  of the encoded input.
 
 ## Main results
 
@@ -114,6 +116,14 @@ def ComputableTidilyInTimeAndSpace (f : α → β) (encIn : α ↪ List Bool) (e
     (t s : α → ℕ) : Prop :=
   ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
     ComputesFunTidilyInTimeAndSpace tm encIn encOut f t s
+
+/-- `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace` with the bounds `t` and `s` evaluated at the
+length of the encoded input: the tidy analog of
+`Turing.MultiTapeTM.ComputableInTimeAndSpaceOfLength`. -/
+abbrev ComputableTidilyInTimeAndSpaceOfLength (f : α → β) (encIn : α ↪ List Bool)
+    (encOut : β ↪ List Bool) (t s : ℕ → ℕ) : Prop :=
+  ComputableTidilyInTimeAndSpace f encIn encOut
+    (fun a => t (encIn a).length) (fun a => s (encIn a).length)
 
 namespace ComputableTidilyInTimeAndSpace
 
