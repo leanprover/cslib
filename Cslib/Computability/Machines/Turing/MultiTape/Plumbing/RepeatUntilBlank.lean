@@ -108,30 +108,32 @@ lemma step_check (ws : Fin k → List Symbol) (out : List Symbol) :
     simp [repeatUntilBlank, Cfg.workTapeSymbols, tapeOfList_zero, wordsCfg, Action.apply,
       SignType.cast, h]
 
+/-- `M` runs from `start` to `finish` in `steps` steps, with every head within `[-r, r]`. -/
+structure ConfinedRun (M : MultiTapeTM k Symbol State) (start finish : Cfg k Symbol State input)
+    (steps r : ℕ) : Prop where
+  reaches : M.runFrom start steps = finish
+  confined : ∀ l, M.visitedByTapeHead start steps l ⊆ Finset.Icc (-(r : ℤ)) (r : ℤ)
+
 /-- One round of the loop. If the loop reaches `tm`'s initial state on words `w` with output `out`
-after `t` steps, and `tm` takes `w` to `w'` and `out` to `out'` within `τ` steps and `σ` cells, then
-for some `u ≤ τ` the loop reaches `w'` and `out'` after `t + (u + 1)` steps, either halted or ready
-for the next round. If every head stayed within `[-σ, σ]` before the round, it still does. -/
+in a confined run, and `tm` takes `w` to `w'` and `out` to `out'` within `τ` steps and `σ` cells,
+then for some `u ≤ τ` the loop reaches `w'` and `out'` after `u + 1` more steps, either halted or
+ready for the next round, and its heads stay within `[-σ, σ]`. -/
 lemma exists_runFrom_round {c : Cfg k Symbol (RepeatUntilBlankState State) input} {t : ℕ}
     {w w' : Fin k → List Symbol} {out out' : List Symbol} {τ σ : ℕ}
-    (ht : (repeatUntilBlank i tm).runFrom c t = wordsCfg input (some (.run tm.q₀)) w out)
-    (hIcc : ∀ l, (repeatUntilBlank i tm).visitedByTapeHead c t l ⊆ Finset.Icc (-(σ : ℤ)) (σ : ℤ))
+    (hc : ConfinedRun (repeatUntilBlank i tm) c (wordsCfg input (some (.run tm.q₀)) w out) t σ)
     (hrun : tm.runFrom (wordsCfg input (some tm.q₀) w out) τ = wordsCfg input none w' out')
     (hsp : tm.spaceUsed (wordsCfg input (some tm.q₀) w out) τ ≤ σ) :
-    ∃ u ≤ τ, (repeatUntilBlank i tm).runFrom c (t + (u + 1)) =
-        wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' out' ∧
-      ∀ l, (repeatUntilBlank i tm).visitedByTapeHead c (t + (u + 1)) l ⊆
-        Finset.Icc (-(σ : ℤ)) (σ : ℤ) := by
+    ∃ u ≤ τ, ConfinedRun (repeatUntilBlank i tm) c
+      (wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' out') (t + (u + 1)) σ := by
   obtain ⟨u, hu, hhalt⟩ := exists_haltsAt (show (tm.runFrom _ τ).Halted by rw [hrun]; rfl)
-  -- up to step `u` the loop mirrors `tm`, and at step `u + 1` it inspects the flag
+  -- up to step `u` the loop mirrors `tm`, and at step `u + 1` it reads tape `i`
   have hround : (repeatUntilBlank i tm).runFrom (wordsCfg input (some (.run tm.q₀)) w out) (u + 1) =
       wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' out' := by
     rw [runFrom_succ, ← runCfg_wordsCfg_some,
       runFrom_runCfg hhalt le_rfl, ← hhalt.runFrom_eq hu, hrun, runCfg_wordsCfg_none, step_check]
-  refine ⟨u, hu, ?_, fun l => ?_⟩
-  · rw [runFrom_add, ht, hround]
-  rw [visitedByTapeHead_add, ht]
-  refine Finset.union_subset (hIcc l) (visitedByTapeHead_subset _ fun m hm => ?_)
+  refine ⟨u, hu, by rw [runFrom_add, hc.reaches, hround], fun l => ?_⟩
+  rw [visitedByTapeHead_add, hc.reaches]
+  refine Finset.union_subset (hc.confined l) (visitedByTapeHead_subset _ fun m hm => ?_)
   obtain hlt | rfl := hm.lt_or_eq
   · rw [← runCfg_wordsCfg_some, runFrom_runCfg hhalt (Nat.lt_succ_iff.mp hlt), workTapePos_runCfg]
     exact visitedByTapeHead_subset_Icc _ rfl ((spaceUsed_mono tm _ hu).trans hsp)
@@ -165,28 +167,24 @@ public theorem transformsTapes_repeatUntilBlank (i : Fin k) {tm : MultiTapeTM k 
     with hstart
   -- after `n ≤ rounds` rounds, within `n * (t + 1)` steps, the loop is back in `tm`'s initial
   -- state with `P n` holding and every head within `[-s, s]`
-  have hrec : ∀ n ≤ rounds, ∃ (m : ℕ) (wsn : Fin k → List Symbol) (acc : List Symbol),
-      m ≤ n * (t + 1) ∧
-      (repeatUntilBlank i tm).runFrom start m =
-        wordsCfg input (some (.run tm.q₀)) wsn (out ++ acc) ∧
-      P n input wsn acc ∧
-      ∀ l, (repeatUntilBlank i tm).visitedByTapeHead start m l ⊆
-        Finset.Icc (-(s : ℤ)) (s : ℤ) := by
+  have hrec : ∀ n ≤ rounds, ∃ m ≤ n * (t + 1), ∃ (wsn : Fin k → List Symbol) (acc : List Symbol),
+      ConfinedRun (repeatUntilBlank i tm) start
+        (wordsCfg input (some (.run tm.q₀)) wsn (out ++ acc)) m s ∧ P n input wsn acc := by
     intro n hn
     induction n with
     | zero =>
-      exact ⟨0, ws, [], Nat.zero_le _, by simp [runFrom, hstart], hP0, fun l => by
-        simp [visitedByTapeHead, runFrom, hstart, Finset.subset_iff]⟩
+      exact ⟨0, Nat.zero_le _, ws, [], ⟨by simp [runFrom, hstart], fun l => by
+        simp [visitedByTapeHead, runFrom, hstart, Finset.subset_iff]⟩, hP0⟩
     | succ n ih =>
-      obtain ⟨m, wsn, acc, hm, hrun, hPn, hIcc⟩ := ih (by lia)
+      obtain ⟨m, hm, wsn, acc, hc, hPn⟩ := ih (by lia)
       obtain ⟨wsn', e, hrunTm, hQ, hsp⟩ := hround n (by lia) acc input wsn (out ++ acc) hPn
-      obtain ⟨u, hu, hrun', hIcc'⟩ := exists_runFrom_round hrun hIcc hrunTm hsp
-      refine ⟨m + (u + 1), wsn', acc ++ e, by lia, ?_, hQ.1, hIcc'⟩
-      rw [hrun', ite_eq_right hQ.2, List.append_assoc]
+      obtain ⟨u, hu, hc'⟩ := exists_runFrom_round hc hrunTm hsp
+      rw [ite_eq_right hQ.2, List.append_assoc] at hc'
+      exact ⟨m + (u + 1), by lia, wsn', acc ++ e, hc', hQ.1⟩
   -- the last round halts the loop
-  obtain ⟨m, wsLast, acc, hm, hrun, hPlast, hIcc⟩ := hrec rounds le_rfl
+  obtain ⟨m, hm, wsLast, acc, hc, hPlast⟩ := hrec rounds le_rfl
   obtain ⟨ws', e, hrunTm, hQ, hsp⟩ := hstop acc input wsLast (out ++ acc) hPlast
-  obtain ⟨u, hu, hrun', hIcc'⟩ := exists_runFrom_round hrun hIcc hrunTm hsp
+  obtain ⟨u, hu, hrun', hIcc'⟩ := exists_runFrom_round hc hrunTm hsp
   rw [ite_eq_left hQ.2] at hrun'
   have hhalt : ((repeatUntilBlank i tm).runFrom start (m + (u + 1))).Halted := by rw [hrun']; rfl
   refine ⟨ws', acc ++ e, ?_, hQ.1, ?_⟩
