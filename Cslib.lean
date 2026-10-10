@@ -79,6 +79,7 @@ public import Cslib.Computability.Languages.SyntacticMonoid
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Comp
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.IterateWhile
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.TidyZeroSpace
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
