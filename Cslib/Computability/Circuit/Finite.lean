@@ -9,6 +9,7 @@ public import Cslib.Computability.Circuit.Program
 public import Mathlib.Data.Fintype.BigOperators
 
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Basic.Finite.Sum
 
 /-!
 # Finite circuit syntax
@@ -16,6 +17,8 @@ import Mathlib.Algebra.Order.BigOperators.Group.Finset
 A finite signature gives computable enumerations of lines and programs of each fixed size.
 Their cardinalities count syntax and are independent of any interpretation or carrier.
 `Line.card_le` bounds the number of lines when all operation arities are bounded.
+For the full basis on a carrier of size `q`, there are `q ^ (q ^ k)` operation tables
+and `q` constants. `Line.card_full` counts their possible arguments separately.
 -/
 
 @[expose] public section
@@ -71,5 +74,46 @@ theorem Program.card (n g : ℕ) :
   induction g with
   | zero => simp
   | succ g ih => simp [Program.card_succ, ih, Line.card, Finset.prod_range_succ]
+
+namespace FullOp
+
+/-- A full-basis operation is either a `k`-ary function or a constant. -/
+def equiv (k : ℕ) (U : Type*) : FullOp k U ≃ (((Fin k → U) → U) ⊕ U) where
+  toFun
+    | .fn f => .inl f
+    | .con c => .inr c
+  invFun
+    | .inl f => .fn f
+    | .inr c => .con c
+  left_inv op := by cases op <;> rfl
+  right_inv op := by cases op <;> rfl
+
+instance {U : Type*} [Fintype U] [DecidableEq U] {k : ℕ} : Fintype (FullOp k U) :=
+  Fintype.ofEquiv _ (equiv k U).symm
+
+instance {U : Type*} [Finite U] {k : ℕ} : Finite (FullOp k U) :=
+  Finite.of_equiv _ (equiv k U).symm
+
+/-- Full-basis operations consist of all function tables and all constants. -/
+@[simp] theorem card (k : ℕ) (U : Type*) [Fintype U] [DecidableEq U] :
+    Fintype.card (FullOp k U) = Fintype.card U ^ (Fintype.card U ^ k) + Fintype.card U := by
+  simpa using Fintype.card_congr (equiv k U)
+
+end FullOp
+
+instance {U : Type*} [Fintype U] [DecidableEq U] {k : ℕ} : Fintype (fullSignature k U).Op :=
+  inferInstanceAs (Fintype (FullOp k U))
+
+instance {U : Type*} [Finite U] {k : ℕ} : Finite (fullSignature k U).Op :=
+  inferInstanceAs (Finite (FullOp k U))
+
+/-- A function table takes `k` wire arguments; a constant takes none. -/
+theorem Line.card_full (k n g : ℕ) (U : Type*) [Fintype U] [DecidableEq U] :
+    Fintype.card (Line (fullSignature k U) n g) =
+      Fintype.card U ^ (Fintype.card U ^ k) * (n + g) ^ k + Fintype.card U := by
+  rw [Line.card]
+  change (∑ op : FullOp k U, (n + g) ^ (fullSignature k U).Arity op) = _
+  rw [← (FullOp.equiv k U).symm.sum_comp]
+  simp [FullOp.equiv, fullSignature]
 
 end Cslib.Circuits
