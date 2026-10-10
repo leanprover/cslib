@@ -304,6 +304,40 @@ private lemma wordsCfg_append_words {State' : Type*} {outer : List Symbol} (q : 
   match i with
   | 0 | 1 => simp
 
+section Flag
+
+variable (mark : Symbol) (ws : Fin k → List Symbol) (w out outer : List Symbol)
+
+/-- Setting the flag on a `wordsCfg` configuration gives the configuration in which
+`inputFromTape` starts, visiting at most `k + 3` cells. -/
+private lemma runFrom_setFlag :
+    let setter := markFlag k (some mark)
+    let cfg := wordsCfg outer (some setter.q₀) (Fin.append ws ![w, []]) out
+    setter.runFrom cfg 2 = inCfg mark (wordsCfg w (none : Option MarkWorkState) ws out) outer ∧
+      setter.spaceUsed cfg 2 ≤ k + 3 := by
+  intro setter cfg
+  simp only [setter, cfg]
+  rw [wordsCfg_append_words, runFrom_markFlag, inCfg_wordsCfg]
+  exact ⟨rfl, spaceUsed_markFlag_le _ _ _ _ _ _ _⟩
+
+/-- Erasing the flag on the configuration in which `inputFromTape` halts gives a `wordsCfg`
+configuration, visiting at most `k + 3` cells. -/
+private lemma runFrom_eraseFlag :
+    let eraser := markFlag (Symbol := Symbol) k none
+    let cfg := (inCfg mark (wordsCfg w (none : Option State) ws out) outer).withState
+      (some eraser.q₀)
+    eraser.runFrom cfg 2 = wordsCfg outer none (Fin.append ws ![w, []]) out ∧
+      eraser.spaceUsed cfg 2 ≤ k + 3 := by
+  intro eraser cfg
+  have hcfg : cfg = ⟨some eraser.q₀, 1, Fin.append (fun j => tapeOfList (ws j))
+      ![tapeOfList w, Function.update (fun _ => none) (-1) (some mark)], fun _ => 0, out⟩ := by
+    simp only [cfg, inCfg_wordsCfg]
+    rfl
+  rw [hcfg, runFrom_markFlag, wordsCfg_append_words, Function.update_idem]
+  exact ⟨by simp, spaceUsed_markFlag_le _ _ _ _ _ _ _⟩
+
+end Flag
+
 open Sequential in
 /-- If `M`, run on the input `w` with work tapes `ws₀`, halts after `t` steps with work tapes `ws₁`
 and every head back at its start, having emitted `e`, then `inputFromWord M mark` takes the work
@@ -317,63 +351,19 @@ public theorem transformsTapes_inputFromWord_of_runFrom (mark : Symbol)
       (fun _ _ ws' em => ws' = Fin.append ws₁ ![w, []] ∧ em = e)
       (t + 4) (s + 2 * (w.length + 2) + 2 * k + 6) := by
   rw [transformsTapes_iff_nil_output]
-  rintro outer ws rfl
-  -- the three phases of the composed machine
-  set setter := markFlag k (some mark) (Symbol := Symbol)
-  set eraser := markFlag k none (Symbol := Symbol)
-  set core := M.inputFromTape
-  -- the configurations in which the core starts and halts
-  set cfgCore := inCfg mark (wordsCfg w (some M.q₀) ws₀ []) outer with hcfgCore
-  set midCore := inCfg mark (wordsCfg w none ws₁ e) outer with hmidCore
-  -- the setter writes the flag
-  set midSet : Cfg (k + 2) Symbol MarkWorkState outer :=
-    ⟨none, 1, Fin.append (fun j => tapeOfList (ws₀ j))
-        ![tapeOfList w, Function.update (fun _ => none) (-1) (some mark)], fun _ => 0, []⟩
-    with hmidSet
-  have hmid₀ : setter.runFrom
-      (wordsCfg outer (some setter.q₀) (Fin.append ws₀ ![w, []]) []) 2 = midSet := by
-    rw [wordsCfg_append_words, runFrom_markFlag]
-  -- the core mirrors the run of `M`
-  have hmid₁ : core.runFrom cfgCore t = midCore := by
-    rw [hcfgCore, hmidCore, runFrom_inCfg, hrun]
-  have hjunction : midCore.withState (some eraser.q₀) =
-      ⟨some eraser.q₀, 1, Fin.append (fun j => tapeOfList (ws₁ j))
-          ![tapeOfList w, Function.update (fun _ => none) (-1) (some mark)], fun _ => 0, e⟩ := by
-    rw [hmidCore, inCfg_wordsCfg mark (State := State) none ws₁ e outer]
-    rfl
-  -- the eraser erases the flag
-  have hmid₂ : eraser.runFrom (midCore.withState (some eraser.q₀)) 2 =
-      wordsCfg outer none (Fin.append ws₁ ![w, []]) e := by
-    rw [hjunction, runFrom_markFlag, wordsCfg_append_words, Function.update_idem]
-    simp
-  have hinner := runFrom_seq (tm₀ := core) (tm₁ := eraser) hmid₁ rfl hmid₂ rfl
-  -- the setter halts where the core starts, up to the state
-  have hhandoff : midSet.withState (some (core.seq eraser).q₀) = leftCfg eraser cfgCore := by
-    rw [hmidSet, hcfgCore, inCfg_wordsCfg mark (State := State) (some M.q₀) ws₀ [] outer]
-    rfl
-  have hstart : wordsCfg outer (some (M.inputFromWord mark).q₀) (Fin.append ws₀ ![w, []]) [] =
-      leftCfg (core.seq eraser)
-        (wordsCfg outer (some setter.q₀) (Fin.append ws₀ ![w, []]) []) := rfl
-  rw [hstart, show t + 4 = 2 + (t + 2) by omega]
-  refine ⟨Fin.append ws₁ ![w, []], e, ?_, ⟨rfl, rfl⟩, ?_⟩
-  · rw [inputFromWord, runFrom_seq hmid₀ rfl (hhandoff ▸ hinner) rfl]
-    rfl
-  · have hsetSpace : setter.spaceUsed
-        (wordsCfg outer (some setter.q₀) (Fin.append ws₀ ![w, []]) []) 2 ≤ k + 3 := by
-      rw [wordsCfg_append_words]
-      exact spaceUsed_markFlag_le (some mark) _ _ _ [] 1 2
-    have hcoreSpace : core.spaceUsed cfgCore t ≤ s + 2 * (w.length + 2) :=
-      (spaceUsed_inputFromTape M mark (wordsCfg w (some M.q₀) ws₀ []) outer t).trans
-        (Nat.add_le_add_right hspace _)
-    have herSpace : eraser.spaceUsed (midCore.withState (some eraser.q₀)) 2 ≤ k + 3 := by
-      rw [hjunction]
-      exact spaceUsed_markFlag_le none _ _ _ e 1 2
-    have hinnerSpace :=
-      spaceUsed_seq_le (tm₀ := core) (tm₁ := eraser) hmid₁ rfl (by rw [hmid₂]; rfl)
-    have houterSpace := spaceUsed_seq_le (tm₀ := setter) (tm₁ := core.seq eraser) hmid₀ rfl
-      (by rw [hhandoff, hinner]; rfl)
-    rw [hhandoff] at houterSpace
-    rw [inputFromWord]
-    omega
+  rintro outer _ rfl
+  -- set the flag, run `M` on the virtual input tape, erase the flag
+  obtain ⟨h₀, hs₀⟩ := runFrom_setFlag mark ws₀ w [] outer
+  have h₁ : M.inputFromTape.runFrom (inCfg mark (wordsCfg w (some M.q₀) ws₀ []) outer) t =
+      inCfg mark (wordsCfg w none ws₁ e) outer := by
+    rw [runFrom_inCfg, hrun]
+  obtain ⟨h₂, hs₂⟩ := runFrom_eraseFlag (State := State) mark ws₁ w e outer
+  have h₁₂ := runFrom_seq h₁ rfl h₂ rfl
+  rw [show t + 4 = 2 + (t + 2) by omega]
+  refine ⟨_, e, runFrom_seq h₀ rfl h₁₂ rfl, ⟨rfl, rfl⟩, ?_⟩
+  refine (spaceUsed_seq_le h₀ rfl (congrArg Cfg.state h₁₂)).trans <|
+    (Nat.add_le_add_left (spaceUsed_seq_le h₁ rfl (congrArg Cfg.state h₂)) _).trans ?_
+  have := spaceUsed_inputFromTape M mark (wordsCfg w (some M.q₀) ws₀ []) outer t
+  omega
 
 end Turing.MultiTapeTM
