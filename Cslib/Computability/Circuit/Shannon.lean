@@ -175,7 +175,6 @@ theorem exists_hard_function_of_arity_le [Finite σ.Op] [Finite U] [Nontrivial U
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
       ∀ c : Circuit σ n 1,
         c.Computes I (single f) → (Nat.card U : ℝ) ^ n / ((k - 1 : ℝ) * n) < (c.size : ℝ) := by
-  classical
   let := Fintype.ofFinite σ.Op
   let := Fintype.ofFinite U
   simp only [Nat.card_eq_fintype_card]
