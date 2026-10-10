@@ -160,6 +160,26 @@ lemma oneTapeCfg_outCfg_wordsCfg (q : Option State) (ws : Fin k → List Symbol)
       ⟨q, 1, fun _ => tapeOfList out, fun _ => (out.length : ℤ), []⟩ := by
   refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext _ <;> simp [oneTapeCfg]
 
+/-- Rewinding the last work tape of `outCfg (wordsCfg input q (fun _ => []) out)` takes
+`out.length + 2` steps, leaves `out` as a word on that tape and visits at most `out.length + k + 2`
+cells. -/
+private lemma runFrom_rewindLast (out : List Symbol) :
+    let rewind := (rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))
+    let cfg := outCfg (wordsCfg input (some (rewindWork Symbol).q₀) (fun _ : Fin k => []) out)
+    rewind.runFrom cfg (out.length + 2) =
+        wordsCfg input none (Function.update (fun _ => []) (Fin.last k) out) [] ∧
+      rewind.spaceUsed cfg (out.length + 2) ≤ out.length + k + 2 := by
+  intro rewind cfg
+  refine ⟨?_, (spaceUsed_tapeEmb_le _ _ cfg _).trans ?_⟩
+  · rw [runFrom_tapeEmb, oneTapeCfg_outCfg_wordsCfg, runFrom_rewindWork_none _ _ _ rfl le_rfl,
+      embed_tapeEmb]
+    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
+      simp [cfg, wordsCfg]
+  · have := spaceUsed_rewindWork_le (input := input) none 1 (tapeOfList out) [] rfl le_rfl
+      (out.length + 2)
+    rw [oneTapeCfg_outCfg_wordsCfg]
+    omega
+
 open Sequential in
 /-- If `tm` computes `output` tidily, then `outputToWord tm`, started on blank work tapes, halts
 with `output` on its last work tape, every other work tape blank, and nothing emitted. -/
@@ -174,30 +194,16 @@ public theorem ComputesTidilyInTimeAndSpace.outputToWord {tm : MultiTapeTM k Sym
   rw [transformsTapes_iff_nil_output]
   rintro inp _ ⟨hin, rfl⟩
   subst inp
-  -- phase 1: `outputToTape` mirrors `tm` through `outCfg`
-  have hphase1 : tm.outputToTape.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
+  -- run `tm` with its output on the last work tape, then rewind that tape
+  have h₁ : tm.outputToTape.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
       outCfg (wordsCfg input none (fun _ => []) output) := by
     rw [← outCfg_wordsCfg, runFrom_outCfg, hrun]
-  -- phase 2: rewind the head of the last tape from the end of `output` to cell `0`
-  have hphase2 : ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k))).runFrom
-      (outCfg (wordsCfg input (some (rewindWork Symbol).q₀) (fun _ => []) output))
-      (output.length + 2) =
-        wordsCfg input none (Function.update (fun _ => []) (Fin.last k) output) [] := by
-    rw [runFrom_tapeEmb, oneTapeCfg_outCfg_wordsCfg, runFrom_rewindWork_none _ _ _ rfl le_rfl,
-      embed_tapeEmb]
-    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
-      simp [wordsCfg]
+  obtain ⟨h₂, hs₂⟩ := runFrom_rewindLast (k := k) (input := input) output
+  have hs₁ := spaceUsed_outputToTape tm (wordsCfg input (some tm.q₀) (fun _ => []) []) t
+  rw [outCfg_wordsCfg, hrun, wordsCfg_output] at hs₁
   rw [add_assoc t]
-  refine ⟨_, [], runFrom_seq hphase1 rfl hphase2 rfl, ⟨rfl, rfl⟩, ?_⟩
-  -- phase 1 costs `s + output.length + 1`, phase 2 costs `output.length + 2 + k`
-  have h₁ := spaceUsed_outputToTape tm (wordsCfg input (some tm.q₀) (fun _ => []) []) t
-  have h₂ := spaceUsed_tapeEmb_le (rewindWork Symbol) (Fin.last k)
-    (outCfg (wordsCfg input (some (rewindWork Symbol).q₀) (fun _ => []) output)) (output.length + 2)
-  have h₃ := spaceUsed_rewindWork_le (input := input) none 1 (tapeOfList output) [] rfl le_rfl
-    (output.length + 2)
-  rw [outCfg_wordsCfg, hrun, wordsCfg_output] at h₁
-  rw [oneTapeCfg_outCfg_wordsCfg] at h₂
-  exact (spaceUsed_seq_le hphase1 rfl (congrArg Cfg.state hphase2)).trans
-    ((Nat.add_le_add h₁ h₂).trans (by omega))
+  exact ⟨_, [], runFrom_seq h₁ rfl h₂ rfl, ⟨rfl, rfl⟩,
+    (spaceUsed_seq_le h₁ rfl (congrArg Cfg.state h₂)).trans
+      ((Nat.add_le_add hs₁ hs₂).trans (by omega))⟩
 
 end Turing.MultiTapeTM
