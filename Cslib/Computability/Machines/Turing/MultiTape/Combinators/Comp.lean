@@ -30,6 +30,8 @@ intermediate word; so is its space, since the intermediate word is kept on a wor
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.comp`: tidily computable functions compose.
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.comp'`: the same, with the length of the
   intermediate word bounded by the time of the inner function.
+* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.computableInTimeAndSpace_comp`: hence `f ∘ g`
+  is computable in the sense of `Turing.MultiTapeTM.ComputableInTimeAndSpace`.
 -/
 
 namespace Turing.MultiTapeTM
@@ -133,5 +135,16 @@ public theorem ComputableTidilyInTimeAndSpace.comp' {α β γ : Type*} {g : α �
   refine ⟨c, h.mono (fun a => ?_) (fun a => ?_)⟩ <;>
   · have := (h₁ a).length_output_le
     omega
+
+/-- If `g` and `f` are tidily computable, then `f ∘ g` is computable. -/
+public theorem ComputableTidilyInTimeAndSpace.computableInTimeAndSpace_comp {α β γ : Type*}
+    {g : α → β} {f : β → γ} {encIn : α ↪ List Bool} {encMid : β ↪ List Bool}
+    {encOut : γ ↪ List Bool} {t₁ s₁ : α → ℕ} {t₂ s₂ : β → ℕ}
+    (hf : ComputableTidilyInTimeAndSpace f encMid encOut t₂ s₂)
+    (hg : ComputableTidilyInTimeAndSpace g encIn encMid t₁ s₁) :
+    ∃ c, ComputableInTimeAndSpace (f ∘ g) encIn encOut
+      (fun a => 5 * t₁ a + t₂ (g a) + 9) (fun a => s₁ a + s₂ (g a) + 5 * t₁ a + c) :=
+  let ⟨c, h⟩ := hf.comp' hg
+  ⟨c, h.computableInTimeAndSpace⟩
 
 end Turing.MultiTapeTM
