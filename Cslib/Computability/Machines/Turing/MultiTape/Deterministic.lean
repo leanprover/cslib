@@ -309,6 +309,22 @@ lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i
 
 end Space
 
+/-- In `t` steps the machine emits at most `t` symbols. -/
+lemma length_output_runFrom_le (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) (t : ℕ) :
+    (tm.runFrom cfg t).output.length ≤ cfg.output.length + t := by
+  induction t with
+  | zero => simp [runFrom]
+  | succ t ih =>
+    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
+    cases hq : (tm.runFrom cfg t).state with
+    | none => rw [step_of_halt hq]; omega
+    | some q =>
+      rw [step_of_state hq, Action.apply_output, List.length_append]
+      have : (tm.tr q (tm.runFrom cfg t).inputSymbol
+        (tm.runFrom cfg t).workTapeSymbols).output.toList.length ≤ 1 := Option.length_toList_le
+      omega
+
 /-- In `t` steps the input head moves at most `t` positions to the right. -/
 lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) (t : ℕ) :

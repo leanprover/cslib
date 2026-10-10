@@ -6,7 +6,7 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 
 /-!
 # Tidy computations
@@ -36,6 +36,10 @@ notions below add tidiness to `Turing.MultiTapeTM.ComputesInTimeAndSpace`,
   `Turing.MultiTapeTM.wordsCfg` configurations, together with a space bound.
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.computableInTimeAndSpace`: a tidily
   computable function is computable, within the same bounds.
+* `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace.length_output_le`: a tidy computation emits at
+  most one symbol per step.
+* `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace.extendTapes`: a tidy computation stays tidy with
+  more work tapes.
 -/
 
 @[expose] public section
@@ -79,6 +83,23 @@ theorem ComputesTidilyInTimeAndSpace.computesInTimeAndSpace {input output : List
   have hhalt : (tm.runFrom (tm.initCfg input) t).Halted := by rw [MultiTapeNTM.initCfg, hrun]; rfl
   exact ⟨⟨t, hhalt, by rw [MultiTapeNTM.initCfg, hrun]; rfl⟩, runsInTime_iff_halted.mpr hhalt,
     runsInSpace_of_halted hhalt hspace⟩
+
+/-- A tidy computation within `t` steps emits at most `t` symbols. -/
+theorem ComputesTidilyInTimeAndSpace.length_output_le {input output : List Symbol}
+    (h : tm.ComputesTidilyInTimeAndSpace input output t s) : output.length ≤ t := by
+  simpa [(computesTidily_iff.mp h).1] using
+    tm.length_output_runFrom_le (wordsCfg input (some tm.q₀) (fun _ => []) []) t
+
+/-- A tidy computation stays tidy with more work tapes, at one cell per added tape. -/
+theorem ComputesTidilyInTimeAndSpace.extendTapes {k' : ℕ} {input output : List Symbol}
+    (h : tm.ComputesTidilyInTimeAndSpace input output t s) (e : Fin k ↪ Fin k') :
+    (tm.extendTapes e).ComputesTidilyInTimeAndSpace input output t (s + (k' - k)) := by
+  refine (TransformsTapes.extendTapes h e).imp (fun _ _ ⟨hin, hws⟩ => ⟨hin, by simp [hws]⟩)
+    (fun _ ws ws' _ ⟨_, hws⟩ ⟨⟨hv, hout⟩, hx⟩ => ⟨funext fun l => ?_, hout⟩) le_rfl le_rfl
+  by_cases hl : l ∈ Set.range e
+  · obtain ⟨j, rfl⟩ := hl
+    exact congrFun hv j
+  · rw [hx l hl, hws]
 
 /-! ### Tidily computing a function -/
 
