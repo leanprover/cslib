@@ -192,25 +192,22 @@ theorem transformsTapes_seq
   obtain ⟨ws', e₀, hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
   obtain ⟨ws'', e₁, hrun₁, hQ₁, hspace₁⟩ :=
     h₁ input ws' (out ++ e₀) (hmid input ws ws' e₀ hP₀ hQ₀)
-  refine ⟨ws'', e₀ ++ e₁, ?_, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, fun p hp => ?_⟩
+  refine ⟨ws'', e₀ ++ e₁, ?_, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, ?_⟩
   · exact runFrom_seq hrun₀ rfl (by simpa using hrun₁) rfl
   -- every head position of the composed run is one of the first machine up to `t₀` or one of the
-  -- second machine up to `t₁`, after which the second machine stays halted
+  -- second machine, which stays on its first `t₁` steps since it has halted by then
   let p₀ : tm₀.RunPath input := .ofDeterministic tm₀ (wordsCfg input (some tm₀.q₀) ws out) t₀
   let p₁ : tm₁.RunPath input :=
     .ofDeterministic tm₁ (wordsCfg input (some tm₁.q₀) ws' (out ++ e₀)) t₁
-  refine (p.space_le_sum_card (S := fun i => p₀.visitedByTapeHead i ∪ p₁.visitedByTapeHead i)
-    fun c hc i => ?_).trans ?_
-  · obtain ⟨m, rfl⟩ := hc
-    rw [runPath_apply_eq_runFrom, hp]
-    refine forgetState_runFrom_seq (P := fun c => c.workTapePos i ∈ _) hrun₀ rfl
-      (fun m hm => Finset.mem_union_left _ (Finset.mem_image_of_mem _
-        (Finset.mem_univ (⟨m, by omega⟩ : Fin (t₀ + 1))))) (fun n => Finset.mem_union_right _ ?_) m
-    rcases le_total n t₁ with hn | hn
-    · exact Finset.mem_image_of_mem _ (Finset.mem_univ (⟨n, by omega⟩ : Fin (t₁ + 1)))
-    · rw [withState_wordsCfg, runFrom_eq_of_halt _ _ hn (by rw [hrun₁]; rfl)]
-      exact Finset.mem_image_of_mem _ (Finset.mem_univ (Fin.last t₁))
-  · exact ((Finset.sum_le_sum fun i _ => Finset.card_union_le _ _).trans_eq
-      Finset.sum_add_distrib).trans (Nat.add_le_add (hspace₀ p₀ rfl) (hspace₁ p₁ rfl))
+  refine (MultiTapeNTM.RunPath.space_le_sum_card _
+    (S := fun i => p₀.visitedByTapeHead i ∪ p₁.visitedByTapeHead i) fun c hc i => ?_).trans
+    (((Finset.sum_le_sum fun i _ => Finset.card_union_le _ _).trans_eq
+      Finset.sum_add_distrib).trans (Nat.add_le_add hspace₀ hspace₁))
+  obtain ⟨m, rfl⟩ := hc
+  refine forgetState_runFrom_seq (P := fun c => c.workTapePos i ∈ _) hrun₀ rfl
+    (fun m hm => Finset.mem_union_left _ (Finset.mem_image_of_mem _
+      (Finset.mem_univ (⟨m, by omega⟩ : Fin (t₀ + 1))))) (fun n => Finset.mem_union_right _ ?_) m
+  obtain ⟨j, hj⟩ := runFrom_mem_ofDeterministic (by rw [hrun₁]; rfl) n
+  exact hj ▸ Finset.mem_image_of_mem _ (Finset.mem_univ j)
 
 end Turing.MultiTapeTM

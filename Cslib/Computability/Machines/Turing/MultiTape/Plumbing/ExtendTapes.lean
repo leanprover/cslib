@@ -241,11 +241,10 @@ public theorem TransformsTapes.tapeEmb {tm : MultiTapeTM 1 Symbol State}
     simp only [oneTapeCfg, wordsCfg, hrun]
     rw [embed_tapeEmb]
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> by_cases hl : l = i <;> simp [hl]
-  · -- a run of the placed machine is the one-tape run, mapped onto tape `i`
-    intro p hp
-    rw [extendTapes_q₀, ← embed_oneTapeCfg i (wordsCfg ..)] at hp
-    rw [MultiTapeNTM.RunPath.eq_map_ofDeterministic (embedHom ..) p hp]
-    exact (space_map_embedHom_le ..).trans (Nat.add_le_add_right (hspace _ rfl) _)
+  · -- the path of the placed machine is the one-tape path, mapped onto tape `i`
+    rw [extendTapes_q₀, ← embed_oneTapeCfg i (wordsCfg ..), ← embedHom_apply tm,
+      ← MultiTapeNTM.RunPath.map_ofDeterministic]
+    exact (space_map_embedHom_le ..).trans (Nat.add_le_add_right hspace _)
 
 end OneTape
 

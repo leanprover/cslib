@@ -48,6 +48,12 @@ lemma space_le_sum_card (p : ntm.RunPath input) {S : Fin k → Finset ℤ}
     (h : ∀ c ∈ p, ∀ i, c.workTapePos i ∈ S i) : p.space ≤ ∑ i, (S i).card :=
   Finset.sum_le_sum fun i _ => p.spaceUsedByTape_le_card fun c hc => h c hc i
 
+/-- A path whose configurations all lie on another path visits no more cells. -/
+lemma space_le_of_subset {p q : ntm.RunPath input} (h : ∀ c ∈ q, c ∈ p) : q.space ≤ p.space :=
+  q.space_le_sum_card fun c hc _ =>
+    let ⟨n, hn⟩ := h c hc
+    hn ▸ Finset.mem_image_of_mem _ (Finset.mem_univ n)
+
 /-! ### Mapped paths -/
 
 /-- If the head of tape `i'` of a mapped path follows the head of tape `i` of the source path, the
