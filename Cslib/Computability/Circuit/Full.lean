@@ -5,13 +5,13 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuit.Synthesis
+public import Cslib.Computability.Circuit.Simulation
 
 import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Data.Fin.VecNotation
 
 /-!
-# Synthesis over the full basis
+# Synthesis and simulation over the full basis
 
 The full basis of arity `k` contains every constant and every operation with `k` arguments.
 Each takes one gate, and so does every operation with at most `k` arguments: a nullary
@@ -19,15 +19,21 @@ operation is a constant, and other operations repeat their arguments to fill all
 positions. Applying such an operation to `r` functions synthesized with budgets `cost i`
 therefore takes at most `∑ i, cost i + 1` gates. `Synthesis.full_binary` states the binary
 case with two separate budgets. All constructions preserve previously available functions.
+
+Consequently, the full basis of arity `k` simulates any interpretation whose operations have
+arity at most `k`, replacing each operation by one gate. This includes nullary operations and
+the case `k = 0`, and needs no assumption on the carrier.
 -/
 
 @[expose] public section
 
-namespace Cslib.Circuits.Synthesis
+namespace Cslib.Circuits
 
-universe u
+universe v u
 
 variable {U : Type u} {k n a b : ℕ} {s : Set ((Fin n → U) → U)}
+
+namespace Synthesis
 
 /-- A constant can be synthesized with one gate of the full basis. -/
 theorem full_const (value : U) :
@@ -65,4 +71,19 @@ theorem full_binary {f g : (Fin n → U) → U}
   simpa [Fin.sum_univ_two] using full_gate_of_syntheses le_rfl (fun v => op (v 0) (v 1))
     ![f, g] ![a, b] (Fin.forall_fin_two.mpr ⟨hf, hg⟩)
 
-end Cslib.Circuits.Synthesis
+end Synthesis
+
+/-- The full basis simulates operations of arity at most `k` with a budget of one gate each. -/
+theorem fullInterpretation_simulatesWithCost {σ : Signature.{v}} (I : Interpretation σ U)
+    (h : ∀ op, σ.Arity op ≤ k) :
+    (fullInterpretation (k := k)).SimulatesWithCost I (fun _ => 1) := by
+  intro op
+  exact (Synthesis.full_gate (s := inputs _) (h op) (I op)
+    (fun i x => x i) (fun i => ⟨i, rfl⟩)).exists_circuit
+
+/-- The full basis simulates any interpretation whose operations have arity at most `k`. -/
+theorem fullInterpretation_simulates {σ : Signature.{v}} (I : Interpretation σ U)
+    (h : ∀ op, σ.Arity op ≤ k) : (fullInterpretation (k := k)).Simulates I :=
+  (fullInterpretation_simulatesWithCost I h).simulates
+
+end Cslib.Circuits
