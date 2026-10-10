@@ -100,32 +100,6 @@ machine. -/
     (tm.stepRel input).Hom (tm.outputToTape.stepRel input) :=
   stepHom outCfg (step_outCfg tm)
 
-section WithOutput
-
-/-- `outputToTape tm` never writes the real output, so replacing it commutes with a step. -/
-public lemma step_outputToTape_withOutput (tm : MultiTapeTM k Symbol State)
-    (c : Cfg (k + 1) Symbol State input) (out : List Symbol) :
-    tm.outputToTape.step (c.withOutput out) = (tm.outputToTape.step c).withOutput out := by
-  cases hq : c.state with
-  | none => simp [hq]
-  | some q =>
-    rw [step_of_state (cfg := c.withOutput out) hq, step_of_state hq]
-    exact Cfg.ext rfl rfl rfl rfl (by simp [outputToTape])
-
-/-- Replacing the real output preserves the steps of `outputToTape tm`. -/
-@[expose] public noncomputable def withOutputHom (tm : MultiTapeTM k Symbol State)
-    (out : List Symbol) :
-    (tm.outputToTape.stepRel input).Hom (tm.outputToTape.stepRel input) :=
-  stepHom (Cfg.withOutput · out) (step_outputToTape_withOutput tm · out)
-
-/-- `outputToTape`'s space does not depend on the real output already present. -/
-public lemma space_map_withOutputHom (tm : MultiTapeTM k Symbol State)
-    (p : tm.outputToTape.RunPath input) (out : List Symbol) :
-    (p.map (withOutputHom tm out)).space = p.space :=
-  p.space_map_eq _ fun _ _ => rfl
-
-end WithOutput
-
 /-- The initial configuration of the redirected machine is the original's through `outCfg`. -/
 public lemma initCfg_outputToTape (tm : MultiTapeTM k Symbol State) (input : List Symbol) :
     tm.outputToTape.initCfg input = outCfg (tm.initCfg input) := by

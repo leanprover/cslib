@@ -23,8 +23,8 @@ attains its per-tape space usage at a single step, which makes a bound that hold
 in time usable as a bound for the whole run.
 
 A simulation maps every run path of one machine to a run path of another with `RunPath.map`.
-`MultiTapeNTM.RunPath.space_map_le` and `MultiTapeNTM.RunPath.space_map_eq` compare the space of
-the two paths through the positions of the work-tape heads.
+`MultiTapeNTM.RunPath.space_map_le` compares the space of the two paths through the positions of
+the work-tape heads.
 
 -/
 
@@ -56,13 +56,6 @@ lemma spaceUsedByTape_map_le_card (p : ntm.RunPath input)
     (f : (ntm.stepRel input).Hom (ntm'.stepRel input')) {i : Fin k'} {S : Finset ℤ}
     (h : ∀ c ∈ p, (f c).workTapePos i ∈ S) : (p.map f).spaceUsedByTape i ≤ S.card :=
   (p.map f).spaceUsedByTape_le_card fun _ ⟨n, hn⟩ => hn ▸ h (p n) ⟨n, rfl⟩
-
-/-- A map preserving every head position preserves space. -/
-lemma space_map_eq {ntm' : MultiTapeNTM k Symbol State'} (p : ntm.RunPath input)
-    (f : (ntm.stepRel input).Hom (ntm'.stepRel input'))
-    (h : ∀ c ∈ p, (f c).workTapePos = c.workTapePos) : (p.map f).space = p.space :=
-  Finset.sum_congr rfl fun i _ =>
-    congrArg Finset.card (p.visitedByTapeHead_map f fun c hc => congrFun (h c hc) i)
 
 /-- **Space of a simulation.** If the heads of the tapes `e j` of a mapped path follow the heads of
 the tapes `j` of the source path, and each remaining tape of the mapped path visits at most `b`
