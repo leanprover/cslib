@@ -143,10 +143,7 @@ theorem fullInterpretation_isComplete [Finite U] (hk : 2 ≤ k) :
     (fullInterpretation (k := k) (Carrier := U)).IsComplete := by
   let := fullInterpretation_isComplete_two (U := U)
   apply (fullInterpretation_simulates (fullInterpretation (k := 2) (Carrier := U)) ?_).isComplete
-  intro op
-  cases op with
-  | fn _ => exact hk
-  | con _ => exact Nat.zero_le _
+  rintro (_ | _) <;> simp [fullSignature, hk]
 
 /-- Full bases with at least two arguments are complete on finite carriers. -/
 instance [Finite U] : (fullInterpretation (k := k + 2) (Carrier := U)).IsComplete :=
