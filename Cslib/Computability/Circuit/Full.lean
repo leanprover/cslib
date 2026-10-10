@@ -25,9 +25,13 @@ Consequently, the full basis of arity `k` simulates any interpretation whose ope
 arity at most `k`, replacing each operation by one gate. This includes nullary operations and
 the case `k = 0`, and needs no assumption on the carrier.
 
-On a finite carrier, every full basis of arity at least two is functionally complete.
-The binary construction tests each input tuple and combines the prescribed values;
-simulation transfers completeness to larger arities.
+On a finite carrier, every full basis of arity at least two is functionally complete. The idea
+is disjunctive normal form: a function on a finite carrier is a finite table, so a circuit can
+find the row that matches its input and return that row's value. For each row, binary gates
+compare the input with the row one coordinate at a time, giving the row's value on a match and a
+fixed default otherwise. Further binary gates merge these answers by keeping the one that differs
+from the default. Over `Bool` with default `false`, this is exactly disjunctive normal form.
+Larger arities follow by simulation.
 -/
 
 @[expose] public section
