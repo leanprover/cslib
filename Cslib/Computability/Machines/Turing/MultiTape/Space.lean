@@ -6,7 +6,7 @@ Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 
 module
 
-public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 
 /-!
@@ -58,6 +58,12 @@ def spaceUsedByTape (p : ntm.RunPath input) (i : Fin k) : ℕ :=
 /-- The number of work tape cells visited along a run path. -/
 def space (p : ntm.RunPath input) : ℕ := ∑ i, p.spaceUsedByTape i
 
+/-- Every work head visits at least the cell it starts on, so a path visits at least `k` cells. -/
+lemma le_space (p : ntm.RunPath input) : k ≤ p.space :=
+  calc k = ∑ _ : Fin k, 1 := by rw [← Finset.card_eq_sum_ones, Finset.card_univ, Fintype.card_fin]
+    _ ≤ p.space := Finset.sum_le_sum fun _ _ =>
+      Finset.card_pos.mpr (Finset.univ_nonempty.image _)
+
 end RunPath
 
 /-- The number of work tape cells visited along a computation path. -/
@@ -72,6 +78,11 @@ def RunsInSpace (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (s : �
 lemma RunsInSpace.mono {s s' : ℕ} (h : ntm.RunsInSpace input s) (hs : s ≤ s') :
     ntm.RunsInSpace input s' :=
   fun p ↦ (h p).trans hs
+
+/-- A space bound leaves room for every work tape: already the computation path that has not
+moved yet visits one cell per tape. -/
+lemma RunsInSpace.le {s : ℕ} (h : ntm.RunsInSpace input s) : k ≤ s :=
+  RunPath.le_space _ |>.trans <| h ⟨RelSeries.singleton _ (ntm.initCfg input), rfl⟩
 
 /-- A machine without work tapes satisfies every space bound. -/
 @[simp]

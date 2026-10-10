@@ -80,7 +80,7 @@ theorem computesInTimeAndSpace (input : List Symbol) :
     ComputesInTimeAndSpace copy input input (input.length + 1) 0 := by
   have hhalt := congrArg Cfg.state (runFrom_full input)
   exact ⟨⟨input.length + 1, hhalt, by rw [runFrom_full]; simp [cfg]⟩,
-    runsInTime_of_halted hhalt, by simp⟩
+    runsInTime_iff_halted.mpr hhalt, by simp⟩
 
 end Copy
 
