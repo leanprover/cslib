@@ -23,20 +23,18 @@ sense of `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace`.
 ## Main results
 
 * `Turing.MultiTapeTM.ComputableInTimeAndSpace.computableTidilyInTimeAndSpace`: a function
-  computable in zero space is computable *tidily*, with the time bound doubled and the space
-  bound still zero.
+  computable in time `t` and zero space is computable tidily in time `2 * t + 2` and zero space.
 -/
 
 namespace Turing.MultiTapeTM
 
 variable {Symbol : Type*} {input : List Symbol}
 
-/-! ### Machines without work tapes compute tidily -/
+/-! ### Machines without work tapes -/
 
-/-- A machine without work tapes that halts in the words normal form except for its input head
-computes tidily once the rewinding machine follows it. The hypothesis is the run of the machine
-alone, which may leave the input head at any position `p`; the composite pays the `p - 1 + 2`
-steps of the rewind on top. -/
+/-- If a machine without work tapes halts with output `output` and its input head at `p`, then
+following it with `Turing.MultiTapeTM.rewindInput` computes `output` tidily, with `p - 1 + 2`
+extra steps for the rewind. -/
 public theorem computesTidily_seq_rewindInput_of_runFrom {State : Type*}
     {tm : MultiTapeTM 0 Symbol State} {output : List Symbol} {p : Fin (input.length + 2)}
     {tapes : Fin 0 → ℤ → Option Symbol} {heads : Fin 0 → ℤ} {t : ℕ}
@@ -51,17 +49,16 @@ public theorem computesTidily_seq_rewindInput_of_runFrom {State : Type*}
     (runFrom_rewindInput p tapes heads output).trans (Cfg.ext_zero_tapes rfl rfl rfl)
   exact runFrom_seq hrun rfl hfin rfl
 
-/-- **A machine without work tapes computes tidily** once the rewinding machine follows it. With
-no work tape there is nothing to clean up: the one blemish of the halting configuration is the
-input head, and it has had only `t` steps to stray from the start, so the rewind costs at most
-`t + 2` further steps. -/
+/-- A machine without work tapes that computes `output` in time `t`, followed by
+`Turing.MultiTapeTM.rewindInput`, computes `output` tidily in time `2 * t + 2`: in `t` steps the
+input head moves at most `t` cells, so the rewind takes at most `t + 2` steps. -/
 public theorem ComputesInTimeAndSpace.computesTidily_seq_rewindInput {State : Type*}
     {tm : MultiTapeTM 0 Symbol State} {output : List Symbol} {t s : ℕ}
     (h : ComputesInTimeAndSpace tm input output t s) :
     (tm.seq (rewindInput Symbol)).ComputesTidilyInTimeAndSpace input output (2 * t + 2) 0 := by
   obtain ⟨⟨u, hu_halt, hu_out⟩, htime, -⟩ := h
   have ht : (tm.runFrom (tm.initCfg input) t).Halted := runsInTime_iff_halted.mp htime
-  -- Both `t` and `u` steps reach a halted configuration, so the outputs agree.
+  -- the machine has halted after both `t` and `u` steps, so the outputs agree
   have hout : (tm.runFrom (tm.initCfg input) t).output = output := by
     obtain ⟨v, hvt, hv⟩ := exists_haltsAt ht
     rw [hv.runFrom_eq hvt, ← hu_out, hv.runFrom_eq (hv.le_of_halted hu_halt)]
@@ -72,23 +69,19 @@ public theorem ComputesInTimeAndSpace.computesTidily_seq_rewindInput {State : Ty
     rw [← Cfg.init_eq_wordsCfg]
     exact Cfg.ext_zero_tapes ht rfl hout
   have hpos := inputPos_runFrom_le tm (tm.initCfg input) t
-  have hone : ((tm.initCfg input).inputPos : ℕ) = 1 := by
-    simp [Cfg.init]
-  rw [hone] at hpos
+  have hone : ((tm.initCfg input).inputPos : ℕ) = 1 := by simp [Cfg.init]
   exact (computesTidily_seq_rewindInput_of_runFrom hrun).mono (by omega) le_rfl
 
-/-! ### Zero space is tidy -/
+/-! ### Zero space -/
 
-/-- **A computation in zero space can be made tidy**: zero space forces a machine without work
-tapes (`Turing.MultiTapeTM.ComputableInTimeAndSpace.exists_no_work_tapes`), and such a machine
-leaves nothing behind but its input head, which a final rewind returns. The time bound doubles;
-the space bound stays zero. -/
+/-- A function computable in time `t` and zero space is computable tidily in time `2 * t + 2` and
+zero space: the machine has no work tapes, so it suffices to rewind the input head. -/
 public theorem ComputableInTimeAndSpace.computableTidilyInTimeAndSpace {α β : Type*}
     {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β} {t : α → ℕ}
     (h : ComputableInTimeAndSpace f encIn encOut t (fun _ => 0)) :
     ComputableTidilyInTimeAndSpace f encIn encOut (fun a => 2 * t a + 2) (fun _ => 0) := by
-  rcases isEmpty_or_nonempty α with hα | hα
-  · exact ⟨0, Unit, inferInstance, nop 0 Bool, fun a => (hα.false a).elim⟩
+  rcases isEmpty_or_nonempty α with _ | _
+  · exact ⟨0, Unit, inferInstance, nop 0 Bool, isEmptyElim⟩
   · obtain ⟨State, hfin, tm, htm⟩ := h.exists_no_work_tapes
     exact ⟨0, State ⊕ RewindState, inferInstance, tm.seq (rewindInput Bool),
       fun a => (htm a).computesTidily_seq_rewindInput⟩

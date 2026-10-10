@@ -12,24 +12,22 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromWo
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Tidy
 
 /-!
-# A tidy computation as a work-tape-to-work-tape transformation
+# Running a tidy computation on work tapes
 
-`onWords tm mark` is the capstone of the word plumbing: it turns a machine computing *tidily* into a
-machine that reads its input as a word on one work tape and writes the result as a word on another,
-touching nothing else. It is the composition of the two halves built separately — first
-`Turing.MultiTapeTM.outputToWord` redirects `tm`'s output onto a fresh last work tape (and rewinds
-that head), then `Turing.MultiTapeTM.inputFromWord` feeds that machine its input from a virtual
-input word on an added tape. The result is a genuine `wordsCfg → wordsCfg` transformer: blank tapes
-except the virtual input word go to blank tapes except the output word, emitting nothing.
+`onWords tm mark` reads its input as a word on one work tape and writes the output of `tm` as a
+word on another, leaving every other tape alone. It is `tm` with its output redirected to a new
+work tape (`Turing.MultiTapeTM.outputToWord`) and its input read from another new work tape
+(`Turing.MultiTapeTM.inputFromWord`).
 
 ## Main results
 
 * `Turing.MultiTapeTM.onWords`: the composed machine.
-* `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace.onWords`: a tidy computation becomes a tape
-  transformation placing the output on a designated tape, reading the input from another.
-* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.exists_onWords`: the conversion theorem — a
-  tidily computable function is computed by some machine as a word-to-word tape transformer, with an
-  input tape distinct from the output tape.
+* `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace.onWords`: if `tm` computes `output` from `input`
+  tidily, then `onWords tm mark` takes `input` on its input work tape to `output` on its output
+  work tape.
+* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.exists_onWords`: a tidily computable function
+  is computed by a machine that reads its input from one work tape and writes its output to
+  another.
 -/
 
 @[expose] public section
@@ -38,49 +36,43 @@ namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State : Type*}
 
-/-- `tm`, converted into a word-to-word tape transformer: its output redirected onto a fresh work
-tape by `Turing.MultiTapeTM.outputToWord`, then its input read from a virtual input word on an
-added tape by `Turing.MultiTapeTM.inputFromWord`. -/
+/-- `tm`, with its output written to the work tape `(Fin.last k).castAdd 2` and its input read
+from the work tape `Fin.natAdd (k + 1) 0`, using `mark` to flag the left end of the input. -/
 noncomputable def onWords (tm : MultiTapeTM k Symbol State) (mark : Symbol) :
     MultiTapeTM (k + 1 + 2) Symbol (MarkWorkState ⊕ (State ⊕ RewindWorkState) ⊕ MarkWorkState) :=
   tm.outputToWord.inputFromWord mark
 
-/-- **Glue (precondition).** The blank inner tapes appended with the virtual input word `input` and
-the empty flag word is the family that is blank everywhere except the virtual input tape. -/
-private lemma onWords_pre {k : ℕ} {Symbol : Type*} (input : List Symbol) :
+/-- The work tapes in which `onWords` starts, as seen by `inputFromWord`. -/
+private lemma onWords_pre (input : List Symbol) :
     Fin.append (fun _ : Fin (k + 1) => ([] : List Symbol)) ![input, []] =
       Function.update (fun _ => []) (Fin.natAdd (k + 1) 0) input := by
   rw [← Fin.append_const (m := k + 1) (n := 2) [], ← Fin.append_update_right]
   congr 1
   simp [funext_iff, Fin.forall_fin_two]
 
-/-- **Glue (postcondition).** The inner tapes holding `output` on the last tape, appended with the
-virtual input word `input` and the empty flag word, is the blank family updated with `input` on the
-virtual input tape and `output` on the output tape. -/
-private lemma onWords_post {k : ℕ} {Symbol : Type*} (input output : List Symbol) :
+/-- The work tapes in which `onWords` halts, as seen by `inputFromWord`. -/
+private lemma onWords_post (input output : List Symbol) :
     Fin.append (Function.update (fun _ : Fin (k + 1) => ([] : List Symbol)) (Fin.last k) output)
         ![input, []] =
       Function.update (Function.update (fun _ => []) (Fin.natAdd (k + 1) 0) input)
         ((Fin.last k).castAdd 2) output := by
   rw [Fin.append_update_left, onWords_pre]
 
-/-- **A tidy computation becomes a word-to-word tape transformation.** Started on tapes blank except
-for the virtual input word on tape `Fin.natAdd (k + 1) 0`, `tm.onWords mark` halts leaving every
-tape as it was except the output tape `(Fin.last k).castAdd 2`, which holds the emitted word, and
-emits nothing. -/
-theorem ComputesTidilyInTimeAndSpace.onWords {k : ℕ} {Symbol State : Type*}
-    {tm : MultiTapeTM k Symbol State} {input output : List Symbol} {t s : ℕ} (mark : Symbol)
+/-- If `tm` computes `output` from `input` tidily, then `onWords tm mark`, started with `input` on
+the work tape `Fin.natAdd (k + 1) 0` and all other work tapes blank, halts with `output` on the
+work tape `(Fin.last k).castAdd 2`, every other work tape unchanged, and nothing emitted. -/
+theorem ComputesTidilyInTimeAndSpace.onWords {tm : MultiTapeTM k Symbol State}
+    {input output : List Symbol} {t s : ℕ} (mark : Symbol)
     (h : tm.ComputesTidilyInTimeAndSpace input output t s) :
     TransformsTapes (tm.onWords mark)
       (fun _ ws => ws = Function.update (fun _ => []) (Fin.natAdd (k + 1) 0) input)
       (fun _ ws ws' emitted =>
         ws' = Function.update ws ((Fin.last k).castAdd 2) output ∧ emitted = [])
       (t + output.length + 6) (s + 2 * input.length + 2 * output.length + 3 * k + 15) := by
-  -- extract `outputToWord`'s single run, instantiated at the real input and blank tapes
+  -- the run of `outputToWord tm` on `input` with blank work tapes
   obtain ⟨ws', emitted, hrun, ⟨rfl, rfl⟩, hspace⟩ :=
     h.outputToWord input (fun _ => []) [] ⟨rfl, rfl⟩
   rw [List.append_nil] at hrun
-  -- feed it to `inputFromWord`, giving a `TransformsTapes` for `tm.onWords mark`
   have key := transformsTapes_inputFromWord_of_runFrom mark (M := tm.outputToWord)
     (w := input) (ws₀ := fun _ => [])
     (ws₁ := Function.update (fun _ => []) (Fin.last k) output) (e := []) hrun hspace
@@ -89,10 +81,9 @@ theorem ComputesTidilyInTimeAndSpace.onWords {k : ℕ} {Symbol State : Type*}
   · rw [hws, onWords_pre]
   · rw [hws, hws', onWords_post]
 
-/-- **The conversion theorem.** A tidily computable function is computed by some machine with binary
-alphabet and finitely many states as a word-to-word tape transformer: it reads its input as a word
-on some tape `i` and leaves the result as a word on a distinct tape `o`, leaving every other tape
-blank and emitting nothing. -/
+/-- A tidily computable function is computed by a machine with binary alphabet and finitely many
+states that reads its input from a work tape `i` and writes its output to a different work tape
+`o`, leaving every other work tape unchanged and emitting nothing. -/
 theorem ComputableTidilyInTimeAndSpace.exists_onWords {α β : Type*}
     {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {t s : α → ℕ}
     (h : ComputableTidilyInTimeAndSpace f encIn encOut t s) :
@@ -102,10 +93,9 @@ theorem ComputableTidilyInTimeAndSpace.exists_onWords {α β : Type*}
         (fun _ ws ws' emitted => ws' = Function.update ws o (encOut (f a)) ∧ emitted = [])
         (t a + (encOut (f a)).length + 6)
         (s a + 2 * (encIn a).length + 2 * (encOut (f a)).length + 3 * k + 15) := by
-  obtain ⟨k, State, hfin, tm, htm⟩ := h
-  have : Finite State := hfin
+  obtain ⟨k, State, _, tm, htm⟩ := h
   exact ⟨k, _, inferInstance, tm.onWords true, Fin.natAdd (k + 1) 0, (Fin.last k).castAdd 2,
-    Fin.ne_of_val_ne (by simp only [Fin.val_natAdd, Fin.val_castAdd, Fin.val_last]; omega),
+    (Fin.castAdd_ne_natAdd _ _).symm,
     fun a => (htm a).onWords true⟩
 
 end Turing.MultiTapeTM

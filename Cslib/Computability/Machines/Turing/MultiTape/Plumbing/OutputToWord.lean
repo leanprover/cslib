@@ -14,23 +14,20 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Tidy
 
 /-!
-# Turning a tidy computation into a word-to-word tape transformation
+# Writing the output as a word on a work tape
 
-`outputToWord tm` redirects a machine's output onto a fresh last work tape and then rewinds that
-tape's head back to the start. It is the sequential composition of `outputToTape tm`, which writes
-what `tm` would output onto the fresh tape (with the head left at the write frontier), and
-`rewindWork` placed on that last tape, which walks the head back to `0` without erasing.
+`outputToWord tm` runs `tm` with its output redirected onto a new last work tape
+(`Turing.MultiTapeTM.outputToTape`), then moves the head of that tape back to cell `0`
+(`Turing.MultiTapeTM.rewindWork`).
 
-For a machine that computes *tidily* — halting with every work tape blank, every work head and the
-input head back where they started — the composite is a genuine `wordsCfg → wordsCfg` tape
-transformation: it takes blank tapes to blank tapes except for the last tape, which ends up holding
-the emitted word with its head at the start.
+If `tm` computes `output` tidily (`Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace`), then
+`outputToWord tm` takes blank work tapes to blank work tapes, except that the last one holds
+`output`, and emits nothing.
 
 ## Main results
 
 * `Turing.MultiTapeTM.outputToWord`: the composed machine.
-* `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace.outputToWord`: a tidy computation becomes a tape
-  transformation placing the output on the last tape.
+* `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace.outputToWord`: its specification.
 -/
 
 @[expose] public section
@@ -39,36 +36,35 @@ namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 
-/-- `tm`, with its output redirected onto a fresh last work tape whose head is then rewound to the
-start: `outputToTape tm` followed by `rewindWork` placed on the last tape. -/
+/-- `tm` with its output written to a new last work tape, whose head is then moved back to
+cell `0`. -/
 noncomputable def outputToWord (tm : MultiTapeTM k Symbol State) :
     MultiTapeTM (k + 1) Symbol (State ⊕ RewindWorkState) :=
   tm.outputToTape.seq ((rewindWork Symbol).extendTapes (tapeEmb (Fin.last k)))
 
-/-- **Glue.** The redirected view of a word configuration with no output is the word configuration
-on `k + 1` tapes whose last word is empty. -/
+/-- Redirecting the output of a `wordsCfg` configuration with empty output adds an empty last
+work tape. -/
 lemma outCfg_wordsCfg (q : Option State) (ws : Fin k → List Symbol) :
     outCfg (wordsCfg input q ws []) = wordsCfg input q (Fin.snoc ws []) [] := by
   refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
     simp [outCfg, wordsCfg]
 
 open Sequential in
-/-- **A tidy computation becomes a word-to-word tape transformation.** Started on blank tapes,
-`outputToWord tm` halts with every tape blank except the fresh last tape, which holds the emitted
-word with its head back at the start. -/
-theorem ComputesTidilyInTimeAndSpace.outputToWord {k : ℕ} {Symbol State : Type*}
-    {tm : MultiTapeTM k Symbol State} {input output : List Symbol} {t s : ℕ}
+/-- If `tm` computes `output` tidily, then `outputToWord tm`, started on blank work tapes, halts
+with `output` on its last work tape, every other work tape blank, and nothing emitted. -/
+theorem ComputesTidilyInTimeAndSpace.outputToWord {tm : MultiTapeTM k Symbol State}
+    {input output : List Symbol} {t s : ℕ}
     (h : tm.ComputesTidilyInTimeAndSpace input output t s) :
     TransformsTapes tm.outputToWord
       (fun inp ws => inp = input ∧ ws = fun _ => [])
       (fun _ _ ws' e => ws' = Function.update (fun _ => []) (Fin.last k) output ∧ e = [])
       (t + output.length + 2) (s + 2 * output.length + k + 3) := by
   obtain ⟨hrun, hspace⟩ := computesTidily_iff.mp h
-  -- abbreviations for the two phases and the junction configuration
+  -- the second phase, and the configuration in which the first phase halts
   set tm₁ : MultiTapeTM (k + 1) Symbol RewindWorkState :=
     (rewindWork Symbol).extendTapes (tapeEmb (Fin.last k)) with htm₁
   rw [transformsTapes_iff_nil_output]
-  rintro inp ws ⟨hin, rfl⟩
+  rintro inp _ ⟨hin, rfl⟩
   subst inp
   set mid : Cfg (k + 1) Symbol State input := outCfg (wordsCfg input none (fun _ => []) output)
     with hmid_def
@@ -77,16 +73,16 @@ theorem ComputesTidilyInTimeAndSpace.outputToWord {k : ℕ} {Symbol State : Type
   have hsnoc : (fun _ : Fin (k + 1) => ([] : List Symbol)) =
       Fin.snoc (fun _ : Fin k => ([] : List Symbol)) [] :=
     funext fun l => by induction l using Fin.lastCases <;> simp
-  -- the starting configuration, handed over to the sequential composition
+  -- the start of the composed machine is the start of the first phase
   have hstart : wordsCfg input (some (tm.outputToTape.seq tm₁).q₀) (fun _ => []) [] =
       leftCfg tm₁ (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) []) := rfl
-  -- PHASE 1: outputToTape mirrors `tm` through `outCfg`
+  -- phase 1: `outputToTape` mirrors `tm` through `outCfg`
   have hphase1 : tm.outputToTape.runFrom
       (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) []) t = mid := by
     rw [hmid_def, hsnoc, ← outCfg_wordsCfg, show tm.outputToTape.q₀ = tm.q₀ from rfl,
       runFrom_outCfg, hrun]
   have hmid_halt : mid.Halted := by rw [hmid_def]; rfl
-  -- PHASE 2: rewind the last tape's head from the frontier back to the start
+  -- phase 2: rewind the head of the last tape from the end of `output` to cell `0`
   have hphase2 : tm₁.runFrom (mid.withState (some tm₁.q₀)) (output.length + 2) =
       wordsCfg input none (Function.update (fun _ => []) (Fin.last k) output) [] := by
     rw [htm₁, show tm₁.q₀ = (rewindWork Symbol).q₀ from rfl, runFrom_tapeEmb]
@@ -104,25 +100,19 @@ theorem ComputesTidilyInTimeAndSpace.outputToWord {k : ℕ} {Symbol State : Type
       | cast j =>
         simp [hmid_def, wordsCfg, outCfg_workTapes_castSucc, outCfg_workTapePos_castSucc,
           Cfg.withState]
+  rw [add_assoc t, hwo, hstart]
   refine ⟨Function.update (fun _ => []) (Fin.last k) output, [], ?_, ⟨rfl, rfl⟩, ?_⟩
-  · -- chain the two phases at run level; the junction `mid` is not a `wordsCfg`
-    rw [show t + output.length + 2 = t + (output.length + 2) by omega, hwo,
-      hstart, runFrom_seq hphase1 hmid_halt hphase2 rfl]
-    rw [rightCfg, mapState_wordsCfg]
+  · rw [runFrom_seq hphase1 hmid_halt hphase2 rfl, rightCfg, mapState_wordsCfg]
     rfl
-  · -- SPACE: phase 1 costs `s + output.length + 1`, phase 2 costs `output.length + 2 + k`
-    rw [show t + output.length + 2 = t + (output.length + 2) by omega, hwo,
-      hstart]
+  · -- phase 1 costs `s + output.length + 1`, phase 2 costs `output.length + 2 + k`
     refine (spaceUsed_seq_le hphase1 hmid_halt (by rw [hphase2]; rfl)).trans ?_
-    -- phase 1 space
     have h1 : tm.outputToTape.spaceUsed
         (wordsCfg input (some tm.outputToTape.q₀) (fun _ => []) []) t ≤ s + output.length + 1 := by
       rw [hsnoc, ← outCfg_wordsCfg, show tm.outputToTape.q₀ = tm.q₀ from rfl]
       refine (spaceUsed_outputToTape tm (wordsCfg input (some tm.q₀) (fun _ => []) []) t).trans ?_
-      rw [hrun]
-      simp only [wordsCfg_output]
+      simp only [hrun, wordsCfg_output]
       omega
-    -- phase 2 space: the head stays within `[-1, output.length]`, one cell per other tape
+    -- in phase 2 the head stays within `[-1, output.length]`; each other tape costs one cell
     have h2 : tm₁.spaceUsed (mid.withState (some tm₁.q₀)) (output.length + 2) ≤
         output.length + 2 + k := by
       rw [htm₁, show tm₁.q₀ = (rewindWork Symbol).q₀ from rfl]

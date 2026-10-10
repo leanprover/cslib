@@ -11,29 +11,27 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsT
 /-!
 # Tidy computations
 
-A machine runs *tidily* when it halts having given its tapes back as it found them: every work
-tape blank again, every head — work heads and the input head — back at its starting cell, only the
-output grown by the emitted word. This is exactly the hypothesis that lets a combinator call a
-machine without tracking anything beyond the word it emits.
+A machine computes *tidily* if it halts with its tapes as it found them: every work tape blank,
+every work head and the input head back at its starting cell. Only the output has grown, by the
+computed word. A combinator can therefore run a tidy machine as a subroutine and rely on nothing
+but the word it emits.
 
-Each tidy notion is *literally* a `Turing.MultiTapeTM.TransformsTapes` — the transformation taking
-blank words to blank words, emitting the output — so the plumbing combinators (`imp`, `mono`,
-`transformsTapes_seq`, `tapeEmb`) apply with no proof of its own. The three notions mirror
-`Turing.MultiTapeTM.ComputesInTimeAndSpace`, `Turing.MultiTapeTM.ComputesFunInTimeAndSpace` and
-`Turing.MultiTapeTM.ComputableInTimeAndSpace`, each the ordinary notion plus that cleanup
-requirement.
+A tidy computation is defined as a `Turing.MultiTapeTM.TransformsTapes` from blank work tapes to
+blank work tapes, so the lemmas about tape transformations apply to it directly. The three
+notions below add tidiness to `Turing.MultiTapeTM.ComputesInTimeAndSpace`,
+`Turing.MultiTapeTM.ComputesFunInTimeAndSpace` and `Turing.MultiTapeTM.ComputableInTimeAndSpace`.
 
 ## Main definitions
 
 * `Turing.MultiTapeTM.ComputesTidilyInTimeAndSpace`: a machine computes an output tidily.
 * `Turing.MultiTapeTM.ComputesFunTidilyInTimeAndSpace`: a machine computes a function tidily.
-* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace`: such a machine exists, with binary alphabet
-  and finitely many states.
+* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace`: some machine with binary alphabet and
+  finitely many states computes a function tidily.
 
 ## Main results
 
-* `Turing.MultiTapeTM.computesTidily_iff` and `Turing.MultiTapeTM.computesTidily_of_runFrom`: the
-  equation form and how a concrete machine enters.
+* `Turing.MultiTapeTM.computesTidily_iff`: a tidy computation is a single run between
+  `Turing.MultiTapeTM.wordsCfg` configurations, together with a space bound.
 -/
 
 @[expose] public section
@@ -44,21 +42,16 @@ variable {k : ℕ} {Symbol State : Type*} {tm : MultiTapeTM k Symbol State} {t s
 
 /-! ### Tidy computations -/
 
-/-- `ComputesTidilyInTimeAndSpace tm input output t s`: started on blank tapes, the machine halts
-*tidily* — every work tape blank again, every work head back at cell `0` and the input head back
-at the start of the input — having emitted `output`, within `t` steps and `s` work-tape cells.
-
-An instance of `Turing.MultiTapeTM.TransformsTapes`; `Turing.MultiTapeTM.computesTidily_iff` is
-the equation form. -/
+/-- `ComputesTidilyInTimeAndSpace tm input output t s`: started on `input` with blank work tapes,
+`tm` halts within `t` steps and `s` work-tape cells, having emitted `output`, with every work tape
+blank and every head back at its starting cell. -/
 abbrev ComputesTidilyInTimeAndSpace (tm : MultiTapeTM k Symbol State)
     (input output : List Symbol) (t s : ℕ) : Prop :=
   TransformsTapes tm (fun inp ws => inp = input ∧ ws = fun _ => [])
     (fun _ _ ws' emitted => ws' = (fun _ => []) ∧ emitted = output) t s
 
-/-- **A tidy computation is an equation between word configurations.** Unfolding leaves the run on
-blank tapes, the demand that it halt on blank tapes again with the input head back at the start,
-and the space bound; the ambient output of `Turing.MultiTapeTM.TransformsTapes` is discharged by
-`Turing.MultiTapeTM.transformsTapes_iff_nil_output`. -/
+/-- A tidy computation is a single run between `Turing.MultiTapeTM.wordsCfg` configurations with
+blank work tapes, which emits the output, together with the space bound. -/
 theorem computesTidily_iff {input output : List Symbol} :
     tm.ComputesTidilyInTimeAndSpace input output t s ↔
       tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
@@ -77,8 +70,7 @@ theorem computesTidily_iff {input output : List Symbol} :
 variable {α β : Type*}
 
 /-- `ComputesFunTidilyInTimeAndSpace tm encIn encOut f t s`: for every `a`, the machine computes
-`encOut (f a)` from `encIn a` tidily, within the bounds `t a` and `s a` —
-`Turing.MultiTapeTM.ComputesFunInTimeAndSpace` plus the cleanup requirement. -/
+`encOut (f a)` from `encIn a` tidily, within `t a` steps and `s a` cells. -/
 def ComputesFunTidilyInTimeAndSpace (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
   ∀ a, tm.ComputesTidilyInTimeAndSpace (encIn a) (encOut (f a)) (t a) (s a)
@@ -97,10 +89,9 @@ end ComputesFunTidilyInTimeAndSpace
 
 /-! ### Tidy computability -/
 
-/-- A function is computable *tidily* within the input-indexed bounds by a machine with binary
-alphabet and finitely many states: `Turing.MultiTapeTM.ComputableInTimeAndSpace` plus the cleanup
-requirement. The two are *not* known to agree — recovering the tapes costs time and space that
-this definition still charges to `t` and `s`. -/
+/-- Some machine with binary alphabet and finitely many states computes `f` tidily within the
+bounds `t` and `s`. Unlike `Turing.MultiTapeTM.ComputableInTimeAndSpace`, the cost of restoring the
+tapes is included in the bounds. -/
 def ComputableTidilyInTimeAndSpace (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
