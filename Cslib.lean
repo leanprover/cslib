@@ -47,12 +47,14 @@ public import Cslib.Computability.Circuit.Composition
 public import Cslib.Computability.Circuit.Counting
 public import Cslib.Computability.Circuit.Depth
 public import Cslib.Computability.Circuit.Finite
+public import Cslib.Computability.Circuit.Full
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Normalization
 public import Cslib.Computability.Circuit.Program
 public import Cslib.Computability.Circuit.RelativeComplexity
 public import Cslib.Computability.Circuit.Shannon
 public import Cslib.Computability.Circuit.Signature
+public import Cslib.Computability.Circuit.Simulation
 public import Cslib.Computability.Circuit.Synthesis
 public import Cslib.Computability.Circuit.Wire
 public import Cslib.Computability.Distributed.Consistency.Hierarchy
@@ -168,6 +170,7 @@ public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 public import Cslib.Foundations.Semantics.FLTS.Prod
+public import Cslib.Foundations.Semantics.FLTS.SyncTrace
 public import Cslib.Foundations.Semantics.Frame.Basic
 public import Cslib.Foundations.Semantics.Frame.LTS
 public import Cslib.Foundations.Semantics.LTS.Basic
