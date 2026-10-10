@@ -30,12 +30,13 @@ intermediate word; so is its space, since the intermediate word is kept on a wor
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.comp`: tidily computable functions compose.
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.comp'`: the same, with the length of the
   intermediate word bounded by the time of the inner function.
-* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.comp_length`: the same for bounds `T` and `S`
-  of the input length, shared by both functions.
+* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpaceOfLength.comp`: the same for bounds `t` and `s`
+  of the input length, shared by both functions, given a bound `l` on the length of the
+  intermediate word.
 * `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.computableInTimeAndSpace_comp`: hence `f ∘ g`
   is computable in the sense of `Turing.MultiTapeTM.ComputableInTimeAndSpace`.
-* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpace.computableInTimeAndSpace_comp_length`: the
-  same for bounds of the input length.
+* `Turing.MultiTapeTM.ComputableTidilyInTimeAndSpaceOfLength.computableInTimeAndSpaceOfLength_comp`:
+  the same for bounds of the input length.
 -/
 
 namespace Turing.MultiTapeTM
@@ -140,25 +141,23 @@ public theorem ComputableTidilyInTimeAndSpace.comp' {α β γ : Type*} {g : α �
   · have := (h₁ a).length_output_le
     omega
 
-/-- If `g` and `f` are tidily computable in time `T` and space `S` of the length of their input, for
-monotone `T` and `S`, so is `f ∘ g`, in time and space depending on `T (T n)` and `S (T n)`: the
-intermediate word is no longer than the time of `g`. -/
-public theorem ComputableTidilyInTimeAndSpace.comp_length {α β γ : Type*} {g : α → β} {f : β → γ}
-    {encIn : α ↪ List Bool} {encMid : β ↪ List Bool} {encOut : γ ↪ List Bool} {T S : ℕ → ℕ}
-    (hT : Monotone T) (hS : Monotone S)
-    (hf : ComputableTidilyInTimeAndSpace f encMid encOut
-      (fun b => T (encMid b).length) (fun b => S (encMid b).length))
-    (hg : ComputableTidilyInTimeAndSpace g encIn encMid
-      (fun a => T (encIn a).length) (fun a => S (encIn a).length)) :
-    ∃ c, ComputableTidilyInTimeAndSpace (f ∘ g) encIn encOut
-      (fun a => 5 * T (encIn a).length + T (T (encIn a).length) + 9)
-      (fun a => S (encIn a).length + S (T (encIn a).length) + 5 * T (encIn a).length + c) := by
-  obtain ⟨c, h⟩ := hf.comp' hg
-  obtain ⟨_, _, _, _, h₁⟩ := hg
+/-- If `g` and `f` are tidily computable in time `t` and space `s` of the length of their input, for
+monotone `t` and `s`, and the output of `g` on inputs of length `n` has length at most `l n`, then
+`f ∘ g` is tidily computable with bounds depending on `t (l n)`, `s (l n)` and `l n`. -/
+public theorem ComputableTidilyInTimeAndSpaceOfLength.comp {α β γ : Type*} {g : α → β}
+    {f : β → γ} {encIn : α ↪ List Bool} {encMid : β ↪ List Bool} {encOut : γ ↪ List Bool}
+    {l t s : ℕ → ℕ} (ht : Monotone t) (hs : Monotone s)
+    (hl : ∀ a, (encMid (g a)).length ≤ l (encIn a).length)
+    (hf : ComputableTidilyInTimeAndSpaceOfLength f encMid encOut t s)
+    (hg : ComputableTidilyInTimeAndSpaceOfLength g encIn encMid t s) :
+    ∃ c, ComputableTidilyInTimeAndSpaceOfLength (f ∘ g) encIn encOut
+      (fun n => t n + t (l n) + 4 * l n + 9) (fun n => s n + s (l n) + 5 * l n + c) := by
+  obtain ⟨c, h⟩ := ComputableTidilyInTimeAndSpace.comp hf hg
   refine ⟨c, h.mono (fun a => ?_) (fun a => ?_)⟩ <;>
-  · have hlen : (encMid (g a)).length ≤ T (encIn a).length := (h₁ a).length_output_le
-    have := hT hlen
-    have := hS hlen
+  · have := hl a
+    have := ht (hl a)
+    have := hs (hl a)
+    beta_reduce
     omega
 
 /-- If `g` and `f` are tidily computable, then `f ∘ g` is computable. -/
@@ -172,19 +171,18 @@ public theorem ComputableTidilyInTimeAndSpace.computableInTimeAndSpace_comp {α 
   let ⟨c, h⟩ := hf.comp' hg
   ⟨c, h.computableInTimeAndSpace⟩
 
-/-- If `g` and `f` are tidily computable in time `T` and space `S` of the length of their input, for
-monotone `T` and `S`, then `f ∘ g` is computable. -/
-public theorem ComputableTidilyInTimeAndSpace.computableInTimeAndSpace_comp_length {α β γ : Type*}
-    {g : α → β} {f : β → γ} {encIn : α ↪ List Bool} {encMid : β ↪ List Bool}
-    {encOut : γ ↪ List Bool} {T S : ℕ → ℕ} (hT : Monotone T) (hS : Monotone S)
-    (hf : ComputableTidilyInTimeAndSpace f encMid encOut
-      (fun b => T (encMid b).length) (fun b => S (encMid b).length))
-    (hg : ComputableTidilyInTimeAndSpace g encIn encMid
-      (fun a => T (encIn a).length) (fun a => S (encIn a).length)) :
-    ∃ c, ComputableInTimeAndSpace (f ∘ g) encIn encOut
-      (fun a => 5 * T (encIn a).length + T (T (encIn a).length) + 9)
-      (fun a => S (encIn a).length + S (T (encIn a).length) + 5 * T (encIn a).length + c) :=
-  let ⟨c, h⟩ := comp_length hT hS hf hg
-  ⟨c, h.computableInTimeAndSpace⟩
+/-- If `g` and `f` are tidily computable in time `t` and space `s` of the length of their input, for
+monotone `t` and `s`, and the output of `g` on inputs of length `n` has length at most `l n`, then
+`f ∘ g` is computable. -/
+public theorem ComputableTidilyInTimeAndSpaceOfLength.computableInTimeAndSpaceOfLength_comp
+    {α β γ : Type*} {g : α → β} {f : β → γ} {encIn : α ↪ List Bool} {encMid : β ↪ List Bool}
+    {encOut : γ ↪ List Bool} {l t s : ℕ → ℕ} (ht : Monotone t) (hs : Monotone s)
+    (hl : ∀ a, (encMid (g a)).length ≤ l (encIn a).length)
+    (hf : ComputableTidilyInTimeAndSpaceOfLength f encMid encOut t s)
+    (hg : ComputableTidilyInTimeAndSpaceOfLength g encIn encMid t s) :
+    ∃ c, ComputableInTimeAndSpaceOfLength (f ∘ g) encIn encOut
+      (fun n => t n + t (l n) + 4 * l n + 9) (fun n => s n + s (l n) + 5 * l n + c) :=
+  let ⟨c, h⟩ := comp ht hs hl hf hg
+  ⟨c, ComputableTidilyInTimeAndSpace.computableInTimeAndSpace h⟩
 
 end Turing.MultiTapeTM
