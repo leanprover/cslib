@@ -30,7 +30,7 @@ def HasSyncTrace (flts : FLTS State Label) : Prop :=
 
 /-- Černý conjecture: for any synchronising `FLTS` with `n` states, there exists a synchronising
 trace of length at most `(n-1)^2`. -/
-proof_wanted cerny_bound [Fintype State] (flts : FLTS State Label) (h : flts.HasSyncTrace) :
-    ∃ μs, flts.IsSyncTrace μs ∧ μs.length ≤ (Fintype.card State - 1) ^ 2
+proof_wanted cerny_bound [Finite State] (flts : FLTS State Label) (h : flts.HasSyncTrace) :
+    ∃ μs, flts.IsSyncTrace μs ∧ μs.length ≤ (Nat.card State - 1) ^ 2
 
 end Cslib.FLTS
