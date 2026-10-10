@@ -282,9 +282,8 @@ lemma MultiTapeNTM.ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol S
 
 namespace MultiTapeTM
 
-/-- The paths of a deterministic machine from `cfg` are prefixes of one another, so if they all
-visit at most `s` cells, one of them visits as many cells as any other on every tape. This fails for
-nondeterministic machines, whose branches may use different tapes the most. -/
+/-- If every path from `cfg` visits at most `s` cells, one of these paths visits as many cells as
+any other on every tape. -/
 lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
     (hs : ∀ p : tm.RunPath input, p.head = cfg → p.space ≤ s) :
     ∃ p : tm.RunPath input, p.head = cfg ∧
