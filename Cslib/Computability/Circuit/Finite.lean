@@ -9,6 +9,7 @@ public import Cslib.Computability.Circuit.Program
 public import Mathlib.Data.Fintype.BigOperators
 
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Basic.Finite.Sum
 
 /-!
 # Finite circuit syntax
