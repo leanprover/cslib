@@ -19,29 +19,28 @@ tape `j`. The remaining tapes are left unchanged.
 The configuration map `embed e cfg extraTapes extraPos` places `cfg` on the selected tapes and
 initialises the remaining tapes from `extraTapes` and `extraPos`.
 
-The main lemmas show that one step and an entire run of the larger machine mirror the corresponding
-step and run of `tm`.
+The main lemmas show that one step and an entire run path of the larger machine mirror the
+corresponding step and run path of `tm`.
 
 ## Main definitions
 
 * `Turing.MultiTapeTM.partialInv`: the partial inverse of the tape embedding.
 * `Turing.MultiTapeTM.extendTapes`: the machine with reindexed work tapes.
 * `Turing.MultiTapeTM.embed`: the corresponding configuration map.
+* `Turing.MultiTapeTM.embedHom`: the configuration map as a step-preserving map, which maps run
+  paths.
 * `Turing.MultiTapeTM.tapeEmb`: the embedding placing the only tape of a one-tape machine on
   tape `i`, and `Turing.MultiTapeTM.noTapes`: the embedding of a machine without work tapes.
 
 ## Main results
 
-* `Turing.MultiTapeTM.step_embed` and `Turing.MultiTapeTM.runFrom_embed`: the one-step and run-level
-  mirroring lemmas.
-* `Turing.MultiTapeTM.workTapePos_embed_of_not_range`: the extra tapes never move.
-* `Turing.MultiTapeTM.spaceUsed_embed_le`: the resulting space bound.
+* `Turing.MultiTapeTM.step_embed`: the one-step mirroring lemma.
+* `Turing.MultiTapeTM.space_map_embedHom_le`: the space bound for a mapped path.
 * `Turing.MultiTapeTM.oneTapeCfg`: the one-tape view of a configuration.
-* `Turing.MultiTapeTM.runFrom_tapeEmb`, `Turing.MultiTapeTM.spaceUsed_tapeEmb_le`: the run and the
-  space of a one-tape machine placed on work tape `i`.
+* `Turing.MultiTapeTM.runFrom_tapeEmb`: the run of a one-tape machine placed on work tape `i`.
 * `Turing.MultiTapeTM.TransformsTapes.tapeEmb`: a one-tape specification, read on tape `i`.
-* `Turing.MultiTapeTM.runFrom_noTapes`, `Turing.MultiTapeTM.spaceUsed_noTapes_le`: the run and the
-  space of a machine without work tapes, placed in a machine with `k` of them.
+* `Turing.MultiTapeTM.runFrom_noTapes`: the run of a machine without work tapes, placed in a machine
+  with `k` of them.
 -/
 
 namespace Turing.MultiTapeTM
@@ -145,38 +144,24 @@ public lemma step_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> simp only [Action.apply, embed] <;>
       cases partialInv e l <;> simp
 
-/-- The reindexed run mirrors the original, with the extra tapes held fixed throughout. -/
-public lemma runFrom_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
-    (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
-    (extraPos : Fin k' → ℤ) (n : ℕ) :
-    (tm.extendTapes e).runFrom (embed e cfg extraTapes extraPos) n
-      = embed e (tm.runFrom cfg n) extraTapes extraPos :=
-  (Function.Semiconj.iterate_right (f := (embed e · extraTapes extraPos))
-    (fun c => (step_embed tm e c extraTapes extraPos).symm) n cfg).symm
+/-- Reindexing preserves steps, so it maps run paths of `tm` to run paths of the reindexed machine,
+with the extra tapes held fixed throughout. -/
+@[expose, simps! apply] public noncomputable def embedHom (tm : MultiTapeTM k Symbol State)
+    (e : Fin k ↪ Fin k') (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
+    (tm.stepRel input).Hom ((tm.extendTapes e).stepRel input) :=
+  stepHom (embed e · extraTapes extraPos) (step_embed tm e · extraTapes extraPos)
 
 section Space
 
-/-- The head of a tape outside `range e` never leaves its starting position. -/
-public lemma workTapePos_embed_of_not_range (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
-    (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
-    (extraPos : Fin k' → ℤ) (n : ℕ) {l : Fin k'} (hl : l ∉ Set.range e) :
-    ((tm.extendTapes e).runFrom (embed e cfg extraTapes extraPos) n).workTapePos l
-      = extraPos l := by
-  rw [runFrom_embed]
-  simp only [embed, partialInv_eq_none e hl]
-
-/-- **Space bound for a reindexed run.** The embedded tapes contribute the space used by `tm`, while
-each of the remaining `k' - k` tapes never moves and contributes at most one cell. -/
-public lemma spaceUsed_embed_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
-    (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
-    (extraPos : Fin k' → ℤ) (n : ℕ) :
-    (tm.extendTapes e).spaceUsed (embed e cfg extraTapes extraPos) n
-      ≤ tm.spaceUsed cfg n + (k' - k) := by
-  simpa using tm.spaceUsed_le_of_workTapePos_embedding e cfg _ 1
-    (fun m _ j => by rw [runFrom_embed, embed_workTapePos_embed])
-    fun l hl => spaceUsedByTape_le_one _ fun m _ => by
-      rw [workTapePos_embed_of_not_range tm e cfg extraTapes extraPos m hl]
-      simp only [embed, partialInv_eq_none e hl]
+/-- **Space bound for a reindexed path.** The embedded tapes visit what the original path visits,
+while each of the remaining `k' - k` tapes never moves and contributes one cell. -/
+public lemma space_map_embedHom_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
+    (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) (p : tm.RunPath input) :
+    (p.map (embedHom tm e extraTapes extraPos)).space ≤ p.space + (k' - k) := by
+  simpa using p.space_map_le (embedHom tm e extraTapes extraPos) e 1
+    (fun c _ j => embed_workTapePos_embed e c extraTapes extraPos j) fun l hl => by
+      simpa using p.spaceUsedByTape_map_le_card _ (S := {extraPos l}) fun c _ => by
+        simp [embed, partialInv_eq_none e hl]
 
 end Space
 
@@ -233,15 +218,7 @@ public lemma runFrom_tapeEmb (tm : MultiTapeTM 1 Symbol State) (i : Fin k)
     (cfg : Cfg k Symbol State input) (n : ℕ) :
     (tm.extendTapes (tapeEmb i)).runFrom cfg n =
       embed (tapeEmb i) (tm.runFrom (oneTapeCfg i cfg) n) cfg.workTapes cfg.workTapePos := by
-  rw [← runFrom_embed, embed_oneTapeCfg]
-
-/-- **Space bound for a one-tape machine placed on tape `i`:** the space of the one-tape run, plus
-one cell for each tape the machine does not use. -/
-public lemma spaceUsed_tapeEmb_le (tm : MultiTapeTM 1 Symbol State) (i : Fin k)
-    (cfg : Cfg k Symbol State input) (n : ℕ) :
-    (tm.extendTapes (tapeEmb i)).spaceUsed cfg n ≤ tm.spaceUsed (oneTapeCfg i cfg) n + (k - 1) := by
-  conv_lhs => rw [← embed_oneTapeCfg i cfg]
-  exact spaceUsed_embed_le _ _ _ _ _ _
+  rw [← embedHom_apply tm, ← runFrom_map, embedHom_apply, embed_oneTapeCfg]
 
 /-- **A one-tape specification on tape `i`.** A one-tape machine placed on tape `i` transforms the
 word on that tape as it did on its own tape and leaves every other word alone; each remaining tape
@@ -258,14 +235,16 @@ public theorem TransformsTapes.tapeEmb {tm : MultiTapeTM 1 Symbol State}
       t (s + (k - 1)) := by
   intro input ws out hP
   obtain ⟨v, emitted, hrun, hQ, hspace⟩ := h input (fun _ => ws i) out hP
-  simp only [wordsCfg] at hrun hspace
+  simp only [wordsCfg] at hrun
   refine ⟨Function.update ws i (v 0), emitted, ?_, ⟨v, hQ, rfl⟩, ?_⟩
   · rw [extendTapes_q₀, runFrom_tapeEmb]
     simp only [oneTapeCfg, wordsCfg, hrun]
     rw [embed_tapeEmb]
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> by_cases hl : l = i <;> simp [hl]
-  · rw [extendTapes_q₀]
-    exact (spaceUsed_tapeEmb_le _ _ _ _).trans (Nat.add_le_add_right hspace _)
+  · -- the path of the placed machine is the one-tape path, mapped onto tape `i`
+    rw [extendTapes_q₀, ← embed_oneTapeCfg i (wordsCfg ..), ← embedHom_apply tm,
+      ← MultiTapeNTM.RunPath.map_ofDeterministic]
+    exact (space_map_embedHom_le ..).trans (Nat.add_le_add_right hspace _)
 
 end OneTape
 
@@ -305,15 +284,7 @@ public lemma runFrom_noTapes (tm : MultiTapeTM 0 Symbol State) (cfg : Cfg k Symb
     (tm.extendTapes (noTapes k)).runFrom cfg n =
       ⟨(tm.runFrom (noTapesCfg cfg) n).state, (tm.runFrom (noTapesCfg cfg) n).inputPos,
         cfg.workTapes, cfg.workTapePos, (tm.runFrom (noTapesCfg cfg) n).output⟩ := by
-  rw [← embed_noTapesCfg cfg, runFrom_embed, embed_noTapes]
-  simp [embed_noTapesCfg]
-
-/-- **Space bound for a machine without work tapes:** one cell for each tape it does not use. -/
-public lemma spaceUsed_noTapes_le (tm : MultiTapeTM 0 Symbol State)
-    (cfg : Cfg k Symbol State input) (n : ℕ) :
-    (tm.extendTapes (noTapes k)).spaceUsed cfg n ≤ k := by
-  conv_lhs => rw [← embed_noTapesCfg cfg]
-  simpa using spaceUsed_embed_le tm (noTapes k) (noTapesCfg cfg) cfg.workTapes cfg.workTapePos n
+  rw [← embed_noTapes, ← embedHom_apply tm, ← runFrom_map, embedHom_apply, embed_noTapesCfg]
 
 end NoTapes
 
