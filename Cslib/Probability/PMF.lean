@@ -68,7 +68,6 @@ theorem uniformOfFinset_apply (s : Finset α) (hs : s.Nonempty) (a : α) :
 
 theorem mem_support_uniformOfFinset_iff {s : Finset α} (hs : s.Nonempty) (a : α) :
     a ∈ (uniformOfFinset s hs).support ↔ a ∈ s := by
-  classical
   simp [PMF.mem_support_iff]
 
 /-- Uniform probability mass function on a nonempty finite type. -/

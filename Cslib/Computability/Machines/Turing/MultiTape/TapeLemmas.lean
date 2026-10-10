@@ -240,7 +240,6 @@ lemma spaceUsed_le_of_workTapePos_embedding {k' : ℕ} {State' : Type*} {input' 
     (he : ∀ m ≤ t, ∀ j, (tm.runFrom cfg m).workTapePos j = (tm'.runFrom cfg' m).workTapePos (e j))
     (hrest : ∀ l ∉ Set.range e, tm'.spaceUsedByTape cfg' t l ≤ b) :
     tm'.spaceUsed cfg' t ≤ tm.spaceUsed cfg t + (k' - k) * b := by
-  classical
   rw [spaceUsed, spaceUsed, ← Finset.sum_add_sum_compl (Finset.univ.map e), Finset.sum_map]
   refine add_le_add (Finset.sum_le_sum fun j _ => (congrArg Finset.card
     (Finset.image_congr fun (m : Fin (t + 1)) _ => he m (Nat.lt_succ_iff.mp m.isLt) j)).ge) ?_

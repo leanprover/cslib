@@ -234,7 +234,6 @@ end HaltsAt
 /-- A run that is halted after `t` steps halts at some step `u ≤ t`. -/
 lemma exists_haltsAt {input : List Symbol} {cfg : Cfg k Symbol State input} {t : ℕ}
     (hhalt : (tm.runFrom cfg t).Halted) : ∃ u ≤ t, tm.HaltsAt cfg u := by
-  classical
   have hex : ∃ n, (tm.runFrom cfg n).Halted := ⟨t, hhalt⟩
   exact ⟨Nat.find hex, Nat.find_min' hex hhalt, Nat.find_spec hex,
     fun s hs => Nat.find_min hex hs⟩
@@ -359,7 +358,7 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
 
-open Classical in
+open scoped Classical in
 /-- The Boolean indicator function of a set. -/
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
   fun x => if x ∈ L then true else false
