@@ -306,15 +306,6 @@ lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i
     tm.spaceUsedByTape cfg t i ≤ tm.spaceUsed cfg t :=
   Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
 
-/-- Every work head visits at least the cell it starts on, so a machine with `k` work tapes uses
-at least `k` cells. In particular, zero space leaves no room for a work tape at all. -/
-lemma le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : k ≤ tm.spaceUsed cfg t :=
-  calc k = ∑ _i : Fin k, 1 := by
-        rw [← Finset.card_eq_sum_ones, Finset.card_univ, Fintype.card_fin]
-    _ ≤ ∑ i, tm.spaceUsedByTape cfg t i :=
-      Finset.sum_le_sum fun i _ =>
-        Finset.card_pos.mpr (Finset.Nonempty.image ⟨0, Finset.mem_univ _⟩ _)
-
 end Space
 
 /-- In `t` steps the input head moves at most `t` positions to the right. -/
@@ -384,34 +375,17 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
 
-/-- A function computable in zero space is computable by a machine *without work tapes*, in the
-same bounds: every work head visits at least the cell it starts on, so zero space leaves no room
-for a work tape at all. The domain must be inhabited: on an empty domain the machine is never
-run, so nothing constrains its tapes. -/
+/-- A function computable in zero space is computable by a machine without work tapes, within the
+same bounds, since every work tape costs at least one cell (`MultiTapeNTM.RunsInSpace.le`). The
+domain must be nonempty: otherwise the machine is never run and its number of tapes is arbitrary.
+-/
 theorem ComputableInTimeAndSpace.exists_no_work_tapes {α β : Type*} [Nonempty α]
     {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β} {t : α → ℕ}
     (h : ComputableInTimeAndSpace f encIn encOut t (fun _ => 0)) :
     ∃ (State : Type) (_ : Finite State) (tm : MultiTapeTM 0 Bool State),
       ComputesFunInTimeAndSpace tm encIn encOut f t (fun _ => 0) := by
-  classical
   obtain ⟨k, State, hfin, tm, htm⟩ := h
-  obtain ⟨a₀⟩ := ‹Nonempty α›
-  have hspace : (tm : MultiTapeNTM k Bool State).RunsInSpace (encIn a₀) 0 := (htm a₀).2.2
-  -- The length-0 computation path sitting at the initial configuration.
-  let p₀ : (tm : MultiTapeNTM k Bool State).ComputationPath (encIn a₀) :=
-    { toRunPath := RelSeries.singleton _ (tm.initCfg (encIn a₀))
-      head_eq := rfl }
-  -- Every work head occupies at least its starting cell, so this path uses at least `k` cells.
-  have hp₀ : k ≤ p₀.space :=
-    calc k = ∑ _i : Fin k, 1 := by
-          rw [← Finset.card_eq_sum_ones, Finset.card_univ, Fintype.card_fin]
-      _ ≤ p₀.space :=
-        Finset.sum_le_sum fun i _ =>
-          Finset.card_pos.mpr (Finset.Nonempty.image ⟨0, Finset.mem_univ _⟩ _)
-  have hk : k = 0 := by
-    have := hspace p₀
-    omega
-  subst hk
+  obtain rfl : k = 0 := Nat.le_zero.mp (htm (Classical.arbitrary α)).2.2.le
   exact ⟨State, hfin, tm, htm⟩
 
 open Classical in
