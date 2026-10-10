@@ -132,7 +132,6 @@ If you are looking for a concrete starting point, please look at:
 - The CSLib Zulip channels.
 - Our [GitHub issues](https://github.com/leanprover/cslib/issues).
 
-
 ## Working groups
 
 CSLib is structured to support multiple topic-focused efforts. We organise sustained work via **working groups** (informal or formal), which typically have a topic scope and a Zulip topic/channel for coordination.

@@ -8,8 +8,6 @@ module
 public import Mathlib.Data.List.Sort
 public import Cslib.Foundations.Control.Monad.IsMonadHom
 
-import Cslib.Init
-
 /-!
 # A Monadic version of Mathlib's `List.insertionSort`
 
