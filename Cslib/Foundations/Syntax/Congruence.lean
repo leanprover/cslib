@@ -27,7 +27,7 @@ class Congruence (r : α → α → Prop)
 abbrev Congruence.r (r : α → α → Prop) [Congruence r] := r
 
 @[inherit_doc]
-scoped notation:29 a " ≡[" r "] " b => Congruence.r r a b
+scoped notation:29 a:30 " ≡[" r "] " b:30 => Congruence.r r a b
 
 /-- The type `α` has a canonical congruence relation. This gives access to the `≡` notation. -/
 class DefaultCongruence (α : Type*) (r : outParam (α → α → Prop))
