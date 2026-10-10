@@ -224,9 +224,9 @@ lemma runFrom_eq_of_halt
     (tm : MultiTapeTM k Symbol State)
     (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
     (hhalt : (tm.runFrom cfg τ).state = none) :
-    tm.runFrom cfg t = tm.runFrom cfg τ := by
-  rw [runFrom, ← Nat.sub_add_cancel hle, Function.iterate_add_apply]
-  exact Function.iterate_fixed (step_of_halt hhalt) _
+    tm.runFrom cfg t = tm.runFrom cfg τ :=
+  (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).last_eq_of_halted
+    ⟨τ, Nat.lt_succ_of_le hle⟩ hhalt
 
 /-- A deterministic machine halted after `t` steps satisfies the shared time bound. -/
 lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}
