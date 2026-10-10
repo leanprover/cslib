@@ -60,7 +60,7 @@ public theorem ComputesInTimeAndSpace.computesTidily_seq_rewindInput {State : Ty
     (h : ComputesInTimeAndSpace tm input output t s) :
     (tm.seq (rewindInput Symbol)).ComputesTidilyInTimeAndSpace input output (2 * t + 2) 0 := by
   obtain ⟨⟨u, hu_halt, hu_out⟩, htime, -⟩ := h
-  have ht : (tm.runFrom (tm.initCfg input) t).Halted := halted_of_runsInTime htime
+  have ht : (tm.runFrom (tm.initCfg input) t).Halted := runsInTime_iff_halted.mp htime
   -- Both `t` and `u` steps reach a halted configuration, so the outputs agree.
   have hout : (tm.runFrom (tm.initCfg input) t).output = output := by
     obtain ⟨v, hvt, hv⟩ := exists_haltsAt ht

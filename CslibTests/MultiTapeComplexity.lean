@@ -24,7 +24,7 @@ private lemma constant_computable (symbol : Bool) :
       ((finish 0 symbol).runFrom ((finish 0 symbol).initCfg (bit b)) 1).output = bit symbol := by
     rw [runFrom, Function.iterate_one, step_of_state rfl]
     simp [finish, Turing.Cfg.Halted]; rfl
-  exact ⟨⟨1, h⟩, (runsInTime_of_halted h.1).mono (by cases b <;> decide), by simp⟩
+  exact ⟨⟨1, h⟩, (runsInTime_iff_halted.mpr h.1).mono (by cases b <;> decide), by simp⟩
 
 -- A theorem about nondeterministic steps applies directly to a deterministic machine.
 example {tm : Turing.MultiTapeTM k Symbol State} {input : List Symbol}

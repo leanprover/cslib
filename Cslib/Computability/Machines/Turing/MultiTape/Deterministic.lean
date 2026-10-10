@@ -196,28 +196,22 @@ lemma runFrom_eq_of_halt
   rw [runFrom, ← Nat.sub_add_cancel hle, Function.iterate_add_apply]
   exact Function.iterate_fixed (step_of_halt hhalt) _
 
-/-- A deterministic machine halted after `t` steps satisfies the shared time bound. -/
-lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}
-    (h : (tm.runFrom (tm.initCfg input) t).Halted) : tm.RunsInTime input t := by
-  intro p hp
-  rw [computationPath_last_eq_runFrom p, runFrom_eq_of_halt _ _ hp h]
-  exact h
-
-/-- A deterministic machine that runs in time `t` is halted after exactly `t` steps: apply the
-time bound to the length-`t` computation path. -/
-lemma halted_of_runsInTime {input : List Symbol} {t : ℕ} (h : tm.RunsInTime input t) :
-    (tm.runFrom (tm.initCfg input) t).Halted := by
-  let p : tm.ComputationPath input :=
-    { toRunPath :=
-        { length := t
-          toFun := fun i => tm.runFrom (tm.initCfg input) i
-          step := fun i => by
-            simp only [Set.mem_ofPred_eq, Fin.val_succ, Fin.val_castSucc]
-            rw [step_iff, runFrom, runFrom, Function.iterate_succ_apply'] }
-      head_eq := rfl }
-  have hlast := h p (le_refl p.time)
-  rw [computationPath_last_eq_runFrom p] at hlast
-  exact hlast
+/-- A deterministic machine runs in time `t` exactly when it has halted after `t` steps. -/
+lemma runsInTime_iff_halted {input : List Symbol} {t : ℕ} :
+    tm.RunsInTime input t ↔ (tm.runFrom (tm.initCfg input) t).Halted := by
+  refine ⟨fun h => ?_, fun h p hp => ?_⟩
+  · -- apply the time bound to the computation path of length `t`
+    let p : tm.ComputationPath input :=
+      { toRunPath :=
+          { length := t
+            toFun := fun i => tm.runFrom (tm.initCfg input) i
+            step := fun i => by
+              simp only [Set.mem_ofPred_eq, Fin.val_succ, Fin.val_castSucc]
+              rw [step_iff, runFrom, runFrom, Function.iterate_succ_apply'] }
+        head_eq := rfl }
+    exact computationPath_last_eq_runFrom p ▸ h p le_rfl
+  · rw [computationPath_last_eq_runFrom p, runFrom_eq_of_halt _ _ hp h]
+    exact h
 
 /-- The machine `tm` started in `cfg` halts at step `t`: it is halted after `t` steps and not
 halted after any smaller number of steps. -/
