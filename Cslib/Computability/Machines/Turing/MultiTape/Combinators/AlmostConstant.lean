@@ -8,7 +8,6 @@ module
 
 public import Mathlib.Data.List.Infix
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
-public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.TidyZeroSpace
 import Mathlib.Basic.Finite.Sum
 
 /-!
@@ -22,26 +21,17 @@ cases, it emits the corresponding output one symbol at a time.
 
 This result also holds for functions whose domain is already finite.
 
-All of this is also true *tidily*: the machine computes in zero space, so by
-`Turing.MultiTapeTM.ComputableInTimeAndSpace.computableTidilyInTimeAndSpace` tidiness is free at
-the price of doubling the constant time bound.
-
 ## Main Results
 
-* `computableInTimeAndSpace_of_finite`: Every function on a finite type is computable in
+* `encodedComputableInTimeAndSpace_of_finite`: Every function on a finite type is computable in
     constant time and zero space, relative to any encoding.
-* `computableInTimeAndSpace_of_exists_finite_ne`: Every function that is constant except
+* `encodedComputableInTimeAndSpace_of_exists_finite_ne`: Every function that is constant except
     for a finite number of arguments is computable in constant time and zero space, relative to any
     encoding.
-* `computableInTimeAndSpace_of_const`: Every constant function is computable in constant
+* `encodedComputableInTimeAndSpace_of_const`: Every constant function is computable in constant
     time and zero space, relative to any encoding.
-* `computableInTimeAndSpace_almostConstTime` and
-    `computableInTimeAndSpace_finiteFunTime`: The same with explicit time bounds.
-* `computableTidilyInTimeAndSpace_almostConstTime`,
-    `computableTidilyInTimeAndSpace_of_exists_finite_ne`,
-    `computableTidilyInTimeAndSpace_of_const`, `computableTidilyInTimeAndSpace_finiteFunTime` and
-    `computableTidilyInTimeAndSpace_of_finite`: All of the above tidily, still in constant time
-    and zero space.
+* `encodedComputableInTimeAndSpace_almostConstTime` and
+    `encodedComputableInTimeAndSpace_finiteFunTime`: The same with explicit time bounds.
 
 -/
 
@@ -399,53 +389,6 @@ public theorem computableInTimeAndSpace_of_finite {α β : Type*} [Finite α]
     (f : α → β) :
     ∃ c, ComputableInTimeAndSpace f encIn encOut (fun _ => c) (fun _ => 0) :=
   ⟨_, computableInTimeAndSpace_finiteFunTime f⟩
-
-/-! ### The same results, tidily
-
-The computations above use zero space, so by
-`Turing.MultiTapeTM.ComputableInTimeAndSpace.computableTidilyInTimeAndSpace` every result also
-holds tidily, with the constant time bound doubled and the space bound still zero. -/
-
-/-- Every function whose encoded output is constant outside of a finite set is computable *tidily*
-in constant time and zero space. -/
-public theorem computableTidilyInTimeAndSpace_almostConstTime
-    (f : α → β) (S : Finset α) (out : List Bool) (h : ∀ a ∉ S, encOut (f a) = out) :
-    ComputableTidilyInTimeAndSpace f encIn encOut
-      (fun _ => 2 * almostConstTime encIn encOut f S out + 2) (fun _ => 0) :=
-  (computableInTimeAndSpace_almostConstTime f S out h).computableTidilyInTimeAndSpace
-
-/-- Every almost constant function is computable tidily in constant time and zero space. -/
-public theorem computableTidilyInTimeAndSpace_of_exists_finite_ne
-    {f : α → β} (h : ∃ b : β, {a : α | f a ≠ b}.Finite) :
-    ∃ c, ComputableTidilyInTimeAndSpace f encIn encOut (fun _ => c) (fun _ => 0) := by
-  obtain ⟨b, hb⟩ := h
-  refine ⟨_, computableTidilyInTimeAndSpace_almostConstTime f hb.toFinset (encOut b) ?_⟩
-  intro a ha
-  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, not_not] at ha
-  rw [ha]
-
-/-- Every constant function is computable tidily in constant time and zero space. -/
-public theorem computableTidilyInTimeAndSpace_of_const {α β : Type*}
-    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} (b : β) :
-    ∃ c, ComputableTidilyInTimeAndSpace (Function.const α b) encIn encOut
-      (fun _ => c) (fun _ => 0) :=
-  computableTidilyInTimeAndSpace_of_exists_finite_ne ⟨b, by simp⟩
-
-/-- Every function on a finite type is computable tidily in time `2 * finiteFunTime + 2` and zero
-space. -/
-public theorem computableTidilyInTimeAndSpace_finiteFunTime {α β : Type*} [Finite α]
-    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} (f : α → β) :
-    ComputableTidilyInTimeAndSpace f encIn encOut
-      (fun _ => 2 * finiteFunTime encIn encOut f + 2) (fun _ => 0) :=
-  computableTidilyInTimeAndSpace_almostConstTime f (@Finset.univ α (Fintype.ofFinite α)) []
-    fun a ha => absurd (@Finset.mem_univ α (Fintype.ofFinite α) a) ha
-
-/-- Every function on a finite type is computable tidily in constant time and zero space. -/
-public theorem computableTidilyInTimeAndSpace_of_finite {α β : Type*} [Finite α]
-    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool}
-    (f : α → β) :
-    ∃ c, ComputableTidilyInTimeAndSpace f encIn encOut (fun _ => c) (fun _ => 0) :=
-  ⟨_, computableTidilyInTimeAndSpace_finiteFunTime f⟩
 
 end Results
 

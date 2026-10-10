@@ -14,13 +14,9 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Tidy
 /-!
 # Tidiness is free at zero space
 
-A computation that uses zero space can be made tidy. Every work head visits at least the cell it
-starts on, so a machine with even one work tape uses space (`Turing.MultiTapeTM.le_spaceUsed`):
-zero space forces a machine *without work tapes*. Such a machine leaves nothing behind but its
-input head — there is no work tape to clear and no work head to return — and following it with
-`Turing.MultiTapeTM.rewindInput` returns the input head too. The head strays at most one cell per
-step, so a machine that computes within `t` steps computes tidily within `2 * t + 2`, and the
-space bound stays zero.
+A computation that uses zero space can be made tidy: it cannot have work tapes
+(`Turing.MultiTapeTM.le_spaceUsed`), so the only thing left to do is to rewind the input head,
+which `Turing.MultiTapeTM.rewindInput` does in at most `t + 2` further steps.
 
 ## Main results
 
