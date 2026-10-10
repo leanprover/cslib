@@ -105,8 +105,6 @@ lemma tr_ofTr (q₀ : State)
     (ofTr q₀ tr).tr q input work = tr q input work :=
   tr_iff.mp rfl
 
-section Cfg
-
 /-!
 ## Stepping a Turing Machine
 
@@ -166,8 +164,6 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
 
-end Cfg
-
 end MultiTapeTM
 
 namespace MultiTapeNTM
@@ -185,15 +181,10 @@ noncomputable def RunPath.ofDeterministic (tm : MultiTapeTM k Symbol State)
 lemma RunPath.eq_ofDeterministic (p : tm.RunPath input) :
     p = .ofDeterministic tm p.head p.time := by
   refine RelSeries.ext rfl ?_
-  funext i
-  change p i = tm.step^[i.val] p.head
-  induction i using Fin.induction with
-  | zero => rfl
-  | succ i ih =>
-    simp only [Fin.val_castSucc] at ih
-    change p.toFun i.succ = tm.step^[i.val + 1] p.head
-    rw [Function.iterate_succ_apply', ← ih]
-    exact (MultiTapeTM.step_iff.mp (p.step i)).symm
+  change p.toFun = fun i ↦ tm.step^[i.val] p.head
+  refine funext (Fin.induction rfl fun i ih ↦ ?_)
+  simpa [Function.iterate_succ_apply'] using
+    (MultiTapeTM.step_iff.mp (p.step i)).symm.trans (congrArg tm.step ih)
 
 /-- The path of the first `t` steps on `input`, starting at the initial configuration. -/
 noncomputable def ComputationPath.ofDeterministic (tm : MultiTapeTM k Symbol State)
@@ -212,8 +203,6 @@ end MultiTapeNTM
 namespace MultiTapeTM
 
 variable {tm : MultiTapeTM k Symbol State}
-
-section Cfg
 
 /-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
 If the Turing machine halts, it will stay at the halting configuration. -/
@@ -297,8 +286,6 @@ lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
   cases hstate : c.state with
   | none => simp [step_of_halt hstate]
   | some q => rw [step_of_state hstate]; exact workTapePos_apply_le _ c i
-
-end Cfg
 
 section Space
 /-! Now we define space usage and add some helper lemmas. -/
