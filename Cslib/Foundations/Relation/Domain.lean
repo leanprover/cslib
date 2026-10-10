@@ -6,8 +6,8 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 module
 
-public import Cslib.Foundations.Relation.Defs
 public import Mathlib.Data.Set.Basic
+public import Cslib.Foundations.Relation.Defs
 
 /-! # Relations: Domain and Codomain
 

@@ -6,10 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Relation.Confluence
+public import Cslib.Foundations.Relation.Termination
 public import Cslib.Foundations.Semantics.LTS.Execution
-public import Mathlib.Data.Fintype.Card
-public import Mathlib.Data.List.Chain
 public import Mathlib.SetTheory.Cardinal.Finite
 
 /-!
@@ -21,6 +19,8 @@ This module relates global execution bounds, well-founded termination, and acycl
 @[expose] public section
 
 namespace Cslib.LTS
+
+open Execution
 
 universe u v
 
@@ -52,7 +52,7 @@ instance bounded_terminating [lts.Bounded] : lts.Terminating :=
 
 /-- Terminating LTSs are acyclic. -/
 theorem Terminating.toAcyclic (h : lts.Terminating) : lts.Acyclic where
-  acyclic := h.terminating.toAcyclic
+  acyclic := h.terminating.to_acyclic
 
 /-- A terminating LTS is available as an acyclic LTS through typeclass inference. -/
 instance terminating_acyclic [lts.Terminating] : lts.Acyclic :=
@@ -71,7 +71,7 @@ theorem Acyclic.toBoundedUpTo [Finite State] (h : lts.Acyclic) :
     hexec.isChain.imp_of_mem_imp fun _ _ _ _ htr => .single htr
   let : Std.Irrefl (Relation.TransGen lts.UnlabelledTr) := h.acyclic
   have hcard := hchain.pairwise.nodup.length_le_card
-  grind [Execution]
+  grind
 
 /-- On a finite state space, acyclic LTSs are bounded. -/
 theorem Acyclic.toBounded [Finite State] (h : lts.Acyclic) : lts.Bounded :=

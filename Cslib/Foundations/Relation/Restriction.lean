@@ -6,7 +6,6 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Relation.Domain
 
 /-! # Relations: Properties on set restrictions

@@ -65,7 +65,7 @@ lemma Standard.lc_l (step : M ⭢ₛ N) : LC M := by
 /-- Standard reduction is reflexive for locally closed terms. -/
 lemma Standard.lc_refl (M : Term Var) (lc : LC M) : M ⭢ₛ M := by
   induction lc
-  all_goals constructor <;> assumption
+  all_goals constructor! <;> assumption
 
 /-- The right side of a standard reduction is locally closed. -/
 lemma Standard.lc_r (step : M ⭢ₛ N) : LC N := by
