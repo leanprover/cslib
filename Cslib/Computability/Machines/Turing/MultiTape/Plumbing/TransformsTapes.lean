@@ -22,9 +22,9 @@ the input head at the start of the input and output `out`. A specification
 `TransformsTapes tm P Q t s` says: started on word-holding tapes satisfying `P`, after exactly `t`
 steps the machine sits in the halted *normal form* `wordsCfg input none ws' (out ++ emitted)`
 (every head reset to its initial position, tapes blank outside their words, the word `emitted`
-appended to the output it was handed), with the new words related to the old ones by `Q` and using
-at most `s` work-tape cells. The machine may halt earlier than `t`; since a halted machine stays
-put and stops visiting new cells, running on to `t` costs nothing, so a fixed step count loses no
+appended to the output it was handed), with the new words related to the old ones by `Q`, and
+every run from the start visits at most `s` work-tape cells. The machine may halt earlier than `t`;
+since a halted machine stays put, running on to `t` costs nothing, so a fixed step count loses no
 generality and spares every composition an existential.
 Requiring this normal form is what lets specifications compose by rewriting: the halting
 configuration of one machine is already a valid start for the next, so which words survived a step
@@ -58,8 +58,8 @@ variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 /-- `TransformsTapes tm P Q t s`: started in its initial state on tapes holding words `ws` that
 satisfy the precondition `P`, the machine is halted after exactly `t` steps in the configuration
 whose tapes hold words `ws'` and which has appended `emitted` to the output it was handed, with
-`Q input ws ws' emitted`, having used at most `s` work-tape cells. The machine is free to halt
-before step `t`, because it then stays in that configuration.
+`Q input ws ws' emitted`, and every run from the start visits at most `s` work-tape cells. The
+machine is free to halt before step `t`, because it then stays in that configuration.
 
 The bounds are numbers; a specification whose bounds depend on the data is a *family*
 `∀ j, TransformsTapes tm (P j) (Q j) (t j) (s j)` over one fixed machine. -/
@@ -73,7 +73,7 @@ def TransformsTapes (tm : MultiTapeTM k Symbol State)
       tm.runFrom (wordsCfg input (some tm.q₀) ws out) t =
         wordsCfg input none ws' (out ++ emitted) ∧
       Q input ws ws' emitted ∧
-      tm.spaceUsed (wordsCfg input (some tm.q₀) ws out) t ≤ s
+      ∀ p : tm.RunPath input, p.head = wordsCfg input (some tm.q₀) ws out → p.space ≤ s
 
 /-- A `TransformsTapes` statement can be read with a stronger precondition, a weaker postcondition
 and larger bounds. -/
@@ -88,14 +88,12 @@ theorem TransformsTapes.imp {tm : MultiTapeTM k Symbol State}
     TransformsTapes tm P' Q' t' s' := by
   intro input ws out hP'
   obtain ⟨ws', emitted, hrun, hQ'', hspace⟩ := h input ws out (hP input ws hP')
-  -- the machine is halted at step `t`, so running on to `t'` changes neither tapes nor space
+  -- the machine is halted at step `t`, so running on to `t'` does not change the tapes
   have hhalt : (tm.runFrom (wordsCfg input (some tm.q₀) ws out) t).state = none := by
     rw [hrun]
     rfl
-  refine ⟨ws', emitted, ?_, hQ input ws ws' emitted hP' hQ'', ?_⟩
-  · rw [runFrom_eq_of_halt tm _ ht hhalt, hrun]
-  · rw [spaceUsed_eq_of_halt _ ht hhalt]
-    exact hspace.trans hs
+  refine ⟨ws', emitted, ?_, hQ input ws ws' emitted hP' hQ'', fun p hp => (hspace p hp).trans hs⟩
+  rw [runFrom_eq_of_halt tm _ ht hhalt, hrun]
 
 /-- A `TransformsTapes` statement can be read with larger bounds. -/
 theorem TransformsTapes.mono {tm : MultiTapeTM k Symbol State}
@@ -119,19 +117,22 @@ theorem transformsTapes_iff_nil_output {tm : MultiTapeTM k Symbol State}
       List Symbol → Prop} {t s : ℕ} :
     TransformsTapes tm P Q t s ↔ ∀ input ws, P input ws → ∃ ws' emitted,
       tm.runFrom (wordsCfg input (some tm.q₀) ws []) t = wordsCfg input none ws' emitted ∧
-      Q input ws ws' emitted ∧ tm.spaceUsed (wordsCfg input (some tm.q₀) ws []) t ≤ s := by
+      Q input ws ws' emitted ∧
+      ∀ p : tm.RunPath input, p.head = wordsCfg input (some tm.q₀) ws [] → p.space ≤ s := by
   constructor
   · intro h input ws hP
     simpa using h input ws [] hP
   · rintro h input ws out hP
     obtain ⟨ws', emitted, hrun, hQ, hspace⟩ := h input ws hP
-    have hcfg : wordsCfg input (some tm.q₀) ws out
-        = (wordsCfg input (some tm.q₀) ws []).prependOutput out := by simp
-    refine ⟨ws', emitted, ?_, hQ, ?_⟩
-    · rw [hcfg, runFrom_prependOutput, hrun]
+    -- the run with output `out` is the run without it, mapped by prepending `out`
+    have hcfg : wordsCfg input (some tm.q₀) ws out =
+        tm.prependOutputHom out (wordsCfg input (some tm.q₀) ws []) := by simp
+    refine ⟨ws', emitted, ?_, hQ, fun p hp => ?_⟩
+    · rw [hcfg, runFrom_map, hrun]
       simp
-    · rw [hcfg, spaceUsed_prependOutput]
-      exact hspace
+    · rw [MultiTapeNTM.RunPath.eq_map_ofDeterministic _ p (hp.trans hcfg),
+        MultiTapeNTM.RunPath.space_map_eq _ _ fun _ _ => rfl]
+      exact hspace _ rfl
 
 section Nop
 
@@ -161,12 +162,16 @@ theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
     TransformsTapes (nop k Symbol) (fun _ _ => True)
       (fun _ ws ws' emitted => ws' = ws ∧ emitted = []) 1 k := by
   intro input ws out _
-  -- the heads never move, so each head visits only the single cell `0`
   refine ⟨ws, [], by rw [List.append_nil]; exact runFrom_nop_one ws out, ⟨rfl, rfl⟩,
-    spaceUsed_le_of_workTapePos_const _ 1 fun m hm => ?_⟩
-  rcases (by omega : m = 0 ∨ m = 1) with rfl | rfl
-  · rfl
-  · rw [runFrom_nop_one]; funext i; simp only [wordsCfg_workTapePos]
+    fun p hp => ?_⟩
+  -- the heads never move, so each head visits only the single cell `0`
+  refine (p.space_le_sum_card (S := fun _ => {0}) ?_).trans_eq (by simp)
+  rintro _ ⟨m, rfl⟩ i
+  rw [runPath_apply_eq_runFrom, hp]
+  rcases Nat.eq_zero_or_pos m with h | h
+  · simp [h, runFrom]
+  · rw [runFrom_eq_of_halt _ _ h (by rw [runFrom_nop_one]; rfl), runFrom_nop_one]
+    simp
 
 end Nop
 

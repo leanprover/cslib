@@ -109,14 +109,6 @@ lemma runFrom_leftCfg (cfg : Cfg k Symbol State₀ input) (n : ℕ)
       step_leftCfg _ (h n (by omega))]
 
 @[simp]
-lemma workTapePos_leftCfg (cfg : Cfg k Symbol State₀ input) :
-    (leftCfg tm₁ cfg).workTapePos = cfg.workTapePos := rfl
-
-@[simp]
-lemma workTapePos_rightCfg (cfg : Cfg k Symbol State₁ input) :
-    (rightCfg (State₀ := State₀) cfg).workTapePos = cfg.workTapePos := rfl
-
-@[simp]
 lemma forgetState_leftCfg (cfg : Cfg k Symbol State₀ input) :
     (leftCfg tm₁ cfg).forgetState = cfg.forgetState := rfl
 
@@ -200,32 +192,25 @@ theorem transformsTapes_seq
   obtain ⟨ws', e₀, hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
   obtain ⟨ws'', e₁, hrun₁, hQ₁, hspace₁⟩ :=
     h₁ input ws' (out ++ e₀) (hmid input ws ws' e₀ hP₀ hQ₀)
-  have hstart : wordsCfg input (some (tm₀.seq tm₁).q₀) ws out =
-      leftCfg tm₁ (wordsCfg input (some tm₀.q₀) ws out) := rfl
-  -- the first halting time of `tm₀`, which may be earlier than `t₀`
-  obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt
-    (show (tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) t₀).Halted by rw [hrun₀]; rfl)
-  -- from step `u` on, `seq` mirrors `tm₁`, started on what `tm₀` left including its output
-  have hright (n : ℕ) : (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
-      (u + n) = rightCfg (tm₁.runFrom (wordsCfg input (some tm₁.q₀) ws' (out ++ e₀)) n) := by
-    rw [hstart, hhaltsAt.runFrom_seq, ← hhaltsAt.runFrom_eq hu, hrun₀, withState_wordsCfg]
-  have hhalt : ((tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
-      (u + t₁)).Halted := by
-    rw [hright, hrun₁]
-    rfl
-  refine ⟨ws'', e₀ ++ e₁, ?_, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, ?_⟩
+  refine ⟨ws'', e₀ ++ e₁, ?_, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, fun p hp => ?_⟩
   · exact runFrom_seq hrun₀ rfl (by simpa using hrun₁) rfl
-  · rw [spaceUsed_eq_of_halt _ (by omega : u + t₁ ≤ t₀ + t₁) hhalt]
-    refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
-    · -- the first phase visits what the first machine visits
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ u fun m hm => ?_))
-        (le_trans (spaceUsed_mono tm₀ _ hu) hspace₀)
-      rw [hstart, runFrom_leftCfg _ m fun _ hr => hhaltsAt.not_halted (by omega),
-        workTapePos_leftCfg]
-    · -- the second phase visits what the second machine visits
-      rw [← add_zero u, hright 0]
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ t₁ fun m hm => ?_)) hspace₁
-      rw [runFrom_rightCfg, workTapePos_rightCfg]
-      rfl
+  -- every head position of the composed run is one of the first machine up to `t₀` or one of the
+  -- second machine up to `t₁`, after which the second machine stays halted
+  let p₀ : tm₀.RunPath input := .ofDeterministic tm₀ (wordsCfg input (some tm₀.q₀) ws out) t₀
+  let p₁ : tm₁.RunPath input :=
+    .ofDeterministic tm₁ (wordsCfg input (some tm₁.q₀) ws' (out ++ e₀)) t₁
+  refine (p.space_le_sum_card (S := fun i => p₀.visitedByTapeHead i ∪ p₁.visitedByTapeHead i)
+    fun c hc i => ?_).trans ?_
+  · obtain ⟨m, rfl⟩ := hc
+    rw [runPath_apply_eq_runFrom, hp]
+    refine forgetState_runFrom_seq (P := fun c => c.workTapePos i ∈ _) hrun₀ rfl
+      (fun m hm => Finset.mem_union_left _ (Finset.mem_image_of_mem _
+        (Finset.mem_univ (⟨m, by omega⟩ : Fin (t₀ + 1))))) (fun n => Finset.mem_union_right _ ?_) m
+    rcases le_total n t₁ with hn | hn
+    · exact Finset.mem_image_of_mem _ (Finset.mem_univ (⟨n, by omega⟩ : Fin (t₁ + 1)))
+    · rw [withState_wordsCfg, runFrom_eq_of_halt _ _ hn (by rw [hrun₁]; rfl)]
+      exact Finset.mem_image_of_mem _ (Finset.mem_univ (Fin.last t₁))
+  · exact ((Finset.sum_le_sum fun i _ => Finset.card_union_le _ _).trans_eq
+      Finset.sum_add_distrib).trans (Nat.add_le_add (hspace₀ p₀ rfl) (hspace₁ p₁ rfl))
 
 end Turing.MultiTapeTM
