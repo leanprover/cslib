@@ -95,6 +95,13 @@ def ofTr (q₀ : State)
   Tr q input work action := tr q input work = action
   deterministic _ _ _ := by simp
 
+/-- The initial state of `ofTr` is the supplied one. -/
+@[simp]
+lemma q₀_ofTr (q₀ : State)
+    (tr : State → Option Symbol → (Fin k → Option Symbol) → Action k Symbol State) :
+    (ofTr q₀ tr).q₀ = q₀ :=
+  rfl
+
 /-- Extracting the transition of `ofTr` recovers the supplied function. -/
 @[simp]
 lemma tr_ofTr (q₀ : State)

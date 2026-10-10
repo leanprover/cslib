@@ -183,9 +183,9 @@ theorem forgetState_runFrom_seq {P : Cfg k Symbol Unit input → Prop}
     exact hP₁ n
 
 open Sequential in
-/-- **Space of a sequential run splits across the two phases.** If `tm₀` has halted in `mid` by
-step `t₀` and `tm₁`, started where `tm₀` halted, has halted by step `t₁`, the composed machine's
-space over `t₀ + t₁` steps is at most the sum of the two phases' space. -/
+/-- If `tm₀` has halted in `mid` after `t₀` steps and `tm₁`, started from `mid`, has halted after
+`t₁` steps, then in `t₀ + t₁` steps `tm₀.seq tm₁` uses at most the space of the two runs combined.
+-/
 theorem spaceUsed_seq_le {cfg mid : Cfg k Symbol State₀ input} {t₀ t₁ : ℕ}
     (h₀ : tm₀.runFrom cfg t₀ = mid) (hmid : mid.Halted)
     (h₁ : (tm₁.runFrom (mid.withState (some tm₁.q₀)) t₁).Halted) :
