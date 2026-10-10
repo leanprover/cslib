@@ -34,7 +34,6 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
-* `space`: the space of the path of the first `t` steps from a configuration
 * `Computes`: the machine halts with the given output on an input
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
@@ -280,11 +279,6 @@ lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}
   intro p hp
   rw [computationPath_last_eq_runFrom p, runFrom_eq_of_halt _ _ hp h]
   exact h
-
-/-- The number of work tape cells visited in the first `t` steps from `cfg`: the space of the path
-of these steps. -/
-noncomputable abbrev space (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ :=
-  (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).space
 
 /-- In `t` steps the input head moves at most `t` positions to the right. -/
 lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)

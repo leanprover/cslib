@@ -62,8 +62,8 @@ alphabet exponent.
 We lose a factor of `2 * k` by simplifying the windows to `[-sᵢ, sᵢ]` instead of the actually used
 area, but this is absorbed by the `O(s)` exponent in the final bound.
 
-The windows for a whole run are available because a deterministic machine that is space-bounded at
-every point in time attains its per-tape space at a single step
+The windows for a whole run are available because the paths of a deterministic machine from its
+start are prefixes of one another, so one of them attains the space of every tape
 (`MultiTapeTM.exists_spaceUsedByTape_max`).
 -/
 
@@ -282,6 +282,32 @@ lemma MultiTapeNTM.ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol S
 
 namespace MultiTapeTM
 
+/-- The paths of a deterministic machine from `cfg` are prefixes of one another, so if they all
+visit at most `s` cells, one of them visits as many cells as any other on every tape. This fails for
+nondeterministic machines, whose branches may use different tapes the most. -/
+lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
+    (hs : ∀ p : tm.RunPath input, p.head = cfg → p.space ≤ s) :
+    ∃ p : tm.RunPath input, p.head = cfg ∧
+      ∀ q : tm.RunPath input, q.head = cfg → q.spaceUsedByTape ≤ p.spaceUsedByTape := by
+  let w (t : ℕ) := (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).spaceUsedByTape
+  -- a longer run visits every cell visited by a shorter one
+  have hmono (i : Fin k) : Monotone (w · i) := fun t t' h =>
+    Finset.card_le_card <| Finset.image_subset_iff.mpr fun m _ =>
+      Finset.mem_image_of_mem _ (Finset.mem_univ (Fin.castLE (show t + 1 ≤ t' + 1 by omega) m))
+  -- the space of a single tape is bounded, so it attains its supremum at some step `T i`
+  have h (i : Fin k) : ∃ Ti, ∀ t, w t i ≤ w Ti i := by
+    have hbdd : BddAbove (Set.range (w · i)) := ⟨s, by
+      rintro _ ⟨t, rfl⟩
+      exact (Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)).trans
+        (hs _ rfl)⟩
+    obtain ⟨Ti, hTi⟩ := Nat.sSup_mem (Set.range_nonempty (w · i)) hbdd
+    exact ⟨Ti, fun t => (le_csSup hbdd ⟨t, rfl⟩).trans hTi.ge⟩
+  choose T hT using h
+  -- a path is the run of its length, and a step late enough for every tape dominates it
+  refine ⟨.ofDeterministic tm cfg (Finset.univ.sup T), rfl, fun q hq i => ?_⟩
+  rw [q.eq_ofDeterministic, hq]
+  exact (hT i _).trans (hmono i (Finset.le_sup (Finset.mem_univ i)))
+
 /-- A machine that uses at most `s` cells of work-tape space at every point in time passes through
 at most `storageBound Symbol State k s` different storages during its whole run — independently of
 the length of the input and of how long it runs. -/
@@ -289,11 +315,10 @@ theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
     (hs : tm.RunsInSpace input s) :
     (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard
       ≤ storageBound Symbol State k s := by
-  obtain ⟨T, hT⟩ := exists_spaceUsedByTape_max (tm.initCfg input) fun t =>
-    hs (.ofDeterministic tm input t)
-  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs (.ofDeterministic tm input T)))
+  obtain ⟨p, hp, hmax⟩ := exists_spaceUsedByTape_max (tm.initCfg input) fun q hq => hs ⟨q, hq⟩
+  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs ⟨p, hp⟩))
   rintro _ ⟨t, rfl⟩
-  exact Storage.FitsIn_mono (hT t)
+  exact Storage.FitsIn_mono (hmax _ rfl)
     (MultiTapeNTM.ComputationPath.ofDeterministic tm input t).storage_fitsIn
 
 /-- The number of configuration cores that a machine bounded by space `s` can reach is at most

@@ -22,10 +22,6 @@ positions bound the cells that a path changes.
 
 `MultiTapeNTM.RunPath.space_map_le` bounds the space of a run path mapped by `RunPath.map` through
 the head positions of the original path.
-
-`MultiTapeTM.exists_spaceUsedByTape_max` shows that a deterministic run whose space is bounded
-attains its per-tape space at a single step, which makes a bound that holds at every point in time
-usable as a bound for the whole run.
 -/
 
 @[expose] public section
@@ -168,6 +164,16 @@ lemma InWindow.smash {p q : ntm.RunPath input} {h : p.last = q.head} {s : ℕ}
     (hp : p.InWindow s) (hq : q.InWindow s) : InWindow (p.smash q h) s :=
   fun _ hc => (RelSeries.mem_or_mem_of_mem_smash hc).elim (hp _) (hq _)
 
+/-- A path that starts with every head at cell `0` and visits at most `s` cells keeps its heads
+within `[-s, s]`. -/
+lemma inWindow_of_space_le {p : ntm.RunPath input} {s : ℕ} (h0 : ∀ i, p.head.workTapePos i = 0)
+    (hs : p.space ≤ s) : p.InWindow s := fun c hc i => by
+  have hz := p.natAbs_le_spaceUsedByTape_of_mem_visited
+    ((p.mem_visitedByTapeHead (i := i)).mpr ⟨c, hc, rfl⟩)
+  rw [h0, sub_zero] at hz
+  exact mem_window.mpr <| hz.trans <|
+    (Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)).trans hs
+
 /-! ### Mapped paths -/
 
 /-- If the head of tape `i'` of a mapped path follows the head of tape `i` of the source path, the
@@ -216,43 +222,3 @@ def prependOutputHom (ntm : MultiTapeNTM k Symbol State) (pre : List Symbol) :
       exact ⟨a, ha, Cfg.ext rfl rfl rfl rfl (by simp [Action.apply])⟩
 
 end Turing.MultiTapeNTM
-
-namespace Turing.MultiTapeTM
-
-variable {k : ℕ} {State Symbol : Type*} {input : List Symbol} {tm : MultiTapeTM k Symbol State}
-
-/-- A deterministic run whose space stays below a bound reaches a step `T` at which the space of
-*every* tape is maximal. This turns a bound that holds at every point in time into a bound for the
-whole run. -/
-lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
-    (hs : ∀ t, (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).space ≤ s) :
-    ∃ T, ∀ t, (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).spaceUsedByTape ≤
-      (MultiTapeNTM.RunPath.ofDeterministic tm cfg T).spaceUsedByTape := by
-  let w (t : ℕ) := (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).spaceUsedByTape
-  -- a longer run visits every cell visited by a shorter one
-  have hmono (i : Fin k) : Monotone (w · i) := fun t t' h =>
-    Finset.card_le_card <| Finset.image_subset_iff.mpr fun m _ =>
-      Finset.mem_image_of_mem _ (Finset.mem_univ (Fin.castLE (show t + 1 ≤ t' + 1 by omega) m))
-  -- the space of a single tape is bounded, so it attains its supremum at some step `T i`
-  have h (i : Fin k) : ∃ Ti, ∀ t, w t i ≤ w Ti i := by
-    have hbdd : BddAbove (Set.range (w · i)) := ⟨s, by
-      rintro _ ⟨t, rfl⟩
-      exact (Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)).trans (hs t)⟩
-    obtain ⟨Ti, hTi⟩ := Nat.sSup_mem (Set.range_nonempty (w · i)) hbdd
-    exact ⟨Ti, fun t => (le_csSup hbdd ⟨t, rfl⟩).trans hTi.ge⟩
-  choose T hT using h
-  -- monotonicity lets us use a single step that is late enough for every tape
-  exact ⟨Finset.univ.sup T, fun t i => (hT i t).trans (hmono i (Finset.le_sup (Finset.mem_univ i)))⟩
-
-/-- A run path that starts with every head at cell `0` and visits at most `s` cells keeps its heads
-within `[-s, s]`. -/
-lemma _root_.Turing.MultiTapeNTM.RunPath.inWindow_of_space_le {p : tm.RunPath input} {s : ℕ}
-    (h0 : ∀ i, p.head.workTapePos i = 0) (hs : p.space ≤ s) : p.InWindow s := by
-  rw [p.eq_ofDeterministic] at hs ⊢
-  rintro _ ⟨n, rfl⟩ i
-  have hz := tm.natAbs_le_spaceUsedByTape_of_mem_visited
-    ((tm.mem_visitedByTapeHead (cfg := p.head) (t := p.time) (i := i)).mpr ⟨n, n.2, rfl⟩)
-  rw [h0, sub_zero] at hz
-  exact mem_window.mpr (hz.trans ((tm.spaceUsedByTape_le_space _ _ i).trans hs))
-
-end Turing.MultiTapeTM
