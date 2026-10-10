@@ -8,7 +8,6 @@ module
 
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
 public import Mathlib.Data.FinEnum
-import Cslib.Probability.PMF
 import Mathlib.Data.LawfulXor.Equiv
 
 /-!
