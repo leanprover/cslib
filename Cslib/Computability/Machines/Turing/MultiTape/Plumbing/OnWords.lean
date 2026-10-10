@@ -7,8 +7,8 @@ Authors: Christian Reitwiessner
 module
 
 public import Mathlib.Basic.Finite.Sum
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToWord
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromWord
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Tidy
 
 /-!
