@@ -7,6 +7,9 @@ module
 
 public import Cslib.Computability.Circuit.Synthesis
 
+import Mathlib.Algebra.BigOperators.Fin
+import Mathlib.Data.Fin.VecNotation
+
 /-!
 # Synthesis over the full basis
 
@@ -58,7 +61,8 @@ theorem full_gate_of_syntheses {r : ℕ} (hr : r ≤ k) (op : (Fin r → U) → 
 theorem full_binary {f g : (Fin n → U) → U}
     (hf : Synthesis (fullInterpretation (k := 2)) s {f} a)
     (hg : Synthesis (fullInterpretation (k := 2)) s {g} b) (op : U → U → U) :
-    Synthesis (fullInterpretation (k := 2)) s {fun x => op (f x) (g x)} (a + b + 1) :=
-  hf.binary hg (.fn fun x => op (x 0) (x 1))
+    Synthesis (fullInterpretation (k := 2)) s {fun x => op (f x) (g x)} (a + b + 1) := by
+  simpa [Fin.sum_univ_two] using full_gate_of_syntheses le_rfl (fun v => op (v 0) (v 1))
+    ![f, g] ![a, b] (Fin.forall_fin_two.mpr ⟨hf, hg⟩)
 
 end Cslib.Circuits.Synthesis
