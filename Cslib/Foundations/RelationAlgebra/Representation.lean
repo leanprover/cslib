@@ -67,6 +67,7 @@ end SquareRelations
 
 /-- A representation of a relation algebra is an injective morphism into a product of relations. -/
 structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : ι → Type w) where
+  /-- A `RelationAlgebraHom` into a product of relations. -/
   hom : RelationAlgebraHom α (∀ i, SquareRelations (β i))
   injective : Function.Injective hom
 

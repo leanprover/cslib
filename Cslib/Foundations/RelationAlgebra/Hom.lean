@@ -24,10 +24,15 @@ namespace Cslib
 structure RelationAlgebraHom (α β : Type*) [RelationAlgebra α] [RelationAlgebra β]
     extends BoundedLatticeHom α β, StarMonoidHom α β
 
+open RelationAlgebraHom in
+attribute [nolint docBlame] toStarMonoidHom toBoundedLatticeHom
+
 /-- The type of relation algebra equivalence from `α` to `β`, preserving both the Boolean algebra
   and composition operations -/
 structure RelationAlgebraEquiv (α β : Type*) [RelationAlgebra α] [RelationAlgebra β]
     extends toOrderIso : OrderIso α β, StarMulEquiv α β
+
+attribute [nolint docBlame] RelationAlgebraEquiv.toStarMulEquiv
 
 namespace RelationAlgebraHom
 
@@ -54,9 +59,11 @@ instance : StarHomClass (RelationAlgebraHom α β) α β where
 theorem ext {f g : RelationAlgebraHom α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
 
+/-- `id` as a `RelationAlgebraHom` -/
 protected def id (α : Type*) [RelationAlgebra α] : RelationAlgebraHom α α :=
   { BoundedLatticeHom.id α, StarMonoidHom.id α with }
 
+/-- Composition of `RelationAlgebraHom` -/
 def comp (f : RelationAlgebraHom β γ) (g : RelationAlgebraHom α β) : RelationAlgebraHom α γ :=
   { f.toBoundedLatticeHom.comp g.toBoundedLatticeHom,
     f.toStarMonoidHom.comp g.toStarMonoidHom with }
@@ -94,16 +101,20 @@ instance : StarHomClass (RelationAlgebraEquiv α β) α β where
 theorem ext {f g : RelationAlgebraEquiv α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
 
+/-- The reflexive `RelationAlgebraEquiv` -/
 protected def refl (α : Type*) [RelationAlgebra α] : RelationAlgebraEquiv α α :=
   { OrderIso.refl α, StarMulEquiv.refl α with }
 
+/-- The symmetric `RelationAlgebraEquiv` -/
 def symm (f : RelationAlgebraEquiv α β) : RelationAlgebraEquiv β α :=
   { f.toOrderIso.symm, f.toStarMulEquiv.symm with }
 
+/-- The transitive `RelationAlgebraEquiv` -/
 def trans (f : RelationAlgebraEquiv α β) (g : RelationAlgebraEquiv β γ) :
     RelationAlgebraEquiv α γ :=
   { f.toOrderIso.trans g.toOrderIso, f.toStarMulEquiv.trans g.toStarMulEquiv with }
 
+/-- The `RelationAlgebraHom` underlying an `RelationAlgebraEquiv` -/
 def toHom (f : RelationAlgebraEquiv α β) : RelationAlgebraHom α β :=
   { (f.toOrderIso : BoundedLatticeHom α β), f.toStarMulEquiv.toStarMonoidHom with }
 
