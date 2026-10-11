@@ -23,8 +23,8 @@ blank it moves the head right and halts. By default `write` is `none` and the ma
 nothing; with `write := some none` it erases the part of the word it walks over.
 
 This is a one-tape machine; to rewind tape `i` of a `k`-tape machine, place it there with
-`Turing.MultiTapeTM.tapeEmb` and transport its run with
-`Turing.MultiTapeTM.runFrom_tapeEmb`. The input head, the output and every other tape are then
+`Turing.MultiTapeNTM.tapeEmb` and transport its path with
+`Turing.MultiTapeNTM.RunPath.extendTapes`. The input head, the output and every other tape are then
 untouched by construction.
 
 ## Main results

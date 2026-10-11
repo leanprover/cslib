@@ -7,6 +7,7 @@ Authors: Aviv Bar Natan
 module
 
 public import Mathlib.Order.RelSeries
+public import Mathlib.Data.Finset.Max
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 
 /-!
@@ -85,6 +86,12 @@ lemma step_of_halt {c c' : Cfg k Symbol State input} (h : c.Halted) :
     ntm.Step c c' ↔ c' = c := by
   simp [Step, h]
 
+/-- A running configuration steps by an action related to its state and read symbols by `Tr`. -/
+lemma step_of_state {c c' : Cfg k Symbol State input} {q : State} (h : c.state = some q) :
+    ntm.Step c c' ↔
+      ∃ a, ntm.Tr q c.inputSymbol c.workTapeSymbols a ∧ c' = a.apply c := by
+  simp [Step, h]
+
 /-- The initial configuration corresponding to an input string. -/
 @[simp]
 def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
@@ -118,6 +125,18 @@ lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.las
 lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
     (h : (p i).Halted) : p.last = p i := by
   simpa using last_eq_of_head_halted (p.drop i) (by simpa using h)
+
+/-- A path ending in a halted configuration has a first occurrence of that configuration. -/
+lemma exists_first_halt (p : ntm.RunPath input) (h : p.last.Halted) :
+    ∃ i : Fin (p.length + 1), p i = p.last ∧ ∀ j < i, ¬ (p j).Halted := by
+  classical
+  let s := Finset.univ.filter fun i ↦ (p i).Halted
+  have hs : s.Nonempty := ⟨Fin.last _, Finset.mem_filter.mpr ⟨Finset.mem_univ _, h⟩⟩
+  have hm := (Finset.mem_filter.mp (Finset.min'_mem s hs)).2
+  refine ⟨s.min' hs, (p.last_eq_of_halted _ hm).symm, ?_⟩
+  intro j hj hh
+  have := Finset.min'_le s j (Finset.mem_filter.mpr ⟨Finset.mem_univ _, hh⟩)
+  exact (not_lt_of_ge this) hj
 
 /-- The number of steps taken by a run path. -/
 def time (p : ntm.RunPath input) : ℕ := p.length

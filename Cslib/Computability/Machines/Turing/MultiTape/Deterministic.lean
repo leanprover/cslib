@@ -33,7 +33,6 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `tr`, `ofTr`: the derived transition function and construction from a function
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `HaltsAt`: the run from a configuration halts at exactly a given step
-* `spaceUsed`: the number of tape cells visited by work tape heads, our main space measure
 * `Computes`: the machine halts with the given output on an input
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
@@ -50,11 +49,27 @@ namespace Turing
 
 variable {k : ℕ} {State Symbol : Type*}
 
+namespace MultiTapeNTM
+
 /-- Every state and tuple of read symbols is related to exactly one action by `ntm`'s transition
 relation. -/
-def MultiTapeNTM.IsDeterministic (ntm : MultiTapeNTM k Symbol State) : Prop :=
+def IsDeterministic (ntm : MultiTapeNTM k Symbol State) : Prop :=
   ∀ (q : State) (input : Option Symbol) (work : Fin k → Option Symbol),
     ∃! action, ntm.Tr q input work action
+
+/-- A deterministic machine has at most one successor configuration. -/
+lemma IsDeterministic.step_rightUnique {ntm : MultiTapeNTM k Symbol State}
+    (h : ntm.IsDeterministic) {input : List Symbol} :
+    Relator.RightUnique (ntm.Step (input := input)) := by
+  intro c c' c'' hc hc'
+  cases hq : c.state with
+  | none => exact ((step_of_halt hq).mp hc).trans ((step_of_halt hq).mp hc').symm
+  | some q =>
+    obtain ⟨a, ha, rfl⟩ := (step_of_state hq).mp hc
+    obtain ⟨b, hb, rfl⟩ := (step_of_state hq).mp hc'
+    rw [(h q c.inputSymbol c.workTapeSymbols).unique ha hb]
+
+end MultiTapeNTM
 
 /--
 A multi-tape Turing machine with `k` work tapes over the alphabet of `Option Symbol` (where `none`
@@ -245,52 +260,7 @@ lemma existsUnique_haltsAt {input : List Symbol} {cfg : Cfg k Symbol State input
   let ⟨u, _, hu⟩ := exists_haltsAt hhalt
   ⟨u, hu, fun _ h => h.unique hu⟩
 
-/-- The work-tape head moves by at most one cell in a single step. -/
-lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
-    |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 := by
-  cases hstate : c.state with
-  | none => simp [step_of_halt hstate]
-  | some q => rw [step_of_state hstate]; exact workTapePos_apply_le _ c i
-
 end Cfg
-
-section Space
-/-! Now we define space usage and add some helper lemmas. -/
-
-/-- The set of positions visited by the head of work tape `i` in the computation starting from
-configuration `cfg` up to step `t`. -/
-noncomputable def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    Finset ℤ :=
-  Finset.univ.image fun n : Fin (t + 1) => (tm.runFrom cfg n).workTapePos i
-
-/--
-The number of work tape cells visited by the head of tape `i` in the computation starting from
-configuration `cfg` up to step `t`.
--/
-noncomputable def spaceUsedByTape (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : ℕ :=
-  (tm.visitedByTapeHead cfg t i).card
-
-/--
-The number of work tape cells visited by a computation starting from configuration
-`cfg` up to step `t`.
--/
-noncomputable def spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ :=
-  ∑ i, tm.spaceUsedByTape cfg t i
-
-/-- A zero-tape Turing machine uses zero space. -/
-@[simp]
-lemma spaceUsed_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h_zero : k = 0) :
-    tm.spaceUsed cfg t = 0 := by
-  unfold spaceUsed
-  subst h_zero
-  simp
-
-/-- Each tape's space usage is bounded by the total space used. -/
-lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    tm.spaceUsedByTape cfg t i ≤ tm.spaceUsed cfg t :=
-  Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
-
-end Space
 
 /-- In `t` steps the input head moves at most `t` positions to the right. -/
 lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)

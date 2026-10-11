@@ -6,7 +6,7 @@ Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 
 module
 
-public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 
 /-!
@@ -57,6 +57,17 @@ def spaceUsedByTape (p : ntm.RunPath input) (i : Fin k) : ℕ :=
 
 /-- The number of work tape cells visited along a run path. -/
 def space (p : ntm.RunPath input) : ℕ := ∑ i, p.spaceUsedByTape i
+
+/-- Each tape's space usage is bounded by the total space used. -/
+lemma spaceUsedByTape_le_space (p : ntm.RunPath input) (i : Fin k) :
+    p.spaceUsedByTape i ≤ p.space :=
+  Finset.single_le_sum (fun _ _ ↦ Nat.zero_le _) (Finset.mem_univ i)
+
+/-- A path with no work tapes uses zero space. -/
+@[simp]
+lemma space_zero_tapes {ntm : MultiTapeNTM 0 Symbol State} (p : ntm.RunPath input) :
+    p.space = 0 := by
+  simp [space]
 
 end RunPath
 

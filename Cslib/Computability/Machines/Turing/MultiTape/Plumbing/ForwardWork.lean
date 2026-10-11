@@ -20,8 +20,8 @@ On a word of length `l`, started with the head at cell `p ≤ l`, the machine ta
 and the head stays within the cells `p, …, l`.
 
 This is a one-tape machine; to move the head of tape `i` of a `k`-tape machine to the end of its
-word, place it there with `Turing.MultiTapeTM.tapeEmb` and transport its run with
-`Turing.MultiTapeTM.runFrom_tapeEmb`. The input head, the output and every other tape are then
+word, place it there with `Turing.MultiTapeNTM.tapeEmb` and transport its path with
+`Turing.MultiTapeNTM.RunPath.extendTapes`. The input head, the output and every other tape are then
 untouched by construction.
 
 ## Main results
