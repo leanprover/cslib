@@ -133,8 +133,7 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
   induction Ps using List.reverseRecOn generalizing M N Q with
   | nil => grind [cases Xi]
   | append_singleton Ps P ih =>
-    unfold multiApp at h_red
-    rw [List.foldl_concat] at h_red
+    simp only [List.foldl_concat] at h_red
     cases h_red with
     | @appL _ _ P' _ P_P' =>
       have : (Ps ++ [P]) ⭢lβᶠ Ps ++ [P'] := by apply listFullBeta_append_r (.step P_P' ?_) <;> grind
