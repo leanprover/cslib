@@ -108,9 +108,9 @@ lemma tr_ofTr (q₀ : State)
 /-!
 ## Stepping a Turing Machine
 
-This section defines the step function that lets the machine transition from one configuration to
-the next, and the configuration reached after a number of steps. Configurations themselves are
-defined in `Cslib.Computability.Machines.Turing.MultiTape.Configuration`.
+The step function lets the machine transition from one configuration to the next, and `runFrom`
+gives the configuration reached after a number of steps. Configurations themselves are defined in
+`Cslib.Computability.Machines.Turing.MultiTape.Configuration`.
 -/
 
 private lemma existsUnique_step (cfg : Cfg k Symbol State input) :
