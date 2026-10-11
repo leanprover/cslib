@@ -180,7 +180,6 @@ theorem fair_fairSegs {d : DeliverMsg P M S} {ps : Set P} {q : State P M S → P
     let xls := a.fairSegActions d ps s0
     ∀ k, q (ts k) ∧ a.lts.MTr (ts k) (xls k) (ts (k + 1)) ∧ 0 < (xls k).length ∧
       ∀ m, m ∈ (ts k).msgs → m.dest ∈ ps → some m ∈ xls k := by
-  classical
   intro ts xls k
   induction k <;> grind [fairScheduler_init, fairScheduler_step, fairDeliverMsg_scheduleMsgs]
 
