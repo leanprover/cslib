@@ -47,7 +47,7 @@ variable {M M' : Term Var} {Ns Ns' : List (Term Var)}
     and only if the leftmost term and all arguments applied to it are locally closed -/
 @[scoped grind ←]
 lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
-  induction Ns generalizing M with grind [cases LC]
+  induction Ns using List.reverseRecOn with grind [cases LC]
 
 /-- Just like ordinary beta reduction, the left-hand side
     of a multi-application step is locally closed -/
