@@ -27,10 +27,6 @@ variable {α β : Sort*} {m n : ℕ}
 theorem castAdd_ne_natAdd (i : Fin m) (j : Fin n) : castAdd n i ≠ natAdd m j :=
   Fin.ne_of_lt ((castAdd_lt n i).trans_le (Nat.le_add_right m j))
 
-/-- Appending two constant tuples gives a constant tuple. -/
-theorem append_const (x : α) : append (fun _ : Fin m => x) (fun _ : Fin n => x) = fun _ => x :=
-  append_castAdd_natAdd (f := fun _ => x)
-
 /-- Post-composition commutes with `Fin.append`. -/
 theorem comp_append (f : α → β) (a : Fin m → α) (b : Fin n → α) :
     f ∘ append a b = append (f ∘ a) (f ∘ b) := by
