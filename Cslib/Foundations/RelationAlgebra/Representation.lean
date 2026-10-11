@@ -53,11 +53,9 @@ instance (α : Type u) : StarMul (SquareRelations α) where
 
 instance (α : Type u) : RelationAlgebra (SquareRelations α) where
   sup_mul a b c := by
-    apply Set.ext
-    rintro ⟨x, z⟩
-    change (∃ y, (a (x, y) ∨ b (x, y)) ∧ c (y, z)) ↔
-      (∃ y, a (x, y) ∧ c (y, z)) ∨ (∃ y, b (x, y) ∧ c (y, z))
-    grind
+    unfold SquareRelations at *
+    ext ⟨x, z⟩
+    exact (exists_congr fun y => or_and_right).trans exists_or
   star_sup _ _ := rfl
   tarski a b := by
     rintro ⟨x, z⟩ ⟨y, hxy, hyz⟩ hxz
