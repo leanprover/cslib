@@ -17,13 +17,19 @@ listed below in decreasing order of strength:
 * Sequential consistency.
 * Causal consistency,
 * Basic eventual consistency,
-* Quiescent consistency.
 
 We follow [Burckhardt2014] closely in the formalization except for one detail:
 instead of using an equivalence relation "same-session" to model the notion of sessions,
 we use a map `se : Event → Session` and regard two events `x` and `y` to belong to the
 same session iff `se x = se y`.  These two approaches are clearly equivalent and `se` is
 chosen because it is easier to work with.
+
+NOTE: We left out the definition of quiescent consistency, for two reasons:
+* Quiescent consistency is too weak a notion to be practically useful (see the remark
+  on page 44 of [Burckhardt2014]).
+* We found during the process of formalization that the only theoretic result about
+  quiescent consistency in [Burckhardt2014], that it is implied by causal consistency,
+  is incorrect given the definitions in [Burckhardt2014].
 
 ## References
 
@@ -185,13 +191,6 @@ structure ReplicatedDataType (Event Operation Value : Type*) where
   /-- For any operation, `rval` must returns the same value on equivalent operation contexts. -/
   rval_equiv : ∀ o c1 c2, ∀ _ : c1.Equiv c2, rval o c1 = rval o c2
 
-/-- For a replicated data type `d`, an operation `o` is read-only iff an event with operation `o`
-can be removed from any operation context without affecting the behavior of `d`. -/
-def ReplicatedDataType.ReadOnlyOp (d : ReplicatedDataType Event Operation Value)
-    (o : Operation) : Prop :=
-  ∀ c : OperationContext Event Operation, ∀ x ∈ c.events,
-    c.op x = o → ∀ o' : Operation, d.rval o' c = d.rval o' {c with events := c.events \ {x}}
-
 namespace AbstractExecution
 
 /-- `a.context xs` is the operation context obtained by restricting `a` to `xs`. -/
@@ -229,26 +228,6 @@ and `RVal`. -/
 def BasicEventualConsistency (a : AbstractExecution Event Operation Value Session)
     (d : ReplicatedDataType Event Operation Value) : Prop :=
   a.EventualVisibility ∧ a.NoCircularCausality ∧ a.RVal d
-
-/-- `a.updateEvents d` is the set of events in `a` whose operations are not read-only in `d` -/
-def updateEvents (a : AbstractExecution Event Operation Value Session)
-    (d : ReplicatedDataType Event Operation Value) : Set Event :=
-  { x | ¬ d.ReadOnlyOp (a.op x) }
-
-/-- `a.nonRvalEvents d c s` is the set of events in `a` of session `s` whose return value
-does not agree with the value returned by `d` in the context `c`. -/
-def nonRvalEvents (a : AbstractExecution Event Operation Value Session)
-    (d : ReplicatedDataType Event Operation Value)
-    (c : OperationContext Event Operation) (s : Session) : Set Event :=
-  { x | a.se x = s ∧ d.rval (a.op x) c ≠ a.rval x }
-
-/-- `a.QuiescentConsistency d` says that if the set of update events is finite, then there exists
-a context `c` such that for any session, there is at most a finite set of events for which
-the return values in the abstract execution `a` do not agree with the values returned by the
-replicated data type `d` in the context `c`. -/
-def QuiescentConsistency (a : AbstractExecution Event Operation Value Session)
-    (d : ReplicatedDataType Event Operation Value) : Prop :=
-  (a.updateEvents d).Finite → ∃ c, ∀ s, (a.nonRvalEvents d c s).Finite
 
 end AbstractExecution
 
