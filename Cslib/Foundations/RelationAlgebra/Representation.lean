@@ -12,6 +12,16 @@ public import Mathlib.Basic.Rel
 /-!
 # Representable relation algebras
 
+One of the primary notions of interest in the study of relation algebras is the notion of
+*representation* by a relation algebra of concrete relations.
+
+Recall Stone's representation for Boolean algebras which (at a low level of
+generality) states that every Boolean algebra has an isomorphism into a particuliar "field of sets".
+Tarski's hope was that an analogous property would hold for abstract relation algebras, with the 
+isomorphism desired being into a relation algebra of concrete relations. This turns out to be false,
+with the clasification and conditions for the representation of a relation algebra thus being a 
+matter of much interest.
+
 -/
 
 @[expose] public section
@@ -20,6 +30,8 @@ universe u v w
 
 namespace Cslib.RelationAlgebra
 
+/-- Relations over a type `α`. This definition exists because we need to prevent some instances from
+  from Mathlib being included. -/
 def SquareRelations (α : Type u) : Type u := SetRel α α
 
 namespace SquareRelations
@@ -53,10 +65,12 @@ instance (α : Type u) : RelationAlgebra (SquareRelations α) where
 
 end SquareRelations
 
+/-- A representation of a relation algebra is an injective morphism into a product of relations. -/
 structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : ι → Type w) where
   hom : RelationAlgebraHom α (∀ i, SquareRelations (β i))
   injective : Function.Injective hom
 
+/-- A relation algebra is representable if a `Representation` exists. -/
 def Representable (α : Type u) [RelationAlgebra α] : Prop :=
   ∃ (ι : Type u) (β : ι → Type u), Nonempty (Representation α ι β)
 

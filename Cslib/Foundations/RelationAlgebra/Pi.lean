@@ -12,6 +12,9 @@ public import Mathlib.Algebra.Star.Pi
 /-!
 # Products of relation algebras
 
+This module defines the relation algebra structure over products. This is a key component of
+the representation of a relation algebra.
+
 -/
 
 @[expose] public section
@@ -31,6 +34,7 @@ namespace RelationAlgebraHom
 
 variable {α : Type*} [RelationAlgebra α] {ι : Type*} {β : ι → Type*} [∀ i, RelationAlgebra (β i)]
 
+/-- The product of `RelationAlgebraHom`s is a `RelationAlgebraHom` into a product. -/
 def pi (f : ∀ i, RelationAlgebraHom α (β i)) : RelationAlgebraHom α (∀ i, β i) where
   toFun a i := f i a
   map_sup' a b := funext fun i => map_sup (f i) a b
@@ -46,6 +50,7 @@ theorem pi_apply (f : ∀ i, RelationAlgebraHom α (β i)) (a : α) (i : ι) : p
   rfl
 
 variable (β) in
+/-- The `RelationAlgebraHom` into a single fiber. -/
 def eval (i : ι) : RelationAlgebraHom (∀ i, β i) (β i) where
   toFun b := b i
   map_sup' _ _ := rfl
@@ -61,6 +66,8 @@ theorem eval_apply (i : ι) (b : ∀ i, β i) : eval β i b = b i :=
   rfl
 
 variable (α β) in
+/-- The equivalence between products of `RelationAlgebraHom` and the `RelationAlgebraHom` into a
+  product that is given by composition of `eval`. -/
 def piEquiv : (∀ i, RelationAlgebraHom α (β i)) ≃ RelationAlgebraHom α (∀ i, β i) where
   toFun := pi
   invFun f i := (eval β i).comp f

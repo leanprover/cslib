@@ -19,9 +19,13 @@ public import Mathlib.Order.Hom.BoundedLattice
 
 namespace Cslib
 
+/-- The type of relation algebra homomorphisms from `α` to `β`, preserving both the Boolean algebra
+  and composition operations -/
 structure RelationAlgebraHom (α β : Type*) [RelationAlgebra α] [RelationAlgebra β]
     extends BoundedLatticeHom α β, StarMonoidHom α β
 
+/-- The type of relation algebra equivalence from `α` to `β`, preserving both the Boolean algebra
+  and composition operations -/
 structure RelationAlgebraEquiv (α β : Type*) [RelationAlgebra α] [RelationAlgebra β]
     extends toOrderIso : OrderIso α β, StarMulEquiv α β
 
