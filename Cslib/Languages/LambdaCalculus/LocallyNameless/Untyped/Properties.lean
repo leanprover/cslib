@@ -150,7 +150,7 @@ lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) 
 lemma close_open_to_subst (m n : Term Var) (x : Var) (m_lc : LC m) (n_lc : LC n) :
     (m ^* x) ^ n = m[x := n] := close_openRec_to_subst m n x 0 m_lc n_lc
 
-/-- Closing and opening are inverses. -/
+/-- CloseRec and openRec are inverses. -/
 lemma close_openRec (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x⟧⟦k ↝ fvar x⟧ = t := by
   grind [subst_refl]
 
