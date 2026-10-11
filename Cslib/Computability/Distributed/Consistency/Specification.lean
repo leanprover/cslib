@@ -106,25 +106,24 @@ then all predecessors of `x` in the arbitration order are also visible to `y`. -
 def ConsistentPrefix (a : AbstractExecution Event Operation Value Session) : Prop :=
   ∀ x y, a.se x ≠ a.se y → a.vis x y → ∀ z, a.ar z x → a.vis z y
 
-/-- The `happens before` order is the per-session transitive closure of the union of
-the `so` and `vis` orders. -/
-def hb (a : AbstractExecution Event Operation Value Session)
-    (s : Session) : Event → Event → Prop :=
-  TransGen fun x y ↦ a.so s x y ∨ a.vis x y
+/-- The `happens before` order is transitive closure of the union of the `vis` order
+and the `so s` orders for all sessions `s`. -/
+def hb (a : AbstractExecution Event Operation Value Session) : Event → Event → Prop :=
+  TransGen fun x y ↦ a.vis x y ∨ ∃ s, a.so s x y
 
 /-- `NoCircularCausality` says that the `hb` order is acyclic. -/
 def NoCircularCausality (a : AbstractExecution Event Operation Value Session) : Prop :=
-  ∀ s, Acyclic (a.hb s)
+  Acyclic a.hb
 
 /-- `CausalArbitration` says that if two events are ordered by `hb`,
 then they are also ordered by `ar`. -/
 def CausalArbitration (a : AbstractExecution Event Operation Value Session) : Prop :=
-  ∀ s, a.hb s ≤ a.ar
+  a.hb ≤ a.ar
 
 /-- `CausalVisibility` says that if two events are ordered by `hb`,
 then they are also ordered by `vis`. -/
 def CausalVisibility (a : AbstractExecution Event Operation Value Session) : Prop :=
-  ∀ s, a.hb s ≤ a.vis
+  a.hb ≤ a.vis
 
 /-- `Causality` is the conjunction of `CausalArbitration` and `CausalVisibility`. -/
 def Causality (a : AbstractExecution Event Operation Value Session) : Prop :=

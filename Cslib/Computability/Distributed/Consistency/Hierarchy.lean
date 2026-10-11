@@ -77,16 +77,17 @@ theorem linearizability_imp_sequentialConsistency
   grind [Linearizability, SequentialConsistency, singleOrder_realTime_imp_readMyWrites]
 
 lemma readMyWrites_imp_hb_le_trans_vis
-    (h : a.ReadMyWrites) (s : Session) : a.hb s ≤ TransGen a.vis := by
+    (h : a.ReadMyWrites) : a.hb ≤ TransGen a.vis := by
   apply TransGen.mono
-  rintro x y (h1 | h2)
-  · exact h s x y h1
-  · exact h2
+  rintro x y (_ | ⟨s, _⟩)
+  · assumption
+  · apply h s
+    assumption
 
 lemma singleOrder_readMyWrites_imp_causalArbitration
     (h1 : a.SingleOrder) (h2 : a.ReadMyWrites) : a.CausalArbitration := by
-  intro s
-  suffices TransGen a.vis ≤ a.ar by grind [readMyWrites_imp_hb_le_trans_vis h2 s]
+--  intro s
+  suffices TransGen a.vis ≤ a.ar by grind [CausalArbitration, readMyWrites_imp_hb_le_trans_vis h2]
   have h_ar : TransGen a.ar = a.ar := by exact transGen_eq_self
   rw [← h_ar]
   apply TransGen.mono
@@ -97,23 +98,20 @@ lemma singleOrder_readMyWrites_imp_causalArbitration
 lemma causalVisibility_imp_readMyWrites
     (h : a.CausalVisibility) : a.ReadMyWrites := by
   intro s x y h_so
-  exact h s x y <| TransGen.single (Or.inl h_so)
+  exact h x y <| TransGen.single (Or.inr ⟨s, h_so⟩)
 
 lemma causalVisibility_imp_monotonicReads
     (h : a.CausalVisibility) : a.MonotonicReads := by
   intro s x y z h_vis h_so
-  exact h s x z <| TransGen.tail (TransGen.single (Or.inr h_vis)) (Or.inl h_so)
+  exact h x z <| TransGen.tail (TransGen.single (Or.inl h_vis)) (Or.inr ⟨s, h_so⟩)
 
 lemma causalVisibility_imp_noCircularCausality
-    (h : a.CausalVisibility) : a.NoCircularCausality := by
-  intro s
-  have : a.hb s ≤ a.vis := by grind [CausalVisibility]
-  grind [a.vis_acyclic, acyclic_le]
+    (h : a.CausalVisibility) : a.NoCircularCausality :=
+  acyclic_le h a.vis_acyclic
 
 lemma singleOrder_readMyWrites_imp_causalVisibility
     (h1 : a.SingleOrder) (h2 : a.ReadMyWrites) : a.CausalVisibility := by
-  intro s
-  suffices TransGen a.vis ≤ a.vis by grind [readMyWrites_imp_hb_le_trans_vis h2 s]
+  suffices TransGen a.vis ≤ a.vis by grind [CausalVisibility, readMyWrites_imp_hb_le_trans_vis h2]
   suffices IsTrans Event a.vis by grind
   obtain ⟨_, _, _⟩ := h1
   grind [IsTrans, isTrans_ar]
