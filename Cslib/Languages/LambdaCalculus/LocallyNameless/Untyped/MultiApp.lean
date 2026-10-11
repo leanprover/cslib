@@ -51,7 +51,7 @@ lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
   /-- lean4#16147 replaced the `grind` option `splits`, which capped the depth of the
   search tree, with `branches`, which caps its total size. This goal splits broadly
   rather than deeply and needs about 1250 branches, above the default of 1024. -/
-  induction Ns generalizing M  using List.reverseRecOn with grind (branches := 2048) [cases LC]
+  induction Ns using List.reverseRecOn generalizing M with grind (branches := 4096) (instances := 2000) (gen := 16) [cases LC]
 
 /-- Just like ordinary beta reduction, the left-hand side
     of a multi-application step is locally closed -/
@@ -99,7 +99,7 @@ lemma multiapp_openRec {i} :
   | nil => grind
   | cons head tail ih => grind [@ih (M.app head)]
 
-lemma multiapp_fv [DecidableEq Var] : (multiApp M Ns).fv = (Ns.map fv).foldl Union.union M.fv := by
+lemma multiapp_fv [DecidableEq Var] : (multiApp M Ns).fv = (Ns.map fv).foldl (· ∪ ·) M.fv := by
   induction Ns generalizing M with
   | nil => grind
   | cons head tail ih => grind [@ih (M.app head)]
@@ -137,8 +137,7 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
   induction Ps using List.reverseRecOn generalizing M N Q with
   | nil => grind [cases Xi]
   | append_singleton Ps P ih =>
-    unfold multiApp at h_red
-    rw [List.foldl_concat] at h_red
+    simp only [List.foldl_concat] at h_red
     cases h_red with
     | @appL _ _ P' _ P_P' =>
       have : (Ps ++ [P]) ⭢lβᶠ Ps ++ [P'] := by apply listFullBeta_append_r (.step P_P' ?_) <;> grind
