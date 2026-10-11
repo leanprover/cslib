@@ -62,7 +62,6 @@ instance terminating_acyclic [lts.Terminating] : lts.Acyclic :=
 states. -/
 theorem Acyclic.toBoundedUpTo [Finite State] (h : lts.Acyclic) :
     lts.BoundedUpTo (Nat.card State) := by
-  classical
   let := Fintype.ofFinite State
   rw [Nat.card_eq_fintype_card]
   intro s1 μs s2 hmtr

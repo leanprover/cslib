@@ -55,7 +55,6 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
 @[simp] theorem mem_computableFunctions {f : (Fin n → U) → U} :
     f ∈ computableFunctions I n s ↔
       ∃ c : Circuit σ n 1, c.Computes I (single f) ∧ c.size ≤ s := by
-  classical
   simp only [computableFunctions, Finset.mem_biUnion, Finset.mem_range, Finset.mem_image,
     Finset.mem_univ, true_and, Nat.lt_succ_iff, Prod.exists]
   constructor
@@ -81,7 +80,6 @@ noncomputable def irredundantFunctions (I : Interpretation σ U) (n g : ℕ) :
 private theorem mem_irredundantFunctions_iff {f : (Fin n → U) → U} :
     f ∈ irredundantFunctions I n g ↔ ∃ p : Program σ n g × Wire n g,
       (∀ x, p.1.trace I x p.2 = f x) ∧ p.1.Irredundant I := by
-  classical
   simp [irredundantFunctions, Program.wireFunction, funext_iff, and_comm]
 
 @[simp] theorem mem_irredundantFunctions {f : (Fin n → U) → U} :
@@ -172,7 +170,6 @@ private theorem relabel_injective : Function.Injective
 theorem card_irredundantFunctions_mul_factorial_le (I : Interpretation σ U) (n g : ℕ) :
     (irredundantFunctions I n g).card * g.factorial ≤
       Fintype.card (Line σ n g) ^ g * (n + g) := by
-  classical
   have h := Fintype.card_le_of_injective _ (relabel_injective (I := I) (n := n) (g := g))
   simpa only [Fintype.card_prod, Fintype.card_coe, Fintype.card_perm, Fintype.card_fin,
     Fintype.card_fun, Wire.card] using h
