@@ -111,7 +111,7 @@ theorem redex_abs_cong {M M' : Term Var} (xs : Finset Var)
     (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠ηᶠ M' ^ fvar x) :
     M.abs ↠ηᶠ M'.abs := by
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
-    rw [open_close x M 0, open_close x M' 0]
+    rw [open_closeRec x M 0, open_closeRec x M' 0]
     all_goals grind [redex_abs_close (x := x) (cofin x ?_)]
 
 /- `t ⭢ηᶠ t'` implies `s[x := t] ↠ηᶠ s[x := t']`. -/
@@ -154,7 +154,7 @@ open Relation in
 lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N) :
     ReflGen FullEta M.abs (N ^* x).abs := by
   cases st_M with
-  | refl => rw [←open_close_var x M hx_M]
+  | refl => rw [←open_close x M hx_M]
   | single st =>
     exact .single (Xi.abs {x} (by grind [step_subst_cong_l]))
 
