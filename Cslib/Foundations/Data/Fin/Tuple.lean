@@ -12,9 +12,8 @@ public import Mathlib.Data.Fin.Tuple.Basic
 /-!
 # Appending tuples
 
-Lemmas about `Fin.append` not (yet) in Mathlib: the two parts of an appended tuple never overlap,
-appending constant tuples gives a constant tuple, and appending commutes with post-composition and
-with updating an entry on either side.
+Lemmas about `Fin.append` not (yet) in Mathlib: the two parts of an appended tuple never overlap
+and appending commutes with post-composition and with updating an entry on either side.
 -/
 
 @[expose] public section
