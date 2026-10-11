@@ -100,11 +100,11 @@ lemma multiapp_fv [DecidableEq Var] : (multiApp M Ns).fv = (Ns.map fv).foldl Uni
   | nil => grind
   | cons head tail ih => grind [@ih (M.app head)]
 
-lemma listFullBeta_concat_r (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) :
+lemma listFullBeta_append_r (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) :
   (l ++ Ns) ⭢lβᶠ (l ++ Ns') := by
   induction l using List.reverseRecOn generalizing Ns Ns' with grind
 
-lemma listFullBeta_concat_l (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) :
+lemma listFullBeta_append_l (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) :
   (Ns ++ l) ⭢lβᶠ (Ns' ++ l) := by
   induction h with grind
 
@@ -137,10 +137,10 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
     rw [List.foldl_concat] at h_red
     cases h_red with
     | @appL _ _ P' _ P_P' =>
-      have : (Ps ++ [P]) ⭢lβᶠ Ps ++ [P'] := by apply listFullBeta_concat_r (.step P_P' ?_) <;> grind
+      have : (Ps ++ [P]) ⭢lβᶠ Ps ++ [P'] := by apply listFullBeta_append_r (.step P_P' ?_) <;> grind
       grind
     | appR _ h =>
-    have {Ps'} (h : Ps ⭢lβᶠ Ps') : (Ps ++ [P]) ⭢lβᶠ Ps' ++ [P] := listFullBeta_concat_l h (by grind)
+    have {Ps'} (h : Ps ⭢lβᶠ Ps') : (Ps ++ [P]) ⭢lβᶠ Ps' ++ [P] := listFullBeta_append_l h (by grind)
     grind
     | base => induction Ps using List.reverseRecOn with grind
 
