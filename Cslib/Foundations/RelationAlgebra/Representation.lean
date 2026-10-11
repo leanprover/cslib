@@ -1,0 +1,64 @@
+/-
+Copyright (c) 2026 Chris Henson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Henson
+-/
+
+module
+
+public import Cslib.Foundations.RelationAlgebra.Pi
+public import Mathlib.Basic.Rel
+
+/-!
+# Representable relation algebras
+
+-/
+
+@[expose] public section
+
+universe u v w
+
+namespace Cslib.RelationAlgebra
+
+def SquareRelations (α : Type u) : Type u := SetRel α α
+
+namespace SquareRelations
+
+instance (α : Type u) : BooleanAlgebra (SquareRelations α) :=
+  inferInstanceAs (BooleanAlgebra (SetRel α α))
+
+instance (α : Type u) : Monoid (SquareRelations α) where
+  one := SetRel.id
+  mul := SetRel.comp
+  mul_assoc := SetRel.comp_assoc
+  one_mul := SetRel.id_comp
+  mul_one := SetRel.comp_id
+
+instance (α : Type u) : StarMul (SquareRelations α) where
+  star := SetRel.inv
+  star_involutive := fun _ => SetRel.inv_inv
+  star_mul := SetRel.inv_comp
+
+instance (α : Type u) : RelationAlgebra (SquareRelations α) where
+  sup_mul a b c := by
+    apply Set.ext
+    rintro ⟨x, z⟩
+    change (∃ y, (a (x, y) ∨ b (x, y)) ∧ c (y, z)) ↔
+      (∃ y, a (x, y) ∧ c (y, z)) ∨ (∃ y, b (x, y) ∧ c (y, z))
+    grind
+  star_sup _ _ := rfl
+  tarski a b := by
+    rintro ⟨x, z⟩ ⟨y, hxy, hyz⟩ hxz
+    exact hyz ⟨x, hxy, hxz⟩
+
+end SquareRelations
+
+structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : ι → Type w) where
+  hom : RelationAlgebraHom α (∀ i, SquareRelations (β i))
+  injective : Function.Injective hom
+
+def Representable (α : Type u) [RelationAlgebra α] : Prop :=
+  ∃ (ι : Type u) (β : ι → Type u), Nonempty (Representation α ι β)
+
+end Cslib.RelationAlgebra
+
