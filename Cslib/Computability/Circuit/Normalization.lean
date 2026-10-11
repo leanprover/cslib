@@ -6,7 +6,6 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Basic
-import Mathlib.Data.Fin.Tuple.Basic
 
 /-!
 # Semantic circuit normalization
