@@ -14,7 +14,7 @@ public import Mathlib.Order.BooleanAlgebra.Defs
 /-!
 # Relation algebras
 
-A relation algebra in the sense of Tarski (not to be confused with a relational algebra) are an
+A relation algebra in the sense of Tarski (not to be confused with a relational algebra) is an
 extension of Boolean algebras that are designed to form an algebraic analysis of relations,
 `α → α → Prop` in Lean. They have applications in computer science such as the theory of constraint
 satisfaction as well as mathematical connections such as combinatorics.
