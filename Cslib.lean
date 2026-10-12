@@ -245,6 +245,7 @@ public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 public import Cslib.Languages.Mech.Choreography.Basic
 public import Cslib.Languages.Mech.LocalComputation
+public import Cslib.Languages.Probabilistic.Basic
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.HML.Basic

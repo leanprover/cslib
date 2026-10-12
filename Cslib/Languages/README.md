@@ -22,6 +22,13 @@ These modules include support for syntax (like contexts and congruence relations
 
 Different representations can coexist when they serve different purposes. For example `LambdaCalculus` currently contains both named and locally nameless developments. The goal is to make tradeoffs explicit and to connect them where possible.
 
+## Probabilistic programs
+
+[`Probabilistic`](Probabilistic) provides `ProbComp` and `OracleComp`, built on `PFunctor.FreeM`,
+for sampling from PMFs and making typed oracle calls. Interpreters produce PMFs for ordinary
+security games, thread private oracle state, or replace calls with other programs. These are
+specification-level programs; computational efficiency requires a separate realization argument.
+
 ## Plans and notes
 
 - We expect this directory to grow with many more languages, as well as connections between languages, logics, and other reasoning techniques.
