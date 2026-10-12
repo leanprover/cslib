@@ -19,7 +19,7 @@ This script checks that all CSLib modules (transitively) publicly import Cslib.I
 
 public section
 
-open Lean Import Core Elab Command
+open Lean Core Elab Command
 
 /-- Modules with technical constraints preventing Cslib.Init import -/
 def exceptions : List Name := [
