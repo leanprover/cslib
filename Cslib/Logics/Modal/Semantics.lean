@@ -319,7 +319,7 @@ theorem Satisfies.five (f : Frame World τ) [f.RightEuclidean op]
     (φs : PropositionMap τ op Atom) :
     Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const op (Δ[op]φs))) := by
   have he := Frame.RightEuclidean.rightEuclidean (f := f) (op := op)
-  grind
+  grind only [modal, => axiom_def, = triangle_iff_exists, = nabla_iff_forall]
 
 /-- Any frame that admits 5 at `op` is right-Euclidean at `op`. -/
 theorem Satisfies.five_rightEuclidean (f : Frame World τ) (e : τ.B op ↪ Atom)
