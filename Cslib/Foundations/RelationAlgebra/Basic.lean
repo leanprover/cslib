@@ -34,10 +34,24 @@ to inheriting Mathlib's notations for Boolean algebras, `star` is used for conve
 reduct for composition uses multiplicative notation. -/
 class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul α where
   sup_mul (a b c : α) : (a ⊔ b) * c = a * c ⊔ b * c
-  star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
-  tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
+  star_mono : Monotone star
+  left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c)
 
 namespace RelationAlgebra
+
+/-- A `RelationAlgebra` can be constructed using Tarski's original ten axioms. -/
+@[instance_reducible]
+def_wanted ofTarski (α : Type*) [Max α] [Compl α] [Mul α] [One α] [Star α]
+    (sup_comm : ∀ a b : α, a ⊔ b = b ⊔ a)
+    (sup_assoc : ∀ a b c : α, (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c))
+    (huntington : ∀ a b : α, (aᶜ ⊔ b)ᶜ ⊔ (aᶜ ⊔ bᶜ)ᶜ = a)
+    (mul_assoc : ∀ a b c : α, (a * b) * c = a * (b * c))
+    (mul_one : ∀ a : α, a * 1 = a)
+    (star_star : ∀ a : α, star (star a) = a)
+    (star_mul : ∀ a b : α, star (a * b) = star b * star a)
+    (sup_mul : ∀ a b c : α, (a ⊔ b) * c = a * c ⊔ b * c)
+    (star_sup : ∀ a b : α, star (a ⊔ b) = star a ⊔ star b)
+    (tarski : ∀ a b : α, star a * (a * b)ᶜ ⊔ bᶜ = bᶜ) : RelationAlgebra α
 
 variable (α : Type*) [RelationAlgebra α]
 

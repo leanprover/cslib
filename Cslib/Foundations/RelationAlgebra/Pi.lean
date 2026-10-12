@@ -27,8 +27,8 @@ instance Pi.instRelationAlgebra {ι : Type*} {β : ι → Type*} [∀ i, Relatio
   __ := (inferInstance : Monoid (∀ i, β i))
   __ := (inferInstance : StarMul (∀ i, β i))
   sup_mul a b c := funext fun i => RelationAlgebra.sup_mul (a i) (b i) (c i)
-  star_sup a b := funext fun i => RelationAlgebra.star_sup (a i) (b i)
-  tarski a b i := RelationAlgebra.tarski (a i) (b i)
+  star_mono _ _ h i := RelationAlgebra.star_mono (h i)
+  left_modular a b c i := RelationAlgebra.left_modular (a i) (b i) (c i)
 
 namespace RelationAlgebraHom
 

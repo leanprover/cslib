@@ -17,9 +17,9 @@ One of the primary notions of interest in the study of relation algebras is the 
 
 Recall Stone's representation for Boolean algebras which (at a low level of
 generality) states that every Boolean algebra has an isomorphism into a particuliar "field of sets".
-Tarski's hope was that an analogous property would hold for abstract relation algebras, with the 
+Tarski's hope was that an analogous property would hold for abstract relation algebras, with the
 isomorphism desired being into a relation algebra of concrete relations. This turns out to be false,
-with the clasification and conditions for the representation of a relation algebra thus being a 
+with the clasification and conditions for the representation of a relation algebra thus being a
 matter of much interest.
 
 -/
@@ -56,10 +56,10 @@ instance (α : Type u) : RelationAlgebra (SquareRelations α) where
     unfold SquareRelations at *
     ext ⟨x, z⟩
     exact (exists_congr fun y => or_and_right).trans exists_or
-  star_sup _ _ := rfl
-  tarski a b := by
-    rintro ⟨x, z⟩ ⟨y, hxy, hyz⟩ hxz
-    exact hyz ⟨x, hxy, hxz⟩
+  star_mono _ _ h _ hp := h hp
+  left_modular a b c := by
+    rintro ⟨x, z⟩ ⟨⟨y, hxy, hyz⟩, hxz⟩
+    exact ⟨y, hxy, hyz, x, hxy, hxz⟩
 
 end SquareRelations
 
