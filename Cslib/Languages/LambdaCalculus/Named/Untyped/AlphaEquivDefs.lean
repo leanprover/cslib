@@ -97,7 +97,7 @@ inductive AlphaEquivPFresh : Term Var → Term Var → Prop where
 restricted to the bodies only.
 
 This definition is analogous to the definition of α-equivalence for λ-expressions in
-[Gabbay1999a] (Theorem 2.1, page 216). The notation `∼¹p` arises from three variants `∼ⁱp`
+[Gabbay1999] (Theorem 2.1). The notation `∼¹p` arises from three variants `∼ⁱp`
 of `∼p` considered in Proposition 4.3 of [Crole2012].
 -/
 inductive AlphaEquivP1 : Term Var → Term Var → Prop where
