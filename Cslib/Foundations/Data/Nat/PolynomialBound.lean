@@ -27,7 +27,7 @@ open Asymptotics Filter
 
 /-- A function is polynomially bounded if a fixed power eventually bounds its values. -/
 def PolynomiallyBounded (f : ℕ → ℕ) : Prop :=
-  ∃ d : ℕ, ∀ᶠ n in atTop, f n ≤ n ^ d
+  ∃ d : ℕ, f ≤ᶠ[atTop] (· ^ d)
 
 /-- Polynomial growth is equivalent to a big-O bound after casting to the reals. -/
 theorem polynomiallyBounded_iff_isBigO {f : ℕ → ℕ} :
@@ -50,7 +50,7 @@ theorem polynomiallyBounded_iff_isBigO {f : ℕ → ℕ} :
 theorem polynomiallyBounded_iff_le {f : ℕ → ℕ} :
     PolynomiallyBounded f ↔ ∃ c d : ℕ, ∀ n, f n ≤ c * (n + 1) ^ d := by
   constructor
-  · simp_rw [PolynomiallyBounded, eventually_atTop]
+  · simp_rw [PolynomiallyBounded, EventuallyLE, eventually_atTop]
     intro ⟨d, m, h⟩
     have ⟨c, hc⟩ := (Set.finite_Iio m).image f |>.exists_le
     use c + 1, d
