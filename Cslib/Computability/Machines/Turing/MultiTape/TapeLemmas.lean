@@ -79,7 +79,6 @@ lemma space_map_le (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.st
     (e : Fin k ↪ Fin k') (b : ℕ) (he : ∀ c ∈ p, ∀ j, (f c).workTapePos (e j) = c.workTapePos j)
     (hrest : ∀ l ∉ Set.range e, (p.map f).spaceUsedByTape l ≤ b) :
     (p.map f).space ≤ p.space + (k' - k) * b := by
-  classical
   rw [space, space, ← Finset.sum_add_sum_compl (Finset.univ.map e), Finset.sum_map]
   refine add_le_add (Finset.sum_le_sum fun j _ => (congrArg Finset.card
     (p.visitedByTapeHead_map f fun c hc => he c hc j)).le) ?_
