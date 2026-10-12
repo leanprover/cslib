@@ -61,11 +61,29 @@ def Integral : Prop := IsAtom (1 : α)
 /-- The set of identity atoms. -/
 def IdentityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1}
 
-/-- The set of symmetric atoms. -/
-def SymmetricAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a = a}
+/-- The set of symmetric diversity atoms, those below the complement of identity. -/
+def SymmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a = a}
 
-/-- The set of nonsymmetric atoms. -/
-def NonsymmetricAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a ≠ a}
+/-- The set of nonsymmetric diversity atoms. The diversity condition follows from
+`le_compl_one_of_mem_nonsymmetricDiversityAtoms`. -/
+def NonsymmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ star a ≠ a}
+
+/-- Every nonsymmetric atom lies below the complement of identity. -/
+theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
+    (h : a ∈ NonsymmetricDiversityAtoms α) : a ≤ 1ᶜ := by
+  rw [le_compl_iff_disjoint_right, ← h.1.not_le_iff_disjoint]
+  intro ha
+  have hstar : a ≤ star a := by calc
+     a = a * 1 ⊓ 1 := by rw [mul_one, inf_eq_left.mpr ha]
+     _ ≤ a * (1 ⊓ star a * 1) := left_modular a 1 1
+     _ ≤ 1 * (1 ⊓ star a * 1) := by rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr ha]
+     _ = 1 ⊓ star a := by rw [one_mul, mul_one]
+     _ ≤ star a := inf_le_right
+  have : star a ≤ a := by calc
+    star a ≤ star (star a) := star_mono hstar
+    _ = a := star_star a
+  cases h
+  grind
 
 end RelationAlgebra
 
