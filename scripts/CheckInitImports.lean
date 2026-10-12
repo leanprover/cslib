@@ -35,7 +35,8 @@ def main : IO UInt32 := do
     let env ← getEnv
     let mut publicImports : NameMap (Array Name) := {}
     for name in env.header.moduleNames, data in env.header.moduleData do
-      publicImports := publicImports.insert name <| data.imports.filter isExported |>.map module
+      publicImports := publicImports.insert name <|
+        data.imports.filter (·.isExported) |>.map (·.module)
     let graph := publicImports.transitiveClosure
     let noInitGraph :=
       graph.filter (fun name imports => name.getRoot = `Cslib ∧ !imports.contains `Cslib.Init)
