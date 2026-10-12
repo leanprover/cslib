@@ -41,7 +41,7 @@ namespace RelationAlgebra
 
 /-- A `RelationAlgebra` can be constructed using Tarski's original ten axioms. -/
 @[instance_reducible]
-def_wanted ofTarski (α : Type*) [Max α] [Compl α] [Mul α] [One α] [Star α]
+def_wanted ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
     (sup_comm : ∀ a b : α, a ⊔ b = b ⊔ a)
     (sup_assoc : ∀ a b c : α, (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c))
     (huntington : ∀ a b : α, (aᶜ ⊔ b)ᶜ ⊔ (aᶜ ⊔ bᶜ)ᶜ = a)
