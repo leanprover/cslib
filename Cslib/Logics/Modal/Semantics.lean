@@ -80,7 +80,6 @@ theorem Satisfies.triangle_iff_exists {m : Model World τ Atom} :
 theorem Satisfies.triangle_not_iff_exists_not {φs : τ.B op → Proposition τ Atom}
     {m : Model World τ Atom} : ⇓Modal[m,w ⊨ Δ[op]¬φs] ↔
       ∃ ws, m.r op w ws ∧ ∀ i, ¬⇓Modal[m,(ws i) ⊨ (φs i)] := by
-  have : (¬φs) = (fun i => ¬(φs i)) := rfl
   grind
 
 /-- Characterisation of the `∧` connective.
