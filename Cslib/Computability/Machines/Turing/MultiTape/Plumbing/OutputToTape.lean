@@ -140,10 +140,7 @@ public lemma spaceUsed_outputToTape (tm : MultiTapeTM k Symbol State)
     (c : Cfg k Symbol State input) (u : ℕ) :
     tm.outputToTape.spaceUsed (outCfg c) u ≤
       tm.spaceUsed c u + ((tm.runFrom c u).output.length + 1) := by
-  let p : tm.RunPath input :=
-    { length := u
-      toFun n := tm.runFrom c n
-      step n := by simp [runFrom, Function.iterate_succ_apply'] }
+  let p : tm.RunPath input := .ofDeterministic tm c u
   simpa using tm.spaceUsed_le_of_workTapePos_embedding Fin.castSuccEmb c (outCfg c)
     ((tm.runFrom c u).output.length + 1) (fun m _ j => by simp [runFrom_outCfg])
     fun l hl => by
@@ -153,7 +150,7 @@ public lemma spaceUsed_outputToTape (tm : MultiTapeTM k Symbol State)
           (S := .Icc (c.output.length : ℤ) (tm.runFrom c u).output.length) fun m hm => ?_).trans
           (by simp)
         have h0 : c.output.length ≤ (tm.runFrom c m).output.length := by
-          simpa [p, runFrom] using
+          simpa [p, MultiTapeNTM.RunPath.ofDeterministic, runFrom] using
             p.length_output_mono (Fin.zero_le ⟨m, Nat.lt_succ_of_le hm⟩)
         have hu : (tm.runFrom c m).output.length ≤ (tm.runFrom c u).output.length :=
           p.length_output_mono (Fin.le_last ⟨m, Nat.lt_succ_of_le hm⟩)
