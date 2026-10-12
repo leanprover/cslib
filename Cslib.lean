@@ -123,6 +123,7 @@ public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
+public import Cslib.Foundations.Control.Monad.Free.PFunctor
 public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Cslib.Foundations.Control.Monad.IsMonadHom.List
 public import Cslib.Foundations.Data.BiTape
