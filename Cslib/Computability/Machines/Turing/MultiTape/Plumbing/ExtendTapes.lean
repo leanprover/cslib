@@ -132,10 +132,11 @@ public lemma embed_workTapeSymbols_embed (e : Fin k ↪ Fin k') (cfg : Cfg k Sym
 /-- Reindexing is a step-semiconjugation: the reindexed machine acts on the embedded tapes exactly
 as `tm` does, and never touches the extra tapes. -/
 public lemma step_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
-    (cfg : Cfg k Symbol State input) (extraTapes : Fin k' → ℤ → Option Symbol)
-    (extraPos : Fin k' → ℤ) :
-    (tm.extendTapes e).step (embed e cfg extraTapes extraPos)
-      = embed e (tm.step cfg) extraTapes extraPos := by
+    (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
+    Function.Semiconj (embed (input := input) e · extraTapes extraPos) tm.step
+      (tm.extendTapes e).step := by
+  intro cfg
+  symm
   cases hq : cfg.state with
   | none => simp [embed, hq]
   | some q =>
@@ -145,11 +146,12 @@ public lemma step_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
       cases partialInv e l <;> simp
 
 /-- Reindexing preserves steps, so it maps run paths of `tm` to run paths of the reindexed machine,
-with the extra tapes held fixed throughout. -/
+with the extra tapes held fixed throughout: `stepHom` reads the semiconjugation `step_embed` as a
+homomorphism of the step relations. -/
 @[expose, simps! apply] public noncomputable def embedHom (tm : MultiTapeTM k Symbol State)
     (e : Fin k ↪ Fin k') (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
     (tm.stepRel input).Hom ((tm.extendTapes e).stepRel input) :=
-  stepHom (embed e · extraTapes extraPos) (step_embed tm e · extraTapes extraPos)
+  stepHom (embed e · extraTapes extraPos) (step_embed tm e extraTapes extraPos)
 
 section Space
 

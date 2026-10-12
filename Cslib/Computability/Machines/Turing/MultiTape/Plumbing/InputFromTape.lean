@@ -156,9 +156,10 @@ public lemma val_moveInputPos_sub_one_eq_clampMove (mark : Symbol) (c : Cfg k Sy
 /-- **The redirection is a step-semiconjugation.** One step of the machine reading its input from
 the virtual tape mirrors one step of the original, under the embedding `inCfg`. -/
 public lemma step_inCfg (tm : MultiTapeTM k Symbol State) (mark : Symbol)
-    (c : Cfg k Symbol State input) (outerInput : List Symbol) :
-    tm.inputFromTape.step (inCfg mark c outerInput) =
-      inCfg mark (tm.step c) outerInput := by
+    (outerInput : List Symbol) :
+    Function.Semiconj (inCfg (input := input) mark · outerInput) tm.step tm.inputFromTape.step := by
+  intro c
+  symm
   cases hq : c.state with
   | none => simp [inCfg, hq]
   | some q =>
@@ -173,7 +174,7 @@ machine. -/
 @[expose, simps! apply] public noncomputable def inCfgHom (tm : MultiTapeTM k Symbol State)
     (mark : Symbol) (outerInput : List Symbol) :
     (tm.stepRel input).Hom (tm.inputFromTape.stepRel outerInput) :=
-  stepHom (inCfg mark · outerInput) (step_inCfg tm mark · outerInput)
+  stepHom (inCfg mark · outerInput) (step_inCfg tm mark outerInput)
 
 /-- **Space of the input-redirected path.** The `k` inner tapes visit exactly what the original
 path visits; the two extra tapes (virtual input, flag) each move only with the simulated input

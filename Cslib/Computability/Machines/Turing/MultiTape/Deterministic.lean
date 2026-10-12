@@ -171,15 +171,15 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
 
-/-- A configuration map that commutes with the step functions preserves the step relation, so it
-maps run paths with `RelSeries.map`. -/
+/-- A configuration map semiconjugating the step functions is a homomorphism of the step relations,
+so it maps run paths with `RelSeries.map`. -/
 def stepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
     {tm' : MultiTapeTM k' Symbol State'}
     (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (h : ∀ c, tm'.step (f c) = f (tm.step c)) :
+    (h : Function.Semiconj f tm.step tm'.step) :
     (tm.stepRel input).Hom (tm'.stepRel input') where
   toFun := f
-  map_rel' hc := step_iff.mpr ((h _).trans (congrArg f (step_iff.mp hc)))
+  map_rel' hc := step_iff.mpr ((h _).symm.trans (congrArg f (step_iff.mp hc)))
 
 end MultiTapeTM
 

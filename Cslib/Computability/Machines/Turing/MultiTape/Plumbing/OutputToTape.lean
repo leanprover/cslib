@@ -80,8 +80,10 @@ public lemma outCfg_workTapeSymbols_castSucc (c : Cfg k Symbol State input) (j :
   simp [Cfg.workTapeSymbols]
 
 /-- The redirection is a step-semiconjugation. -/
-public lemma step_outCfg (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) :
-    tm.outputToTape.step (outCfg c) = outCfg (tm.step c) := by
+public lemma step_outCfg (tm : MultiTapeTM k Symbol State) :
+    Function.Semiconj (outCfg (input := input)) tm.step tm.outputToTape.step := by
+  intro c
+  symm
   cases hq : c.state with
   | none => simp [outCfg, hq]
   | some q =>
