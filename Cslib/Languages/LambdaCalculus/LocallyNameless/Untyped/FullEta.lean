@@ -7,8 +7,10 @@ Authors: Maximiliano Onofre Martínez
 module
 
 public import Cslib.Foundations.Relation.Attr
+public import Cslib.Foundations.Relation.Defs
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Size
 
 /-! # η-reduction for the λ-calculus -/
 
@@ -149,6 +151,18 @@ lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (steps : t ↠η�
   case refl => rfl
   case head _ _ st _ ih => exact .trans (step_open_cong_r lc_s st) ih
 
+theorem steps_open_cong_l (xs : Finset Var)
+  (h : ∀ x ∉ xs, (M ^ fvar x) ↠ηᶠ (M' ^ fvar x)) (hn : LC N) :
+  (M ^ N) ↠ηᶠ (M' ^ N) := by
+  have ⟨z, hz⟩ := fresh_exists <| free_union [fv] Var
+  rw [Term.subst_intro z N _ (by grind), Term.subst_intro z N _ (by grind)]
+  exact steps_subst_cong_l _ _ _ (h z (by grind)) hn
+
+lemma step_size (step : M ⭢ηᶠ M') : M'.size + 2 = M.size := by
+  induction step with
+  | abs xs _ => grind [fresh_exists <| free_union [fv] Var]
+  | _ => grind
+
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
 lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N) :
@@ -157,6 +171,12 @@ lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N
   | refl => rw [←open_close_var x M hx_M]
   | single st =>
     exact .single (Xi.abs {x} (by grind [step_subst_cong_l]))
+
+open Relation in
+lemma terminating : Terminating (@FullEta Var) :=
+  Subrelation.wf (r := InvImage (· < ·) size)
+    (fun {a b} (h : FullEta b a) => by have := step_size h; simp only [InvImage]; omega)
+    (InvImage.wf size Nat.lt_wfRel.wf)
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullEta
 
