@@ -145,9 +145,10 @@ public lemma step_embed (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> simp only [Action.apply, embed] <;>
       cases partialInv e l <;> simp
 
-/-- Reindexing preserves steps, so it maps run paths of `tm` to run paths of the reindexed machine,
-with the extra tapes held fixed throughout: `stepHom` reads the semiconjugation `step_embed` as a
-homomorphism of the step relations. -/
+/-- `embed` as a homomorphism of step relations: each step `c → c'` of `tm` becomes the step
+`embed c → embed c'` of the reindexed machine, so a run path of `tm` maps to a run path of the
+reindexed machine, with the extra tapes held fixed. `stepHom` builds it from `step_embed`, which
+says that `embed` commutes with the step functions. -/
 @[expose, simps! apply] public noncomputable def embedHom (tm : MultiTapeTM k Symbol State)
     (e : Fin k ↪ Fin k') (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
     (tm.stepRel input).Hom ((tm.extendTapes e).stepRel input) :=
@@ -160,10 +161,9 @@ while each of the remaining `k' - k` tapes never moves and contributes one cell.
 public lemma space_map_embedHom_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
     (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) (p : tm.RunPath input) :
     (p.map (embedHom tm e extraTapes extraPos)).space ≤ p.space + (k' - k) := by
-  simpa using p.space_map_le (embedHom tm e extraTapes extraPos) e 1
-    (fun c _ j => embed_workTapePos_embed e c extraTapes extraPos j) fun l hl => by
-      simpa using p.spaceUsedByTape_map_le_card _ (S := {extraPos l}) fun c _ => by
-        simp [embed, partialInv_eq_none e hl]
+  simpa [Finset.card_compl] using p.space_map_le _ e (fun l => {extraPos l})
+    (fun c _ => embed_workTapePos_embed e c extraTapes extraPos)
+    fun c _ l hl => by simp [embed, partialInv_eq_none e hl]
 
 end Space
 

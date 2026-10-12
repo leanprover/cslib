@@ -182,16 +182,15 @@ head, which stays within `[-1, input.length]`, so they add at most `2 * (input.l
 public lemma space_map_inCfgHom_le (tm : MultiTapeTM k Symbol State) (mark : Symbol)
     (outerInput : List Symbol) (p : tm.RunPath input) :
     (p.map (inCfgHom tm mark outerInput)).space ≤ p.space + 2 * (input.length + 2) := by
-  simpa using p.space_map_le (inCfgHom tm mark outerInput) (Fin.castAddEmb 2) (input.length + 2)
-    (fun c _ j => inCfg_workTapePos_castAdd c j) fun l hl => by
-      induction l using Fin.addCases with
-      | left j => exact absurd ⟨j, rfl⟩ hl
-      | right i =>
-        refine (p.spaceUsedByTape_map_le_card _ (S := .Icc (-1) input.length) fun c _ => ?_).trans
-          (by rw [Int.card_Icc]; omega)
-        have := c.inputPos.isLt
-        simp only [inCfgHom_apply, inCfg_workTapePos_natAdd, Finset.mem_Icc]
-        omega
+  refine (p.space_map_le _ (Fin.castAddEmb 2) (fun _ => .Icc (-1) input.length)
+    (fun c _ => inCfg_workTapePos_castAdd c) fun c _ l hl => ?_).trans
+    (by simp [Finset.card_compl]; omega)
+  induction l using Fin.addCases with
+  | left j => exact absurd ⟨j, rfl⟩ hl
+  | right i =>
+    have := c.inputPos.isLt
+    simp only [inCfgHom_apply, inCfg_workTapePos_natAdd, Finset.mem_Icc]
+    omega
 
 end Projections
 
