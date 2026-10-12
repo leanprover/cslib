@@ -73,5 +73,9 @@ structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : 
 def Representable (α : Type u) [RelationAlgebra α] : Prop :=
   ∃ (ι : Type u) (β : ι → Type u), Nonempty (Representation α ι β)
 
+/-- A `Representation α ι β` in arbitrary universes can be contracted to the universe of `α`. -/
+proof_wanted representable_univ {α : Type u} [RelationAlgebra α] {ι : Type v} {β :  ι → Type w} :
+    Representation α ι β → Representable α
+
 end Cslib.RelationAlgebra
 
