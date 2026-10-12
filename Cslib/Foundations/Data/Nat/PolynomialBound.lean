@@ -42,9 +42,8 @@ theorem polynomiallyBounded_iff_isBigO {f : ℕ → ℕ} :
     obtain ⟨c, _, hc⟩ := hd.exists_pos
     refine ⟨d + 1, ?_⟩
     filter_upwards [hc.bound, eventually_ge_atTop ⌈c⌉₊] with n hn hcn
-    grw [Nat.le_ceil c, Real.norm_natCast, norm_pow, Real.norm_natCast, hcn] at hn
-    have hn' : f n ≤ n * n ^ d := by exact_mod_cast hn
-    rwa [pow_succ']
+    grw [Nat.le_ceil c, Real.norm_natCast, norm_pow, Real.norm_natCast, hcn, ← pow_succ'] at hn
+    exact_mod_cast hn
 
 /-- A polynomial bound can absorb every finite prefix into its constant factor. -/
 theorem polynomiallyBounded_iff_le {f : ℕ → ℕ} :
