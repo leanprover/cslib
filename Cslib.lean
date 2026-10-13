@@ -167,6 +167,10 @@ public import Cslib.Foundations.Relation.Preserves
 public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
+public import Cslib.Foundations.RelationAlgebra.Basic
+public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.Pi
+public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
