@@ -91,8 +91,7 @@ def initCfg (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
     Cfg k Symbol State input :=
   Cfg.init ntm.q₀ input
 
-/-- The one-step relation on configurations for `input`, as a set of pairs. A map of configurations
-preserving it, an element of `SetRel.Hom`, maps run paths with `RelSeries.map`. -/
+/-- The one-step relation on configurations for `input`, as a set of pairs. -/
 abbrev stepRel (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
     SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
   {(c, c') | ntm.Step c c'}
