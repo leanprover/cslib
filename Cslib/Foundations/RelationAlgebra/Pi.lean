@@ -23,9 +23,6 @@ namespace Cslib
 
 instance Pi.instRelationAlgebra {ι : Type*} {β : ι → Type*} [∀ i, RelationAlgebra (β i)] :
     RelationAlgebra (∀ i, β i) where
-  __ := (inferInstance : BooleanAlgebra (∀ i, β i))
-  __ := (inferInstance : Monoid (∀ i, β i))
-  __ := (inferInstance : StarMul (∀ i, β i))
   sup_mul a b c := funext fun i => RelationAlgebra.sup_mul (a i) (b i) (c i)
   star_sup a b := funext fun i => RelationAlgebra.star_sup (a i) (b i)
   tarski a b i := RelationAlgebra.tarski (a i) (b i)
@@ -37,12 +34,11 @@ variable {α : Type*} [RelationAlgebra α] {ι : Type*} {β : ι → Type*} [∀
 /-- The product of `RelationAlgebraHom`s is a `RelationAlgebraHom` into a product. -/
 def pi (f : ∀ i, RelationAlgebraHom α (β i)) : RelationAlgebraHom α (∀ i, β i) where
   toFun a i := f i a
+  __ := MonoidHom.pi fun i => (f i).toMonoidHom
   map_sup' a b := funext fun i => map_sup (f i) a b
   map_inf' a b := funext fun i => map_inf (f i) a b
   map_top' := funext fun i => map_top (f i)
   map_bot' := funext fun i => map_bot (f i)
-  map_one' := funext fun i => map_one (f i)
-  map_mul' a b := funext fun i => map_mul (f i) a b
   map_star' a := funext fun i => map_star (f i) a
 
 @[simp]
@@ -53,12 +49,10 @@ variable (β) in
 /-- The `RelationAlgebraHom` into a single fiber. -/
 def eval (i : ι) : RelationAlgebraHom (∀ i, β i) (β i) where
   toFun b := b i
-  map_sup' _ _ := rfl
-  map_inf' _ _ := rfl
+  __ := Pi.evalLatticeHom i
+  __ := Pi.evalMonoidHom β i
   map_top' := rfl
   map_bot' := rfl
-  map_one' := rfl
-  map_mul' _ _ := rfl
   map_star' _ := rfl
 
 @[simp]
