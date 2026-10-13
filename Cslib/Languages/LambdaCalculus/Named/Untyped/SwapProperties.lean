@@ -180,7 +180,7 @@ lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
 /-- A version of `swap_rename_comm` where the target `z` of the renaming is not swapped. -/
 lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
     (m.swap u v).rename (Equiv.swap u v x) z = (m.rename x z).swap u v := by
-  rw [← @swap_rename_comm _ _ m u v x z]
+  rw [← swap_rename_comm (m := m) (u := u) (v := v) (x := x) (y := z)]
   congr 1
   exact Eq.symm (Equiv.swap_apply_of_ne_of_ne hzu hzv)
 
@@ -275,11 +275,11 @@ private lemma alphaEquiv_swap_preserve_abs_b_eq_u {m m' : Term Var} {a u v : Var
   have hum : u ∉ (m.swap u v).vars := by rw [swap_comm]; exact notMem_swap_target hvm
   have hum' : u ∉ (m'.swap u v).vars := by rw [swap_comm]; exact notMem_swap_target hvm'
   have hL : (m.swap u v).rename a u = (m.rename a v).swap u v := by
-    have h := @swap_rename_comm _ _ m u v a v
+    have h := swap_rename_comm (m := m) (u := u) (v := v) (x := a) (y := v)
     simp_all
     grind
   have hR : (m'.swap u v).rename v u = (m'.rename u v).swap u v := by
-    have h := @swap_rename_comm _ _ m' u v u v
+    have h := swap_rename_comm (m := m') (u := u) (v := v) (x := u) (y := v)
     simp_all
   have hbody' : ((m.swap u v).rename a u) =α ((m'.swap u v).rename v u) := by
     rw [hL, hR]
