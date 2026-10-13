@@ -10,10 +10,10 @@ public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivDefs
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivProperties
 
-/-! # Properties of the swap (transposition) operation on lambda terms
+/-! # Properties of permutations and swaps (transpositions) on lambda terms
 
-Helper lemmas for reasoning about `Term.swap` and its interaction with
-`AlphaEquiv`, `rename`, `vars`, and `fv`.
+Lemmas about the permutation action `Term.permute` and its special case `Term.swap`, and their
+interaction with `AlphaEquiv`, `rename`, `vars`, and `fv`.
 
 The notion of *atom swapping* (transposition) as the basis for defining α-equivalence
 originates from [Gabbay and Pitts, *A New Approach to Abstract Syntax with Variable
@@ -24,6 +24,14 @@ renaming/substitution approach.
 The swap (transposition) operation `m.swap x y` implements the permutation action
 `(x y) · E` from [Crole2012] (Section 2). It simultaneously replaces all occurrences
 of `x` with `y` and vice versa throughout a term.
+
+## Main results
+
+- `permute_eq_of_eqOn_vars`: Lemma 6.2 part 1 of [Crole2012], permutations that agree on the
+  variables of a term act on it in the same way
+- `AlphaEquiv.swap_preserve`: Lemma 6.1 of [Crole2012], swapping preserves α-equivalence
+- `permute_alphaEquiv_of_eqOn_fv`: Lemma 6.2 part 2 of [Crole2012], permutations that agree on the
+  free variables of a term act on it in the same way up to α-equivalence
 
 ## References
 
