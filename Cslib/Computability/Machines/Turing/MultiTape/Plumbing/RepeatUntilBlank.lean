@@ -108,29 +108,34 @@ lemma step_check (ws : Fin k → List Symbol) (out : List Symbol) :
     simp [repeatUntilBlank, Cfg.workTapeSymbols, tapeOfList_zero, wordsCfg, Action.apply,
       SignType.cast, h]
 
-/-- One round of the loop. If `tm` takes `w` to `w'` and `out` to `out'` within `τ` steps and `σ`
-cells, then the loop has a run path of at most `τ + 1` steps within `[-σ, σ]` from `tm`'s initial
-state on `w` and `out` to `w'` and `out'`, either halted or ready for the next round. -/
-lemma exists_round {w w' : Fin k → List Symbol} {out out' : List Symbol} {τ σ : ℕ}
-    (hrun : tm.runFrom (wordsCfg input (some tm.q₀) w out) τ = wordsCfg input none w' out')
-    (hsp : tm.spaceUsed (wordsCfg input (some tm.q₀) w out) τ ≤ σ) :
-    ∃ p : (repeatUntilBlank i tm).RunPath input, p.head = wordsCfg input (some (.run tm.q₀)) w out ∧
-      p.last = wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' out' ∧
-      p.length ≤ τ + 1 ∧ p.InWindow σ := by
-  obtain ⟨u, hu, hhalt⟩ := exists_haltsAt (show (tm.runFrom _ τ).Halted by rw [hrun]; rfl)
+/-- One round of the loop. If `tm` transforms words satisfying `P` within `t` steps and `s` cells,
+then from `tm`'s initial state on such words `w` the loop has a run path of at most `t + 1` steps
+within `[-s, s]` to the words `w'` that `tm` leaves, halted if `w' i` is empty and otherwise ready
+for the next round. -/
+lemma exists_round {P : (input : List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop} {t s : ℕ}
+    (h : TransformsTapes tm P Q t s) {w : Fin k → List Symbol} (out : List Symbol)
+    (hP : P input w) :
+    ∃ w' e, Q input w w' e ∧ ∃ p : (repeatUntilBlank i tm).RunPath input,
+      p.head = wordsCfg input (some (.run tm.q₀)) w out ∧
+      p.last = wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' (out ++ e) ∧
+      p.length ≤ t + 1 ∧ p.InWindow s := by
+  obtain ⟨w', e, hrun, hQ, hsp⟩ := h input w out hP
+  obtain ⟨u, hu, hhalt⟩ := exists_haltsAt (show (tm.runFrom _ t).Halted by rw [hrun]; rfl)
   -- up to step `u` the loop mirrors `tm`, and at step `u + 1` it reads tape `i`
   have hround : (repeatUntilBlank i tm).runFrom (wordsCfg input (some (.run tm.q₀)) w out) (u + 1) =
-      wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' out' := by
+      wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' (out ++ e) := by
     rw [runFrom_succ, ← runCfg_wordsCfg_some,
       runFrom_runCfg hhalt le_rfl, ← hhalt.runFrom_eq hu, hrun, runCfg_wordsCfg_none, step_check]
-  refine ⟨.ofDeterministic _ (wordsCfg input (some (.run tm.q₀)) w out) (u + 1), rfl, hround,
-    Nat.succ_le_succ hu, ?_⟩
+  refine ⟨w', e, hQ, .ofDeterministic _ (wordsCfg input (some (.run tm.q₀)) w out) (u + 1), rfl,
+    hround, Nat.succ_le_succ hu, ?_⟩
   rintro _ ⟨⟨m, hm⟩, rfl⟩ l
   obtain hm | rfl := (Nat.lt_succ_iff.mp (show m < u + 1 + 1 from hm)).lt_or_eq
   · change Cfg.workTapePos
       ((repeatUntilBlank i tm).runFrom (runCfg (wordsCfg input (some tm.q₀) w out)) m) l ∈ _
     rw [runFrom_runCfg hhalt (by lia), workTapePos_runCfg]
-    exact inWindow_ofDeterministic (fun _ => rfl) hsp _ ⟨⟨m, show m < τ + 1 by lia⟩, rfl⟩ l
+    exact inWindow_ofDeterministic (fun _ => rfl) hsp _ ⟨⟨m, show m < t + 1 by lia⟩, rfl⟩ l
   · change ((repeatUntilBlank i tm).runFrom _ (u + 1)).workTapePos l ∈ _
     simp [hround, mem_window]
 
@@ -173,15 +178,15 @@ public theorem transformsTapes_repeatUntilBlank (i : Fin k) {tm : MultiTapeTM k 
       simp [hstart, mem_window]
     | succ n ih =>
       obtain ⟨p, wsn, acc, hhead, hlast, hlen, hwin, hPn⟩ := ih (by lia)
-      obtain ⟨wsn', e, hrunTm, hQ, hsp⟩ := hround n (by lia) acc input wsn (out ++ acc) hPn
-      obtain ⟨q, hqhead, hqlast, hqlen, hqwin⟩ := exists_round hrunTm hsp
+      obtain ⟨wsn', e, hQ, q, hqhead, hqlast, hqlen, hqwin⟩ :=
+        exists_round (hround n (by lia) acc) (out ++ acc) hPn
       rw [ite_eq_right hQ.2, List.append_assoc] at hqlast
       exact ⟨p.smash q (hlast.trans hqhead.symm), wsn', acc ++ e, by simp [hhead], by simp [hqlast],
         by simp; lia, hwin.smash hqwin, hQ.1⟩
   -- the last round halts the loop
   obtain ⟨p, wsLast, acc, hhead, hlast, hlen, hwin, hPlast⟩ := hrec rounds le_rfl
-  obtain ⟨ws', e, hrunTm, hQ, hsp⟩ := hstop acc input wsLast (out ++ acc) hPlast
-  obtain ⟨q, hqhead, hqlast, hqlen, hqwin⟩ := exists_round hrunTm hsp
+  obtain ⟨ws', e, hQ, q, hqhead, hqlast, hqlen, hqwin⟩ :=
+    exists_round (hstop acc) (out ++ acc) hPlast
   rw [ite_eq_left hQ.2, List.append_assoc] at hqlast
   -- the joined path is the run of the loop from `start`, which then stays halted
   set r : (repeatUntilBlank i tm).RunPath input := p.smash q (hlast.trans hqhead.symm)
