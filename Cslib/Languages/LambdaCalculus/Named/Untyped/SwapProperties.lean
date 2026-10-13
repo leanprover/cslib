@@ -203,8 +203,6 @@ private lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z :
     (hzu : z ≠ u)
     (hzv : z ≠ v) :
     ((E.swap u v).swap (Equiv.swap u v a) z) =α ((E'.swap u v).swap (Equiv.swap u v b) z) := by
-  have hzb : z ≠ b := by simp_all
-  have hza : z ≠ a := by simp_all
   have z_h1 : z ∉ (E.swap u v).vars := by exact not_mem_vars_swap hzu hzv (by simp_all)
   have z_h2 : z ∉ (E'.swap u v).vars := by exact not_mem_vars_swap hzu hzv (by simp_all)
   rw [swap_eq_rename_of_not_mem_vars z_h1]
