@@ -78,6 +78,74 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
 
+/-- Composition is monotone in its second argument. -/
+theorem mul_le_mul_left {a b : α} (h : a ≤ b) (c : α) : c * a ≤ c * b := by
+  rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr h]
+
+/-- Composition is monotone in its first argument. -/
+theorem mul_le_mul_right {a b : α} (h : a ≤ b) (c : α) : a * c ≤ b * c := by
+  rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr h]
+
+/-- Composition is monotone in both arguments. -/
+theorem mul_le_mul {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) : a * c ≤ b * d :=
+  (mul_le_mul_right hab c).trans (mul_le_mul_left hcd b)
+
+/-- Converse preserves the empty relation. -/
+@[simp] theorem star_bot : star (⊥ : α) = ⊥ := by
+  apply le_antisymm _ bot_le
+  simpa only [star_star] using star_mono (bot_le : (⊥ : α) ≤ star ⊥)
+
+/-- Converse preserves the greatest relation. -/
+@[simp] theorem star_top : star (⊤ : α) = ⊤ := by
+  apply le_antisymm le_top
+  simpa only [star_star] using star_mono (le_top : star (⊤ : α) ≤ ⊤)
+
+/-- Converse preserves meets. -/
+theorem star_inf (a b : α) : star (a ⊓ b) = star a ⊓ star b := by
+  apply le_antisymm (le_inf (star_mono inf_le_left) (star_mono inf_le_right))
+  have h : star (star a ⊓ star b) ≤ a ⊓ b := by
+    simpa only [star_star] using
+      le_inf (star_mono (inf_le_left : star a ⊓ star b ≤ star a))
+        (star_mono (inf_le_right : star a ⊓ star b ≤ star b))
+  simpa only [star_star] using star_mono h
+
+/-- Converse preserves complements. -/
+@[simp] theorem star_compl (a : α) : star aᶜ = (star a)ᶜ := by
+  apply Eq.symm
+  apply compl_unique
+  · rw [← star_inf, inf_compl_self, star_bot]
+  · rw [← star_sup, sup_compl_eq_top, star_top]
+
+/-- The right-handed form of Tarski's axiom. -/
+theorem right_tarski (a b : α) : (a * b)ᶜ * star b ≤ aᶜ := by
+  simpa only [star_mul, star_compl, star_star] using
+    star_mono (tarski (star b) (star a))
+
+/-- Composing with the empty relation on the right yields the empty relation. -/
+@[simp] theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
+  apply le_antisymm _ bot_le
+  calc
+    a * ⊥ ≤ a * (star a * ⊤)ᶜ := mul_le_mul_left bot_le a
+    _ ≤ (⊤ : α)ᶜ := by simpa only [star_star] using tarski (star a) ⊤
+    _ = ⊥ := compl_top
+
+/-- Composing with the empty relation on the left yields the empty relation. -/
+@[simp] theorem bot_mul (a : α) : ⊥ * a = ⊥ := by
+  apply star_injective
+  simp only [star_mul, star_bot, mul_bot]
+
+/-- Every element lies below its composition with the greatest relation on the left. -/
+theorem le_top_mul (a : α) : a ≤ ⊤ * a := by
+  simpa only [one_mul] using mul_le_mul_right (le_top : (1 : α) ≤ ⊤) a
+
+/-- Every element lies below its composition with the greatest relation on the right. -/
+theorem le_mul_top (a : α) : a ≤ a * ⊤ := by
+  simpa only [mul_one] using mul_le_mul_left (le_top : (1 : α) ≤ ⊤) a
+
+/-- The greatest relation is idempotent under composition. -/
+@[simp] theorem top_mul_top : (⊤ : α) * ⊤ = ⊤ :=
+  le_antisymm le_top (le_top_mul ⊤)
+
 /-- A relation algebra is *integral* when its identity is an atom. -/
 def Integral : Prop := IsAtom (1 : α)
 
