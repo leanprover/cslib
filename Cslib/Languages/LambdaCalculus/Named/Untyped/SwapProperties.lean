@@ -197,7 +197,7 @@ lemma permute_swap (m : Term Var) (x y : Var) : m.permute (Equiv.swap x y) = m.s
 in the proof of `AlphaEquiv.swap_preserve`. See Lemma 6.1 [Crole2012]. -/
 
 -- First 4 case examinations in represenative case z ≠ u, v
-lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
+private lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
     (hm1 : z ∉ E.vars ∪ E'.vars ∪ {a, b})
     (h2 : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
     (hzu : z ≠ u)
@@ -220,7 +220,7 @@ lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
 
 -- representative case: z ≠ u, v
 -- Use z as witness.
-lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : Var}
+private lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : Var}
     (hm : z ∉ E.vars ∪ E'.vars ∪ {a, b})
     (hbody : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
     (hzu : z ≠ u) (hzv : z ≠ v) :
@@ -236,7 +236,7 @@ lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : Var}
   · exact hren
 
 -- representative case: a ≠ u, v; b ≠ u, v; z = u
-lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var}
+private lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var}
     (hm : u ∉ E.vars ∪ E'.vars ∪ {a, b})
     (hbody : ((E.rename a u).swap u v) =α ((E'.rename b u).swap u v))
     (hau : a ≠ u) (hav : a ≠ v) (hbu : b ≠ u) (hbv : b ≠ v) :
@@ -254,7 +254,7 @@ lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var
   apply AlphaEquiv.abs (y := v) <;> (simp_all [swap]; grind)
 
 -- representative case: a ≠ u, v; b = u; z = v
-lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
+private lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
     (hm : v ∉ E.vars ∪ E'.vars ∪ {a})
     (hbody : ((E.rename a v).swap u v) =α ((E'.rename u v).swap u v))
     (hau : a ≠ u) (hav : a ≠ v) (huv : u ≠ v) :
@@ -280,7 +280,7 @@ lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
     grind
 
 -- representative case: a = u; b = u; z = v
-lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
+private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
     (hm : v ∉ E.vars ∪ E'.vars ∪ {u})
     (ih : ((E.rename u v).swap u v) =α ((E'.rename u v).swap u v)) (huv : u ≠ v) :
     ((Term.abs u E).swap u v) =α ((Term.abs u E').swap u v) := by
