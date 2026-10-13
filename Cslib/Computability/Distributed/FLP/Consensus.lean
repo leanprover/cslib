@@ -57,12 +57,8 @@ of processes, then at least one process is not faulty. -/
 theorem not_procFaulty_of_numProcFaulty [Fintype P]
     {ss : ωSequence (State P M S)} {xs : ωSequence (Action P M)}
     (h : numProcFaulty ss xs < card P) : ∃ p, ¬ ProcFaulty p ss xs := by
-  let nf := {p | ProcFaulty p ss xs}ᶜ
-  have h1 : 0 < nf.ncard := by
-    rw [ncard_compl]
-    grind [numProcFaulty, card_eq_nat_card]
-  obtain ⟨p, _⟩ := (ncard_pos (s := nf)).mp h1
-  grind
+  by_contra! hall
+  simp [numProcFaulty, hall] at h
 
 /-- If every process in a set `ps` is fair, then the number of faulty processes is bounded by
 the total number of processes minus the cardinality of `ps`. -/
@@ -115,8 +111,8 @@ theorem AdmissibleRun.fault_zero [Fintype P]
     have : ∀ p, ¬ ProcFaulty p ss xs := by grind [not_procFaulty_and_procFair]
     simpa (disch := toFinite_tac) [numProcFaulty, ncard_eq_zero, Set.ext_iff]
 
-/-- If an infinite execution is admissible with up tp `f` faulty processes,
-then it is also admissible with with up tp `f' ≥ f` faulty processes. -/
+/-- If an infinite execution is admissible with up to `f` faulty processes,
+then it is also admissible with up to `f' ≥ f` faulty processes. -/
 theorem AdmissibleRun.fault_mono [Fintype P] {f f' : ℕ}
     {xs : ωSequence (Action P M)} {ss : ωSequence (State P M S)}
     (hle : f ≤ f') (ha : a.AdmissibleRun inp f ss xs) : a.AdmissibleRun inp f' ss xs := by
@@ -125,7 +121,7 @@ theorem AdmissibleRun.fault_mono [Fintype P] {f f' : ℕ}
 /-- If `a` is a consensus algorithm tolerating up to `f` faulty processes,
 then it is also a consensus algorithm tolerating up to `f' ≤ f` faulty processes. -/
 theorem Consensus.fault_mono [Fintype P] {f f' : ℕ}
-    (hle : f ≥ f') (hc : a.Consensus f) : a.Consensus f' := by
+    (hle : f' ≤ f) (hc : a.Consensus f) : a.Consensus f' := by
   obtain ⟨h_sc, h_f⟩ := hc
   use h_sc
   intro inp

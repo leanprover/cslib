@@ -7,6 +7,7 @@ Authors: Tanner Duve, Eric Wieser
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Control.Monad.IsMonadHom
 
 /-!
 # Free Monad
@@ -243,29 +244,44 @@ lemma liftM_bind [LawfulMonad m]
   | pure a => simp only [liftM_pure, LawfulMonad.pure_bind]
   | lift_bind op cont ih => simp [← ih]
 
+/-- A morphism of monads moves inside `FreeM.liftM`. -/
+theorem _root_.Cslib.IsMonadHom.map_freeMLiftM [Monad n]
+    {f : ∀ {α}, m α → n α} (hf : IsMonadHom m n f)
+    (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) :
+    f (x.liftM interp) = x.liftM (fun op => f (interp op)) := by
+  induction x with
+  | pure a => exact hf.map_pure a
+  | lift_bind op cont ih =>
+    simp only [bind_eq_bind, liftM_lift_bind, hf.map_bind, ih]
+
+/-- `FreeM.liftM interp` is a morphism of monads. -/
+theorem isMonadHom_liftM [LawfulMonad m] (interp : {ι : Type u} → F ι → m ι) :
+    IsMonadHom (FreeM F) m (FreeM.liftM interp) :=
+  IsMonadHom.mk' (liftM_pure interp) (liftM_bind interp)
+
 @[simp]
 lemma liftM_map [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (f : α → β) (x : FreeM F α) :
-    (f <$> x).liftM interp = f <$> x.liftM interp := by
-  simp_rw [← LawfulMonad.bind_pure_comp, liftM_bind, liftM_pure]
+    (f <$> x).liftM interp = f <$> x.liftM interp :=
+  isMonadHom_liftM interp |>.map_map _ _
 
 @[simp]
 lemma liftM_seq [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (x : FreeM F (α → β)) (y : FreeM F α) :
-    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp := by
-  simp [seq_eq_bind_map]
+    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seq _ _
 
 @[simp]
 lemma liftM_seqLeft [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (y : FreeM F β) :
-    (x <* y).liftM interp = x.liftM interp <* y.liftM interp := by
-  simp [seqLeft_eq_bind]
+    (x <* y).liftM interp = x.liftM interp <* y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seqLeft _ _
 
 @[simp]
 lemma liftM_seqRight [LawfulMonad m]
     (interp : {ι : Type u} → F ι → m ι) (x : FreeM F α) (y : FreeM F β) :
-    (x *> y).liftM interp = x.liftM interp *> y.liftM interp := by
-  simp [seqRight_eq_bind]
+    (x *> y).liftM interp = x.liftM interp *> y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seqRight _ _
 
 /--
 A predicate stating that `interp : FreeM F α → m α` is an interpreter for the effect
@@ -309,6 +325,20 @@ theorem Interprets.iff (handler : {ι : Type u} → F ι → m ι) (interp : Fre
   ⟨(·.eq), fun h => h ▸ Interprets.liftM _⟩
 
 end liftM
+
+/-- Interpreting each operation by its lift into the free monad is the identity. -/
+@[simp]
+theorem liftM_lift_eq_self {α : Type u} (x : FreeM F α) : FreeM.liftM lift x = x := by
+  induction x with
+  | pure _ => rfl
+  | lift_bind _ _ ih => simp [ih]
+
+/-- Interpreting into a free monad and then into `m` composes the two handlers. -/
+theorem liftM_comp {m : Type u → Type w} [Monad m] [LawfulMonad m]
+    {G : Type u → Type w'} {α : Type u} (x : FreeM F α)
+    (first : {ι : Type u} → F ι → FreeM G ι) (second : {ι : Type u} → G ι → m ι) :
+    (x.liftM first).liftM second = x.liftM fun op => (first op).liftM second :=
+  (isMonadHom_liftM second).map_freeMLiftM first x
 
 end FreeM
 

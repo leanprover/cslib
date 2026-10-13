@@ -3,13 +3,7 @@
 - [Contributing to CSLib](#contributing-to-cslib)
 - [Contribution model](#contribution-model)
 - [The role of AI](#the-role-of-ai)
-- [Style and documentation](#style-and-documentation)
-  - [Variable names](#variable-names)
-  - [Proof style and golfing :golf:](#proof-style-and-golfing-golf)
-  - [Notation](#notation)
-  - [Documentation](#documentation)
-- [Design principles](#design-principles)
-  - [Reuse](#reuse)
+- [Principles and Coding Style](#principles-and-coding-style)
 - [Continuous Integration](#continuous-integration)
   - [Pull Request Titles](#pull-request-titles)
   - [Testing](#testing)
@@ -50,49 +44,24 @@ If you have any questions, a good place to ask them is the [Lean prover Zulip ch
 # Contribution model
 
 To get your code approved, you need to submit a [pull request (PR)](https://github.com/leanprover/cslib/pulls).
-Each PR needs to be approved by at least one relevant maintainer. You can read the [list of current maintainers](/GOVERNANCE.md#maintainers).
+Each PR needs to be approved by at least one maintainer.
+For more details on the decision making process about PRs, please see [pull request inclusion](/DECISION_MAKING.md#pull-request-inclusion).
+You can also read the [list of current maintainers](/GOVERNANCE.md#maintainers).
 
 If you are adding something new to CSLib and are in doubt about it, you are very welcome to contact us on the [Lean prover Zulip chat](https://leanprover.zulipchat.com/).
 
 If you are unfamiliar with CSLib as a whole and want to understand how to get started, please see [Getting started](#getting-started).
+
+For a more detailed explanation of CSLib's decision-making processes, see [decision making](/DECISION_MAKING.md).
 
 # The role of AI
 
 CSLib in general follows the Mathlib policy on [use of AI](https://leanprover-community.github.io/contribute/index.html#use-of-ai). In particular, take note of:
 > If you use artificial intelligence [...] please explain this in the PR description. Explain which tool(s) you used and how you used it. This provides useful context for reviewers: tools make different mistakes than humans, so knowing this makes it easier to spot common errors.
 
-# Style and documentation
+# Principles and Coding Style
 
-We generally follow the [mathlib style for coding and documentation](https://leanprover-community.github.io/contribute/style.html), so please read that as well. Some things worth mentioning and conventions specific to CSLib are explained next.
-
-## Variable names
-
-Feel free to use variable names that make sense in the domain that you are dealing with. For example, in the `Lts` library, `State` is used for types of states and `μ` is used as variable name for transition labels.
-
-## Proof style and golfing :golf:
-
-Please try to make proofs easy to follow.
-Golfing and automation are welcome, as long as proofs remain reasonably readable and compilation does not noticeably slow down.
-
-## Notation
-
-The library hosts a number of languages with their own syntax and semantics, so we try to manage notation with reusability and maintainability in mind.
-
-- If you want notation for a common concept, like reductions or transitions in an operational semantics, try to find an existing typeclass that fits your need.
-- If you define new notation that in principle can apply to different types (e.g., syntax or semantics of other languages), keep it locally scoped or create a new typeclass.
-
-## Documentation
-
-Document your definitions and theorems to ease both use and reviewing.
-When formalising a concept that is explained in a published resource, please reference the resource in your documentation.
-
-# Design principles
-
-## Reuse
-
-A central focus of CSLib is providing reusable abstractions and their consistent usage across the
-library. New definitions should instantiate existing abstractions whenever appropriate: a
-labelled transition system should use `LTS`, etc.
+Please refer to [CODESTYLE](/CODESTYLE.md).
 
 # Continuous Integration
 

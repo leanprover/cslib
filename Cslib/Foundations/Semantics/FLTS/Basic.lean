@@ -53,6 +53,10 @@ theorem mtr_concat_eq {flts : FLTS State Label} {s : State} {μs : List Label} {
     flts.mtr s (μs ++ [μ]) = flts.tr (flts.mtr s μs) μ := by
   grind
 
+theorem mtr_append_eq {flts : FLTS State Label} {s : State} {μs1 μs2 : List Label} :
+    flts.mtr s (μs1 ++ μs2) = flts.mtr (flts.mtr s μs1) μs2 := by
+  simp [mtr]
+
 end FLTS
 
 end Cslib

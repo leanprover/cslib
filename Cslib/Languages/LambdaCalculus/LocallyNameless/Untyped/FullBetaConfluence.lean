@@ -91,7 +91,7 @@ lemma Parallel.le_reflTransGen_fullBeta :
     ((· ⭢ₚ ·) : Term Var → Term Var → Prop) ≤ (· ↠βᶠ ·) := by
   intro M N para
   induction para
-  case fvar => constructor
+  case fvar => exact .refl
   case app L L' R R' l_para m_para redex_l redex_m =>
     have : L.app R ↠βᶠ L'.app R := by grind
     grind [ReflTransGen.trans]
@@ -205,7 +205,7 @@ theorem parallel_diamond : Diamond ((· ⭢ₚ ·) : Term Var → Term Var → P
 
 /-- Parallel reduction is confluent. -/
 theorem confluent_parallel : Confluent ((· ⭢ₚ ·) : Term Var → Term Var → Prop) :=
-  parallel_diamond.toConfluent
+  parallel_diamond.to_confluent
 
 /-- β-reduction is confluent. -/
 @[wikidata Q1308502]

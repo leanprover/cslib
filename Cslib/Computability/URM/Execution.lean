@@ -133,7 +133,7 @@ theorem isHalted_iff_normal {p : Program} {s : State} :
 
 /-- The step relation is confluent. -/
 theorem step_confluent (p : Program) : Relation.Confluent (Step p) := by
-  apply Relation.RightUnique.toConfluent
+  apply Relation.RightUnique.to_confluent
   exact Step.deterministic
 
 namespace Steps
@@ -161,8 +161,6 @@ theorem eq_of_halts {init s₁ s₂ : State}
   -- But s₁ and s₂ are normal forms, so w must equal both
   have hn1 := isHalted_iff_normal.mp hh1
   have hn2 := isHalted_iff_normal.mp hh2
-  obtain ⟨pc₁, regs₁⟩ := s₁
-  obtain ⟨pc₂, regs₂⟩ := s₂
   grind
 
 end Steps

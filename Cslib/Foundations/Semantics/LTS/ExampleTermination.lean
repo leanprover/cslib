@@ -7,7 +7,6 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Foundations.Semantics.LTS.Termination
-public import Mathlib.Order.WellFounded
 
 /-!
 # Examples separating boundedness, termination, and acyclicity

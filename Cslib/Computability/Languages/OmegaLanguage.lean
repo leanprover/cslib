@@ -46,11 +46,11 @@ denote languages (namely, sets of finite sequences of type `List α`).
 ## Main theorems
 
 * Many algebraic properties of the above operations.
-* omegaPow_seq_prop: an alternative characterization of `l^ω`.
-* omegaPow_coind: a "coinductive" rule for proving `p` is a subset of `l^ω`.
-* hmul_omegaPow_eq_omegaPow: `l * l^ω = l^ω`.
-* kstar_omegaPow_eq_omegaPow: `(l∗)^ω = l^ω`.
-* kstar_hmul_omegaPow_eq_omegaPow: `l∗ * l^ω = l^ω`.
+* `omegaPow_seq_prop`: an alternative characterization of `l^ω`.
+* `omegaPow_coind`: a "coinductive" rule for proving `p` is a subset of `l^ω`.
+* `hmul_omegaPow_eq_omegaPow`: `l * l^ω = l^ω`.
+* `kstar_omegaPow_eq_omegaPow`: `(l∗)^ω = l^ω`.
+* `kstar_hmul_omegaPow_eq_omegaPow`: `l∗ * l^ω = l^ω`.
 
 ## TODO
 
@@ -380,7 +380,7 @@ theorem omegaPow_seq_prop [Inhabited α] :
     · apply strictMono_flatten hm h0
     · intro m
       change s.extract (f m) (f (m + 1)) ∈ l - 1
-      simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, ge_iff_le, not_le, true_and]
+      simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, not_le, true_and]
       apply hm; omega
 
 open scoped Classical in

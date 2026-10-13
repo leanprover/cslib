@@ -19,6 +19,23 @@ The aim is to build end-to-end models where cryptographic operations appear insi
 
 To this end, we expect to leverage the combination of `Crypto` and [Languages](../Languages) to define and formally reason about security protocols. CSLib's common semantics APIs connecting [Languages](../Languages) and [Logics](../Logics) should enable such reasoning.
 
+## Pseudorandom generators
+
+[`Primitives/PRG`](Primitives/PRG) formalizes Boneh and Shoup's Attack Game 3.1 using
+PMFs. `Generator.Secure G Admissible ε` bounds the distinguishing advantage of every
+admissible randomized test. `Family.SecureWithError` allows a parameter-dependent error bound;
+`Family.Secure` requires negligible advantage separately for each admissible family, using
+Mathlib's `SuperpolynomialDecay`. A negligible error bound implies this asymptotic notion.
+The caller supplies `Admissible`; these definitions do not assert computational efficiency.
+
+The range-membership adversary has advantage exactly `1 - |range G| / |Output|`, and hence
+at least `1 - |Seed| / |Output|`. Any non-negligible lower bound on the image gap rules out
+asymptotic security when the range-test family is admissible. The executable `rangeTest`
+requires `DecidableEq Output`. Bitstring families eventually stretching by at least one bit
+are consequently insecure against any class admitting this test, with both `Fin n → Bool`
+and `BitVec n` versions and nonexistence corollaries. Zero-error security against all tests
+is equivalent to exactly uniform output; the identity generator is a nonexpanding example.
+
 ## Plans and notes
 
 - We plan on developing applied calculi and logics for modelling and reasoning about security protocols.

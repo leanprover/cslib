@@ -10,6 +10,19 @@ to learn about it as well!
 - `gendocs.sh`
   Generates the documentation for cslib using `lake`.
 
+**Devcontainer helpers**
+- `setup-mistral-vibe.sh`
+  Installs the Mistral Vibe VS Code extension (`mistralai.mistral-vibe-code`) if
+  missing and ensures required Mistral config entries for the `lean` agent and the `lean-lsp` MCP server are present.
+
+  **Usage:**
+  ```bash
+  ./scripts/setup-mistral-vibe.sh
+  ```
+
+  **Optional environment variable:**
+  - `MISTRAL_CONFIG_FILE`: Override the path to `config.toml`.
+
 **Managing nightly-testing and bump branches**
 - `create-adaptation-pr.sh` is a variant of the script from Batteries and implements some of the steps
   in the workflow for managing nightly and bump branches.
@@ -44,4 +57,5 @@ to learn about it as well!
   - Optional: `zulip-send` CLI for automatic Zulip notifications
 
 **Init Imports**
-- `CheckInitImports.lean` (run by `lake exe checkInitImports`) checks that all files transitively import `Cslib.Init`.
+- `CheckInitImports.lean` (run by `lake exe checkInitImports`) checks that all files publicly import
+  `Cslib.Init`, directly or transitively.

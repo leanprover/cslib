@@ -74,17 +74,16 @@ instance (lts : LTS State Label) : lts.totalize.Total where
     use none
     simp [totalize]
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- In `totalize`, there is no finite execution from the sink state to any non-sink state. -/
 theorem totalize.no_sink_to_nonsink {μs : List Label} {t : State} :
     ¬ lts.totalize.MTr (none) μs (some t) := by
-  intro h
-  generalize h_s : (none : Option State) = s'
-  generalize h_t : (some t : Option State) = t'
-  rw [h_s, h_t] at h
-  induction h
-  · grind
-  · grind only [totalize]
+  induction μs with
+  | nil => simp
+  | cons μ μs ih =>
+    simp only [MTr.cons_iff]
+    rintro ⟨_ | s, htr, hmtr⟩
+    · exact ih hmtr
+    · exact htr
 
 /-- In `totalize`, the transitions between non-sink states correspond exactly to
 the transitions in the original LTS. -/
@@ -98,20 +97,9 @@ the multistep transitions in the original LTS. -/
 @[simp]
 theorem totalize.nonsink_mtr_iff {μs : List Label} {s t : State} :
     lts.totalize.MTr (some s) μs (some t) ↔ lts.MTr s μs t := by
-  constructor <;> intro h
-  · generalize h_s : (some s : Option State) = s'
-    generalize h_t : (some t : Option State) = t'
-    rw [h_s, h_t] at h
-    induction h generalizing s
-    case refl _ => grind [MTr]
-    case stepL t1' μ t2' μs t3' h_tr h_mtr h_ind =>
-      obtain ⟨rfl⟩ := h_s
-      cases t2'
-      case some t2 => grind [MTr, totalize.nonsink_tr_iff.mp h_tr]
-      case none => grind [totalize.no_sink_to_nonsink]
-  · induction h
-    case refl _ => grind [MTr]
-    case stepL t1 μ t2 μs t3 h_tr h_mtr h_ind =>
-      grind [MTr, totalize.nonsink_tr_iff.mpr h_tr]
+  induction μs generalizing s with
+  | nil => simp
+  | cons μ μs ih =>
+    simp [MTr.cons_iff, Option.exists, no_sink_to_nonsink, ih]
 
 end Cslib.LTS

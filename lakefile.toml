@@ -18,7 +18,7 @@ weak.linter.unicodeLinter = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "77cbcbc65f9e26f6ede0a01b24c2cb909e11cc0d"
+rev = "v4.35.0"
 
 [[lean_lib]]
 name = "Cslib"
@@ -26,6 +26,9 @@ name = "Cslib"
 [[lean_lib]]
 name = "CslibTests"
 leanOptions = {weak.linter.style.header = false}
+# The test files do not use the module system, but they import Mathlib, whose package sets
+# `requiresModuleSystem`.
+allowNonModules = true
 
 [[lean_exe]]
 name = "checkInitImports"
