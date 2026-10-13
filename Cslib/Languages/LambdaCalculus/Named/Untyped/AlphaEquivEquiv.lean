@@ -49,8 +49,7 @@ omit [HasFresh Var] in
 /-- Non-occurrence obviously implies freshness, and the `swap` operation coincides with
 `rename` when the target variable does not occur in the term.
 -/
-lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} : AlphaEquiv m n → AlphaEquivPFresh m n := by
-  intro h
+lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : m =α n) : AlphaEquivPFresh m n := by
   induction h with
   | var => constructor
   | abs z_h1 ih1 ih2 =>
