@@ -223,6 +223,15 @@ lemma RunPath.map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Sym
     (RunPath.ofDeterministic tm cfg t).map f = .ofDeterministic tm' (f cfg) t :=
   ((RunPath.ofDeterministic tm cfg t).map f).eq_ofDeterministic
 
+/-- The path of `m + n` steps is the path of `m` steps joined with the path of `n` more steps. -/
+lemma RunPath.ofDeterministic_add (cfg : Cfg k Symbol State input) (m n : ℕ) :
+    ofDeterministic tm cfg (m + n) =
+      (ofDeterministic tm cfg m).smash (ofDeterministic tm (ofDeterministic tm cfg m).last n)
+        rfl := by
+  refine ((eq_ofDeterministic _).trans ?_).symm
+  congr 1
+  exact RelSeries.head_smash _
+
 end MultiTapeNTM
 
 namespace MultiTapeTM

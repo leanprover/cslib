@@ -99,18 +99,6 @@ structure Storage (Symbol State : Type*) (k : ℕ) where
   /-- the position of the head on work tape `i` (cf. `Cfg.workTapePos`) -/
   workTapePos (i : Fin k) : ℤ
 
-/-- The window `[-s, s]` of tape positions allotted to a tape that uses `s` cells. -/
-@[scoped grind =]
-def window (s : ℕ) : Finset ℤ := Finset.Icc (-(s : ℤ)) s
-
-@[scoped grind =]
-lemma mem_window {s : ℕ} {z : ℤ} : z ∈ window s ↔ z.natAbs ≤ s := by
-  grind
-
-@[simp]
-lemma card_window (s : ℕ) : (window s).card = 2 * s + 1 := by
-  grind [Int.card_Icc]
-
 /-- A bounded storage: the state and work-tape data of a machine, but with the cells and the head
 position of tape `i` restricted to the finite window `[-(w i), w i]`. -/
 abbrev BoundedStorage (Symbol State : Type*) {k : ℕ} (w : Fin k → ℕ) :=

@@ -22,12 +22,31 @@ influence the cells that are modified on a tape.
 attains its per-tape space usage at a single step, which makes a bound that holds at every point
 in time usable as a bound for the whole run.
 
+`MultiTapeNTM.RunPath.InWindow` says that every head of a run path stays within the window
+`[-s, s]`, which bounds the space of the path.
+
 `MultiTapeNTM.RunPath.space_map_le` bounds the space of a run path mapped by `RunPath.map` through
 the head positions of the original path.
 
 -/
 
 @[expose] public section
+
+namespace Turing
+
+/-- The window `[-s, s]` of tape positions allotted to a tape that uses `s` cells. -/
+@[scoped grind =]
+def window (s : ℕ) : Finset ℤ := Finset.Icc (-(s : ℤ)) s
+
+@[scoped grind =]
+lemma mem_window {s : ℕ} {z : ℤ} : z ∈ window s ↔ z.natAbs ≤ s := by
+  grind
+
+@[simp]
+lemma card_window (s : ℕ) : (window s).card = 2 * s + 1 := by
+  grind [Int.card_Icc]
+
+end Turing
 
 namespace Turing.MultiTapeNTM
 
@@ -52,6 +71,25 @@ lemma space_le_of_subset {p q : ntm.RunPath input} (h : ∀ c ∈ q, c ∈ p) : 
   q.space_le_sum_card fun c hc _ =>
     let ⟨n, hn⟩ := h c hc
     hn ▸ Finset.mem_image_of_mem _ (Finset.mem_univ n)
+
+/-! ### Windows -/
+
+/-- Every head stays within the window `[-s, s]` along the path. -/
+def InWindow (p : ntm.RunPath input) (s : ℕ) : Prop :=
+  ∀ c ∈ p, ∀ i, c.workTapePos i ∈ window s
+
+/-- A path whose heads stay within `[-s, s]` visits at most `2 * s + 1` cells on each tape. -/
+lemma InWindow.space_le {p : ntm.RunPath input} {s : ℕ} (h : p.InWindow s) :
+    p.space ≤ k * (2 * s + 1) := by
+  simpa using p.space_le_sum_card h
+
+/-- Joining two paths whose heads stay within `[-s, s]` keeps them there. -/
+lemma InWindow.smash {p q : ntm.RunPath input} {h : p.last = q.head} {s : ℕ}
+    (hp : p.InWindow s) (hq : q.InWindow s) : InWindow (p.smash q h) s := by
+  rintro _ ⟨j, rfl⟩
+  refine Fin.addCases (m := p.length) (n := q.length + 1) (fun j => ?_) (fun j => ?_) j
+  · exact hp _ ⟨j.castSucc, by simp [RelSeries.smash]⟩
+  · exact hq _ ⟨j, by simp [RelSeries.smash]⟩
 
 /-! ### Mapped paths -/
 
@@ -241,15 +279,14 @@ lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
   exact ⟨Finset.univ.sup T, fun t i =>
     (hT i t).trans (tm.spaceUsedByTape_mono cfg i (Finset.le_sup (Finset.mem_univ i)))⟩
 
-/-- A run that starts with the head of tape `i` at cell `0` and uses at most `s` cells keeps that
-head within `[-s, s]`. -/
-lemma visitedByTapeHead_subset_Icc (cfg : Cfg k Symbol State input) {t s : ℕ} {i : Fin k}
-    (h0 : cfg.workTapePos i = 0) (hs : tm.spaceUsed cfg t ≤ s) :
-    tm.visitedByTapeHead cfg t i ⊆ Finset.Icc (-(s : ℤ)) (s : ℤ) := fun z hz => by
-  have hz := tm.natAbs_le_spaceUsedByTape_of_mem_visited hz
-  have := (tm.spaceUsedByTape_le_spaceUsed cfg t i).trans hs
+/-- A run that starts with every head at cell `0` and uses at most `s` cells keeps its heads
+within `[-s, s]`. -/
+lemma inWindow_ofDeterministic {t s : ℕ} (h0 : ∀ i, cfg.workTapePos i = 0)
+    (hs : tm.spaceUsed cfg t ≤ s) : (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).InWindow s := by
+  rintro _ ⟨n, rfl⟩ i
+  have hz := tm.natAbs_le_spaceUsedByTape_of_mem_visited
+    ((tm.mem_visitedByTapeHead (cfg := cfg) (t := t) (i := i)).mpr ⟨n, n.2, rfl⟩)
   rw [h0, sub_zero] at hz
-  rw [Finset.mem_Icc]
-  lia
+  exact mem_window.mpr (hz.trans ((tm.spaceUsedByTape_le_spaceUsed cfg t i).trans hs))
 
 end Turing.MultiTapeTM
