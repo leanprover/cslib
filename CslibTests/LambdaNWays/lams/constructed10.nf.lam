@@ -1,0 +1,50 @@
+-- numSubsts:  1
+-- bind depth: 1
+-- depth:      2
+-- substs:     1,1,2,False
+\x1.x1
+-- numSubsts:  1
+-- bind depth: 2
+-- depth:      3
+-- substs:     1,2,2,False
+\x1.\x2.x2
+-- numSubsts:  1
+-- bind depth: 3
+-- depth:      4
+-- substs:     1,3,2,False
+\x1.\x1.\x2.x2
+-- numSubsts:  1
+-- bind depth: 4
+-- depth:      5
+-- substs:     1,4,2,False
+\x1.\x1.\x1.\x2.x2
+-- numSubsts:  1
+-- bind depth: 5
+-- depth:      6
+-- substs:     1,5,2,False
+\x1.\x1.\x1.\x1.\x2.x2
+-- numSubsts:  1
+-- bind depth: 6
+-- depth:      7
+-- substs:     1,6,2,False
+\x1.\x1.\x1.\x1.\x1.\x2.x2
+-- numSubsts:  1
+-- bind depth: 7
+-- depth:      8
+-- substs:     1,7,2,False
+\x1.\x1.\x1.\x1.\x1.\x1.\x2.x2
+-- numSubsts:  1
+-- bind depth: 8
+-- depth:      9
+-- substs:     1,8,2,False
+\x1.\x1.\x1.\x1.\x1.\x1.\x1.\x2.x2
+-- numSubsts:  1
+-- bind depth: 9
+-- depth:      10
+-- substs:     1,9,2,False
+\x1.\x1.\x1.\x1.\x1.\x1.\x1.\x1.\x2.x2
+-- numSubsts:  1
+-- bind depth: 10
+-- depth:      11
+-- substs:     1,10,2,False
+\x1.\x1.\x1.\x1.\x1.\x1.\x1.\x1.\x1.\x2.x2
