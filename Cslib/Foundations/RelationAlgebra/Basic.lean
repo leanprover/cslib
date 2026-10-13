@@ -78,8 +78,6 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
 
-variable (α)
-
 /-- A relation algebra is *integral* when its identity is an atom. -/
 def Integral : Prop := IsAtom (1 : α)
 
@@ -95,7 +93,7 @@ def NonsymmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ star a ≠ a}
 
 /-- Every nonsymmetric atom lies below the complement of identity. -/
 theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
-    (h : a ∈ NonsymmetricDiversityAtoms α) : a ≤ 1ᶜ := by
+    (h : a ∈ NonsymmetricDiversityAtoms) : a ≤ 1ᶜ := by
   rw [le_compl_iff_disjoint_right, ← h.1.not_le_iff_disjoint]
   intro ha
   have hstar : a ≤ star a := by calc
