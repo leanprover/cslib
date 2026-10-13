@@ -11,10 +11,10 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsT
 /-!
 # Tidy computations
 
-A machine computes *tidily* if it halts with its tapes as it found them: every work tape blank,
-every work head and the input head back at its starting cell. Only the output has grown, by the
-computed word. A combinator can therefore run a tidy machine as a subroutine and rely on nothing
-but the word it emits.
+A machine computes *tidily* if it clears its work tapes before halting and moves all tape heads
+to their initial position.
+This means tidy computations can easily be iterated and when applied to a subset of work tapes,
+a combinator can run a tidy machine as a subroutine and rely on nothing but the word it emits.
 
 A tidy computation is defined as a `Turing.MultiTapeTM.TransformsTapes` from blank work tapes to
 blank work tapes, so the lemmas about tape transformations apply to it directly. The three
