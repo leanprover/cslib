@@ -52,8 +52,7 @@ omit [HasFresh Var] in
 lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquivPFresh m n := by
   induction h with
   | var => constructor
-  | abs z_h1 ih1 ih2 =>
-    rename_i x z x1 x2 m1 m2
+  | @abs z x1 x2 m1 m2 hz _ ih =>
     have h1 : z ∉ ({x1, x2} : Finset Var) ∪ m1.fv ∪ m2.fv := by
       simp_all [vars_either_fv_or_bv]
     have h2 : AlphaEquivPFresh (m1.swap x1 z) (m2.swap x2 z) := by
@@ -64,37 +63,36 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquiv
 lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n) : m =α n := by
   induction h with
   | var => constructor
-  | abs hy _h ih =>
-    rename_i u a b E E'
-    -- We have: (u a) · E ∼p (u b) · E' (by induction: ih) and u # a, b, E, E' (by hy).
+  | @abs u a b m m' hy _ ih =>
+    -- We have: (u a) · m ∼p (u b) · m' (by induction: ih) and u # a, b, m, m' (by hy).
     -- Extract freshness conditions from hy.
-    have hu_E : u ∉ E.fv := by aesop
-    have hu_E' : u ∉ E'.fv := by aesop
-    -- Pick z ≠ u with z ∉ vars(E) ∪ vars(E') ∪ {a, b} (stronger than freshness).
-    obtain ⟨z, hz⟩ : ∃ z : Var, z ∉ E.vars ∪ E'.vars ∪ {a, b, u} := by
-      exact Infinite.exists_notMem_finset (E.vars ∪ E'.vars ∪ {a, b, u})
-    have hz_E : z ∉ E.vars := by aesop
-    have hz_E' : z ∉ E'.vars := by aesop
-    have hz_fv_E : z ∉ E.fv := by simp_all [vars_either_fv_or_bv]
-    have hz_fv_E' : z ∉ E'.fv := by simp_all [vars_either_fv_or_bv]
+    have hum : u ∉ m.fv := by aesop
+    have hum' : u ∉ m'.fv := by aesop
+    -- Pick z ≠ u with z ∉ vars(m) ∪ vars(m') ∪ {a, b} (stronger than freshness).
+    obtain ⟨z, hz⟩ : ∃ z : Var, z ∉ m.vars ∪ m'.vars ∪ {a, b, u} := by
+      exact Infinite.exists_notMem_finset (m.vars ∪ m'.vars ∪ {a, b, u})
+    have hzm : z ∉ m.vars := by aesop
+    have hzm' : z ∉ m'.vars := by aesop
+    have hzm_fv : z ∉ m.fv := by simp_all [vars_either_fv_or_bv]
+    have hzm_fv' : z ∉ m'.fv := by simp_all [vars_either_fv_or_bv]
     -- Using Lemma 6.1 we get
-    have h_swap : ((E.swap u a).swap z u) =α ((E'.swap u b).swap z u) := by
+    have h_swap : ((m.swap u a).swap z u) =α ((m'.swap u b).swap z u) := by
       nth_rw 2 [swap_comm]
       nth_rw 4 [swap_comm]
       exact AlphaEquiv.swap_preserve ih
     -- From Lemma 6.2 part 2 via agreement sets
-    have h_agree_E : ((E.swap u a).swap z u) =α (E.swap z a) :=
-      swap_comp_alphaEquiv_of_notMem_fv hu_E hz_fv_E
-    have h_agree_E' : ((E'.swap u b).swap z u) =α (E'.swap z b) :=
-      swap_comp_alphaEquiv_of_notMem_fv hu_E' hz_fv_E'
+    have h_agree : ((m.swap u a).swap z u) =α (m.swap z a) :=
+      swap_comp_alphaEquiv_of_notMem_fv hum hzm_fv
+    have h_agree' : ((m'.swap u b).swap z u) =α (m'.swap z b) :=
+      swap_comp_alphaEquiv_of_notMem_fv hum' hzm_fv'
     -- Chain by symmetry and transitivity of ∼p
-    -- (z a) · E ∼p (z u)·(u a)·E ∼p (z u)·(u b)·E' ∼p (z b) · E'
-    have h_chain : (E.swap z a) =α (E'.swap z b) :=
-      AlphaEquiv.trans (AlphaEquiv.symm h_agree_E) (AlphaEquiv.trans h_swap h_agree_E')
+    -- (z a) · m ∼p (z u)·(u a)·m ∼p (z u)·(u b)·m' ∼p (z b) · m'
+    have h_chain : (m.swap z a) =α (m'.swap z b) :=
+      AlphaEquiv.trans (AlphaEquiv.symm h_agree) (AlphaEquiv.trans h_swap h_agree')
     -- Convert swap to rename (since z ∉ vars) and apply the pi rule.
-    -- Since z ∉ vars(E), swap z a = rename a z (by swap_comm + swap_eq_rename).
-    rw [swap_comm, swap_eq_rename_of_notMem_vars hz_E] at h_chain
-    rw [swap_comm, swap_eq_rename_of_notMem_vars hz_E'] at h_chain
+    -- Since z ∉ vars(m), swap z a = rename a z (by swap_comm + swap_eq_rename).
+    rw [swap_comm, swap_eq_rename_of_notMem_vars hzm] at h_chain
+    rw [swap_comm, swap_eq_rename_of_notMem_vars hzm'] at h_chain
     exact AlphaEquiv.abs (by aesop) h_chain
   | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 

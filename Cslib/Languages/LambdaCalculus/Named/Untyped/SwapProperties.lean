@@ -200,16 +200,16 @@ lemma notMem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ 
 in the proof of `AlphaEquiv.swap_preserve`. See Lemma 6.1 [Crole2012]. -/
 
 -- First 4 case examinations in representative case z ≠ u, v
-private lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
-    (hm1 : z ∉ E.vars ∪ E'.vars ∪ {a, b})
-    (h2 : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
+private lemma desired_condition_cases_z_ne_u_or_v {m m' : Term Var} {a b u v z : Var}
+    (hm : z ∉ m.vars ∪ m'.vars ∪ {a, b})
+    (hbody : ((m.rename a z).swap u v) =α ((m'.rename b z).swap u v))
     (hzu : z ≠ u)
     (hzv : z ≠ v) :
-    ((E.swap u v).swap (Equiv.swap u v a) z) =α ((E'.swap u v).swap (Equiv.swap u v b) z) := by
-  have z_h1 : z ∉ (E.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
-  have z_h2 : z ∉ (E'.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
-  rw [swap_eq_rename_of_notMem_vars z_h1, swap_eq_rename_of_notMem_vars z_h2]
-  rw [← swap_rename_comm' (by grind) (by grind), ← swap_rename_comm' (by grind) (by grind)] at h2
+    ((m.swap u v).swap (Equiv.swap u v a) z) =α ((m'.swap u v).swap (Equiv.swap u v b) z) := by
+  have hzm : z ∉ (m.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
+  have hzm' : z ∉ (m'.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
+  rw [swap_eq_rename_of_notMem_vars hzm, swap_eq_rename_of_notMem_vars hzm']
+  rw [← swap_rename_comm' (by grind) (by grind), ← swap_rename_comm' (by grind) (by grind)] at hbody
   have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
   have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
   rcases ha with h' | h' | ⟨hau, hav⟩
@@ -217,15 +217,15 @@ private lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z :
 
 -- representative case: z ≠ u, v
 -- Use z as witness.
-private lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : Var}
-    (hm : z ∉ E.vars ∪ E'.vars ∪ {a, b})
-    (hbody : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
+private lemma alphaEquiv_swap_preserve_abs_fresh {m m' : Term Var} {a b u v z : Var}
+    (hm : z ∉ m.vars ∪ m'.vars ∪ {a, b})
+    (hbody : ((m.rename a z).swap u v) =α ((m'.rename b z).swap u v))
     (hzu : z ≠ u) (hzv : z ≠ v) :
-    ((Term.abs a E).swap u v) =α ((Term.abs b E').swap u v) := by
-  have hzE : z ∉ (E.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
-  have hzE' : z ∉ (E'.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
+    ((Term.abs a m).swap u v) =α ((Term.abs b m').swap u v) := by
+  have hzm : z ∉ (m.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
+  have hzm' : z ∉ (m'.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
   have hren := desired_condition_cases_z_ne_u_or_v hm hbody hzu hzv
-  rw [swap_eq_rename_of_notMem_vars hzE, swap_eq_rename_of_notMem_vars hzE'] at hren
+  rw [swap_eq_rename_of_notMem_vars hzm, swap_eq_rename_of_notMem_vars hzm'] at hren
   simp only [Term.swap]
   apply AlphaEquiv.abs (y := z)
   · simp_all [Finset.mem_union, Finset.mem_insert, swap]
@@ -233,41 +233,41 @@ private lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : 
   · exact hren
 
 -- representative case: a ≠ u, v; b ≠ u, v; z = u
-private lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u v : Var}
-    (hm : u ∉ E.vars ∪ E'.vars ∪ {a, b})
-    (hbody : ((E.rename a u).swap u v) =α ((E'.rename b u).swap u v))
+private lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {m m' : Term Var} {a b u v : Var}
+    (hm : u ∉ m.vars ∪ m'.vars ∪ {a, b})
+    (hbody : ((m.rename a u).swap u v) =α ((m'.rename b u).swap u v))
     (hau : a ≠ u) (hav : a ≠ v) (hbu : b ≠ u) (hbv : b ≠ v) :
-    ((Term.abs a E).swap u v) =α ((Term.abs b E').swap u v) := by
-  have huE : u ∉ E.vars := by simp_all
-  have huE' : u ∉ E'.vars := by simp_all
-  rw [← swap_eq_rename_of_notMem_vars huE, ← swap_eq_rename_of_notMem_vars huE'] at hbody
-  rw [swap_comm (m := E) (x := a) (y := u), swap_comm (m := E') (x := b) (y := u)] at hbody
+    ((Term.abs a m).swap u v) =α ((Term.abs b m').swap u v) := by
+  have hum : u ∉ m.vars := by simp_all
+  have hum' : u ∉ m'.vars := by simp_all
+  rw [← swap_eq_rename_of_notMem_vars hum, ← swap_eq_rename_of_notMem_vars hum'] at hbody
+  rw [swap_comm (m := m) (x := a) (y := u), swap_comm (m := m') (x := b) (y := u)] at hbody
   rw [← swap_comp_eq_of_ne hau hav, ← swap_comp_eq_of_ne hbu hbv] at hbody
-  rw [swap_comm (m := E.swap u v) (x := v) (y := a)] at hbody
-  rw [swap_comm (m := E'.swap u v) (x := v) (y := b)] at hbody
-  have hvE : v ∉ (E.swap u v).vars := notMem_swap_target huE
-  have hvE' : v ∉ (E'.swap u v).vars := notMem_swap_target huE'
-  rw [swap_eq_rename_of_notMem_vars hvE, swap_eq_rename_of_notMem_vars hvE'] at hbody
+  rw [swap_comm (m := m.swap u v) (x := v) (y := a)] at hbody
+  rw [swap_comm (m := m'.swap u v) (x := v) (y := b)] at hbody
+  have hvm : v ∉ (m.swap u v).vars := notMem_swap_target hum
+  have hvm' : v ∉ (m'.swap u v).vars := notMem_swap_target hum'
+  rw [swap_eq_rename_of_notMem_vars hvm, swap_eq_rename_of_notMem_vars hvm'] at hbody
   apply AlphaEquiv.abs (y := v) <;> (simp_all [swap]; grind)
 
 -- representative case: a ≠ u, v; b = u; z = v
-private lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var}
-    (hm : v ∉ E.vars ∪ E'.vars ∪ {a})
-    (hbody : ((E.rename a v).swap u v) =α ((E'.rename u v).swap u v))
+private lemma alphaEquiv_swap_preserve_abs_b_eq_u {m m' : Term Var} {a u v : Var}
+    (hm : v ∉ m.vars ∪ m'.vars ∪ {a})
+    (hbody : ((m.rename a v).swap u v) =α ((m'.rename u v).swap u v))
     (hau : a ≠ u) (hav : a ≠ v) (huv : u ≠ v) :
-    ((Term.abs a E).swap u v) =α ((Term.abs u E').swap u v) := by
-  have hvE : v ∉ E.vars := by simp_all
-  have hvE' : v ∉ E'.vars := by simp_all
-  have huE : u ∉ (E.swap u v).vars := by rw [swap_comm]; exact notMem_swap_target hvE
-  have huE' : u ∉ (E'.swap u v).vars := by rw [swap_comm]; exact notMem_swap_target hvE'
-  have hL : (E.swap u v).rename a u = (E.rename a v).swap u v := by
-    have h := @swap_rename_comm _ _ E u v a v
+    ((Term.abs a m).swap u v) =α ((Term.abs u m').swap u v) := by
+  have hvm : v ∉ m.vars := by simp_all
+  have hvm' : v ∉ m'.vars := by simp_all
+  have hum : u ∉ (m.swap u v).vars := by rw [swap_comm]; exact notMem_swap_target hvm
+  have hum' : u ∉ (m'.swap u v).vars := by rw [swap_comm]; exact notMem_swap_target hvm'
+  have hL : (m.swap u v).rename a u = (m.rename a v).swap u v := by
+    have h := @swap_rename_comm _ _ m u v a v
     simp_all
     grind
-  have hR : (E'.swap u v).rename v u = (E'.rename u v).swap u v := by
-    have h := @swap_rename_comm _ _ E' u v u v
+  have hR : (m'.swap u v).rename v u = (m'.rename u v).swap u v := by
+    have h := @swap_rename_comm _ _ m' u v u v
     simp_all
-  have hbody' : ((E.swap u v).rename a u) =α ((E'.swap u v).rename v u) := by
+  have hbody' : ((m.swap u v).rename a u) =α ((m'.swap u v).rename v u) := by
     rw [hL, hR]
     exact hbody
   apply AlphaEquiv.abs (y := u)
@@ -277,28 +277,28 @@ private lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var
     grind
 
 -- representative case: a = u; b = u; z = v
-private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : Var}
-    (hm : v ∉ E.vars ∪ E'.vars ∪ {u})
-    (ih : ((E.rename u v).swap u v) =α ((E'.rename u v).swap u v)) (huv : u ≠ v) :
-    ((Term.abs u E).swap u v) =α ((Term.abs u E').swap u v) := by
-  have hvE : v ∉ E.vars := by simp_all
-  have hvE' : v ∉ E'.vars := by simp_all
-  rw [← swap_eq_rename_of_notMem_vars hvE, ← swap_eq_rename_of_notMem_vars hvE'] at ih
+private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {m m' : Term Var} {u v : Var}
+    (hm : v ∉ m.vars ∪ m'.vars ∪ {u})
+    (ih : ((m.rename u v).swap u v) =α ((m'.rename u v).swap u v)) (huv : u ≠ v) :
+    ((Term.abs u m).swap u v) =α ((Term.abs u m').swap u v) := by
+  have hvm : v ∉ m.vars := by simp_all
+  have hvm' : v ∉ m'.vars := by simp_all
+  rw [← swap_eq_rename_of_notMem_vars hvm, ← swap_eq_rename_of_notMem_vars hvm'] at ih
   rw [swap_involutive, swap_involutive] at ih
-  -- now have ih : E =α E'
-  have huE : u ∉ (E.swap u v).vars := by
-    have h := notMem_swap_target (u := v) (v := u) hvE
+  -- now have ih : m =α m'
+  have hum : u ∉ (m.swap u v).vars := by
+    have h := notMem_swap_target (u := v) (v := u) hvm
     rwa [swap_comm] at h
-  have huE' : u ∉ (E'.swap u v).vars := by
-    have h := notMem_swap_target (u := v) (v := u) hvE'
+  have hum' : u ∉ (m'.swap u v).vars := by
+    have h := notMem_swap_target (u := v) (v := u) hvm'
     rw [swap_comm] at h
     exact h
   apply AlphaEquiv.abs (y := u)
   · simp_all [swap]
   · simp only [Equiv.swap_apply_left]
-    change ((E.swap u v).rename v u) =α ((E'.swap u v).rename v u)
-    rw [← swap_eq_rename_of_notMem_vars (m := E.swap u v) (x := v) (y := u) huE]
-    rw [← swap_eq_rename_of_notMem_vars (m := E'.swap u v) (x := v) (y := u) huE']
+    change ((m.swap u v).rename v u) =α ((m'.swap u v).rename v u)
+    rw [← swap_eq_rename_of_notMem_vars (m := m.swap u v) (x := v) (y := u) hum]
+    rw [← swap_eq_rename_of_notMem_vars (m := m'.swap u v) (x := v) (y := u) hum']
     nth_rw 2 [swap_comm]
     nth_rw 4 [swap_comm]
     rw [swap_involutive, swap_involutive]
@@ -307,115 +307,114 @@ private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : 
 variable [HasFresh Var]
 
 /-- Lemma 6.1 [Crole2012]: Swap (transposition) preserves α-equivalence. -/
-lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h1 : m =α m') :
+lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h : m =α m') :
     (m.swap u v) =α (m'.swap u v) := by
-  by_cases h2 : u = v
+  by_cases huv : u = v
   · simp_all
-  · change u ≠ v at h2
-    induction h1 with
+  · change u ≠ v at huv
+    induction h with
     | var => apply AlphaEquiv.refl
-    | abs hm1 hm2 ih =>
-      rename_i z a b E E'
-      have z_h1 : z ≠ a := by simp_all
-      have z_h2 : z ≠ b := by simp_all
-      have h3 : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
-      have h4 : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
-      have h5 : z = u ∨ z = v ∨ (z ≠ u ∧ z ≠ v) := by grind
+    | @abs z a b m m' hm _ ih =>
+      have hza : z ≠ a := by simp_all
+      have hzb : z ≠ b := by simp_all
+      have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
+      have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
+      have hz : z = u ∨ z = v ∨ (z ≠ u ∧ z ≠ v) := by grind
       -- we've got 27 cases to consider
-      rcases h3 with ha | ha | ⟨hau, hav⟩
-      · rcases h4 with hb | hb | ⟨hbu, hbv⟩
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+      rcases ha with ha | ha | ⟨hau, hav⟩
+      · rcases hb with hb | hb | ⟨hbu, hbv⟩
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           -- representative case: a = u; b = u; z = v
           · subst ha hb hz
-            exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih h2
+            exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih huv
           -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           · simp_all
           -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst ha hz
             apply AlphaEquiv.symm
             exact
-              (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) (AlphaEquiv.symm ih) hbu hbv h2)
+              (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) (AlphaEquiv.symm ih) hbu hbv huv)
           -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-      · rcases h4 with hb | hb | ⟨hbu, hbv⟩
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+      · rcases hb with hb | hb | ⟨hbu, hbv⟩
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           · simp_all
           -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           -- reuse representative case: a = u; b = u; z = v
           · subst ha hb hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
-            symm at z_h2
+            symm at hzb
             nth_rw 1 [swap_comm] at ih
             nth_rw 2 [swap_comm] at ih
-            apply alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih z_h2
+            apply alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih hzb
           · simp_all
           -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst ha hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
             apply AlphaEquiv.symm
-            symm at h2
-            apply alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) _ hbv hbu h2
+            symm at huv
+            apply alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) _ hbv hbu huv
             apply AlphaEquiv.symm
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
             exact ih
           · simp_all
           -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-      · rcases h4 with hb | hb | ⟨hbu, hbv⟩
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+      · rcases hb with hb | hb | ⟨hbu, hbv⟩
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           -- representative case: a ≠ u, v; b = u; z = v
           · subst hb; subst hz
-            exact alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih hau hav h2
+            exact alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih hau hav huv
           -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst hb hz
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
-            symm at h2
-            apply alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) _ hav hau h2
+            symm at huv
+            apply alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) _ hav hau huv
             nth_rw 1 [swap_comm]
             nth_rw 2 [swap_comm]
             exact ih
           · simp_all
           -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-        · rcases h5 with hz | hz | ⟨hzu, hzv⟩
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+        · rcases hz with hz | hz | ⟨hzu, hzv⟩
           -- representative case: a ≠ u, v; b ≠ u, v; z = u
           -- use z' = v
           · subst hz
-            exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm1 ih hau hav hbu hbv
+            exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm ih hau hav hbu hbv
           -- reuse representative case: a ≠ u, v; b ≠ u, v; z = u
           -- after adjusting via swap commutativity and choosing z' = u
-          · rw [swap_comm (m := Term.abs a E) (x := u) (y := v),
-                swap_comm (m := Term.abs b E') (x := u) (y := v)]
+          · rw [swap_comm (m := Term.abs a m) (x := u) (y := v),
+                swap_comm (m := Term.abs b m') (x := u) (y := v)]
             subst hz
             nth_rw 1 [swap_comm] at ih
             nth_rw 2 [swap_comm] at ih
-            exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm1 ih hav hau hbv hbu
+            exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm ih hav hau hbv hbu
           -- representative case: z ≠ u, v
           -- use z' = z
-          · exact alphaEquiv_swap_preserve_abs_fresh hm1 ih hzu hzv
-    | app hm1 hm2 ih1 ih2 => exact AlphaEquiv.app ih1 ih2
+          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+    | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
 /-- Lemma 6.2 part 2 [Crole2012]: permutations that agree on the free variables of a term act on
 it in the same way up to α-equivalence. The paper's hypothesis `free(E) ⊆ AS(π, π')` is
