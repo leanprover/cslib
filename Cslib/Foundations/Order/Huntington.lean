@@ -14,7 +14,7 @@ public import Mathlib.Order.BooleanAlgebra.Basic
 
 In this file we derive an instance of Mathlib's `BooleanAlgebra` on an inhabited type, starting
 from operations of binary supremum `· ⊔ ·` and complementation `·ᶜ`, obeying the three axioms
-laid out in [Huntington1993a] and [Huntington1993b]:
+laid out in [Huntington1933a] and [Huntington1933b]:
 
 * Supremum is associative: `a ⊔ b ⊔ c = a ⊔ (b ⊔ c)`,
 * Supremum is commutative: `a ⊔ b = b ⊔ a`, and
@@ -26,26 +26,20 @@ instance `HuntingtonAlgebra.instBooleanAlgebra`.
 ## References
 
 * [E. V. Huntington, "New Sets of Independent Postulates for the Algebra of Logic, With Special
-  Reference to Whitehead and Russell's Principia Mathematica"][Huntington1993a]
-* [E. V. Huntington, "Boolean Algebra. A Correction"][Huntington1993b]
+  Reference to Whitehead and Russell's Principia Mathematica"][Huntington1933a]
+* [E. V. Huntington, "Boolean Algebra. A Correction"][Huntington1933b]
 
 -/
 
 /-- A class for types obeying Huntington's axioms for Boolean algebras. -/
-public class HuntingtonAlgebra (α : Type*) extends Max α, Compl α, Inhabited α where
-  /-- Supremum is associative... -/
-  sup_assoc (a b c : α) : a ⊔ b ⊔ c = a ⊔ (b ⊔ c)
-  /-- and commutative. -/
-  sup_comm (a b : α) : a ⊔ b = b ⊔ a
+public class HuntingtonAlgebra (α : Type*) extends Max α, Compl α, Inhabited α,
+    Std.Associative (α := α) (· ⊔ ·), Std.Commutative (α := α) (· ⊔ ·) where
   /-- Huntington's axiom. -/
   huntington (a b : α) : (aᶜ ⊔ b)ᶜ ⊔ (aᶜ ⊔ bᶜ)ᶜ = a
 
 namespace HuntingtonAlgebra
 
 variable {α : Type*} [HuntingtonAlgebra α]
-
-instance : Std.Associative (α := α) (· ⊔ ·) := ⟨sup_assoc⟩
-instance : Std.Commutative (α := α) (· ⊔ ·) := ⟨sup_comm⟩
 
 public instance : Top α := ⟨default ⊔ defaultᶜ⟩
 public instance : Bot α := ⟨⊤ᶜ⟩
@@ -59,6 +53,10 @@ lemma sup_compl (a : α) : a ⊔ aᶜ = ⊤ := calc
       simp [huntington]
   _ = (defaultᶜ ⊔ aᶜ)ᶜ ⊔ (defaultᶜ ⊔ aᶜᶜ)ᶜ ⊔ ((defaultᶜᶜ ⊔ aᶜ)ᶜ ⊔ (defaultᶜᶜ ⊔ aᶜᶜ)ᶜ) := by ac_rfl
   _ = default ⊔ defaultᶜ := by simp [huntington]
+
+lemma sup_comm (a b : α) : a ⊔ b = b ⊔ a := Std.Commutative.comm ..
+
+lemma sup_assoc (a b c : α) : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) := Std.Associative.assoc ..
 
 lemma compl_sup (a : α) : aᶜ ⊔ a = ⊤ := by rw [sup_comm, sup_compl]
 
@@ -124,8 +122,9 @@ lemma inf_compl (a : α) : a ⊓ aᶜ = ⊥ := by rw [inf_eq, compl_compl, compl
 
 /-- Huntington algebras are Boolean algebras. -/
 public instance : BooleanAlgebra α where
-  __ := Lattice.mk' sup_comm sup_assoc
-    (by exact inf_comm) (by exact inf_assoc) (by exact sup_inf_self) (by exact inf_sup_self)
+  __ := Lattice.mk' (α := α) (private_decl% sup_comm) (private_decl% sup_assoc)
+    (private_decl% inf_comm) (private_decl% inf_assoc) (private_decl% sup_inf_self)
+    (private_decl% inf_sup_self)
   le_sup_inf a b c := by
     suffices a ⊔ b ⊓ c = a ⊔ (a ⊔ b) ⊓ (a ⊔ c) from this ▸ le_sup_right
     calc
@@ -133,10 +132,10 @@ public instance : BooleanAlgebra α where
       _ = a ⊔ (a ⊔ bᶜ ⊔ (a ⊔ cᶜ))ᶜ := by ac_rfl
       _ = a ⊔ (a ⊔ (a ⊔ b)ᶜ ⊔ (a ⊔ c)ᶜ)ᶜ := by rw [sup_compl_eq a b, sup_compl_eq a c]; grind
       _ = a ⊔ (a ⊔ b) ⊓ (a ⊔ c) := by rw [sup_assoc, ← sup_compl_eq, inf_eq]
-  inf_compl_le_bot a := by exact (inf_compl a).le
-  top_le_sup_compl a := by exact (sup_compl a).ge
-  le_top := by exact sup_top
-  bot_le := by exact bot_sup
+  inf_compl_le_bot a := private_decl% (inf_compl a).le
+  top_le_sup_compl a := private_decl% (sup_compl a).ge
+  le_top := private_decl% sup_top
+  bot_le := private_decl% bot_sup
 
 end HuntingtonAlgebra
 
