@@ -67,15 +67,23 @@ lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
 /-- Weakening of subtypes. -/
 lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ ++ Δ ++ Θ) σ σ' := by
   generalize eq : Γ ++ Θ = ΓΘ at sub
-  induction sub generalizing Γ
-  case all =>
+  induction sub generalizing Γ with
+  | trans_tvar => grind [Ty.Wf.weaken, <= sublist_dlookup]
+  | all _ _ _ ih ih₂ =>
     subst eq
-    apply all (free_union [Context.dom] Var) <;> grind
-  all_goals grind [Ty.Wf.weaken, <= sublist_dlookup]
+    apply all (free_union [Context.dom] Var) (ih wf rfl)
+    grind
+  | top _ σ_wf =>
+    subst eq
+    exact .top wf (weaken σ_wf wf.to_ok)
+  | refl_tvar _ fvar_wf =>
+    subst eq
+    exact Sub.refl_tvar wf (weaken fvar_wf wf.to_ok)
+  | _ => grind
 
 lemma weaken_head (sub : Sub Δ σ σ') (wf : (Γ ++ Δ).Wf) : Sub (Γ ++ Δ) σ σ' := by
-  have eq : Γ ++ Δ = [] ++ Γ ++ Δ := by grind
-  grind [weaken]
+  rw [← List.nil_append Γ]
+  exact weaken sub wf
 
 lemma narrow_aux
     (trans : ∀ Γ σ τ, Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ)
