@@ -57,7 +57,7 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquiv
     have h1 : z ∉ ({x1, x2} : Finset Var) ∪ m1.fv ∪ m2.fv := by
       simp_all [vars_either_fv_or_bv]
     have h2 : AlphaEquivPFresh (m1.swap x1 z) (m2.swap x2 z) := by
-      grind [swap_eq_rename_of_not_mem_vars]
+      grind [swap_eq_rename_of_notMem_vars]
     apply AlphaEquivPFresh.abs h1 h2
   | app h1 h2 ih1 ih2 => exact AlphaEquivPFresh.app ih1 ih2
 
@@ -84,17 +84,17 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
       exact AlphaEquiv.swap_preserve ih
     -- From Lemma 6.2 part 2 via agreement sets
     have h_agree_E : ((E.swap u a).swap z u) =α (E.swap z a) :=
-      swap_comp_alphaEquiv_of_not_mem_fv hu_E hz_fv_E
+      swap_comp_alphaEquiv_of_notMem_fv hu_E hz_fv_E
     have h_agree_E' : ((E'.swap u b).swap z u) =α (E'.swap z b) :=
-      swap_comp_alphaEquiv_of_not_mem_fv hu_E' hz_fv_E'
+      swap_comp_alphaEquiv_of_notMem_fv hu_E' hz_fv_E'
     -- Chain by symmetry and transitivity of ∼p
     -- (z a) · E ∼p (z u)·(u a)·E ∼p (z u)·(u b)·E' ∼p (z b) · E'
     have h_chain : (E.swap z a) =α (E'.swap z b) :=
       AlphaEquiv.trans (AlphaEquiv.symm h_agree_E) (AlphaEquiv.trans h_swap h_agree_E')
     -- Convert swap to rename (since z ∉ vars) and apply the pi rule.
     -- Since z ∉ vars(E), swap z a = rename a z (by swap_comm + swap_eq_rename).
-    rw [swap_comm, swap_eq_rename_of_not_mem_vars hz_E] at h_chain
-    rw [swap_comm, swap_eq_rename_of_not_mem_vars hz_E'] at h_chain
+    rw [swap_comm, swap_eq_rename_of_notMem_vars hz_E] at h_chain
+    rw [swap_comm, swap_eq_rename_of_notMem_vars hz_E'] at h_chain
     exact AlphaEquiv.abs (by aesop) h_chain
   | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 

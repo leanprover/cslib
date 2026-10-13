@@ -127,7 +127,7 @@ lemma swap_unused {m : Term Var} {x y : Var} (hx : x ∉ m.vars) (hy : y ∉ m.v
 
 This is because `rename x y` only changes `x` to `y` (not `y` to `x`), and when `y` does
 not occur in `m`, swapping and renaming produce the same result. -/
-lemma swap_eq_rename_of_not_mem_vars {m : Term Var} {x y : Var}
+lemma swap_eq_rename_of_notMem_vars {m : Term Var} {x y : Var}
     (hy : y ∉ m.vars) : m.swap x y = m.rename x y := by
   induction m with
   | var z =>
@@ -154,7 +154,7 @@ lemma swap_vars {m : Term Var} {x y : Var} : (m.swap x y).vars = m.vars.image (E
   permute_vars _ _
 
 /-- Swapping preserves non-membership in `vars`. -/
-lemma not_mem_vars_swap {m : Term Var} {x y z : Var}
+lemma notMem_vars_swap {m : Term Var} {x y z : Var}
     (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.vars) : z ∉ (m.swap x y).vars := by
   rw [swap_vars]
   grind
@@ -171,7 +171,7 @@ lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z 
   exact Eq.symm (Equiv.swap_apply_of_ne_of_ne hzu hzv)
 
 /-- Lemma 6.2 part 1 [Crole2012] (specialized to transpositions). -/
-lemma swap_comp_eq_of_not_mem_vars {m : Term Var} {a u z : Var}
+lemma swap_comp_eq_of_notMem_vars {m : Term Var} {a u z : Var}
     (hu : u ∉ m.vars) (hz : z ∉ m.vars) :
     (m.swap u a).swap z u = m.swap z a := by
   rw [swap, swap, permute_trans]
@@ -182,7 +182,7 @@ lemma swap_comp_eq_of_not_mem_vars {m : Term Var} {a u z : Var}
 /-- Term-level conjugation identity: `(m.swap u v).swap v a = (m.swap u a).swap u v`
 when `a ∉ {u, v}`.
 
-Unlike `swap_comp_eq_of_not_mem_vars`, this holds unconditionally (no freshness needed). -/
+Unlike `swap_comp_eq_of_notMem_vars`, this holds unconditionally (no freshness needed). -/
 lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a ≠ v) :
     (m.swap u v).swap v a = (m.swap u a).swap u v := by
   simp only [swap, permute_trans]
@@ -192,7 +192,7 @@ lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a �
 
 /-- If `u` is not among `m`'s variables, then `v` cannot appear in `m.swap u v`
 (the only way `v` could show up is as the image of `u`). -/
-lemma not_mem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ (m.swap u v).vars := by
+lemma notMem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ (m.swap u v).vars := by
   rw [swap_vars]
   grind
 
@@ -206,9 +206,9 @@ private lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z :
     (hzu : z ≠ u)
     (hzv : z ≠ v) :
     ((E.swap u v).swap (Equiv.swap u v a) z) =α ((E'.swap u v).swap (Equiv.swap u v b) z) := by
-  have z_h1 : z ∉ (E.swap u v).vars := by exact not_mem_vars_swap hzu hzv (by simp_all)
-  have z_h2 : z ∉ (E'.swap u v).vars := by exact not_mem_vars_swap hzu hzv (by simp_all)
-  rw [swap_eq_rename_of_not_mem_vars z_h1, swap_eq_rename_of_not_mem_vars z_h2]
+  have z_h1 : z ∉ (E.swap u v).vars := by exact notMem_vars_swap hzu hzv (by simp_all)
+  have z_h2 : z ∉ (E'.swap u v).vars := by exact notMem_vars_swap hzu hzv (by simp_all)
+  rw [swap_eq_rename_of_notMem_vars z_h1, swap_eq_rename_of_notMem_vars z_h2]
   rw [← swap_rename_comm' (by grind) (by grind), ← swap_rename_comm' (by grind) (by grind)] at h2
   have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
   have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
@@ -222,10 +222,10 @@ private lemma alphaEquiv_swap_preserve_abs_fresh {E E' : Term Var} {a b u v z : 
     (hbody : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))
     (hzu : z ≠ u) (hzv : z ≠ v) :
     ((Term.abs a E).swap u v) =α ((Term.abs b E').swap u v) := by
-  have hzE : z ∉ (E.swap u v).vars := not_mem_vars_swap hzu hzv (by simp_all)
-  have hzE' : z ∉ (E'.swap u v).vars := not_mem_vars_swap hzu hzv (by simp_all)
+  have hzE : z ∉ (E.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
+  have hzE' : z ∉ (E'.swap u v).vars := notMem_vars_swap hzu hzv (by simp_all)
   have hren := desired_condition_cases_z_ne_u_or_v hm hbody hzu hzv
-  rw [swap_eq_rename_of_not_mem_vars hzE, swap_eq_rename_of_not_mem_vars hzE'] at hren
+  rw [swap_eq_rename_of_notMem_vars hzE, swap_eq_rename_of_notMem_vars hzE'] at hren
   simp only [Term.swap]
   apply AlphaEquiv.abs (y := z)
   · simp_all [Finset.mem_union, Finset.mem_insert, swap]
@@ -240,14 +240,14 @@ private lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {E E' : Term Var} {a b u
     ((Term.abs a E).swap u v) =α ((Term.abs b E').swap u v) := by
   have huE : u ∉ E.vars := by simp_all
   have huE' : u ∉ E'.vars := by simp_all
-  rw [← swap_eq_rename_of_not_mem_vars huE, ← swap_eq_rename_of_not_mem_vars huE'] at hbody
+  rw [← swap_eq_rename_of_notMem_vars huE, ← swap_eq_rename_of_notMem_vars huE'] at hbody
   rw [swap_comm (m := E) (x := a) (y := u), swap_comm (m := E') (x := b) (y := u)] at hbody
   rw [← swap_comp_eq_of_ne hau hav, ← swap_comp_eq_of_ne hbu hbv] at hbody
   rw [swap_comm (m := E.swap u v) (x := v) (y := a)] at hbody
   rw [swap_comm (m := E'.swap u v) (x := v) (y := b)] at hbody
-  have hvE : v ∉ (E.swap u v).vars := not_mem_swap_target huE
-  have hvE' : v ∉ (E'.swap u v).vars := not_mem_swap_target huE'
-  rw [swap_eq_rename_of_not_mem_vars hvE, swap_eq_rename_of_not_mem_vars hvE'] at hbody
+  have hvE : v ∉ (E.swap u v).vars := notMem_swap_target huE
+  have hvE' : v ∉ (E'.swap u v).vars := notMem_swap_target huE'
+  rw [swap_eq_rename_of_notMem_vars hvE, swap_eq_rename_of_notMem_vars hvE'] at hbody
   apply AlphaEquiv.abs (y := v) <;> (simp_all [swap]; grind)
 
 -- representative case: a ≠ u, v; b = u; z = v
@@ -258,8 +258,8 @@ private lemma alphaEquiv_swap_preserve_abs_b_eq_u {E E' : Term Var} {a u v : Var
     ((Term.abs a E).swap u v) =α ((Term.abs u E').swap u v) := by
   have hvE : v ∉ E.vars := by simp_all
   have hvE' : v ∉ E'.vars := by simp_all
-  have huE : u ∉ (E.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE
-  have huE' : u ∉ (E'.swap u v).vars := by rw [swap_comm]; exact not_mem_swap_target hvE'
+  have huE : u ∉ (E.swap u v).vars := by rw [swap_comm]; exact notMem_swap_target hvE
+  have huE' : u ∉ (E'.swap u v).vars := by rw [swap_comm]; exact notMem_swap_target hvE'
   have hL : (E.swap u v).rename a u = (E.rename a v).swap u v := by
     have h := @swap_rename_comm _ _ E u v a v
     simp_all
@@ -283,22 +283,22 @@ private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : 
     ((Term.abs u E).swap u v) =α ((Term.abs u E').swap u v) := by
   have hvE : v ∉ E.vars := by simp_all
   have hvE' : v ∉ E'.vars := by simp_all
-  rw [← swap_eq_rename_of_not_mem_vars hvE, ← swap_eq_rename_of_not_mem_vars hvE'] at ih
+  rw [← swap_eq_rename_of_notMem_vars hvE, ← swap_eq_rename_of_notMem_vars hvE'] at ih
   rw [swap_involutive, swap_involutive] at ih
   -- now have ih : E =α E'
   have huE : u ∉ (E.swap u v).vars := by
-    have h := not_mem_swap_target (u := v) (v := u) hvE
+    have h := notMem_swap_target (u := v) (v := u) hvE
     rwa [swap_comm] at h
   have huE' : u ∉ (E'.swap u v).vars := by
-    have h := not_mem_swap_target (u := v) (v := u) hvE'
+    have h := notMem_swap_target (u := v) (v := u) hvE'
     rw [swap_comm] at h
     exact h
   apply AlphaEquiv.abs (y := u)
   · simp_all [swap]
   · simp only [Equiv.swap_apply_left]
     change ((E.swap u v).rename v u) =α ((E'.swap u v).rename v u)
-    rw [← swap_eq_rename_of_not_mem_vars (m := E.swap u v) (x := v) (y := u) huE]
-    rw [← swap_eq_rename_of_not_mem_vars (m := E'.swap u v) (x := v) (y := u) huE']
+    rw [← swap_eq_rename_of_notMem_vars (m := E.swap u v) (x := v) (y := u) huE]
+    rw [← swap_eq_rename_of_notMem_vars (m := E'.swap u v) (x := v) (y := u) huE']
     nth_rw 2 [swap_comm]
     nth_rw 4 [swap_comm]
     rw [swap_involutive, swap_involutive]
@@ -456,12 +456,12 @@ lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
           have hπ'xz : π' x ≠ z := by simp_all
           simp [Equiv.swap_apply_def, hπ'xa, hπ'xπa, hπ'xz, hagree]
     rw [← permute_trans, ← permute_trans, permute_swap, permute_swap] at hbody
-    rw [swap_eq_rename_of_not_mem_vars hzπ, swap_eq_rename_of_not_mem_vars hzπ'] at hbody
+    rw [swap_eq_rename_of_notMem_vars hzπ, swap_eq_rename_of_notMem_vars hzπ'] at hbody
     unfold permute
     apply AlphaEquiv.abs (y := z) (by simp_all [z]) hbody
 
 /-- Lemma 6.2 part 2 [Crole2012] (specialized). -/
-lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
+lemma swap_comp_alphaEquiv_of_notMem_fv {m : Term Var} {a u z : Var}
     (hu : u ∉ m.fv) (hz : z ∉ m.fv) :
     ((m.swap u a).swap z u) =α (m.swap z a) := by
   let π := (Equiv.swap u a).trans (Equiv.swap z u)
