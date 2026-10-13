@@ -196,10 +196,10 @@ lemma notMem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ 
   rw [swap_vars]
   grind
 
-/- The following 5 lemmas are representative of non-trivial cases of the 27 cases occuring
+/- The following 5 lemmas are representative of non-trivial cases of the 27 cases occurring
 in the proof of `AlphaEquiv.swap_preserve`. See Lemma 6.1 [Crole2012]. -/
 
--- First 4 case examinations in represenative case z ≠ u, v
+-- First 4 case examinations in representative case z ≠ u, v
 private lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z : Var}
     (hm1 : z ∉ E.vars ∪ E'.vars ∪ {a, b})
     (h2 : ((E.rename a z).swap u v) =α ((E'.rename b z).swap u v))

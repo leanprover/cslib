@@ -59,7 +59,7 @@ namespace LambdaCalculus.Named.Untyped.Term
 /-- The action `π · E` of a permutation on a term, as used in [Crole2012].
 
 Since some lemmas in section 6 are proven for general permutations, we have to introduce
-this notion here aswell and derive the special case using `swap` accordingly.
+this notion here as well and derive the special case using `swap` accordingly.
 -/
 def permute (m : Term Var) (π : Equiv.Perm Var) : Term Var :=
   match m with
@@ -70,11 +70,10 @@ def permute (m : Term Var) (π : Equiv.Perm Var) : Term Var :=
 /-- The action of the transposition `(x y)` on a term: simultaneously swaps all occurrences
 of `x` and `y`. Corresponds to `(x y) · E` in [Crole2012] (Section 2).
 
-`swap` is is one special case of a permutation: the transposition that exchanges exactly two atoms
+`swap` is one special case of a permutation: the transposition that exchanges exactly two atoms
 a and b and fixes everything else.
 -/
 def swap (m : Term Var) (x y : Var) : Term Var := m.permute (Equiv.swap x y)
-
 
 /-- **Definition 3.2** [Crole2012]: `∼p#` - α-equivalence via permutation with freshness
 side condition.
