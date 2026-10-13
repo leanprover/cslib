@@ -278,10 +278,12 @@ theorem matches'_sum {α : Type*} (L : List (RegularExpression α)) :
   | cons b L' ih => simp [ih]
 
 noncomputable instance {State : Type*} [Fintype State] (nfa : NA.FinAcc State Symbol) :
-    Fintype nfa.start := Fintype.ofFinite nfa.start
+    Fintype nfa.start :=
+  Fintype.ofFinite nfa.start
 
 noncomputable instance {State : Type*} [Fintype State] (nfa : NA.FinAcc State Symbol) :
-    Fintype nfa.accept := Fintype.ofFinite nfa.accept
+    Fintype nfa.accept :=
+  Fintype.ofFinite nfa.accept
 
 theorem language_sum_start {State : Type*} [Fintype State] {nfa : NA.FinAcc State Symbol} :
     language nfa = (((nfa.start.toFinset).toList).map
