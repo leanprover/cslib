@@ -9,7 +9,7 @@ module
 public import Cslib.Init
 public import Mathlib.Algebra.Star.Basic
 public import Mathlib.Order.Atoms
-public import Mathlib.Order.BooleanAlgebra.Defs
+public import Cslib.Foundations.Order.Huntington
 
 /-!
 # Relation algebras
@@ -41,17 +41,35 @@ namespace RelationAlgebra
 
 /-- A `RelationAlgebra` can be constructed using Tarski's original ten axioms. -/
 @[instance_reducible]
-def_wanted ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
+def ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
     (sup_comm : ∀ a b : α, a ⊔ b = b ⊔ a)
     (sup_assoc : ∀ a b c : α, (a ⊔ b) ⊔ c = a ⊔ (b ⊔ c))
     (huntington : ∀ a b : α, (aᶜ ⊔ b)ᶜ ⊔ (aᶜ ⊔ bᶜ)ᶜ = a)
     (mul_assoc : ∀ a b c : α, (a * b) * c = a * (b * c))
     (mul_one : ∀ a : α, a * 1 = a)
-    (star_star : ∀ a : α, star (star a) = a)
+    (star_involutive : ∀ a : α, star (star a) = a)
     (star_mul : ∀ a b : α, star (a * b) = star b * star a)
     (sup_mul : ∀ a b c : α, (a ⊔ b) * c = a * c ⊔ b * c)
     (star_sup : ∀ a b : α, star (a ⊔ b) = star a ⊔ star b)
-    (tarski : ∀ a b : α, star a * (a * b)ᶜ ⊔ bᶜ = bᶜ) : RelationAlgebra α
+    (tarski : ∀ a b : α, star a * (a * b)ᶜ ⊔ bᶜ = bᶜ) : RelationAlgebra α where
+  __ := @HuntingtonAlgebra.instBooleanAlgebra α {
+    default := 1
+    assoc := sup_assoc
+    comm := sup_comm
+    huntington := huntington
+  }
+  mul_assoc := mul_assoc
+  mul_one := mul_one
+  one_mul a := by
+    suffices star (1 : α) = 1 by
+      rw [← star_involutive (1 * a), star_mul, this, mul_one, star_involutive]
+    rw [← star_involutive (star 1), ← mul_one (star 1), star_mul, star_involutive, mul_one,
+      star_involutive]
+  star_involutive := star_involutive
+  star_mul := star_mul
+  sup_mul := sup_mul
+  star_sup := star_sup
+  tarski := tarski
 
 variable {α : Type*} [RelationAlgebra α]
 
