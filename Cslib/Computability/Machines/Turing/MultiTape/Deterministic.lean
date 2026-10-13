@@ -223,15 +223,6 @@ lemma RunPath.map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Sym
     (RunPath.ofDeterministic tm cfg t).map f = .ofDeterministic tm' (f cfg) t :=
   ((RunPath.ofDeterministic tm cfg t).map f).eq_ofDeterministic
 
-/-- The path of `m + n` steps is the path of `m` steps joined with the path of `n` more steps. -/
-lemma RunPath.ofDeterministic_add (cfg : Cfg k Symbol State input) (m n : ℕ) :
-    ofDeterministic tm cfg (m + n) =
-      (ofDeterministic tm cfg m).smash (ofDeterministic tm (ofDeterministic tm cfg m).last n)
-        rfl := by
-  refine ((eq_ofDeterministic _).trans ?_).symm
-  congr 1
-  exact RelSeries.head_smash _
-
 end MultiTapeNTM
 
 namespace MultiTapeTM
@@ -292,6 +283,13 @@ lemma runFrom_mem_ofDeterministic {cfg : Cfg k Symbol State input} {t : ℕ}
   rcases le_total m t with hm | hm
   · exact ⟨⟨m, Nat.lt_succ_of_le hm⟩, rfl⟩
   · exact runFrom_eq_of_halt tm cfg hm h ▸ RelSeries.last_mem _
+
+/-- A run path that ends halted is the run from its head, which then stays at its last
+configuration. -/
+lemma runFrom_head_eq_last (p : tm.RunPath input) (h : p.last.Halted) {t : ℕ} (ht : p.length ≤ t) :
+    tm.runFrom p.head t = p.last := by
+  rw [p.eq_ofDeterministic] at h ⊢
+  exact runFrom_eq_of_halt tm _ ht h
 
 /-- A deterministic machine halted after `t` steps satisfies the shared time bound. -/
 lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}

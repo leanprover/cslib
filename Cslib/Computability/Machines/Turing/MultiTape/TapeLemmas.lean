@@ -279,6 +279,13 @@ lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
   exact ⟨Finset.univ.sup T, fun t i =>
     (hT i t).trans (tm.spaceUsedByTape_mono cfg i (Finset.le_sup (Finset.mem_univ i)))⟩
 
+/-- The run from the head of a run path that ends halted visits no cell outside the path. -/
+lemma spaceUsed_head_le (p : tm.RunPath input) (h : p.last.Halted) (t : ℕ) :
+    tm.spaceUsed p.head t ≤ p.space := by
+  rw [p.eq_ofDeterministic] at h ⊢
+  exact MultiTapeNTM.RunPath.space_le_of_subset fun _ ⟨m, hm⟩ =>
+    hm ▸ runFrom_mem_ofDeterministic h m
+
 /-- A run that starts with every head at cell `0` and uses at most `s` cells keeps its heads
 within `[-s, s]`. -/
 lemma inWindow_ofDeterministic {t s : ℕ} (h0 : ∀ i, cfg.workTapePos i = 0)
