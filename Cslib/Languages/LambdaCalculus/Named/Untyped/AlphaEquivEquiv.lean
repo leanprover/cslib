@@ -98,7 +98,7 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
     exact AlphaEquiv.abs (by aesop) h_chain
   | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
-/-! ## Theorem 4.1 [Crole2012] -/
+/-- **Theorem 4.1** [Crole2012]: `∼p` and `∼p#` are the same relation. -/
 theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) : m =α n ↔ AlphaEquivPFresh m n :=
   ⟨alphaEquivPFresh_of_alphaEquiv, alphaEquiv_of_alphaEquivPFresh⟩
 
