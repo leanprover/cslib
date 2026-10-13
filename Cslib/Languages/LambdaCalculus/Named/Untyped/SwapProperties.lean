@@ -120,7 +120,7 @@ lemma swap_comm {m : Term Var} {x y : Var} : m.swap x y = m.swap y x := by
 
 /-- Swapping the same two variables twice has no effect. -/
 @[simp]
-lemma swap_involutive {m : Term Var} {x y : Var} : (m.swap x y).swap x y = m := by
+lemma swap_swap {m : Term Var} {x y : Var} : (m.swap x y).swap x y = m := by
   simp [swap, permute_trans]
 
 /-- Swapping preserves size. -/
@@ -157,7 +157,7 @@ lemma swap_fv {m : Term Var} {x y : Var} : (m.swap x y).fv = m.fv.image (Equiv.s
   permute_fv _ _
 
 /-- Swapping preserves non-membership in `fv`. -/
-lemma fresh_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.fv) :
+lemma notMem_fv_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.fv) :
     z ∉ (m.swap x y).fv := by
   rw [swap_fv]
   grind
@@ -298,7 +298,7 @@ private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {m m' : Term Var} {u v : 
   have hvm : v ∉ m.vars := by simp_all
   have hvm' : v ∉ m'.vars := by simp_all
   rw [← swap_eq_rename_of_notMem_vars hvm, ← swap_eq_rename_of_notMem_vars hvm'] at ih
-  rw [swap_involutive, swap_involutive] at ih
+  rw [swap_swap, swap_swap] at ih
   -- now have ih : m =α m'
   have hum : u ∉ (m.swap u v).vars := by
     have h := notMem_swap_target (u := v) (v := u) hvm
@@ -315,7 +315,7 @@ private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {m m' : Term Var} {u v : 
     rw [← swap_eq_rename_of_notMem_vars (m := m'.swap u v) (x := v) (y := u) hum']
     nth_rw 2 [swap_comm]
     nth_rw 4 [swap_comm]
-    rw [swap_involutive, swap_involutive]
+    rw [swap_swap, swap_swap]
     exact ih
 
 variable [HasFresh Var]
