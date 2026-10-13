@@ -102,7 +102,7 @@ lemma fresh_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y) (h
   grind
 
 /-- The set of vars after a swap. -/
-lemma swap_vars {m : Term Var} {x y z : Var} (hzm : z ∉ m.vars) :
+lemma swap_vars {m : Term Var} {x y : Var} :
     (m.swap x y).vars = m.vars.image fun z => if z = x then y else if z = y then x else z := by
   induction m with
   | var w => aesop
@@ -111,12 +111,11 @@ lemma swap_vars {m : Term Var} {x y z : Var} (hzm : z ∉ m.vars) :
     grind
   | app m n ih1 ih2 =>
     simp_all only [Term.swap, Term.vars, Finset.image_union, permute]
-    grind
 
 /-- Swapping preserves non-membership in `vars`. -/
 lemma not_mem_vars_swap {m : Term Var} {x y z : Var}
     (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.vars) : z ∉ (m.swap x y).vars := by
-  rw [swap_vars hzm]
+  rw [swap_vars]
   grind
 
 /-- `swap` and `rename` commute (modulo the permutation action on the variable arguments). -/
@@ -164,7 +163,7 @@ lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a �
 /-- If `u` is not among `m`'s variables, then `v` cannot appear in `m.swap u v`
 (the only way `v` could show up is as the image of `u`). -/
 lemma not_mem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ (m.swap u v).vars := by
-  rw [swap_vars hu]
+  rw [swap_vars]
   intro h
   apply Finset.mem_image.mp at h
   obtain ⟨a, ham, hau⟩ := h
