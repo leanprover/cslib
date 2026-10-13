@@ -64,7 +64,8 @@ lemma swap_preserves_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.swap x y) = s
   induction m <;> simp_all [swap, permute]
 
 @[simp]
-lemma swap_unused {m : Term Var} {x y : Var} : x ∉ m.vars → y ∉ m.vars → m.swap x y = m := by
+lemma swap_unused {m : Term Var} {x y : Var} (hx : x ∉ m.vars) (hy : y ∉ m.vars) :
+    m.swap x y = m := by
   induction m <;> grind [swap, permute, vars]
 
 /-- When `y ∉ m.vars`, `swap x y` and `rename x y` coincide.
@@ -304,9 +305,8 @@ private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {E E' : Term Var} {u v : 
 variable [HasFresh Var]
 
 /-- Lemma 6.1 [Crole2012]: Swap (transposition) preserves α-equivalence. -/
-lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} :
-    m =α m' → (m.swap u v) =α (m'.swap u v) := by
-  intro h1
+lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h1 : m =α m') :
+    (m.swap u v) =α (m'.swap u v) := by
   by_cases h2 : u = v
   · simp_all
   · change u ≠ v at h2

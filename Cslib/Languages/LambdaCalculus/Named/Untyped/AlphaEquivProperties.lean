@@ -112,9 +112,8 @@ theorem AlphaEquiv.rename_preserve (m n : Term Var) (x y : Var) :
           grind
       all_goals grind
 
-lemma AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} :
-    m =α m' → (Term.abs x m) =α (Term.abs x m') := by
-  intro h
+lemma AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} (h : m =α m') :
+    (Term.abs x m) =α (Term.abs x m') := by
   obtain ⟨y, hy⟩ := HasFresh.fresh_exists (m.vars ∪ m'.vars ∪ {x})
   apply AlphaEquiv.abs (y := y)
   · simp_all

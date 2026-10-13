@@ -61,8 +61,7 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : m =α n) : AlphaEquiv
     apply AlphaEquivPFresh.abs h1 h2
   | app h1 h2 ih1 ih2 => exact AlphaEquivPFresh.app ih1 ih2
 
-lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} : AlphaEquivPFresh m n → AlphaEquiv m n := by
-  intro h
+lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : AlphaEquivPFresh m n) : m =α n := by
   induction h with
   | var => constructor
   | abs hy _h ih =>
@@ -100,7 +99,7 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} : AlphaEquivPFresh m n →
   | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
 /-! ## Theorem 4.1 [Crole2012] -/
-theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) : AlphaEquiv m n ↔ AlphaEquivPFresh m n :=
+theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) : m =α n ↔ AlphaEquivPFresh m n :=
   ⟨alphaEquiv_of_alphaEquivPFresh, alphaEquivPFresh_of_alphaEquiv⟩
 
 /-
