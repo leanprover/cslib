@@ -42,11 +42,6 @@ variable {Var : Type u} [DecidableEq Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
-/-- The set of variables on which two functions agree. -/
-def agreementSet (f g : Var → Var) : Set Var := { x | f x = g x }
-/-- The set of variables on which two functions disagree. -/
-def disagreementSet (f g : Var → Var) : Set Var := { x | f x ≠ g x }
-
 @[simp]
 lemma swap_self {m : Term Var} {x : Var} : m.swap x x = m := by
   induction m <;> simp_all [swap, permute]
@@ -416,49 +411,32 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h1 : m =α m') :
     | app hm1 hm2 ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
 omit [HasFresh Var] in
-/-- Lemma 6.2 part 1 [Crole2012]. -/
-lemma permute_eq_of_vars_subset_agreementSet (m : Term Var) (π π' : Equiv.Perm Var)
-    (h : (m.vars : Set Var) ⊆ agreementSet π π') :
-    m.permute π = m.permute π' := by
+/-- Lemma 6.2 part 1 [Crole2012]: permutations that agree on the variables of a term act on it
+in the same way. The paper's hypothesis `occ(E) ⊆ AS(π, π')` is `Set.EqOn π π' m.vars`. -/
+lemma permute_eq_of_eqOn_vars (m : Term Var) (π π' : Equiv.Perm Var)
+    (h : Set.EqOn π π' m.vars) : m.permute π = m.permute π' := by
   induction m with
-  | var x => simp_all [permute, vars, agreementSet, vars]
+  | var x => simpa [permute] using h
   | abs x m ih =>
-    have hx : π x = π' x := h (by simp [vars])
-    have hm : m.permute π = m.permute π' := ih fun y hy => h (by simp [vars, hy])
-    simp [permute, hx, hm]
+    simp only [vars, Finset.coe_union, Finset.coe_singleton, Set.eqOn_union,
+      Set.eqOn_singleton] at h
+    simp [permute, ih h.1, h.2]
   | app m n ihm ihn =>
-    have hm : m.permute π = m.permute π' := ihm fun y hy => h (by simp [vars, hy])
-    have hn : n.permute π = n.permute π' := ihn fun y hy => h (by simp [vars, hy])
-    simp [permute, hm, hn]
+    simp only [vars, Finset.coe_union, Set.eqOn_union] at h
+    simp [permute, ihm h.1, ihn h.2]
 
-/-- Lemma 6.2 part 2 [Crole2012]. -/
-lemma permute_alphaEquiv_of_fv_subset_agreementSet (m : Term Var) (π π' : Equiv.Perm Var)
-    (h : (m.fv : Set Var) ⊆ agreementSet π π') :
-    (m.permute π) =α (m.permute π') := by
+/-- Lemma 6.2 part 2 [Crole2012]: permutations that agree on the free variables of a term act on
+it in the same way up to α-equivalence. The paper's hypothesis `free(E) ⊆ AS(π, π')` is
+`Set.EqOn π π' m.fv`. -/
+lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
+    (h : Set.EqOn π π' m.fv) : (m.permute π) =α (m.permute π') := by
   induction m generalizing π π' with
   | var x =>
-    unfold permute
-    have hx : π x = π' x := by
-      unfold agreementSet at h
-      apply h
-      unfold fv
-      rw [Finset.coe_singleton, Set.mem_singleton_iff]
-    rw [hx]
-    exact AlphaEquiv.var
+    have hx : π x = π' x := by simpa using h
+    simpa [permute, hx] using AlphaEquiv.var
   | app m n ihm ihn =>
-    have hm : (m.permute π) =α (m.permute π') := by
-      apply ihm
-      intro x hx
-      apply h
-      unfold fv
-      simp_all
-    have hn : (n.permute π) =α (n.permute π') := by
-      apply ihn
-      intro x hx
-      apply h
-      unfold fv
-      simp_all
-    apply AlphaEquiv.app hm hn
+    simp only [fv, Finset.coe_union, Set.eqOn_union] at h
+    exact AlphaEquiv.app (ihm π π' h.1) (ihn π π' h.2)
   | abs a m ih =>
     let z := HasFresh.fresh ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
     have hz := HasFresh.fresh_notMem ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
@@ -469,7 +447,7 @@ lemma permute_alphaEquiv_of_fv_subset_agreementSet (m : Term Var) (π π' : Equi
       := by
         apply ih
         intro x hx
-        simp only [agreementSet, Set.mem_ofPred_eq, Equiv.trans_apply]
+        simp only [Equiv.trans_apply]
         by_cases hxa : x = a
         · simp_all
         · have hagree : π x = π' x := h (by simp [fv, hx, hxa])
@@ -496,12 +474,10 @@ lemma swap_comp_alphaEquiv_of_not_mem_fv {m : Term Var} {a u z : Var}
     ((m.swap u a).swap z u) =α (m.swap z a) := by
   let π := (Equiv.swap u a).trans (Equiv.swap z u)
   let π' := Equiv.swap z a
-  have h : (m.fv : Set Var) ⊆ agreementSet π π' := by
+  have h : Set.EqOn π π' m.fv := by
     intro x hx
-    unfold agreementSet
-    rw [Set.mem_ofPred_eq]
     grind
-  have h' := permute_alphaEquiv_of_fv_subset_agreementSet m π π' h
+  have h' := permute_alphaEquiv_of_eqOn_fv m π π' h
   rw [← permute_trans, permute_swap, permute_swap, permute_swap] at h'
   exact h'
 
