@@ -20,23 +20,25 @@ which interior states an execution may pass through.
 It is used to prove `Cslib.Language.IsRegular.iff_regex`, that every language accepted by
 a DFA comprised of finite states is the language of a regular expression.
 We implement Kleene's algorithm for the more general case of an NFA instead of DFA,
-since `Execution` is developed for `LTS` but not `FLTS`
+since `Execution` is developed for `LTS` but not `FLTS`.
 The special case where the NFA has only one start state and one accept state is proved in
 `regex_of_nfa_singleton_start_accept` in this file.
 
 ## Main definitions
-- `BddPathLTS`: A labelled transition system containing a start state, last state, and
-a specific bound on all interior states
-- `Regex lts s t r`: The regular expression for the executions from state `s` to state `t`,
+- `LTS.BddLang start last bound`: The language of finite words that are accepted by an execution
+of an LTS with its state type `Fin n`, where the start state is `start`, the last state is `last`,
+and all states of the execution except for the first and last are less than `bound`.
+- `LTS.Regex s t r`: The regular expression for the executions from state `s` to state `t`,
 whose interior states are all under a specific bound `r`
 
 ## Main results
 - `regex_of_nfa_singleton_start_accept`: NFA with one start state and one accept state have
 a matching regular expression
-- `language_bddpath_eq_nfa`: A bound that has reached the total number of states no longer
+- `bddLang_eq_language_nfa`: `BddLang` is equal to the language of an NFA
+when `boudnd` is greater than or equal to the total number of states.
   constrains anything
-- `language_bddpath_eq_regex`: `Regex lts s t r` matches the language of the NFA with
-start state `s`, accept state `t`, and interior states below `r`
+- `bddLang_eq_language_regex`: `LTS.Regex s t r` matches the language `LTS.BddLang` with
+start state `s`, accept state `t`, and bound `r`
 
 ## References
 
@@ -172,8 +174,6 @@ open List
 
 namespace Cslib.LTS
 
-/-- An execution of an LTS with its state type `Fin n`,
-where all states of the execution except for the first and last are less than `bound`. -/
 def BddExec (lts : LTS (Fin n) Symbol) (start : Fin n) (xs : List Symbol) (last : Fin n)
     (ss : List (Fin n)) (bound : ℕ) : Prop :=
   lts.Execution start xs last ss ∧ ss.AllButFirstLast (fun (s : Fin n) ↦ s < bound)
@@ -477,6 +477,21 @@ theorem language_nfa_eq_regex_of_singleton_start_accept {nfa : NA.FinAcc (Fin n)
 
 end Regex
 
+def reindex {State State' : Type*} (lts : LTS State Symbol) (e : State ≃ State') :
+    LTS State' Symbol := LTS.mk fun s' a t' ↦ lts.Tr (e.symm s') a (e.symm t')
+
+theorem reindex_tr {State State' : Type*} (lts : LTS State Symbol) (e : State ≃ State')
+    (s t : State) (μ : Symbol) :
+    (lts.reindex e).Tr (e s) μ (e t) ↔ lts.Tr s μ t := by simp [reindex]
+
+theorem MTr.reindex {State State' : Type*} (lts : LTS State Symbol) (e : State ≃ State')
+    (s t : State) (μs : List Symbol) :
+    lts.MTr s μs t → (lts.reindex e).MTr (e s) μs (e t) := by
+  intro h
+  induction h with
+  | refl => simp only [MTr.nil_iff]
+  | stepL hTr hMTr ih => exact MTr.stepL (by simpa [reindex_tr] using hTr) ih
+
 /-- An NFA with exactly one start state and exactly one accept state
 has a matching regular expression. -/
 theorem regex_of_nfa_singleton_start_accept [Finite Symbol] {State : Type*} [Finite State]
@@ -487,29 +502,12 @@ theorem regex_of_nfa_singleton_start_accept [Finite Symbol] {State : Type*} [Fin
   let e := Fintype.equivFin State
   obtain ⟨s, hs⟩ := hstart
   obtain ⟨t, ht⟩ := haccept
-  set nfa' := NA.FinAcc.mk
-    {Tr := fun s1 a s2 => nfa.Tr (e.symm s1) a (e.symm s2), start := {e s}} {e t} with hnfa'
+  set nfa' := NA.FinAcc.mk (NA.mk (nfa.toLTS.reindex e) {e s}) {e t} with hnfa'
   have language_eq : language nfa = language nfa' := by
     ext xs
-    have nfa_imp_nfa' (s₁ t₁ : State) (μs : List Symbol) :
-        nfa.MTr s₁ μs t₁ → nfa'.MTr (e s₁) μs (e t₁) := by
-      intro h
-      induction h with
-      | refl => simp only [MTr.nil_iff, nfa']
-      | stepL hTr hMTr ih =>
-      simp only [nfa']
-      refine MTr.stepL ?_ ih
-      simp [hTr]
-    have nfa'_imp_nfa (s₁' t₁' : Fin (Fintype.card State)) (μs : List Symbol) :
-        nfa'.MTr s₁' μs t₁' → nfa.MTr (e.symm s₁') μs (e.symm t₁') := by
-      intro h'
-      induction h' with
-      | refl => simp only [MTr.nil_iff]
-      | stepL hTr hMTr ih =>
-      refine MTr.stepL ?_ (ih)
-      simpa using hTr
     have nfa_eq : nfa'.MTr (e s) xs (e t) ↔ nfa.MTr s xs t :=
-      ⟨by simpa using nfa'_imp_nfa (e s) (e t) xs, nfa_imp_nfa' s t xs⟩
+      ⟨by simpa [nfa', reindex] using (MTr.reindex nfa'.toLTS e.symm (e s) (e t) xs),
+        MTr.reindex nfa.toLTS e s t xs⟩
     simp only [mem_language, Accepts, hs, Set.mem_singleton_iff, ht, exists_eq_left, hnfa']
     rw [nfa_eq]
   have : Fintype Symbol := Fintype.ofFinite Symbol

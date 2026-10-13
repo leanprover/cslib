@@ -319,7 +319,7 @@ theorem language_sum_accept {State : Type*} [Fintype State] {nfa : NA.FinAcc Sta
   simp only [Accepts, Finset.mem_toList, Set.mem_toFinset, mem_language, mem_singleton_iff,
     exists_eq_left]
   exact ⟨fun ⟨s, hs, t, ht, p⟩ ↦ ⟨t, ht, s, hs, p⟩, fun ⟨t, ht, s, hs, p⟩ ↦ ⟨s, hs, t, ht, p⟩⟩
-  -- grind
+  -- Or replace the line above by `grind`
 
 theorem regex_of_nfa_singleton_start [Finite Symbol] {State : Type*} [Finite State]
     (nfa : NA.FinAcc State Symbol) (hstart : ∃ s, nfa.start = {s}) :
