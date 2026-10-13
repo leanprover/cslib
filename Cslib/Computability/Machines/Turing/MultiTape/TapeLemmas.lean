@@ -252,13 +252,4 @@ lemma visitedByTapeHead_subset_Icc (cfg : Cfg k Symbol State input) {t s : ℕ} 
   rw [Finset.mem_Icc]
   lia
 
-/-- A run whose heads all stay within `[-σ, σ]` uses at most `2 * σ + 1` cells per tape. -/
-lemma spaceUsed_le_of_visited_subset_Icc (cfg : Cfg k Symbol State input) (t : ℕ) {σ : ℕ}
-    (h : ∀ i, tm.visitedByTapeHead cfg t i ⊆ Finset.Icc (-(σ : ℤ)) (σ : ℤ)) :
-    tm.spaceUsed cfg t ≤ 2 * k * σ + k := by
-  refine (Finset.sum_le_card_nsmul _ _ (2 * σ + 1) fun i _ => ?_).trans_eq ?_
-  · exact (Finset.card_le_card (h i)).trans_eq (by rw [Int.card_Icc]; lia)
-  · simp only [Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, Nat.cast_id]
-    lia
-
 end Turing.MultiTapeTM

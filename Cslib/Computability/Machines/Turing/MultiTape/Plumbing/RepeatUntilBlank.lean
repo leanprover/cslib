@@ -112,7 +112,7 @@ lemma step_check (ws : Fin k → List Symbol) (out : List Symbol) :
 structure ConfinedRun (M : MultiTapeTM k Symbol State) (start finish : Cfg k Symbol State input)
     (steps r : ℕ) : Prop where
   reaches : M.runFrom start steps = finish
-  confined : ∀ l, M.visitedByTapeHead start steps l ⊆ Finset.Icc (-(r : ℤ)) (r : ℤ)
+  confined : ∀ n ≤ steps, ∀ l, (M.runFrom start n).workTapePos l ∈ Finset.Icc (-(r : ℤ)) (r : ℤ)
 
 /-- One round of the loop. If the loop reaches `tm`'s initial state on words `w` with output `out`
 in a confined run, and `tm` takes `w` to `w'` and `out` to `out'` within `τ` steps and `σ` cells,
@@ -131,13 +131,14 @@ lemma exists_runFrom_round {c : Cfg k Symbol (RepeatUntilBlankState State) input
       wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' out' := by
     rw [runFrom_succ, ← runCfg_wordsCfg_some,
       runFrom_runCfg hhalt le_rfl, ← hhalt.runFrom_eq hu, hrun, runCfg_wordsCfg_none, step_check]
-  refine ⟨u, hu, by rw [runFrom_add, hc.reaches, hround], fun l => ?_⟩
-  rw [visitedByTapeHead_add, hc.reaches]
-  refine Finset.union_subset (hc.confined l) (visitedByTapeHead_subset _ fun m hm => ?_)
-  obtain hlt | rfl := hm.lt_or_eq
-  · rw [← runCfg_wordsCfg_some, runFrom_runCfg hhalt (Nat.lt_succ_iff.mp hlt), workTapePos_runCfg]
-    exact visitedByTapeHead_subset_Icc _ rfl ((spaceUsed_mono tm _ hu).trans hsp)
-      (mem_visitedByTapeHead.mpr ⟨m, hlt, rfl⟩)
+  refine ⟨u, hu, by rw [runFrom_add, hc.reaches, hround], fun n hn l => ?_⟩
+  obtain hn' | hn' := le_or_gt n t
+  · exact hc.confined n hn' l
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le hn'.le
+  rw [runFrom_add, hc.reaches]
+  obtain hm | rfl := (show m ≤ u + 1 by lia).lt_or_eq
+  · rw [← runCfg_wordsCfg_some, runFrom_runCfg hhalt (Nat.lt_succ_iff.mp hm), workTapePos_runCfg]
+    exact visitedByTapeHead_subset_Icc _ rfl hsp (mem_visitedByTapeHead.mpr ⟨m, by lia, rfl⟩)
   · rw [hround]
     simp
 
@@ -173,8 +174,8 @@ public theorem transformsTapes_repeatUntilBlank (i : Fin k) {tm : MultiTapeTM k 
     intro n hn
     induction n with
     | zero =>
-      exact ⟨0, Nat.zero_le _, ws, [], ⟨by simp [runFrom, hstart], fun l => by
-        simp [visitedByTapeHead, runFrom, hstart, Finset.subset_iff]⟩, hP0⟩
+      exact ⟨0, Nat.zero_le _, ws, [], ⟨by simp [runFrom, hstart], fun n hn l => by
+        simp [Nat.le_zero.mp hn, runFrom, hstart]⟩, hP0⟩
     | succ n ih =>
       obtain ⟨m, hm, wsn, acc, hc, hPn⟩ := ih (by lia)
       obtain ⟨wsn', e, hrunTm, hQ, hsp⟩ := hround n (by lia) acc input wsn (out ++ acc) hPn
@@ -189,7 +190,15 @@ public theorem transformsTapes_repeatUntilBlank (i : Fin k) {tm : MultiTapeTM k 
   have hhalt : ((repeatUntilBlank i tm).runFrom start (m + (u + 1))).Halted := by rw [hrun']; rfl
   refine ⟨ws', acc ++ e, ?_, hQ.1, ?_⟩
   · rw [runFrom_eq_of_halt _ _ (by lia) hhalt, hrun', List.append_assoc]
-  · rw [spaceUsed_eq_of_halt _ (by lia) hhalt]
-    exact spaceUsed_le_of_visited_subset_Icc _ _ hIcc'
+  · have hcard : (Finset.Icc (-(s : ℤ)) s).card = 2 * s + 1 := by rw [Int.card_Icc]; lia
+    refine (MultiTapeNTM.RunPath.space_le_sum_card _ (S := fun _ => .Icc (-(s : ℤ)) s) ?_).trans
+      (by simp only [hcard, Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
+          lia)
+    rintro _ ⟨⟨n, -⟩, rfl⟩ l
+    change ((repeatUntilBlank i tm).runFrom start n).workTapePos l ∈ _
+    rcases le_total n (m + (u + 1)) with h | h
+    · exact hIcc' n h l
+    · rw [runFrom_eq_of_halt _ _ h hhalt]
+      exact hIcc' _ le_rfl l
 
 end Turing.MultiTapeTM
