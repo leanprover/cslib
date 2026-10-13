@@ -7,10 +7,10 @@ Authors: Chris Anto Fröschl
 module
 
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
-public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivDefs
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivVariants.Defs
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.RenameProperties
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivProperties
-public import Cslib.Languages.LambdaCalculus.Named.Untyped.SwapProperties
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivVariants.Swap
 
 /-! # Equivalence of α-equivalence definitions
 
