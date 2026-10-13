@@ -434,27 +434,26 @@ lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
     have hz := HasFresh.fresh_notMem ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
     have hzπ : z ∉ (m.permute π).vars := by simp_all [z]
     have hzπ' : z ∉ (m.permute π').vars := by simp_all [z]
-    have hbody :
-      (m.permute (π.trans (Equiv.swap (π a) z))) =α (m.permute (π'.trans (Equiv.swap (π' a) z)))
-      := by
-        apply ih
-        intro x hx
-        simp only [Equiv.trans_apply]
-        by_cases hxa : x = a
-        · simp_all
-        · have hagree : π x = π' x := h (by simp [fv, hx, hxa])
-          have hπxa : π x ≠ π a := fun he => hxa (π.injective he)
-          have hπ'xa : π' x ≠ π' a := fun he => hxa (π'.injective he)
-          have hπ'xπa : π' x ≠ π a := by simp_all
-          have hπxz : π x ≠ z := by
-            intro he
-            apply hzπ
-            rw [← he, vars_either_fv_or_bv]
-            apply Finset.mem_union_left
-            rw [permute_fv]
-            exact Finset.mem_image.mpr ⟨x, hx, rfl⟩
-          have hπ'xz : π' x ≠ z := by simp_all
-          simp [Equiv.swap_apply_def, hπ'xa, hπ'xπa, hπ'xz, hagree]
+    have hbody : (m.permute (π.trans (Equiv.swap (π a) z))) =α
+        (m.permute (π'.trans (Equiv.swap (π' a) z))) := by
+      apply ih
+      intro x hx
+      simp only [Equiv.trans_apply]
+      by_cases hxa : x = a
+      · simp_all
+      · have hagree : π x = π' x := h (by simp [fv, hx, hxa])
+        have hπxa : π x ≠ π a := fun he => hxa (π.injective he)
+        have hπ'xa : π' x ≠ π' a := fun he => hxa (π'.injective he)
+        have hπ'xπa : π' x ≠ π a := by simp_all
+        have hπxz : π x ≠ z := by
+          intro he
+          apply hzπ
+          rw [← he, vars_either_fv_or_bv]
+          apply Finset.mem_union_left
+          rw [permute_fv]
+          exact Finset.mem_image.mpr ⟨x, hx, rfl⟩
+        have hπ'xz : π' x ≠ z := by simp_all
+        simp [Equiv.swap_apply_def, hπ'xa, hπ'xπa, hπ'xz, hagree]
     rw [← permute_trans, ← permute_trans, permute_swap, permute_swap] at hbody
     rw [swap_eq_rename_of_notMem_vars hzπ, swap_eq_rename_of_notMem_vars hzπ'] at hbody
     unfold permute
