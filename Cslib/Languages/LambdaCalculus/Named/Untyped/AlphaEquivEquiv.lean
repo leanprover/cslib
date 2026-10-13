@@ -47,8 +47,7 @@ namespace LambdaCalculus.Named.Untyped.Term
 
 omit [HasFresh Var] in
 /-- Non-occurrence obviously implies freshness, and the `swap` operation coincides with
-`rename` when the target variable does not occur in the term.
--/
+`rename` when the target variable does not occur in the term. -/
 lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquivPFresh m n := by
   induction h with
   | var => constructor

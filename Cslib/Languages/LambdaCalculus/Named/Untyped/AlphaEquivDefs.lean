@@ -59,8 +59,7 @@ namespace LambdaCalculus.Named.Untyped.Term
 /-- The action `π · E` of a permutation on a term, as used in [Crole2012].
 
 Since some lemmas in section 6 are proven for general permutations, we have to introduce
-this notion here as well and derive the special case using `swap` accordingly.
--/
+this notion here as well and derive the special case using `swap` accordingly. -/
 def permute (m : Term Var) (π : Equiv.Perm Var) : Term Var :=
   match m with
   | var x => var (π x)
@@ -71,8 +70,7 @@ def permute (m : Term Var) (π : Equiv.Perm Var) : Term Var :=
 of `x` and `y`. Corresponds to `(x y) · E` in [Crole2012] (Section 2).
 
 `swap` is one special case of a permutation: the transposition that exchanges exactly two atoms
-a and b and fixes everything else.
--/
+a and b and fixes everything else. -/
 def swap (m : Term Var) (x y : Var) : Term Var := m.permute (Equiv.swap x y)
 
 /-- **Definition 3.2** [Crole2012]: `∼p#` - α-equivalence via permutation with freshness
@@ -80,8 +78,7 @@ side condition.
 
 The rule `pi#` uses the freshness condition `z # a, b, E, E'`
 (i.e., `z ∉ fv(E) ∪ fv(E') ∪ {a, b}`) instead of the non-occurrence condition
-`z ∉ vars(E) ∪ vars(E') ∪ {a, b}` used in Definition 3.1 (`AlphaEquiv`).
--/
+`z ∉ vars(E) ∪ vars(E') ∪ {a, b}` used in Definition 3.1 (`AlphaEquiv`). -/
 inductive AlphaEquivPFresh : Term Var → Term Var → Prop where
   | var {x : Var} : AlphaEquivPFresh (var x) (var x)
   | abs {y x1 x2 : Var} {m1 m2 : Term Var} :
@@ -97,8 +94,7 @@ restricted to the bodies only.
 
 This definition is analogous to the definition of α-equivalence for λ-expressions in
 [Gabbay1999] (Theorem 2.1). The notation `∼¹p` arises from three variants `∼ⁱp`
-of `∼p` considered in Proposition 4.3 of [Crole2012].
--/
+of `∼p` considered in Proposition 4.3 of [Crole2012]. -/
 inductive AlphaEquivP1 : Term Var → Term Var → Prop where
   | var {x : Var} : AlphaEquivP1 (var x) (var x)
   | abs {y x1 x2 m1 m2} :
@@ -114,8 +110,7 @@ with non-occurrence side condition.
 
 This definition is analogous to the definition of α-equivalence for λ-expressions most commonly
 found in the literature. One of the first formal presentations is in [Church1941] and the same,
-though rather less formal approach is taken by [Barendregt1985] (Definition 2.1.11).
--/
+though rather less formal approach is taken by [Barendregt1985] (Definition 2.1.11). -/
 inductive AlphaEquivR : Term Var → Term Var → Prop where
   | refl {m : Term Var} : AlphaEquivR m m
   | symm {m1 m2 : Term Var} : AlphaEquivR m1 m2 → AlphaEquivR m2 m1
@@ -137,8 +132,7 @@ Same as `∼r` (Definition 3.4), but the renaming axiom uses a freshness side co
 (`a' ∉ {a} ∪ fv(E)`) instead of a non-occurrence condition (`a' ∉ {a} ∪ vars(E)`).
 
 This is analogous to the definition of α-equivalence for λ-expressions one finds in
-[Hindley1988] (Section 1B, page 9).
--/
+[Hindley1988] (Section 1B, page 9). -/
 inductive AlphaEquivRFresh : Term Var → Term Var → Prop where
   | refl {m : Term Var} : AlphaEquivRFresh m m
   | symm {m1 m2 : Term Var} :

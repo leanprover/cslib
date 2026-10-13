@@ -293,13 +293,13 @@ private lemma alphaEquiv_swap_preserve_abs_b_eq_u {m m' : Term Var} {a u v : Var
 -- representative case: a = u; b = u; z = v
 private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {m m' : Term Var} {u v : Var}
     (hm : v ∉ m.vars ∪ m'.vars ∪ {u})
-    (ih : ((m.rename u v).swap u v) =α ((m'.rename u v).swap u v)) (huv : u ≠ v) :
+    (hbody : ((m.rename u v).swap u v) =α ((m'.rename u v).swap u v)) (huv : u ≠ v) :
     ((Term.abs u m).swap u v) =α ((Term.abs u m').swap u v) := by
   have hvm : v ∉ m.vars := by simp_all
   have hvm' : v ∉ m'.vars := by simp_all
-  rw [← swap_eq_rename_of_notMem_vars hvm, ← swap_eq_rename_of_notMem_vars hvm'] at ih
-  rw [swap_swap, swap_swap] at ih
-  -- now have ih : m =α m'
+  rw [← swap_eq_rename_of_notMem_vars hvm, ← swap_eq_rename_of_notMem_vars hvm'] at hbody
+  rw [swap_swap, swap_swap] at hbody
+  -- now have hbody : m =α m'
   have hum : u ∉ (m.swap u v).vars := by
     have h := notMem_swap_target (u := v) (v := u) hvm
     rwa [swap_comm] at h
@@ -316,7 +316,7 @@ private lemma alphaEquiv_swap_preserve_abs_a_eq_b_eq_u {m m' : Term Var} {u v : 
     nth_rw 2 [swap_comm]
     nth_rw 4 [swap_comm]
     rw [swap_swap, swap_swap]
-    exact ih
+    exact hbody
 
 variable [HasFresh Var]
 
