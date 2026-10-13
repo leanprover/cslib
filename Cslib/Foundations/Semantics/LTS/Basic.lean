@@ -377,6 +377,86 @@ theorem mem_foldl_setImage (lts : LTS State Label) :
   rw [← setImageMultistep_foldl_setImage]
   exact mem_setImageMultistep
 
+/-- The image of a singleton is the image of its element. -/
+@[simp]
+theorem setImage_singleton (s : State) (μ : Label) : lts.setImage {s} μ = lts.image s μ := by
+  ext s'
+  simp [mem_setImage, image]
+
+/-- Images of sets distribute over binary unions. -/
+@[simp, scoped grind =]
+theorem setImage_union (S T : Set State) (μ : Label) :
+    lts.setImage (S ∪ T) μ = lts.setImage S μ ∪ lts.setImage T μ := by
+  ext s'
+  simp [mem_setImage, or_and_right, exists_or]
+
+/-- Images of sets distribute over indexed unions. -/
+@[simp]
+theorem setImage_iUnion {ι : Sort*} (S : ι → Set State) (μ : Label) :
+    lts.setImage (⋃ i, S i) μ = ⋃ i, lts.setImage (S i) μ := by
+  ext s'
+  simp only [mem_setImage, Set.mem_iUnion]
+  exact ⟨fun ⟨s, ⟨i, hs⟩, htr⟩ => ⟨i, s, hs, htr⟩, fun ⟨i, s, hs, htr⟩ => ⟨s, ⟨i, hs⟩, htr⟩⟩
+
+/-- Taking the image of a set is monotone. -/
+@[gcongr]
+theorem setImage_mono {S T : Set State} (h : S ⊆ T) (μ : Label) :
+    lts.setImage S μ ⊆ lts.setImage T μ := by
+  intro s' hs'
+  obtain ⟨s, hs, htr⟩ := mem_setImage.mp hs'
+  exact tr_setImage (h hs) htr
+
+/-- The multistep image of a set along the empty list is the set itself. -/
+@[simp, scoped grind =]
+theorem setImageMultistep_nil (S : Set State) : lts.setImageMultistep S [] = S := by
+  ext s'
+  simp [mem_setImageMultistep]
+
+/-- The multistep image of the empty set is empty. -/
+@[simp, scoped grind =]
+theorem setImageMultistep_empty (μs : List Label) : lts.setImageMultistep ∅ μs = ∅ := by
+  ext s'
+  simp [mem_setImageMultistep]
+
+/-- The multistep image of a singleton is the multistep image of its element. -/
+@[simp]
+theorem setImageMultistep_singleton (s : State) (μs : List Label) :
+    lts.setImageMultistep {s} μs = lts.imageMultistep s μs := by
+  ext s'
+  simp [mem_setImageMultistep, imageMultistep]
+
+/-- Multistep images of sets distribute over binary unions. -/
+@[simp, scoped grind =]
+theorem setImageMultistep_union (S T : Set State) (μs : List Label) :
+    lts.setImageMultistep (S ∪ T) μs =
+      lts.setImageMultistep S μs ∪ lts.setImageMultistep T μs := by
+  ext s'
+  simp [mem_setImageMultistep, or_and_right, exists_or]
+
+/-- Multistep images of sets distribute over indexed unions. -/
+@[simp]
+theorem setImageMultistep_iUnion {ι : Sort*} (S : ι → Set State) (μs : List Label) :
+    lts.setImageMultistep (⋃ i, S i) μs = ⋃ i, lts.setImageMultistep (S i) μs := by
+  ext s'
+  simp only [mem_setImageMultistep, Set.mem_iUnion]
+  exact ⟨fun ⟨s, ⟨i, hs⟩, hmtr⟩ => ⟨i, s, hs, hmtr⟩, fun ⟨i, s, hs, hmtr⟩ => ⟨s, ⟨i, hs⟩, hmtr⟩⟩
+
+/-- Taking the multistep image of a set is monotone. -/
+@[gcongr]
+theorem setImageMultistep_mono {S T : Set State} (h : S ⊆ T) (μs : List Label) :
+    lts.setImageMultistep S μs ⊆ lts.setImageMultistep T μs := by
+  intro s' hs'
+  obtain ⟨s, hs, hmtr⟩ := mem_setImageMultistep.mp hs'
+  exact mTr_setImage (h hs) hmtr
+
+/-- The multistep image along `μs₁ ++ μs₂` is the multistep image along `μs₂` of the multistep
+image along `μs₁`. -/
+@[simp]
+theorem setImageMultistep_append (S : Set State) (μs₁ μs₂ : List Label) :
+    lts.setImageMultistep S (μs₁ ++ μs₂) =
+      lts.setImageMultistep (lts.setImageMultistep S μs₁) μs₂ := by
+  rw [setImageMultistep_foldl_setImage, List.foldl_append]
+
 /-- An lts is image-finite if all images of its states are finite. -/
 abbrev ImageFinite := ∀ s μ, Finite (lts.image s μ)
 
