@@ -95,7 +95,6 @@ theorem OmegaExecution.flatten_execution' [Inhabited Label] [Inhabited State]
       segment_lower_bound (cumLen_strictMono hpos) cumLen_zero n
     refine ⟨segment μls.cumLen n, k, ?_, hk⟩
     have := segment_upper_bound (cumLen_strictMono hpos) cumLen_zero n
-    simp [cumLen_succ] at this
     grind
   have hlen (k : ℕ) : (μls k).length = (sls.map List.dropLast k).length := by grind
   have hclen : μls.cumLen = (sls.map List.dropLast).cumLen := by ext k; induction k <;> grind

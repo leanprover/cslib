@@ -27,9 +27,8 @@ variable {Symbol : Type*} {input : List Symbol}
 
 /-- The copy machine: a single state and no work tapes. It copies every input symbol to the output
 tape while moving right, and halts on reading the blank at the right end of the input. -/
-def copy : MultiTapeTM 0 Symbol Unit where
-  q₀ := ()
-  tr _ s _ :=
+def copy : MultiTapeTM 0 Symbol Unit :=
+  ofTr () fun _ s _ =>
     match s with
     | some b => { inputTape := 1, workTapes := Fin.elim0, output := some b, state := some () }
     | none => { inputTape := 0, workTapes := Fin.elim0, output := none, state := none }
@@ -47,11 +46,11 @@ lemma step_scan {n : ℕ} (hn : n < input.length) :
     copy.step (cfg input (some ()) n) = cfg input (some ()) (n + 1) := by
   have hsym : (cfg input (some ()) n).inputSymbol = some input[n] :=
     inputSymbolInner n (by simp [cfg]; omega) hn
-  rw [step_apply_of_state rfl, hsym]
+  rw [step_of_state rfl, hsym, copy, tr_ofTr]
   apply Cfg.ext_zero_tapes (by rfl)
-  · simp [cfg, copy, moveInputPos]
+  · simp [cfg, moveInputPos]
     grind
-  · simp only [cfg, copy, Action.apply, Option.toList_some]
+  · simp only [cfg, Action.apply, Option.toList_some]
     grind [List.take_add_one]
 
 /-- On the blank at the right end of the input, the copy machine halts in place. -/
@@ -59,8 +58,8 @@ lemma step_halt :
     copy.step (cfg input (some ()) input.length) = cfg input none input.length := by
   have hsym : (cfg input (some ()) input.length).inputSymbol = none :=
     inputSymbol_eq_none_of_boundary (Or.inr (by simp [cfg]))
-  rw [step_apply_of_state rfl, hsym]
-  apply Cfg.ext_zero_tapes <;> simp [cfg, copy, Action.apply]
+  rw [step_of_state rfl, hsym, copy, tr_ofTr]
+  apply Cfg.ext_zero_tapes <;> simp [cfg, Action.apply]
 
 /-- After `n ≤ input.length` steps, the copy machine has copied the first `n` input symbols. -/
 lemma runFrom_scan (n : ℕ) (hn : n ≤ input.length) :
@@ -78,9 +77,10 @@ lemma runFrom_full (input : List Symbol) :
 
 /-- The copy machine outputs its input unchanged, in `input.length + 1` steps and zero space. -/
 theorem computesInTimeAndSpace (input : List Symbol) :
-    ComputesInTimeAndSpace copy input input (input.length + 1) 0 :=
-  ⟨by rw [runFrom_full]; rfl, by rw [runFrom_full]; simp [cfg],
-    copy.spaceUsed_zero_tapes_eq_zero _ _ rfl⟩
+    ComputesInTimeAndSpace copy input input (input.length + 1) 0 := by
+  have hhalt := congrArg Cfg.state (runFrom_full input)
+  exact ⟨⟨input.length + 1, hhalt, by rw [runFrom_full]; simp [cfg]⟩,
+    runsInTime_of_halted hhalt, by simp⟩
 
 end Copy
 
@@ -90,7 +90,6 @@ variable {α : Type*}
 public theorem computableInTimeAndSpace_id {enc : α ↪ List Bool} :
     ComputableInTimeAndSpace (id : α → α) enc enc
       (fun a => (enc a).length + 1) (fun _ => 0) :=
-  ⟨0, Unit, inferInstance, copy, fun a =>
-    ⟨(enc a).length + 1, le_rfl, 0, le_rfl, Copy.computesInTimeAndSpace (enc a)⟩⟩
+  ⟨0, Unit, inferInstance, copy, fun a ↦ Copy.computesInTimeAndSpace (enc a)⟩
 
 end Turing.MultiTapeTM

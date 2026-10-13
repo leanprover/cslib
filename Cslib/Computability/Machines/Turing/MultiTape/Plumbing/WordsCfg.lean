@@ -83,6 +83,12 @@ lemma withState_wordsCfg {State' : Type*} (input : List Symbol) (q : Option Stat
     (ws : Fin k → List Symbol) (out : List Symbol) (q' : Option State') :
     (wordsCfg input q ws out).withState q' = wordsCfg input q' ws out := rfl
 
+/-- Prepending a word to the output of a `wordsCfg` prepends it to the output word. -/
+@[simp]
+lemma prependOutput_wordsCfg (input : List Symbol) (q : Option State)
+    (ws : Fin k → List Symbol) (out pre : List Symbol) :
+    (wordsCfg input q ws out).prependOutput pre = wordsCfg input q ws (pre ++ out) := rfl
+
 /-- The initial configuration is the word configuration with blank tapes and no output. -/
 lemma Cfg.init_eq_wordsCfg (q₀ : State) (input : List Symbol) :
     Cfg.init (k := k) q₀ input = wordsCfg input (some q₀) (fun _ => []) [] := by

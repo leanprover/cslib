@@ -13,7 +13,6 @@ public import Mathlib.Data.Fintype.Prod
 public import Mathlib.Data.Fintype.Option
 public import Mathlib.Data.Set.Card
 public import Mathlib.Order.Lattice.Nat
-public import Mathlib.Algebra.Order.BigOperators.GroupWithZero.Finset
 public import Mathlib.Tactic.Ring
 
 /-!
@@ -264,14 +263,13 @@ def Cfg.core (c : Cfg k Symbol State input) :
 core of the current one. -/
 lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.core = c₂.core) :
     (tm.step c₁).core = (tm.step c₂).core := by
+  rcases c₁ with ⟨q₁, i₁, w₁, p₁, out₁⟩
+  rcases c₂ with ⟨q₂, i₂, w₂, p₂, out₂⟩
   simp only [Cfg.core, Cfg.storage, Prod.mk.injEq, Storage.mk.injEq] at h
-  obtain ⟨hpos, hstate, hwt, hwp⟩ := h
-  have hsym : c₁.inputSymbol = c₂.inputSymbol := by simp [Cfg.inputSymbol, hpos]
-  have hws : c₁.workTapeSymbols = c₂.workTapeSymbols := by
-    funext i
-    simp [Cfg.workTapeSymbols, hwt, hwp]
-  simp only [Cfg.core, Cfg.storage, MultiTapeTM.step, hstate, hsym, hws]
-  cases c₂.state <;> simp [hpos, hstate, hwt, hwp]
+  obtain ⟨rfl, rfl, rfl, rfl⟩ := h
+  cases q₁ with
+  | none => rw [MultiTapeTM.step_of_halt rfl, MultiTapeTM.step_of_halt rfl]; rfl
+  | some q => rw [MultiTapeTM.step_of_state rfl, MultiTapeTM.step_of_state rfl]; rfl
 
 /-! ## The storages and cores of a space-bounded run
 

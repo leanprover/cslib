@@ -502,7 +502,7 @@ theorem hypothesisError_eq_add {P : Measure α} {h c : Set α}
   simp only [hypothesisError, falsePositiveError, falseNegativeError, symmDiff_def, sup_eq_union]
   exact measure_union disjoint_sdiff_sdiff (hc.diff hh)
 
-open Classical in
+open scoped Classical in
 /-- Under a realizable distribution `P.map (x ↦ (x, c(x)))`, the general 0-1 `error`
 coincides with the binary `hypothesisError P h c`, where `h` and `c` are viewed as subsets
 of `α` via the characteristic function `decide (· ∈ ·)`. -/
