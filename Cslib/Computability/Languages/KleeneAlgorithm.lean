@@ -174,6 +174,8 @@ open List
 
 namespace Cslib.LTS
 
+/-- An execution of an LTS with its state type `Fin n`,
+where all states of the execution except for the first and last are less than `bound`. -/
 def BddExec (lts : LTS (Fin n) Symbol) (start : Fin n) (xs : List Symbol) (last : Fin n)
     (ss : List (Fin n)) (bound : ℕ) : Prop :=
   lts.Execution start xs last ss ∧ ss.AllButFirstLast (fun (s : Fin n) ↦ s < bound)
@@ -477,6 +479,7 @@ theorem language_nfa_eq_regex_of_singleton_start_accept {nfa : NA.FinAcc (Fin n)
 
 end Regex
 
+/-- Reindex a LTS by an equivalence on states. -/
 def reindex {State State' : Type*} (lts : LTS State Symbol) (e : State ≃ State') :
     LTS State' Symbol := LTS.mk fun s' a t' ↦ lts.Tr (e.symm s') a (e.symm t')
 
