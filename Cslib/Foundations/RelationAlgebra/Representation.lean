@@ -56,10 +56,10 @@ instance (α : Type u) : RelationAlgebra (SquareRelations α) where
     unfold SquareRelations at *
     ext ⟨x, z⟩
     exact (exists_congr fun y => or_and_right).trans exists_or
-  star_mono _ _ h _ hp := h hp
-  left_modular a b c := by
-    rintro ⟨x, z⟩ ⟨⟨y, hxy, hyz⟩, hxz⟩
-    exact ⟨y, hxy, hyz, x, hxy, hxz⟩
+  star_sup _ _ := rfl
+  tarski a b := by
+    rintro ⟨x, z⟩ ⟨y, hxy, hyz⟩ hxz
+    exact hyz ⟨x, hxy, hxz⟩
 
 end SquareRelations
 

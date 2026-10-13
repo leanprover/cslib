@@ -34,8 +34,8 @@ to inheriting Mathlib's notations for Boolean algebras, `star` is used for conve
 reduct for composition uses multiplicative notation. -/
 class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul α where
   sup_mul (a b c : α) : (a ⊔ b) * c = a * c ⊔ b * c
-  star_mono : Monotone star
-  left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c)
+  star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
+  tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
 
 namespace RelationAlgebra
 
@@ -53,7 +53,32 @@ def_wanted ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
     (star_sup : ∀ a b : α, star (a ⊔ b) = star a ⊔ star b)
     (tarski : ∀ a b : α, star a * (a * b)ᶜ ⊔ bᶜ = bᶜ) : RelationAlgebra α
 
-variable (α : Type*) [RelationAlgebra α]
+variable {α : Type*} [RelationAlgebra α]
+
+theorem star_mono : Monotone (star : α → α) := by
+  intro a b h
+  rw [← sup_eq_right, ← star_sup, sup_eq_right.mpr h]
+
+theorem mul_sup (a b c : α) : a * (b ⊔ c) = a * b ⊔ a * c := by
+  apply star_injective
+  simp [star_sup, sup_mul]
+
+theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
+  calc
+    a * b ⊓ c = (a * (b ⊓ star a * c) ⊔ a * (b ⊓ (star a * c)ᶜ)) ⊓ c := by
+      rw [← mul_sup, ← inf_sup_left, sup_compl_eq_top, inf_top_eq]
+    _ ≤ (a * (b ⊓ star a * c) ⊔ a * (star a * c)ᶜ) ⊓ c := by
+      apply inf_le_inf_right
+      apply sup_le_sup_left
+      rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr inf_le_right]
+    _ ≤ (a * (b ⊓ star a * c) ⊔ cᶜ) ⊓ c := by
+      apply inf_le_inf_right
+      apply sup_le_sup_left
+      simpa only [star_star] using tarski (star a) c
+    _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
+    _ ≤ a * (b ⊓ star a * c) := inf_le_left
+
+variable (α)
 
 /-- A relation algebra is *integral* when its identity is an atom. -/
 def Integral : Prop := IsAtom (1 : α)
