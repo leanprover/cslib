@@ -22,7 +22,7 @@ Theorems showing equivalence of the five definitions of α-equivalence from [Cro
 * `∼r`  (Definition 3.4): traditional renaming axiom with non-occurrence (`AlphaEquivR`)
 * `∼r#` (Definition 3.5): renaming axiom with freshness (`AlphaEquivRFresh`)
 
-The main results are:
+Theorem 4.1 is proved in this file. The remaining results are stated as `theorem_wanted`:
 
 * **Theorem 4.1** [Crole2012]: `∼p = ∼p#` (`alphaEquiv_iff_alphaEquivPFresh`)
 * **Theorem 4.2** [Crole2012]: `∼p = ∼¹p` (`alphaEquiv_iff_alphaEquivP1`)
@@ -102,27 +102,18 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
 theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) : m =α n ↔ AlphaEquivPFresh m n :=
   ⟨alphaEquivPFresh_of_alphaEquiv, alphaEquiv_of_alphaEquivPFresh⟩
 
-/-
-/-! ## Theorem 4.2 [Crole2012] -/
-theorem alphaEquiv_iff_alphaEquivP1 (m n : Term Var) :
-    AlphaEquiv m n ↔ AlphaEquivP1 m n := by
-  sorry
+/-- **Theorem 4.2** [Crole2012]: `∼p` and `∼¹p` are the same relation. -/
+theorem_wanted alphaEquiv_iff_alphaEquivP1 (m n : Term Var) : m =α n ↔ AlphaEquivP1 m n
 
-/-! ## Theorem 4.4 [Crole2012] -/
-theorem alphaEquiv_iff_alphaEquivR (m n : Term Var) :
-    AlphaEquiv m n ↔ AlphaEquivR m n := by
-  sorry
+/-- **Theorem 4.4** [Crole2012]: `∼p` and `∼r` are the same relation. -/
+theorem_wanted alphaEquiv_iff_alphaEquivR (m n : Term Var) : m =α n ↔ AlphaEquivR m n
 
-/-! ## Theorem 4.5 [Crole2012] -/
-theorem alphaEquiv_iff_alphaEquivRFresh (m n : Term Var) :
-    AlphaEquiv m n ↔ AlphaEquivRFresh m n := by
-  sorry
+/-- **Theorem 4.5** [Crole2012]: `∼p` and `∼r#` are the same relation. -/
+theorem_wanted alphaEquiv_iff_alphaEquivRFresh (m n : Term Var) : m =α n ↔ AlphaEquivRFresh m n
 
-/-! ## Theorem 4.6 [Crole2012] -/
-theorem alphaEquivR_iff_alphaEquivRFresh (m n : Term Var) :
-    AlphaEquivR m n ↔ AlphaEquivRFresh m n := by
-  sorry
--/
+/-- **Theorem 4.6** [Crole2012]: `∼r` and `∼r#` are the same relation. -/
+theorem_wanted alphaEquivR_iff_alphaEquivRFresh (m n : Term Var) :
+    AlphaEquivR m n ↔ AlphaEquivRFresh m n
 
 end LambdaCalculus.Named.Untyped.Term
 
