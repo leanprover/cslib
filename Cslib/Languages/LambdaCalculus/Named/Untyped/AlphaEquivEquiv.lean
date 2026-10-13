@@ -60,6 +60,8 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquiv
     apply AlphaEquivPFresh.abs h1 h2
   | app h1 h2 ih1 ih2 => exact AlphaEquivPFresh.app ih1 ih2
 
+/-- The converse direction: the freshness witness `u` of the rule `pi#` is exchanged for an atom
+`z` that does not occur at all, using Lemma 6.1 and Lemma 6.2 part 2 [Crole2012]. -/
 lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n) : m =α n := by
   induction h with
   | var => constructor

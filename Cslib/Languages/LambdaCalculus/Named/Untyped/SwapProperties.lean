@@ -100,22 +100,27 @@ lemma permute_eq_of_eqOn_vars (m : Term Var) (π π' : Equiv.Perm Var)
 /-- A transposition acts on terms in the same way as `Term.swap`. -/
 lemma permute_swap (m : Term Var) (x y : Var) : m.permute (Equiv.swap x y) = m.swap x y := rfl
 
+/-- Swapping a variable with itself has no effect. -/
 @[simp]
 lemma swap_self {m : Term Var} {x : Var} : m.swap x x = m := by
   simp [swap]
 
+/-- Swapping `x` and `y` is the same as swapping `y` and `x`. -/
 lemma swap_comm {m : Term Var} {x y : Var} : m.swap x y = m.swap y x := by
   unfold swap
   rw [Equiv.swap_comm]
 
+/-- Swapping the same two variables twice has no effect. -/
 @[simp]
 lemma swap_involutive {m : Term Var} {x y : Var} : (m.swap x y).swap x y = m := by
   simp [swap, permute_trans]
 
+/-- Swapping preserves size. -/
 @[simp]
 lemma swap_preserves_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.swap x y) = sizeOf m :=
   permute_sizeOf _ _
 
+/-- Swapping two unused variables has no effect. -/
 @[simp]
 lemma swap_unused {m : Term Var} {x y : Var} (hx : x ∉ m.vars) (hy : y ∉ m.vars) :
     m.swap x y = m := by
@@ -164,6 +169,7 @@ lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
     (m.swap u v).rename (Equiv.swap u v x) (Equiv.swap u v y) = (m.rename x y).swap u v :=
   (permute_rename ..).symm
 
+/-- A version of `swap_rename_comm` where the target `z` of the renaming is not swapped. -/
 lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
     (m.swap u v).rename (Equiv.swap u v x) z = (m.rename x z).swap u v := by
   rw [← @swap_rename_comm _ _ m u v x z]
