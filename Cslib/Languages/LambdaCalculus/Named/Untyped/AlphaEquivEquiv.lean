@@ -49,7 +49,7 @@ omit [HasFresh Var] in
 /-- Non-occurrence obviously implies freshness, and the `swap` operation coincides with
 `rename` when the target variable does not occur in the term.
 -/
-lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : m =α n) : AlphaEquivPFresh m n := by
+lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquivPFresh m n := by
   induction h with
   | var => constructor
   | abs z_h1 ih1 ih2 =>
@@ -61,7 +61,7 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : m =α n) : AlphaEquiv
     apply AlphaEquivPFresh.abs h1 h2
   | app h1 h2 ih1 ih2 => exact AlphaEquivPFresh.app ih1 ih2
 
-lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : AlphaEquivPFresh m n) : m =α n := by
+lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n) : m =α n := by
   induction h with
   | var => constructor
   | abs hy _h ih =>
@@ -100,7 +100,7 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : AlphaEquivPFresh m n)
 
 /-! ## Theorem 4.1 [Crole2012] -/
 theorem alphaEquiv_iff_alphaEquivPFresh (m n : Term Var) : m =α n ↔ AlphaEquivPFresh m n :=
-  ⟨alphaEquiv_of_alphaEquivPFresh, alphaEquivPFresh_of_alphaEquiv⟩
+  ⟨alphaEquivPFresh_of_alphaEquiv, alphaEquiv_of_alphaEquivPFresh⟩
 
 /-
 /-! ## Theorem 4.2 [Crole2012] -/
