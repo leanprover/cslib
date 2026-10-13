@@ -47,23 +47,25 @@ def ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
     (huntington : ∀ a b : α, (aᶜ ⊔ b)ᶜ ⊔ (aᶜ ⊔ bᶜ)ᶜ = a)
     (mul_assoc : ∀ a b c : α, (a * b) * c = a * (b * c))
     (mul_one : ∀ a : α, a * 1 = a)
-    (star_star : ∀ a : α, star (star a) = a)
+    (star_involutive : ∀ a : α, star (star a) = a)
     (star_mul : ∀ a b : α, star (a * b) = star b * star a)
     (sup_mul : ∀ a b c : α, (a ⊔ b) * c = a * c ⊔ b * c)
     (star_sup : ∀ a b : α, star (a ⊔ b) = star a ⊔ star b)
     (tarski : ∀ a b : α, star a * (a * b)ᶜ ⊔ bᶜ = bᶜ) : RelationAlgebra α where
   __ := @HuntingtonAlgebra.instBooleanAlgebra α {
     default := 1
-    sup_assoc := sup_assoc
-    sup_comm := sup_comm
+    assoc := sup_assoc
+    comm := sup_comm
     huntington := huntington
   }
   mul_assoc := mul_assoc
   mul_one := mul_one
   one_mul a := by
-    suffices star (1 : α) = 1 by rw [← star_star (1 * a), star_mul, this, mul_one, star_star]
-    rw [← star_star (star 1), ← mul_one (star 1), star_mul, star_star, mul_one, star_star]
-  star_involutive := star_star
+    suffices star (1 : α) = 1 by
+      rw [← star_involutive (1 * a), star_mul, this, mul_one, star_involutive]
+    rw [← star_involutive (star 1), ← mul_one (star 1), star_mul, star_involutive, mul_one,
+      star_involutive]
+  star_involutive := star_involutive
   star_mul := star_mul
   sup_mul := sup_mul
   star_sup := star_sup
