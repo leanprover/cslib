@@ -71,8 +71,7 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
     have hum : u ∉ m.fv := by aesop
     have hum' : u ∉ m'.fv := by aesop
     -- Pick z ≠ u with z ∉ vars(m) ∪ vars(m') ∪ {a, b} (stronger than freshness).
-    obtain ⟨z, hz⟩ : ∃ z : Var, z ∉ m.vars ∪ m'.vars ∪ {a, b, u} := by
-      exact Infinite.exists_notMem_finset (m.vars ∪ m'.vars ∪ {a, b, u})
+    obtain ⟨z, hz⟩ := fresh_exists (m.vars ∪ m'.vars ∪ {a, b, u})
     have hzm : z ∉ m.vars := by aesop
     have hzm' : z ∉ m'.vars := by aesop
     have hzm_fv : z ∉ m.fv := by simp_all [vars_either_fv_or_bv]
