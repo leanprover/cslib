@@ -210,9 +210,7 @@ private lemma desired_condition_cases_z_ne_u_or_v {E E' : Term Var} {a b u v z :
   have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
   have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
   rcases ha with h' | h' | ⟨hau, hav⟩
-  · rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all
-  · rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all
-  · rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all
+  all_goals rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all
 
 -- representative case: z ≠ u, v
 -- Use z as witness.
