@@ -64,7 +64,7 @@ area, but this is absorbed by the `O(s)` exponent in the final bound.
 
 The windows for a whole run are available because the computation paths of a deterministic
 machine are prefixes of one another, so the one visiting the most cells contains the windows of
-every other (`MultiTapeNTM.RunsInSpace.exists_storage_fitsIn`).
+every other (`MultiTapeTM.storage_fitsIn_of_space_max`).
 -/
 
 @[expose] public section
@@ -283,31 +283,22 @@ lemma MultiTapeNTM.ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol S
 namespace MultiTapeTM
 
 open MultiTapeNTM in
-/-- A deterministic machine running in space `s` keeps the storages of all its computation paths
-within windows of total size at most `s`: those of a computation path visiting the most cells,
-since its computation paths are prefixes of one another. -/
-lemma _root_.Turing.MultiTapeNTM.RunsInSpace.exists_storage_fitsIn {s : ℕ}
-    (hs : tm.RunsInSpace input s) :
-    ∃ w : Fin k → ℕ, ∑ i, w i ≤ s ∧ ∀ p : tm.ComputationPath input, p.last.storage.FitsIn w := by
-  -- a computation path visiting the most cells
-  have hne : (Set.range fun p : tm.ComputationPath input => p.space).Nonempty :=
-    ⟨_, .ofDeterministic tm input 0, rfl⟩
-  have hbdd : BddAbove (Set.range fun p : tm.ComputationPath input => p.space) :=
-    ⟨s, by rintro _ ⟨p, rfl⟩; exact hs p⟩
-  obtain ⟨p, hp⟩ := Nat.sSup_mem hne hbdd
+/-- The storage of every computation path fits in the windows of a computation path visiting the
+most cells, since the computation paths of a deterministic machine are prefixes of one another. -/
+lemma storage_fitsIn_of_space_max {p : tm.ComputationPath input}
+    (hp : ∀ q : tm.ComputationPath input, q.space ≤ p.space) (q : tm.ComputationPath input) :
+    q.last.storage.FitsIn (RunPath.spaceUsedByTape p.toRunPath) := by
   -- a longer computation path visits every cell of a shorter one
   have hmono {p q : tm.ComputationPath input} (h : p.time ≤ q.time) (i : Fin k) :
       RunPath.spaceUsedByTape p.toRunPath i ≤ RunPath.spaceUsedByTape q.toRunPath i := by
     rw [RunPath.eq_take (by rw [p.head_eq, q.head_eq]) h]
     exact Finset.card_le_card (RunPath.visitedByTapeHead_take_subset _ _ i)
-  refine ⟨RunPath.spaceUsedByTape p.toRunPath, hs p, fun q => Storage.FitsIn_mono (fun i => ?_)
-    q.storage_fitsIn⟩
+  refine Storage.FitsIn_mono (fun i => ?_) q.storage_fitsIn
   rcases le_total q.time p.time with h | h
   · exact hmono h i
   -- the longer `q` visits no more cells than `p`, so it visits exactly those of `p`
   have hq : ∑ j, RunPath.spaceUsedByTape q.toRunPath j ≤
-      ∑ j, RunPath.spaceUsedByTape p.toRunPath j :=
-    (le_csSup hbdd ⟨q, rfl⟩).trans_eq hp.symm
+      ∑ j, RunPath.spaceUsedByTape p.toRunPath j := hp q
   exact ((Finset.sum_eq_sum_iff_of_le fun j _ => hmono h j).mp
     (le_antisymm (Finset.sum_le_sum fun j _ => hmono h j) hq) i (Finset.mem_univ i)).ge
 
@@ -318,10 +309,10 @@ theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
     (hs : tm.RunsInSpace input s) :
     (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard
       ≤ storageBound Symbol State k s := by
-  obtain ⟨w, hw, hfit⟩ := hs.exists_storage_fitsIn
-  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le hw)
+  obtain ⟨p, hp⟩ := hs.exists_space_max
+  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs p))
   rintro _ ⟨t, rfl⟩
-  exact hfit (.ofDeterministic tm input t)
+  exact storage_fitsIn_of_space_max hp (.ofDeterministic tm input t)
 
 /-- The number of configuration cores that a machine bounded by space `s` can reach is at most
 `(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input. -/

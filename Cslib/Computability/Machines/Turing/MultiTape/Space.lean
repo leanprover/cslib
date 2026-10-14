@@ -9,6 +9,7 @@ module
 public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Data.Int.Interval
+public import Mathlib.Order.Lattice.Nat
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 
 /-!
@@ -20,8 +21,7 @@ positions visited by each work-tape head along the path and sums over the tapes.
 The space of a path is bounded by sets containing its head positions
 (`RunPath.space_le_sum_card`), in particular by a window `[-s, s]` containing its heads
 (`RunPath.InWindow`). A path mapped along a homomorphism of step relations uses the space of the
-original path on the tapes that follow it, and the space of its other tapes
-(`RunPath.space_map_le`).
+original path on the tapes that follow it (`RunPath.space_map_le`).
 
 ## Design
 
@@ -130,18 +130,19 @@ lemma InWindow.smash {p q : ntm.RunPath input} {h : p.last = q.head} {s : ℕ}
 
 /-! ### Mapped paths -/
 
-/-- **Space of a mapped path.** If the map carries the head of each tape `j` to tape `e j`, and each
-other tape of the mapped path uses at most `b` cells, the mapped path uses the space of `p` and `b`
-more cells for each other tape. -/
+/-- **Space of a mapped path.** If the map carries the head of each tape `j` to tape `e j`, and
+keeps the head of each other tape `l` within the cells `W l`, the mapped path uses the space of `p`
+and the cells of `W l` for each other tape. -/
 lemma space_map_le (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.stepRel input'))
-    (e : Fin k ↪ Fin k') (he : ∀ c j, (f c).workTapePos (e j) = c.workTapePos j) {b : ℕ}
-    (hb : ∀ l ∉ Set.range e, (p.map f).spaceUsedByTape l ≤ b) :
-    (p.map f).space ≤ p.space + (k' - k) * b := by
+    (e : Fin k ↪ Fin k') (he : ∀ c j, (f c).workTapePos (e j) = c.workTapePos j)
+    (W : Fin k' → Finset ℤ)
+    (hW : ∀ c ∈ p, ∀ l ∉ Set.range e, (f c).workTapePos l ∈ W l) :
+    (p.map f).space ≤ p.space + ∑ l ∈ (Finset.univ.map e)ᶜ, (W l).card := by
   rw [space, ← Finset.sum_add_sum_compl (Finset.univ.map e), Finset.sum_map]
   refine add_le_add (Finset.sum_le_sum fun j _ =>
-    (congrArg Finset.card (Finset.image_congr fun n _ => he (p n) j)).le) ?_
-  refine (Finset.sum_le_card_nsmul _ _ b fun l hl => hb l (by simpa using hl)).trans_eq ?_
-  simp [Finset.card_compl]
+    (congrArg Finset.card (Finset.image_congr fun n _ => he (p n) j)).le)
+    (Finset.sum_le_sum fun l hl => (p.map f).spaceUsedByTape_le_card fun _ ⟨n, hn⟩ =>
+      hn ▸ hW (p n) ⟨n, rfl⟩ l (by simpa using hl))
 
 end RunPath
 
@@ -157,6 +158,16 @@ def RunsInSpace (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (s : �
 lemma RunsInSpace.mono {s s' : ℕ} (h : ntm.RunsInSpace input s) (hs : s ≤ s') :
     ntm.RunsInSpace input s' :=
   fun p ↦ (h p).trans hs
+
+/-- A machine running in space `s` has a computation path visiting the most cells. -/
+lemma RunsInSpace.exists_space_max {s : ℕ} (hs : ntm.RunsInSpace input s) :
+    ∃ p : ntm.ComputationPath input, ∀ q : ntm.ComputationPath input, q.space ≤ p.space := by
+  have hne : (Set.range fun p : ntm.ComputationPath input => p.space).Nonempty :=
+    ⟨_, ⟨.singleton _ (ntm.initCfg input), rfl⟩, rfl⟩
+  have hbdd : BddAbove (Set.range fun p : ntm.ComputationPath input => p.space) :=
+    ⟨s, by rintro _ ⟨p, rfl⟩; exact hs p⟩
+  obtain ⟨p, hp⟩ := Nat.sSup_mem hne hbdd
+  exact ⟨p, fun q => (le_csSup hbdd ⟨q, rfl⟩).trans_eq hp.symm⟩
 
 /-- A machine without work tapes satisfies every space bound. -/
 @[simp]
