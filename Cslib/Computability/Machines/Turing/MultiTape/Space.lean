@@ -146,6 +146,10 @@ lemma space_map_le (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.st
 
 end RunPath
 
+/-- The number of positions visited by the head of work tape `i` along a computation path. -/
+def ComputationPath.spaceUsedByTape (p : ntm.ComputationPath input) (i : Fin k) : ℕ :=
+  RunPath.spaceUsedByTape p.toRunPath i
+
 /-- The number of work tape cells visited along a computation path. -/
 def ComputationPath.space (p : ntm.ComputationPath input) : ℕ := RunPath.space p.toRunPath
 

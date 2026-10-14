@@ -232,6 +232,24 @@ lemma RunPath.eq_take {p q : tm.RunPath input} (hhead : p.head = q.head) (h : p.
   rw [RelSeries.head_take, hhead]
   rfl
 
+/-- The computation paths of a deterministic machine are prefixes of one another, so a path visiting
+at most as many cells as another visits at most as many on each tape. -/
+lemma ComputationPath.spaceUsedByTape_le_of_space_le (p : tm.ComputationPath input)
+    {q : tm.ComputationPath input} (h : p.space ≤ q.space) :
+    p.spaceUsedByTape ≤ q.spaceUsedByTape := by
+  -- a shorter path is a prefix of a longer one, so it visits fewer cells on each tape
+  have hmono {p q : tm.ComputationPath input} (h : p.time ≤ q.time) :
+      p.spaceUsedByTape ≤ q.spaceUsedByTape := fun i => by
+    change RunPath.spaceUsedByTape p.toRunPath i ≤ RunPath.spaceUsedByTape q.toRunPath i
+    rw [RunPath.eq_take (by rw [p.head_eq, q.head_eq]) h]
+    exact Finset.card_le_card (RunPath.visitedByTapeHead_take_subset _ _ i)
+  rcases le_total p.time q.time with hpq | hqp
+  · exact hmono hpq
+  -- a longer `p` visits no more cells than `q`, so it visits exactly those of `q`
+  have h : ∑ j, p.spaceUsedByTape j ≤ ∑ j, q.spaceUsedByTape j := h
+  exact fun i => ((Finset.sum_eq_sum_iff_of_le fun j _ => hmono hqp j).mp
+    (le_antisymm (Finset.sum_le_sum fun j _ => hmono hqp j) h) i (Finset.mem_univ i)).ge
+
 /-- A step-preserving map sends the path of `t` steps from `cfg` to the path of `t` steps from the
 image of `cfg`. -/
 lemma RunPath.map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Symbol}

@@ -64,7 +64,7 @@ area, but this is absorbed by the `O(s)` exponent in the final bound.
 
 The windows for a whole run are available because the computation paths of a deterministic
 machine are prefixes of one another, so the one visiting the most cells contains the windows of
-every other (`MultiTapeTM.storage_fitsIn_of_space_max`).
+every other (`MultiTapeNTM.ComputationPath.spaceUsedByTape_le_of_space_le`).
 -/
 
 @[expose] public section
@@ -266,41 +266,24 @@ These are the main results giving upper bounds on the number of storages and con
 reachable in bounded space.
 -/
 
+namespace MultiTapeNTM
+
 /-- The storage at the end of a computation path fits in the windows given by its per-tape space:
 the tapes start blank, with every head at `0`. -/
-lemma MultiTapeNTM.ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol State}
-    (p : ntm.ComputationPath input) :
-    p.last.storage.FitsIn (RunPath.spaceUsedByTape p.toRunPath) := by
+lemma ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol State}
+    (p : ntm.ComputationPath input) : p.last.storage.FitsIn p.spaceUsedByTape := by
   refine ⟨fun j => ?_, fun j z hz => ?_⟩
-  · simpa [Cfg.storage, p.head_eq, Cfg.init] using
+  · simpa [Cfg.storage, p.head_eq, Cfg.init, ComputationPath.spaceUsedByTape] using
       RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
         ((RunPath.mem_visitedByTapeHead _).mpr ⟨_, RelSeries.last_mem _, rfl⟩)
-  · simpa [p.head_eq, Cfg.init] using
+  · simpa [p.head_eq, Cfg.init, ComputationPath.spaceUsedByTape] using
       RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
         (RunPath.mem_visitedByTapeHead_of_workTapes_ne _
           (by simpa [p.head_eq, Cfg.init, Cfg.storage] using hz))
 
-namespace MultiTapeTM
+end MultiTapeNTM
 
-open MultiTapeNTM in
-/-- The storage of every computation path fits in the windows of a computation path visiting the
-most cells, since the computation paths of a deterministic machine are prefixes of one another. -/
-lemma storage_fitsIn_of_space_max {p : tm.ComputationPath input}
-    (hp : ∀ q : tm.ComputationPath input, q.space ≤ p.space) (q : tm.ComputationPath input) :
-    q.last.storage.FitsIn (RunPath.spaceUsedByTape p.toRunPath) := by
-  -- a longer computation path visits every cell of a shorter one
-  have hmono {p q : tm.ComputationPath input} (h : p.time ≤ q.time) (i : Fin k) :
-      RunPath.spaceUsedByTape p.toRunPath i ≤ RunPath.spaceUsedByTape q.toRunPath i := by
-    rw [RunPath.eq_take (by rw [p.head_eq, q.head_eq]) h]
-    exact Finset.card_le_card (RunPath.visitedByTapeHead_take_subset _ _ i)
-  refine Storage.FitsIn_mono (fun i => ?_) q.storage_fitsIn
-  rcases le_total q.time p.time with h | h
-  · exact hmono h i
-  -- the longer `q` visits no more cells than `p`, so it visits exactly those of `p`
-  have hq : ∑ j, RunPath.spaceUsedByTape q.toRunPath j ≤
-      ∑ j, RunPath.spaceUsedByTape p.toRunPath j := hp q
-  exact ((Finset.sum_eq_sum_iff_of_le fun j _ => hmono h j).mp
-    (le_antisymm (Finset.sum_le_sum fun j _ => hmono h j) hq) i (Finset.mem_univ i)).ge
+namespace MultiTapeTM
 
 /-- A machine that uses at most `s` cells of work-tape space at every point in time passes through
 at most `storageBound Symbol State k s` different storages during its whole run — independently of
@@ -309,10 +292,12 @@ theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
     (hs : tm.RunsInSpace input s) :
     (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard
       ≤ storageBound Symbol State k s := by
+  -- every storage fits in the windows of a computation path visiting the most cells
   obtain ⟨p, hp⟩ := hs.exists_space_max
   refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs p))
   rintro _ ⟨t, rfl⟩
-  exact storage_fitsIn_of_space_max hp (.ofDeterministic tm input t)
+  let q : tm.ComputationPath input := .ofDeterministic tm input t
+  exact Storage.FitsIn_mono (q.spaceUsedByTape_le_of_space_le (hp q)) q.storage_fitsIn
 
 /-- The number of configuration cores that a machine bounded by space `s` can reach is at most
 `(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input. -/
