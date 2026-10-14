@@ -99,6 +99,12 @@ lemma mem_visitedByTapeHead (p : ntm.RunPath input) {i : Fin k} {z : ℤ} :
     z ∈ p.visitedByTapeHead i ↔ ∃ c ∈ p, c.workTapePos i = z := by
   simp [visitedByTapeHead, RelSeries.mem_def]
 
+/-- A prefix of a path visits only cells that the path visits. -/
+lemma visitedByTapeHead_take_subset (p : ntm.RunPath input) (j : Fin (p.length + 1)) (i : Fin k) :
+    visitedByTapeHead (p.take j) i ⊆ p.visitedByTapeHead i :=
+  Finset.image_subset_iff.mpr fun n _ =>
+    p.mem_visitedByTapeHead.mpr ⟨_, ⟨Fin.castLE j.isLt n, rfl⟩, rfl⟩
+
 /-- Extending a path by a configuration visits its head positions as well. -/
 lemma visitedByTapeHead_snoc (p : ntm.RunPath input) (c : Cfg k Symbol State input)
     (h : ntm.Step p.last c) (i : Fin k) :

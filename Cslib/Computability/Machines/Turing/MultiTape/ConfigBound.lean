@@ -297,9 +297,9 @@ lemma _root_.Turing.MultiTapeNTM.RunsInSpace.exists_storage_fitsIn {s : ℕ}
   obtain ⟨p, hp⟩ := Nat.sSup_mem hne hbdd
   -- a longer computation path visits every cell of a shorter one
   have hmono {p q : tm.ComputationPath input} (h : p.time ≤ q.time) (i : Fin k) :
-      RunPath.spaceUsedByTape p.toRunPath i ≤ RunPath.spaceUsedByTape q.toRunPath i :=
-    RunPath.spaceUsedByTape_le_card _ fun c hc => (RunPath.mem_visitedByTapeHead _).mpr
-      ⟨c, RunPath.mem_of_length_le (by rw [p.head_eq, q.head_eq]) h hc, rfl⟩
+      RunPath.spaceUsedByTape p.toRunPath i ≤ RunPath.spaceUsedByTape q.toRunPath i := by
+    rw [RunPath.eq_take (by rw [p.head_eq, q.head_eq]) h]
+    exact Finset.card_le_card (RunPath.visitedByTapeHead_take_subset _ _ i)
   refine ⟨RunPath.spaceUsedByTape p.toRunPath, hs p, fun q => Storage.FitsIn_mono (fun i => ?_)
     q.storage_fitsIn⟩
   rcases le_total q.time p.time with h | h

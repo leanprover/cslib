@@ -84,11 +84,9 @@ lemma natAbs_le_spaceUsedByTape_of_mem_visited (p : ntm.RunPath input) {i : Fin 
     (z - p.head.workTapePos i).natAbs ≤ p.spaceUsedByTape i := by
   obtain ⟨n, -, rfl⟩ := Finset.mem_image.mp hz
   -- the prefix up to `n` visits every position between the first position and the one at `n`
-  have hsub : visitedByTapeHead (p.take n) i ⊆ p.visitedByTapeHead i :=
-    Finset.image_subset_iff.mpr fun j _ =>
-      p.mem_visitedByTapeHead.mpr ⟨_, ⟨Fin.castLE n.isLt j, rfl⟩, rfl⟩
   have h := Finset.card_le_card
-    ((uIcc_workTapePos_subset_visitedByTapeHead (p.take n) i).trans hsub)
+    ((uIcc_workTapePos_subset_visitedByTapeHead (p.take n) i).trans
+      (p.visitedByTapeHead_take_subset n i))
   rw [RelSeries.head_take, RelSeries.last_take, Int.card_uIcc] at h
   change _ ≤ (p.visitedByTapeHead i).card
   omega
