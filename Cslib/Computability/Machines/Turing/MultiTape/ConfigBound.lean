@@ -62,9 +62,9 @@ alphabet exponent.
 We lose a factor of `2 * k` by simplifying the windows to `[-sᵢ, sᵢ]` instead of the actually used
 area, but this is absorbed by the `O(s)` exponent in the final bound.
 
-The windows for a whole run are available because the paths of a deterministic machine from its
-start are prefixes of one another, so one of them attains the space of every tape
-(`MultiTapeTM.exists_spaceUsedByTape_max`).
+The windows for a whole run are available because the computation paths of a deterministic
+machine are prefixes of one another, so the one visiting the most cells contains the windows of
+every other (`MultiTapeNTM.RunsInSpace.exists_storage_fitsIn`).
 -/
 
 @[expose] public section
@@ -282,30 +282,34 @@ lemma MultiTapeNTM.ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol S
 
 namespace MultiTapeTM
 
-/-- If every path from `cfg` visits at most `s` cells, one of these paths visits as many cells as
-any other on every tape. -/
-lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
-    (hs : ∀ p : tm.RunPath input, p.head = cfg → p.space ≤ s) :
-    ∃ p : tm.RunPath input, p.head = cfg ∧
-      ∀ q : tm.RunPath input, q.head = cfg → q.spaceUsedByTape ≤ p.spaceUsedByTape := by
-  let w (t : ℕ) := (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).spaceUsedByTape
-  -- a longer run visits every cell visited by a shorter one
-  have hmono (i : Fin k) : Monotone (w · i) := fun t t' h =>
-    Finset.card_le_card <| Finset.image_subset_iff.mpr fun m _ =>
-      Finset.mem_image_of_mem _ (Finset.mem_univ (Fin.castLE (show t + 1 ≤ t' + 1 by omega) m))
-  -- the space of a single tape is bounded, so it attains its supremum at some step `T i`
-  have h (i : Fin k) : ∃ Ti, ∀ t, w t i ≤ w Ti i := by
-    have hbdd : BddAbove (Set.range (w · i)) := ⟨s, by
-      rintro _ ⟨t, rfl⟩
-      exact (Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)).trans
-        (hs _ rfl)⟩
-    obtain ⟨Ti, hTi⟩ := Nat.sSup_mem (Set.range_nonempty (w · i)) hbdd
-    exact ⟨Ti, fun t => (le_csSup hbdd ⟨t, rfl⟩).trans hTi.ge⟩
-  choose T hT using h
-  -- a path is the run of its length, and a step late enough for every tape dominates it
-  refine ⟨.ofDeterministic tm cfg (Finset.univ.sup T), rfl, fun q hq i => ?_⟩
-  rw [q.eq_ofDeterministic, hq]
-  exact (hT i _).trans (hmono i (Finset.le_sup (Finset.mem_univ i)))
+open MultiTapeNTM in
+/-- A deterministic machine running in space `s` keeps the storages of all its computation paths
+within windows of total size at most `s`: those of a computation path visiting the most cells,
+since its computation paths are prefixes of one another. -/
+lemma _root_.Turing.MultiTapeNTM.RunsInSpace.exists_storage_fitsIn {s : ℕ}
+    (hs : tm.RunsInSpace input s) :
+    ∃ w : Fin k → ℕ, ∑ i, w i ≤ s ∧ ∀ p : tm.ComputationPath input, p.last.storage.FitsIn w := by
+  -- a computation path visiting the most cells
+  have hne : (Set.range fun p : tm.ComputationPath input => p.space).Nonempty :=
+    ⟨_, .ofDeterministic tm input 0, rfl⟩
+  have hbdd : BddAbove (Set.range fun p : tm.ComputationPath input => p.space) :=
+    ⟨s, by rintro _ ⟨p, rfl⟩; exact hs p⟩
+  obtain ⟨p, hp⟩ := Nat.sSup_mem hne hbdd
+  -- a longer computation path visits every cell of a shorter one
+  have hmono {p q : tm.ComputationPath input} (h : p.time ≤ q.time) (i : Fin k) :
+      RunPath.spaceUsedByTape p.toRunPath i ≤ RunPath.spaceUsedByTape q.toRunPath i :=
+    RunPath.spaceUsedByTape_le_card _ fun c hc => (RunPath.mem_visitedByTapeHead _).mpr
+      ⟨c, RunPath.mem_of_length_le (by rw [p.head_eq, q.head_eq]) h hc, rfl⟩
+  refine ⟨RunPath.spaceUsedByTape p.toRunPath, hs p, fun q => Storage.FitsIn_mono (fun i => ?_)
+    q.storage_fitsIn⟩
+  rcases le_total q.time p.time with h | h
+  · exact hmono h i
+  -- the longer `q` visits no more cells than `p`, so it visits exactly those of `p`
+  have hq : ∑ j, RunPath.spaceUsedByTape q.toRunPath j ≤
+      ∑ j, RunPath.spaceUsedByTape p.toRunPath j :=
+    (le_csSup hbdd ⟨q, rfl⟩).trans_eq hp.symm
+  exact ((Finset.sum_eq_sum_iff_of_le fun j _ => hmono h j).mp
+    (le_antisymm (Finset.sum_le_sum fun j _ => hmono h j) hq) i (Finset.mem_univ i)).ge
 
 /-- A machine that uses at most `s` cells of work-tape space at every point in time passes through
 at most `storageBound Symbol State k s` different storages during its whole run — independently of
@@ -314,11 +318,10 @@ theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
     (hs : tm.RunsInSpace input s) :
     (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard
       ≤ storageBound Symbol State k s := by
-  obtain ⟨p, hp, hmax⟩ := exists_spaceUsedByTape_max (tm.initCfg input) fun q hq => hs ⟨q, hq⟩
-  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs ⟨p, hp⟩))
+  obtain ⟨w, hw, hfit⟩ := hs.exists_storage_fitsIn
+  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le hw)
   rintro _ ⟨t, rfl⟩
-  exact Storage.FitsIn_mono (hmax _ rfl)
-    (MultiTapeNTM.ComputationPath.ofDeterministic tm input t).storage_fitsIn
+  exact hfit (.ofDeterministic tm input t)
 
 /-- The number of configuration cores that a machine bounded by space `s` can reach is at most
 `(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input. -/

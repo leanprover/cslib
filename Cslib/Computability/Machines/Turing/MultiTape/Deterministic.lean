@@ -224,6 +224,15 @@ lemma ComputationPath.eq_ofDeterministic (p : tm.ComputationPath input) :
   congr 1
   exact (RunPath.eq_ofDeterministic p).trans (by rw [hp]; rfl)
 
+/-- Deterministic run paths from the same configuration are prefixes of one another: the shorter one
+lies on the longer one. -/
+lemma RunPath.mem_of_length_le {p q : tm.RunPath input} (hhead : p.head = q.head)
+    (h : p.length ≤ q.length) {c : Cfg k Symbol State input} (hc : c ∈ p) : c ∈ q := by
+  rw [p.eq_ofDeterministic] at hc
+  rw [q.eq_ofDeterministic, ← hhead]
+  obtain ⟨⟨n, hn⟩, rfl⟩ := hc
+  exact ⟨⟨n, Nat.lt_of_lt_of_le hn (Nat.succ_le_succ h)⟩, rfl⟩
+
 /-- A step-preserving map sends the path of `t` steps from `cfg` to the path of `t` steps from the
 image of `cfg`. -/
 lemma RunPath.map_ofDeterministic {k' : ℕ} {State' : Type*} {input' : List Symbol}
