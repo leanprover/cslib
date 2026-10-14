@@ -42,9 +42,6 @@ abbrev ofContainers [Membership α β] (f : Frame α τ) : Model α τ β where
 /-- Abbreviation for `Model.ofContainers` where the container type is a `Set`. -/
 abbrev ofSets (f : Frame α τ) : Model α τ (Set α) := ofContainers f
 
-/-- The set model and predicate model of a frame are definitionally equal. -/
-theorem ofSets_eq_ofPredicates (f : Frame α τ) : ofSets f = ofPredicates f := rfl
-
 end Model
 
 open Model Relation
