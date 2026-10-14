@@ -18,9 +18,9 @@ Defines the space used by a run path of a multi-tape Turing machine. Space usage
 positions visited by each work-tape head along the path and sums over the tapes.
 
 The space of a path is bounded by sets containing its head positions
-(`RunPath.space_le_sum_card`), by its number of steps (`RunPath.space_linear`) and by a window
-`[-s, s]` containing its heads (`RunPath.InWindow`). A path mapped along a homomorphism of step
-relations uses the space of the original path on the tapes that follow it (`RunPath.space_map_le`).
+(`RunPath.space_le_sum_card`), in particular by a window `[-s, s]` containing its heads
+(`RunPath.InWindow`). A path mapped along a homomorphism of step relations uses the space of the
+original path on the tapes that follow it (`RunPath.space_map_le`).
 
 ## Design
 
@@ -92,23 +92,11 @@ lemma space_le_sum_card (p : ntm.RunPath input) {S : Fin k → Finset ℤ}
     (h : ∀ c ∈ p, ∀ i, c.workTapePos i ∈ S i) : p.space ≤ ∑ i, (S i).card :=
   Finset.sum_le_sum fun i _ => p.spaceUsedByTape_le_card fun c hc => h c hc i
 
-/-- A head visits at most one cell per configuration of the path. -/
-lemma spaceUsedByTape_le (p : ntm.RunPath input) (i : Fin k) : p.spaceUsedByTape i ≤ p.time + 1 :=
-  Finset.card_image_le.trans_eq (by simp [time])
-
-/-- The space of a path is bounded linearly by its number of steps. -/
-lemma space_linear (p : ntm.RunPath input) : p.space ≤ k * p.time + k :=
-  (Finset.sum_le_sum fun i _ => p.spaceUsedByTape_le i).trans_eq (by simp [Nat.mul_succ])
-
 /-- A path visits exactly the head positions of its configurations. -/
 @[simp]
 lemma mem_visitedByTapeHead (p : ntm.RunPath input) {i : Fin k} {z : ℤ} :
     z ∈ p.visitedByTapeHead i ↔ ∃ c ∈ p, c.workTapePos i = z := by
   simp [visitedByTapeHead, RelSeries.mem_def]
-
-/-- A path whose configurations all lie on another path visits no more cells. -/
-lemma space_le_of_subset {p q : ntm.RunPath input} (h : ∀ c ∈ q, c ∈ p) : q.space ≤ p.space :=
-  q.space_le_sum_card fun c hc _ => p.mem_visitedByTapeHead.mpr ⟨c, h c hc, rfl⟩
 
 /-- Extending a path by a configuration visits its head positions as well. -/
 lemma visitedByTapeHead_snoc (p : ntm.RunPath input) (c : Cfg k Symbol State input)
