@@ -85,11 +85,8 @@ lemma InWindow.space_le {p : ntm.RunPath input} {s : ℕ} (h : p.InWindow s) :
 
 /-- Joining two paths whose heads stay within `[-s, s]` keeps them there. -/
 lemma InWindow.smash {p q : ntm.RunPath input} {h : p.last = q.head} {s : ℕ}
-    (hp : p.InWindow s) (hq : q.InWindow s) : InWindow (p.smash q h) s := by
-  rintro _ ⟨j, rfl⟩
-  refine Fin.addCases (m := p.length) (n := q.length + 1) (fun j => ?_) (fun j => ?_) j
-  · exact hp _ ⟨j.castSucc, by simp [RelSeries.smash]⟩
-  · exact hq _ ⟨j, by simp [RelSeries.smash]⟩
+    (hp : p.InWindow s) (hq : q.InWindow s) : InWindow (p.smash q h) s :=
+  fun _ hc => (RelSeries.mem_or_mem_of_mem_smash hc).elim (hp _) (hq _)
 
 /-! ### Mapped paths -/
 
@@ -279,21 +276,15 @@ lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
   exact ⟨Finset.univ.sup T, fun t i =>
     (hT i t).trans (tm.spaceUsedByTape_mono cfg i (Finset.le_sup (Finset.mem_univ i)))⟩
 
-/-- The run from the head of a run path that ends halted visits no cell outside the path. -/
-lemma spaceUsed_head_le (p : tm.RunPath input) (h : p.last.Halted) (t : ℕ) :
-    tm.spaceUsed p.head t ≤ p.space := by
-  rw [p.eq_ofDeterministic] at h ⊢
-  exact MultiTapeNTM.RunPath.space_le_of_subset fun _ ⟨m, hm⟩ =>
-    hm ▸ runFrom_mem_ofDeterministic h m
-
-/-- A run that starts with every head at cell `0` and uses at most `s` cells keeps its heads
+/-- A run path that starts with every head at cell `0` and visits at most `s` cells keeps its heads
 within `[-s, s]`. -/
-lemma inWindow_ofDeterministic {t s : ℕ} (h0 : ∀ i, cfg.workTapePos i = 0)
-    (hs : tm.spaceUsed cfg t ≤ s) : (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).InWindow s := by
+lemma _root_.Turing.MultiTapeNTM.RunPath.inWindow_of_space_le {p : tm.RunPath input} {s : ℕ}
+    (h0 : ∀ i, p.head.workTapePos i = 0) (hs : p.space ≤ s) : p.InWindow s := by
+  rw [p.eq_ofDeterministic] at hs ⊢
   rintro _ ⟨n, rfl⟩ i
   have hz := tm.natAbs_le_spaceUsedByTape_of_mem_visited
-    ((tm.mem_visitedByTapeHead (cfg := cfg) (t := t) (i := i)).mpr ⟨n, n.2, rfl⟩)
+    ((tm.mem_visitedByTapeHead (cfg := p.head) (t := p.time) (i := i)).mpr ⟨n, n.2, rfl⟩)
   rw [h0, sub_zero] at hz
-  exact mem_window.mpr (hz.trans ((tm.spaceUsedByTape_le_spaceUsed cfg t i).trans hs))
+  exact mem_window.mpr (hz.trans ((tm.spaceUsedByTape_le_spaceUsed _ _ i).trans hs))
 
 end Turing.MultiTapeTM

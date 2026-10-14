@@ -236,17 +236,19 @@ public theorem TransformsTapes.tapeEmb {tm : MultiTapeTM 1 Symbol State}
         ∃ v, Q input (fun _ => ws i) v emitted ∧ ws' = Function.update ws i (v 0))
       t (s + (k - 1)) := by
   intro input ws out hP
-  obtain ⟨v, emitted, hrun, hQ, hspace⟩ := h input (fun _ => ws i) out hP
-  simp only [wordsCfg] at hrun
-  refine ⟨Function.update ws i (v 0), emitted, ?_, ⟨v, hQ, rfl⟩, ?_⟩
-  · rw [extendTapes_q₀, runFrom_tapeEmb]
-    simp only [oneTapeCfg, wordsCfg, hrun]
+  obtain ⟨v, emitted, hQ, p, hhead, hlast, htime, hspace⟩ := h input (fun _ => ws i) out hP
+  -- the path of the placed machine is the one-tape path, placed on tape `i`
+  have hplace (q : Option State) (v : Fin 1 → List Symbol) (o : List Symbol) :
+      embed (MultiTapeTM.tapeEmb i) (wordsCfg input q v o) (fun l => tapeOfList (ws l))
+        (fun _ => 0) = wordsCfg input q (Function.update ws i (v 0)) o := by
     rw [embed_tapeEmb]
-    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> by_cases hl : l = i <;> simp [hl]
-  · -- the path of the placed machine is the one-tape path, mapped onto tape `i`
-    rw [extendTapes_q₀, ← embed_oneTapeCfg i (wordsCfg ..), ← embedHom_apply tm,
-      spaceUsed, ← MultiTapeNTM.RunPath.map_ofDeterministic]
-    exact (space_map_embedHom_le ..).trans (Nat.add_le_add_right hspace _)
+    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> by_cases hl : l = i <;> simp [hl, wordsCfg]
+  refine ⟨Function.update ws i (v 0), emitted, ⟨v, hQ, rfl⟩,
+    p.map (embedHom tm (MultiTapeTM.tapeEmb i) (fun l => tapeOfList (ws l)) (fun _ => 0)),
+    ?_, ?_, htime, (space_map_embedHom_le ..).trans (Nat.add_le_add_right hspace _)⟩
+  · simp only [RelSeries.head_map, hhead, embedHom_apply, hplace, Function.update_eq_self]
+    rfl
+  · simp only [RelSeries.last_map, hlast, embedHom_apply, hplace]
 
 end OneTape
 

@@ -50,6 +50,25 @@ requires every path of at least `t` steps to end in a halted configuration.
 
 @[expose] public section
 
+namespace RelSeries
+
+variable {α β : Type*} {r : SetRel α α} {s : SetRel β β}
+
+/-- A member of a mapped series is the image of a member. -/
+lemma exists_of_mem_map {p : RelSeries r} {f : r.Hom s} {b : β} (hb : b ∈ p.map f) :
+    ∃ a ∈ p, f a = b :=
+  let ⟨i, hi⟩ := hb
+  ⟨p i, ⟨i, rfl⟩, hi⟩
+
+/-- A member of two joined series lies on one of them. -/
+lemma mem_or_mem_of_mem_smash {p q : RelSeries r} {h : p.last = q.head} {a : α}
+    (ha : a ∈ p.smash q h) : a ∈ p ∨ a ∈ q := by
+  obtain ⟨j, rfl⟩ := ha
+  refine Fin.addCases (m := p.length) (n := q.length + 1) (fun j => .inl ⟨j.castSucc, ?_⟩)
+    (fun j => .inr ⟨j, ?_⟩) j <;> simp [smash]
+
+end RelSeries
+
 namespace Turing
 
 variable {k : ℕ} {State Symbol : Type*} {input : List Symbol}
@@ -96,6 +115,11 @@ abbrev stepRel (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
     SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
   {(c, c') | ntm.Step c c'}
 
+/-- The steps of `ntm` from running configurations: the steps within a run until it halts. -/
+abbrev runningStepRel (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :
+    SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
+  {(c, c') | ¬c.Halted ∧ ntm.Step c c'}
+
 /-- A nonempty list of configurations joined by steps of `ntm`. -/
 abbrev RunPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) :=
   RelSeries (ntm.stepRel input)
@@ -133,6 +157,19 @@ lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
 
 /-- The number of steps taken by a run path. -/
 def time (p : ntm.RunPath input) : ℕ := p.length
+
+/-- A path that ends halted runs from its head to its last configuration in running steps, up to
+its first halted configuration. -/
+lemma exists_running (p : ntm.RunPath input) (h : p.last.Halted) :
+    ∃ q : RelSeries (ntm.runningStepRel input), q.head = p.head ∧ q.last = p.last ∧
+      q.length ≤ p.length ∧ ∀ c ∈ q, c ∈ p := by
+  classical
+  -- cut the path at its first halted configuration
+  have hex : ∃ n, ∃ hn : n < p.length + 1, (p ⟨n, hn⟩).Halted := ⟨p.length, by lia, h⟩
+  obtain ⟨hn, hhalt⟩ := Nat.find_spec hex
+  refine ⟨⟨Nat.find hex, fun i => p ⟨i, by lia⟩, fun i =>
+    ⟨fun hi => Nat.find_min hex i.isLt ⟨_, hi⟩, p.step ⟨i, by lia⟩⟩⟩, rfl,
+    (p.last_eq_of_halted _ hhalt).symm, Nat.lt_succ_iff.mp hn, fun _ ⟨i, hi⟩ => ⟨_, hi⟩⟩
 
 end RunPath
 

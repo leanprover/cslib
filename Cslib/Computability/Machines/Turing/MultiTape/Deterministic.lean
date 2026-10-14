@@ -34,7 +34,6 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
-* `HaltsAt`: the run from a configuration halts at exactly a given step
 * `spaceUsed`: the space of the path of the first `t` steps from a configuration
 * `Computes`: the machine halts with the given output on an input
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
@@ -181,6 +180,17 @@ def stepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
   toFun := f
   map_rel' hc := step_iff.mpr ((h _).symm.trans (congrArg f (step_iff.mp hc)))
 
+/-- A configuration map commuting with the step functions on running configurations is a
+homomorphism from the running steps of `tm` to the steps of `tm'`. -/
+@[simps! apply]
+def runningStepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
+    {tm' : MultiTapeTM k' Symbol State'}
+    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
+    (h : ∀ c, ¬c.Halted → tm'.step (f c) = f (tm.step c)) :
+    (tm.runningStepRel input).Hom (tm'.stepRel input') where
+  toFun := f
+  map_rel' {c _} hc := step_iff.mpr ((h c hc.1).trans (congrArg f (step_iff.mp hc.2)))
+
 end MultiTapeTM
 
 namespace MultiTapeNTM
@@ -234,17 +244,6 @@ If the Turing machine halts, it will stay at the halting configuration. -/
 noncomputable def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input :=
   tm.step^[t] cfg
 
-/-- One more step of a run. -/
-lemma runFrom_succ (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) :=
-  Function.iterate_succ_apply' _ _ _
-
-/-- A run splits at any intermediate step. -/
-lemma runFrom_add (cfg : Cfg k Symbol State input) (m n : ℕ) :
-    tm.runFrom cfg (m + n) = tm.runFrom (tm.runFrom cfg m) n := by
-  rw [runFrom, Nat.add_comm, Function.iterate_add_apply]
-  rfl
-
 /-- Every path of a deterministic machine follows its iterated step function. -/
 lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
     p i = tm.runFrom p.head i := by
@@ -275,69 +274,12 @@ lemma runFrom_eq_of_halt
   (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).last_eq_of_halted
     ⟨τ, Nat.lt_succ_of_le hle⟩ hhalt
 
-/-- Every configuration of a run that has halted by step `t` lies on the path of its first `t`
-steps. -/
-lemma runFrom_mem_ofDeterministic {cfg : Cfg k Symbol State input} {t : ℕ}
-    (h : (tm.runFrom cfg t).Halted) (m : ℕ) :
-    tm.runFrom cfg m ∈ MultiTapeNTM.RunPath.ofDeterministic tm cfg t := by
-  rcases le_total m t with hm | hm
-  · exact ⟨⟨m, Nat.lt_succ_of_le hm⟩, rfl⟩
-  · exact runFrom_eq_of_halt tm cfg hm h ▸ RelSeries.last_mem _
-
-/-- A run path that ends halted is the run from its head, which then stays at its last
-configuration. -/
-lemma runFrom_head_eq_last (p : tm.RunPath input) (h : p.last.Halted) {t : ℕ} (ht : p.length ≤ t) :
-    tm.runFrom p.head t = p.last := by
-  rw [p.eq_ofDeterministic] at h ⊢
-  exact runFrom_eq_of_halt tm _ ht h
-
 /-- A deterministic machine halted after `t` steps satisfies the shared time bound. -/
 lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}
     (h : (tm.runFrom (tm.initCfg input) t).Halted) : tm.RunsInTime input t := by
   intro p hp
   rw [computationPath_last_eq_runFrom p, runFrom_eq_of_halt _ _ hp h]
   exact h
-
-/-- The machine `tm` started in `cfg` halts at step `t`: it is halted after `t` steps and not
-halted after any smaller number of steps. -/
-def HaltsAt (tm : MultiTapeTM k Symbol State) {input : List Symbol}
-    (cfg : Cfg k Symbol State input) (t : ℕ) : Prop :=
-  (tm.runFrom cfg t).Halted ∧ ∀ s < t, ¬(tm.runFrom cfg s).Halted
-
-namespace HaltsAt
-
-variable {input : List Symbol} {cfg : Cfg k Symbol State input} {s t : ℕ}
-
-lemma halted (h : tm.HaltsAt cfg t) : (tm.runFrom cfg t).Halted := h.1
-
-lemma not_halted (h : tm.HaltsAt cfg t) (hs : s < t) : ¬(tm.runFrom cfg s).Halted := h.2 s hs
-
-/-- The halting step is the first step at which the machine is halted. -/
-lemma le_of_halted (h : tm.HaltsAt cfg t) (hs : (tm.runFrom cfg s).Halted) : t ≤ s :=
-  Nat.le_of_not_lt fun hlt => h.not_halted hlt hs
-
-/-- The halting step is unique. -/
-lemma unique (h₁ : tm.HaltsAt cfg s) (h₂ : tm.HaltsAt cfg t) : s = t :=
-  Nat.le_antisymm (h₁.le_of_halted h₂.halted) (h₂.le_of_halted h₁.halted)
-
-/-- From the halting step on, the configuration does not change. -/
-lemma runFrom_eq (h : tm.HaltsAt cfg t) (hts : t ≤ s) : tm.runFrom cfg s = tm.runFrom cfg t :=
-  runFrom_eq_of_halt tm cfg hts h.halted
-
-end HaltsAt
-
-/-- A run that is halted after `t` steps halts at some step `u ≤ t`. -/
-lemma exists_haltsAt {input : List Symbol} {cfg : Cfg k Symbol State input} {t : ℕ}
-    (hhalt : (tm.runFrom cfg t).Halted) : ∃ u ≤ t, tm.HaltsAt cfg u := by
-  have hex : ∃ n, (tm.runFrom cfg n).Halted := ⟨t, hhalt⟩
-  exact ⟨Nat.find hex, Nat.find_min' hex hhalt, Nat.find_spec hex,
-    fun s hs => Nat.find_min hex hs⟩
-
-/-- A run that is halted after some number of steps halts at exactly one step. -/
-lemma existsUnique_haltsAt {input : List Symbol} {cfg : Cfg k Symbol State input} {t : ℕ}
-    (hhalt : (tm.runFrom cfg t).Halted) : ∃! u, tm.HaltsAt cfg u :=
-  let ⟨u, _, hu⟩ := exists_haltsAt hhalt
-  ⟨u, hu, fun _ h => h.unique hu⟩
 
 /-- The work-tape head moves by at most one cell in a single step. -/
 lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
