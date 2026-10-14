@@ -112,13 +112,15 @@ path visits, and the frontier head only walks up to the final length of the outp
 redirection costs at most the final output length plus one. -/
 public lemma space_map_outCfgHom_le (tm : MultiTapeTM k Symbol State) (p : tm.RunPath input) :
     (p.map (outCfgHom tm)).space ≤ p.space + (p.last.output.length + 1) := by
-  simpa [Finset.card_compl] using p.space_map_le _ Fin.castSuccEmb
-    (fun _ => .Icc 0 (p.last.output.length : ℤ)) (fun c _ => outCfg_workTapePos_castSucc c)
-    fun c ⟨n, hn⟩ l hl => by
-      induction l using Fin.lastCases with
-      | last =>
-        have : c.output.length ≤ p.last.output.length := hn ▸ p.length_output_mono (Fin.le_last n)
-        simpa using this
-      | cast j => exact absurd ⟨j, rfl⟩ hl
+  refine (p.space_map_le _ Fin.castSuccEmb outCfg_workTapePos_castSucc
+    (b := p.last.output.length + 1) fun l hl =>
+      (MultiTapeNTM.RunPath.spaceUsedByTape_le_card _ (S := .Icc 0 (p.last.output.length : ℤ))
+        fun c hc => ?_).trans_eq (by simp)).trans_eq (by simp)
+  obtain ⟨c, ⟨n, rfl⟩, rfl⟩ := RelSeries.exists_of_mem_map hc
+  induction l using Fin.lastCases with
+  | last =>
+    have : (p n).output.length ≤ p.last.output.length := p.length_output_mono (Fin.le_last n)
+    simpa using this
+  | cast j => exact absurd ⟨j, rfl⟩ hl
 
 end Turing.MultiTapeTM

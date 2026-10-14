@@ -119,7 +119,8 @@ theorem transformsTapes_iff_nil_output {tm : MultiTapeTM k Symbol State}
     obtain ⟨ws', emitted, hQ, p, hhead, hlast, htime, hspace⟩ := h input ws hP
     -- the run with output `out` is the run without it, mapped by prepending `out`
     exact ⟨ws', emitted, hQ, p.map (tm.prependOutputHom out), by simp [hhead], by simp [hlast],
-      htime, (RunPath.space_map_eq _ _ fun _ _ => rfl).trans_le hspace⟩
+      htime, ((p.space_map_le _ (.refl _) (fun _ _ => rfl) (b := 0) fun l hl =>
+        absurd ⟨l, rfl⟩ hl).trans_eq (by simp)).trans hspace⟩
 
 section Nop
 

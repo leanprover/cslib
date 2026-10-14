@@ -182,9 +182,10 @@ head, which stays within `[-1, input.length]`, so they add at most `2 * (input.l
 public lemma space_map_inCfgHom_le (tm : MultiTapeTM k Symbol State) (mark : Symbol)
     (outerInput : List Symbol) (p : tm.RunPath input) :
     (p.map (inCfgHom tm mark outerInput)).space ≤ p.space + 2 * (input.length + 2) := by
-  refine (p.space_map_le _ (Fin.castAddEmb 2) (fun _ => .Icc (-1) input.length)
-    (fun c _ => inCfg_workTapePos_castAdd c) fun c _ l hl => ?_).trans
-    (by simp [Finset.card_compl]; omega)
+  refine (p.space_map_le _ (Fin.castAddEmb 2) inCfg_workTapePos_castAdd (b := input.length + 2)
+    fun l hl => (MultiTapeNTM.RunPath.spaceUsedByTape_le_card _ (S := .Icc (-1) input.length)
+      fun c hc => ?_).trans_eq (by simp; omega)).trans_eq (by simp)
+  obtain ⟨c, -, rfl⟩ := RelSeries.exists_of_mem_map hc
   induction l using Fin.addCases with
   | left j => exact absurd ⟨j, rfl⟩ hl
   | right i =>

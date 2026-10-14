@@ -20,7 +20,8 @@ positions visited by each work-tape head along the path and sums over the tapes.
 The space of a path is bounded by sets containing its head positions
 (`RunPath.space_le_sum_card`), in particular by a window `[-s, s]` containing its heads
 (`RunPath.InWindow`). A path mapped along a homomorphism of step relations uses the space of the
-original path on the tapes that follow it (`RunPath.space_map_le`).
+original path on the tapes that follow it, and the space of its other tapes
+(`RunPath.space_map_le`).
 
 ## Design
 
@@ -123,34 +124,18 @@ lemma InWindow.smash {p q : ntm.RunPath input} {h : p.last = q.head} {s : ℕ}
 
 /-! ### Mapped paths -/
 
-/-- If the head of tape `i'` of a mapped path follows the head of tape `i` of the source path, the
-two tapes visit the same cells. -/
-lemma visitedByTapeHead_map (p : ntm.RunPath input)
-    (f : (ntm.stepRel input).Hom (ntm'.stepRel input')) {i : Fin k} {i' : Fin k'}
-    (h : ∀ c ∈ p, (f c).workTapePos i' = c.workTapePos i) :
-    (p.map f).visitedByTapeHead i' = p.visitedByTapeHead i :=
-  Finset.image_congr fun n _ => h (p n) ⟨n, rfl⟩
-
-/-- **Space of a mapped path.** If tape `e j` of the mapped path follows tape `j` of `p`, and every
-other tape `l` stays in `window l`, the mapped path uses the space of `p` plus the cells of
-`window l` for every other tape `l`. -/
+/-- **Space of a mapped path.** If the map carries the head of each tape `j` to tape `e j`, and each
+other tape of the mapped path uses at most `b` cells, the mapped path uses the space of `p` and `b`
+more cells for each other tape. -/
 lemma space_map_le (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.stepRel input'))
-    (e : Fin k ↪ Fin k') (window : Fin k' → Finset ℤ)
-    (hfollow : ∀ c ∈ p, ∀ j, (f c).workTapePos (e j) = c.workTapePos j)
-    (hwindow : ∀ c ∈ p, ∀ l ∉ Set.range e, (f c).workTapePos l ∈ window l) :
-    (p.map f).space ≤ p.space + ∑ l ∈ (Finset.univ.map e)ᶜ, (window l).card := by
-  rw [space, space, ← Finset.sum_add_sum_compl (Finset.univ.map e), Finset.sum_map]
-  refine add_le_add (Finset.sum_le_sum fun j _ => (congrArg Finset.card
-    (p.visitedByTapeHead_map f fun c hc => hfollow c hc j)).le) (Finset.sum_le_sum fun l hl => ?_)
-  exact (p.map f).spaceUsedByTape_le_card fun _ ⟨n, hn⟩ =>
-    hn ▸ hwindow (p n) ⟨n, rfl⟩ l (by simpa using hl)
-
-/-- A map preserving every head position preserves space. -/
-lemma space_map_eq {ntm' : MultiTapeNTM k Symbol State'} (p : ntm.RunPath input)
-    (f : (ntm.stepRel input).Hom (ntm'.stepRel input'))
-    (h : ∀ c ∈ p, (f c).workTapePos = c.workTapePos) : (p.map f).space = p.space :=
-  Finset.sum_congr rfl fun i _ =>
-    congrArg Finset.card (p.visitedByTapeHead_map f fun c hc => congrFun (h c hc) i)
+    (e : Fin k ↪ Fin k') (he : ∀ c j, (f c).workTapePos (e j) = c.workTapePos j) {b : ℕ}
+    (hb : ∀ l ∉ Set.range e, (p.map f).spaceUsedByTape l ≤ b) :
+    (p.map f).space ≤ p.space + (k' - k) * b := by
+  rw [space, ← Finset.sum_add_sum_compl (Finset.univ.map e), Finset.sum_map]
+  refine add_le_add (Finset.sum_le_sum fun j _ =>
+    (congrArg Finset.card (Finset.image_congr fun n _ => he (p n) j)).le) ?_
+  refine (Finset.sum_le_card_nsmul _ _ b fun l hl => hb l (by simpa using hl)).trans_eq ?_
+  simp [Finset.card_compl]
 
 end RunPath
 
