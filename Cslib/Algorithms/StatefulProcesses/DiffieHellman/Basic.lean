@@ -177,7 +177,7 @@ def bob₂ : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
 /- Characterisation of the complete symbolic traces of DH. -/
 proof_wanted net_completeTraces :
   (Network.lts (SelLabel := params.SelLabel) (ProcName := params.ProcName)).completeTraces
-    (net params) = fun μs =>
+    (net params) = {μs |
   μs = [
     Network.TrLabel.com params.alice (aliceComputeMesg params) params.bob params.x,
     .com params.bob (bobComputeMesg params) params.alice params.y,
@@ -188,7 +188,7 @@ proof_wanted net_completeTraces :
     .com params.bob (bobComputeMesg params) params.alice params.y,
     .local params.bob (.assign params.s <| bobComputeSharedSecret params),
     .local params.alice (.assign params.s <| aliceComputeSharedSecret params),
-  ]
+  ]}
 
 /-- The LTS of network configurations. -/
 abbrev Params.cfgLts {SelLabel ProcName : Type*} :=

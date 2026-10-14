@@ -469,7 +469,7 @@ lemma linImpl_par' {G H K : Fact P} : (G ⊸ H ⅋ K) = (H ⅋ (G ⊸ K)) := by
 @[simp] lemma neg_linImpl_neg {G H : Fact P} : (Gᗮ ⊸ Hᗮ) = (H ⊸ G) := by
   simp [linImpl_of_tensor, tensor_comm]
 
-lemma linImpl_iff_implies {G H : Fact P} : p ∈ G ⊸ H ↔ imp G H p := by
+lemma linImpl_iff_implies {G H : Fact P} : p ∈ G ⊸ H ↔ p ∈ imp G H := by
   rw [← SetLike.mem_coe, linImpl]
   simp only [dualFact_coe, mem_dual, Set.mem_mul, SetLike.mem_coe,
     forall_exists_index, and_imp]
