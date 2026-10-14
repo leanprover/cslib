@@ -248,18 +248,6 @@ def Cfg.core (c : Cfg k Symbol State input) :
     Fin (input.length + 2) × Storage Symbol State k :=
   (c.inputPos, c.storage)
 
-/-- `step` never reads the output tape, so the core of the next configuration is determined by the
-core of the current one. -/
-lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.core = c₂.core) :
-    (tm.step c₁).core = (tm.step c₂).core := by
-  rcases c₁ with ⟨q₁, i₁, w₁, p₁, out₁⟩
-  rcases c₂ with ⟨q₂, i₂, w₂, p₂, out₂⟩
-  simp only [Cfg.core, Cfg.storage, Prod.mk.injEq, Storage.mk.injEq] at h
-  obtain ⟨rfl, rfl, rfl, rfl⟩ := h
-  cases q₁ with
-  | none => rw [MultiTapeTM.step_of_halt rfl, MultiTapeTM.step_of_halt rfl]; rfl
-  | some q => rw [MultiTapeTM.step_of_state rfl, MultiTapeTM.step_of_state rfl]; rfl
-
 /-! ## The storages and cores of a space-bounded run
 
 These are the main results giving upper bounds on the number of storages and configuration cores
@@ -290,29 +278,28 @@ at most `storageBound Symbol State k s` different storages during its whole run 
 the length of the input and of how long it runs. -/
 theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
     (hs : tm.RunsInSpace input s) :
-    (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard
+    (Set.range fun p : tm.ComputationPath input => p.last.storage).encard
       ≤ storageBound Symbol State k s := by
   -- every storage fits in the windows of a computation path visiting the most cells
   obtain ⟨p, hp⟩ := hs.exists_space_max
   refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs p))
-  rintro _ ⟨t, rfl⟩
-  let q : tm.ComputationPath input := .ofDeterministic tm input t
+  rintro _ ⟨q, rfl⟩
   exact Storage.FitsIn_mono (q.spaceUsedByTape_le_of_space_le (hp q)) q.storage_fitsIn
 
 /-- The number of configuration cores that a machine bounded by space `s` can reach is at most
 `(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input. -/
 theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ}
     (hs : tm.RunsInSpace input s) :
-    (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+    (Set.range fun p : tm.ComputationPath input => p.last.core).encard
       ≤ (input.length + 2) * storageBound Symbol State k s := by
-  calc (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+  calc (Set.range fun p : tm.ComputationPath input => p.last.core).encard
       ≤ ((Set.univ : Set (Fin (input.length + 2)))
-          ×ˢ (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage)).encard := by
+          ×ˢ (Set.range fun p : tm.ComputationPath input => p.last.storage)).encard := by
         apply Set.encard_le_encard
-        rintro _ ⟨t, rfl⟩
-        exact ⟨Set.mem_univ _, t, rfl⟩
+        rintro _ ⟨p, rfl⟩
+        exact ⟨Set.mem_univ _, p, rfl⟩
     _ = (Set.univ : Set (Fin (input.length + 2))).encard
-          * (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard := Set.encard_prod
+          * (Set.range fun p : tm.ComputationPath input => p.last.storage).encard := Set.encard_prod
     _ ≤ (input.length + 2) * storageBound Symbol State k s := by
         refine mul_le_mul' ?_ (tm.encard_storages_le hs)
         simp [Set.encard_univ, ENat.card_eq_coe_fintype_card]
@@ -322,7 +309,7 @@ passes through is at most `2 ^ (O(s))`, with constants depending only on the mac
 theorem encard_storages_le_pow [Finite Symbol] [Finite State] :
     ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
       tm.RunsInSpace input s →
-      (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard ≤ a * 2 ^ (c * s) := by
+      (Set.range fun p : tm.ComputationPath input => p.last.storage).encard ≤ a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State
   obtain ⟨a, c, hpow⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
@@ -335,7 +322,7 @@ input. -/
 theorem encard_cores_le_pow [Finite Symbol] [Finite State] :
     ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
       tm.RunsInSpace input s →
-      (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+      (Set.range fun p : tm.ComputationPath input => p.last.core).encard
         ≤ (input.length + 2) * a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State

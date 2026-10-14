@@ -103,18 +103,4 @@ lemma inWindow_of_space_le {p : ntm.RunPath input} {s : ℕ} (h0 : ∀ i, p.head
 
 end RunPath
 
-/-- A machine never reads its output tape, so prepending a word to the output preserves steps. -/
-@[simps]
-def prependOutputHom (ntm : MultiTapeNTM k Symbol State) (pre : List Symbol) :
-    (ntm.stepRel input).Hom (ntm.stepRel input) where
-  toFun c := c.prependOutput pre
-  map_rel' {c c'} h := by
-    change ntm.Step c c' at h
-    change ntm.Step (c.prependOutput pre) (c'.prependOutput pre)
-    unfold Step at h ⊢
-    rcases hq : c.state with _ | q <;> simp only [hq, Cfg.prependOutput_state] at h ⊢
-    · rw [h]
-    · obtain ⟨a, ha, rfl⟩ := h
-      exact ⟨a, ha, Cfg.ext rfl rfl rfl rfl (by simp [Action.apply])⟩
-
 end Turing.MultiTapeNTM
