@@ -72,7 +72,7 @@ structure History (Event Operation Value Session : Type*)
   /-- If an event `x` returns before another event `y`, then `x` cannot return `none`. -/
   rb_rval_ne_none : ∀ x y, rb x y → rval x ≠ none
   /-- The `so` order is a strict total order of the events of each session. -/
-  so_strict_total_order : ∀ s, IsStrictTotalOrderOn {x | se x = s} (bh.so s)
+  so_strict_total_order : ∀ s, IsStrictTotalOrder {x | se x = s} (bh.so s)
 
 /-- `AbstractExecution` extends `History` with two more orders and additional
 well-formedness conditions. -/

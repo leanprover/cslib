@@ -21,8 +21,6 @@ public import Mathlib.Logic.Relation
 
 @[expose] public section
 
-variable {α β : Type*}
-
 namespace Relation
 
 /-! ### Operations on relations -/
@@ -150,11 +148,6 @@ abbrev predecessors (r : α → β → Prop) (b : β) : Set α := {a | r a b}
 /-- The restriction of a relation `r` to a set `s`. -/
 def restrict (r : α → α → Prop) (s : Set α) : α → α → Prop :=
   fun a b ↦ a ∈ s ∧ b ∈ s ∧ r a b
-
-/-- `IsStrictTotalOrderOn s r` means that `r` is a strict total order on the set `s`. -/
-def IsStrictTotalOrderOn (s : Set α) (r : α → α → Prop) : Prop :=
-  IsStrictOrder α r ∧
-  ∀ a b, a ∈ s → b ∈ s → a = b ∨ r a b ∨ r b a
 
 /-! ### Interval order -/
 

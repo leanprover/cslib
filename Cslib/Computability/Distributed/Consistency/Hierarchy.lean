@@ -55,8 +55,7 @@ lemma se_rval_eq_none {s : Session} {x : Event} (h1 : a.se x = s) (h2 : a.rval x
     · grind
     · by_contra h_contra
       suffices a.rb x y by grind [a.rb_rval_ne_none]
-      obtain ⟨_, h_tri⟩ := a.so_strict_total_order s
-      specialize h_tri x y
+      have := (a.so_strict_total_order s).trichotomous ⟨x, h1⟩ ⟨y, h_se⟩
       grind [so_iff_se_rb]
   · grind
 
