@@ -82,6 +82,12 @@ theorem mem_occurrences [DecidableEq α] :
     i ∈ u.occurrences w ↔ i ≤ w.length ∧ u.OccursAt w i := by
   simp [occurrences, Nat.lt_add_one_iff]
 
+/-- For a nonempty word, the occurrences are exactly the positions where it occurs. -/
+theorem mem_occurrences_of_ne_nil [DecidableEq α] (hu : u ≠ []) :
+    i ∈ u.occurrences w ↔ u.OccursAt w i := by
+  rw [mem_occurrences]
+  exact ⟨And.right, fun h => ⟨by have := h.add_length_le hu; omega, h⟩⟩
+
 /-- The occurrences are listed in strictly increasing order. -/
 theorem pairwise_lt_occurrences [DecidableEq α] (u w : List α) :
     (u.occurrences w).Pairwise (· < ·) :=
