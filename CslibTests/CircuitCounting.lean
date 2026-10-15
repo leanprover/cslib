@@ -89,7 +89,7 @@ example : (fun x : Fin 1 → ℕ => x 0) ∈ computableFunctions emptyInterpreta
     ⟨Circuit.id emptySignature 1, by simp [Circuit.Computes, funext_iff, Fin.forall_fin_one],
       le_rfl⟩
 
-example (s : ℕ) : (computableFunctions emptyInterpretation 0 s).card * s.factorial ≤
+example (s : ℕ) : (computableFunctions emptyInterpretation 0 s).ncard * s.factorial ≤
     (s + 1) * s ^ s * s := by
   simpa using card_computableFunctions_mul_factorial_le_of_arity_le emptyInterpretation
     0 s 0 (fun op => nomatch op)
@@ -100,7 +100,7 @@ abbrev nullarySignature : Signature where
 
 def nullaryInterpretation : Interpretation nullarySignature ℕ := fun _ _ => 0
 
-example (s : ℕ) : (computableFunctions nullaryInterpretation 0 s).card * s.factorial ≤
+example (s : ℕ) : (computableFunctions nullaryInterpretation 0 s).ncard * s.factorial ≤
     (s + 1) * (max s 1) ^ s * s := by
   simpa using card_computableFunctions_mul_factorial_le_of_arity_le nullaryInterpretation
     0 s 0 (fun _ => le_rfl)

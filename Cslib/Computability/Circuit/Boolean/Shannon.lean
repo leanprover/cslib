@@ -26,7 +26,7 @@ open Filter Topology
 /-- Almost all Boolean functions on `n` inputs require more than `2ⁿ/n` De Morgan gates: the
 fraction computable within that budget tends to zero. -/
 theorem tendsto_card_computableFunctions_div :
-    Tendsto (fun n : ℕ => ((computableFunctions interpretation n (2 ^ n / n)).card : ℝ) /
+    Tendsto (fun n : ℕ => ((computableFunctions interpretation n (2 ^ n / n)).ncard : ℝ) /
       2 ^ 2 ^ n) atTop (𝓝 0) := by
   simpa [Nat.card_eq_fintype_card] using Circuits.Shannon.tendsto_card_computableFunctions_div
     interpretation (fun op => by cases op <;> simp)
