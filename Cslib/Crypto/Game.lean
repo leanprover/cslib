@@ -12,14 +12,18 @@ public import Cslib.Probability.PMF
 /-!
 # Security of Boolean experiments
 
-A `Game` is the distribution of a Boolean experiment. Its acceptance probability, distinguishing
-advantage, and asymptotic security are independent of the language used to write the experiment.
-`Game.Secure` restricts whole adversaries, which may themselves be families of tests. Finite
-cryptographic primitives instantiate these definitions directly, and computational definitions
-over infinite sample spaces can reuse them.
+A `Game` is the distribution of the Boolean output of a security experiment, independent of the
+language used to write the experiment. A game has a success probability, and two games have a
+distinguishing advantage: the absolute difference of their success probabilities, as in
+[BonehShoup2023], Section 3.1. The convention where the advantage of a single game is its
+success probability is comparison with certain failure, and the convention measuring bias away
+from a fair coin is `guessingAdvantage`.
 
-The advantage convention is the absolute difference of acceptance probabilities, as in
-[BonehShoup2023], Section 3.1. Negligibility is Mathlib's superpolynomial decay.
+Families of games indexed by a natural-number security parameter are indistinguishable for a
+class of adversaries when every admissible adversary has negligible advantage. Adversaries are
+whole objects, which may themselves be families of tests, and the game at each parameter is
+obtained from the adversary. Finite cryptographic primitives instantiate these definitions
+directly, and computational definitions over infinite sample spaces can reuse them.
 -/
 
 @[expose] public section
@@ -28,148 +32,189 @@ namespace Cslib.Crypto
 
 open scoped NNReal
 
-/-- The distribution of the Boolean result of a security experiment. -/
+/-- The distribution of the Boolean output of a security experiment. -/
 abbrev Game := PMF Bool
 
 namespace Game
 
-/-- The probability that an experiment accepts. -/
-noncomputable abbrev winProbability (game : Game) : ℝ := (game true).toReal
+/-- The probability that an experiment succeeds, that is, outputs `true`. -/
+noncomputable abbrev succProbability (game : Game) : ℝ≥0 := (game true).toNNReal
 
-/-- The absolute difference of two experiments' acceptance probabilities. -/
-noncomputable abbrev advantage (real ideal : Game) : ℝ :=
-  |real.winProbability - ideal.winProbability|
+/-- The probability that an experiment fails, that is, outputs `false`. -/
+noncomputable abbrev failProbability (game : Game) : ℝ≥0 := (game false).toNNReal
 
-/-- Distinguishing advantage is nonnegative. -/
-theorem advantage_nonneg (real ideal : Game) : 0 ≤ advantage real ideal := abs_nonneg _
+/-- Success probability is at most one. -/
+theorem succProbability_le_one (game : Game) : succProbability game ≤ 1 := by
+  simpa using ENNReal.toNNReal_mono ENNReal.one_ne_top (PMF.coe_le_one game true)
 
-/-- Equal experiments have zero advantage. -/
-@[simp] theorem advantage_self (game : Game) : advantage game game = 0 := by
-  simp
+/-- An experiment either succeeds or fails. -/
+theorem succProbability_add_failProbability (game : Game) :
+    succProbability game + failProbability game = 1 := by
+  rw [succProbability, failProbability,
+    ← ENNReal.toNNReal_add (game.apply_ne_top _) (game.apply_ne_top _), add_comm, ← tsum_bool,
+    game.tsum_coe, ENNReal.toNNReal_one]
 
-/-- Swapping the experiments preserves advantage. -/
-theorem advantage_comm (real ideal : Game) : advantage real ideal = advantage ideal real :=
-  abs_sub_comm _ _
+/-- Failure probability is the complement of success probability. -/
+theorem failProbability_eq (game : Game) : failProbability game = 1 - succProbability game :=
+  eq_tsub_of_add_eq (by rw [add_comm, succProbability_add_failProbability])
 
-/-- Complementing a game's answer exchanges acceptance and rejection. -/
-@[simp] theorem winProbability_not (game : Game) :
-    winProbability (game.map Bool.not) = 1 - winProbability game := by
-  rw [eq_sub_iff_add_eq', ← Probability.PMF.sum_toReal game, Fintype.sum_bool]
-  simp [winProbability]
+/-- Complementing a game's answer exchanges success and failure. -/
+@[simp] theorem succProbability_not (game : Game) :
+    succProbability (game.map Bool.not) = failProbability game := by
+  simp [succProbability, failProbability]
+
+/-- The distinguishing advantage between two games is the absolute difference of their success
+probabilities. -/
+noncomputable abbrev advantage (game1 game2 : Game) : ℝ≥0 :=
+  nndist game1.succProbability game2.succProbability
+
+/-- As a real number, the advantage is the absolute difference of the success probabilities. -/
+theorem coe_advantage (game1 game2 : Game) :
+    (advantage game1 game2 : ℝ) = |(succProbability game1 : ℝ) - succProbability game2| := by
+  rw [advantage, coe_nndist, NNReal.dist_eq]
+
+/-- Distinguishing advantage is at most one. -/
+theorem advantage_le_one (game1 game2 : Game) : advantage game1 game2 ≤ 1 := by
+  rw [advantage, NNReal.nndist_eq]
+  exact max_le (tsub_le_iff_right.mpr (le_add_right (succProbability_le_one _)))
+    (tsub_le_iff_right.mpr (le_add_right (succProbability_le_one _)))
+
+/-- Equal games have zero advantage. -/
+@[simp] theorem advantage_self (game : Game) : advantage game game = 0 := nndist_self _
+
+/-- Swapping the games preserves advantage. -/
+theorem advantage_comm (game1 game2 : Game) : advantage game1 game2 = advantage game2 game1 :=
+  nndist_comm _ _
 
 /-- Complementing both answers preserves advantage. -/
-@[simp] theorem advantage_not (real ideal : Game) :
-    advantage (real.map Bool.not) (ideal.map Bool.not) = advantage real ideal := by
-  rw [advantage, advantage, winProbability_not, winProbability_not, sub_sub_sub_cancel_left,
-    abs_sub_comm]
+@[simp] theorem advantage_not (game1 game2 : Game) :
+    advantage (game1.map Bool.not) (game2.map Bool.not) = advantage game1 game2 := by
+  apply NNReal.eq
+  rw [coe_advantage, coe_advantage, succProbability_not, succProbability_not, failProbability_eq,
+    failProbability_eq, NNReal.coe_sub (succProbability_le_one _),
+    NNReal.coe_sub (succProbability_le_one _), sub_sub_sub_cancel_left, abs_sub_comm]
 
 /-- The elementary game-hopping inequality. -/
 theorem advantage_triangle (first middle last : Game) :
-    advantage first last ≤ advantage first middle + advantage middle last := abs_sub_le _ _ _
+    advantage first last ≤ advantage first middle + advantage middle last := nndist_triangle _ _ _
 
-/-- Distinguishing advantage is at most one. -/
-theorem advantage_le_one (real ideal : Game) : advantage real ideal ≤ 1 := by
-  have hle (game : Game) : winProbability game ≤ 1 := by
-    simpa using ENNReal.toReal_mono ENNReal.one_ne_top (PMF.coe_le_one game true)
-  exact abs_sub_le_of_nonneg_of_le ENNReal.toReal_nonneg (hle real) ENNReal.toReal_nonneg
-    (hle ideal)
-
-/-- Comparing with certain rejection measures the probability of winning. -/
+/-- Comparing with certain failure measures the probability of success. -/
 @[simp] theorem advantage_pure_false (game : Game) :
-    advantage game (PMF.pure false) = winProbability game := by
-  simp [advantage, winProbability]
+    advantage game (PMF.pure false) = succProbability game := by
+  simp [advantage, succProbability]
 
 open Probability in
-/-- Comparing with a fair coin measures absolute prediction bias. -/
-@[simp] theorem advantage_uniform_bool (game : Game) :
-    advantage game (PMF.uniformOfFintype Bool) = |winProbability game - 1 / 2| := by
-  simp [advantage, winProbability]
+/-- The advantage of a game over a fair coin, measuring its prediction bias. -/
+noncomputable abbrev guessingAdvantage (game : Game) : ℝ≥0 :=
+  advantage game (PMF.uniformOfFintype Bool)
 
-/-- Each admissible adversary has negligible advantage. The admissibility predicate applies to
-the whole adversary before the security parameter is supplied, so it can constrain the adversary
-across all parameters at once. -/
-def Secure {Adversary : Type*} (real ideal : Adversary → ℕ → Game)
+open Probability in
+/-- As a real number, the guessing advantage is the distance of the success probability from
+one half. -/
+theorem coe_guessingAdvantage (game : Game) :
+    (guessingAdvantage game : ℝ) = |(succProbability game : ℝ) - 1 / 2| := by
+  rw [guessingAdvantage, coe_advantage]
+  simp [succProbability, ENNReal.toNNReal_ofNat]
+
+/-- Two families of games are indistinguishable for a class of adversaries when each admissible
+adversary has negligible advantage. The admissibility predicate applies to the whole adversary
+before the security parameter is supplied, so it can constrain the adversary across all
+parameters at once. -/
+def Indistinguishable {Adversary : Type*} (game1 game2 : Adversary → ℕ → Game)
     (Admissible : Adversary → Prop) : Prop :=
   ∀ adversary, Admissible adversary →
-    Negligible (fun n => advantage (real adversary n) (ideal adversary n))
+    Negligible (fun n => advantage (game1 adversary n) (game2 adversary n))
 
-/-- A common bound on the advantage of all admissible adversaries at each parameter. -/
-def SecureWithError {Adversary : Type*} (real ideal : Adversary → ℕ → Game)
+/-- A common concrete bound on the advantage of all admissible adversaries at each parameter. -/
+def IndistinguishableWithError {Adversary : Type*} (game1 game2 : Adversary → ℕ → Game)
     (Admissible : Adversary → Prop) (ε : ℕ → ℝ≥0) : Prop :=
   ∀ adversary, Admissible adversary →
-    ∀ n, advantage (real adversary n) (ideal adversary n) ≤ ε n
+    ∀ n, advantage (game1 adversary n) (game2 adversary n) ≤ ε n
 
-/-- Restricting admissibility preserves a concrete security bound. -/
-theorem SecureWithError.of_admissible {Adversary : Type*}
-    {real ideal : Adversary → ℕ → Game} {Admissible Restricted : Adversary → Prop}
-    {ε : ℕ → ℝ≥0} (h : SecureWithError real ideal Admissible ε)
+/-- Restricting admissibility preserves a concrete bound. -/
+theorem IndistinguishableWithError.of_admissible {Adversary : Type*}
+    {game1 game2 : Adversary → ℕ → Game} {Admissible Restricted : Adversary → Prop}
+    {ε : ℕ → ℝ≥0} (h : IndistinguishableWithError game1 game2 Admissible ε)
     (hsub : ∀ adversary, Restricted adversary → Admissible adversary) :
-    SecureWithError real ideal Restricted ε := fun adversary ha => h adversary (hsub adversary ha)
+    IndistinguishableWithError game1 game2 Restricted ε :=
+  fun adversary ha => h adversary (hsub adversary ha)
 
-/-- Enlarging an error budget preserves its security guarantee. -/
-theorem SecureWithError.mono {Adversary : Type*} {real ideal : Adversary → ℕ → Game}
-    {Admissible : Adversary → Prop} {ε δ : ℕ → ℝ≥0}
-    (h : SecureWithError real ideal Admissible ε) (hle : ∀ n, ε n ≤ δ n) :
-    SecureWithError real ideal Admissible δ :=
-  fun adversary ha n => (h adversary ha n).trans (by exact_mod_cast hle n)
-
-/-- Swapping the experiments preserves the same concrete error. -/
-theorem SecureWithError.symm {Adversary : Type*} {real ideal : Adversary → ℕ → Game}
-    {Admissible : Adversary → Prop} {ε : ℕ → ℝ≥0}
-    (h : SecureWithError real ideal Admissible ε) : SecureWithError ideal real Admissible ε :=
-  fun adversary ha n => (advantage_comm _ _).trans_le (h adversary ha n)
-
-/-- Concrete security bounds add across a game hop. -/
-theorem SecureWithError.trans {Adversary : Type*} {first middle last : Adversary → ℕ → Game}
-    {Admissible : Adversary → Prop} {ε δ : ℕ → ℝ≥0}
-    (hfirst : SecureWithError first middle Admissible ε)
-    (hlast : SecureWithError middle last Admissible δ) :
-    SecureWithError first last Admissible (fun n => ε n + δ n) := fun adversary ha n =>
-  (advantage_triangle _ _ _).trans (add_le_add (hfirst adversary ha n) (hlast adversary ha n))
-
-/-- Restricting the admissible adversaries preserves security. -/
-theorem Secure.of_admissible {Adversary : Type*} {real ideal : Adversary → ℕ → Game}
-    {Admissible Restricted : Adversary → Prop} (h : Secure real ideal Admissible)
+/-- Restricting admissibility preserves indistinguishability. -/
+theorem Indistinguishable.of_admissible {Adversary : Type*} {game1 game2 : Adversary → ℕ → Game}
+    {Admissible Restricted : Adversary → Prop} (h : Indistinguishable game1 game2 Admissible)
     (hsub : ∀ adversary, Restricted adversary → Admissible adversary) :
-    Secure real ideal Restricted := fun adversary ha => h adversary (hsub adversary ha)
+    Indistinguishable game1 game2 Restricted := fun adversary ha => h adversary (hsub adversary ha)
 
-/-- An experiment is secure relative to itself. -/
-theorem Secure.refl {Adversary : Type*} (game : Adversary → ℕ → Game)
-    (Admissible : Adversary → Prop) : Secure game game Admissible :=
+/-- Enlarging an error budget preserves its guarantee. -/
+theorem IndistinguishableWithError.mono {Adversary : Type*} {game1 game2 : Adversary → ℕ → Game}
+    {Admissible : Adversary → Prop} {ε δ : ℕ → ℝ≥0}
+    (h : IndistinguishableWithError game1 game2 Admissible ε) (hle : ∀ n, ε n ≤ δ n) :
+    IndistinguishableWithError game1 game2 Admissible δ :=
+  fun adversary ha n => (h adversary ha n).trans (hle n)
+
+/-- A family of games is indistinguishable from itself. -/
+theorem Indistinguishable.refl {Adversary : Type*} (game : Adversary → ℕ → Game)
+    (Admissible : Adversary → Prop) : Indistinguishable game game Admissible :=
   fun _ _ => by simp
 
-/-- Swapping the experiments preserves security. -/
-theorem Secure.symm {Adversary : Type*} {real ideal : Adversary → ℕ → Game}
-    {Admissible : Adversary → Prop} (h : Secure real ideal Admissible) :
-    Secure ideal real Admissible :=
+/-- Swapping the games preserves a concrete bound. -/
+theorem IndistinguishableWithError.symm {Adversary : Type*} {game1 game2 : Adversary → ℕ → Game}
+    {Admissible : Adversary → Prop} {ε : ℕ → ℝ≥0}
+    (h : IndistinguishableWithError game1 game2 Admissible ε) :
+    IndistinguishableWithError game2 game1 Admissible ε :=
+  fun adversary ha n => (advantage_comm _ _).trans_le (h adversary ha n)
+
+/-- Swapping the games preserves indistinguishability. -/
+theorem Indistinguishable.symm {Adversary : Type*} {game1 game2 : Adversary → ℕ → Game}
+    {Admissible : Adversary → Prop} (h : Indistinguishable game1 game2 Admissible) :
+    Indistinguishable game2 game1 Admissible :=
   fun adversary ha => (h adversary ha).congr fun _ => advantage_comm _ _
 
-/-- Security composes through an intermediate experiment. -/
-theorem Secure.trans {Adversary : Type*} {first middle last : Adversary → ℕ → Game}
-    {Admissible : Adversary → Prop} (hfirst : Secure first middle Admissible)
-    (hlast : Secure middle last Admissible) : Secure first last Admissible := fun adversary ha =>
+/-- Concrete bounds add across a game hop. -/
+theorem IndistinguishableWithError.trans {Adversary : Type*}
+    {first middle last : Adversary → ℕ → Game} {Admissible : Adversary → Prop} {ε δ : ℕ → ℝ≥0}
+    (hfirst : IndistinguishableWithError first middle Admissible ε)
+    (hlast : IndistinguishableWithError middle last Admissible δ) :
+    IndistinguishableWithError first last Admissible (fun n => ε n + δ n) :=
+  fun adversary ha n =>
+    (advantage_triangle _ _ _).trans (add_le_add (hfirst adversary ha n) (hlast adversary ha n))
+
+/-- Indistinguishability composes through an intermediate family of games. -/
+theorem Indistinguishable.trans {Adversary : Type*} {first middle last : Adversary → ℕ → Game}
+    {Admissible : Adversary → Prop} (hfirst : Indistinguishable first middle Admissible)
+    (hlast : Indistinguishable middle last Admissible) :
+    Indistinguishable first last Admissible := fun adversary ha =>
   negligible_of_le ((hfirst adversary ha).add (hlast adversary ha))
-    (fun _ => advantage_nonneg _ _) (fun _ => advantage_triangle _ _ _)
+    fun _ => advantage_triangle _ _ _
 
-/-- A reduction preserves security when it preserves admissibility and bounds advantage. -/
-theorem Secure.of_reduction {Source Target : Type*}
-    {sourceReal sourceIdeal : Source → ℕ → Game} {targetReal targetIdeal : Target → ℕ → Game}
-    {SourceAdmissible : Source → Prop} {TargetAdmissible : Target → Prop}
-    (h : Secure sourceReal sourceIdeal SourceAdmissible) (reduce : Target → Source)
+/-- A negligible common error bound implies indistinguishability. -/
+theorem IndistinguishableWithError.indistinguishable {Adversary : Type*}
+    {game1 game2 : Adversary → ℕ → Game} {Admissible : Adversary → Prop} {ε : ℕ → ℝ≥0}
+    (h : IndistinguishableWithError game1 game2 Admissible ε) (hε : Negligible ε) :
+    Indistinguishable game1 game2 Admissible :=
+  fun adversary ha => negligible_of_le hε (h adversary ha)
+
+/-- A reduction turns each target adversary into a source adversary. It transfers
+indistinguishability from the source games to the target games when it preserves admissibility
+and bounds the target advantage by the source advantage up to a polynomial loss and a negligible
+error. The loss and the error may depend on the target adversary, while the reduction maps whole
+adversaries and does not depend on the security parameter. -/
+theorem Indistinguishable.of_reduction {SourceAdversary TargetAdversary : Type*}
+    {source1 source2 : SourceAdversary → ℕ → Game} {target1 target2 : TargetAdversary → ℕ → Game}
+    {SourceAdmissible : SourceAdversary → Prop} {TargetAdmissible : TargetAdversary → Prop}
+    (h : Indistinguishable source1 source2 SourceAdmissible)
+    (reduce : TargetAdversary → SourceAdversary)
     (hadmissible : ∀ adversary, TargetAdmissible adversary → SourceAdmissible (reduce adversary))
-    (hbound : ∀ adversary, TargetAdmissible adversary → ∀ n,
-      advantage (targetReal adversary n) (targetIdeal adversary n) ≤
-        advantage (sourceReal (reduce adversary) n) (sourceIdeal (reduce adversary) n)) :
-    Secure targetReal targetIdeal TargetAdmissible := fun adversary ha =>
-  negligible_of_le (h _ (hadmissible adversary ha)) (fun _ => advantage_nonneg _ _)
-    (hbound adversary ha)
-
-/-- A negligible common error bound implies asymptotic security. -/
-theorem SecureWithError.secure {Adversary : Type*} {real ideal : Adversary → ℕ → Game}
-    {Admissible : Adversary → Prop} {ε : ℕ → ℝ≥0}
-    (h : SecureWithError real ideal Admissible ε)
-    (hε : Negligible (fun n => (ε n : ℝ))) : Secure real ideal Admissible := fun adversary ha =>
-  negligible_of_le hε (fun _ => advantage_nonneg _ _) (h adversary ha)
+    (hbound : ∀ adversary, TargetAdmissible adversary →
+      ∃ (loss : ℕ → ℕ) (error : ℕ → ℝ≥0), PolynomiallyBounded loss ∧ Negligible error ∧ ∀ n,
+        advantage (target1 adversary n) (target2 adversary n) ≤
+          loss n * advantage (source1 (reduce adversary) n) (source2 (reduce adversary) n) +
+            error n) :
+    Indistinguishable target1 target2 TargetAdmissible := by
+  intro adversary ha
+  obtain ⟨loss, error, hloss, herror, hbound⟩ := hbound adversary ha
+  have hsource := h _ (hadmissible adversary ha)
+  exact negligible_of_le (by fun_prop (disch := assumption)) hbound
 
 end Game
 end Cslib.Crypto
