@@ -102,6 +102,16 @@ that trace from the start state. -/
 instance : Acceptor (FinAcc State Symbol) Symbol where
   Accepts a xs := ∃ s ∈ a.start, ∃ s' ∈ a.accept, a.SMTr s (xs.map some) s'
 
+open Acceptor in
+/-- A word is accepted if and only if a plain run from an initial to an accepting state reads it
+once its `ε`s are dropped. -/
+theorem mem_language_iff {a : FinAcc State Symbol} {xs : List Symbol} :
+    xs ∈ language a ↔ ∃ s ∈ a.start, ∃ t ∈ a.accept,
+      ∃ μs : List (Option Symbol), μs.reduceOption = xs ∧ a.MTr s μs t := by
+  rw [mem_language]
+  exact exists_congr fun _ => and_congr_right fun _ => exists_congr fun _ =>
+    and_congr_right fun _ => sMTr_map_some_iff
+
 end FinAcc
 
 end εNA
