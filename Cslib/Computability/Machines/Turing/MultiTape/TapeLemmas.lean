@@ -26,7 +26,12 @@ in time usable as a bound for the whole run.
 `[-s, s]`, which bounds the space of the path.
 
 `MultiTapeNTM.RunPath.space_map_le` bounds the space of a run path mapped by `RunPath.map` through
-the head positions of the original path.
+the head positions of the original path, and `MultiTapeNTM.RunPath.space_le_mul_time_add_one`
+bounds the space of any run path by its length.
+
+`MultiTapeTM.runsInSpace_of_runPath` turns the space of a single run path to a halted configuration
+into a space bound for every computation path, since a deterministic machine stays where it is
+after halting.
 
 -/
 
@@ -71,6 +76,13 @@ lemma space_le_of_subset {p q : ntm.RunPath input} (h : ∀ c ∈ q, c ∈ p) : 
   q.space_le_sum_card fun c hc _ =>
     let ⟨n, hn⟩ := h c hc
     hn ▸ Finset.mem_image_of_mem _ (Finset.mem_univ n)
+
+/-- Each head visits at most one cell per configuration, so a path visits at most `k * (time + 1)`
+cells. -/
+lemma space_le_mul_time_add_one (p : ntm.RunPath input) : p.space ≤ k * (p.time + 1) :=
+  calc p.space ≤ ∑ _ : Fin k, (p.time + 1) :=
+        Finset.sum_le_sum fun _ _ => Finset.card_image_le.trans_eq (Finset.card_fin _)
+    _ = k * (p.time + 1) := by simp
 
 /-! ### Windows -/
 
@@ -286,5 +298,26 @@ lemma _root_.Turing.MultiTapeNTM.RunPath.inWindow_of_space_le {p : tm.RunPath in
     ((tm.mem_visitedByTapeHead (cfg := p.head) (t := p.time) (i := i)).mpr ⟨n, n.2, rfl⟩)
   rw [h0, sub_zero] at hz
   exact mem_window.mpr (hz.trans ((tm.spaceUsedByTape_le_space _ _ i).trans hs))
+
+/-! ### Space of halted runs -/
+
+/-- Every configuration on a path from the head of a path that ends halted lies on that path: after
+halting, a deterministic machine stays where it is. -/
+lemma mem_of_last_halted {p q : tm.RunPath input} (hp : p.last.Halted) (hq : q.head = p.head) :
+    ∀ c ∈ q, c ∈ p := by
+  rintro _ ⟨n, rfl⟩
+  have hlast : tm.runFrom p.head p.length = p.last := (runPath_apply_eq_runFrom p (.last _)).symm
+  rw [runPath_apply_eq_runFrom, hq]
+  rcases le_or_gt n.val p.length with h | h
+  · exact ⟨⟨n, Nat.lt_succ_of_le h⟩, runPath_apply_eq_runFrom p _⟩
+  · rw [runFrom_eq_of_halt tm _ h.le (hlast ▸ hp), hlast]
+    exact ⟨.last _, rfl⟩
+
+/-- A run path from the initial configuration to a halted configuration, using at most `s` cells,
+bounds the space of every computation path by `s`. -/
+lemma runsInSpace_of_runPath {s : ℕ} {p : tm.RunPath input} (hhead : p.head = tm.initCfg input)
+    (hp : p.last.Halted) (hs : p.space ≤ s) : tm.RunsInSpace input s :=
+  fun q => (MultiTapeNTM.RunPath.space_le_of_subset
+    (mem_of_last_halted hp (q.head_eq.trans hhead.symm))).trans hs
 
 end Turing.MultiTapeTM

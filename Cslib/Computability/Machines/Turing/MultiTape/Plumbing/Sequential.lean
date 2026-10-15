@@ -26,6 +26,8 @@ second.
 * `Turing.MultiTapeTM.seq`: the composed machine.
 * `Turing.MultiTapeTM.exists_runPath_seq`: run paths compose, and the configurations of the
   composed path are those of the two paths up to their states.
+* `Turing.MultiTapeTM.exists_runPath_seq_space_le`: the composed path visits at most the cells of
+  the two paths combined.
 * `Turing.MultiTapeTM.transformsTapes_seq`: transformations compose, bounds adding.
 -/
 
@@ -128,6 +130,26 @@ theorem exists_runPath_seq {p₀ : tm₀.RunPath input} (h₀ : p₀.last.Halted
   · exact .inr ⟨c', hmem₁ c' hc', rfl⟩
 
 open Sequential in
+/-- **Space of a sequential run.** The run path of `seq` composed from two run paths visits at most
+the cells of the two paths combined. -/
+theorem exists_runPath_seq_space_le {p₀ : tm₀.RunPath input} (h₀ : p₀.last.Halted)
+    {p₁ : tm₁.RunPath input} (h₁ : p₁.head = p₀.last.withState (some tm₁.q₀))
+    (hp₁ : p₁.last.Halted) :
+    ∃ p : (tm₀.seq tm₁).RunPath input, p.head = leftCfg tm₁ p₀.head ∧
+      p.last = rightCfg p₁.last ∧ p.length ≤ p₀.length + p₁.length ∧
+      p.space ≤ p₀.space + p₁.space := by
+  obtain ⟨p, hh, hl, ht, hmem⟩ := exists_runPath_seq h₀ h₁ hp₁
+  refine ⟨p, hh, hl, ht, ?_⟩
+  -- every head position of the composed run is one of the first path or one of the second
+  refine (p.space_le_sum_card
+    (S := fun i => p₀.visitedByTapeHead i ∪ p₁.visitedByTapeHead i) fun c hc i => ?_).trans
+    ((Finset.sum_le_sum fun i _ => Finset.card_union_le _ _).trans_eq Finset.sum_add_distrib)
+  rcases hmem c hc with ⟨_, ⟨n, rfl⟩, he⟩ | ⟨_, ⟨n, rfl⟩, he⟩ <;>
+    rw [show c.workTapePos i = _ from congrArg (·.workTapePos i) he]
+  · exact Finset.mem_union_left _ (Finset.mem_image_of_mem _ (Finset.mem_univ n))
+  · exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (Finset.mem_univ n))
+
+open Sequential in
 /-- **Sequential composition of transformations.** If the postcondition of the first
 transformation implies the precondition of the second, the composed machine performs the two
 transformations one after the other, with the time and space bounds adding and the emitted words
@@ -147,18 +169,10 @@ theorem transformsTapes_seq
   obtain ⟨ws', e₀, hQ₀, p₀, hh₀, hl₀, ht₀, hs₀⟩ := h₀ input ws out hP₀
   obtain ⟨ws'', e₁, hQ₁, p₁, hh₁, hl₁, ht₁, hs₁⟩ :=
     h₁ input ws' (out ++ e₀) (hmid input ws ws' e₀ hP₀ hQ₀)
-  obtain ⟨p, hh, hl, ht, hmem⟩ := exists_runPath_seq (p₀ := p₀) (p₁ := p₁) (by rw [hl₀]; rfl)
-    (by simp [hh₁, hl₀]) (by rw [hl₁]; rfl)
-  refine ⟨ws'', e₀ ++ e₁, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, p, by simp [hh, hh₀, leftCfg]; rfl,
-    by simp [hl, hl₁, rightCfg], ht.trans (Nat.add_le_add ht₀ ht₁), ?_⟩
-  -- every head position of the composed run is one of the first path or one of the second
-  refine (p.space_le_sum_card
-    (S := fun i => p₀.visitedByTapeHead i ∪ p₁.visitedByTapeHead i) fun c hc i => ?_).trans
-    (((Finset.sum_le_sum fun i _ => Finset.card_union_le _ _).trans_eq
-      Finset.sum_add_distrib).trans (Nat.add_le_add hs₀ hs₁))
-  rcases hmem c hc with ⟨_, ⟨n, rfl⟩, he⟩ | ⟨_, ⟨n, rfl⟩, he⟩ <;>
-    rw [show c.workTapePos i = _ from congrArg (·.workTapePos i) he]
-  · exact Finset.mem_union_left _ (Finset.mem_image_of_mem _ (Finset.mem_univ n))
-  · exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (Finset.mem_univ n))
+  obtain ⟨p, hh, hl, ht, hs⟩ := exists_runPath_seq_space_le (p₀ := p₀) (p₁ := p₁)
+    (by rw [hl₀]; rfl) (by simp [hh₁, hl₀]) (by rw [hl₁]; rfl)
+  exact ⟨ws'', e₀ ++ e₁, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, p, by simp [hh, hh₀, leftCfg]; rfl,
+    by simp [hl, hl₁, rightCfg], ht.trans (Nat.add_le_add ht₀ ht₁),
+    hs.trans (Nat.add_le_add hs₀ hs₁)⟩
 
 end Turing.MultiTapeTM
