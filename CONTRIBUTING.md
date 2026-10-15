@@ -86,11 +86,10 @@ You can run these locally with `lake test` and `lake exe checkInitImports` respe
 
 ## Linting
 
-CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. These come in three varieties:
+CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. These come in two varieties:
 
 - *syntax linters*, which appear as you write your code and will give warnings in `lake build`
 - *environment linters*, which can be run using `lake lint` or the `#lint` command
-- *text linters*, which can be run with `lake exe lint-style` and fixed automatically with the `--fix` option
 
 ## Imports
 

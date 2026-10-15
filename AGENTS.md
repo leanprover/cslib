@@ -40,7 +40,6 @@ Use these commands at validation checkpoints, not after every proof edit.
 | `lake build --wfail --iofail` | Build with CI strictness (fails on warnings)            | Before committing                                            |
 | `lake test`                   | Run all tests (builds CslibTests + checks init imports) | After completing Lean code changes                           |
 | `lake lint`                   | Run environment linters (Batteries/Mathlib)             | Before committing                                            |
-| `lake exe lint-style`         | Run text-based style linters                            | Before committing                                            |
 | `lake exe mk_all --check`     | Verify Cslib.lean imports all modules                   | After adding new files                                       |
 | `lake exe mk_all`             | Auto-update Cslib.lean imports                          | After adding new files                                       |
 
@@ -54,44 +53,15 @@ lake build --wfail --iofail
 lake exe mk_all --check
 lake test
 lake lint
-lake exe lint-style
 ```
 
 ### Additional Commands
 
-| Command                     | Purpose                                                |
-|-----------------------------|--------------------------------------------------------|
-| `lake clean`                | Remove build outputs (use if build state is corrupted) |
-| `lake update`               | Update dependencies (rarely needed)                    |
-| `lake exe lint-style --fix` | Auto-fix style errors                                  |
-| `lake exe shake Cslib`      | Check for minimized imports                            |
-
-## Project Structure
-
-```
-/
-├── Cslib.lean           # Root module (imports all library files)
-├── CslibTests.lean      # Root test module
-├── CONTRIBUTING.md      # Contribution guidelines
-├── lakefile.toml        # Lake configuration (linters, dependencies)
-├── lean-toolchain       # Lean version specification
-├── lake-manifest.json   # Locked dependency versions
-├── Cslib/               # Main library source
-│   ├── Init.lean        # Must be imported by all Cslib modules
-│   ├── Algorithms/      # Verified algorithms and complexity (e.g., sorting, TimeM)
-│   ├── Computability/   # Automata and computability theory
-│   ├── Crypto/          # Cryptographic primitives and protocols
-│   ├── Foundations/     # General-purpose definitions (semantics, data types, etc.)
-│   ├── Languages/       # Programming language formalisations (e.g., Calculus of Communicating Systems, Lambda Calculus)
-│   ├── Logics/          # Logic formalisations (e.g., Linear Logic, Hennessy-Milner Logic)
-│   ├── MachineLearning/ # Learning theory (e.g., PAC learning)
-│   ├── Probability/     # Probability (e.g., PMFs, statistical distance)
-│   └── Tactic/          # Tactic infrastructure (e.g., grind attributes)
-├── CslibTests/          # Test files
-├── scripts/             # Build and maintenance scripts
-│   └── noshake.json     # Import exceptions for shake tool
-└── .github/workflows/   # CI workflows
-```
+| Command                | Purpose                                                |
+|------------------------|--------------------------------------------------------|
+| `lake clean`           | Remove build outputs (use if build state is corrupted) |
+| `lake update`          | Update dependencies (rarely needed)                    |
+| `lake exe shake Cslib` | Check for minimized imports                            |
 
 ## Critical Requirements
 
