@@ -80,7 +80,7 @@ theorem advantage_le_one (game1 game2 : Game) : advantage game1 game2 ≤ 1 := b
     (tsub_le_iff_right.mpr (le_add_right (succProbability_le_one _)))
 
 /-- Equal games have zero advantage. -/
-@[simp] theorem advantage_self (game : Game) : advantage game game = 0 := nndist_self _
+theorem advantage_self (game : Game) : advantage game game = 0 := nndist_self _
 
 /-- Swapping the games preserves advantage. -/
 theorem advantage_comm (game1 game2 : Game) : advantage game1 game2 = advantage game2 game1 :=
