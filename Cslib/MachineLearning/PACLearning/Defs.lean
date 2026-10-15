@@ -367,7 +367,7 @@ theorem sampleComplexity_le_of_forall {L₁ L₂ : LearnerModel α β}
     (hL : ∀ {m : ℕ}, L₁ m ε₁ δ₁ C₁ 𝒟₁ → L₂ m ε₂ δ₂ C₂ 𝒟₂)
     (h : ∃ m, L₁ m ε₁ δ₁ C₁ 𝒟₁) :
     sampleComplexity L₂ C₂ ε₂ δ₂ 𝒟₂ ≤ sampleComplexity L₁ C₁ ε₁ δ₁ 𝒟₁ :=
-  Nat.sInf_le (hL (Nat.sInf_mem h))
+  Nat.sInf_le (hL (Nat.sInf_mem (s := {m | L₁ m ε₁ δ₁ C₁ 𝒟₁}) h))
 
 /-- Deterministic sample complexity is antitone in the confidence parameter `δ`: weaker
 confidence requires no more samples. -/
