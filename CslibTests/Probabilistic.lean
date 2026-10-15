@@ -6,10 +6,13 @@ Authors: Samuel Schlesinger
 
 import Cslib.Crypto.Game
 import Cslib.Languages.Probabilistic.Basic
+import Mathlib.Algebra.FreeMonoid.Basic
+import Mathlib.Control.Monad.Writer
 import Mathlib.Data.Fintype.Pi
 import Mathlib.Data.List.OfFn
 
-/-! Examples of typed, adaptive, and stateful probabilistic programs, and Boolean games. -/
+/-! Examples of typed, adaptive, stateful, logged, and simulated probabilistic programs, and Boolean
+games. -/
 
 namespace CslibTests.Probabilistic
 
@@ -22,9 +25,19 @@ private def adaptive (input : ℕ) : OracleComp (fun _ : ℕ => ℕ) ℕ := do
   OracleComp.query answer
 
 example (f : ℕ → ℕ) (input : ℕ) :
-    OracleComp.eval (fun query => PMF.pure (f query)) (adaptive input) =
+    OracleComp.interpret (fun query => PMF.pure (f query)) (adaptive input) =
       PMF.pure (f (f input)) := by
   simp [adaptive]
+
+-- The same program interpreted in a writer monad logs the queries in order.
+private noncomputable def logged (f : ℕ → ℕ) (query : ℕ) : WriterT (FreeMonoid ℕ) PMF ℕ := do
+  tell (FreeMonoid.of query)
+  return f query
+
+example (f : ℕ → ℕ) (input : ℕ) :
+    (OracleComp.interpret (logged f) (adaptive input)).run =
+      PMF.pure (f (f input), FreeMonoid.of input * FreeMonoid.of (f input)) := by
+  simp [adaptive, logged]
 
 private abbrev Reply : Bool → Type
   | false => Bool
@@ -38,11 +51,11 @@ private noncomputable def typedOracle : (flag : Bool) → PMF (Reply flag)
   | false => PMF.pure true
   | true => PMF.pure 7
 
-example : OracleComp.eval typedOracle typed = PMF.pure 7 := by
+example : OracleComp.interpret typedOracle typed = PMF.pure 7 := by
   simp [typed, typedOracle]
 
 private noncomputable def counter (_ : Unit) : StateT ℕ PMF ℕ :=
-  fun state => PMF.pure (state, state + 1)
+  modifyGet fun state => (state, state + 1)
 
 private def twice : OracleComp (fun _ : Unit => ℕ) (ℕ × ℕ) := do
   let first ← OracleComp.query ()
@@ -50,21 +63,22 @@ private def twice : OracleComp (fun _ : Unit => ℕ) (ℕ × ℕ) := do
   return (first, second)
 
 -- The two calls share private state; the result retains their order.
-example : OracleComp.runState counter twice 10 = PMF.pure ((10, 11), 12) := by
-  simp [twice, counter, PMF.pure_map]
+example : (OracleComp.interpret counter twice).run 10 = PMF.pure ((10, 11), 12) := by
+  simp [twice, counter]
 
 private def doubleQuery (query : Unit) : OracleComp (fun _ : Unit => ℕ) ℕ := do
   let _ ← OracleComp.query query
   OracleComp.query query
 
 -- Discarding a reply still changes state, including inside a substituted handler.
-example : OracleComp.runState counter (OracleComp.simulate doubleQuery twice) 10 =
+example : (OracleComp.interpret counter (OracleComp.interpret doubleQuery twice)).run 10 =
     PMF.pure ((11, 13), 14) := by
-  simp [twice, doubleQuery, counter, PMF.pure_map]
+  simp [twice, doubleQuery, counter]
 
-private noncomputable def remember {α : Type u} (value : α) : StateT (Option α) PMF α
-  | none => PMF.pure (value, some value)
-  | some previous => PMF.pure (previous, some previous)
+private noncomputable def remember {α : Type u} (value : α) : StateT (Option α) PMF α :=
+  modifyGet fun
+    | none => (value, some value)
+    | some previous => (previous, some previous)
 
 private def recallTwice {α : Type u} (first second : α) : OracleComp (fun _ : α => α) (α × α) := do
   let a ← OracleComp.query first
@@ -74,9 +88,9 @@ private def recallTwice {α : Type u} (first second : α) : OracleComp (fun _ : 
 -- The stored value survives across calls and correlates the replies.
 -- The example also exercises execution at an arbitrary universe.
 example {α : Type u} (first second : α) :
-    OracleComp.runState remember (recallTwice first second) none =
+    (OracleComp.interpret remember (recallTwice first second)).run none =
       PMF.pure ((first, first), some first) := by
-  simp [recallTwice, remember, PMF.pure_map]
+  simp [recallTwice, remember]
 
 example : Game.succProbability (ProbComp.eval (ProbComp.uniform Bool)) = 1 / 2 := by
   simp [Game.succProbability, Probability.PMF.uniformOfFintype_apply, ENNReal.toNNReal_ofNat]
