@@ -21,10 +21,12 @@ truth order `false < unknown < true`.
 
 - `Kleene`: the three truth values.
 - `Kleene.not`, `Kleene.and`, `Kleene.or`, `Kleene.imp`, `Kleene.iff`: the connectives.
+- `Kleene.ofBool`: the embedding of `Bool`.
 
 ## Main results
 
 - `LinearOrder Kleene`, `BoundedOrder Kleene`: the truth order, with `∧` as meet and `∨` as join.
+- `Kleene.ofBool_and` and friends: `ofBool` commutes with the connectives.
 
 ## References
 
@@ -205,6 +207,57 @@ theorem not_forall_imp_self_eq_true : ¬∀ a : Kleene, (a → a) = .true := by 
 
 /-- Excluded middle is not valid. -/
 theorem not_forall_or_not_eq_true : ¬∀ a : Kleene, (a ∨ ¬a) = .true := by decide
+
+/-! ### The embedding of `Bool` -/
+
+/-- The embedding of `Bool`. -/
+def ofBool : Bool → Kleene
+  | Bool.true => .true
+  | Bool.false => .false
+
+@[simp, scoped grind =] theorem ofBool_true : ofBool Bool.true = .true := rfl
+@[simp, scoped grind =] theorem ofBool_false : ofBool Bool.false = .false := rfl
+
+theorem ofBool_injective : Function.Injective ofBool := by decide
+
+@[simp] theorem ofBool_inj {a b : Bool} : ofBool a = ofBool b ↔ a = b := ofBool_injective.eq_iff
+
+@[simp] theorem ofBool_ne_unknown (b : Bool) : ofBool b ≠ .unknown := by grind [cases Bool]
+
+@[simp, scoped grind =]
+theorem ofBool_not (b : Bool) : ofBool (!b) = ¬ofBool b := by grind [cases Bool]
+
+@[simp, scoped grind =]
+theorem ofBool_and (a b : Bool) : ofBool (a && b) = (ofBool a ∧ ofBool b) := by grind [cases Bool]
+
+@[simp, scoped grind =]
+theorem ofBool_or (a b : Bool) : ofBool (a || b) = (ofBool a ∨ ofBool b) := by grind [cases Bool]
+
+/-! ### Testing against `true` and `false` -/
+
+@[simp] theorem and_beq_true (a b : Kleene) :
+    ((a ∧ b) == .true) = (a == .true && b == .true) := by grind [cases Kleene]
+
+@[simp] theorem or_beq_false (a b : Kleene) :
+    ((a ∨ b) == .false) = (a == .false && b == .false) := by grind [cases Kleene]
+
+@[simp] theorem not_beq_true (a : Kleene) : ((¬a) == .true) = (a == .false) := by grind
+
+@[simp] theorem not_beq_false (a : Kleene) : ((¬a) == .false) = (a == .true) := by grind
+
+@[simp] theorem ofBool_beq_true (b : Bool) : (ofBool b == .true) = b := by grind [cases Bool]
+
+@[simp] theorem ofBool_beq_false (b : Bool) : (ofBool b == .false) = !b := by grind [cases Bool]
+
+@[simp] theorem and_eq_true_iff {a b : Kleene} : (a ∧ b) = .true ↔ a = .true ∧ b = .true :=
+  inf_eq_top_iff
+
+@[simp] theorem or_eq_false_iff {a b : Kleene} : (a ∨ b) = .false ↔ a = .false ∧ b = .false :=
+  sup_eq_bot_iff
+
+@[simp] theorem not_eq_true_iff {a : Kleene} : (¬a) = .true ↔ a = .false := by grind
+
+@[simp] theorem not_eq_false_iff {a : Kleene} : (¬a) = .false ↔ a = .true := by grind
 
 end Kleene
 
