@@ -32,8 +32,8 @@ notions below add tidiness to `Turing.MultiTapeTM.ComputesInTimeAndSpace`,
 
 ## Main results
 
-* `Turing.MultiTapeTM.computesTidily_iff`: a tidy computation is a single run between
-  `Turing.MultiTapeTM.wordsCfg` configurations, together with a space bound.
+* `Turing.MultiTapeTM.computesTidily_iff`: a tidy computation is a single run path between
+  `Turing.MultiTapeTM.wordsCfg` configurations within the time and space bounds.
 -/
 
 @[expose] public section
@@ -52,19 +52,18 @@ abbrev ComputesTidilyInTimeAndSpace (tm : MultiTapeTM k Symbol State)
   TransformsTapes tm (fun inp ws => inp = input ∧ ws = fun _ => [])
     (fun _ _ ws' emitted => ws' = (fun _ => []) ∧ emitted = output) t s
 
-/-- A tidy computation is a single run between `Turing.MultiTapeTM.wordsCfg` configurations with
-blank work tapes, which emits the output, together with the space bound. -/
+/-- A tidy computation is a single run path between `Turing.MultiTapeTM.wordsCfg` configurations
+with blank work tapes, which emits the output, within the time and space bounds. -/
 theorem computesTidily_iff {input output : List Symbol} :
     tm.ComputesTidilyInTimeAndSpace input output t s ↔
-      tm.runFrom (wordsCfg input (some tm.q₀) (fun _ => []) []) t =
-          wordsCfg input none (fun _ => []) output ∧
-        tm.spaceUsed (wordsCfg input (some tm.q₀) (fun _ => []) []) t ≤ s := by
+      ∃ p : tm.RunPath input, p.head = wordsCfg input (some tm.q₀) (fun _ => []) [] ∧
+        p.last = wordsCfg input none (fun _ => []) output ∧ p.time ≤ t ∧ p.space ≤ s := by
   rw [ComputesTidilyInTimeAndSpace, transformsTapes_iff_nil_output]
-  refine ⟨fun h => ?_, fun ⟨hrun, hspace⟩ inp ws ⟨hinp, hws⟩ => ?_⟩
-  · obtain ⟨_, _, hrun, ⟨rfl, rfl⟩, hspace⟩ := h input (fun _ => []) ⟨rfl, rfl⟩
-    exact ⟨hrun, hspace⟩
+  refine ⟨fun h => ?_, fun hp inp ws ⟨hinp, hws⟩ => ?_⟩
+  · obtain ⟨_, _, ⟨rfl, rfl⟩, hp⟩ := h input (fun _ => []) ⟨rfl, rfl⟩
+    exact hp
   · subst hinp hws
-    exact ⟨fun _ => [], output, hrun, ⟨rfl, rfl⟩, hspace⟩
+    exact ⟨fun _ => [], output, ⟨rfl, rfl⟩, hp⟩
 
 /-- Resource bounds can be weakened. -/
 theorem ComputesTidilyInTimeAndSpace.mono {input output : List Symbol} {t' s' : ℕ}
