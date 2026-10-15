@@ -26,8 +26,9 @@ open scoped NNReal
 /-- Every test's advantage is bounded by the statistical distance of generated and ideal samples. -/
 theorem Generator.advantage_le_dist {Seed Output : Type*} (G : Generator Seed Output)
     (adversary : Adversary Output) (seed : PMF Seed) (ideal : PMF Output) :
-    G.advantage adversary seed ideal ≤ dist (G.outputDist seed) ideal :=
-  Game.advantage_bind_le_dist _ _ _
+    G.advantage adversary seed ideal ≤ dist (G.outputDist seed) ideal := by
+  rw [Generator.advantage, ← coe_nndist]
+  exact_mod_cast Game.advantage_bind_le_nndist _ _ _
 
 /-- A statistical bound gives concrete security for any chosen class of adversaries. -/
 theorem Generator.secure_of_statisticallyClose {Seed Output : Type*} (G : Generator Seed Output)
@@ -42,6 +43,6 @@ theorem Family.secure_of_statisticallyIndistinguishable {Seed Output : ℕ → T
     (h : StatisticallyIndistinguishable (fun n => (G n).outputDist (seed n)) ideal)
     (Admissible : (∀ n, Adversary (Output n)) → Prop) :
     G.Secure Admissible seed ideal :=
-  h.secure (fun adversary => adversary) Admissible
+  h.indistinguishable (fun adversary => adversary) Admissible
 
 end Cslib.Crypto.PRG
