@@ -35,8 +35,8 @@ experiments, and indistinguishability of game families under polynomial-loss red
 PMFs. `Generator.Secure G Admissible ε` bounds the distinguishing advantage of every
 admissible randomized test. `Family.SecureWithError` allows a parameter-dependent error bound;
 `Family.Secure` requires negligible advantage separately for each admissible family, using
-`Negligible`, Mathlib's `SuperpolynomialDecay` at natural parameters. A negligible error bound
-implies this asymptotic notion.
+`Negligible` from [`Negligible`](Negligible.lean). A negligible error bound implies this
+asymptotic notion.
 The caller supplies `Admissible`; these definitions do not assert computational efficiency.
 The seed and ideal distributions are explicit parameters, defaulting to uniform sampling on
 finite types, so the same experiments apply to distributions on infinite types.

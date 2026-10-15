@@ -21,8 +21,8 @@ family, so a downstream computational model can express a uniform resource restr
 This model has a natural-number security parameter and no sampled public system parameters.
 Efficiency of generation and sampling is not asserted by these semantic definitions.
 Seed and ideal distributions can be supplied explicitly; their defaults are uniform on finite
-types. Security is stated through `Game.Secure`, so computational definitions over infinite
-sample spaces can reuse these experiments.
+types. Security is stated through `Game.Indistinguishable`, so computational definitions over
+infinite sample spaces can reuse these experiments.
 
 `SecureWithError` bounds every admissible family's advantage at parameter `n` by `ε n`.
 A negligible bound implies `Secure`.
@@ -54,7 +54,8 @@ def Secure (G : Family Seed Output)
       intro n; exact Cslib.Probability.PMF.uniformOfFintype _)
     (ideal : ∀ n, PMF (Output n) := by
       intro n; exact Cslib.Probability.PMF.uniformOfFintype _) : Prop :=
-  Game.Secure (fun adversary n => (G n).realExperiment (adversary n) (seed := seed n))
+  Game.Indistinguishable
+    (fun adversary n => (G n).realExperiment (adversary n) (seed := seed n))
     (fun adversary n => Generator.idealExperiment (adversary n) (ideal := ideal n)) Admissible
 
 /-- Restricting the admissible adversary families preserves asymptotic security. -/
@@ -63,7 +64,8 @@ theorem Secure.of_admissible {G : Family Seed Output}
     {seed : ∀ n, PMF (Seed n)} {ideal : ∀ n, PMF (Output n)}
     (h : G.Secure Admissible (seed := seed) (ideal := ideal))
     (hsub : ∀ adversary_family, Restricted adversary_family → Admissible adversary_family) :
-    G.Secure Restricted (seed := seed) (ideal := ideal) := Game.Secure.of_admissible h hsub
+    G.Secure Restricted (seed := seed) (ideal := ideal) :=
+  Game.Indistinguishable.of_admissible h hsub
 
 /-- Every admissible adversary family has advantage at most `ε n` at each parameter `n`. -/
 def SecureWithError (G : Family Seed Output)
@@ -72,7 +74,8 @@ def SecureWithError (G : Family Seed Output)
       intro n; exact Cslib.Probability.PMF.uniformOfFintype _)
     (ideal : ∀ n, PMF (Output n) := by
       intro n; exact Cslib.Probability.PMF.uniformOfFintype _) : Prop :=
-  Game.SecureWithError (fun adversary n => (G n).realExperiment (adversary n) (seed := seed n))
+  Game.IndistinguishableWithError
+    (fun adversary n => (G n).realExperiment (adversary n) (seed := seed n))
     (fun adversary n => Generator.idealExperiment (adversary n) (ideal := ideal n)) Admissible ε
 
 /-- A negligible error bound implies asymptotic security. -/
@@ -80,8 +83,8 @@ theorem SecureWithError.secure {G : Family Seed Output}
     {Admissible : (∀ n, Adversary (Output n)) → Prop} {ε : ℕ → ℝ≥0}
     {seed : ∀ n, PMF (Seed n)} {ideal : ∀ n, PMF (Output n)}
     (h : G.SecureWithError Admissible ε (seed := seed) (ideal := ideal))
-    (hε : Negligible (fun n => (ε n : ℝ))) : G.Secure Admissible (seed := seed) (ideal := ideal) :=
-  Game.SecureWithError.secure h hε
+    (hε : Negligible ε) : G.Secure Admissible (seed := seed) (ideal := ideal) :=
+  Game.IndistinguishableWithError.indistinguishable h hε
 
 section RangeTests
 
@@ -94,16 +97,15 @@ security whenever exhaustive range testing is admissible. -/
 theorem not_secure_of_rangeAdversary (G : Family Seed Output)
     {Admissible : (∀ n, Adversary (Output n)) → Prop}
     (ha : Admissible (fun n => (G n).rangeAdversary)) {δ : ℕ → ℝ≥0}
-    (hδ : ¬ Negligible (fun n => (δ n : ℝ)))
+    (hδ : ¬ Negligible δ)
     (hgap : ∀ᶠ n in atTop,
       (δ n : ℝ) ≤ 1 - Nat.card (Set.range (G n)) / (Fintype.card (Output n) : ℝ)) :
     ¬ G.Secure Admissible := by
   intro h
   apply hδ
-  apply (h _ ha).trans_eventually_abs_le
+  apply negligible_of_eventually_le (h _ ha)
   filter_upwards [hgap] with n hn
-  exact abs_le_abs_of_nonneg (δ n).coe_nonneg
-    (hn.trans_eq (Generator.advantage_rangeAdversary (G n)).symm)
+  exact NNReal.coe_le_coe.mp (hn.trans_eq (Generator.advantage_rangeAdversary (G n)).symm)
 
 /-- If outputs eventually outnumber seeds by a factor of two, admissibility of exhaustive
 seed enumeration and output comparison suffices to rule out security. -/

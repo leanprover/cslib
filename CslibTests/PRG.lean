@@ -24,7 +24,7 @@ example : (Generator.mk (id : Bool → Bool)).Secure (fun _ => True) 0 := by
 example : (Generator.mk (id : ℕ → ℕ)).advantage (fun n => PMF.pure (decide (n = 0)))
     (seed := PMF.pure 0) (ideal := PMF.pure 1) = 1 := by
   simp [Generator.advantage, Generator.realExperiment, Generator.idealExperiment,
-    Generator.outputDist, Cslib.Crypto.Game.winProbability]
+    Generator.outputDist, Cslib.Crypto.Game.succProbability]
 
 -- Zero-error security implies uniform output.
 example {Seed Output : Type*} [Fintype Seed] [Nonempty Seed]
@@ -79,7 +79,7 @@ example (G : Family (fun n => Fin (n + 1)) (fun n => Fin (n + 2))) :
   apply G.not_secure_of_rangeAdversary trivial (δ := fun n => 1 / ((n : ℝ≥0) + 2))
   · intro h
     have hlim : Tendsto (fun n : ℕ => (n : ℝ) / ((n : ℝ) + 2)) atTop (𝓝 0) := by
-      simpa [div_eq_mul_inv] using h 1
+      simpa [div_eq_mul_inv] using NNReal.tendsto_coe.mpr (h 1)
     have hle : (1 / 2 : ℝ) ≤ 0 := ge_of_tendsto hlim (by
       filter_upwards [eventually_ge_atTop 2] with n hn
       have hn' : (2 : ℝ) ≤ n := by exact_mod_cast hn
