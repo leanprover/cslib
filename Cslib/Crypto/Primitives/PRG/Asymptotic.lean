@@ -14,7 +14,8 @@ public import Mathlib.Data.FinEnum
 
 Security for families of generators means negligible advantage for each admissible
 adversary family, following [BonehShoup2023], Definition 3.1. Negligibility is
-`Cslib.Crypto.Negligible`, Mathlib's `Asymptotics.SuperpolynomialDecay` at natural parameters.
+`Cslib.Crypto.Negligible` from `Cslib/Crypto/Negligible.lean`: the advantage decays faster
+than every inverse polynomial in the natural-number security parameter.
 Admissibility is a predicate on the whole adversary
 family, so a downstream computational model can express a uniform resource restriction.
 This model has a natural-number security parameter and no sampled public system parameters.
