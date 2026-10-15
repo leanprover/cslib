@@ -15,18 +15,26 @@ public import Mathlib.Order.BoundedOrder.Basic
 /-! # Kleene's strong three-valued logic
 
 The truth values and connectives of Kleene's strong three-valued logic (K3) [Kleene1952], with the
-truth order `false < unknown < true`.
+truth order `false < unknown < true` and the information order `unknown ⊑ true`,
+`unknown ⊑ false`.
+
+The truth order is the `LE` instance: `∧` and `∨` are its meet and join, and negation reverses
+it. In the information order `⊑`, `unknown` lies below both definite values; every connective
+is monotone in it.
 
 ## Main definitions
 
 - `Kleene`: the three truth values.
 - `Kleene.not`, `Kleene.and`, `Kleene.or`, `Kleene.imp`, `Kleene.iff`: the connectives.
 - `Kleene.ofBool`: the embedding of `Bool`.
+- `Kleene.InfoLE`, written `⊑`: the information order.
 
 ## Main results
 
 - `LinearOrder Kleene`, `BoundedOrder Kleene`: the truth order, with `∧` as meet and `∨` as join.
 - `Kleene.ofBool_and` and friends: `ofBool` commutes with the connectives.
+- `IsPartialOrder Kleene Kleene.InfoLE`, `Kleene.InfoLE.and` and friends: the information
+  order is a partial order in which every connective is monotone.
 
 ## References
 
@@ -223,6 +231,7 @@ theorem ofBool_injective : Function.Injective ofBool := by decide
 @[simp] theorem ofBool_inj {a b : Bool} : ofBool a = ofBool b ↔ a = b := ofBool_injective.eq_iff
 
 @[simp] theorem ofBool_ne_unknown (b : Bool) : ofBool b ≠ .unknown := by grind [cases Bool]
+@[simp] theorem unknown_ne_ofBool (b : Bool) : .unknown ≠ ofBool b := (ofBool_ne_unknown b).symm
 
 @[simp, scoped grind =]
 theorem ofBool_not (b : Bool) : ofBool (!b) = ¬ofBool b := by grind [cases Bool]
@@ -258,6 +267,58 @@ theorem ofBool_or (a b : Bool) : ofBool (a || b) = (ofBool a ∨ ofBool b) := by
 @[simp] theorem not_eq_true_iff {a : Kleene} : (¬a) = .true ↔ a = .false := by grind
 
 @[simp] theorem not_eq_false_iff {a : Kleene} : (¬a) = .false ↔ a = .true := by grind
+
+/-! ### The information order -/
+
+/-- The information order: `unknown` lies below every value, and the definite values are
+incomparable. It is distinct from the truth order `≤`. -/
+def InfoLE (a b : Kleene) : Prop := a = .unknown ∨ a = b
+
+@[inherit_doc] scoped infix:50 " ⊑ " => InfoLE
+
+theorem infoLE_def {a b : Kleene} : a ⊑ b ↔ a = .unknown ∨ a = b := Iff.rfl
+
+instance : DecidableRel InfoLE := fun _ _ => inferInstanceAs (Decidable (_ ∨ _))
+
+protected theorem InfoLE.refl (a : Kleene) : a ⊑ a := Or.inr rfl
+
+protected theorem InfoLE.trans {a b c : Kleene} : a ⊑ b → b ⊑ c → a ⊑ c := by decide +revert
+
+protected theorem InfoLE.antisymm {a b : Kleene} : a ⊑ b → b ⊑ a → a = b := by decide +revert
+
+instance : IsPartialOrder Kleene InfoLE where
+  refl := InfoLE.refl
+  trans _ _ _ := InfoLE.trans
+  antisymm _ _ := InfoLE.antisymm
+
+/-- `unknown` is the least informative value. -/
+@[simp] theorem unknown_infoLE (a : Kleene) : .unknown ⊑ a := Or.inl rfl
+
+@[simp] theorem infoLE_unknown_iff {a : Kleene} : a ⊑ .unknown ↔ a = .unknown := by
+  decide +revert
+
+/-- Definite values are maximal in the information order. -/
+@[simp] theorem ofBool_infoLE_iff {x : Bool} {b : Kleene} : ofBool x ⊑ b ↔ b = ofBool x := by
+  decide +revert
+
+@[simp] theorem true_infoLE_iff {b : Kleene} : .true ⊑ b ↔ b = .true := by decide +revert
+@[simp] theorem false_infoLE_iff {b : Kleene} : .false ⊑ b ↔ b = .false := by decide +revert
+
+/-! ### Monotonicity in the information order -/
+
+protected theorem InfoLE.not {a a' : Kleene} (h : a ⊑ a') : (¬a) ⊑ (¬a') := by decide +revert
+
+protected theorem InfoLE.and {a a' b b' : Kleene} (ha : a ⊑ a') (hb : b ⊑ b') :
+    (a ∧ b) ⊑ (a' ∧ b') := by decide +revert
+
+protected theorem InfoLE.or {a a' b b' : Kleene} (ha : a ⊑ a') (hb : b ⊑ b') :
+    (a ∨ b) ⊑ (a' ∨ b') := by decide +revert
+
+protected theorem InfoLE.imp {a a' b b' : Kleene} (ha : a ⊑ a') (hb : b ⊑ b') :
+    (a → b) ⊑ (a' → b') := ha.not.or hb
+
+protected theorem InfoLE.iff {a a' b b' : Kleene} (ha : a ⊑ a') (hb : b ⊑ b') :
+    (a ↔ b) ⊑ (a' ↔ b') := (ha.imp hb).and (hb.imp ha)
 
 end Kleene
 
