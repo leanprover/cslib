@@ -73,6 +73,27 @@ theorem OccursAt.trans (hv : v.OccursAt u p) (hu : u.OccursAt w i) : v.OccursAt 
   rw [← drop_drop]
   exact hv.trans (hu.drop p)
 
+/-- `u ++ [c]` occurs in `w` at `i` if and only if `u` occurs there and is followed by `c`. -/
+theorem occursAt_append_singleton_iff {c : α} :
+    (u ++ [c]).OccursAt w i ↔ u.OccursAt w i ∧ w[i + u.length]? = some c := by
+  rw [occursAt_iff_getElem?, occursAt_iff_getElem?]
+  constructor
+  · intro h
+    refine ⟨fun k hk => ?_, ?_⟩
+    · have := h k (by simp only [length_append, length_singleton]; omega)
+      rwa [getElem_append_left hk] at this
+    · have := h u.length (by simp only [length_append, length_singleton]; omega)
+      rwa [getElem_concat_length rfl] at this
+  · rintro ⟨h, hc⟩ k hk
+    rcases Nat.lt_or_ge k u.length with hk' | hk'
+    · rw [getElem_append_left hk']
+      exact h k hk'
+    · obtain rfl : k = u.length := by
+        simp only [length_append, length_singleton] at hk
+        omega
+      rw [getElem_concat_length rfl]
+      exact hc
+
 /-- The positions at which `u` occurs in `w`, in increasing order. -/
 def occurrences [DecidableEq α] (u w : List α) : List ℕ :=
   (range (w.length + 1)).filter fun i => decide (u.OccursAt w i)
