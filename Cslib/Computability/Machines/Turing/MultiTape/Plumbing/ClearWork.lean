@@ -6,6 +6,7 @@ Authors: Christian Reitwiessner
 
 module
 
+public import Mathlib.Algebra.BigOperators.Fin
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ForwardWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
@@ -41,7 +42,8 @@ variable {k : ℕ} {Symbol : Type*} {input : List Symbol}
 
 /-- The one-tape machine that clears its tape: it moves to the end of the word and erases it on
 the way back. -/
-public def clearWork (Symbol : Type*) : MultiTapeTM 1 Symbol (Unit ⊕ RewindWorkState) :=
+public noncomputable def clearWork (Symbol : Type*) :
+    MultiTapeTM 1 Symbol (Unit ⊕ RewindWorkState) :=
   (forwardWork Symbol).seq (rewindWork Symbol (some none))
 
 open Sequential in
@@ -49,25 +51,35 @@ open Sequential in
 `3 * (w.length + 1)` steps and `w.length + 2` cells. -/
 public theorem transformsTapes_clearWork (w : List Symbol) :
     TransformsTapes (clearWork Symbol) (fun _ ws => ws 0 = w)
-      (fun _ _ ws' => ws' = fun _ => []) (3 * (w.length + 1)) (w.length + 2) := by
-  -- the forward pass takes `w.length + 1` steps, the erasing rewind `w.length + 2`
-  refine TransformsTapes.mono (t := w.length + 1 + (w.length + 2)) ?_ (by lia) le_rfl
+      (fun _ _ ws' emitted => ws' = (fun _ => []) ∧ emitted = [])
+      (3 * (w.length + 1)) (w.length + 2) := by
   intro input ws out hws
   obtain rfl : ws = fun _ => w := funext fun x => Fin.fin_one_eq_zero x ▸ hws
-  have h₀ := runFrom_forwardWork (input := input) 1 w out (zero_add _)
-  have h₁ := runFrom_rewindWork_erase (input := input) 1 (tapeOfList w) out rfl
-  refine ⟨fun _ => [], ?_, rfl, ?_⟩
-  · exact (runFrom_seq h₀ rfl h₁ rfl).trans (by simp [rightCfg, Cfg.mapState, wordsCfg])
-  · rw [spaceUsed, Fin.sum_univ_one]
-    refine (spaceUsedByTape_le_card _ (S := .Icc (-1) (w.length : ℤ)) fun m _ => ?_).trans
-      (by simp; lia)
-    refine Finset.mem_Icc.2 (forgetState_runFrom_seq
-      (P := fun c => c.workTapePos 0 ∈ Set.Icc (-1) (w.length : ℤ)) h₀ rfl (fun m _ => ?_)
-      (fun n => ?_) m)
-    · exact Set.Icc_subset_Icc_left (by lia)
-        (workTapePos_runFrom_forwardWork (input := input) 1 w out (Nat.zero_le w.length) m)
-    · exact workTapePos_runFrom_rewindWork (some none) (input := input) 1 (tapeOfList w) out rfl
-        le_rfl n
+  unfold clearWork
+  -- the forward pass takes `w.length + 1` steps, the erasing rewind `w.length + 2`
+  let p₀ := MultiTapeNTM.RunPath.ofDeterministic (forwardWork Symbol)
+    (wordsCfg input (some ()) (fun _ => w) out) (w.length + 1)
+  let p₁ := MultiTapeNTM.RunPath.ofDeterministic (rewindWork Symbol (some none))
+    (⟨some (rewindWork Symbol (some none)).q₀, 1, fun _ => tapeOfList w, fun _ => w.length, out⟩ :
+      Cfg 1 Symbol RewindWorkState input) (w.length + 2)
+  have h₀ : p₀.last = _ := runFrom_forwardWork (input := input) 1 w out (zero_add _)
+  have h₁ : p₁.last = _ := runFrom_rewindWork_erase (input := input) 1 (tapeOfList w) out rfl
+  obtain ⟨p, hh, hl, ht, hmem⟩ := exists_runPath_seq (p₀ := p₀) (p₁ := p₁) (by rw [h₀])
+    (by rw [h₀]; rfl) (by rw [h₁])
+  refine ⟨fun _ => [], [], ⟨rfl, rfl⟩, p, hh,
+    by rw [hl, h₁]; simp [rightCfg, Cfg.mapState, wordsCfg],
+    (show p.length ≤ w.length + 1 + (w.length + 2) from ht).trans (by lia), ?_⟩
+  -- every head position of the two passes is in `[-1, w.length]`
+  rw [MultiTapeNTM.RunPath.space, Fin.sum_univ_one]
+  refine (p.spaceUsedByTape_le_card (S := .Icc (-1) (w.length : ℤ)) fun c hc => ?_).trans
+    (by simp; lia)
+  rcases hmem c hc with ⟨_, ⟨m, rfl⟩, he⟩ | ⟨_, ⟨m, rfl⟩, he⟩ <;>
+    rw [show c.workTapePos 0 = _ from congrArg (·.workTapePos 0) he]
+  · exact Finset.mem_Icc.2 (Set.Icc_subset_Icc_left (by lia)
+      (workTapePos_runFrom_forwardWork (input := input) 1 w out (Nat.zero_le w.length) m))
+  · exact Finset.mem_Icc.2
+      (workTapePos_runFrom_rewindWork (some none) (input := input) 1 (tapeOfList w) out rfl
+        le_rfl m)
 
 /-! ### Clearing one of several work tapes -/
 
@@ -76,8 +88,10 @@ word on that tape by the empty word and leaves every other tape unchanged, in at
 `3 * (w.length + 1)` steps and `w.length + 1 + k` cells. -/
 public theorem transformsTapes_clearWork_tapeEmb (i : Fin k) (w : List Symbol) :
     TransformsTapes ((clearWork Symbol).extendTapes (tapeEmb i)) (fun _ ws => ws i = w)
-      (fun _ ws ws' => ws' = Function.update ws i []) (3 * (w.length + 1)) (w.length + 1 + k) :=
+      (fun _ ws ws' emitted => ws' = Function.update ws i [] ∧ emitted = [])
+      (3 * (w.length + 1)) (w.length + 1 + k) :=
   ((transformsTapes_clearWork (Symbol := Symbol) w).tapeEmb i).imp (fun _ _ h => h)
-    (fun _ ws ws' _ ⟨v, hv, hws'⟩ => by rw [hws', hv]) le_rfl (by have := i.pos; lia)
+    (fun _ ws ws' _ _ ⟨v, ⟨hv, he⟩, hws'⟩ => ⟨by rw [hws', hv], he⟩) le_rfl
+    (by have := i.pos; lia)
 
 end Turing.MultiTapeTM
