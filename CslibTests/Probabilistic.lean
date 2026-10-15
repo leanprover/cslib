@@ -17,7 +17,7 @@ open Cslib Cslib.Crypto
 
 universe u
 
-private def adaptive (input : ℕ) : OracleComp ℕ (fun _ => ℕ) ℕ := do
+private def adaptive (input : ℕ) : OracleComp (fun _ : ℕ => ℕ) ℕ := do
   let answer ← OracleComp.query input
   OracleComp.query answer
 
@@ -30,7 +30,7 @@ private abbrev Reply : Bool → Type
   | false => Bool
   | true => ℕ
 
-private def typed : OracleComp Bool Reply ℕ := do
+private def typed : OracleComp Reply ℕ := do
   let flag ← OracleComp.query false
   if flag then OracleComp.query true else pure 0
 
@@ -44,7 +44,7 @@ example : OracleComp.eval typedOracle typed = PMF.pure 7 := by
 private noncomputable def counter (_ : Unit) : StateT ℕ PMF ℕ :=
   fun state => PMF.pure (state, state + 1)
 
-private def twice : OracleComp Unit (fun _ => ℕ) (ℕ × ℕ) := do
+private def twice : OracleComp (fun _ : Unit => ℕ) (ℕ × ℕ) := do
   let first ← OracleComp.query ()
   let second ← OracleComp.query ()
   return (first, second)
@@ -53,7 +53,7 @@ private def twice : OracleComp Unit (fun _ => ℕ) (ℕ × ℕ) := do
 example : OracleComp.runState counter twice 10 = PMF.pure ((10, 11), 12) := by
   simp [twice, counter, PMF.pure_map]
 
-private def doubleQuery (query : Unit) : OracleComp Unit (fun _ => ℕ) ℕ := do
+private def doubleQuery (query : Unit) : OracleComp (fun _ : Unit => ℕ) ℕ := do
   let _ ← OracleComp.query query
   OracleComp.query query
 
@@ -66,37 +66,34 @@ private noncomputable def remember {α : Type u} (value : α) : StateT (Option �
   | none => PMF.pure (value, some value)
   | some previous => PMF.pure (previous, some previous)
 
-private def sampleAndRecall {α : Type u} (p : PMF α) : OracleComp α (fun _ => α) (α × α) := do
-  let first ← OracleComp.sample p
+private def recallTwice {α : Type u} (first second : α) : OracleComp (fun _ : α => α) (α × α) := do
   let a ← OracleComp.query first
-  let second ← OracleComp.sample p
   let b ← OracleComp.query second
   return (a, b)
 
--- Sampling between calls preserves the stored value and the correlation between replies.
--- The example also exercises evaluation at an arbitrary universe.
-example {α : Type u} (p : PMF α) :
-    OracleComp.runState remember (sampleAndRecall p) none =
-      p.map (fun a => ((a, a), some a)) := by
-  simp [sampleAndRecall, remember, PMF.map, Function.comp_def]
+-- The stored value survives across calls and correlates the replies.
+-- The example also exercises execution at an arbitrary universe.
+example {α : Type u} (first second : α) :
+    OracleComp.runState remember (recallTwice first second) none =
+      PMF.pure ((first, first), some first) := by
+  simp [recallTwice, remember, PMF.pure_map]
 
-example : Game.winProbability
-    (ProbComp.eval (OracleComp.uniform Bool : ProbComp Bool)) = 1 / 2 := by
-  simp [OracleComp.uniform, Game.winProbability, Probability.PMF.uniformOfFintype_apply]
+example : Game.succProbability (ProbComp.eval (ProbComp.uniform Bool)) = 1 / 2 := by
+  simp [Game.succProbability, Probability.PMF.uniformOfFintype_apply, ENNReal.toNNReal_ofNat]
 
 private abbrev Word := List Bool
 
 -- A prospective inversion game needs only the frontend and finite uniform sampling.
 private noncomputable def inversionGame (f : Word → Word)
     (adversary : ℕ → Word → ProbComp Word) (n : ℕ) : ProbComp Bool := do
-  let bits ← OracleComp.uniform (Fin n → Bool)
+  let bits ← ProbComp.uniform (Fin n → Bool)
   let input := List.ofFn bits
   let candidate ← adversary n (f input)
   return f candidate == f input
 
 -- Inversion accepts any preimage, including one with a different length.
-example (n : ℕ) : Game.winProbability
+example (n : ℕ) : Game.succProbability
     (ProbComp.eval (inversionGame (fun _ => [true]) (fun _ _ => pure []) n)) = 1 := by
-  simp [inversionGame, Game.winProbability, PMF.map, Function.comp_def]
+  simp [inversionGame, Game.succProbability, PMF.map, Function.comp_def]
 
 end CslibTests.Probabilistic

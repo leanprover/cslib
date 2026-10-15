@@ -24,10 +24,11 @@ Different representations can coexist when they serve different purposes. For ex
 
 ## Probabilistic programs
 
-[`Probabilistic`](Probabilistic) provides `ProbComp` and `OracleComp`, built on `PFunctor.FreeM`,
-for sampling from PMFs and making typed oracle calls. Interpreters produce PMFs for ordinary
-security games, thread private oracle state, or replace calls with other programs. These are
-specification-level programs; computational efficiency requires a separate realization argument.
+[`Probabilistic`](Probabilistic) provides `OracleComp`, the free monad `PFunctor.FreeM` over a
+polynomial functor of typed oracle calls, and `ProbComp`, whose only oracle answers uniformly from
+a finite range. Interpreters produce PMFs for ordinary security games, thread private oracle
+state, or replace calls with other programs. These are specification-level programs; computational
+efficiency requires a separate realization argument.
 
 ## Plans and notes
 
