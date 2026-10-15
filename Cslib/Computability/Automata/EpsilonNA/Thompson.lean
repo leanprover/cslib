@@ -89,8 +89,8 @@ theorem language_char (x : Symbol) : language (char x) = {[x]} := by
   rw [mem_language_iff, Language.mem_singleton]
   constructor
   · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
-    obtain rfl : s = false := hs
-    obtain rfl : t = true := ht
+    obtain rfl := Set.mem_singleton_iff.mp hs
+    obtain rfl := Set.mem_singleton_iff.mp ht
     cases h with
     | stepL htr h' =>
       obtain ⟨-, rfl, rfl⟩ := htr
@@ -172,8 +172,8 @@ theorem language_union (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
   rw [Language.mem_add, mem_language_iff, mem_language_iff, mem_language_iff]
   constructor
   · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
-    obtain rfl : s = .inl false := hs
-    obtain rfl : t = .inl true := ht
+    obtain rfl := Set.mem_singleton_iff.mp hs
+    obtain rfl := Set.mem_singleton_iff.mp ht
     cases μs with
     | nil => cases h
     | cons μ μs =>
@@ -246,7 +246,9 @@ theorem language_concat (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
   ext xs
   rw [Language.mem_mul, mem_language_iff]
   constructor
-  · rintro ⟨_, ⟨s, hs, rfl⟩, _, ⟨t, ht, rfl⟩, μs, rfl, h⟩
+  · rintro ⟨_, hs', _, ht', μs, rfl, h⟩
+    obtain ⟨s, hs, rfl⟩ := (Set.mem_image _ _ _).mp hs'
+    obtain ⟨t, ht, rfl⟩ := (Set.mem_image _ _ _).mp ht'
     obtain ⟨s₁, hs₁, s₂, hs₂, μs₁, μs₂, h₁, h₂, rfl⟩ := concat_mTr_inl h
     exact ⟨μs₁.reduceOption, mem_language_iff.mpr ⟨s, hs, s₁, hs₁, μs₁, rfl, h₁⟩,
       μs₂.reduceOption, mem_language_iff.mpr ⟨s₂, hs₂, t, ht, μs₂, rfl, h₂⟩,
@@ -254,7 +256,8 @@ theorem language_concat (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
   · rintro ⟨x, hx, y, hy, rfl⟩
     obtain ⟨s, hs, s₁, hs₁, μs₁, rfl, h₁⟩ := mem_language_iff.mp hx
     obtain ⟨s₂, hs₂, t, ht, μs₂, rfl, h₂⟩ := mem_language_iff.mp hy
-    refine ⟨.inl s, ⟨s, hs, rfl⟩, .inr t, ⟨t, ht, rfl⟩, μs₁ ++ none :: μs₂,
+    refine ⟨.inl s, Set.mem_image_of_mem _ hs, .inr t, Set.mem_image_of_mem _ ht,
+      μs₁ ++ none :: μs₂,
       by simp [List.reduceOption_append], ?_⟩
     have hcopy₁ : (concat a b).MTr (.inl s) μs₁ (.inl s₁) :=
       h₁.map (fun s => (.inl s : S₁ ⊕ S₂)) fun _ _ _ => ConcatTr.left
@@ -338,8 +341,8 @@ theorem language_star (a : FinAcc S₁ Symbol) : language (star a) = (language a
   rw [mem_language_iff]
   constructor
   · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
-    obtain rfl : s = .inl () := hs
-    obtain rfl : t = .inl () := ht
+    obtain rfl := Set.mem_singleton_iff.mp hs
+    obtain rfl := Set.mem_singleton_iff.mp ht
     exact reduceOption_mem_kstar_of_star_mTr h
   · intro hxs
     obtain ⟨μs, hμs, h⟩ := exists_star_mTr_of_mem_kstar hxs
