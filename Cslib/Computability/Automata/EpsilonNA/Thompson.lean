@@ -22,11 +22,13 @@ languages.
   the empty word and the word `[x]`.
 * `εNA.FinAcc.union a b`: a fresh initial state with `ε`-transitions to the initial states of `a`
   and `b`, and a fresh accepting state reached by `ε`-transitions from their accepting states.
+* `εNA.FinAcc.concat a b`: `ε`-transitions from the accepting states of `a` to the initial states
+  of `b`.
 
 ## Main statements
 
-* `εNA.FinAcc.language_zero`, `εNA.FinAcc.language_epsilon`, `εNA.FinAcc.language_char` and
-  `εNA.FinAcc.language_union`.
+* `εNA.FinAcc.language_zero`, `εNA.FinAcc.language_epsilon`, `εNA.FinAcc.language_char`,
+  `εNA.FinAcc.language_union` and `εNA.FinAcc.language_concat`.
 
 ## References
 
@@ -191,5 +193,70 @@ theorem language_union (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
       have hcopy : (union a b).MTr (.inr (.inr s)) μs (.inr (.inr t)) :=
         h.map (fun s => (.inr (.inr s) : Bool ⊕ (S₁ ⊕ S₂))) fun _ _ _ => UnionTr.right
       exact .stepL (UnionTr.startRight hs) (hcopy.comp _ (.single _ (UnionTr.acceptRight ht)))
+
+/-- The transitions of `concat a b`, whose states are those of `a` followed by those of `b`. -/
+inductive ConcatTr (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
+    S₁ ⊕ S₂ → Option Symbol → S₁ ⊕ S₂ → Prop
+  | left {s μ s'} : a.Tr s μ s' → ConcatTr a b (.inl s) μ (.inl s')
+  | right {s μ s'} : b.Tr s μ s' → ConcatTr a b (.inr s) μ (.inr s')
+  | bridge {s s'} : s ∈ a.accept → s' ∈ b.start → ConcatTr a b (.inl s) none (.inr s')
+
+/-- The concatenation of `a` and `b`: `ε`-transitions lead from the accepting states of `a` to the
+initial states of `b`. -/
+def concat (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) : FinAcc (S₁ ⊕ S₂) Symbol where
+  Tr := ConcatTr a b
+  start := .inl '' a.start
+  accept := .inr '' b.accept
+
+/-- A run of `concat a b` between two states of `b` is a run of `b`. -/
+theorem concat_mTr_inr {s t : S₂} {μs : List (Option Symbol)}
+    (h : (concat a b).MTr (.inr s) μs (.inr t)) : b.MTr s μs t := by
+  induction μs generalizing s with
+  | nil =>
+    cases h
+    exact .refl
+  | cons μ μs ih =>
+    obtain ⟨y, htr, h'⟩ := LTS.MTr.cons_iff.mp h
+    cases htr with
+    | right htr => exact .stepL htr (ih h')
+
+/-- A run of `concat a b` from a state of `a` to a state of `b` is a run of `a` to an accepting
+state, an `ε`-transition to an initial state of `b`, and a run of `b`. -/
+theorem concat_mTr_inl {s : S₁} {t : S₂} {μs : List (Option Symbol)}
+    (h : (concat a b).MTr (.inl s) μs (.inr t)) :
+    ∃ s₁ ∈ a.accept, ∃ s₂ ∈ b.start, ∃ μs₁ μs₂, a.MTr s μs₁ s₁ ∧ b.MTr s₂ μs₂ t ∧
+      μs = μs₁ ++ none :: μs₂ := by
+  induction μs generalizing s with
+  | nil => cases h
+  | cons μ μs ih =>
+    obtain ⟨y, htr, h'⟩ := LTS.MTr.cons_iff.mp h
+    cases htr with
+    | left htr =>
+      obtain ⟨s₁, hs₁, s₂, hs₂, μs₁, μs₂, h₁, h₂, rfl⟩ := ih h'
+      exact ⟨s₁, hs₁, s₂, hs₂, μ :: μs₁, μs₂, .stepL htr h₁, h₂, rfl⟩
+    | bridge hs hs' =>
+      exact ⟨s, hs, _, hs', [], μs, .refl, concat_mTr_inr h', rfl⟩
+
+@[simp]
+theorem language_concat (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
+    language (concat a b) = language a * language b := by
+  ext xs
+  rw [Language.mem_mul, mem_language_iff]
+  constructor
+  · rintro ⟨_, ⟨s, hs, rfl⟩, _, ⟨t, ht, rfl⟩, μs, rfl, h⟩
+    obtain ⟨s₁, hs₁, s₂, hs₂, μs₁, μs₂, h₁, h₂, rfl⟩ := concat_mTr_inl h
+    exact ⟨μs₁.reduceOption, mem_language_iff.mpr ⟨s, hs, s₁, hs₁, μs₁, rfl, h₁⟩,
+      μs₂.reduceOption, mem_language_iff.mpr ⟨s₂, hs₂, t, ht, μs₂, rfl, h₂⟩,
+      by simp [List.reduceOption_append]⟩
+  · rintro ⟨x, hx, y, hy, rfl⟩
+    obtain ⟨s, hs, s₁, hs₁, μs₁, rfl, h₁⟩ := mem_language_iff.mp hx
+    obtain ⟨s₂, hs₂, t, ht, μs₂, rfl, h₂⟩ := mem_language_iff.mp hy
+    refine ⟨.inl s, ⟨s, hs, rfl⟩, .inr t, ⟨t, ht, rfl⟩, μs₁ ++ none :: μs₂,
+      by simp [List.reduceOption_append], ?_⟩
+    have hcopy₁ : (concat a b).MTr (.inl s) μs₁ (.inl s₁) :=
+      h₁.map (fun s => (.inl s : S₁ ⊕ S₂)) fun _ _ _ => ConcatTr.left
+    have hcopy₂ : (concat a b).MTr (.inr s₂) μs₂ (.inr t) :=
+      h₂.map (fun s => (.inr s : S₁ ⊕ S₂)) fun _ _ _ => ConcatTr.right
+    exact hcopy₁.comp _ (.stepL (ConcatTr.bridge hs₁ hs₂) hcopy₂)
 
 end Cslib.Automata.εNA.FinAcc
