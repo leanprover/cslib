@@ -47,12 +47,14 @@ public import Cslib.Computability.Circuit.Composition
 public import Cslib.Computability.Circuit.Counting
 public import Cslib.Computability.Circuit.Depth
 public import Cslib.Computability.Circuit.Finite
+public import Cslib.Computability.Circuit.Full
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Normalization
 public import Cslib.Computability.Circuit.Program
 public import Cslib.Computability.Circuit.RelativeComplexity
 public import Cslib.Computability.Circuit.Shannon
 public import Cslib.Computability.Circuit.Signature
+public import Cslib.Computability.Circuit.Simulation
 public import Cslib.Computability.Circuit.Synthesis
 public import Cslib.Computability.Circuit.Wire
 public import Cslib.Computability.Distributed.FLP.Algorithm
@@ -87,6 +89,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ForwardWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RepeatUntilBlank
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
@@ -127,6 +130,7 @@ public import Cslib.Foundations.Control.Monad.IsMonadHom.List
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.BitString
 public import Cslib.Foundations.Data.DecidableEqZero
+public import Cslib.Foundations.Data.Fin.Tuple
 public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.Finset.Involution
@@ -134,6 +138,7 @@ public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.List.IsChainFromTo
 public import Cslib.Foundations.Data.Nat.Asymptotics
 public import Cslib.Foundations.Data.Nat.Factorial
+public import Cslib.Foundations.Data.Nat.PolynomialBound
 public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
@@ -153,6 +158,7 @@ public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.MeasureTheory.FiniteSupport
+public import Cslib.Foundations.Order.Huntington
 public import Cslib.Foundations.Relation.Attr
 public import Cslib.Foundations.Relation.Basic
 public import Cslib.Foundations.Relation.Confluence
@@ -163,10 +169,15 @@ public import Cslib.Foundations.Relation.Preserves
 public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
+public import Cslib.Foundations.RelationAlgebra.Basic
+public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.Pi
+public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
 public import Cslib.Foundations.Semantics.FLTS.Prod
+public import Cslib.Foundations.Semantics.FLTS.SyncTrace
 public import Cslib.Foundations.Semantics.Frame.Basic
 public import Cslib.Foundations.Semantics.Frame.LTS
 public import Cslib.Foundations.Semantics.LTS.Basic

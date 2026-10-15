@@ -24,11 +24,8 @@ second.
 ## Main results
 
 * `Turing.MultiTapeTM.seq`: the composed machine.
-* `Turing.MultiTapeTM.HaltsAt.runFrom_seq`: once `tm₀` halts, `seq` mirrors `tm₁`.
-* `Turing.MultiTapeTM.runFrom_seq`: runs compose; each machine only has to have halted by the end
-  of its time bound.
-* `Turing.MultiTapeTM.forgetState_runFrom_seq`: invariants of the state-free part of a
-  configuration compose, which bounds the space of the composed run.
+* `Turing.MultiTapeTM.exists_runPath_seq`: run paths compose, and the configurations of the
+  composed path are those of the two paths up to their states.
 * `Turing.MultiTapeTM.transformsTapes_seq`: transformations compose, bounds adding.
 -/
 
@@ -91,31 +88,6 @@ lemma step_rightCfg (cfg : Cfg k Symbol State₁ input) :
     simp only [seq, tr_ofTr]
     rfl
 
-/-- The second phase of `seq` mirrors the run of `tm₁`. -/
-lemma runFrom_rightCfg (cfg : Cfg k Symbol State₁ input) (n : ℕ) :
-    (tm₀.seq tm₁).runFrom (rightCfg cfg) n = rightCfg (tm₁.runFrom cfg n) :=
-  (Function.Semiconj.iterate_right (fun c => (step_rightCfg c).symm) n cfg).symm
-
-/-- While `tm₀` is running, `seq` mirrors it. -/
-lemma runFrom_leftCfg (cfg : Cfg k Symbol State₀ input) (n : ℕ)
-    (h : ∀ m < n, (tm₀.runFrom cfg m).state ≠ none) :
-    (tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) n = leftCfg tm₁ (tm₀.runFrom cfg n) := by
-  simp only [runFrom] at h ⊢
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    rw [Function.iterate_succ_apply', Function.iterate_succ_apply',
-      ih fun m hm => h m (by omega),
-      step_leftCfg _ (h n (by omega))]
-
-@[simp]
-lemma workTapePos_leftCfg (cfg : Cfg k Symbol State₀ input) :
-    (leftCfg tm₁ cfg).workTapePos = cfg.workTapePos := rfl
-
-@[simp]
-lemma workTapePos_rightCfg (cfg : Cfg k Symbol State₁ input) :
-    (rightCfg (State₀ := State₀) cfg).workTapePos = cfg.workTapePos := rfl
-
 @[simp]
 lemma forgetState_leftCfg (cfg : Cfg k Symbol State₀ input) :
     (leftCfg tm₁ cfg).forgetState = cfg.forgetState := rfl
@@ -132,53 +104,28 @@ lemma leftCfg_of_halt {cfg : Cfg k Symbol State₀ input} (h : cfg.state = none)
 end Sequential
 
 open Sequential in
-/-- If `tm₀` halts at step `u`, then from step `u` on `seq` mirrors `tm₁`, started where `tm₀`
-halted. -/
-lemma HaltsAt.runFrom_seq {cfg : Cfg k Symbol State₀ input} {u : ℕ} (h : tm₀.HaltsAt cfg u)
-    (n : ℕ) :
-    (tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) (u + n) =
-      rightCfg (tm₁.runFrom ((tm₀.runFrom cfg u).withState (some tm₁.q₀)) n) := by
-  have hhandoff : (tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) u =
-      rightCfg ((tm₀.runFrom cfg u).withState (some tm₁.q₀)) := by
-    rw [runFrom_leftCfg cfg u fun _ hm => h.not_halted hm, leftCfg_of_halt h.halted]
-  simp only [runFrom] at hhandoff ⊢
-  rw [Nat.add_comm, Function.iterate_add_apply, hhandoff]
-  exact runFrom_rightCfg _ n
-
-open Sequential in
-/-- **Sequential composition of runs.** If `tm₀` has halted in `mid` by step `t₀`, and `tm₁`,
-started where `tm₀` halted, has halted in `fin` by step `t₁`, then the composed machine has halted
-in `fin` by step `t₀ + t₁`. Each machine may halt earlier than its bound; in particular `tm₀` need
-not be running at every step before `t₀`. -/
-theorem runFrom_seq {cfg mid : Cfg k Symbol State₀ input} {fin : Cfg k Symbol State₁ input}
-    {t₀ t₁ : ℕ} (h₀ : tm₀.runFrom cfg t₀ = mid) (hmid : mid.Halted)
-    (h₁ : tm₁.runFrom (mid.withState (some tm₁.q₀)) t₁ = fin) (hfin : fin.Halted) :
-    (tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) (t₀ + t₁) = rightCfg fin := by
-  obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt (tm := tm₀) (cfg := cfg) (h₀ ▸ hmid)
-  have hrun : (tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) (u + t₁) = rightCfg fin := by
-    rw [hhaltsAt.runFrom_seq, ← hhaltsAt.runFrom_eq hu, h₀, h₁]
-  have hhalt : ((tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) (u + t₁)).Halted := by
-    simp only [hrun, Cfg.Halted] at hfin ⊢
-    simp [rightCfg, hfin]
-  rw [runFrom_eq_of_halt _ _ (by omega) hhalt, hrun]
-
-open Sequential in
-/-- **Invariants of a sequential run.** If `tm₀` has halted in `mid` by step `t₀`, then a property
-of the state-free part of a configuration holds throughout the run of the composed machine if it
-holds before step `t₀` of the run of `tm₀` and throughout the run of `tm₁` started where `tm₀`
-halted. -/
-theorem forgetState_runFrom_seq {P : Cfg k Symbol Unit input → Prop}
-    {cfg mid : Cfg k Symbol State₀ input} {t₀ : ℕ} (h₀ : tm₀.runFrom cfg t₀ = mid)
-    (hmid : mid.Halted) (hP₀ : ∀ m < t₀, P (tm₀.runFrom cfg m).forgetState)
-    (hP₁ : ∀ n, P (tm₁.runFrom (mid.withState (some tm₁.q₀)) n).forgetState) (m : ℕ) :
-    P ((tm₀.seq tm₁).runFrom (leftCfg tm₁ cfg) m).forgetState := by
-  obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt (tm := tm₀) (cfg := cfg) (h₀ ▸ hmid)
-  rcases Nat.lt_or_ge m u with hm | hm
-  · rw [runFrom_leftCfg cfg m fun _ hr => hhaltsAt.not_halted (by lia), forgetState_leftCfg]
-    exact hP₀ m (by lia)
-  · obtain ⟨n, rfl⟩ := Nat.exists_eq_add_of_le hm
-    rw [hhaltsAt.runFrom_seq, ← hhaltsAt.runFrom_eq hu, h₀, forgetState_rightCfg]
-    exact hP₁ n
+/-- **Sequential composition of runs.** A run path of `tm₀` to a halted configuration, followed by a
+run path of `tm₁` to a halted configuration started where `tm₀` halted, gives a run path of `seq`
+of at most as many steps, whose configurations are those of the two paths up to their states. -/
+theorem exists_runPath_seq {p₀ : tm₀.RunPath input} (h₀ : p₀.last.Halted)
+    {p₁ : tm₁.RunPath input} (h₁ : p₁.head = p₀.last.withState (some tm₁.q₀))
+    (hp₁ : p₁.last.Halted) :
+    ∃ p : (tm₀.seq tm₁).RunPath input, p.head = leftCfg tm₁ p₀.head ∧
+      p.last = rightCfg p₁.last ∧ p.length ≤ p₀.length + p₁.length ∧
+      ∀ c ∈ p, (∃ c₀ ∈ p₀, c.forgetState = c₀.forgetState) ∨
+        ∃ c₁ ∈ p₁, c.forgetState = c₁.forgetState := by
+  -- `seq` takes the running steps of `tm₀`, then those of `tm₁`
+  obtain ⟨q₀, hh₀, hl₀, hlen₀, hmem₀⟩ := p₀.exists_running h₀
+  obtain ⟨q₁, hh₁, hl₁, hlen₁, hmem₁⟩ := p₁.exists_running hp₁
+  let f₀ := runningStepHom (tm' := tm₀.seq tm₁) (input := input) (leftCfg tm₁) step_leftCfg
+  let f₁ := runningStepHom (tm' := tm₀.seq tm₁) (input := input) rightCfg
+    fun c _ => step_rightCfg c
+  refine ⟨(q₀.map f₀).smash (q₁.map f₁) (by simp [f₀, f₁, hl₀, hh₁, h₁, leftCfg_of_halt h₀]),
+    by simp [f₀, hh₀], by simp [f₁, hl₁], by simp; lia, fun c hc => ?_⟩
+  rcases RelSeries.mem_or_mem_of_mem_smash hc with hc | hc <;>
+    obtain ⟨c', hc', rfl⟩ := RelSeries.exists_of_mem_map hc
+  · exact .inl ⟨c', hmem₀ c' hc', rfl⟩
+  · exact .inr ⟨c', hmem₁ c' hc', rfl⟩
 
 open Sequential in
 /-- **Sequential composition of transformations.** If the postcondition of the first
@@ -197,35 +144,21 @@ theorem transformsTapes_seq
         e = e₀ ++ e₁)
       (t₀ + t₁) (s₀ + s₁) := by
   intro input ws out hP₀
-  obtain ⟨ws', e₀, hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
-  obtain ⟨ws'', e₁, hrun₁, hQ₁, hspace₁⟩ :=
+  obtain ⟨ws', e₀, hQ₀, p₀, hh₀, hl₀, ht₀, hs₀⟩ := h₀ input ws out hP₀
+  obtain ⟨ws'', e₁, hQ₁, p₁, hh₁, hl₁, ht₁, hs₁⟩ :=
     h₁ input ws' (out ++ e₀) (hmid input ws ws' e₀ hP₀ hQ₀)
-  have hstart : wordsCfg input (some (tm₀.seq tm₁).q₀) ws out =
-      leftCfg tm₁ (wordsCfg input (some tm₀.q₀) ws out) := rfl
-  -- the first halting time of `tm₀`, which may be earlier than `t₀`
-  obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt
-    (show (tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) t₀).Halted by rw [hrun₀]; rfl)
-  -- from step `u` on, `seq` mirrors `tm₁`, started on what `tm₀` left including its output
-  have hright (n : ℕ) : (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
-      (u + n) = rightCfg (tm₁.runFrom (wordsCfg input (some tm₁.q₀) ws' (out ++ e₀)) n) := by
-    rw [hstart, hhaltsAt.runFrom_seq, ← hhaltsAt.runFrom_eq hu, hrun₀, withState_wordsCfg]
-  have hhalt : ((tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
-      (u + t₁)).Halted := by
-    rw [hright, hrun₁]
-    rfl
-  refine ⟨ws'', e₀ ++ e₁, ?_, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, ?_⟩
-  · exact runFrom_seq hrun₀ rfl (by simpa using hrun₁) rfl
-  · rw [spaceUsed_eq_of_halt _ (by omega : u + t₁ ≤ t₀ + t₁) hhalt]
-    refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
-    · -- the first phase visits what the first machine visits
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ u fun m hm => ?_))
-        (le_trans (spaceUsed_mono tm₀ _ hu) hspace₀)
-      rw [hstart, runFrom_leftCfg _ m fun _ hr => hhaltsAt.not_halted (by omega),
-        workTapePos_leftCfg]
-    · -- the second phase visits what the second machine visits
-      rw [← add_zero u, hright 0]
-      refine le_trans (le_of_eq (spaceUsed_eq_of_workTapePos _ _ t₁ fun m hm => ?_)) hspace₁
-      rw [runFrom_rightCfg, workTapePos_rightCfg]
-      rfl
+  obtain ⟨p, hh, hl, ht, hmem⟩ := exists_runPath_seq (p₀ := p₀) (p₁ := p₁) (by rw [hl₀]; rfl)
+    (by simp [hh₁, hl₀]) (by rw [hl₁]; rfl)
+  refine ⟨ws'', e₀ ++ e₁, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, p, by simp [hh, hh₀, leftCfg]; rfl,
+    by simp [hl, hl₁, rightCfg], ht.trans (Nat.add_le_add ht₀ ht₁), ?_⟩
+  -- every head position of the composed run is one of the first path or one of the second
+  refine (p.space_le_sum_card
+    (S := fun i => p₀.visitedByTapeHead i ∪ p₁.visitedByTapeHead i) fun c hc i => ?_).trans
+    (((Finset.sum_le_sum fun i _ => Finset.card_union_le _ _).trans_eq
+      Finset.sum_add_distrib).trans (Nat.add_le_add hs₀ hs₁))
+  rcases hmem c hc with ⟨_, ⟨n, rfl⟩, he⟩ | ⟨_, ⟨n, rfl⟩, he⟩ <;>
+    rw [show c.workTapePos i = _ from congrArg (·.workTapePos i) he]
+  · exact Finset.mem_union_left _ (Finset.mem_image_of_mem _ (Finset.mem_univ n))
+  · exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (Finset.mem_univ n))
 
 end Turing.MultiTapeTM

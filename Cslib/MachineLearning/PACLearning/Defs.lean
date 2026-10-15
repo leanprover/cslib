@@ -367,7 +367,7 @@ theorem sampleComplexity_le_of_forall {L₁ L₂ : LearnerModel α β}
     (hL : ∀ {m : ℕ}, L₁ m ε₁ δ₁ C₁ 𝒟₁ → L₂ m ε₂ δ₂ C₂ 𝒟₂)
     (h : ∃ m, L₁ m ε₁ δ₁ C₁ 𝒟₁) :
     sampleComplexity L₂ C₂ ε₂ δ₂ 𝒟₂ ≤ sampleComplexity L₁ C₁ ε₁ δ₁ 𝒟₁ :=
-  Nat.sInf_le (hL (Nat.sInf_mem h))
+  Nat.sInf_le (hL (Nat.sInf_mem (s := {m | L₁ m ε₁ δ₁ C₁ 𝒟₁}) h))
 
 /-- Deterministic sample complexity is antitone in the confidence parameter `δ`: weaker
 confidence requires no more samples. -/
@@ -502,7 +502,7 @@ theorem hypothesisError_eq_add {P : Measure α} {h c : Set α}
   simp only [hypothesisError, falsePositiveError, falseNegativeError, symmDiff_def, sup_eq_union]
   exact measure_union disjoint_sdiff_sdiff (hc.diff hh)
 
-open Classical in
+open scoped Classical in
 /-- Under a realizable distribution `P.map (x ↦ (x, c(x)))`, the general 0-1 `error`
 coincides with the binary `hypothesisError P h c`, where `h` and `c` are viewed as subsets
 of `α` via the characteristic function `decide (· ∈ ·)`. -/

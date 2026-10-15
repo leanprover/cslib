@@ -26,7 +26,7 @@ For a finite signature, only finitely many functions can be computed with a fixe
 even when the carrier is infinite. We enumerate the programs of each size together with an
 output wire and collect the scalar functions they compute, so that `computableFunctions I n s`
 is the finite set of functions whose `ecomplexity` is at most `s`. Semantic equality and
-normalization use classical reasoning; the syntax enumeration is computable.
+normalization use classical reasoning, as does choosing an enumeration of the finite syntax.
 
 After merging gates that compute the same function, a circuit with `g` gates has `g!` distinct
 labeled presentations. This factorial correction sharpens the count used in Shannon's lower bound.
@@ -41,7 +41,7 @@ namespace Cslib.Circuits
 open scoped BigOperators
 
 universe v u
-variable {σ : Signature.{v}} [Fintype σ.Op] {U : Type u}
+variable {σ : Signature.{v}} [Finite σ.Op] {U : Type u}
 variable {I : Interpretation σ U} {n g s : ℕ}
 
 /-- Scalar functions computable with at most `s` gates. Enumerating the programs of each size
@@ -50,12 +50,12 @@ noncomputable def computableFunctions (I : Interpretation σ U) (n s : ℕ) :
     Finset ((Fin n → U) → U) :=
   open scoped Classical in
   (Finset.range (s + 1)).biUnion fun g =>
+    let := Fintype.ofFinite (Program σ n g × Wire n g)
     Finset.univ.image fun p : Program σ n g × Wire n g => p.1.wireFunction I p.2
 
 @[simp] theorem mem_computableFunctions {f : (Fin n → U) → U} :
     f ∈ computableFunctions I n s ↔
       ∃ c : Circuit σ n 1, c.Computes I (single f) ∧ c.size ≤ s := by
-  classical
   simp only [computableFunctions, Finset.mem_biUnion, Finset.mem_range, Finset.mem_image,
     Finset.mem_univ, true_and, Nat.lt_succ_iff, Prod.exists]
   constructor
@@ -75,13 +75,13 @@ lists; this is the factorial saving in the counting bound. -/
 noncomputable def irredundantFunctions (I : Interpretation σ U) (n g : ℕ) :
     Finset ((Fin n → U) → U) :=
   open scoped Classical in
+  let := Fintype.ofFinite (Program σ n g × Wire n g)
   (Finset.univ.filter fun p : Program σ n g × Wire n g => p.1.Irredundant I).image
     fun p => p.1.wireFunction I p.2
 
 private theorem mem_irredundantFunctions_iff {f : (Fin n → U) → U} :
     f ∈ irredundantFunctions I n g ↔ ∃ p : Program σ n g × Wire n g,
       (∀ x, p.1.trace I x p.2 = f x) ∧ p.1.Irredundant I := by
-  classical
   simp [irredundantFunctions, Program.wireFunction, funext_iff, and_comm]
 
 @[simp] theorem mem_irredundantFunctions {f : (Fin n → U) → U} :
@@ -96,7 +96,7 @@ private theorem mem_irredundantFunctions_iff {f : (Fin n → U) → U} :
 
 section Relabeling
 
-omit [Fintype σ.Op]
+omit [Finite σ.Op]
 
 -- Gate equations and an output wire, without a topological ordering.
 private abbrev Presentation (n g : ℕ) := (Fin g → Line σ n g) × Wire n g
@@ -171,11 +171,11 @@ private theorem relabel_injective : Function.Injective
 /-- Distinct functions and permutations of their irredundant gates give distinct presentations. -/
 theorem card_irredundantFunctions_mul_factorial_le (I : Interpretation σ U) (n g : ℕ) :
     (irredundantFunctions I n g).card * g.factorial ≤
-      Fintype.card (Line σ n g) ^ g * (n + g) := by
-  classical
+      Nat.card (Line σ n g) ^ g * (n + g) := by
+  let := Fintype.ofFinite (Line σ n g)
   have h := Fintype.card_le_of_injective _ (relabel_injective (I := I) (n := n) (g := g))
-  simpa only [Fintype.card_prod, Fintype.card_coe, Fintype.card_perm, Fintype.card_fin,
-    Fintype.card_fun, Wire.card] using h
+  simpa only [Nat.card_eq_fintype_card, Fintype.card_prod, Fintype.card_coe,
+    Fintype.card_perm, Fintype.card_fin, Fintype.card_fun, Wire.card] using h
 
 /-- Normalizing a circuit with at most `s` gates leaves an irredundant program with at most `s`
 gates computing the same function. -/
@@ -196,7 +196,7 @@ theorem card_computableFunctions_le_sum (I : Interpretation σ U) (n s : ℕ) :
 /-- Bound the number of computable functions using a uniform line count `B`. The condition
 `s ≤ B` absorbs the extra factorial factors from circuits with fewer than `s` gates. -/
 theorem card_computableFunctions_mul_factorial_le (I : Interpretation σ U) (n s B : ℕ)
-    (hB : s ≤ B) (hlines : ∀ g ≤ s, Fintype.card (Line σ n g) ≤ B) :
+    (hB : s ≤ B) (hlines : ∀ g ≤ s, Nat.card (Line σ n g) ≤ B) :
     (computableFunctions I n s).card * s.factorial ≤
       (s + 1) * B ^ s * (n + s) := by
   have hterm (g : ℕ) (hg : g ≤ s) :
@@ -206,7 +206,7 @@ theorem card_computableFunctions_mul_factorial_le (I : Interpretation σ U) (n s
           ((irredundantFunctions I n g).card * g.factorial) *
             (g + 1).ascFactorial (s - g) := by
         rw [mul_assoc, Nat.factorial_mul_ascFactorial, Nat.add_sub_of_le hg]
-      _ ≤ (Fintype.card (Line σ n g) ^ g * (n + g)) * s ^ (s - g) :=
+      _ ≤ (Nat.card (Line σ n g) ^ g * (n + g)) * s ^ (s - g) :=
         Nat.mul_le_mul (card_irredundantFunctions_mul_factorial_le I n g)
           (by simpa [Nat.add_sub_of_le hg] using Nat.ascFactorial_le_pow_add g (s - g))
       _ ≤ (B ^ g * (n + s)) * B ^ (s - g) := by gcongr; exact hlines g hg
@@ -225,7 +225,7 @@ covers empty signatures and signatures containing only nullary operations. -/
 theorem card_computableFunctions_mul_factorial_le_of_arity_le
     (I : Interpretation σ U) (n s r : ℕ) (arity_le : ∀ op, σ.Arity op ≤ r) :
     (computableFunctions I n s).card * s.factorial ≤
-      (s + 1) * (max s (Fintype.card σ.Op * (n + s + 1) ^ r)) ^ s * (n + s) := by
+      (s + 1) * (max s (Nat.card σ.Op * (n + s + 1) ^ r)) ^ s * (n + s) := by
   apply card_computableFunctions_mul_factorial_le I n s _ (Nat.le_max_left _ _)
   intro g hg
   exact (Line.card_le n g r arity_le).trans
