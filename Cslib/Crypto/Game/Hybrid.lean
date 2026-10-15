@@ -16,6 +16,9 @@ requires a single negligible bound that works for every hop at each security par
 assuming negligibility separately for each fixed hop does not suffice when the number of hops
 grows with the parameter. The common bound may depend on the distinguisher.
 
+The signed telescoping identities are stated over the reals, where subtraction is exact; the
+advantage bounds that follow from them are stated in the nonnegative reals.
+
 ## References
 
 * [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09], Section 9.3.
@@ -26,129 +29,117 @@ grows with the parameter. The common bound may depend on the distinguisher.
 namespace Cslib.Crypto.Game
 
 open Probability
+open scoped NNReal
 
-/-- A uniformly selected experiment accepts with the average of its acceptance probabilities. -/
-theorem winProbability_uniform {α : Type*} [Fintype α] [Nonempty α] (games : α → Game) :
-    winProbability ((PMF.uniformOfFintype α).bind games) =
-      (∑ a, winProbability (games a)) / Fintype.card α := by
-  simp [Probability.PMF.bind_apply_toReal, inv_mul_eq_div, Finset.sum_div]
+/-- A uniformly selected experiment succeeds with the average of its success probabilities. -/
+theorem succProbability_uniform {α : Type*} [Fintype α] [Nonempty α] (games : α → Game) :
+    succProbability ((PMF.uniformOfFintype α).bind games) =
+      (∑ a, succProbability (games a)) / Fintype.card α := by
+  apply NNReal.eq
+  simp only [succProbability, ENNReal.coe_toNNReal_eq_toReal, Probability.PMF.bind_apply_toReal]
+  simp [ENNReal.coe_toNNReal_eq_toReal, inv_mul_eq_div, Finset.sum_div]
 
 /-- Randomly choosing an adjacent hybrid telescopes signed gaps.
 Unused indices run the same rejecting game on both sides. This gives one reduction for every
 security parameter, with loss `capacity`, without selecting a parameter-dependent best hop. -/
-theorem winProbability_hybrid_average (games : ℕ → Game) (hops capacity : ℕ) [NeZero capacity]
+theorem succProbability_hybrid_average (games : ℕ → Game) (hops capacity : ℕ) [NeZero capacity]
     (hle : hops ≤ capacity) :
-    winProbability (games 0) - winProbability (games hops) = (capacity : ℝ) *
-      (winProbability
+    (succProbability (games 0) : ℝ) - succProbability (games hops) = (capacity : ℝ) *
+      (succProbability
         ((PMF.uniformOfFintype (Fin capacity)).bind
-          (fun i => if i.val < hops then games i.val else PMF.pure false)) - winProbability
+          (fun i => if i.val < hops then games i.val else PMF.pure false)) - succProbability
         ((PMF.uniformOfFintype (Fin capacity)).bind
           (fun i => if i.val < hops then games (i.val + 1) else PMF.pure false))) := by
   have hsum : (∑ i : Fin capacity, if i.val < hops then
-      winProbability (games i.val) - winProbability (games (i.val + 1)) else 0) =
-      winProbability (games 0) - winProbability (games hops) := by
+      (succProbability (games i.val) : ℝ) - succProbability (games (i.val + 1)) else 0) =
+      (succProbability (games 0) : ℝ) - succProbability (games hops) := by
     rw [Fin.sum_univ_eq_sum_range (fun i => if i < hops then
-      winProbability (games i) - winProbability (games (i + 1)) else 0),
-      ← Finset.sum_range_sub' (fun i => winProbability (games i)),
+      (succProbability (games i) : ℝ) - succProbability (games (i + 1)) else 0),
+      ← Finset.sum_range_sub' (fun i => (succProbability (games i) : ℝ)),
       ← Finset.sum_range_add_sum_Ico _ hle]
     simp +contextual [Finset.sum_ite_of_true, Finset.sum_ite_of_false]
-  rw [winProbability_uniform, winProbability_uniform]
-  simp only [Fintype.card_fin, ← sub_div, ← Finset.sum_sub_distrib]
   have hdiff (i : Fin capacity) :
-      winProbability (if i.val < hops then games i.val else PMF.pure false) -
-        winProbability (if i.val < hops then games (i.val + 1) else PMF.pure false) =
-      if i.val < hops then winProbability (games i.val) - winProbability (games (i.val + 1))
-        else 0 := by split_ifs <;> simp
+      (succProbability (if i.val < hops then games i.val else PMF.pure false) : ℝ) -
+        succProbability (if i.val < hops then games (i.val + 1) else PMF.pure false) =
+      if i.val < hops then
+        (succProbability (games i.val) : ℝ) - succProbability (games (i.val + 1)) else 0 := by
+    split_ifs <;> simp [succProbability]
   have hcapacity : (capacity : ℝ) ≠ 0 := by exact_mod_cast NeZero.ne capacity
-  simp [hdiff, hsum, mul_div_cancel₀ _ hcapacity]
+  rw [succProbability_uniform, succProbability_uniform]
+  simp only [NNReal.coe_div, NNReal.coe_sum, NNReal.coe_natCast, Fintype.card_fin, ← sub_div,
+    ← Finset.sum_sub_distrib, hdiff, hsum, mul_div_cancel₀ _ hcapacity]
 
-/-- Averaging adjacent hybrids also preserves absolute distinguishing advantage, with the
+/-- Averaging adjacent hybrids also preserves distinguishing advantage, with the
 sampling-range loss and no parameter-dependent choice of the best hop. -/
 theorem advantage_hybrid_average (games : ℕ → Game) (hops capacity : ℕ) [NeZero capacity]
     (hle : hops ≤ capacity) :
-    advantage (games 0) (games hops) = (capacity : ℝ) *
+    advantage (games 0) (games hops) = capacity *
       advantage
         ((PMF.uniformOfFintype (Fin capacity)).bind
           (fun i => if i.val < hops then games i.val else PMF.pure false))
         ((PMF.uniformOfFintype (Fin capacity)).bind
           (fun i => if i.val < hops then games (i.val + 1) else PMF.pure false)) := by
-  rw [advantage, advantage, winProbability_hybrid_average games hops capacity hle, abs_mul,
-    Nat.abs_cast]
+  apply NNReal.eq
+  rw [NNReal.coe_mul, coe_advantage, coe_advantage, NNReal.coe_natCast,
+    succProbability_hybrid_average games hops capacity hle, abs_mul, Nat.abs_cast]
 
 /-- Local reductions with a common signed loss combine into one uniformly selected reduction.
 The proof needs no choice of a best hop depending on the security parameter. -/
-theorem winProbability_hybrid_reduction (games real ideal : ℕ → Game)
+theorem succProbability_hybrid_reduction (games game1 game2 : ℕ → Game)
     (hops capacity : ℕ) [NeZero capacity] (hle : hops ≤ capacity) (loss : ℝ)
-    (hstep : ∀ i < hops, winProbability (games i) - winProbability (games (i + 1)) =
-      loss * (winProbability (real i) - winProbability (ideal i))) :
-    winProbability (games 0) - winProbability (games hops) = (capacity : ℝ) * loss *
-      (winProbability ((PMF.uniformOfFintype (Fin capacity)).bind
-        (fun i => if i.val < hops then real i.val else PMF.pure false)) -
-      winProbability ((PMF.uniformOfFintype (Fin capacity)).bind
-        (fun i => if i.val < hops then ideal i.val else PMF.pure false))) := by
+    (hstep : ∀ i < hops, (succProbability (games i) : ℝ) - succProbability (games (i + 1)) =
+      loss * (succProbability (game1 i) - succProbability (game2 i))) :
+    (succProbability (games 0) : ℝ) - succProbability (games hops) = (capacity : ℝ) * loss *
+      (succProbability ((PMF.uniformOfFintype (Fin capacity)).bind
+        (fun i => if i.val < hops then game1 i.val else PMF.pure false)) -
+      succProbability ((PMF.uniformOfFintype (Fin capacity)).bind
+        (fun i => if i.val < hops then game2 i.val else PMF.pure false))) := by
   have hterm (i : Fin capacity) :
-      winProbability (if i.val < hops then games i.val else PMF.pure false) -
-        winProbability (if i.val < hops then games (i.val + 1) else PMF.pure false) =
-      loss * (winProbability (if i.val < hops then real i.val else PMF.pure false) -
-        winProbability (if i.val < hops then ideal i.val else PMF.pure false)) := by
+      (succProbability (if i.val < hops then games i.val else PMF.pure false) : ℝ) -
+        succProbability (if i.val < hops then games (i.val + 1) else PMF.pure false) =
+      loss * (succProbability (if i.val < hops then game1 i.val else PMF.pure false) -
+        succProbability (if i.val < hops then game2 i.val else PMF.pure false)) := by
     split_ifs with hi
     · exact hstep i.val hi
-    · simp
-  rw [winProbability_hybrid_average games hops capacity hle]
-  simp only [winProbability_uniform, Fintype.card_fin, ← sub_div, ← Finset.sum_sub_distrib,
-    hterm, ← Finset.mul_sum]
+    · simp [succProbability]
+  rw [succProbability_hybrid_average games hops capacity hle]
+  simp only [succProbability_uniform, NNReal.coe_div, NNReal.coe_sum, NNReal.coe_natCast,
+    Fintype.card_fin, ← sub_div, ← Finset.sum_sub_distrib, hterm, ← Finset.mul_sum]
   ring
 
 /-- The advantage between the endpoints is at most the sum of all adjacent advantages. -/
 theorem advantage_hybrid_le_sum (games : ℕ → Game) (hops : ℕ) :
     advantage (games 0) (games hops) ≤
-      ∑ i ∈ Finset.range hops, advantage (games i) (games (i + 1)) :=
-  dist_le_range_sum_dist (fun i => winProbability (games i)) hops
+      ∑ i ∈ Finset.range hops, advantage (games i) (games (i + 1)) := by
+  rw [← NNReal.coe_le_coe, NNReal.coe_sum]
+  simpa only [advantage, coe_nndist] using
+    dist_le_range_sum_dist (fun i => succProbability (games i)) hops
 
 /-- A common bound on each hop gives the usual linear loss in the number of hops. -/
-theorem advantage_hybrid_le (games : ℕ → Game) (hops : ℕ) (ε : ℝ)
+theorem advantage_hybrid_le (games : ℕ → Game) (hops : ℕ) (ε : ℝ≥0)
     (hstep : ∀ i < hops, advantage (games i) (games (i + 1)) ≤ ε) :
-    advantage (games 0) (games hops) ≤ (hops : ℝ) * ε :=
-  (dist_le_range_sum_of_dist_le (f := fun i => winProbability (games i)) (d := fun _ => ε) hops
-    fun hi => hstep _ hi).trans_eq (by simp)
+    advantage (games 0) (games hops) ≤ hops * ε :=
+  (advantage_hybrid_le_sum games hops).trans <| by
+    simpa using Finset.sum_le_sum fun i hi => hstep i (Finset.mem_range.mp hi)
 
 /-- Polynomially many hops with a common negligible bound have negligible total advantage. -/
-theorem negligible_hybrid {games : ℕ → ℕ → Game} {hops : ℕ → ℕ} {ε : ℕ → ℝ}
+theorem negligible_hybrid {games : ℕ → ℕ → Game} {hops : ℕ → ℕ} {ε : ℕ → ℝ≥0}
     (hpoly : PolynomiallyBounded hops) (hε : Negligible ε)
     (hstep : ∀ n i, i < hops n → advantage (games n i) (games n (i + 1)) ≤ ε n) :
     Negligible (fun n => advantage (games n 0) (games n (hops n))) :=
-  negligible_of_le (hε.polynomiallyBounded_mul hpoly)
-    (fun _ => advantage_nonneg _ _) (fun n => advantage_hybrid_le _ _ _ (hstep n))
+  negligible_of_le (hε.polynomiallyBounded_mul hpoly) fun n =>
+    advantage_hybrid_le _ _ _ (hstep n)
 
 /-- A hybrid argument with a common hop bound for each admissible adversary. -/
-theorem Secure.hybrid {Adversary : Type*} {games : Adversary → ℕ → ℕ → Game}
+theorem Indistinguishable.hybrid {Adversary : Type*} {games : Adversary → ℕ → ℕ → Game}
     {Admissible : Adversary → Prop} {hops : ℕ → ℕ} (hpoly : PolynomiallyBounded hops)
     (hstep : ∀ adversary, Admissible adversary →
-      ∃ ε : ℕ → ℝ, Negligible ε ∧ ∀ n i, i < hops n →
+      ∃ ε : ℕ → ℝ≥0, Negligible ε ∧ ∀ n i, i < hops n →
         advantage (games adversary n i) (games adversary n (i + 1)) ≤ ε n) :
-    Secure (fun adversary n => games adversary n 0)
+    Indistinguishable (fun adversary n => games adversary n 0)
       (fun adversary n => games adversary n (hops n)) Admissible := by
   intro adversary ha
   obtain ⟨ε, hε, hstep⟩ := hstep adversary ha
   exact negligible_hybrid hpoly hε hstep
-
-/-- A reduction may lose a polynomial factor and incur a negligible error. The loss and the
-error may depend on the whole adversary, while `reduce` maps whole adversaries and does not
-depend on the security parameter. -/
-theorem Secure.of_reduction_with_loss {Source Target : Type*}
-    {sourceReal sourceIdeal : Source → ℕ → Game} {targetReal targetIdeal : Target → ℕ → Game}
-    {SourceAdmissible : Source → Prop} {TargetAdmissible : Target → Prop}
-    (h : Secure sourceReal sourceIdeal SourceAdmissible) (reduce : Target → Source)
-    (hadmissible : ∀ adversary, TargetAdmissible adversary → SourceAdmissible (reduce adversary))
-    (hbound : ∀ adversary, TargetAdmissible adversary →
-      ∃ (loss : ℕ → ℕ) (error : ℕ → ℝ), PolynomiallyBounded loss ∧ Negligible error ∧ ∀ n,
-        advantage (targetReal adversary n) (targetIdeal adversary n) ≤
-          loss n * advantage (sourceReal (reduce adversary) n) (sourceIdeal (reduce adversary) n) +
-            error n) : Secure targetReal targetIdeal TargetAdmissible := by
-  intro adversary ha
-  obtain ⟨loss, error, hloss, herror, hbound⟩ := hbound adversary ha
-  exact negligible_of_le
-    (((h _ (hadmissible adversary ha)).polynomiallyBounded_mul hloss).add herror)
-    (fun _ => advantage_nonneg _ _) hbound
 
 end Cslib.Crypto.Game
