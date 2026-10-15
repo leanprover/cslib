@@ -12,6 +12,8 @@ The right-maximal repeats of `mississimiss` are `i`, `iss`, `issi`, `miss`, `s`,
 `ssi`. Note that `iss` and its proper infixes `i`, `s` and `ss` are all right-maximal.
 -/
 
+set_option linter.hashCommand false
+
 namespace CslibTests.Repeat
 
 open List
