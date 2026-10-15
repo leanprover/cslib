@@ -135,6 +135,7 @@ public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.Finset.Involution
 public import Cslib.Foundations.Data.HasFresh
+public import Cslib.Foundations.Data.Lens.Basic
 public import Cslib.Foundations.Data.List.IsChainFromTo
 public import Cslib.Foundations.Data.Nat.Asymptotics
 public import Cslib.Foundations.Data.Nat.Factorial
