@@ -86,4 +86,35 @@ theorem IsRepeat.exists_isExtendablePrefix (h : u.IsRepeat w) :
     exact ⟨v, ⟨(prefix_append u [c]).trans hv.isPrefix, hv.isRightMaximalRepeat,
       fun i' hi' => hv.occursAt i' (hext i' hi')⟩⟩
 
+/-- An extendable prefix of `v` occurs in `v` only at the start [NogamiTerauchi2025, Lemma 17].
+Another occurrence at `p > 0` would make `v` occur again `p` letters further on, and so on,
+without end. -/
+theorem IsExtendablePrefix.eq_zero_of_occursAt {p : ℕ} (h : u.IsExtendablePrefix v w)
+    (hp : u.OccursAt v p) : p = 0 := by
+  by_contra hp0
+  obtain ⟨hv, i, -, hi, -, -⟩ := h.isRightMaximalRepeat
+  have key : ∀ k, v.OccursAt w (i + k * p) := by
+    intro k
+    induction k with
+    | zero => simpa using hi
+    | succ k ih =>
+      rw [Nat.add_one_mul, ← Nat.add_assoc]
+      exact h.occursAt _ (hp.trans ih)
+  have h₁ := (key (w.length + 1)).add_length_le hv
+  have h₂ := Nat.le_mul_of_pos_right (w.length + 1) (Nat.pos_of_ne_zero hp0)
+  omega
+
+/-- If two occurrences of `v` in `w` overlap, every extendable prefix of `v` is longer than the
+overlap [NogamiTerauchi2025, Lemma 17]. -/
+theorem IsExtendablePrefix.add_length_sub_lt_length {j : ℕ} (h : u.IsExtendablePrefix v w)
+    (hi : v.OccursAt w i) (hj : v.OccursAt w j) (hij : i < j) :
+    i + v.length - j < u.length := by
+  by_contra hle
+  have hu : u.OccursAt v (j - i) := by
+    rcases Nat.eq_zero_or_pos u.length with h0 | h0
+    · simp [length_eq_zero_iff.mp h0]
+    · exact (hj.of_prefix h.isPrefix).occursAt_sub hi hij.le (by omega)
+  have := h.eq_zero_of_occursAt hu
+  omega
+
 end List

@@ -73,6 +73,18 @@ theorem OccursAt.trans (hv : v.OccursAt u p) (hu : u.OccursAt w i) : v.OccursAt 
   rw [← drop_drop]
   exact hv.trans (hu.drop p)
 
+/-- If `u` occurs in `w` at `j`, inside an occurrence of `v` at `i`, then `u` occurs in `v` at
+`j - i`. -/
+theorem OccursAt.occursAt_sub {j : ℕ} (hu : u.OccursAt w j) (hv : v.OccursAt w i) (hij : i ≤ j)
+    (hle : j + u.length ≤ i + v.length) : u.OccursAt v (j - i) := by
+  rw [occursAt_iff_getElem?] at hu hv ⊢
+  intro k hk
+  have hk' : j - i + k < v.length := by omega
+  have h := hv (j - i + k) hk'
+  rw [show i + (j - i + k) = j + k by omega, hu k hk] at h
+  rw [getElem?_eq_getElem hk']
+  exact h.symm
+
 /-- `u ++ [c]` occurs in `w` at `i` if and only if `u` occurs there and is followed by `c`. -/
 theorem occursAt_append_singleton_iff {c : α} :
     (u ++ [c]).OccursAt w i ↔ u.OccursAt w i ∧ w[i + u.length]? = some c := by
