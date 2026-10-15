@@ -14,6 +14,7 @@ public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.EpsilonNA.Basic
+public import Cslib.Computability.Automata.EpsilonNA.Thompson
 public import Cslib.Computability.Automata.EpsilonNA.ToNA
 public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
 public import Cslib.Computability.Automata.NA.Basic
