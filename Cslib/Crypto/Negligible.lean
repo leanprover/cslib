@@ -33,6 +33,10 @@ the decay condition is Mathlib's superpolynomial decay in the nonnegative reals.
 def Negligible (ε : ℕ → ℝ≥0) : Prop :=
   Asymptotics.SuperpolynomialDecay Filter.atTop (fun n : ℕ => (n : ℝ≥0)) ε
 
+theorem negligible_iff (ε : ℕ → ℝ≥0) :
+    Negligible ε ↔ ∀ k : ℕ, ∀ δ > (0 : ℝ≥0), ∃ m : ℕ, ∀ n ≥ m, n ^ k * ε n < δ := by
+  simp [Negligible, Asymptotics.SuperpolynomialDecay, tendsto_order]
+ 
 /-- The zero advantage is negligible. -/
 @[simp] theorem negligible_zero : Negligible (fun _ => 0) :=
   Asymptotics.superpolynomialDecay_zero _ _
