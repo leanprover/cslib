@@ -24,11 +24,13 @@ languages.
   and `b`, and a fresh accepting state reached by `ε`-transitions from their accepting states.
 * `εNA.FinAcc.concat a b`: `ε`-transitions from the accepting states of `a` to the initial states
   of `b`.
+* `εNA.FinAcc.star a`: a fresh hub state, initial and accepting, with `ε`-transitions to the
+  initial states of `a` and from its accepting states.
 
 ## Main statements
 
 * `εNA.FinAcc.language_zero`, `εNA.FinAcc.language_epsilon`, `εNA.FinAcc.language_char`,
-  `εNA.FinAcc.language_union` and `εNA.FinAcc.language_concat`.
+  `εNA.FinAcc.language_union`, `εNA.FinAcc.language_concat` and `εNA.FinAcc.language_star`.
 
 ## References
 
@@ -40,6 +42,7 @@ languages.
 namespace Cslib.Automata.εNA.FinAcc
 
 open Acceptor
+open scoped Computability
 
 variable {Symbol S₁ S₂ : Type*}
 
@@ -258,5 +261,88 @@ theorem language_concat (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
     have hcopy₂ : (concat a b).MTr (.inr s₂) μs₂ (.inr t) :=
       h₂.map (fun s => (.inr s : S₁ ⊕ S₂)) fun _ _ _ => ConcatTr.right
     exact hcopy₁.comp _ (.stepL (ConcatTr.bridge hs₁ hs₂) hcopy₂)
+
+/-- The transitions of `star a`, whose states are a fresh hub `inl ()` and the states of `a`. -/
+inductive StarTr (a : FinAcc S₁ Symbol) : Unit ⊕ S₁ → Option Symbol → Unit ⊕ S₁ → Prop
+  | inner {s μ s'} : a.Tr s μ s' → StarTr a (.inr s) μ (.inr s')
+  | enter {s} : s ∈ a.start → StarTr a (.inl ()) none (.inr s)
+  | exit {s} : s ∈ a.accept → StarTr a (.inr s) none (.inl ())
+
+/-- The Kleene star of `a`: a fresh hub state, initial and accepting, with `ε`-transitions to the
+initial states of `a` and from its accepting states. -/
+def star (a : FinAcc S₁ Symbol) : FinAcc (Unit ⊕ S₁) Symbol where
+  Tr := StarTr a
+  start := {.inl ()}
+  accept := {.inl ()}
+
+/-- A run of `star a` from a state of `a` to the hub is a run of `a` to an accepting state, an
+`ε`-transition to the hub, and a run from the hub back to the hub. -/
+theorem star_mTr_inr {s : S₁} {μs : List (Option Symbol)}
+    (h : (star a).MTr (.inr s) μs (.inl ())) :
+    ∃ t ∈ a.accept, ∃ μs₁ μs₂, a.MTr s μs₁ t ∧ (star a).MTr (.inl ()) μs₂ (.inl ()) ∧
+      μs = μs₁ ++ none :: μs₂ := by
+  induction μs generalizing s with
+  | nil => cases h
+  | cons μ μs ih =>
+    obtain ⟨y, htr, h'⟩ := LTS.MTr.cons_iff.mp h
+    cases htr with
+    | inner htr =>
+      obtain ⟨t, ht, μs₁, μs₂, h₁, h₂, rfl⟩ := ih h'
+      exact ⟨t, ht, μ :: μs₁, μs₂, .stepL htr h₁, h₂, rfl⟩
+    | exit hs =>
+      exact ⟨s, hs, [], μs, .refl, h', rfl⟩
+
+/-- A run of `star a` from the hub back to the hub reads a word of `(language a)∗`. -/
+theorem reduceOption_mem_kstar_of_star_mTr {μs : List (Option Symbol)}
+    (h : (star a).MTr (.inl ()) μs (.inl ())) : μs.reduceOption ∈ (language a)∗ := by
+  generalize hn : μs.length = n
+  induction n using Nat.strong_induction_on generalizing μs with
+  | _ n ih =>
+    cases μs with
+    | nil => exact Language.nil_mem_kstar _
+    | cons μ μs =>
+      obtain ⟨y, htr, h'⟩ := LTS.MTr.cons_iff.mp h
+      cases htr with
+      | enter hs =>
+        obtain ⟨t, ht, μs₁, μs₂, h₁, h₂, rfl⟩ := star_mTr_inr h'
+        have hlen : μs₂.length < n := by
+          rw [← hn]
+          simp only [List.length_cons, List.length_append]
+          omega
+        obtain ⟨L, hL, hLmem⟩ := Language.mem_kstar.mp (ih _ hlen h₂ rfl)
+        refine Language.mem_kstar.mpr ⟨μs₁.reduceOption :: L, by
+          simp [List.reduceOption_append, hL], ?_⟩
+        intro w hw
+        rcases List.mem_cons.mp hw with rfl | hw
+        · exact mem_language_iff.mpr ⟨_, hs, t, ht, μs₁, rfl, h₁⟩
+        · exact hLmem w hw
+
+/-- Every word of `(language a)∗` is read by a run of `star a` from the hub back to the hub. -/
+theorem exists_star_mTr_of_mem_kstar {xs : List Symbol} (hxs : xs ∈ (language a)∗) :
+    ∃ μs : List (Option Symbol), μs.reduceOption = xs ∧ (star a).MTr (.inl ()) μs (.inl ()) := by
+  obtain ⟨L, rfl, hL⟩ := Language.mem_kstar.mp hxs
+  clear hxs
+  induction L with
+  | nil => exact ⟨[], rfl, .refl⟩
+  | cons w L ih =>
+    obtain ⟨μs₂, hμs₂, h₂⟩ := ih fun y hy => hL y (by simp [hy])
+    obtain ⟨s, hs, t, ht, μs₁, rfl, h₁⟩ := mem_language_iff.mp (hL w (by simp))
+    have hcopy : (star a).MTr (.inr s) μs₁ (.inr t) :=
+      h₁.map (fun s => (.inr s : Unit ⊕ S₁)) fun _ _ _ => StarTr.inner
+    refine ⟨none :: (μs₁ ++ none :: μs₂), by simp [List.reduceOption_append, hμs₂], ?_⟩
+    exact .stepL (StarTr.enter hs) (hcopy.comp _ (.stepL (StarTr.exit ht) h₂))
+
+@[simp]
+theorem language_star (a : FinAcc S₁ Symbol) : language (star a) = (language a)∗ := by
+  ext xs
+  rw [mem_language_iff]
+  constructor
+  · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
+    obtain rfl : s = .inl () := hs
+    obtain rfl : t = .inl () := ht
+    exact reduceOption_mem_kstar_of_star_mTr h
+  · intro hxs
+    obtain ⟨μs, hμs, h⟩ := exists_star_mTr_of_mem_kstar hxs
+    exact ⟨.inl (), Set.mem_singleton _, .inl (), Set.mem_singleton _, μs, hμs, h⟩
 
 end Cslib.Automata.εNA.FinAcc
