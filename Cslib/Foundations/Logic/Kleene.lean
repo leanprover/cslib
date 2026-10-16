@@ -20,7 +20,8 @@ truth order `false < unknown < true` and the information order `unknown ⊑ true
 
 The truth order is the `LE` instance: `∧` and `∨` are its meet and join, and negation reverses
 it. In the information order `⊑`, `unknown` lies below both definite values; every connective
-is monotone in it.
+is monotone in it, and `∧`, `∨` and `¬` are the greatest monotone extensions of `&&`, `||`
+and `!`.
 
 ## Main definitions
 
@@ -35,6 +36,9 @@ is monotone in it.
 - `Kleene.ofBool_and` and friends: `ofBool` commutes with the connectives.
 - `IsPartialOrder Kleene Kleene.InfoLE`, `Kleene.InfoLE.and` and friends: the information
   order is a partial order in which every connective is monotone.
+- `Kleene.infoLE_and_of_extends` and friends: `∧`, `∨` and `¬` are the greatest monotone
+  extensions of `&&`, `||` and `!`.
+- `Kleene.eq_not_of_extends`: `¬` is the only monotone extension of `!`.
 
 ## References
 
@@ -319,6 +323,44 @@ protected theorem InfoLE.imp {a a' b b' : Kleene} (ha : a ⊑ a') (hb : b ⊑ b'
 
 protected theorem InfoLE.iff {a a' b b' : Kleene} (ha : a ⊑ a') (hb : b ⊑ b') :
     (a ↔ b) ⊑ (a' ↔ b') := (ha.imp hb).and (hb.imp ha)
+
+/-! ### Greatest monotone extensions -/
+
+/-- Kleene negation is the greatest extension of Boolean negation that is monotone in the
+information order. -/
+theorem infoLE_not_of_extends {f : Kleene → Kleene}
+    (mono : ∀ {a a'}, a ⊑ a' → f a ⊑ f a')
+    (ext : ∀ x : Bool, f (ofBool x) = ofBool (!x)) (a : Kleene) : f a ⊑ (¬a) := by
+  have key (x : Bool) (ha : a ⊑ ofBool x) : f a ⊑ ofBool (!x) := ext x ▸ mono ha
+  cases a <;> simp [infoLE_def, Bool.forall_bool] at key ⊢ <;> grind
+
+/-- Kleene negation is the only extension of Boolean negation that is monotone in the information
+order. -/
+theorem eq_not_of_extends {f : Kleene → Kleene}
+    (mono : ∀ {a a'}, a ⊑ a' → f a ⊑ f a')
+    (ext : ∀ x : Bool, f (ofBool x) = ofBool (!x)) (a : Kleene) : f a = ¬a := by
+  have h := infoLE_not_of_extends mono ext a
+  cases a <;> simp_all
+
+/-- Kleene conjunction is the greatest extension of Boolean conjunction that is monotone in the
+information order. -/
+theorem infoLE_and_of_extends {f : Kleene → Kleene → Kleene}
+    (mono : ∀ {a a' b b'}, a ⊑ a' → b ⊑ b' → f a b ⊑ f a' b')
+    (ext : ∀ x y : Bool, f (ofBool x) (ofBool y) = ofBool (x && y))
+    (a b : Kleene) : f a b ⊑ (a ∧ b) := by
+  have key (x y : Bool) (ha : a ⊑ ofBool x) (hb : b ⊑ ofBool y) : f a b ⊑ ofBool (x && y) :=
+    ext x y ▸ mono ha hb
+  cases a <;> cases b <;> simp [infoLE_def, Bool.forall_bool] at key ⊢ <;> grind
+
+/-- Kleene disjunction is the greatest extension of Boolean disjunction that is monotone in the
+information order. -/
+theorem infoLE_or_of_extends {f : Kleene → Kleene → Kleene}
+    (mono : ∀ {a a' b b'}, a ⊑ a' → b ⊑ b' → f a b ⊑ f a' b')
+    (ext : ∀ x y : Bool, f (ofBool x) (ofBool y) = ofBool (x || y))
+    (a b : Kleene) : f a b ⊑ (a ∨ b) := by
+  have key (x y : Bool) (ha : a ⊑ ofBool x) (hb : b ⊑ ofBool y) : f a b ⊑ ofBool (x || y) :=
+    ext x y ▸ mono ha hb
+  cases a <;> cases b <;> simp [infoLE_def, Bool.forall_bool] at key ⊢ <;> grind
 
 end Kleene
 
