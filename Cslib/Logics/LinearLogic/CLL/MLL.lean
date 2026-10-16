@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Logics.LinearLogic.CLL.Basic
+public import Cslib.Logics.LinearLogic.CLL.CutFree
 public import Cslib.Foundations.Logic.InferenceSystem
 
 /-! # Multiplicative Classical Linear Logic (MLL)
@@ -155,8 +155,8 @@ theorem Proof.isMLL_sequent {Γ : Sequent Atom} {p : ⇓Γ} (h : p.IsMLL) : Γ.I
     grind [Proof.IsMLL]
 
 /-- If a CLL derivation is cut-free and concludes an MLL sequent, then it is an MLL derivation. -/
-theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
-    (hp : p.cutFree) : p.IsMLL := by
+theorem Proof.isMLL_isCutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
+    (hp : p.IsCutFree) : p.IsMLL := by
   induction p
   case ax => simp_all
   case one => simp
@@ -171,9 +171,9 @@ theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
     simp at hΓ
     refine ⟨ihp ?mll.p ?cut.p, ihq ?mll.q ?cut.q⟩
     case mll | mll => grind [Sequent.IsMLL]
-    case cut | cut => grind [cutFree]
+    case cut | cut => grind [IsCutFree]
   case oplus₁ | oplus₂ | «with» | top | quest | contract | weaken | bang => simp at hΓ
-  case cut => simp [cutFree] at hp
+  case cut => simp [IsCutFree] at hp
 
 /-- MLL derivations. -/
 abbrev MLL.Proof (Γ : CLL.Sequent Atom) := {p : ⇓Γ // p.IsMLL}
@@ -195,8 +195,8 @@ theorem Proof.isMLL_sequent {Γ : Sequent Atom} (p : MLL⇓Γ) : Γ.IsMLL :=
 end MLL
 
 /-- Downcasting of cut-free CLL proofs of multiplicative sequents into MLL proofs. -/
-def Proof.cutFreeToMLL {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL) (hp : p.cutFree) : MLL⇓Γ :=
-  ⟨p, CLL.Proof.isMLL_cutFree p hΓ hp⟩
+def Proof.cutFreeToMLL {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL) (hp : p.IsCutFree) : MLL⇓Γ :=
+  ⟨p, CLL.Proof.isMLL_isCutFree p hΓ hp⟩
 
 instance {Γ : Sequent Atom} : Coe (MLL⇓Γ) (⇓Γ) where
   coe p := p.val
