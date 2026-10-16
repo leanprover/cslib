@@ -380,7 +380,7 @@ theorem omegaPow_seq_prop [Inhabited α] :
     · apply strictMono_flatten hm h0
     · intro m
       change s.extract (f m) (f (m + 1)) ∈ l - 1
-      simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, ge_iff_le, not_le, true_and]
+      simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, not_le, true_and]
       apply hm; omega
 
 open scoped Classical in

@@ -14,10 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set TEST_ARGS manually
-        run: |
-          echo "TEST_ARGS='--wfail --iofail'" >> $GITHUB_ENV
-        shell: bash
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail --iofail"
@@ -34,6 +30,3 @@ jobs:
         run: |
           set -e
           lake exe checkInitImports
-      - uses: leanprover-community/lint-style-action@e6128ab22cb03b509075ae46c33727e3952ffab7 # 2026-05-12
-        with:
-          mode: check

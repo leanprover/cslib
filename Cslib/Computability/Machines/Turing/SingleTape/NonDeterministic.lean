@@ -9,7 +9,7 @@ module
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
-public import Cslib.Foundations.Data.RelatesInSteps
+public import Cslib.Foundations.Relation.RelatesInSteps
 
 /-! # Single-Tape Nondeterministic Turing Machines (NTMs)
 

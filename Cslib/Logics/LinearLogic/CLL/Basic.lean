@@ -152,16 +152,15 @@ theorem Proposition.dual_sizeOf (a : Proposition Atom) : sizeOf a⫠ = sizeOf a 
 theorem Proposition.dual_neq (a : Proposition Atom) : a ≠ a⫠ := by
   cases a <;> simp [Proposition.dual]
 
-/-- Two propositions are equal iff their respective duals are equal. -/
-@[simp]
-theorem Proposition.dual_inj (a b : Proposition Atom) : a⫠ = b⫠ ↔ a = b := by
-  refine ⟨fun h ↦ ?_, congrArg dual⟩
-  induction a generalizing b <;> cases b <;> grind
-
 /-- Duality is an involution. -/
 @[scoped grind =, simp]
 theorem Proposition.dual_involution (a : Proposition Atom) : a⫠⫠ = a := by
   induction a <;> grind [dual]
+
+/-- Two propositions are equal iff their respective duals are equal. -/
+@[simp]
+theorem Proposition.dual_inj (a b : Proposition Atom) : a⫠ = b⫠ ↔ a = b :=
+  (Function.Involutive.injective dual_involution).eq_iff
 
 /-- Linear implication. -/
 @[scoped grind =]
@@ -305,6 +304,12 @@ theorem Equiv.trans {a b c : Proposition Atom} (hab : a ≡ b) (hbc : b ≡ c) :
 
 scoped grind_pattern Equiv.trans => a ≡ b, b ≡ c
 
+/-- Logical equivalence is preserved by duality. -/
+theorem Equiv.dual {a b : Proposition Atom} (h : a ≡ b) : a⫠ ≡ b⫠ := by
+  constructor
+  · simpa only [dual_involution, Multiset.pair_comm] using h.2
+  · simpa only [dual_involution, Multiset.pair_comm] using h.1
+
 /-- The canonical equivalence relation for propositions. -/
 def propositionSetoid : Setoid (Proposition Atom) :=
   ⟨Equiv, Equiv.refl, Equiv.symm, Equiv.trans⟩
@@ -430,54 +435,14 @@ private lemma Proposition.equiv_tensor₂ {a b b' : Proposition Atom} (h : b ≡
 @[local grind .]
 private lemma Proposition.equiv_parr₁ {a a' b : Proposition Atom} (h : a ≡ a') :
     a ⅋ b ≡ a' ⅋ b := by
-  obtain ⟨h₁, h₂⟩ := h
-  obtain h₁ := h₁.some
-  obtain h₂ := h₂.some
-  constructor
-  case left =>
-    constructor
-    simp only [Proposition.dual]
-    rw [show {a⫠ ⊗ b⫠, a' ⅋ b} = (a' ⅋ b) ::ₘ {a⫠ ⊗ b⫠} by grind]
-    apply Proof.parr
-    rw [show (a' ::ₘ b ::ₘ {a⫠ ⊗ b⫠}) = ((a⫠ ⊗ b⫠) ::ₘ ({a'} + {b})) by grind]
-    apply Proof.tensor
-    · apply h₁.rwConclusion (by grind)
-    · exact Proof.ax'
-  case right =>
-    constructor
-    simp only [Proposition.dual]
-    rw [show {a'⫠ ⊗ b⫠, a ⅋ b} = (a ⅋ b) ::ₘ {a'⫠ ⊗ b⫠} by grind]
-    apply Proof.parr
-    rw [show (a ::ₘ b ::ₘ {a'⫠ ⊗ b⫠}) = ((a'⫠ ⊗ b⫠) ::ₘ ({a} + {b})) by grind]
-    apply Proof.tensor
-    · apply h₂.rwConclusion (by grind)
-    · exact Proof.ax'
+  simpa only [dual, dual_involution] using
+    (Proposition.equiv_tensor₁ (b := b⫠) h.dual).dual
 
 @[local grind .]
 private lemma Proposition.equiv_parr₂ {a b b' : Proposition Atom} (h : b ≡ b') :
     a ⅋ b ≡ a ⅋ b' := by
-  obtain ⟨h₁, h₂⟩ := h
-  obtain h₁ := h₁.some
-  obtain h₂ := h₂.some
-  constructor
-  case left =>
-    constructor
-    simp only [Proposition.dual]
-    rw [show {a⫠ ⊗ b⫠, a ⅋ b'} = (a ⅋ b') ::ₘ {a⫠ ⊗ b⫠} by grind]
-    apply Proof.parr
-    rw [show (a ::ₘ b' ::ₘ {a⫠ ⊗ b⫠}) = ((a⫠ ⊗ b⫠) ::ₘ ({a} + {b'})) by grind]
-    apply Proof.tensor
-    · exact Proof.ax'
-    · apply h₁.rwConclusion (by grind)
-  case right =>
-    constructor
-    simp only [Proposition.dual]
-    rw [show {a⫠ ⊗ b'⫠, a ⅋ b} = (a ⅋ b) ::ₘ {a⫠ ⊗ b'⫠} by grind]
-    apply Proof.parr
-    rw [show (a ::ₘ b ::ₘ {a⫠ ⊗ b'⫠}) = ((a⫠ ⊗ b'⫠) ::ₘ ({a} + {b})) by grind]
-    apply Proof.tensor
-    · exact Proof.ax'
-    · apply h₂.rwConclusion (by grind)
+  simpa only [dual, dual_involution] using
+    (Proposition.equiv_tensor₂ (a := a⫠) h.dual).dual
 
 @[local grind .]
 private lemma Proposition.equiv_oplus₁ {a a' b : Proposition Atom} (h : a ≡ a') :
@@ -538,62 +503,14 @@ private lemma Proposition.equiv_oplus₂ {a b b' : Proposition Atom} (h : b ≡ 
 @[local grind .]
 private lemma Proposition.equiv_with₁ {a a' b : Proposition Atom} (h : a ≡ a') :
     a & b ≡ a' & b := by
-  obtain ⟨h₁, h₂⟩ := h
-  obtain h₁ := h₁.some
-  obtain h₂ := h₂.some
-  constructor
-  case left =>
-    constructor
-    simp only [Proposition.dual]
-    rw [show {a⫠ ⊕ b⫠, a' & b} = (a' & b) ::ₘ {a⫠ ⊕ b⫠} by grind]
-    apply Proof.with
-    · rw [show a' ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {a'} by grind]
-      apply Proof.oplus₁
-      apply h₁.rwConclusion (by grind)
-    · rw [show b ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {b} by grind]
-      apply Proof.oplus₂
-      exact Proof.ax'
-  case right =>
-    constructor
-    simp only [Proposition.dual]
-    rw [show {a'⫠ ⊕ b⫠, a & b} = (a & b) ::ₘ {a'⫠ ⊕ b⫠} by grind]
-    apply Proof.with
-    · rw [show a ::ₘ {a'⫠ ⊕ b⫠} = (a'⫠ ⊕ b⫠) ::ₘ {a} by grind]
-      apply Proof.oplus₁
-      apply h₂.rwConclusion (by grind)
-    · rw [show b ::ₘ {a'⫠ ⊕ b⫠} = (a'⫠ ⊕ b⫠) ::ₘ {b} by grind]
-      apply Proof.oplus₂
-      exact Proof.ax'
+  simpa only [dual, dual_involution] using
+    (Proposition.equiv_oplus₁ (b := b⫠) h.dual).dual
 
 @[local grind .]
 private lemma Proposition.equiv_with₂ {a b b' : Proposition Atom} (h : b ≡ b') :
     a & b ≡ a & b' := by
-  obtain ⟨h₁, h₂⟩ := h
-  obtain h₁ := h₁.some
-  obtain h₂ := h₂.some
-  constructor
-  case left =>
-    constructor
-    simp only [Proposition.dual]
-    rw [show {a⫠ ⊕ b⫠, a & b'} = (a & b') ::ₘ {a⫠ ⊕ b⫠} by grind]
-    apply Proof.with
-    · rw [show a ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {a} by grind]
-      apply Proof.oplus₁
-      exact Proof.ax'
-    · rw [show b' ::ₘ {a⫠ ⊕ b⫠} = (a⫠ ⊕ b⫠) ::ₘ {b'} by grind]
-      apply Proof.oplus₂
-      apply h₁.rwConclusion (by grind)
-  case right =>
-    constructor
-    simp only [Proposition.dual]
-    rw [show {a⫠ ⊕ b'⫠, a & b} = (a & b) ::ₘ {a⫠ ⊕ b'⫠} by grind]
-    apply Proof.with
-    · rw [show a ::ₘ {a⫠ ⊕ b'⫠} = (a⫠ ⊕ b'⫠) ::ₘ {a} by grind]
-      apply Proof.oplus₁
-      exact Proof.ax'
-    · rw [show b ::ₘ {a⫠ ⊕ b'⫠} = (a⫠ ⊕ b'⫠) ::ₘ {b} by grind]
-      apply Proof.oplus₂
-      apply h₂.rwConclusion (by grind)
+  simpa only [dual, dual_involution] using
+    (Proposition.equiv_oplus₂ (a := a⫠) h.dual).dual
 
 @[local grind .]
 private lemma Proposition.equiv_bang {a a' : Proposition Atom} (h : a ≡ a') :
@@ -624,26 +541,7 @@ private lemma Proposition.equiv_bang {a a' : Proposition Atom} (h : a ≡ a') :
 @[local grind .]
 private lemma Proposition.equiv_quest {a a' : Proposition Atom} (h : a ≡ a') :
     ʔa ≡ ʔa' := by
-  obtain ⟨h₁, h₂⟩ := h
-  obtain h₁ := h₁.some
-  obtain h₂ := h₂.some
-  constructor
-  case left =>
-    constructor
-    simp only [Proposition.dual]
-    apply Proof.bang
-    · simp [allQuest, Multiset.fold]
-    · rw [show a⫠ ::ₘ {ʔa'} = ʔa' ::ₘ {a⫠} by grind]
-      apply Proof.quest
-      apply h₁.rwConclusion (by grind)
-  case right =>
-    constructor
-    simp only [Proposition.dual]
-    apply Proof.bang
-    · simp [allQuest, Multiset.fold]
-    · rw [show a'⫠ ::ₘ {ʔa} = ʔa ::ₘ {a'⫠} by grind]
-      apply Proof.quest
-      apply h₂.rwConclusion (by grind)
+  simpa only [dual, dual_involution] using (Proposition.equiv_bang h.dual).dual
 
 instance : LawfulCongruence (Proposition.Equiv (Atom := Atom)) where
   elim :

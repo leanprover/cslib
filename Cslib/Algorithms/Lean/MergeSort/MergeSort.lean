@@ -40,18 +40,14 @@ open List in
 @[simp, grind =]
 theorem ret_mergeM {T} [AddMonoid T] (xs ys : List α) (le : α → α → TimeM T Bool) :
     ⟪List.mergeM xs ys le⟫ = List.merge xs ys (fun x y => ⟪le x y⟫) := by
-  fun_induction merge with grind [mergeM, nil_merge, merge_right, cons_merge_cons]
+  simpa using Id.ext_iff.1 <| isMonadHom_pure_ret.map_listMergeM xs ys le
 
 open List in
 /-- `TimeM.ret` passes through `List.mergeSortM` into the comparator. -/
 @[simp]
 theorem ret_mergeSortM {T} [AddMonoid T] (xs : List α) (le : α → α → TimeM T Bool) :
     ⟪List.mergeSortM xs le⟫ = List.mergeSort xs (fun x y => ⟪le x y⟫) := by
-  fun_induction List.mergeSortM with
-  | case1 | case2 => simp
-  | case3 a b xs le iha ihb =>
-    simp only [ret_bind, ret_mergeM, mergeSort]
-    rw [iha, ihb]
+  simpa using Id.ext_iff.1 <| isMonadHom_pure_ret.map_listMergeSortM xs le
 
 variable [LinearOrder α]
 
@@ -122,12 +118,12 @@ open Nat (clog)
 
 /-- Key Lemma: ⌈log2 ⌈n/2⌉⌉ ≤ ⌈log2 n⌉ - 1 for n > 1 -/
 @[grind →]
-lemma clog2_half_le (n : ℕ) (h : n > 1) : clog 2 ((n + 1) / 2) ≤ clog 2 n - 1 := by
+lemma clog2_half_le (n : ℕ) (h : 1 < n) : clog 2 ((n + 1) / 2) ≤ clog 2 n - 1 := by
   grind [Nat.clog_of_one_lt one_lt_two h]
 
 /-- Same logic for the floor half: ⌈log2 ⌊n/2⌋⌉ ≤ ⌈log2 n⌉ - 1 -/
 @[grind →]
-lemma clog2_floor_half_le (n : ℕ) (h : n > 1) : clog 2 (n / 2) ≤ clog 2 n - 1 := by
+lemma clog2_floor_half_le (n : ℕ) (h : 1 < n) : clog 2 (n / 2) ≤ clog 2 n - 1 := by
   apply Nat.le_trans _ (clog2_half_le n h)
   apply Nat.clog_monotone
   grind
@@ -137,7 +133,7 @@ private lemma some_algebra (n : ℕ) :
     (n + 2) * clog 2 (n + 2) := by
   -- 1. Substitution: Let N = n_1 + 2 to clean up the expression
   let N := n + 2
-  have hN : N ≥ 2 := by omega
+  have hN : 2 ≤ N := by omega
   -- 2. Rewrite the terms using N
   have t1 : n / 2 + 1 = N / 2 := by omega
   have t2 : (n + 1) / 2 + 1 = (N + 1) / 2 := by omega

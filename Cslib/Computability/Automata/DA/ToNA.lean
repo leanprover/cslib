@@ -57,13 +57,7 @@ open scoped FLTS NA.FinAcc in
 theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
     language a.toNAFinAcc = language a := by
   ext xs
-  #adaptation_note
-  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  constructor
-  · simp [mem_language a xs, Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
-  · intro _
-    use a.start
-    simp_all [Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
+  simp [Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
 
 end FinAcc
 
@@ -79,15 +73,8 @@ open ωAcceptor in
 @[simp, scoped grind _=_]
 theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :
     language a.toNABuchi = language a := by
-  ext xs; constructor
-  #adaptation_note
-  /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  · simp [Accepts, language, toNABuchi]
-  · intro h
-    use (a.run xs)
-    split_ands
-    · grind
-    · exact Filter.frequently_map.mp h
+  ext xs
+  simp [Accepts, language, toNABuchi]
 
 end Buchi
 

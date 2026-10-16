@@ -178,9 +178,12 @@ theorem redexFree_iff_mred_eq {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x
     exact Red.ne hy (h.1 (Relation.ReflTransGen.single hy))
 
 /-- If a term has a common reduct with a normal term, it in fact reduces to that term. -/
-theorem mJoin_red_redexFree {x y : SKI} (hy : y.RedexFree) (h : MJoin Red x y) : x ↠ y :=
+theorem join_mRed_redexFree {x y : SKI} (hy : y.RedexFree) (h : Join (ReflTransGen Red) x y) :
+    x ↠ y :=
   let ⟨w, hyw, hzw⟩ := h
   (redexFree_iff_mred_eq.1 hy _ |>.1 hzw : y = w) ▸ hyw
+
+@[deprecated (since := "2026-09-12")] alias mJoin_red_redexFree := join_mRed_redexFree
 
 /-- If `x` reduces to both `y` and `z`, and `z` is not reducible, then `y` reduces to `z`. -/
 lemma confluent_redexFree {x y z : SKI} (hxy : x ↠ y) (hxz : x ↠ z) (hz : RedexFree z) : y ↠ z :=
@@ -195,13 +198,16 @@ lemma unique_normal_form {x y z : SKI}
   (redexFree_iff_mred_eq.1 hy _).1 (confluent_redexFree hxy hxz hz)
 
 /-- If `x` and `y` are normal and have a common reduct, then they are equal. -/
-lemma eq_of_mJoin_red_redexFree {x y : SKI} (h : MJoin Red x y)
+lemma eq_of_join_mRed_redexFree {x y : SKI} (h : Join (ReflTransGen Red) x y)
     (hx : x.RedexFree) (hy : y.RedexFree) : x = y :=
-  (redexFree_iff_mred_eq.1 hx _).1 (mJoin_red_redexFree hy h)
+  (redexFree_iff_mred_eq.1 hx _).1 (join_mRed_redexFree hy h)
+
+@[deprecated (since := "2026-09-12")] alias eq_of_mJoin_red_redexFree := eq_of_join_mRed_redexFree
+
 
 /-! ### Injectivity for datatypes -/
 
-lemma sk_nequiv : ¬ MJoin Red S K := by
+lemma sk_nequiv : ¬ Join (ReflTransGen Red) S K := by
   intro ⟨z, hsz, hkz⟩
   have hS : RedexFree S := by simp [RedexFree]
   have hK : RedexFree K := by simp [RedexFree]
@@ -210,19 +216,19 @@ lemma sk_nequiv : ¬ MJoin Red S K := by
 
 /-- Injectivity for booleans. -/
 theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool v y)
-    (hxy : MJoin Red x y) : u = v := by
-  have h : MJoin Red (if u then S else K) (if v then S else K) := by
-    apply mJoin_red_equivalence.trans (y := x ⬝ S ⬝ K)
-    · apply mJoin_red_equivalence.symm
-      apply Relation.MJoin.single
+    (hxy : Join (ReflTransGen Red) x y) : u = v := by
+  have h : Join (ReflTransGen Red) (if u then S else K) (if v then S else K) := by
+    apply join_mRed_equivalence.trans (y := x ⬝ S ⬝ K)
+    · apply join_mRed_equivalence.symm
+      apply Relation.Join.single
       exact hx S K
-    · apply mJoin_red_equivalence.trans (y := y ⬝ S ⬝ K)
-      · exact mJoin_red_head K <| mJoin_red_head S hxy
-      · apply Relation.MJoin.single
+    · apply join_mRed_equivalence.trans (y := y ⬝ S ⬝ K)
+      · exact join_mRed_head K <| join_mRed_head S hxy
+      · apply Relation.Join.single
         exact hy S K
-  grind [sk_nequiv, mJoin_red_equivalence.symm h]
+  grind [sk_nequiv, join_mRed_equivalence.symm h]
 
-lemma TF_nequiv : ¬ MJoin Red TT FF := fun h =>
+lemma TF_nequiv : ¬ Join (ReflTransGen Red) TT FF := fun h =>
   (Bool.eq_not_self true).mp <| isBool_injective TT FF true false TT_correct FF_correct h
 
 /-- A specialisation of `Church : Nat → SKI`. -/
@@ -248,17 +254,17 @@ lemma churchK_injective : Function.Injective churchK :=
 
 /-- Injectivity for Church numerals -/
 theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsChurch m y)
-    (hxy : MJoin Red x y) : n = m := by
-  suffices MJoin Red (churchK n) (churchK m) by
+    (hxy : Join (ReflTransGen Red) x y) : n = m := by
+  suffices Join (ReflTransGen Red) (churchK n) (churchK m) by
     apply churchK_injective
-    exact eq_of_mJoin_red_redexFree this (churchK_redexFree n) (churchK_redexFree m)
-  apply mJoin_red_equivalence.trans (y := x ⬝ K ⬝ K)
+    exact eq_of_join_mRed_redexFree this (churchK_redexFree n) (churchK_redexFree m)
+  apply join_mRed_equivalence.trans (y := x ⬝ K ⬝ K)
   · simp_rw [churchK_church]
-    exact mJoin_red_equivalence.symm <| Relation.MJoin.single (hx K K)
-  · apply mJoin_red_equivalence.trans (y := y ⬝ K ⬝ K)
-    · apply mJoin_red_head; apply mJoin_red_head; assumption
+    exact join_mRed_equivalence.symm <| Relation.Join.single (hx K K)
+  · apply join_mRed_equivalence.trans (y := y ⬝ K ⬝ K)
+    · apply join_mRed_head; apply join_mRed_head; assumption
     · simp_rw [churchK_church]
-      exact Relation.MJoin.single (hy K K)
+      exact Relation.Join.single (hy K K)
 
 /--
 **Rice's theorem**: no SKI term is a non-trivial predicate.

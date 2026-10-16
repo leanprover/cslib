@@ -21,8 +21,8 @@ Angluin (1980).
 
 - `VersionSpace C S`: the subset of `C` whose concepts agree with `S` on every
   sample point.
-- `IsConsistent A C`: a learner is consistent with `C` if its output always lies
-  in the version space at the received sample.
+- `IsConsistent A C`: a learner is consistent with `C` if its output lies in
+  the version space at every realizable sample.
 - `empiricalMiscount h S`: number of sample points where `h` errs (`[DecidableEq β]`).
 - `empiricalMeasure S`: the uniform Dirac mixture over the sample.
 - `empiricalError h S`: the empirical distribution's mass on the disagreement set.
@@ -35,7 +35,7 @@ Angluin (1980).
 - `mem_versionSpace_iff_empiricalMiscount_zero`: combinatorial bridge.
 - `mem_versionSpace_iff_empiricalError_zero`: measure-theoretic bridge.
 - `IsConsistent.empiricalMiscount_eq_zero`, `IsConsistent.empiricalError_eq_zero`:
-  consistent learners achieve zero error / miscount on every sample.
+  consistent learners achieve zero error / miscount on every realizable sample.
 - `mem_versionSpace_of_realizable`, `Realizable.versionSpace_nonempty`: realizable
   samples give non-empty version spaces.
 - `ae_mem_versionSpace_of_realizable`: under iid sampling from a realizable
@@ -169,49 +169,52 @@ theorem empiricalError_eq_div [DecidableEq β]
   simp only [Measure.dirac_apply, Set.indicator, Set.mem_ofPred_eq, Pi.one_apply, smul_eq_mul]
   rw [Finset.sum_boole, ← ENNReal.div_eq_inv_mul]
 
-/-! ### Consistent Learners -/
-
-/-- A learner is *consistent* with the concept class `C` if, on every labeled
-sample it receives, its output hypothesis lies in the version space of `C` at
-that sample — i.e. the output is in `C` and agrees with every observed
-labeled pair. -/
-def IsConsistent {m : ℕ} (A : Learner α β m) (C : ConceptClass α β) : Prop :=
-  ∀ S : LabeledSample α β m, A S ∈ VersionSpace C S
-
-/-- A consistent learner's output is always in the concept class. -/
-theorem IsConsistent.output_mem_conceptClass {m : ℕ} {A : Learner α β m}
-    {C : ConceptClass α β} (hA : IsConsistent A C) (S : LabeledSample α β m) :
-    A S ∈ C := (hA S).1
-
-/-- A consistent learner's output agrees with the sample on every observed
-point. -/
-theorem IsConsistent.output_agrees {m : ℕ} {A : Learner α β m}
-    {C : ConceptClass α β} (hA : IsConsistent A C) (S : LabeledSample α β m)
-    (i : Fin m) :
-    A S (S i).1 = (S i).2 := (hA S).2 i
-
-/-- A consistent learner has zero empirical miscount on every sample. -/
-theorem IsConsistent.empiricalMiscount_eq_zero [DecidableEq β]
-    {m : ℕ} {A : Learner α β m} {C : ConceptClass α β} (hA : IsConsistent A C)
-    (S : LabeledSample α β m) :
-    empiricalMiscount (A S) S = 0 :=
-  (mem_versionSpace_iff_empiricalMiscount_zero.mp (hA S)).2
-
-/-- A consistent learner has zero empirical error on every sample. -/
-theorem IsConsistent.empiricalError_eq_zero
-    [MeasurableSpace α] [MeasurableSpace β]
-    [MeasurableSingletonClass α] [MeasurableSingletonClass β]
-    {m : ℕ} {A : Learner α β m} {C : ConceptClass α β}
-    (hA : IsConsistent A C) (S : LabeledSample α β m) :
-    empiricalError (A S) S = 0 :=
-  (mem_versionSpace_iff_empiricalError_zero.mp (hA S)).2
-
-/-! ### Realizable case -/
+/-! ### Realizable Samples -/
 
 /-- A labeled sample `S` is *realizable* by concept class `C` if some concept
 in `C` labels every sample point correctly. -/
 def Realizable {m : ℕ} (C : ConceptClass α β) (S : LabeledSample α β m) : Prop :=
   ∃ c ∈ C, ∀ i : Fin m, (S i).2 = c (S i).1
+
+/-! ### Consistent Learners -/
+
+/-- A learner is *consistent* with the concept class `C` if, on every sample
+realizable by `C`, its output hypothesis lies in the version space of `C` at
+that sample — i.e. the output is in `C` and agrees with every observed labeled
+pair. No condition is imposed on samples that no concept in `C` can realize. -/
+def IsConsistent {m : ℕ} (A : Learner α β m) (C : ConceptClass α β) : Prop :=
+  ∀ S : LabeledSample α β m, Realizable C S → A S ∈ VersionSpace C S
+
+/-- A consistent learner's output is in the concept class on every realizable sample. -/
+theorem IsConsistent.output_mem_conceptClass {m : ℕ} {A : Learner α β m}
+    {C : ConceptClass α β} (hA : IsConsistent A C) (S : LabeledSample α β m)
+    (hS : Realizable C S) :
+    A S ∈ C := (hA S hS).1
+
+/-- On every realizable sample, a consistent learner's output agrees with
+every observed point. -/
+theorem IsConsistent.output_agrees {m : ℕ} {A : Learner α β m}
+    {C : ConceptClass α β} (hA : IsConsistent A C) (S : LabeledSample α β m)
+    (hS : Realizable C S) (i : Fin m) :
+    A S (S i).1 = (S i).2 := (hA S hS).2 i
+
+/-- A consistent learner has zero empirical miscount on every realizable sample. -/
+theorem IsConsistent.empiricalMiscount_eq_zero [DecidableEq β]
+    {m : ℕ} {A : Learner α β m} {C : ConceptClass α β} (hA : IsConsistent A C)
+    (S : LabeledSample α β m) (hS : Realizable C S) :
+    empiricalMiscount (A S) S = 0 :=
+  (mem_versionSpace_iff_empiricalMiscount_zero.mp (hA S hS)).2
+
+/-- A consistent learner has zero empirical error on every realizable sample. -/
+theorem IsConsistent.empiricalError_eq_zero
+    [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSingletonClass α] [MeasurableSingletonClass β]
+    {m : ℕ} {A : Learner α β m} {C : ConceptClass α β}
+    (hA : IsConsistent A C) (S : LabeledSample α β m) (hS : Realizable C S) :
+    empiricalError (A S) S = 0 :=
+  (mem_versionSpace_iff_empiricalError_zero.mp (hA S hS)).2
+
+/-! ### Realizable Version Spaces -/
 
 /-- *Realizable version-space nonemptiness.* If a target concept `c` lies in
 `C` and the sample `S` is labeled by `c` (i.e. every `(S i).2 = c (S i).1`),

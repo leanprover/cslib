@@ -7,6 +7,7 @@ Authors: Quang Dao
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Mathlib.Data.PFunctor.Univariate.Basic
 
 /-!
@@ -185,6 +186,14 @@ lemma bind_pure_comp (f : α → β) : ∀ x : P.FreeM α, x.bind (pure ∘ f) =
   | .liftBind a cont => by simp only [FreeM.bind, map, bind_pure_comp]
 
 @[simp]
+theorem map_pure (f : α → β) (x : α) : map f (pure x : P.FreeM α) = pure (f x) := rfl
+
+@[simp]
+theorem map_bind (f : β → γ) (x : P.FreeM α) (cont : α → P.FreeM β) :
+    map f (x.bind cont) = x.bind fun a => (cont a).map f := by
+  simp_rw [← bind_pure_comp, FreeM.bind_assoc]
+
+@[simp]
 lemma liftBind_bind (a : P.A) (cont : P.B a → P.FreeM β) (f : β → P.FreeM γ) :
     ((FreeM.lift a).bind cont).bind f = (FreeM.lift a).bind (fun u ↦ (cont u).bind f) := by
   simp only [lift]
@@ -321,6 +330,16 @@ theorem Interprets.iff (handler : (a : P.A) → m (P.B a)) (eval : P.FreeM α �
     Interprets handler eval ↔ eval = (·.liftM handler) :=
   ⟨(·.eq), fun h => h ▸ Interprets.liftM _⟩
 
+/-- A morphism of monads moves inside `FreeM.liftM`. -/
+theorem _root_.Cslib.IsMonadHom.map_pfunctorFreeMLiftM [Monad n]
+    {f : ∀ {α}, m α → n α} (hf : Cslib.IsMonadHom m n f) (interp : (a : P.A) → m (P.B a))
+    (x : P.FreeM α) :
+    f (x.liftM interp) = x.liftM (fun op => f (interp op)) := by
+  induction x with
+  | pure a => exact hf.map_pure a
+  | lift_bind op cont ih =>
+    simp only [bind_eq_bind, liftM_lift_bind, hf.map_bind, ih]
+
 variable [LawfulMonad m]
 
 @[simp]
@@ -336,28 +355,32 @@ lemma liftM_bind {α β : Type uB} (x : P.FreeM α) (f : α → P.FreeM β) :
     funext u
     exact h u
 
+/-- `FreeM.liftM interp` is a morphism of monads. -/
+theorem isMonadHom_liftM : Cslib.IsMonadHom P.FreeM m (FreeM.liftM interp) :=
+  .mk' (liftM_pure interp) (liftM_bind interp)
+
 @[simp]
-lemma liftM_map {α β : Type uB} (f : α → β) (x : P.FreeM α) :
-    (f <$> x).liftM interp = f <$> x.liftM interp := by
-  simp_rw [← LawfulMonad.bind_pure_comp, liftM_bind, liftM_pure]
+lemma liftM_map {α β : Type uB} (f : α → β) (interp : (a : P.A) → m (P.B a)) (x : P.FreeM α) :
+    (f <$> x).liftM interp = f <$> x.liftM interp :=
+  isMonadHom_liftM interp |>.map_map _ _
 
 @[simp]
 lemma liftM_seq {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : P.FreeM (α → β)) (y : P.FreeM α) :
-    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp := by
-  simp [seq_eq_bind_map]
+    (x <*> y).liftM interp = x.liftM interp <*> y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seq _ _
 
 @[simp]
 lemma liftM_seqLeft {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : P.FreeM α) (y : P.FreeM β) :
-    (x <* y).liftM interp = x.liftM interp <* y.liftM interp := by
-  simp [seqLeft_eq_bind]
+    (x <* y).liftM interp = x.liftM interp <* y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seqLeft _ _
 
 @[simp]
 lemma liftM_seqRight {α β : Type uB}
     (interp : (a : P.A) → m (P.B a)) (x : P.FreeM α) (y : P.FreeM β) :
-    (x *> y).liftM interp = x.liftM interp *> y.liftM interp := by
-  simp [seqRight_eq_bind]
+    (x *> y).liftM interp = x.liftM interp *> y.liftM interp :=
+  isMonadHom_liftM interp |>.map_seqRight _ _
 
 @[simp]
 lemma liftM_lift (interp : (a : P.A) → m (P.B a)) (a : P.A) :
@@ -371,6 +394,20 @@ lemma liftM_liftObj (interp : (a : P.A) → m (P.B a)) (x : P.Obj α) :
   simp [liftObj]
 
 end liftM
+
+/-- Interpreting each operation by its lift into the free monad is the identity. -/
+@[simp]
+theorem liftM_lift_eq_self {α : Type uB} (x : P.FreeM α) : FreeM.liftM FreeM.lift x = x := by
+  induction x with
+  | pure _ => rfl
+  | lift_bind _ _ ih => simp [ih]
+
+/-- Interpreting into a free monad and then into `m` composes the two handlers. -/
+theorem liftM_comp {m : Type uB → Type v} [Monad m] [LawfulMonad m]
+    {Q : PFunctor.{u, uB}} {α : Type uB} (x : P.FreeM α)
+    (first : (a : P.A) → Q.FreeM (P.B a)) (second : (a : Q.A) → m (Q.B a)) :
+    (x.liftM first).liftM second = x.liftM fun a => (first a).liftM second :=
+  (isMonadHom_liftM second).map_pfunctorFreeMLiftM first x
 
 end FreeM
 

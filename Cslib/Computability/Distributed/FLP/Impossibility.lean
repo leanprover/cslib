@@ -33,13 +33,13 @@ abbrev Algorithm.ReachableNonUniform [Fintype P]
 
 /-- Choose an arbitrary non-uniform input. -/
 noncomputable def Algorithm.nonUniformInp [Fintype P] (a : Algorithm P M S)
-    (hpc1 : a.PseudoConsensus 1) (hc : card P ≥ 2) : P → Bool :=
+    (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) : P → Bool :=
   Classical.choose (OnePseudoConsensus.nonUniform_inp hpc1 hc)
 
 /-- Assuming `a.PseudoConsensus 1` and there are at least 2 processes, the input chosen by
 `a.nonUniformInp` does indeed give rise to a non-uniform initial state. -/
 theorem OnePseudoConsensus.nonUniform_init [Fintype P]
-    (hpc1 : a.PseudoConsensus 1) (hc : card P ≥ 2) :
+    (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) :
     let inp := a.nonUniformInp hpc1 hc
     a.ReachableNonUniform inp (a.start inp) := by
   grind [Algorithm.nonUniformInp, Algorithm.reachable_start]
@@ -102,7 +102,7 @@ theorem OnePseudoConsensus.fair_nonUniform_step [Fintype P] (inp : P → Bool)
   grind [Algorithm.nonUniformStep]
 
 /-- Assuming `a.PseudoConsensus 1`, starting from any reachable non-uniform state `s0` of `a`,
-use the fair scheduler developed in `FairSchedular.lean` to construct an infinite fair execution
+use the fair scheduler developed in `FairScheduler.lean` to construct an infinite fair execution
 in which there are infinitely many non-uniform states. -/
 theorem OnePseudoConsensus.fair_nonUniform [Fintype P] (inp : P → Bool)
     (hpc1 : a.PseudoConsensus 1) (s0 : State P M S) (hs0 : a.ReachableNonUniform inp s0) :
@@ -123,7 +123,7 @@ theorem OnePseudoConsensus.fair_nonUniform [Fintype P] (inp : P → Bool)
 infinite admissible execution in which no process is faulty but no process terminates, either.
 This theorem formalizes Theorem 1 of [Volzer2004]. -/
 theorem OnePseudoConsensus.not_terminating [Fintype P]
-    (hpc1 : a.PseudoConsensus 1) (hc : card P ≥ 2) :
+    (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) :
     ∃ inp ss xs, a.AdmissibleRun inp 0 ss xs ∧ ∀ p, ¬ ProcTermination p ss xs := by
   let inp := a.nonUniformInp hpc1 hc
   let s0 := a.start inp
@@ -151,7 +151,7 @@ theorem OnePseudoConsensus.not_terminating [Fintype P]
 
 /-- As long as there are at least 2 processes, there does not exist a distributed consensus
 algorithm that can tolerate 1 fault. -/
-theorem Consensus.one_not_exists [Fintype P] (hc : card P ≥ 2) :
+theorem Consensus.one_not_exists [Fintype P] (hc : 2 ≤ card P) :
     ¬ ∃ a : Algorithm P M S, a.Consensus 1 := by
   rintro ⟨a, h_cons⟩
   have hpc1 := PseudoConsensus.of_consensus 1 (show 1 < card P by grind) h_cons
@@ -163,7 +163,7 @@ theorem Consensus.one_not_exists [Fintype P] (hc : card P ≥ 2) :
 
 /-- As long as there are at least 2 processes, there does not exist a distributed consensus
 algorithm that can tolerate `f` faults for any `f ≥ 1`. -/
-theorem Consensus.ge_one_not_exists [Fintype P] {f : ℕ} (hc : card P ≥ 2) (hf : f ≥ 1) :
+theorem Consensus.ge_one_not_exists [Fintype P] {f : ℕ} (hc : 2 ≤ card P) (hf : f ≥ 1) :
     ¬ ∃ a : Algorithm P M S, a.Consensus f := by
   rintro ⟨a, h_c⟩
   suffices h1 : ∃ a : Algorithm P M S, a.Consensus 1 by
