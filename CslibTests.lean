@@ -32,6 +32,8 @@ import CslibTests.PACLearning
 import CslibTests.PFunctor
 import CslibTests.PFunctorFree
 import CslibTests.PRG
+import CslibTests.QueryModel.ProgExamples
+import CslibTests.QueryModel.QueryExamples
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
 import CslibTests.Synthesis
