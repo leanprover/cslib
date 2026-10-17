@@ -161,8 +161,8 @@ while each of the remaining `k' - k` tapes never moves and contributes one cell.
 public lemma space_map_embedHom_le (tm : MultiTapeTM k Symbol State) (e : Fin k ↪ Fin k')
     (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) (p : tm.RunPath input) :
     (p.map (embedHom tm e extraTapes extraPos)).space ≤ p.space + (k' - k) := by
-  simpa [Finset.card_compl] using p.space_map_le _ e (fun l => {extraPos l})
-    (fun c _ => embed_workTapePos_embed e c extraTapes extraPos)
+  simpa [Finset.card_compl] using p.space_map_le _ e
+    (embed_workTapePos_embed e · extraTapes extraPos) (fun l => {extraPos l})
     fun c _ l hl => by simp [embed, partialInv_eq_none e hl]
 
 end Space
