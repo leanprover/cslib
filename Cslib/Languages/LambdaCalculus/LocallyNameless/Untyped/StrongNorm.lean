@@ -6,8 +6,8 @@ Authors: David Wegmann
 
 module
 
-public import Cslib.Foundations.Relation.Termination
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiApp
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.EtaPostpone
 
 /-! Strong normalization (termination) for full beta-reduction of untyped lambda calculus. -/
 
@@ -155,6 +155,44 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
               right
               refine Relation.TransGen.single (Xi.base (Beta.beta ?_ ?_))
               all_goals grind
+
+lemma eta_preserves_sn_transgen_beta [DecidableEq Var] [HasFresh Var] :
+  Preserves (ReflTransGen (FullEta (Var := Var))) (SN (TransGen FullBeta)) := by
+  intros t t' steps sn_t
+  induction sn_t generalizing t' with | intro t h ih =>
+    apply Acc.intro _ fun t'' ht'' => ?_
+    rw [reflTransGen_swap] at steps
+    obtain ⟨_, h1, h2⟩ := diamondcommute_etaplus_betastar steps ht''
+    rw [reflTransGen_swap] at h2
+    exact ih _ h1 h2
+
+lemma eta_preserves_sn_beta [DecidableEq Var] [HasFresh Var] :
+  Preserves (ReflTransGen (FullEta (Var := Var))) (SN FullBeta) :=
+  fun _ _ steps sn_t =>
+    (SN.iff_transGen _).mp (eta_preserves_sn_transgen_beta steps (SN.transGen sn_t))
+
+theorem sn_betaEta_of_sn_fullBeta [DecidableEq Var] [HasFresh Var]
+    (hB : SN ((TransGen FullBeta) : Term Var → Term Var → Prop) t) :
+    SN (FullBetaEta : Term Var → Term Var → Prop) t := by
+  replace hB : ∃ s : Term Var,
+      SN ((TransGen FullBeta) : Term Var → Term Var → Prop) s ∧ s ↠ηᶠ t := ⟨t, hB, .refl⟩
+  obtain ⟨s, hs, steps⟩ := hB
+  induction hs generalizing t with | intro s hBacc IHB =>
+  induction hn : t.size using Nat.strong_induction_on generalizing t with | h n IHE =>
+  refine Acc.intro _ fun b hb => ?_
+  rcases hb with hbeta | heta
+  · rw [reflTransGen_swap] at steps
+    obtain ⟨d, hd1, hd2⟩ := diamondcommute_etaplus_betastar steps (.single hbeta)
+    rw [reflTransGen_swap] at hd2
+    exact SN.of_rel_reflTransGen (IHB d hd1 .refl) (by grind)
+  · have hsz : b.size < t.size := by have := FullEta.step_size heta; omega
+    exact IHE _ (hn ▸ hsz) (steps.tail heta) rfl
+
+/-- A term is βη-strongly-normalising iff it is β-strongly-normalising. -/
+theorem beta_sn_iff_betaEta_sn [DecidableEq Var] [HasFresh Var] :
+    SN FullBeta t ↔ SN FullBetaEta t :=
+  ⟨fun h => sn_betaEta_of_sn_fullBeta (by rwa [SN.iff_transGen]),
+   fun h => Subrelation.accessible (fun hab => Or.inl hab) h⟩
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
