@@ -174,6 +174,7 @@ public import Cslib.Foundations.Relation.Termination
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Pi
+public import Cslib.Foundations.RelationAlgebra.Proper
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
