@@ -30,6 +30,9 @@ Original sampler copyright (c) 2024 Josha Dekker. All rights reserved.
 
 ## Main results
 
+- `Cslib.Probability.PMF.monad_pure_eq_pure`, `monad_bind_eq_bind`: monad notation unfolds to
+  `PMF.pure` and `PMF.bind`, so `simp` reaches Mathlib's lemmas from programs written in `do`
+  notation
 - `Cslib.Probability.PMF.bind_pair_apply`: the "pairing" bind at `(a, b)` equals `p a * f a b`
 - `Cslib.Probability.PMF.bind_pair_tsum_fst`: marginalizing over the first component
 - `Cslib.Probability.PMF.uniformOfFintype_map_equiv`:
@@ -48,6 +51,20 @@ open ENNReal
 
 universe u v
 variable {α : Type u} {β : Type v}
+
+/-! ### Monad notation
+
+Programs are written with `pure`, `>>=`, and `<$>`, while Mathlib states its lemmas for
+`PMF.pure`, `PMF.bind`, and `PMF.map`. These rewrite the notation into those forms, and
+`PMF.pure_map` joins the simp set so that chains of `pure`, `bind`, and `map` over constructors
+normalise. -/
+
+@[simp] theorem monad_pure_eq_pure (a : α) : (pure a : PMF α) = PMF.pure a := rfl
+
+@[simp] theorem monad_bind_eq_bind {β : Type u} (p : PMF α) (f : α → PMF β) :
+    p >>= f = p.bind f := rfl
+
+attribute [simp] _root_.PMF.monad_map_eq_map _root_.PMF.pure_map
 
 /-- Uniform probability mass function on a nonempty finite set. -/
 noncomputable def uniformOfFinset (s : Finset α) (hs : s.Nonempty) : PMF α := by
