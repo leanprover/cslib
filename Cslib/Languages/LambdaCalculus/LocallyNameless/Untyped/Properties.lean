@@ -29,17 +29,17 @@ theorem subst_fresh (x : Var) (t sub : Term Var) (nmem : x ∉ t.fv) : t[x := su
   induction t <;> grind
 
 /- Opening and closing are inverses. -/
-lemma open_close (x : Var) (t : Term Var) (k : ℕ) (nmem : x ∉ t.fv) : t = t⟦k ↝ fvar x⟧⟦k ↜ x⟧ := by
-  induction t generalizing k <;> grind
+lemma open_closeRec (x : Var) (t : Term Var) (k : ℕ) (nmem : x ∉ t.fv) :
+  t = t⟦k ↝ fvar x⟧⟦k ↜ x⟧ := by induction t generalizing k <;> grind
 
 /-- Specializes `open_close` to the first closing. -/
-lemma open_close_var (x : Var) (t : Term Var) (nmem : x ∉ t.fv) : t = (t ^ fvar x) ^* x :=
-  open_close x t 0 nmem
+lemma open_close (x : Var) (t : Term Var) (nmem : x ∉ t.fv) : t = (t ^ fvar x) ^* x :=
+  open_closeRec x t 0 nmem
 
 /-- Opening is injective. -/
 lemma open_injective (x : Var) (M M') (free_M : x ∉ M.fv) (free_M' : x ∉ M'.fv)
     (eq : M ^ fvar x = M' ^ fvar x) : M = M' := by
-  grind [open_close x M 0 free_M, open_close x M' 0 free_M']
+  grind [open_closeRec x M 0 free_M, open_closeRec x M' 0 free_M']
 
 /-- Opening and closing are associative for nonclashing free variables. -/
 lemma swap_open_fvar_close (k n : ℕ) (x y : Var) (m : Term Var) (neq₁ : k ≠ n) (neq₂ : x ≠ y) :
@@ -140,7 +140,7 @@ lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) 
   | abs xs t =>
     have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
     simp only [closeRec_abs, openRec_abs, subst_abs]
-    rw [open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ n⟧) 0, open_close x' (t[x := n]) 0]
+    rw [open_closeRec x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ n⟧) 0, open_closeRec x' (t[x := n]) 0]
     · grind [swap_open, =_ swap_open_fvar_close]
     · grind [subst_preserve_not_fvar]
     · grind [open_preserve_not_fvar]
@@ -150,9 +150,13 @@ lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) 
 lemma close_open_to_subst (m n : Term Var) (x : Var) (m_lc : LC m) (n_lc : LC n) :
     (m ^* x) ^ n = m[x := n] := close_openRec_to_subst m n x 0 m_lc n_lc
 
-/-- Closing and opening are inverses. -/
-lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x⟧⟦k ↝ fvar x⟧ = t := by
+/-- CloseRec and openRec are inverses. -/
+lemma close_openRec (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x⟧⟦k ↝ fvar x⟧ = t := by
   grind [subst_refl]
+
+/-- Closing and opening are inverses. -/
+lemma close_open (x : Var) (t : Term Var) (t_lc : LC t) : (t ^* x) ^ fvar x = t :=
+  close_openRec x t 0 t_lc
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
