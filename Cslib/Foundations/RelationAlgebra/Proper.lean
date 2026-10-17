@@ -20,8 +20,8 @@ universe u v w
 
 namespace Cslib.RelationAlgebra
 
-structure ProperRelationAlgebra {α : Type u} (carrier : Set (SetRel α α))
-    (unit : SetRel α α) : Prop extends MeasureTheory.IsSetRing carrier where
+class ProperRelationAlgebra {α : Type u} (carrier : Set (SetRel α α))
+    (unit : semiOutParam (SetRel α α)) : Prop extends MeasureTheory.IsSetRing carrier where
   subset_unit {R} : R ∈ carrier → R ⊆ unit
   unit_mem : unit ∈ carrier
   id_mem : SetRel.id ∈ carrier
@@ -31,18 +31,22 @@ structure ProperRelationAlgebra {α : Type u} (carrier : Set (SetRel α α))
 namespace ProperRelationAlgebra
 
 variable {α : Type u} {carrier : Set (SetRel α α)} {unit : SetRel α α}
-  (h : ProperRelationAlgebra carrier unit)
+  [h : ProperRelationAlgebra carrier unit]
 
 include h in
 /-- The unit of a proper relation algebra is an equivalence relation. -/
 theorem unit_equivalence : Equivalence (fun x y => (x, y) ∈ unit) where
-  refl _ := h.subset_unit h.id_mem rfl
-  symm hxy := h.subset_unit (h.inv_mem h.unit_mem) hxy
+  refl _ := subset_unit h.id_mem rfl
+  symm hxy := subset_unit (h.inv_mem h.unit_mem) hxy
   trans hxy hyz := h.subset_unit (h.comp_mem h.unit_mem h.unit_mem) ⟨_, hxy, hyz⟩
 
+/-- The carrier of a proper relation algebra uniquely determines its unit. -/
+theorem unit_unique {unit' : SetRel α α} (h' : ProperRelationAlgebra carrier unit') :
+    unit = unit' :=
+  Set.Subset.antisymm (h'.subset_unit h.unit_mem) (h.subset_unit h'.unit_mem)
+
 /-- The relation algebra on a family of relations satisfying the proper relation algebra axioms. -/
-@[instance_reducible]
-def relationAlgebra : RelationAlgebra carrier where
+instance relationAlgebra : RelationAlgebra carrier where
   __ := Subtype.distribLattice (fun _ _ hR hS => h.union_mem hR hS)
     (fun _ _ hR hS => h.toIsSetRing.inter_mem hR hS)
   top := ⟨unit, h.unit_mem⟩
@@ -81,9 +85,7 @@ def relationAlgebra : RelationAlgebra carrier where
 
 /-- Restrict each relation to the equivalence class containing `x`. -/
 def restrictHom (x : α) :
-    letI := h.relationAlgebra
     RelationAlgebraHom carrier (SquareRelations {y : α // (x, y) ∈ unit}) :=
-  letI := h.relationAlgebra
   { toFun R := {p | (p.1.val, p.2.val) ∈ R.val}
     map_sup' _ _ := rfl
     map_inf' _ _ := rfl
@@ -112,7 +114,6 @@ def restrictHom (x : α) :
 
 @[simp]
 theorem restrictHom_apply (x : α) (R : carrier) :
-    letI := h.relationAlgebra
     h.restrictHom x R =
       ({p | (p.1.val, p.2.val) ∈ R.val} :
         SetRel {y : α // (x, y) ∈ unit} {y : α // (x, y) ∈ unit}) := rfl
@@ -120,9 +121,7 @@ theorem restrictHom_apply (x : α) (R : carrier) :
 /-- A proper relation algebra is represented by restriction to its equivalence classes.
 The classes are indexed by base points, so the same class may occur more than once. -/
 def toRepresentation :
-    letI := h.relationAlgebra
     Representation carrier α (fun x => {y : α // (x, y) ∈ unit}) :=
-  letI := h.relationAlgebra
   { hom := RelationAlgebraHom.pi h.restrictHom
     injective := by
       intro R S hRS
@@ -141,7 +140,6 @@ def toRepresentation :
 
 @[simp]
 theorem toRepresentation_hom_apply (R : carrier) (x : α) :
-    letI := h.relationAlgebra
     h.toRepresentation.hom R x = h.restrictHom x R := rfl
 
 end ProperRelationAlgebra
@@ -154,7 +152,7 @@ variable {ι : Type v} (β : ι → Type w)
 def sigmaUnit : SetRel (Σ i, β i) (Σ i, β i) := {p | p.1.1 = p.2.1}
 
 /-- The full proper relation algebra with same-component unit. -/
-theorem pi_proper : ProperRelationAlgebra {R | R ⊆ sigmaUnit β} (sigmaUnit β) where
+instance pi_proper : ProperRelationAlgebra {R | R ⊆ sigmaUnit β} (sigmaUnit β) where
   empty_mem := Set.empty_subset _
   union_mem _ _ hR hS := Set.union_subset hR hS
   sdiff_mem _ _ hR _ := Set.Subset.trans Set.sdiff_subset hR
@@ -251,9 +249,7 @@ private theorem piRelation_mul (R S : ∀ i, SquareRelations (β i)) :
 disjoint union. See Ian Hodkinson, *An application of first-order compactness in canonicity of
 relation algebras* (2019), §2.2, https://www.doc.ic.ac.uk/~imh/papers/mara.pdf#page=4. -/
 def piEquivProper (β : ι → Type w) :
-    letI := (pi_proper β).relationAlgebra
     RelationAlgebraEquiv (∀ i, SquareRelations (β i)) {R | R ⊆ sigmaUnit β} :=
-  letI := (pi_proper β).relationAlgebra
   private_decl% {
     toFun R := ⟨piRelation R, piRelation_subset R⟩
     invFun S := piRestrict S.val
@@ -289,8 +285,7 @@ theorem mem_relation (a : α) (i : ι) (x y : β i) :
   mem_piEquivProper (ρ.hom a) i x y
 
 /-- The image of a representation is a proper relation algebra. -/
-theorem proper : ProperRelationAlgebra (Set.range ρ.relation) (sigmaUnit β) := by
-  let := (pi_proper β).relationAlgebra
+instance proper : ProperRelationAlgebra (Set.range ρ.relation) (sigmaUnit β) := by
   let f := (piEquivProper β).toHom.comp ρ.hom
   change ProperRelationAlgebra (Set.range fun a => (f a).val) (sigmaUnit β)
   refine
@@ -318,11 +313,7 @@ theorem proper : ProperRelationAlgebra (Set.range ρ.relation) (sigmaUnit β) :=
     exact ⟨a * b, congrArg Subtype.val (map_mul f a b)⟩
 
 /-- A representation is an isomorphism onto its proper relation algebra of concrete relations. -/
-noncomputable def equivProper :
-    letI := ρ.proper.relationAlgebra
-    RelationAlgebraEquiv α (Set.range ρ.relation) := by
-  let := (pi_proper β).relationAlgebra
-  let := ρ.proper.relationAlgebra
+noncomputable def equivProper : RelationAlgebraEquiv α (Set.range ρ.relation) := by
   let f := (piEquivProper β).toHom.comp ρ.hom
   have hf : Function.Injective f := (piEquivProper β).injective.comp ρ.injective
   have hr : Function.Injective ρ.relation := fun _ _ hab => hf (Subtype.ext hab)
@@ -352,14 +343,12 @@ end Representation
 theorem representable_iff_exists_proper {α : Type u} [RelationAlgebra α] :
     Representable α ↔
       ∃ (X : Type u) (carrier : Set (SetRel X X)) (unit : SetRel X X)
-        (h : ProperRelationAlgebra carrier unit),
-        letI := h.relationAlgebra
+        (_ : ProperRelationAlgebra carrier unit),
         Nonempty (RelationAlgebraEquiv α carrier) := by
   constructor
   · rintro ⟨ι, β, ⟨ρ⟩⟩
     exact ⟨Σ i, β i, Set.range ρ.relation, sigmaUnit β, ρ.proper, ⟨ρ.equivProper⟩⟩
   · rintro ⟨X, carrier, unit, h, ⟨e⟩⟩
-    let := h.relationAlgebra
     exact ⟨X, (fun x => {y : X // (x, y) ∈ unit}),
       ⟨{ hom := h.toRepresentation.hom.comp e.toHom
          injective := h.toRepresentation.injective.comp e.injective }⟩⟩
