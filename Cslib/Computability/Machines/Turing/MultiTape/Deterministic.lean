@@ -390,6 +390,19 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
 
+/-- A function computable in zero space is computable by a machine without work tapes, within the
+same bounds, since every work tape costs at least one cell (`MultiTapeNTM.RunsInSpace.le`). The
+domain must be nonempty: otherwise the machine is never run and its number of tapes is arbitrary.
+-/
+theorem ComputableInTimeAndSpace.exists_no_work_tapes {α β : Type*} [Nonempty α]
+    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β} {t : α → ℕ}
+    (h : ComputableInTimeAndSpace f encIn encOut t (fun _ => 0)) :
+    ∃ (State : Type) (_ : Finite State) (tm : MultiTapeTM 0 Bool State),
+      ComputesFunInTimeAndSpace tm encIn encOut f t (fun _ => 0) := by
+  obtain ⟨k, State, hfin, tm, htm⟩ := h
+  obtain rfl : k = 0 := Nat.le_zero.mp (htm (Classical.arbitrary α)).2.2.le
+  exact ⟨State, hfin, tm, htm⟩
+
 open scoped Classical in
 /-- The Boolean indicator function of a set. -/
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
