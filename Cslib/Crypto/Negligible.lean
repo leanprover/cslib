@@ -15,7 +15,9 @@ public import Mathlib.Analysis.Asymptotics.SuperpolynomialDecay
 Negligible bounds are nonnegative real-valued functions with Mathlib's superpolynomial decay at
 natural security parameters. This module supplies zero, addition, multiplication, fixed finite
 sums, eventual comparison, and polynomial-loss bounds for security games. Changing finitely many
-values preserves negligibility.
+values preserves negligibility. The closure lemmas are registered with `fun_prop`, which
+discharges composite bounds such as a polynomial loss times a negligible advantage plus a
+negligible error.
 
 The decay bound may depend on the whole algorithm. Security definitions quantify over that
 algorithm before asserting negligibility; this module does not change that quantifier order.
@@ -30,7 +32,7 @@ open scoped NNReal
 /-- An advantage is negligible when it decays faster than every inverse polynomial in the
 security parameter. The nonnegative codomain records that advantages are magnitudes;
 the decay condition is Mathlib's superpolynomial decay in the nonnegative reals. -/
-def Negligible (ε : ℕ → ℝ≥0) : Prop :=
+@[fun_prop] def Negligible (ε : ℕ → ℝ≥0) : Prop :=
   Asymptotics.SuperpolynomialDecay Filter.atTop (fun n : ℕ => (n : ℝ≥0)) ε
 
 theorem negligible_iff (ε : ℕ → ℝ≥0) :
@@ -38,7 +40,7 @@ theorem negligible_iff (ε : ℕ → ℝ≥0) :
   simp [Negligible, Asymptotics.SuperpolynomialDecay, tendsto_order]
  
 /-- The zero advantage is negligible. -/
-@[simp] theorem negligible_zero : Negligible (fun _ => 0) :=
+@[simp, fun_prop] theorem negligible_zero : Negligible (fun _ => 0) :=
   Asymptotics.superpolynomialDecay_zero _ _
 
 /-- Changing the value of a negligible bound at finitely many security parameters preserves
@@ -48,13 +50,13 @@ theorem Negligible.congr' {ε δ : ℕ → ℝ≥0} (hε : Negligible ε)
   Asymptotics.SuperpolynomialDecay.congr' hε h
 
 /-- The sum of two negligible bounds is negligible. -/
-theorem Negligible.add {ε δ : ℕ → ℝ≥0} (hε : Negligible ε) (hδ : Negligible δ) :
-    Negligible (ε + δ) :=
+@[fun_prop] theorem Negligible.add {ε δ : ℕ → ℝ≥0} (hε : Negligible ε) (hδ : Negligible δ) :
+    Negligible (fun n => ε n + δ n) :=
   Asymptotics.SuperpolynomialDecay.add hε hδ
 
 /-- The product of two negligible bounds is negligible. -/
-theorem Negligible.mul {ε δ : ℕ → ℝ≥0} (hε : Negligible ε) (hδ : Negligible δ) :
-    Negligible (ε * δ) :=
+@[fun_prop] theorem Negligible.mul {ε δ : ℕ → ℝ≥0} (hε : Negligible ε) (hδ : Negligible δ) :
+    Negligible (fun n => ε n * δ n) :=
   Asymptotics.SuperpolynomialDecay.mul hε hδ
 
 /-- A sum over a fixed finite set of negligible bounds is negligible. -/
@@ -73,7 +75,7 @@ theorem negligible_of_le {ε δ : ℕ → ℝ≥0} (hδ : Negligible δ)
   negligible_of_eventually_le hδ (Filter.Eventually.of_forall hle)
 
 /-- Polynomially bounded factors preserve negligible decay. -/
-theorem Negligible.polynomiallyBounded_mul {ε : ℕ → ℝ≥0} {p : ℕ → ℕ}
+@[fun_prop] theorem Negligible.polynomiallyBounded_mul {ε : ℕ → ℝ≥0} {p : ℕ → ℕ}
     (hε : Negligible ε) (hp : PolynomiallyBounded p) :
     Negligible (fun n => (p n : ℝ≥0) * ε n) := by
   obtain ⟨d, hd⟩ := hp
