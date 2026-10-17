@@ -58,8 +58,7 @@ def PerfectlyHiding (scheme : Scheme Message Commitment Opening) : Prop :=
 /-- A scheme is statistically hiding with error `ε` when the commitment
 distributions of any two messages are within statistical distance `ε`
 ([BonehShoup2023], Definition 3.5 and Section 8.12). -/
-def StatisticallyHiding [Fintype Commitment]
-    (scheme : Scheme Message Commitment Opening) (ε : ℝ≥0) : Prop :=
+def StatisticallyHiding (scheme : Scheme Message Commitment Opening) (ε : ℝ≥0) : Prop :=
   ∀ message₀ message₁ : Message,
     StatisticallyClose (scheme.commitmentDist message₀)
       (scheme.commitmentDist message₁) ε
