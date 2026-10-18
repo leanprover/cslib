@@ -78,7 +78,7 @@ theorem SetShatters.superset {C C' : ConceptClass α Bool} {W : Set α}
   obtain ⟨c, hc, hcW⟩ := hW W' hW'
   exact ⟨c, hCC' hc, hcW⟩
 
-open Classical in
+open scoped Classical in
 /-- If a finite set family `𝒜` shatters a finite set `s` in the sense of Mathlib's
 `Finset.Shatters`, then the concept class of characteristic functions of sets in `𝒜`
 shatters `↑s` in the sense of `SetShatters`. This bridges Mathlib's finset-based

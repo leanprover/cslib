@@ -118,12 +118,12 @@ open Nat (clog)
 
 /-- Key Lemma: ⌈log2 ⌈n/2⌉⌉ ≤ ⌈log2 n⌉ - 1 for n > 1 -/
 @[grind →]
-lemma clog2_half_le (n : ℕ) (h : n > 1) : clog 2 ((n + 1) / 2) ≤ clog 2 n - 1 := by
+lemma clog2_half_le (n : ℕ) (h : 1 < n) : clog 2 ((n + 1) / 2) ≤ clog 2 n - 1 := by
   grind [Nat.clog_of_one_lt one_lt_two h]
 
 /-- Same logic for the floor half: ⌈log2 ⌊n/2⌋⌉ ≤ ⌈log2 n⌉ - 1 -/
 @[grind →]
-lemma clog2_floor_half_le (n : ℕ) (h : n > 1) : clog 2 (n / 2) ≤ clog 2 n - 1 := by
+lemma clog2_floor_half_le (n : ℕ) (h : 1 < n) : clog 2 (n / 2) ≤ clog 2 n - 1 := by
   apply Nat.le_trans _ (clog2_half_le n h)
   apply Nat.clog_monotone
   grind
@@ -133,7 +133,7 @@ private lemma some_algebra (n : ℕ) :
     (n + 2) * clog 2 (n + 2) := by
   -- 1. Substitution: Let N = n_1 + 2 to clean up the expression
   let N := n + 2
-  have hN : N ≥ 2 := by omega
+  have hN : 2 ≤ N := by omega
   -- 2. Rewrite the terms using N
   have t1 : n / 2 + 1 = N / 2 := by omega
   have t2 : (n + 1) / 2 + 1 = (N + 1) / 2 := by omega

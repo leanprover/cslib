@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 import Cslib.Crypto.Primitives.PRG.Asymptotic
 
-open Cslib.Crypto.PRG Filter
+open Cslib.Crypto.PRG Cslib.Probability.PMF Filter
 open scoped NNReal Topology
 
 namespace CslibTests.PRG
@@ -23,7 +23,7 @@ example : (Generator.mk (id : Bool → Bool)).Secure (fun _ => True) 0 := by
 -- Zero-error security implies uniform output.
 example {Seed Output : Type*} [Fintype Seed] [Nonempty Seed]
     [Fintype Output] [Nonempty Output] (G : Generator Seed Output)
-    (h : G.Secure (fun _ => True) 0) : G.outputDist = PMF.uniformOfFintype Output :=
+    (h : G.Secure (fun _ => True) 0) : G.outputDist = uniformOfFintype Output :=
   G.secure_zero_iff_outputDist_eq_uniform.mp h
 
 example (G : Generator Bool (Bool × Bool)) (Admissible : Adversary (Bool × Bool) → Prop)

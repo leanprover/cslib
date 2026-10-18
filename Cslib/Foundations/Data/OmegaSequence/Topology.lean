@@ -76,7 +76,7 @@ theorem cylinder_eq_prepend_range (xs : ωSequence α) (n : ℕ) :
 theorem isTopologicalBasis_cylinders :
     IsTopologicalBasis { s | ∃ (xs : ωSequence α) (n : ℕ), s = xs.cylinder n } := by
   convert Topology.IsInducing.isTopologicalBasis homeomorph.isInducing <|
-    PiNat.isTopologicalBasis_cylinders _
+    PiNat.isTopologicalBasis_cylinders _ using 1
   ext
   constructor
   · grind [cylinder]

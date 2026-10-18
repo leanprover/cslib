@@ -74,7 +74,7 @@ def Proposition.expand (a : Proposition Atom) : ⇓({a, a⫠} : Sequent Atom):=
     |> Proof.rwConclusion (by grind)
 termination_by a
 decreasing_by
-  all_goals simp <;> grind
+  all_goals grind
 
 /-- A `Proof` has only atomic axioms if all its instances of the axiom treat atomic propositions. -/
 @[scoped grind =]

@@ -126,7 +126,7 @@ theorem dfa_num_state_ge
     {l : Language α} {ws : Set (List α)} [Finite ws]
     (hws : ws.Pairwise (¬ (l.NerodeCongruence).r · ·))
     {State : Type*} [Finite State] {M : DA.FinAcc State α} (hm : language M = l) :
-    Nat.card State ≥ Nat.card ws := by
+    Nat.card ws ≤ Nat.card State := by
   -- In this proof it is easier to work with `Fintype` rather than `Finite` because of the use of
   -- the theorem `Fintype.exists_ne_map_eq_of_card_lt` below.
   have : Fintype State := Fintype.ofFinite _
@@ -144,7 +144,7 @@ theorem dfa_num_state_ge
 /-- All DFAs accepting `l` must have at least as many states as the number of equivalence classes
 of the Nerode congruence on `l`. -/
 theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State] :
-    Nat.card State ≥ Nat.card (language M).NerodeQuotient := by
+    Nat.card (language M).NerodeQuotient ≤ Nat.card State := by
   let ws : Set (List α) := Set.range (Quotient.out : NerodeQuotient (language M) → List α)
   have : Finite (language M).NerodeQuotient :=
       IsRegular.iff_finite_nerodeQuotient.mp (IsRegular.iff_dfa.mpr ⟨State, inferInstance, M, rfl⟩)

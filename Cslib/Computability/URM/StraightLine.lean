@@ -89,7 +89,7 @@ theorem straight_line_halts_from_regs {p : Program} (hsl : p.IsStraightLine) (r 
   generalize hrem : p.length - s.pc = remaining
   induction remaining using Nat.strong_induction_on generalizing s with
   | h n ih =>
-  by_cases hhalted : s.pc ≥ p.length
+  by_cases hhalted : p.length ≤ s.pc
   · grind
   · have jmp : ¬p[s.pc].IsJump := by apply hsl; grind
     have := Step.of_nonJump (by lia) jmp

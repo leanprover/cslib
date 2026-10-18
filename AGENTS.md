@@ -124,11 +124,11 @@ Authors: $LIST_OF_AUTHORS
 ```
 where $YEAR should be replaced with the current year, $AUTHOR_NAME with the name of the file creator, and $LIST_OF_AUTHORS with the list of authors (this is just the file creator if there are no additional authors).
 
-### 5. Always Read Local README.md Files
+### 5. Follow Coding Guidelines
 
-Before working on any file or directory, **always read** all `README.md` files in all directories throughout the entire repository.
-
-These files contain essential context that must be understood before making changes.
+As part of ensuring that your plans and code consider the relevant guidelines or information, always review against the guidelines set in:
+- `/CODESTYLE.md`, and
+- relevant `README.md` files, starting from the one nearest to the directory where the agent is run.
 
 ## Code Style
 
