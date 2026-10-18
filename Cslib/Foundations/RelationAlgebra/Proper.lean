@@ -49,9 +49,8 @@ instance : BooleanAlgebra carrier where
   le_top R := subset_unit R.property
   bot_le _ := Set.empty_subset _
   sdiff_eq R S := by
-    apply Subtype.ext
-    change R.val \ S.val = R.val ∩ (unit \ S.val)
-    rw [← Set.inter_sdiff_assoc, Set.inter_eq_left.mpr (subset_unit R.property)]
+    ext
+    exact ⟨fun ⟨hR, hS⟩ => ⟨hR, subset_unit R.property hR, hS⟩, fun ⟨hR, _, hS⟩ => ⟨hR, hS⟩⟩
 
 instance : Monoid carrier where
   one := ⟨.id, id_mem⟩
