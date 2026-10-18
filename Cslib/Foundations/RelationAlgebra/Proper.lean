@@ -44,15 +44,10 @@ instance : BooleanAlgebra carrier where
   bot := ⟨∅, toIsSetRing.empty_mem⟩
   compl R := ⟨unit \ R.val, toIsSetRing.sdiff_mem unit_mem R.property⟩
   sdiff R S := ⟨R.val \ S.val, toIsSetRing.sdiff_mem R.property S.property⟩
-  inf_compl_le_bot R := by
-    change R.val ∩ (unit \ R.val) ⊆ ∅
-    simp
-  top_le_sup_compl R := by
-    change unit ⊆ R.val ∪ (unit \ R.val)
-    rw [Set.union_sdiff_cancel (subset_unit R.property)]
+  inf_compl_le_bot _ := Set.disjoint_sdiff_right.le_bot
+  top_le_sup_compl _ := le_sup_sdiff (α := SetRel α α)
   le_top R := subset_unit R.property
   bot_le _ := Set.empty_subset _
-  himp_eq _ _ := rfl
   sdiff_eq R S := by
     apply Subtype.ext
     change R.val \ S.val = R.val ∩ (unit \ S.val)
@@ -61,14 +56,14 @@ instance : BooleanAlgebra carrier where
 instance : Monoid carrier where
   one := ⟨.id, id_mem⟩
   mul R S := ⟨R.val.comp S.val, comp_mem R.property S.property⟩
-  mul_assoc R S T := Subtype.ext (SetRel.comp_assoc R.val S.val T.val)
-  one_mul R := Subtype.ext (SetRel.id_comp R.val)
-  mul_one R := Subtype.ext (SetRel.comp_id R.val)
+  mul_assoc _ _ _ := Subtype.ext (SetRel.comp_assoc ..)
+  one_mul _ := Subtype.ext (SetRel.id_comp _)
+  mul_one _ := Subtype.ext (SetRel.comp_id _)
 
 instance : StarMul carrier where
   star R := ⟨R.val.inv, inv_mem R.property⟩
-  star_involutive _ := Subtype.ext SetRel.inv_inv
-  star_mul R S := Subtype.ext (SetRel.inv_comp R.val S.val)
+  star_involutive _ := rfl
+  star_mul _ _ := Subtype.ext (SetRel.inv_comp ..)
 
 instance : RelationAlgebra carrier where
   sup_mul R S T := by
