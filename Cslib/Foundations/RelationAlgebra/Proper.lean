@@ -39,7 +39,7 @@ variable {α : Type u} {carrier : Set (SetRel α α)} {unit : SetRel α α}
   [ProperRelationAlgebra carrier unit]
 
 instance : BooleanAlgebra carrier where
-  __ := Subtype.distribLattice toIsSetRing.union_mem (fun {_ _} ↦ toIsSetRing.inter_mem)
+  __ := Subtype.distribLattice toIsSetRing.union_mem @toIsSetRing.inter_mem
   top := ⟨unit, unit_mem⟩
   bot := ⟨∅, toIsSetRing.empty_mem⟩
   compl R := ⟨unit \ R.val, toIsSetRing.sdiff_mem unit_mem R.property⟩
