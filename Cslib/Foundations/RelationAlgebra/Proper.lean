@@ -21,7 +21,7 @@ universe u v w
 namespace Cslib.RelationAlgebra
 
 class ProperRelationAlgebra {α : Type u} (carrier : Set (SetRel α α))
-    (unit : semiOutParam (SetRel α α)) : Prop extends MeasureTheory.IsSetRing carrier where
+    (unit : outParam (SetRel α α)) : Prop extends MeasureTheory.IsSetRing carrier where
   subset_unit {R} : R ∈ carrier → R ⊆ unit
   unit_mem : unit ∈ carrier
   id_mem : SetRel.id ∈ carrier
@@ -31,28 +31,29 @@ class ProperRelationAlgebra {α : Type u} (carrier : Set (SetRel α α))
 namespace ProperRelationAlgebra
 
 variable {α : Type u} {carrier : Set (SetRel α α)} {unit : SetRel α α}
-  [h : ProperRelationAlgebra carrier unit]
-
-include h in
-/-- The unit of a proper relation algebra is an equivalence relation. -/
-theorem unit_equivalence : Equivalence (fun x y => (x, y) ∈ unit) where
-  refl _ := subset_unit h.id_mem rfl
-  symm hxy := subset_unit (h.inv_mem h.unit_mem) hxy
-  trans hxy hyz := h.subset_unit (h.comp_mem h.unit_mem h.unit_mem) ⟨_, hxy, hyz⟩
 
 /-- The carrier of a proper relation algebra uniquely determines its unit. -/
-theorem unit_unique {unit' : SetRel α α} (h' : ProperRelationAlgebra carrier unit') :
-    unit = unit' :=
+theorem unit_unique [h : ProperRelationAlgebra carrier unit] {unit' : SetRel α α}
+    (h' : ProperRelationAlgebra carrier unit') : unit = unit' :=
   Set.Subset.antisymm (h'.subset_unit h.unit_mem) (h.subset_unit h'.unit_mem)
+
+variable [ProperRelationAlgebra carrier unit]
+
+include carrier in
+/-- The unit of a proper relation algebra is an equivalence relation. -/
+theorem unit_equivalence : Equivalence (fun x y => (x, y) ∈ unit) where
+  refl _ := subset_unit (carrier := carrier) id_mem rfl
+  symm hxy := subset_unit (carrier := carrier) (inv_mem unit_mem) hxy
+  trans hxy hyz := subset_unit (carrier := carrier) (comp_mem unit_mem unit_mem) ⟨_, hxy, hyz⟩
 
 /-- The relation algebra on a family of relations satisfying the proper relation algebra axioms. -/
 instance relationAlgebra : RelationAlgebra carrier where
-  __ := Subtype.distribLattice (fun _ _ hR hS => h.union_mem hR hS)
-    (fun _ _ hR hS => h.toIsSetRing.inter_mem hR hS)
-  top := ⟨unit, h.unit_mem⟩
-  bot := ⟨∅, h.empty_mem⟩
-  compl R := ⟨unit \ R.val, h.sdiff_mem h.unit_mem R.property⟩
-  le_top R := h.subset_unit R.property
+  __ := Subtype.distribLattice (fun _ _ hR hS => toIsSetRing.union_mem hR hS)
+    (fun _ _ hR hS => toIsSetRing.inter_mem hR hS)
+  top := ⟨unit, unit_mem⟩
+  bot := ⟨∅, toIsSetRing.empty_mem⟩
+  compl R := ⟨unit \ R.val, toIsSetRing.sdiff_mem unit_mem R.property⟩
+  le_top R := subset_unit R.property
   bot_le _ := Set.empty_subset _
   inf_compl_le_bot _ _ h := h.2.2 h.1
   top_le_sup_compl R p hp := by
@@ -61,13 +62,13 @@ instance relationAlgebra : RelationAlgebra carrier where
   sdiff_eq _ _ := rfl
   himp_eq _ _ := rfl
 
-  one := ⟨SetRel.id, h.id_mem⟩
-  mul R S := ⟨SetRel.comp R.val S.val, h.comp_mem R.property S.property⟩
+  one := ⟨SetRel.id, id_mem⟩
+  mul R S := ⟨SetRel.comp R.val S.val, comp_mem R.property S.property⟩
   mul_assoc _ _ _ := Subtype.ext (SetRel.comp_assoc _ _ _)
   one_mul _ := Subtype.ext (SetRel.id_comp _)
   mul_one _ := Subtype.ext (SetRel.comp_id _)
 
-  star R := ⟨SetRel.inv R.val, h.inv_mem R.property⟩
+  star R := ⟨SetRel.inv R.val, inv_mem R.property⟩
   star_involutive _ := Subtype.ext SetRel.inv_inv
   star_mul _ _ := Subtype.ext (SetRel.inv_comp _ _)
 
@@ -77,9 +78,9 @@ instance relationAlgebra : RelationAlgebra carrier where
     exact (exists_congr fun y => or_and_right).trans exists_or
   star_sup _ _ := rfl
   tarski R S p hp := by
-    refine ⟨h.subset_unit
-      (h.comp_mem (h.inv_mem R.property)
-        (h.sdiff_mem h.unit_mem (h.comp_mem R.property S.property))) hp, ?_⟩
+    refine ⟨subset_unit
+      (comp_mem (inv_mem R.property)
+        (toIsSetRing.sdiff_mem unit_mem (comp_mem R.property S.property))) hp, ?_⟩
     rcases hp with ⟨y, hyx, hyz⟩
     exact fun hxz => hyz.2 ⟨p.1, hyx, hxz⟩
 
@@ -93,7 +94,8 @@ def restrictHom (x : α) :
     map_top' := by
       apply Set.eq_univ_of_forall
       intro p
-      exact h.unit_equivalence.trans (h.unit_equivalence.symm p.1.property) p.2.property
+      exact (unit_equivalence (carrier := carrier)).trans
+        ((unit_equivalence (carrier := carrier)).symm p.1.property) p.2.property
     map_one' := by
       apply Set.ext
       intro p
@@ -107,14 +109,14 @@ def restrictHom (x : α) :
         ∃ m : {m : α // (x, m) ∈ unit}, (y.val, m.val) ∈ R.val ∧ (m.val, z.val) ∈ S.val
       constructor
       · rintro ⟨m, hym, hmz⟩
-        exact ⟨⟨m, h.unit_equivalence.trans y.property (h.subset_unit R.property hym)⟩,
-          hym, hmz⟩
+        refine ⟨⟨m, ?_⟩, hym, hmz⟩
+        exact (unit_equivalence (carrier := carrier)).trans y.property (subset_unit R.property hym)
       · rintro ⟨m, hym, hmz⟩
         exact ⟨m.val, hym, hmz⟩ }
 
 @[simp]
 theorem restrictHom_apply (x : α) (R : carrier) :
-    h.restrictHom x R =
+    restrictHom x R =
       ({p | (p.1.val, p.2.val) ∈ R.val} :
         SetRel {y : α // (x, y) ∈ unit} {y : α // (x, y) ∈ unit}) := rfl
 
@@ -122,7 +124,7 @@ theorem restrictHom_apply (x : α) (R : carrier) :
 The classes are indexed by base points, so the same class may occur more than once. -/
 def toRepresentation :
     Representation carrier α (fun x => {y : α // (x, y) ∈ unit}) :=
-  { hom := RelationAlgebraHom.pi h.restrictHom
+  { hom := RelationAlgebraHom.pi restrictHom
     injective := by
       intro R S hRS
       apply Subtype.ext
@@ -130,17 +132,19 @@ def toRepresentation :
       rintro ⟨x, y⟩
       constructor
       · intro hxy
-        have hE := h.subset_unit R.property hxy
+        have hE := subset_unit R.property hxy
         have heq := congrFun hRS x
-        exact (Set.ext_iff.mp heq (⟨x, h.unit_equivalence.refl x⟩, ⟨y, hE⟩)).mp hxy
+        exact (Set.ext_iff.mp heq
+          (⟨x, (unit_equivalence (carrier := carrier)).refl x⟩, ⟨y, hE⟩)).mp hxy
       · intro hxy
-        have hE := h.subset_unit S.property hxy
+        have hE := subset_unit S.property hxy
         have heq := congrFun hRS x
-        exact (Set.ext_iff.mp heq (⟨x, h.unit_equivalence.refl x⟩, ⟨y, hE⟩)).mpr hxy }
+        exact (Set.ext_iff.mp heq
+          (⟨x, (unit_equivalence (carrier := carrier)).refl x⟩, ⟨y, hE⟩)).mpr hxy }
 
 @[simp]
 theorem toRepresentation_hom_apply (R : carrier) (x : α) :
-    h.toRepresentation.hom R x = h.restrictHom x R := rfl
+    toRepresentation.hom R x = restrictHom x R := rfl
 
 end ProperRelationAlgebra
 
@@ -348,9 +352,9 @@ theorem representable_iff_exists_proper {α : Type u} [RelationAlgebra α] :
   constructor
   · rintro ⟨ι, β, ⟨ρ⟩⟩
     exact ⟨Σ i, β i, Set.range ρ.relation, sigmaUnit β, ρ.proper, ⟨ρ.equivProper⟩⟩
-  · rintro ⟨X, carrier, unit, h, ⟨e⟩⟩
+  · rintro ⟨X, carrier, unit, _, ⟨e⟩⟩
     exact ⟨X, (fun x => {y : X // (x, y) ∈ unit}),
-      ⟨{ hom := h.toRepresentation.hom.comp e.toHom
-         injective := h.toRepresentation.injective.comp e.injective }⟩⟩
+      ⟨{ hom := ProperRelationAlgebra.toRepresentation.hom.comp e.toHom
+         injective := ProperRelationAlgebra.toRepresentation.injective.comp e.injective }⟩⟩
 
 end Cslib.RelationAlgebra
