@@ -17,16 +17,18 @@ public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 # Boolean function complexity measures
 
 Sensitivity `s(f)`, block sensitivity `bs(f)` and certificate complexity `C(f)`, together with
-the chain `s(f) ≤ bs(f) ≤ C(f)`. Notation follows [AroraBarak09].
+the chain `s(f) ≤ bs(f) ≤ C(f)`. Notation follows [AroraBarak09]; the pointwise measures
+`s(f, x)`, `bs(f, x)`, `C(f, x)` are those of [Jukna, Section 14.3][Jukna2012].
 
 ## Main definitions
 
-- `sensitivity`: `s(f)`, the maximum over inputs of the number of sensitive coordinates.
+- `BitString.sensitivity`: `s(f)`, the maximum over inputs of the number of sensitive coordinates.
 - `blockSensitivity`: `bs(f)`, the maximum over inputs of the maximum number of disjoint sensitive
   blocks.
-- `IsCertificate`: a partial assignment forces the value `b`, as in [BuhrmanDeWolf2002].
-- `Fixes`: a set of coordinates pins down `f` at `x`, as in [AroraBarak09]. At a fixed input an
-  assignment consistent with `x` is determined by its support, so the pointwise measure needs no
+- `IsCertificate`: a set of coordinates whose values at `x` pin down `f x`, as in
+  [Jukna, Section 14.3][Jukna2012].
+- `Forces`: a partial assignment forces the value `b`, as in [BuhrmanDeWolf2002]. At a fixed input
+  an assignment consistent with `x` is determined by its support, so the pointwise measure needs no
   bit values.
 - `certificateComplexity`: `C(f)`, the maximum over inputs of the smallest certificate size.
 
@@ -34,10 +36,10 @@ the chain `s(f) ≤ bs(f) ≤ C(f)`. Notation follows [AroraBarak09].
 
 - `sensitivity_le_blockSensitivity`: `s(f) ≤ bs(f)`.
 - `blockSensitivity_le_certificateComplexity`: `bs(f) ≤ C(f)`.
-- `fixes_iff_isCertificate_restrict`, `isCertificate_iff_fixes_support`: `Fixes` and
-  `IsCertificate` agree at a fixed input.
-- `pointCertificateComplexity_eq_inf'_size`: `Cₓ(f)` is the smallest certificate for `x` as a
-  partial assignment.
+- `isCertificate_iff_forces_restrict`, `forces_iff_isCertificate_support`: `IsCertificate` and
+  `Forces` agree at a fixed input.
+- `certificateComplexityAt_eq_inf'_size`: `C(f, x)` is the minimum size of a forcing assignment
+  consistent with `x`.
 - `|B| ≤ s(f)` for a minimal sensitive block `B`.
 
 ## References
@@ -46,22 +48,25 @@ the chain `s(f) ≤ bs(f) ≤ C(f)`. Notation follows [AroraBarak09].
   Section 12.2 (Certificate Complexity) and Section 12.5.1 (Sensitivity).
 * [H. Buhrman, R. de Wolf, *Complexity measures and decision tree complexity:
   a survey*][BuhrmanDeWolf2002]
+* [S. Jukna, *Boolean Function Complexity: Advances and Frontiers*][Jukna2012], Section 14.3.
 -/
 
 @[expose] public section
 
-namespace Cslib.QueryComplexity
+namespace Cslib
 
 variable {n : ℕ}
+
+namespace BitString
 
 /-! ## Sensitivity -/
 
 /-- Coordinate `i` is sensitive for `f` at `x` when flipping it flips `f`. -/
 def IsSensitiveCoord (f : BooleanFunction n) (x : BitString n) (i : Fin n) : Prop :=
-  f (flipBit x i) ≠ f x
+  f (Function.update x i (!x i)) ≠ f x
 
 instance (f : BooleanFunction n) (x : BitString n) : DecidablePred (IsSensitiveCoord f x) :=
-  fun i => inferInstanceAs (Decidable (f (flipBit x i) ≠ f x))
+  fun i => inferInstanceAs (Decidable (f (Function.update x i (!x i)) ≠ f x))
 
 /-- The set of coordinates sensitive for `f` at `x`. -/
 def sensitiveCoords (f : BooleanFunction n) (x : BitString n) : Finset (Fin n) :=
@@ -73,37 +78,51 @@ lemma mem_sensitiveCoords {f : BooleanFunction n} {x : BitString n} {i : Fin n} 
     i ∈ sensitiveCoords f x ↔ IsSensitiveCoord f x i := by
   simp [sensitiveCoords]
 
-/-- The number of sensitive coordinates in input `x`, usually denoted `sₓ(f)`. -/
-def pointSensitivity (f : BooleanFunction n) (x : BitString n) : ℕ := (sensitiveCoords f x).card
+/-- The number of sensitive coordinates in input `x`, usually denoted `s(f, x)`. -/
+def sensitivityAt (f : BooleanFunction n) (x : BitString n) : ℕ := (sensitiveCoords f x).card
 
 /-- The maximum sensitivity over all inputs, denoted `s(f)`. -/
-def sensitivity (f : BooleanFunction n) : ℕ := Finset.univ.sup (pointSensitivity f)
+def sensitivity (f : BooleanFunction n) : ℕ := Finset.univ.sup (sensitivityAt f)
 
-/-- Lower-bound rule for `sₓ(f)`: exhibit a set of sensitive coordinates. -/
-lemma card_le_pointSensitivity {f : BooleanFunction n} {x : BitString n} {S : Finset (Fin n)}
-    (h : ∀ i ∈ S, IsSensitiveCoord f x i) : S.card ≤ pointSensitivity f x := by
+/-- Lower-bound rule for `s(f, x)`: exhibit a set of sensitive coordinates. -/
+lemma card_le_sensitivityAt {f : BooleanFunction n} {x : BitString n} {S : Finset (Fin n)}
+    (h : ∀ i ∈ S, IsSensitiveCoord f x i) : S.card ≤ sensitivityAt f x := by
   apply Finset.card_le_card
   simpa [Finset.subset_iff] using h
 
-/-- The sensitivity at a single input is at most the sensitivity of `f`: `sₓ(f) ≤ s(f)`. -/
-lemma pointSensitivity_le_sensitivity (f : BooleanFunction n) (x : BitString n) :
-    pointSensitivity f x ≤ sensitivity f :=
+/-- The sensitivity at a single input is at most the sensitivity of `f`: `s(f, x) ≤ s(f)`. -/
+lemma sensitivityAt_le_sensitivity (f : BooleanFunction n) (x : BitString n) :
+    sensitivityAt f x ≤ sensitivity f :=
   Finset.le_sup (Finset.mem_univ x)
 
 /-- Lower-bound rule for `s(f)`: sensitive coordinates at any input suffice. -/
-lemma card_le_sensitivity {f : BooleanFunction n} {x : BitString n} {S : Finset (Fin n)}
-    (h : ∀ i ∈ S, IsSensitiveCoord f x i) : S.card ≤ sensitivity f :=
-  (card_le_pointSensitivity h).trans (pointSensitivity_le_sensitivity f x)
+lemma card_le_sensitivity_of_forall_isSensitiveCoord {f : BooleanFunction n} {x : BitString n}
+    {S : Finset (Fin n)} (h : ∀ i ∈ S, IsSensitiveCoord f x i) : S.card ≤ sensitivity f :=
+  (card_le_sensitivityAt h).trans (sensitivityAt_le_sensitivity f x)
+
+/-- `s(f, x) ≤ n`: there are only `n` coordinates. -/
+theorem sensitivityAt_le_card (f : BooleanFunction n) (x : BitString n) : sensitivityAt f x ≤ n :=
+  (Finset.card_le_univ _).trans_eq (Fintype.card_fin n)
+
+/-- `s(f) ≤ n`. -/
+theorem sensitivity_le_card (f : BooleanFunction n) : sensitivity f ≤ n :=
+  Finset.sup_le fun x _ => sensitivityAt_le_card f x
+
+end BitString
+
+namespace QueryComplexity
+
+open BitString
 
 /-! ## Block sensitivity -/
 
 /-- Block `B` is sensitive for `f` at `x` when flipping all bits of `B` flips `f`. -/
 def IsSensitiveBlock (f : BooleanFunction n) (x : BitString n) (B : Block n) : Prop :=
-  f (flipBlock x B) ≠ f x
+  f (flipBlock B x) ≠ f x
 
 instance (f : BooleanFunction n) (x : BitString n) (B : Block n) :
     Decidable (IsSensitiveBlock f x B) :=
-  inferInstanceAs (Decidable (f (flipBlock x B) ≠ f x))
+  inferInstanceAs (Decidable (f (flipBlock B x) ≠ f x))
 
 /-- Every member flips `f`, and the members are pairwise disjoint. -/
 def IsSensitiveFamily (f : BooleanFunction n) (x : BitString n) (F : Finset (Block n)) : Prop :=
@@ -125,27 +144,27 @@ lemma mem_sensitiveFamilies {f : BooleanFunction n} {x : BitString n} {F : Finse
 
 /-- The block sensitivity of `f` at `x`: the largest number of pairwise disjoint blocks of
 coordinates such that flipping every coordinate of any one block flips `f`. Usually denoted
-`bsₓ(f)`. -/
-def pointBlockSensitivity (f : BooleanFunction n) (x : BitString n) : ℕ :=
+`bs(f, x)`. -/
+def blockSensitivityAt (f : BooleanFunction n) (x : BitString n) : ℕ :=
   (sensitiveFamilies f x).sup Finset.card
 
 /-- The maximum block sensitivity over all inputs, denoted `bs(f)`. -/
-def blockSensitivity (f : BooleanFunction n) : ℕ := Finset.univ.sup (pointBlockSensitivity f)
+def blockSensitivity (f : BooleanFunction n) : ℕ := Finset.univ.sup (blockSensitivityAt f)
 
-/-- Lower-bound rule for `bsₓ(f)`: exhibit one sensitive family. -/
-lemma card_le_pointBlockSensitivity {f : BooleanFunction n} {x : BitString n} {F : Finset (Block n)}
-    (h : IsSensitiveFamily f x F) : F.card ≤ pointBlockSensitivity f x :=
+/-- Lower-bound rule for `bs(f, x)`: exhibit one sensitive family. -/
+lemma card_le_blockSensitivityAt {f : BooleanFunction n} {x : BitString n} {F : Finset (Block n)}
+    (h : IsSensitiveFamily f x F) : F.card ≤ blockSensitivityAt f x :=
   Finset.le_sup (mem_sensitiveFamilies.mpr h)
 
-/-- The block sensitivity at a single input is at most that of `f`: `bsₓ(f) ≤ bs(f)`. -/
-lemma pointBlockSensitivity_le_blockSensitivity (f : BooleanFunction n) (x : BitString n) :
-    pointBlockSensitivity f x ≤ blockSensitivity f :=
+/-- The block sensitivity at a single input is at most that of `f`: `bs(f, x) ≤ bs(f)`. -/
+lemma blockSensitivityAt_le_blockSensitivity (f : BooleanFunction n) (x : BitString n) :
+    blockSensitivityAt f x ≤ blockSensitivity f :=
   Finset.le_sup (Finset.mem_univ x)
 
 /-- Lower-bound rule for `bs(f)`. -/
 lemma card_le_blockSensitivity {f : BooleanFunction n} {x : BitString n} {F : Finset (Block n)}
     (h : IsSensitiveFamily f x F) : F.card ≤ blockSensitivity f :=
-  (card_le_pointBlockSensitivity h).trans (pointBlockSensitivity_le_blockSensitivity f x)
+  (card_le_blockSensitivityAt h).trans (blockSensitivityAt_le_blockSensitivity f x)
 
 /-! ## Sensitive singletons -/
 
@@ -167,10 +186,10 @@ lemma mem_singletonFamily {f : BooleanFunction n} {x : BitString n} {B : Block n
     B ∈ singletonFamily f x ↔ ∃ i, IsSensitiveCoord f x i ∧ {i} = B := by
   simp [singletonFamily]
 
-/-- The singleton family has one block per sensitive coordinate, so `sₓ(f)` of them. -/
+/-- The singleton family has one block per sensitive coordinate, so `s(f, x)` of them. -/
 @[simp]
 lemma card_singletonFamily {f : BooleanFunction n} {x : BitString n} :
-    (singletonFamily f x).card = pointSensitivity f x :=
+    (singletonFamily f x).card = sensitivityAt f x :=
   Finset.card_image_of_injective _ Finset.singleton_injective
 
 /-- Singletons of distinct sensitive coordinates do form a sensitive family: each
@@ -186,15 +205,15 @@ lemma isSensitiveFamily_singletonFamily {f : BooleanFunction n} {x : BitString n
     obtain ⟨j, -, rfl⟩ := mem_singletonFamily.mp hQ
     exact Finset.disjoint_singleton.mpr fun h => hPQ (by rw [h])
 
-/-- Pointwise: `sₓ(f) ≤ bsₓ(f)`. -/
-theorem pointSensitivity_le_pointBlockSensitivity (f : BooleanFunction n) (x : BitString n) :
-    pointSensitivity f x ≤ pointBlockSensitivity f x :=
-  card_singletonFamily ▸ card_le_pointBlockSensitivity isSensitiveFamily_singletonFamily
+/-- Pointwise: `s(f, x) ≤ bs(f, x)`. -/
+theorem sensitivityAt_le_blockSensitivityAt (f : BooleanFunction n) (x : BitString n) :
+    sensitivityAt f x ≤ blockSensitivityAt f x :=
+  card_singletonFamily ▸ card_le_blockSensitivityAt isSensitiveFamily_singletonFamily
 
 /-- Every sensitive coordinate is a sensitive block of size one, so `s(f) ≤ bs(f)`. -/
 theorem sensitivity_le_blockSensitivity (f : BooleanFunction n) :
     sensitivity f ≤ blockSensitivity f :=
-  Finset.sup_mono_fun fun x _ => pointSensitivity_le_pointBlockSensitivity f x
+  Finset.sup_mono_fun fun x _ => sensitivityAt_le_blockSensitivityAt f x
 
 /-! ## Minimal sensitive blocks -/
 
@@ -218,164 +237,192 @@ lemma not_isSensitiveBlock_erase (hB : IsMinimalSensitiveBlock f x B) (hi : i �
 /-- Every coordinate of a minimal sensitive block is sensitive at the input which
 has the minimal sensitive block flipped. -/
 lemma isSensitiveCoord_flipBlock (hB : IsMinimalSensitiveBlock f x B) (hi : i ∈ B) :
-    IsSensitiveCoord f (flipBlock x B) i := by
+    IsSensitiveCoord f (flipBlock B x) i := by
   unfold IsSensitiveCoord
-  rw [← flipBlock_erase x B hi, not_not.mp (hB.not_isSensitiveBlock_erase hi)]
+  rw [flipBlock_apply_of_mem hi, Bool.not_not, ← flipBlock_erase hi,
+    not_not.mp (hB.not_isSensitiveBlock_erase hi)]
   exact Ne.symm hB.1
 
 /-- `|B| ≤ s(f)` for a minimal sensitive block `B`. -/
 theorem card_le_sensitivity (hB : IsMinimalSensitiveBlock f x B) : B.card ≤ sensitivity f :=
-  _root_.Cslib.QueryComplexity.card_le_sensitivity fun _ hi => hB.isSensitiveCoord_flipBlock hi
+  card_le_sensitivity_of_forall_isSensitiveCoord fun _ hi => hB.isSensitiveCoord_flipBlock hi
 
 end IsMinimalSensitiveBlock
 
 /-! ## Certificates
 
-A certificate for `x` is a partial assignment consistent with `x` that already forces the value
-of `f`. `IsCertificate` keeps that in general form, with the forced value `b` a parameter.
+A certificate for `x` is a set of coordinates whose values at `x` already determine `f x`
+[Jukna, Section 14.3][Jukna2012]. The survey [BuhrmanDeWolf2002] instead works with partial
+assignments that force a value; `Forces` keeps that in general form, with the forced value `b` a
+parameter, and the two views agree at a fixed input.
 -/
 
+/-- `S` is a certificate for `f` at `x`: every input agreeing with `x` on `S` takes the same
+value, so `f x` can be read off from the bits of `x` in `S`. -/
+def IsCertificate (f : BooleanFunction n) (x : BitString n) (S : Finset (Fin n)) : Prop :=
+  ∀ y, (∀ i ∈ S, y i = x i) → f y = f x
+
+instance (f : BooleanFunction n) (x : BitString n) (S : Finset (Fin n)) :
+    Decidable (IsCertificate f x S) :=
+  inferInstanceAs (Decidable (∀ y, (∀ i ∈ S, y i = x i) → f y = f x))
+
 /-- `C` forces the value `b`: everything consistent with `C` has `f = b`. -/
-def IsCertificate (f : BooleanFunction n) (C : PartialAssignment n) (b : Bool) : Prop :=
+def Forces (f : BooleanFunction n) (C : PartialAssignment n) (b : Bool) : Prop :=
   ∀ x, Agrees C x → f x = b
 
 instance (f : BooleanFunction n) (C : PartialAssignment n) (b : Bool) :
-    Decidable (IsCertificate f C b) :=
+    Decidable (Forces f C b) :=
   inferInstanceAs (Decidable (∀ x, Agrees C x → f x = b))
 
-/-- Partial assignments consistent with `x` that already force `f x`. -/
-def certificates (f : BooleanFunction n) (x : BitString n) : Finset (PartialAssignment n) :=
-  Finset.univ.filter (fun C => Agrees C x ∧ IsCertificate f C (f x))
+/-- `S` is a certificate for `x` if and only if `x` restricted to `S` forces `f x`. -/
+theorem isCertificate_iff_forces_restrict {f : BooleanFunction n} {x : BitString n}
+    {S : Finset (Fin n)} : IsCertificate f x S ↔ Forces f (restrict x S) (f x) := by
+  simp only [IsCertificate, Forces, agrees_restrict_iff]
 
-@[simp]
-lemma mem_certificates {f : BooleanFunction n} {x : BitString n} {C : PartialAssignment n} :
-    C ∈ certificates f x ↔ Agrees C x ∧ IsCertificate f C (f x) := by
-  simp [certificates]
-
-/-- Reading off all of `x` is always a certificate. -/
-lemma ofBitString_mem_certificates (f : BooleanFunction n) (x : BitString n) :
-    ofBitString x ∈ certificates f x :=
-  mem_certificates.mpr ⟨agrees_ofBitString_iff.mpr rfl, fun _ hy => by
-    rw [agrees_ofBitString_iff.mp hy]⟩
-
-/-- There is always a certificate for `x`. -/
-lemma certificates_nonempty (f : BooleanFunction n) (x : BitString n) :
-    (certificates f x).Nonempty :=
-  ⟨ofBitString x, ofBitString_mem_certificates f x⟩
-
-/-! ## Pointwise certificates as sets of coordinates
-
-At a fixed input a certificate carries no information beyond the coordinates it reads: `Agrees C x`
-forces `C i = some (x i)` on the support and `none` elsewhere. So `Cₓ(f)` is defined over sets of
-coordinates rather than over partial assignments.
--/
-
-/-- `S` pins down `f` at `x`: every input agreeing with `x` on `S` takes the same value. This is
-the pointwise form of `IsCertificate`, recording only which coordinates are read. -/
-def Fixes (f : BooleanFunction n) (x : BitString n) (S : Finset (Fin n)) : Prop :=
-  ∀ y, (∀ i ∈ S, y i = x i) → f y = f x
-
-instance (f : BooleanFunction n) (x : BitString n) (S : Finset (Fin n)) : Decidable (Fixes f x S) :=
-  inferInstanceAs (Decidable (∀ y, (∀ i ∈ S, y i = x i) → f y = f x))
-
-/-- `S` fixes `f` at `x` if and only if `x` restricted to `S` is a certificate for `f x`. -/
-theorem fixes_iff_isCertificate_restrict {f : BooleanFunction n} {x : BitString n}
-    {S : Finset (Fin n)} : Fixes f x S ↔ IsCertificate f (restrict x S) (f x) := by
-  simp only [Fixes, IsCertificate, agrees_restrict_iff]
-
-/-- A partial assignment consistent with `x` is a certificate for `f x` if and only if its
-support fixes `f` at `x`. -/
-theorem isCertificate_iff_fixes_support {f : BooleanFunction n} {x : BitString n}
+/-- A partial assignment consistent with `x` forces `f x` if and only if its support is a
+certificate for `x`. -/
+theorem forces_iff_isCertificate_support {f : BooleanFunction n} {x : BitString n}
     {C : PartialAssignment n} (hC : Agrees C x) :
-    IsCertificate f C (f x) ↔ Fixes f x (support C) := by
-  rw [fixes_iff_isCertificate_restrict, ← eq_restrict_support hC]
+    Forces f C (f x) ↔ IsCertificate f x (support C) := by
+  rw [isCertificate_iff_forces_restrict, ← eq_restrict_support hC]
 
-/-- Reading every coordinate of `x` pins down `f`. -/
-lemma fixes_univ (f : BooleanFunction n) (x : BitString n) : Fixes f x Finset.univ :=
+/-- Reading every coordinate of `x` is a certificate. -/
+lemma isCertificate_univ (f : BooleanFunction n) (x : BitString n) :
+    IsCertificate f x Finset.univ :=
   fun _ hy => congrArg f (funext fun i => hy i (Finset.mem_univ i))
 
-/-- There is always a fixing set, so `Cₓ(f)` is a minimum over a non-empty set. -/
-lemma fixes_nonempty (f : BooleanFunction n) (x : BitString n) :
-    (Finset.univ.filter (Fixes f x)).Nonempty :=
-  ⟨Finset.univ, Finset.mem_filter.mpr ⟨Finset.mem_univ _, fixes_univ f x⟩⟩
+/-- There is always a certificate, so `C(f, x)` is a minimum over a non-empty set. -/
+lemma filter_isCertificate_nonempty (f : BooleanFunction n) (x : BitString n) :
+    (Finset.univ.filter (IsCertificate f x)).Nonempty :=
+  ⟨Finset.univ, Finset.mem_filter.mpr ⟨Finset.mem_univ _, isCertificate_univ f x⟩⟩
 
-/-- The fewest coordinates of `x` that pin down the value of `f`, denoted `Cₓ(f)`. -/
-def pointCertificateComplexity (f : BooleanFunction n) (x : BitString n) : ℕ :=
-  (Finset.univ.filter (Fixes f x)).inf' (fixes_nonempty f x) Finset.card
+/-- The fewest coordinates of `x` that pin down the value of `f`, denoted `C(f, x)`. -/
+def certificateComplexityAt (f : BooleanFunction n) (x : BitString n) : ℕ :=
+  (Finset.univ.filter (IsCertificate f x)).inf' (filter_isCertificate_nonempty f x) Finset.card
 
-/-- Upper-bound rule for `Cₓ(f)`: exhibit one fixing set. -/
-lemma pointCertificateComplexity_le {f : BooleanFunction n} {x : BitString n} {S : Finset (Fin n)}
-    (h : Fixes f x S) : pointCertificateComplexity f x ≤ S.card :=
+/-- Upper-bound rule for `C(f, x)`: exhibit one certificate. -/
+lemma certificateComplexityAt_le {f : BooleanFunction n} {x : BitString n} {S : Finset (Fin n)}
+    (h : IsCertificate f x S) : certificateComplexityAt f x ≤ S.card :=
   Finset.inf'_le _ (Finset.mem_filter.mpr ⟨Finset.mem_univ _, h⟩)
 
-/-- Lower-bound rule for `Cₓ(f)`: a bound that holds for every fixing set. -/
-lemma le_pointCertificateComplexity {f : BooleanFunction n} {x : BitString n} {k : ℕ}
-    (h : ∀ S, Fixes f x S → k ≤ S.card) : k ≤ pointCertificateComplexity f x :=
+/-- Lower-bound rule for `C(f, x)`: a bound that holds for every certificate. -/
+lemma le_certificateComplexityAt {f : BooleanFunction n} {x : BitString n} {k : ℕ}
+    (h : ∀ S, IsCertificate f x S → k ≤ S.card) : k ≤ certificateComplexityAt f x :=
   Finset.le_inf' _ _ fun _ hS => h _ (Finset.mem_filter.mp hS).2
 
-/-- `Cₓ(f)` over fixing sets agrees with the smallest certificate for `x` as a partial assignment,
-as in [BuhrmanDeWolf2002]. -/
-theorem pointCertificateComplexity_eq_inf'_size (f : BooleanFunction n) (x : BitString n) :
-    pointCertificateComplexity f x = (certificates f x).inf' (certificates_nonempty f x) size := by
+/-- Some certificate for `x` has exactly `C(f, x)` coordinates. -/
+theorem exists_isCertificate_card_eq (f : BooleanFunction n) (x : BitString n) :
+    ∃ S, IsCertificate f x S ∧ S.card = certificateComplexityAt f x := by
+  obtain ⟨S, hS, h⟩ := Finset.exists_mem_eq_inf' (filter_isCertificate_nonempty f x) Finset.card
+  exact ⟨S, (Finset.mem_filter.mp hS).2, h.symm⟩
+
+/-! ## Certificates as partial assignments
+
+At a fixed input a forcing assignment carries no information beyond the coordinates it reads:
+`Agrees C x` forces `C i = some (x i)` on the support and `none` elsewhere. So `C(f, x)` over
+coordinate sets is also the minimum size of a forcing assignment consistent with `x`.
+-/
+
+/-- Partial assignments consistent with `x` that force `f x`. -/
+def forcingAssignments (f : BooleanFunction n) (x : BitString n) :
+    Finset (PartialAssignment n) :=
+  Finset.univ.filter (fun C => Agrees C x ∧ Forces f C (f x))
+
+@[simp]
+lemma mem_forcingAssignments {f : BooleanFunction n} {x : BitString n}
+    {C : PartialAssignment n} :
+    C ∈ forcingAssignments f x ↔ Agrees C x ∧ Forces f C (f x) := by
+  simp [forcingAssignments]
+
+/-- Reading off all of `x` forces `f x`. -/
+lemma ofBitString_mem_forcingAssignments (f : BooleanFunction n) (x : BitString n) :
+    ofBitString x ∈ forcingAssignments f x :=
+  mem_forcingAssignments.mpr ⟨agrees_ofBitString_iff.mpr rfl, fun _ hy => by
+    rw [agrees_ofBitString_iff.mp hy]⟩
+
+/-- There is always a forcing assignment consistent with `x`. -/
+lemma forcingAssignments_nonempty (f : BooleanFunction n) (x : BitString n) :
+    (forcingAssignments f x).Nonempty :=
+  ⟨ofBitString x, ofBitString_mem_forcingAssignments f x⟩
+
+/-- `C(f, x)` over coordinate sets is the minimum size of a forcing assignment consistent with
+`x`, the definition of [BuhrmanDeWolf2002]. -/
+theorem certificateComplexityAt_eq_inf'_size (f : BooleanFunction n) (x : BitString n) :
+    certificateComplexityAt f x =
+      (forcingAssignments f x).inf' (forcingAssignments_nonempty f x) size := by
   refine le_antisymm (Finset.le_inf' _ _ fun C hC => ?_)
-    (le_pointCertificateComplexity fun S hS => ?_)
-  · obtain ⟨hA, hcert⟩ := mem_certificates.mp hC
-    exact pointCertificateComplexity_le ((isCertificate_iff_fixes_support hA).mp hcert)
-  · have hmem : restrict x S ∈ certificates f x :=
-      mem_certificates.mpr ⟨agrees_restrict_iff.mpr fun _ _ => rfl,
-        fixes_iff_isCertificate_restrict.mp hS⟩
+    (le_certificateComplexityAt fun S hS => ?_)
+  · obtain ⟨hA, hforce⟩ := mem_forcingAssignments.mp hC
+    exact certificateComplexityAt_le ((forces_iff_isCertificate_support hA).mp hforce)
+  · have hmem : restrict x S ∈ forcingAssignments f x :=
+      mem_forcingAssignments.mpr ⟨agrees_restrict_iff.mpr fun _ _ => rfl,
+        isCertificate_iff_forces_restrict.mp hS⟩
     exact (Finset.inf'_le size hmem).trans_eq (by simp [size])
 
 /-- The maximum over all inputs of the smallest certificate size, denoted `C(f)`. -/
 def certificateComplexity (f : BooleanFunction n) : ℕ :=
-  Finset.univ.sup (pointCertificateComplexity f)
+  Finset.univ.sup (certificateComplexityAt f)
 
-/-- The certificate complexity at a single input is at most that of `f`: `Cₓ(f) ≤ C(f)`. -/
-lemma pointCertificateComplexity_le_certificateComplexity (f : BooleanFunction n)
-    (x : BitString n) : pointCertificateComplexity f x ≤ certificateComplexity f :=
+/-- The certificate complexity at a single input is at most that of `f`: `C(f, x) ≤ C(f)`. -/
+lemma certificateComplexityAt_le_certificateComplexity (f : BooleanFunction n)
+    (x : BitString n) : certificateComplexityAt f x ≤ certificateComplexity f :=
   Finset.le_sup (Finset.mem_univ x)
 
-/-- `Cₓ(f) ≤ n`: reading every coordinate pins down `f`. -/
-theorem pointCertificateComplexity_le_card (f : BooleanFunction n) (x : BitString n) :
-    pointCertificateComplexity f x ≤ n :=
-  (pointCertificateComplexity_le (fixes_univ f x)).trans_eq (by simp)
+/-- `C(f, x) ≤ n`: reading every coordinate pins down `f`. -/
+theorem certificateComplexityAt_le_card (f : BooleanFunction n) (x : BitString n) :
+    certificateComplexityAt f x ≤ n :=
+  (certificateComplexityAt_le (isCertificate_univ f x)).trans_eq (by simp)
+
+/-- `C(f) ≤ n`. -/
+theorem certificateComplexity_le_card (f : BooleanFunction n) : certificateComplexity f ≤ n :=
+  Finset.sup_le fun x _ => certificateComplexityAt_le_card f x
 
 /-! ## `bs(f) ≤ C(f)`
 
-A set of coordinates pinning down `f` at `x` must meet every block of a sensitive family. The
-blocks are pairwise disjoint, so a family has at most `|S|` members.
+A certificate for `x` must meet every block of a sensitive family. The blocks are pairwise
+disjoint, so a family has at most `|S|` members.
 -/
 
-/-- A fixing set must contain at least one coordinate of every sensitive block. -/
-theorem sensitiveBlock_inter_nonempty {f : BooleanFunction n} (x : BitString n) (B : Block n)
-    (hB : IsSensitiveBlock f x B) {S : Finset (Fin n)} (hS : Fixes f x S) :
+/-- A certificate must contain at least one coordinate of every sensitive block. -/
+theorem sensitiveBlock_inter_nonempty {f : BooleanFunction n} {x : BitString n} {B : Block n}
+    (hB : IsSensitiveBlock f x B) {S : Finset (Fin n)} (hS : IsCertificate f x S) :
     (B ∩ S).Nonempty := by
   by_contra h
   rw [Finset.not_nonempty_iff_eq_empty, Finset.eq_empty_iff_forall_notMem] at h
   refine hB (hS _ fun i hi => ?_)
-  have hiB : i ∉ B := fun hiB => h i (Finset.mem_inter.mpr ⟨hiB, hi⟩)
-  simp [flipBlock, hiB]
+  exact flipBlock_apply_of_notMem fun hiB => h i (Finset.mem_inter.mpr ⟨hiB, hi⟩)
 
-/-- A fixing set is at least as large as any sensitive family. -/
+/-- A certificate is at least as large as any sensitive family. -/
 lemma card_le_card_of_isSensitiveFamily {f : BooleanFunction n} {x : BitString n}
     {F : Finset (Block n)} {S : Finset (Fin n)}
-    (hF : IsSensitiveFamily f x F) (hS : Fixes f x S) : F.card ≤ S.card :=
+    (hF : IsSensitiveFamily f x F) (hS : IsCertificate f x S) : F.card ≤ S.card :=
   (Finset.card_le_card_biUnion
       (fun _ hP _ hQ hPQ => Disjoint.mono Finset.inter_subset_left Finset.inter_subset_left
         (hF.2 hP hQ hPQ))
-      (fun B hB => sensitiveBlock_inter_nonempty x B (hF.1 B hB) hS)).trans
+      (fun B hB => sensitiveBlock_inter_nonempty (hF.1 B hB) hS)).trans
     (Finset.card_le_card (Finset.biUnion_subset.mpr fun _ _ => Finset.inter_subset_right))
 
-/-- Pointwise: `bsₓ(f) ≤ Cₓ(f)`. -/
-theorem pointBlockSensitivity_le_pointCertificateComplexity (f : BooleanFunction n)
-    (x : BitString n) : pointBlockSensitivity f x ≤ pointCertificateComplexity f x :=
-  Finset.sup_le fun _ hF => le_pointCertificateComplexity fun _ hS =>
+/-- Pointwise: `bs(f, x) ≤ C(f, x)`. -/
+theorem blockSensitivityAt_le_certificateComplexityAt (f : BooleanFunction n)
+    (x : BitString n) : blockSensitivityAt f x ≤ certificateComplexityAt f x :=
+  Finset.sup_le fun _ hF => le_certificateComplexityAt fun _ hS =>
     card_le_card_of_isSensitiveFamily (mem_sensitiveFamilies.mp hF) hS
 
-/-- Every block of a sensitive family meets every fixing set, so `bs(f) ≤ C(f)`. -/
+/-- Every block of a sensitive family meets every certificate, so `bs(f) ≤ C(f)`. -/
 theorem blockSensitivity_le_certificateComplexity (f : BooleanFunction n) :
     blockSensitivity f ≤ certificateComplexity f :=
   Finset.sup_mono_fun fun x _ =>
-    pointBlockSensitivity_le_pointCertificateComplexity f x
+    blockSensitivityAt_le_certificateComplexityAt f x
 
-end Cslib.QueryComplexity
+/-- `bs(f, x) ≤ n`. -/
+theorem blockSensitivityAt_le_card (f : BooleanFunction n) (x : BitString n) :
+    blockSensitivityAt f x ≤ n :=
+  (blockSensitivityAt_le_certificateComplexityAt f x).trans (certificateComplexityAt_le_card f x)
+
+/-- `bs(f) ≤ n`. -/
+theorem blockSensitivity_le_card (f : BooleanFunction n) : blockSensitivity f ≤ n :=
+  Finset.sup_le fun x _ => blockSensitivityAt_le_card f x
+
+end QueryComplexity
+
+end Cslib
