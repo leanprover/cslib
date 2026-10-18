@@ -8,19 +8,21 @@ module
 
 public import Cslib.Init
 public import Cslib.Foundations.Data.BitString
+public import Mathlib.Data.Finset.Piecewise
 public import Mathlib.Data.Fintype.Card
 
 /-!
 # Boolean functions on the hypercube
 
 A Boolean function is a map `{0,1}ⁿ → {0,1}`, shared across the library as
-`Cslib.BooleanFunction` on `Cslib.BitString n`. This file sets up bit and block flips, and partial
-assignments. The complexity measures are built in `Measures.lean` and `DecisionTree.lean`.
+`Cslib.BooleanFunction` on `Cslib.BitString n`. This file sets up block flips, which are the moves
+of sensitivity and block sensitivity, and partial assignments. The complexity measures are built in
+`Measures.lean`.
 
 ## Main definitions
 
+- `BitString.flipBlock B x`: `x` with every coordinate of `B` flipped.
 - `Block n`: a set of coordinates.
-- `flipBit`, `flipBlock`: flipping one coordinate, or every coordinate of a block.
 - `PartialAssignment n`: a partial assignment, fixing some coordinates and leaving others free.
 - `restrict x S`: the partial assignment reading off `x` on the coordinates in `S`.
 - `Agrees`: An input is consistent with a partial assignment.
@@ -35,53 +37,68 @@ assignments. The complexity measures are built in `Measures.lean` and `DecisionT
 
 @[expose] public section
 
-namespace Cslib.QueryComplexity
+namespace Cslib
 
 variable {n : ℕ}
 
-/-- A block: a set of coordinates. -/
-abbrev Block (n : ℕ) : Type := Finset (Fin n)
+namespace BitString
 
-/-- `x` with coordinate `i` flipped. Phrased with `Function.update` so that the
-whole `Function.update` simp set (`update_self`, `update_of_ne`, `update_idem`,
-`update_eq_self`, …) applies to it. -/
-def flipBit (x : BitString n) (i : Fin n) : BitString n := Function.update x i (!x i)
+/-! ## Flipping blocks of bits -/
 
 /-- `x` with every coordinate of `B` flipped. -/
-def flipBlock (x : BitString n) (B : Block n) : BitString n :=
+def flipBlock (B : Finset (Fin n)) (x : BitString n) : BitString n :=
   fun j => if j ∈ B then !(x j) else x j
 
-/-! ## Flipping lemmas -/
+/-- Flipping `B` splices the negation of `x` into `x` on `B`. -/
+theorem flipBlock_eq_piecewise (B : Finset (Fin n)) (x : BitString n) :
+    flipBlock B x = B.piecewise (fun j => !(x j)) x :=
+  rfl
 
-/-- Flipping the same bit twice does nothing. -/
 @[simp]
-lemma flipBit_flipBit (x : BitString n) (i : Fin n) : flipBit (flipBit x i) i = x := by
-  simp [flipBit]
+theorem flipBlock_apply_of_mem {B : Finset (Fin n)} {x : BitString n} {j : Fin n} (h : j ∈ B) :
+    flipBlock B x j = !(x j) := by
+  simp [flipBlock, h]
+
+@[simp]
+theorem flipBlock_apply_of_notMem {B : Finset (Fin n)} {x : BitString n} {j : Fin n} (h : j ∉ B) :
+    flipBlock B x j = x j := by
+  simp [flipBlock, h]
 
 /-- Flipping no coordinates does nothing. -/
 @[simp]
-lemma flipBlock_empty (x : BitString n) : flipBlock x ∅ = x := by
+theorem flipBlock_empty (x : BitString n) : flipBlock ∅ x = x := by
   funext j; simp [flipBlock]
 
-/-- Flipping a block is an involution. -/
+/-- Flipping the same block twice does nothing. -/
 @[simp]
-lemma flipBlock_flipBlock (x : BitString n) (B : Block n) :
-    flipBlock (flipBlock x B) B = x := by
+theorem flipBlock_flipBlock (B : Finset (Fin n)) (x : BitString n) :
+    flipBlock B (flipBlock B x) = x := by
   funext j; by_cases h : j ∈ B <;> simp [flipBlock, h]
+
+/-- Flipping a block is an involution. -/
+theorem flipBlock_involutive (B : Finset (Fin n)) : Function.Involutive (flipBlock B) :=
+  flipBlock_flipBlock B
 
 /-- Flipping the block `{i}` is flipping the single bit `i`. -/
 @[simp]
-lemma flipBlock_singleton (x : BitString n) (i : Fin n) :
-    flipBlock x {i} = flipBit x i := by
-  funext j; by_cases h : j = i <;> simp [flipBlock, flipBit, h]
+theorem flipBlock_singleton (i : Fin n) (x : BitString n) :
+    flipBlock {i} x = Function.update x i (!x i) := by
+  funext j; by_cases h : j = i <;> simp [flipBlock, h]
 
-/-- Flipping `B` then flipping `i ∈ B` back is flipping `B \ {i}`. -/
-lemma flipBlock_erase (x : BitString n) (B : Block n) {i : Fin n} (hi : i ∈ B) :
-    flipBlock x (B.erase i) = flipBit (flipBlock x B) i := by
+/-- Flipping `B \ {i}` is flipping `B` and then restoring bit `i ∈ B`. -/
+theorem flipBlock_erase {B : Finset (Fin n)} {i : Fin n} (hi : i ∈ B) (x : BitString n) :
+    flipBlock (B.erase i) x = Function.update (flipBlock B x) i (x i) := by
   funext j
   by_cases hij : j = i
-  · subst hij; simp [flipBlock, flipBit, hi]
-  · simp [flipBit, flipBlock, hij]
+  · subst hij; simp [flipBlock, hi]
+  · simp [flipBlock, hij]
+
+end BitString
+
+namespace QueryComplexity
+
+/-- A block: a set of coordinates. -/
+abbrev Block (n : ℕ) : Type := Finset (Fin n)
 
 /-! ## Partial assignments -/
 
@@ -149,4 +166,6 @@ theorem eq_restrict_support {C : PartialAssignment n} {x : BitString n} (h : Agr
   | none => simp [restrict, hC]
   | some b => simp [restrict, hC, h i b hC]
 
-end Cslib.QueryComplexity
+end QueryComplexity
+
+end Cslib

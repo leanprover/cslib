@@ -161,7 +161,7 @@ def IsPACLearnerFor (m : ℕ) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
     ∀ (D : Measure (α × β)) [IsProbabilityMeasure D], D ∈ 𝒟 →
       (Measure.pi (fun _ : Fin m => D))
         {S : LabeledSample α β m |
-          error D (A S) > optimalError D C + ↑ε.val} ≤ ↑δ.val
+          optimalError D C + ↑ε.val < error D (A S)} ≤ ↑δ.val
 
 /-- `IsRPACLearnerFor m ε δ C 𝒟` asserts that there exists a *randomized* learner using
 `m` samples that is `(ε, δ)`-correct for the concept class `C` over the distribution family
@@ -185,10 +185,10 @@ def IsRPACLearnerFor (m : ℕ) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
     ∀ (D : Measure (α × β)) [IsProbabilityMeasure D], D ∈ 𝒟 →
       AEMeasurable (fun ω => (Measure.pi (fun _ : Fin m => D))
         {S : LabeledSample α β m |
-          error D ((A ω) S) > optimalError D C + ↑ε.val}) Q ∧
+          optimalError D C + ↑ε.val < error D ((A ω) S)}) Q ∧
       ∫⁻ ω, (Measure.pi (fun _ : Fin m => D))
         {S : LabeledSample α β m |
-          error D ((A ω) S) > optimalError D C + ↑ε.val} ∂Q ≤ ↑δ.val
+          optimalError D C + ↑ε.val < error D ((A ω) S)} ∂Q ≤ ↑δ.val
 
 /-- Every deterministic PAC learner is in particular a randomized PAC learner
 (with the trivial one-point randomness space `PUnit`). -/
@@ -200,7 +200,7 @@ theorem IsPACLearnerFor.toIsRPACLearnerFor {m : ℕ} {ε δ : Set.Ioo (0 : ℝ�
   refine ⟨PUnit, inferInstance, Measure.dirac PUnit.unit, inferInstance, fun _ => A, ?_⟩
   intro D _ hD
   refine ⟨measurable_const.aemeasurable, ?_⟩
-  simp only [gt_iff_lt, lintegral_const, measure_univ, mul_one]
+  simp only [lintegral_const, measure_univ, mul_one]
   exact hA D hD
 
 /-- The deterministic PAC learner predicate is antitone in the distribution family: a
@@ -367,7 +367,7 @@ theorem sampleComplexity_le_of_forall {L₁ L₂ : LearnerModel α β}
     (hL : ∀ {m : ℕ}, L₁ m ε₁ δ₁ C₁ 𝒟₁ → L₂ m ε₂ δ₂ C₂ 𝒟₂)
     (h : ∃ m, L₁ m ε₁ δ₁ C₁ 𝒟₁) :
     sampleComplexity L₂ C₂ ε₂ δ₂ 𝒟₂ ≤ sampleComplexity L₁ C₁ ε₁ δ₁ 𝒟₁ :=
-  Nat.sInf_le (hL (Nat.sInf_mem h))
+  Nat.sInf_le (hL (Nat.sInf_mem (s := {m | L₁ m ε₁ δ₁ C₁ 𝒟₁}) h))
 
 /-- Deterministic sample complexity is antitone in the confidence parameter `δ`: weaker
 confidence requires no more samples. -/
@@ -502,7 +502,7 @@ theorem hypothesisError_eq_add {P : Measure α} {h c : Set α}
   simp only [hypothesisError, falsePositiveError, falseNegativeError, symmDiff_def, sup_eq_union]
   exact measure_union disjoint_sdiff_sdiff (hc.diff hh)
 
-open Classical in
+open scoped Classical in
 /-- Under a realizable distribution `P.map (x ↦ (x, c(x)))`, the general 0-1 `error`
 coincides with the binary `hypothesisError P h c`, where `h` and `c` are viewed as subsets
 of `α` via the characteristic function `decide (· ∈ ·)`. -/

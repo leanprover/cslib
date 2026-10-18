@@ -298,27 +298,28 @@ theorem size_path_le_cost (t : DecisionTree n) (x : BitString n) :
         _ ≤ cost l x + 1 := Nat.add_le_add_right l_ih 1
 
 /-- The path is a certificate. -/
-theorem path_mem_certificates {f : BooleanFunction n} {t : DecisionTree n} (ht : t.Computes f)
-    (x : BitString n) : path t x ∈ certificates f x :=
-  mem_certificates.mpr ⟨agrees_path, fun y hy => (ht y).symm.trans ((routing hy).trans (ht x))⟩
+theorem path_mem_forcingAssignments {f : BooleanFunction n} {t : DecisionTree n} (ht : t.Computes f)
+    (x : BitString n) : path t x ∈ forcingAssignments f x :=
+  mem_forcingAssignments.mpr
+    ⟨agrees_path, fun y hy => (ht y).symm.trans ((routing hy).trans (ht x))⟩
 
 /-- Pointwise: `Cₓ(f) ≤ D(f)`, by running the chain
 `Cₓ(f) ≤ size (path t x) ≤ cost t x ≤ depth t` over every tree computing `f`. -/
-theorem pointCertificateComplexity_le_complexity (f : BooleanFunction n) (x : BitString n) :
-    pointCertificateComplexity f x ≤ complexity f := by
+theorem certificateComplexityAt_le_complexity (f : BooleanFunction n) (x : BitString n) :
+    certificateComplexityAt f x ≤ complexity f := by
   apply le_complexity
   intro t ht
-  calc pointCertificateComplexity f x
-      ≤ size (path t x) := pointCertificateComplexity_le
-          ((isCertificate_iff_fixes_support agrees_path).mp
-            (mem_certificates.mp (path_mem_certificates ht x)).2)
+  calc certificateComplexityAt f x
+      ≤ size (path t x) := certificateComplexityAt_le
+          ((forces_iff_isCertificate_support agrees_path).mp
+            (mem_forcingAssignments.mp (path_mem_forcingAssignments ht x)).2)
     _ ≤ cost t x := size_path_le_cost t x
     _ ≤ t.depth := cost_le_depth t x
 
 /-- `C(f) ≤ D(f)`. -/
 theorem certificateComplexity_le_complexity (f : BooleanFunction n) :
     certificateComplexity f ≤ complexity f :=
-  Finset.sup_le fun x _ => pointCertificateComplexity_le_complexity f x
+  Finset.sup_le fun x _ => certificateComplexityAt_le_complexity f x
 
 end DecisionTree
 

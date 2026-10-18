@@ -98,6 +98,11 @@ theorem get_succ_cons (n : ℕ) (s : ωSequence α) (x : α) : (x ::ω s) n.succ
 lemma get_cons_append_zero {a : α} {x : List α} {s : ωSequence α} :
     (a :: x ++ω s) 0 = a := rfl
 
+lemma append_get_zero_of_ne_nil {x : List α} {s : ωSequence α} (h : x ≠ []) :
+    (x ++ω s) 0 = x.head h := by
+  rw! [← List.cons_head_tail h, get_cons_append_zero]
+  simp
+
 @[simp, scoped grind =]
 lemma append_eq_cons {a : α} {as : ωSequence α} : [a] ++ω as = a ::ω as := rfl
 
@@ -250,6 +255,9 @@ theorem nil_append_ωSequence (s : ωSequence α) : appendωSequence [] s = s :=
 theorem cons_append_ωSequence (a : α) (l : List α) (s : ωSequence α) :
     appendωSequence (a :: l) s = a ::ω appendωSequence l s :=
   rfl
+
+@[simp] theorem singleton_append_ωSequence (a : α) (s : ωSequence α) :
+  [a] ++ω s = a ::ω s := rfl
 
 @[simp, scoped grind =]
 theorem append_append_ωSequence : ∀ (l₁ l₂ : List α) (s : ωSequence α),
@@ -475,7 +483,7 @@ theorem extract_eq_nil {xs : ωSequence α} {n : ℕ} :
 
 @[simp, scoped grind =]
 theorem extract_eq_nil_iff {xs : ωSequence α} {m n : ℕ} :
-    xs.extract m n = [] ↔ m ≥ n := by
+    xs.extract m n = [] ↔ n ≤ m := by
   rw [← List.length_eq_zero_iff]
   grind [extract_eq_drop_take]
 

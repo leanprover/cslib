@@ -55,9 +55,8 @@ enters state `scan`. In state `scan` it writes `write` over a symbol and moves l
 `scan`; on the first blank it moves right and halts. The input head never moves and nothing is
 ever output. -/
 public def rewindWork (Symbol : Type*) (write : Option (Option Symbol) := none) :
-    MultiTapeTM 1 Symbol RewindWorkState where
-  q₀ := .start
-  tr q _ work :=
+    MultiTapeTM 1 Symbol RewindWorkState :=
+  ofTr .start fun q _ work =>
     match q, work 0 with
     | .start, _ => ⟨0, fun _ => (none, -1), none, some .scan⟩
     | .scan, some _ => ⟨0, fun _ => (write, -1), none, some .scan⟩
@@ -72,7 +71,7 @@ variable {write : Option (Option Symbol)} {ip : Fin (input.length + 2)} {t : ℤ
 lemma step_start :
     (rewindWork Symbol write).step ⟨some .start, ip, fun _ => t, fun _ => p, out⟩ =
       ⟨some .scan, ip, fun _ => t, fun _ => p - 1, out⟩ := by
-  rw [step_apply_of_state rfl]
+  rw [step_of_state rfl]
   simp [rewindWork, Action.apply, sub_eq_add_neg]
 
 /-- Walking left in state `scan`: over a symbol the machine writes `write` and the head moves left,
@@ -80,7 +79,7 @@ staying in `scan`. -/
 lemma step_scan_some {s : Symbol} (hs : t p = some s) :
     (rewindWork Symbol write).step ⟨some .scan, ip, fun _ => t, fun _ => p, out⟩ =
       ⟨some .scan, ip, fun _ => write.elim t (Function.update t p), fun _ => p - 1, out⟩ := by
-  rw [step_apply_of_state rfl]
+  rw [step_of_state rfl]
   cases write <;> simp [rewindWork, Action.apply, Cfg.workTapeSymbols, hs, sub_eq_add_neg]
 
 /-- Halting in state `scan`: on the first blank — the cell at position `-1` — the head moves right
@@ -88,7 +87,7 @@ and the machine halts. -/
 lemma step_scan_none (hs : t p = none) :
     (rewindWork Symbol write).step ⟨some .scan, ip, fun _ => t, fun _ => p, out⟩ =
       ⟨none, ip, fun _ => t, fun _ => p + 1, out⟩ := by
-  rw [step_apply_of_state rfl]
+  rw [step_of_state rfl]
   simp [rewindWork, Action.apply, Cfg.workTapeSymbols, hs]
 
 /-- The scanning phase: from `scan` at cell `l - 1` of the word, after `n ≤ l` steps the head has

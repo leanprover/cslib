@@ -9,16 +9,13 @@ import Mathlib.Data.Fin.VecNotation
 
 /-! # Query complexity tests
 
-Worked examples of `s(f)`, `bs(f)`, `C(f)` and `D(f)` on some standard Boolean
-functions.
-
-`s`, `bs`, and `C` are all decidable and `D(f)` is not. We have proved the chain
-`s ≤ bs ≤ C ≤ D`.
+Worked examples of `s(f)`, `bs(f)` and `C(f)` on some standard Boolean functions. All three
+measures are decidable, so the values are checked by `decide`.
 -/
 
 namespace CslibTests.QueryComplexity
 
-open Cslib Cslib.QueryComplexity
+open Cslib Cslib.BitString Cslib.QueryComplexity
 
 /-! ## The functions -/
 
@@ -44,8 +41,9 @@ example : maj3 ![true, true, false] = true := rfl
 example : maj3 ![true, false, false] = false := rfl
 
 /-! ## OR
-Every coordinate is sensitive at the all zeroes input, so `s=n`, hence
-`D=n` since `s(f) ≤ D(f)`. This also implies `OR` has all four measures equal to `n`.
+
+Every coordinate is sensitive at the all-zeroes input, so `s = n`, and `s ≤ bs ≤ C ≤ n` forces
+all three measures to equal `n`.
 -/
 
 example : sensitivity (orF 2) = 2 := by decide
@@ -57,11 +55,11 @@ example : blockSensitivity (orF 3) = 3 := by decide
 example : certificateComplexity (orF 3) = 3 := by decide
 
 /-- A single `true` bit is a certificate for `OR`. -/
-example : pointCertificateComplexity (orF 3) ![true, true, true] = 1 := by decide
+example : certificateComplexityAt (orF 3) ![true, true, true] = 1 := by decide
 
 /-- The size of the smallest certificate at the all zeroes input is the size of the
 whole string. -/
-example : pointCertificateComplexity (orF 3) ![false, false, false] = 3 := by decide
+example : certificateComplexityAt (orF 3) ![false, false, false] = 3 := by decide
 
 /-! ## AND
 
@@ -86,11 +84,11 @@ example : blockSensitivity (parityF 3) = 3 := by decide
 example : certificateComplexity (parityF 3) = 3 := by decide
 
 /-- No short certificate at any input. -/
-example : pointCertificateComplexity (parityF 3) ![true, true, true] = 3 := by decide
+example : certificateComplexityAt (parityF 3) ![true, true, true] = 3 := by decide
 
 /-! ## MAJ₃
 
-Here the measures come apart: `s = bs = C = 2`, `D = 3`.
+Here `s = bs = C = 2`, one less than the number of input bits.
 -/
 
 example : sensitivity maj3 = 2 := by decide
@@ -98,18 +96,17 @@ example : blockSensitivity maj3 = 2 := by decide
 example : certificateComplexity maj3 = 2 := by decide
 
 /-- An all-`true` has no sensitive bits. -/
-example : pointSensitivity maj3 ![true, true, true] = 0 := by decide
+example : sensitivityAt maj3 ![true, true, true] = 0 := by decide
 
 /-- A split input is sensitive in the two agreeing coordinates, but not the third. -/
 example : sensitiveCoords maj3 ![true, true, false] = {0, 1} := by decide
 
-/-- Two agreeing bits are a certificate, so `Cₓ(f) = 2` everywhere. -/
-example : pointCertificateComplexity maj3 ![true, true, false] = 2 := by decide
+/-- Two agreeing bits are a certificate, so `C(f, x) = 2` everywhere. -/
+example : certificateComplexityAt maj3 ![true, true, false] = 2 := by decide
 
 /-! ## Constant functions
 
-No bit is sensitive. The empty assignment is a certificate and the trivial tree computes
-the function.
+No bit is sensitive, and the empty set is a certificate.
 -/
 
 example : sensitivity (fun _ => true : BooleanFunction 3) = 0 := by decide
