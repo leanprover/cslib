@@ -81,6 +81,7 @@ public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Languages.Slice
 public import Cslib.Computability.Languages.SyntacticMonoid
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Comp
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
@@ -90,11 +91,14 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ClearWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ForwardWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.MarkWork
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OnWords
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RepeatUntilBlank
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Tidy.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Tidy.Defs
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg

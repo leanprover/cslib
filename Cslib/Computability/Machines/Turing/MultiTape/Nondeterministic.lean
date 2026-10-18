@@ -141,6 +141,11 @@ lemma length_output_mono (p : ntm.RunPath input) :
   have : ntm.Step (p i.castSucc) (p i.succ) := p.step i
   grind [Step, Action.apply_output]
 
+/-- A step emits at most one symbol. -/
+lemma length_output_le_of_step {c c' : Cfg k Symbol State input} (h : ntm.Step c c') :
+    c'.output.length ≤ c.output.length + 1 := by
+  grind [Step, Action.apply_output, Option.length_toList_le]
+
 /-- Once a run path is halted, its configuration stays unchanged. -/
 lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.last = p.head := by
   induction p using RelSeries.inductionOn' with
@@ -157,6 +162,16 @@ lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
 
 /-- The number of steps taken by a run path. -/
 def time (p : ntm.RunPath input) : ℕ := p.length
+
+/-- A run path emits at most one symbol per step. -/
+lemma length_output_last_le (p : ntm.RunPath input) :
+    p.last.output.length ≤ p.head.output.length + p.time := by
+  induction p using RelSeries.inductionOn' with
+  | singleton c => simp [time]
+  | snoc p c hc ih =>
+    have := length_output_le_of_step hc
+    simp only [time, RelSeries.last_snoc, RelSeries.head_snoc, RelSeries.snoc_length] at ih ⊢
+    lia
 
 /-- A path that ends halted runs from its head to its last configuration in running steps, up to
 its first halted configuration. -/
