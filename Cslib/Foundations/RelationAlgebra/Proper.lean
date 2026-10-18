@@ -83,6 +83,21 @@ instance : RelationAlgebra carrier where
     use subset_unit (star R * (R * S)ᶜ).property ⟨y, hxy, hyz⟩
     exact fun hxz => hyz.2 ⟨x, hxy, hxz⟩
 
+end ProperRelationAlgebra
+
+/-- A representation by an injective morphism into a proper relation algebra. -/
+structure ProperRepresentation (α : Type u) [RelationAlgebra α] {β : Type v}
+    (carrier : Set (SetRel β β)) {unit : SetRel β β} [ProperRelationAlgebra carrier unit] where
+  /-- The morphism into the carrier of the proper relation algebra. -/
+  hom : RelationAlgebraHom α carrier
+  /-- Distinct algebra elements are represented by distinct relations. -/
+  injective : Function.Injective hom
+
+namespace ProperRelationAlgebra
+
+variable {α : Type u} {carrier : Set (SetRel α α)} {unit : SetRel α α}
+  [ProperRelationAlgebra carrier unit]
+
 include carrier in
 /-- The unit of a proper relation algebra is reflexive. -/
 theorem unit_refl (x : α) : (x, x) ∈ unit :=
@@ -148,10 +163,7 @@ variable {ι : Type v} (β : ι → Type w)
 /-- Pairs in the same summand of a disjoint union. -/
 def sumUnit : SetRel (Σ i, β i) (Σ i, β i) := {(⟨a, _⟩, ⟨b, _⟩) | a = b}
 
-/-- Relations between points in the same summand of a disjoint union. -/
-def sumCarrier : Set (SetRel (Σ i, β i) (Σ i, β i)) := {R | R ⊆ sumUnit β}
-
-instance : ProperRelationAlgebra (sumCarrier β) (sumUnit β) where
+instance : ProperRelationAlgebra (𝒫 (sumUnit β)) (sumUnit β) where
   empty_mem := Set.empty_subset _
   union_mem _ _ hR hS := Set.union_subset hR hS
   sdiff_mem _ _ hR _ := Set.Subset.trans Set.sdiff_subset hR
@@ -174,7 +186,7 @@ theorem mem_sumRel (R : ∀ i, SetRel (β i) (β i)) (i : ι) (x y : β i) :
 
 /-- Restricting relations on a disjoint union to its summands is an equivalence with the product
 of square relation algebras. -/
-def sumEquiv : RelationAlgebraEquiv (sumCarrier β) (∀ i, SquareRelations (β i)) where
+def sumEquiv : RelationAlgebraEquiv (𝒫 (sumUnit β)) (∀ i, SquareRelations (β i)) where
   toFun R i := {p | (⟨i, p.1⟩, ⟨i, p.2⟩) ∈ R.val}
   invFun R := ⟨sumRel β R, fun _ ⟨h, _⟩ => h.symm⟩
   left_inv R := by
@@ -216,18 +228,10 @@ def sumEquiv : RelationAlgebraEquiv (sumCarrier β) (∀ i, SquareRelations (β 
 
 end SquareRelations
 
-/-- A representation by an injective morphism into a proper relation algebra. -/
-structure ProperRepresentation (α : Type u) [RelationAlgebra α] {β : Type v}
-    (carrier : Set (SetRel β β)) {unit : SetRel β β} [ProperRelationAlgebra carrier unit] where
-  /-- The morphism into the carrier of the proper relation algebra. -/
-  hom : RelationAlgebraHom α carrier
-  /-- Distinct algebra elements are represented by distinct relations. -/
-  injective : Function.Injective hom
-
 /-- Convert a product representation to a proper representation on the disjoint union of its bases.
 The unit relates exactly those points belonging to the same summand. -/
 def Representation.toProper {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w}
-    (ρ : Representation α ι β) : ProperRepresentation α (SquareRelations.sumCarrier β) where
+    (ρ : Representation α ι β) : ProperRepresentation α (𝒫 (SquareRelations.sumUnit β)) where
   hom := (SquareRelations.sumEquiv β).symm.toHom.comp ρ.hom
   injective := (SquareRelations.sumEquiv β).symm.injective.comp ρ.injective
 
@@ -246,9 +250,9 @@ original relation in every copy of its factor, indexed by an anchor `x`. -/
 theorem Representation.mem_toProper_toRepresentation
     {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w}
     (ρ : Representation α ι β) (a : α) (i : ι) (x y z : β i) :
-    (⟨⟨i, y⟩, rfl⟩, ⟨⟨i, z⟩, rfl⟩) ∈
-      (show SetRel _ _ from ρ.toProper.toRepresentation.hom a ⟨i, x⟩) ↔
-      (y, z) ∈ (show SetRel _ _ from ρ.hom a i) :=
+    let R : SetRel _ _ := ρ.hom a i
+    let S : SetRel _ _ := ρ.toProper.toRepresentation.hom a ⟨i, x⟩
+    (⟨⟨i, y⟩, rfl⟩, ⟨⟨i, z⟩, rfl⟩) ∈ S ↔ (y, z) ∈ R :=
   SquareRelations.mem_sumRel β (ρ.hom a) i y z
 
 /-- Converting a proper representation to a product representation and back recovers each
@@ -267,7 +271,7 @@ theorem ProperRepresentation.mem_toRepresentation_toProper
 union of bases. The forward map is `toProper`; the inverse restricts to the original summands,
 whereas `ProperRepresentation.toRepresentation` indexes the unit classes by all base points. -/
 def Representation.properEquiv {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w} :
-    Representation α ι β ≃ ProperRepresentation α (SquareRelations.sumCarrier β) where
+    Representation α ι β ≃ ProperRepresentation α (𝒫 (SquareRelations.sumUnit β)) where
   toFun := Representation.toProper
   invFun ρ :=
     { hom := (SquareRelations.sumEquiv β).toHom.comp ρ.hom
