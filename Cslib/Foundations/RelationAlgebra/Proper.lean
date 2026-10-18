@@ -15,14 +15,27 @@ public import Mathlib.MeasureTheory.SetSemiring
 The carrier of a proper relation algebra inherits a `RelationAlgebra` structure, with Boolean
 top given by its unit and complements taken relative to that unit.
 
-`ProperRepresentation` packages an injective morphism into a proper relation algebra.
+`ProperRepresentation` packages an injective morphism into a proper relation algebra. Its range
+is itself a proper relation algebra, and `ProperRepresentation.equivRange` identifies the source
+with this range. Thus this embedding convention gives the usual isomorphism onto a proper algebra.
+
 `Representation.toProper` converts a product representation using the disjoint union of its bases.
 `ProperRepresentation.toRepresentation` restricts to the equivalence classes of the unit, indexed
 by base points. These conversions preserve injectivity and allow empty bases. The latter indexing
-can repeat classes, so the conversions need not recover the original indexing of a product.
-The membership lemmas at the end recover the original relations after either round trip.
-`Representation.properEquiv` gives an equivalence with proper representations on a fixed disjoint
-union, whose inverse retains the original summand indexing.
+can repeat classes, so the conversions are not inverse operations on representation data.
+
+`SquareRelations.sumEquiv` identifies the full algebra of relations within summands of a disjoint
+union with the product of the square relation algebras. Transport along this isomorphism gives
+`Representation.properEquiv`, whose inverse retains the original summand indexing.
+
+`representable_iff_equiv_proper` characterizes representability by the existence of an isomorphism
+to a proper relation algebra, with the base in the universe of the source algebra.
+
+## References
+
+* [R. Hirsch and I. Hodkinson, *Relation Algebras by Games*][HirschHodkinson2002],
+  Definition 3.1 (proper relation algebras), Lemma 3.4 (equivalence of the unit), and
+  Definition 3.28 (representations).
 
 -/
 
@@ -83,21 +96,6 @@ instance : RelationAlgebra carrier where
     use subset_unit (star R * (R * S)ᶜ).property ⟨y, hxy, hyz⟩
     exact fun hxz => hyz.2 ⟨x, hxy, hxz⟩
 
-end ProperRelationAlgebra
-
-/-- A representation by an injective morphism into a proper relation algebra. -/
-structure ProperRepresentation (α : Type u) [RelationAlgebra α] {β : Type v}
-    (carrier : Set (SetRel β β)) {unit : SetRel β β} [ProperRelationAlgebra carrier unit] where
-  /-- The morphism into the carrier of the proper relation algebra. -/
-  hom : RelationAlgebraHom α carrier
-  /-- Distinct algebra elements are represented by distinct relations. -/
-  injective : Function.Injective hom
-
-namespace ProperRelationAlgebra
-
-variable {α : Type u} {carrier : Set (SetRel α α)} {unit : SetRel α α}
-  [ProperRelationAlgebra carrier unit]
-
 include carrier in
 /-- The unit of a proper relation algebra is reflexive. -/
 theorem unit_refl (x : α) : (x, x) ∈ unit :=
@@ -154,7 +152,77 @@ theorem toProductHom_injective : Function.Injective (toProductHom (carrier := ca
   exact ⟨fun hr => (hxy (subset_unit R.property hr)).mp hr,
     fun hs => (hxy (subset_unit S.property hs)).mpr hs⟩
 
+/-- Every proper relation algebra is representable by restriction to the classes of its unit. -/
+theorem representable : Representable carrier :=
+  ⟨α, fun x => {y // (x, y) ∈ unit}, ⟨⟨toProductHom, toProductHom_injective⟩⟩⟩
+
+/-- The range of a morphism into a proper relation algebra is a proper relation algebra with
+the same unit. -/
+theorem range {β : Type v} [RelationAlgebra β] (f : RelationAlgebraHom β carrier) :
+    ProperRelationAlgebra (Set.range fun a => (f a).val) unit where
+  empty_mem := ⟨⊥, congrArg Subtype.val (map_bot f)⟩
+  union_mem := by
+    rintro _ _ ⟨a, rfl⟩ ⟨b, rfl⟩
+    exact ⟨a ⊔ b, congrArg Subtype.val (map_sup f a b)⟩
+  sdiff_mem := by
+    rintro _ _ ⟨a, rfl⟩ ⟨b, rfl⟩
+    exact ⟨a \ b, congrArg Subtype.val (map_sdiff' f a b)⟩
+  subset_unit := by
+    rintro _ ⟨a, rfl⟩
+    exact subset_unit (f a).property
+  unit_mem := ⟨⊤, congrArg Subtype.val (map_top f)⟩
+  id_mem := ⟨1, congrArg Subtype.val (map_one f)⟩
+  inv_mem := by
+    rintro _ ⟨a, rfl⟩
+    exact ⟨star a, congrArg Subtype.val (map_star f a)⟩
+  comp_mem := by
+    rintro _ _ ⟨a, rfl⟩ ⟨b, rfl⟩
+    exact ⟨a * b, congrArg Subtype.val (map_mul f a b)⟩
+
 end ProperRelationAlgebra
+
+/-- A representation by an injective morphism into a proper relation algebra.
+The target may contain relations outside the image; `ProperRepresentation.equivRange` gives
+the corresponding isomorphism onto a proper relation algebra. -/
+structure ProperRepresentation (α : Type u) [RelationAlgebra α] {β : Type v}
+    (carrier : Set (SetRel β β)) {unit : SetRel β β} [ProperRelationAlgebra carrier unit] where
+  /-- The morphism into the carrier of the proper relation algebra. -/
+  hom : RelationAlgebraHom α carrier
+  /-- Distinct algebra elements are represented by distinct relations. -/
+  injective : Function.Injective hom
+
+namespace ProperRepresentation
+
+variable {α : Type u} [RelationAlgebra α] {β : Type v}
+  {carrier : Set (SetRel β β)} {unit : SetRel β β} [ProperRelationAlgebra carrier unit]
+  (ρ : ProperRepresentation α carrier)
+
+/-- The relations in the image of a proper representation. -/
+def range : Set (SetRel β β) := Set.range fun a => (ρ.hom a).val
+
+instance : ProperRelationAlgebra ρ.range unit := ProperRelationAlgebra.range ρ.hom
+
+/-- A proper representation is an isomorphism onto its range, which is a proper relation algebra. -/
+noncomputable def equivRange : RelationAlgebraEquiv α ρ.range :=
+  { Equiv.ofInjective (fun a => (ρ.hom a).val) (Subtype.val_injective.comp ρ.injective) with
+    map_rel_iff' := by
+      intro a b
+      change ρ.hom a ≤ ρ.hom b ↔ a ≤ b
+      constructor
+      · intro h
+        apply inf_eq_left.mp
+        apply ρ.injective
+        rw [map_inf, inf_eq_left.mpr h]
+      · intro h
+        apply inf_eq_left.mp
+        rw [← map_inf, inf_eq_left.mpr h]
+    map_mul' a b := Subtype.ext (congrArg (fun R : carrier => R.val) (map_mul ρ.hom a b))
+    map_star' a := Subtype.ext (congrArg (fun R : carrier => R.val) (map_star ρ.hom a)) }
+
+@[simp]
+theorem coe_equivRange_apply (a : α) : (ρ.equivRange a).val = (ρ.hom a).val := rfl
+
+end ProperRepresentation
 
 namespace SquareRelations
 
@@ -244,32 +312,29 @@ def ProperRepresentation.toRepresentation {α : Type u} [RelationAlgebra α] {β
   hom := ProperRelationAlgebra.toProductHom.comp ρ.hom
   injective := ProperRelationAlgebra.toProductHom_injective.comp ρ.injective
 
-/-- Converting a product representation to a proper representation and back recovers each
-original relation in every copy of its factor, indexed by an anchor `x`. -/
+/-- Within a summand, the proper representation agrees with the original factor. -/
 @[simp]
-theorem Representation.mem_toProper_toRepresentation
+theorem Representation.mem_toProper
     {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w}
-    (ρ : Representation α ι β) (a : α) (i : ι) (x y z : β i) :
+    (ρ : Representation α ι β) (a : α) (i : ι) (x y : β i) :
     let R : SetRel _ _ := ρ.hom a i
-    let S : SetRel _ _ := ρ.toProper.toRepresentation.hom a ⟨i, x⟩
-    (⟨⟨i, y⟩, rfl⟩, ⟨⟨i, z⟩, rfl⟩) ∈ S ↔ (y, z) ∈ R :=
-  SquareRelations.mem_sumRel β (ρ.hom a) i y z
+    (⟨i, x⟩, ⟨i, y⟩) ∈ (ρ.toProper.hom a).val ↔ (x, y) ∈ R :=
+  SquareRelations.mem_sumRel β (ρ.hom a) i x y
 
-/-- Converting a proper representation to a product representation and back recovers each
-original relation on pairs in the unit, using the class indexed by the first endpoint. -/
+/-- Restriction to a unit class preserves membership of its underlying endpoints. -/
 @[simp]
-theorem ProperRepresentation.mem_toRepresentation_toProper
+theorem ProperRepresentation.mem_toRepresentation
     {α : Type u} [RelationAlgebra α] {β : Type v}
     {carrier : Set (SetRel β β)} {unit : SetRel β β} [ProperRelationAlgebra carrier unit]
-    (ρ : ProperRepresentation α carrier) (a : α) (x y : β) (hxy : (x, y) ∈ unit) :
-    (⟨x, ⟨x, ProperRelationAlgebra.unit_refl (carrier := carrier) x⟩⟩,
-      ⟨x, ⟨y, hxy⟩⟩) ∈ (ρ.toRepresentation.toProper.hom a).val ↔
-      (x, y) ∈ (ρ.hom a).val :=
-  SquareRelations.mem_sumRel (fun x => {y // (x, y) ∈ unit}) (ρ.toRepresentation.hom a) x _ _
+    (ρ : ProperRepresentation α carrier) (a : α) (x : β) (y z : {y // (x, y) ∈ unit}) :
+    let R : SetRel _ _ := ρ.toRepresentation.hom a x
+    (y, z) ∈ R ↔ (y.val, z.val) ∈ (ρ.hom a).val :=
+  Iff.rfl
 
-/-- Product representations correspond exactly to proper representations on the same disjoint
-union of bases. The forward map is `toProper`; the inverse restricts to the original summands,
-whereas `ProperRepresentation.toRepresentation` indexes the unit classes by all base points. -/
+/-- Transport along `SquareRelations.sumEquiv` identifies product representations with proper
+representations into the full algebra `𝒫 (SquareRelations.sumUnit β)` on the disjoint union.
+The forward map is `toProper`; the inverse restricts to the original summands, whereas
+`ProperRepresentation.toRepresentation` indexes the unit classes by all base points. -/
 def Representation.properEquiv {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w} :
     Representation α ι β ≃ ProperRepresentation α (𝒫 (SquareRelations.sumUnit β)) where
   toFun := Representation.toProper
@@ -288,5 +353,19 @@ def Representation.properEquiv {α : Type u} [RelationAlgebra α] {ι : Type v} 
       dsimp [Representation.toProper]
       congr 1
       exact RelationAlgebraHom.ext fun a => (SquareRelations.sumEquiv β).left_inv (hom a)
+
+/-- A relation algebra is representable if and only if it is isomorphic to a proper relation algebra
+on a base in the same universe. -/
+theorem representable_iff_equiv_proper {α : Type u} [RelationAlgebra α] :
+    Representable α ↔
+      ∃ (β : Type u) (carrier : Set (SetRel β β)) (unit : SetRel β β),
+        ∃ _ : ProperRelationAlgebra carrier unit, Nonempty (RelationAlgebraEquiv α carrier) := by
+  constructor
+  · rintro ⟨ι, β, ⟨ρ⟩⟩
+    exact ⟨(Σ i, β i), ρ.toProper.range, SquareRelations.sumUnit β, inferInstance,
+      ⟨ρ.toProper.equivRange⟩⟩
+  · rintro ⟨β, carrier, unit, _, ⟨e⟩⟩
+    let ρ : ProperRepresentation α carrier := ⟨e.toHom, e.injective⟩
+    exact ⟨β, fun x => {y // (x, y) ∈ unit}, ⟨ρ.toRepresentation⟩⟩
 
 end Cslib.RelationAlgebra
