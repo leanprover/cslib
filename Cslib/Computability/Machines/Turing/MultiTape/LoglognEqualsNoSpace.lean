@@ -12,10 +12,9 @@ public import Mathlib.Computability.Language
 /-!
 # Subloglog space equals constant space
 
-A halting deterministic machine whose space usage is `o(log log n)` uses uniformly bounded
-space. The proof shortens an input while preserving a chosen storage, using the visit sequences
-from `InputShortening` and the storage count from `ConfigBound`. Induction on input length bounds
-all work-tape head positions by the space used below a fixed length threshold.
+A halting deterministic machine whose space usage is `o(log log n)` uses uniformly bounded space.
+The proof idea follows [Katz2007], §1.2, Theorem 4. Its main ingredient is formalized in
+`Cslib.Computability.Machines.Turing.MultiTape.InputShortening`.
 
 ## Main results
 
@@ -25,6 +24,11 @@ all work-tape head positions by the space used below a fixed length threshold.
 * `DecidableInSpace.exists_const_space`: a language decidable in subloglog space is decidable in
   constant space.
 * `loglogn_equals_no_space`: `SPACE(o(log log n)) = SPACE(1)` for binary languages.
+
+## References
+
+* [Jonathan Katz, *Notes on Complexity Theory, Lecture 5*][Katz2007],
+  §1.2, Theorem 4, pp. 5-2–5-4.
 -/
 
 @[expose] public section
