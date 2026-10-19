@@ -6,22 +6,23 @@ Authors: Yusuf Demir
 
 module
 
-public import Cslib.Computability.Automata.EpsilonNA.Basic
+public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
 public import Cslib.Computability.Languages.Language
 import Mathlib.Data.List.ReduceOption
 
 /-! # Thompson's construction
 
-Thompson's construction turns a regular expression into an `εNA` with a single initial and a single
-accepting state [Thompson1968]. This file defines the automata it is assembled from, with their
-languages.
+Thompson's construction turns a regular expression into an `εNA` with a single initial state and
+at most one accepting state [Thompson1968]. This file defines the automata it is assembled from,
+with their languages.
 
 ## Main definitions
 
 * `εNA.FinAcc.zero`, `εNA.FinAcc.epsilon`, `εNA.FinAcc.char x`: automata for the empty language,
   the empty word and the word `[x]`.
-* `εNA.FinAcc.union a b`: a fresh initial state with `ε`-transitions to the initial states of `a`
-  and `b`, and a fresh accepting state reached by `ε`-transitions from their accepting states.
+* `εNA.FinAcc.sum a b`: the states and transitions of `a` and `b` side by side.
+* `εNA.FinAcc.union a b`: `sum a b` with a single initial and a single accepting state, through
+  `toSingleStartAccept`.
 * `εNA.FinAcc.concat a b`: `ε`-transitions from the accepting states of `a` to the initial states
   of `b`.
 * `εNA.FinAcc.star a`: a fresh hub state, initial and accepting, with `ε`-transitions to the
@@ -30,7 +31,8 @@ languages.
 ## Main statements
 
 * `εNA.FinAcc.language_zero`, `εNA.FinAcc.language_epsilon`, `εNA.FinAcc.language_char`,
-  `εNA.FinAcc.language_union`, `εNA.FinAcc.language_concat` and `εNA.FinAcc.language_star`.
+  `εNA.FinAcc.language_sum`, `εNA.FinAcc.language_union`, `εNA.FinAcc.language_concat` and
+  `εNA.FinAcc.language_star`.
 
 ## References
 
@@ -103,99 +105,83 @@ theorem language_char (x : Symbol) : language (char x) = {[x]} := by
     exact ⟨false, Set.mem_singleton _, true, Set.mem_singleton _, [some x], rfl,
       .single _ ⟨rfl, rfl, rfl⟩⟩
 
-/-- The transitions of `union a b`, whose states are a fresh initial state `inl false`, a fresh
-accepting state `inl true`, and the states of `a` and `b`. -/
-inductive UnionTr (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
-    Bool ⊕ (S₁ ⊕ S₂) → Option Symbol → Bool ⊕ (S₁ ⊕ S₂) → Prop
-  | left {s μ s'} : a.Tr s μ s' → UnionTr a b (.inr (.inl s)) μ (.inr (.inl s'))
-  | right {s μ s'} : b.Tr s μ s' → UnionTr a b (.inr (.inr s)) μ (.inr (.inr s'))
-  | startLeft {s} : s ∈ a.start → UnionTr a b (.inl false) none (.inr (.inl s))
-  | startRight {s} : s ∈ b.start → UnionTr a b (.inl false) none (.inr (.inr s))
-  | acceptLeft {s} : s ∈ a.accept → UnionTr a b (.inr (.inl s)) none (.inl true)
-  | acceptRight {s} : s ∈ b.accept → UnionTr a b (.inr (.inr s)) none (.inl true)
+/-- The transitions of `sum a b`: those of `a` and those of `b`, side by side. -/
+inductive SumTr (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
+    S₁ ⊕ S₂ → Option Symbol → S₁ ⊕ S₂ → Prop
+  | left {s μ s'} : a.Tr s μ s' → SumTr a b (.inl s) μ (.inl s')
+  | right {s μ s'} : b.Tr s μ s' → SumTr a b (.inr s) μ (.inr s')
 
-/-- The union of `a` and `b`: a fresh initial state with `ε`-transitions to the initial states of
-`a` and `b`, and a fresh accepting state reached by `ε`-transitions from their accepting
-states. -/
-def union (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) : FinAcc (Bool ⊕ (S₁ ⊕ S₂)) Symbol where
-  Tr := UnionTr a b
-  start := {.inl false}
-  accept := {.inl true}
+/-- The disjoint sum of `a` and `b`: their states and transitions side by side, with the initial
+and the accepting states of both. -/
+def sum (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) : FinAcc (S₁ ⊕ S₂) Symbol where
+  Tr := SumTr a b
+  start := .inl '' a.start ∪ .inr '' b.start
+  accept := .inl '' a.accept ∪ .inr '' b.accept
 
 variable {a : FinAcc S₁ Symbol} {b : FinAcc S₂ Symbol}
 
-/-- The fresh accepting state of `union a b` has no outgoing transitions. -/
-theorem union_mTr_inl_true {μs : List (Option Symbol)} {y : Bool ⊕ (S₁ ⊕ S₂)}
-    (h : (union a b).MTr (.inl true) μs y) : μs = [] ∧ y = .inl true := by
-  cases h with
-  | refl => exact ⟨rfl, rfl⟩
-  | stepL htr _ => cases htr
-
-/-- A run of `union a b` from a state of `a` to the fresh accepting state is a run of `a` to an
-accepting state, followed by an `ε`-transition. -/
-theorem union_mTr_left {s : S₁} {μs : List (Option Symbol)}
-    (h : (union a b).MTr (.inr (.inl s)) μs (.inl true)) :
-    ∃ t ∈ a.accept, ∃ μs', a.MTr s μs' t ∧ μs = μs' ++ [none] := by
+/-- A run of `sum a b` from a state of `a` is a run of `a`. -/
+theorem sum_mTr_inl {s : S₁} {μs : List (Option Symbol)} {y : S₁ ⊕ S₂}
+    (h : (sum a b).MTr (.inl s) μs y) : ∃ t, y = .inl t ∧ a.MTr s μs t := by
   induction μs generalizing s with
-  | nil => cases h
+  | nil =>
+    cases h
+    exact ⟨s, rfl, .refl⟩
   | cons μ μs ih =>
-    obtain ⟨y, htr, h'⟩ := LTS.MTr.cons_iff.mp h
+    obtain ⟨z, htr, h'⟩ := LTS.MTr.cons_iff.mp h
     cases htr with
     | left htr =>
-      obtain ⟨t, ht, μs', hrun, rfl⟩ := ih h'
-      exact ⟨t, ht, μ :: μs', .stepL htr hrun, rfl⟩
-    | acceptLeft hs =>
-      obtain ⟨rfl, -⟩ := union_mTr_inl_true h'
-      exact ⟨s, hs, [], .refl, rfl⟩
+      obtain ⟨t, rfl, hrun⟩ := ih h'
+      exact ⟨t, rfl, .stepL htr hrun⟩
 
-/-- A run of `union a b` from a state of `b` to the fresh accepting state is a run of `b` to an
-accepting state, followed by an `ε`-transition. -/
-theorem union_mTr_right {s : S₂} {μs : List (Option Symbol)}
-    (h : (union a b).MTr (.inr (.inr s)) μs (.inl true)) :
-    ∃ t ∈ b.accept, ∃ μs', b.MTr s μs' t ∧ μs = μs' ++ [none] := by
+/-- A run of `sum a b` from a state of `b` is a run of `b`. -/
+theorem sum_mTr_inr {s : S₂} {μs : List (Option Symbol)} {y : S₁ ⊕ S₂}
+    (h : (sum a b).MTr (.inr s) μs y) : ∃ t, y = .inr t ∧ b.MTr s μs t := by
   induction μs generalizing s with
-  | nil => cases h
+  | nil =>
+    cases h
+    exact ⟨s, rfl, .refl⟩
   | cons μ μs ih =>
-    obtain ⟨y, htr, h'⟩ := LTS.MTr.cons_iff.mp h
+    obtain ⟨z, htr, h'⟩ := LTS.MTr.cons_iff.mp h
     cases htr with
     | right htr =>
-      obtain ⟨t, ht, μs', hrun, rfl⟩ := ih h'
-      exact ⟨t, ht, μ :: μs', .stepL htr hrun, rfl⟩
-    | acceptRight hs =>
-      obtain ⟨rfl, -⟩ := union_mTr_inl_true h'
-      exact ⟨s, hs, [], .refl, rfl⟩
+      obtain ⟨t, rfl, hrun⟩ := ih h'
+      exact ⟨t, rfl, .stepL htr hrun⟩
+
+@[simp]
+theorem language_sum (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
+    language (sum a b) = language a + language b := by
+  ext xs
+  rw [Language.mem_add, mem_language_iff, mem_language_iff, mem_language_iff]
+  constructor
+  · rintro ⟨_, hs', _, ht', μs, rfl, h⟩
+    rcases (Set.mem_union _ _ _).mp hs' with hs' | hs'
+    · obtain ⟨s, hs, rfl⟩ := (Set.mem_image _ _ _).mp hs'
+      obtain ⟨t, rfl, hrun⟩ := sum_mTr_inl h
+      exact .inl ⟨s, hs, t, by simpa [sum] using ht', μs, rfl, hrun⟩
+    · obtain ⟨s, hs, rfl⟩ := (Set.mem_image _ _ _).mp hs'
+      obtain ⟨t, rfl, hrun⟩ := sum_mTr_inr h
+      exact .inr ⟨s, hs, t, by simpa [sum] using ht', μs, rfl, hrun⟩
+  · rintro (⟨s, hs, t, ht, μs, rfl, h⟩ | ⟨s, hs, t, ht, μs, rfl, h⟩)
+    · have hcopy : (sum a b).MTr (.inl s) μs (.inl t) :=
+        h.map (fun s => (.inl s : S₁ ⊕ S₂)) fun _ _ _ => SumTr.left
+      exact ⟨.inl s, Set.mem_union_left _ (Set.mem_image_of_mem _ hs), .inl t,
+        Set.mem_union_left _ (Set.mem_image_of_mem _ ht), μs, rfl, hcopy⟩
+    · have hcopy : (sum a b).MTr (.inr s) μs (.inr t) :=
+        h.map (fun s => (.inr s : S₁ ⊕ S₂)) fun _ _ _ => SumTr.right
+      exact ⟨.inr s, Set.mem_union_right _ (Set.mem_image_of_mem _ hs), .inr t,
+        Set.mem_union_right _ (Set.mem_image_of_mem _ ht), μs, rfl, hcopy⟩
+
+/-- The union of `a` and `b`: their disjoint sum, with a single initial state and a single
+accepting state added by `toSingleStartAccept`. -/
+def union (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
+    FinAcc (Option (Option (S₁ ⊕ S₂))) Symbol :=
+  (sum a b).toSingleStartAccept
 
 @[simp]
 theorem language_union (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
     language (union a b) = language a + language b := by
-  ext xs
-  rw [Language.mem_add, mem_language_iff, mem_language_iff, mem_language_iff]
-  constructor
-  · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
-    obtain rfl := Set.mem_singleton_iff.mp hs
-    obtain rfl := Set.mem_singleton_iff.mp ht
-    cases μs with
-    | nil => cases h
-    | cons μ μs =>
-      obtain ⟨y, htr, h'⟩ := LTS.MTr.cons_iff.mp h
-      cases htr with
-      | startLeft hs =>
-        obtain ⟨t, ht, μs', hrun, rfl⟩ := union_mTr_left h'
-        exact .inl ⟨_, hs, t, ht, μs', by simp [List.reduceOption_append], hrun⟩
-      | startRight hs =>
-        obtain ⟨t, ht, μs', hrun, rfl⟩ := union_mTr_right h'
-        exact .inr ⟨_, hs, t, ht, μs', by simp [List.reduceOption_append], hrun⟩
-  · rintro (⟨s, hs, t, ht, μs, rfl, h⟩ | ⟨s, hs, t, ht, μs, rfl, h⟩)
-    · refine ⟨.inl false, Set.mem_singleton _, .inl true, Set.mem_singleton _,
-        none :: (μs ++ [none]), by simp [List.reduceOption_append], ?_⟩
-      have hcopy : (union a b).MTr (.inr (.inl s)) μs (.inr (.inl t)) :=
-        h.map (fun s => (.inr (.inl s) : Bool ⊕ (S₁ ⊕ S₂))) fun _ _ _ => UnionTr.left
-      exact .stepL (UnionTr.startLeft hs) (hcopy.comp _ (.single _ (UnionTr.acceptLeft ht)))
-    · refine ⟨.inl false, Set.mem_singleton _, .inl true, Set.mem_singleton _,
-        none :: (μs ++ [none]), by simp [List.reduceOption_append], ?_⟩
-      have hcopy : (union a b).MTr (.inr (.inr s)) μs (.inr (.inr t)) :=
-        h.map (fun s => (.inr (.inr s) : Bool ⊕ (S₁ ⊕ S₂))) fun _ _ _ => UnionTr.right
-      exact .stepL (UnionTr.startRight hs) (hcopy.comp _ (.single _ (UnionTr.acceptRight ht)))
+  rw [union, toSingleStartAccept_language_eq, language_sum]
 
 /-- The transitions of `concat a b`, whose states are those of `a` followed by those of `b`. -/
 inductive ConcatTr (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :

@@ -37,4 +37,18 @@ example : [false, true] ∉ language abStar.toεNA := by
   rw [language_toεNA]
   decide
 
+/-- The regular expression `a + b`. -/
+abbrev aOrB : RegularExpression Bool := char true + char false
+
+-- A fresh initial and a fresh accepting state, and two states for each letter.
+example : Fintype.card aOrB.State = 6 := by decide
+
+example : [false] ∈ language aOrB.toεNA := by
+  rw [language_toεNA]
+  decide
+
+example : [true, false] ∉ language aOrB.toεNA := by
+  rw [language_toεNA]
+  decide
+
 end CslibTests.Thompson

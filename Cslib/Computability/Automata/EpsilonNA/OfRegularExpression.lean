@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Automata.EpsilonNA.Thompson
 public import Mathlib.Computability.RegularExpressions
+public import Mathlib.Data.Fintype.Option
 public import Mathlib.Data.Fintype.Sum
 
 /-! # The ε-NA of a regular expression
@@ -43,7 +44,7 @@ def State : RegularExpression α → Type
   | zero => Unit
   | epsilon => Unit
   | char _ => Bool
-  | plus P Q => Bool ⊕ (P.State ⊕ Q.State)
+  | plus P Q => Option (Option (P.State ⊕ Q.State))
   | comp P Q => P.State ⊕ Q.State
   | star P => Unit ⊕ P.State
 
@@ -54,7 +55,7 @@ instance instFintypeState : (r : RegularExpression α) → Fintype r.State
   | plus P Q =>
     letI := instFintypeState P
     letI := instFintypeState Q
-    inferInstanceAs (Fintype (Bool ⊕ (P.State ⊕ Q.State)))
+    inferInstanceAs (Fintype (Option (Option (P.State ⊕ Q.State))))
   | comp P Q =>
     letI := instFintypeState P
     letI := instFintypeState Q
@@ -70,7 +71,7 @@ instance instDecidableEqState : (r : RegularExpression α) → DecidableEq r.Sta
   | plus P Q =>
     letI := instDecidableEqState P
     letI := instDecidableEqState Q
-    inferInstanceAs (DecidableEq (Bool ⊕ (P.State ⊕ Q.State)))
+    inferInstanceAs (DecidableEq (Option (Option (P.State ⊕ Q.State))))
   | comp P Q =>
     letI := instDecidableEqState P
     letI := instDecidableEqState Q
