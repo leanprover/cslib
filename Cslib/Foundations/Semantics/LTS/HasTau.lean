@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Semantics.LTS.Relation
+public import Cslib.Foundations.Semantics.LTS.SetImage
 
 /-!
 # LTS with a special "internal" transition `τ`.
