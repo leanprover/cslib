@@ -8,13 +8,13 @@ module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
 
-/-! # Translation of εNA into εNA with a single accept state
+/-! # Translation of εNA into εNA with a single start or accept state
 
 Defines the transformation `toSingleAccept` for `εNA.FinAcc` and proves correctness
 results in terms of language equivalence and correspondences between the two transition systems.
 
-Note for future work: we could formulate a stronger transformation, whereby also the set of accept
-states becomes a singleton.
+The transformation `toSingleStart` similarly yields a single start state, without incoming
+transitions, and `toSingleStartAccept` combines the two.
 -/
 
 @[expose] public section
@@ -252,5 +252,94 @@ theorem toSingleAccept_language_eq {a : εNA.FinAcc State Symbol} :
     refine ⟨s, by grind, none, by grind, ?_⟩
     rw [show xs.map some = xs.map some ++ [] by simp]
     exact LTS.SMTr.comp (toSingleAccept_sMTr_sMTr.mpr hsmtr) <| LTS.SMTr.τ (LTS.STr.single hs')
+
+/-- Any `εNA.FinAcc` can be converted into an `εNA.FinAcc` with a single start state `none`.
+The original states are wrapped in `some`, and `none` has ε-transitions to all original start
+states. -/
+def toSingleStart (a : εNA.FinAcc State Symbol) : εNA.FinAcc (Option State) Symbol where
+  start := {none}
+  accept := some '' a.accept
+  Tr
+    | some s, x, some s' => a.Tr s x s'
+    | none, none, some s => s ∈ a.start
+    | _, _, _ => False
+
+theorem toSingleStart_tr_tr {a : εNA.FinAcc State Symbol} {s s' : State} {x : Option Symbol} :
+    a.toSingleStart.Tr (some s) x (some s') ↔ a.Tr s x s' := Iff.rfl
+
+theorem toSingleStart_tr_start {a : εNA.FinAcc State Symbol} {s : State} (hs : s ∈ a.start) :
+    a.toSingleStart.Tr none none (some s) := hs
+
+/-- No transition of `toSingleStart` leads to its start state. -/
+theorem toSingleStart_not_tr_none {a : εNA.FinAcc State Symbol} {os : Option State}
+    {x : Option Symbol} : ¬a.toSingleStart.Tr os x none := by
+  cases os <;> cases x <;> simp [toSingleStart]
+
+/-- The transitions from the start state of `toSingleStart` are `ε`-transitions to the original
+start states. -/
+theorem toSingleStart_tr_none {a : εNA.FinAcc State Symbol} {os : Option State}
+    {x : Option Symbol} (h : a.toSingleStart.Tr none x os) :
+    x = none ∧ ∃ s, os = some s ∧ s ∈ a.start := by
+  cases x <;> cases os <;> simp_all [toSingleStart]
+
+/-- Multistep transitions of `toSingleStart` between original states are those of the original
+automaton. -/
+theorem toSingleStart_mTr_mTr {a : εNA.FinAcc State Symbol} {s s' : State}
+    {xs : List (Option Symbol)} : a.toSingleStart.MTr (some s) xs (some s') ↔ a.MTr s xs s' := by
+  constructor
+  · intro h
+    induction xs generalizing s with
+    | nil =>
+      cases h
+      exact .refl
+    | cons x xs ih =>
+      obtain ⟨os, htr, h'⟩ := LTS.MTr.cons_iff.mp h
+      cases os with
+      | none => exact absurd htr toSingleStart_not_tr_none
+      | some s'' => exact .stepL (toSingleStart_tr_tr.mp htr) (ih h')
+  · intro h
+    exact h.map some fun _ _ _ => toSingleStart_tr_tr.mpr
+
+open Acceptor in
+/-- `toSingleStart` preserves the language of the input automaton. -/
+@[scoped grind =]
+theorem toSingleStart_language_eq {a : εNA.FinAcc State Symbol} :
+    language a.toSingleStart = language a := by
+  ext xs
+  rw [mem_language_iff, mem_language_iff]
+  constructor
+  · rintro ⟨_, hs', _, ht', μs, rfl, h⟩
+    obtain rfl := Set.mem_singleton_iff.mp hs'
+    obtain ⟨t, ht, rfl⟩ := (Set.mem_image _ _ _).mp ht'
+    cases μs with
+    | nil => cases h
+    | cons μ μs =>
+      obtain ⟨os, htr, h'⟩ := LTS.MTr.cons_iff.mp h
+      obtain ⟨rfl, s, rfl, hs⟩ := toSingleStart_tr_none htr
+      exact ⟨s, hs, t, ht, μs, rfl, toSingleStart_mTr_mTr.mp h'⟩
+  · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
+    refine ⟨none, Set.mem_singleton _, some t, Set.mem_image_of_mem _ ht, none :: μs, rfl, ?_⟩
+    exact .stepL (toSingleStart_tr_start hs) (toSingleStart_mTr_mTr.mpr h)
+
+/-- Any `εNA.FinAcc` can be converted into an `εNA.FinAcc` with a single start state `none`,
+without incoming transitions, and a single accept state `some none`, without outgoing
+transitions. -/
+def toSingleStartAccept (a : εNA.FinAcc State Symbol) :
+    εNA.FinAcc (Option (Option State)) Symbol :=
+  a.toSingleAccept.toSingleStart
+
+theorem toSingleStartAccept_start {a : εNA.FinAcc State Symbol} :
+    a.toSingleStartAccept.start = {none} := rfl
+
+theorem toSingleStartAccept_accept {a : εNA.FinAcc State Symbol} :
+    a.toSingleStartAccept.accept = {some none} := by
+  simp [toSingleStartAccept, toSingleStart, toSingleAccept_accept_def]
+
+open Acceptor in
+/-- `toSingleStartAccept` preserves the language of the input automaton. -/
+@[scoped grind =]
+theorem toSingleStartAccept_language_eq {a : εNA.FinAcc State Symbol} :
+    language a.toSingleStartAccept = language a := by
+  rw [toSingleStartAccept, toSingleStart_language_eq, toSingleAccept_language_eq]
 
 end Cslib.Automata.εNA.FinAcc
