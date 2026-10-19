@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Basic.Sign.Defs
+public import Mathlib.Dynamics.PeriodicPts.Defs
 public import Cslib.Computability.Machines.Turing.MultiTape.Space
 
 /-!
@@ -83,6 +84,10 @@ instance : CoeOut (MultiTapeTM k Symbol State) (MultiTapeNTM k Symbol State) :=
 namespace MultiTapeTM
 
 variable {tm : MultiTapeTM k Symbol State}
+
+/-- The deterministic machine `tm` with its output writes erased. -/
+abbrev eraseOutput (tm : MultiTapeTM k Symbol State) : MultiTapeTM k Symbol State :=
+  ⟨tm.toMultiTapeNTM.eraseOutput, tm.deterministic.adapt⟩
 
 /-- The unique action related to the given state and read symbols by `Tr`. -/
 noncomputable def tr (tm : MultiTapeTM k Symbol State) (q : State) (input : Option Symbol)
@@ -365,29 +370,36 @@ def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
 
-/-- If a deterministic machine repeats a non-halting configuration, it never halts,
-because the sequence between the two configurations will loop forever.
-Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `Function.iterate_add_apply`. -/
-lemma not_halts_of_repeat_nonhalt
-    (cfg : Cfg k Symbol State input)
-    (h_not_halt : cfg.state ≠ none)
-    (t : ℕ)
-    (heq : tm.runFrom cfg (t + 1) = cfg) :
-    ∀ t', (tm.runFrom cfg t').state ≠ none := by
-  intro t'
-  -- The configuration will repeat every `t + 1` steps.
-  have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
-    intro n
-    unfold runFrom
-    rw [Nat.mul_comm, Function.iterate_mul]
-    exact Function.iterate_fixed heq n
-  by_contra hnh
-  -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
-  have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
-    have hle : t' ≤ t' * (t + 1) := by grind
-    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
-  simp [hloop t', h_not_halt] at h₁
+/-- A deterministic path that ends halted never repeats a running configuration: from a repeated
+configuration the machine would cycle forever. -/
+lemma _root_.Turing.MultiTapeNTM.RunPath.injOn_running (p : tm.RunPath input)
+    (h : p.last.Halted) : Set.InjOn p {i | ¬(p i).Halted} := by
+  intro i hi j hj hij
+  wlog hlt : i < j generalizing i j
+  · rcases (not_lt.mp hlt).lt_or_eq with h' | h'
+    · exact (this hj hi hij.symm h').symm
+    · exact h'.symm
+  exfalso
+  have hp (n : Fin (p.length + 1)) : p n = tm.step^[n] p.head := runPath_apply_eq_runFrom p n
+  -- `p i` is a periodic point of period `j - i`
+  have hper : Function.IsPeriodicPt tm.step (j - i) (p i) := by
+    change tm.step^[j - i] (p i) = p i
+    conv_rhs => rw [hij]
+    rw [hp j, hp i, ← Function.iterate_add_apply]
+    congr 1
+    omega
+  -- so the halted last configuration already occurs within one period after `i`, before `j`
+  have hk : (p.length - i) % (j - i) + i < j := by
+    have := Nat.mod_lt (p.length - i) (show 0 < j.val - i.val by omega)
+    omega
+  refine p.not_halted_of_le (i := ⟨_, hk.trans j.isLt⟩) hk.le hj ?_
+  rw [hp, Function.iterate_add_apply, ← hp, hper.iterate_mod_apply, hp,
+    ← Function.iterate_add_apply]
+  convert h using 2
+  rw [RelSeries.last, hp (Fin.last _)]
+  congr 1
+  simp only [Fin.val_last]
+  omega
 
 end MultiTapeTM
 

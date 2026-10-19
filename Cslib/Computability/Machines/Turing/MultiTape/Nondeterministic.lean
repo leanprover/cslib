@@ -168,6 +168,13 @@ lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
     (h : (p i).Halted) : p.last = p i := by
   simpa using last_eq_of_head_halted (p.drop i) (by simpa using h)
 
+/-- If a later configuration is running, every earlier configuration is also running. -/
+lemma not_halted_of_le (p : ntm.RunPath input) {i j : Fin (p.length + 1)} (hij : i ≤ j)
+    (hj : ¬(p j).Halted) : ¬(p i).Halted := by
+  intro hi
+  have heq := last_eq_of_halted (p.take j) ⟨i, Nat.lt_succ_of_le hij⟩ hi
+  exact hj (by rwa [← RelSeries.last_take p j, heq])
+
 /-- The number of steps taken by a run path. -/
 def time (p : ntm.RunPath input) : ℕ := p.length
 
@@ -234,6 +241,11 @@ def adaptHom {input' : List Symbol} (f : Cfg k Symbol State input → Cfg k' Sym
       exact ⟨_, ⟨a, by rwa [hin, hwork], rfl⟩, (happly c a).symm⟩
 
 end Adapt
+
+/-- `ntm` with its output writes erased. A machine never reads its output tape, so the erased
+machine takes the same steps up to the output. -/
+def eraseOutput (ntm : MultiTapeNTM k Symbol State) : MultiTapeNTM k Symbol State :=
+  ntm.adapt (fun inp _ => inp) id fun _ a => { a with output := none }
 
 /-- A run path starting at the initial configuration for `input`. -/
 structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol)
