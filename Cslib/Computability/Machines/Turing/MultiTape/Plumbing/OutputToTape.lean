@@ -12,34 +12,36 @@ public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 /-!
 # Redirecting the output to a work tape
 
-`outputToTape tm` behaves like `tm`, except that whatever `tm` would append to the write-only
+`ntm.outputToTape` behaves like `ntm`, except that whatever `ntm` would append to the write-only
 output tape is written on a fresh work tape instead, whose head always stands at the write
 frontier.
 
 Since the output is append-only, the frontier position is a *function of the configuration* —
 the length of the output so far — so the redirected machine mirrors the original through the
 configuration map `outCfg`. The main lemmas show that one step and an entire run path of the
-redirected machine mirror the corresponding step and run path of `tm`.
+redirected machine mirror the corresponding step and run path of `ntm`.
 -/
 
 namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 
-/-- `tm`, with its output writes redirected onto a fresh last work tape, whose head always stands
+/-- `ntm`, with its output writes redirected onto a fresh last work tape, whose head always stands
 at the write frontier. -/
-@[expose] public noncomputable def outputToTape (tm : MultiTapeTM k Symbol State) :
-    MultiTapeTM (k + 1) Symbol State :=
-  ofTr tm.q₀ fun q inp work =>
-    let a := tm.tr q inp fun j => work j.castSucc
-    { inputTape := a.inputTape
+@[expose] public def _root_.Turing.MultiTapeNTM.outputToTape (ntm : MultiTapeNTM k Symbol State) :
+    MultiTapeNTM (k + 1) Symbol State :=
+  ntm.adapt (fun inp _ => inp) (fun work j => work j.castSucc) fun _ a =>
+    { a with
       workTapes := Fin.lastCases
         (match a.output with
           | none => (none, 0)
           | some s => (some (some s), 1))
-        (fun j => a.workTapes j)
-      output := none
-      state := a.state }
+        a.workTapes
+      output := none }
+
+/-- The deterministic machine `tm` with its output redirected onto a fresh last work tape. -/
+public abbrev outputToTape (tm : MultiTapeTM k Symbol State) : MultiTapeTM (k + 1) Symbol State :=
+  ⟨tm.toMultiTapeNTM.outputToTape, tm.deterministic.adapt⟩
 
 /-- A configuration of `tm`, as the redirected machine sees it: the output so far sits on the
 last work tape with the head at its end, and the real output is empty. -/
@@ -79,39 +81,30 @@ public lemma outCfg_workTapeSymbols_castSucc (c : Cfg k Symbol State input) (j :
     (outCfg c).workTapeSymbols j.castSucc = c.workTapeSymbols j := by
   simp [Cfg.workTapeSymbols]
 
-/-- The redirection is a step-semiconjugation. -/
-public lemma step_outCfg (tm : MultiTapeTM k Symbol State) :
-    Function.Semiconj (outCfg (input := input)) tm.step tm.outputToTape.step := by
-  intro c
-  symm
-  cases hq : c.state with
-  | none => simp [outCfg, hq]
-  | some q =>
-    rw [step_of_state (cfg := outCfg c) hq, step_of_state hq]
-    simp only [outputToTape, tr_ofTr, outCfg_inputSymbol, outCfg_workTapeSymbols_castSucc]
-    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases with
-    | cast j => simp
-    | last =>
-      cases h : (tm.tr q c.inputSymbol c.workTapeSymbols).output <;>
-        simp [h, tapeOfList_append_single, SignType.cast]
-
-/-- The redirection preserves steps, so it maps run paths of `tm` to run paths of the redirected
+/-- The redirection preserves steps, so it maps run paths of `ntm` to run paths of the redirected
 machine. -/
-@[expose, simps! apply] public noncomputable def outCfgHom (tm : MultiTapeTM k Symbol State) :
-    (tm.stepRel input).Hom (tm.outputToTape.stepRel input) :=
-  stepHom outCfg (step_outCfg tm)
+@[expose, simps! apply] public def _root_.Turing.MultiTapeNTM.outCfgHom
+    (ntm : MultiTapeNTM k Symbol State) :
+    (ntm.stepRel input).Hom (ntm.outputToTape.stepRel input) :=
+  MultiTapeNTM.adaptHom outCfg (fun _ => rfl) (fun _ => rfl)
+    (fun c => funext (outCfg_workTapeSymbols_castSucc c)) fun c a => by
+      refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases with
+      | cast j => simp [Action.apply]
+      | last =>
+        cases h : a.output <;> simp [h, Action.apply, tapeOfList_append_single, SignType.cast]
 
 /-- The initial configuration of the redirected machine is the original's through `outCfg`. -/
-public lemma initCfg_outputToTape (tm : MultiTapeTM k Symbol State) (input : List Symbol) :
-    tm.outputToTape.initCfg input = outCfg (tm.initCfg input) := by
+public lemma _root_.Turing.MultiTapeNTM.initCfg_outputToTape (ntm : MultiTapeNTM k Symbol State)
+    (input : List Symbol) : ntm.outputToTape.initCfg input = outCfg (ntm.initCfg input) := by
   refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
     simp [MultiTapeNTM.initCfg, Cfg.init]
 
 /-- **Space of the output-redirected path.** The `k` inner tapes visit exactly what the original
 path visits, and the frontier head only walks up to the final length of the output, so the
 redirection costs at most the final output length plus one. -/
-public lemma space_map_outCfgHom_le (tm : MultiTapeTM k Symbol State) (p : tm.RunPath input) :
-    (p.map (outCfgHom tm)).space ≤ p.space + (p.last.output.length + 1) := by
+public lemma _root_.Turing.MultiTapeNTM.space_map_outCfgHom_le (ntm : MultiTapeNTM k Symbol State)
+    (p : ntm.RunPath input) :
+    (p.map ntm.outCfgHom).space ≤ p.space + (p.last.output.length + 1) := by
   simpa [Finset.card_compl] using p.space_map_le _ Fin.castSuccEmb
     (fun _ => .Icc 0 (p.last.output.length : ℤ)) (fun c _ => outCfg_workTapePos_castSucc c)
     fun c ⟨n, hn⟩ l hl => by
