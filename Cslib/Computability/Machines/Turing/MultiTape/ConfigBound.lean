@@ -282,7 +282,7 @@ lemma storage_fitsIn (t : ℕ) :
 at most `storageBound Symbol State k s` different storages during its whole run — independently of
 the length of the input and of how long it runs. -/
 theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : ∀ t, tm.spaceUsed (tm.initCfg input) t ≤ s) :
+    (hs : ∀ t, tm.space (tm.initCfg input) t ≤ s) :
     (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard
       ≤ storageBound Symbol State k s := by
   obtain ⟨T, hT⟩ := tm.exists_spaceUsedByTape_max (tm.initCfg input) hs
@@ -293,7 +293,7 @@ theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
 /-- The number of configuration cores that a machine bounded by space `s` can reach is at most
 `(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input. -/
 theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : ∀ t, tm.spaceUsed (tm.initCfg input) t ≤ s) :
+    (hs : ∀ t, tm.space (tm.initCfg input) t ≤ s) :
     (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
       ≤ (input.length + 2) * storageBound Symbol State k s := by
   calc (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
@@ -312,7 +312,7 @@ theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ}
 passes through is at most `2 ^ (O(s))`, with constants depending only on the machine. -/
 theorem encard_storages_le_pow [Finite Symbol] [Finite State] :
     ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
-      (∀ t, tm.spaceUsed (tm.initCfg input) t ≤ s) →
+      (∀ t, tm.space (tm.initCfg input) t ≤ s) →
       (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard ≤ a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State
@@ -325,7 +325,7 @@ is at most `(n + 2) * 2 ^ (O(s))`, with constants depending only on the machine 
 input. -/
 theorem encard_cores_le_pow [Finite Symbol] [Finite State] :
     ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
-      (∀ t, tm.spaceUsed (tm.initCfg input) t ≤ s) →
+      (∀ t, tm.space (tm.initCfg input) t ≤ s) →
       (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
         ≤ (input.length + 2) * a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
