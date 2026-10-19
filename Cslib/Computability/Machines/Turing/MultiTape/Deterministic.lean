@@ -41,16 +41,16 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `ComputableSuchThat`: such a machine exists with binary alphabet and finitely many states
 * `ComputesInTime` and `ComputesFunInTime`: computation within a time bound
 * `ComputableInTime`: computability by a finite-state binary machine within a time bound
+* `ComputesInSpace`: the machine produces an output within a space bound
+* `ComputesFunInSpace`: function computation within an input-indexed space bound
+* `ComputableInSpace`: computability by a finite-state binary machine within a space bound
+* `DecidableInSpace`: the Boolean indicator of a set is computable within a space bound
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
 * `ComputableInTimeAndSpace`: such a machine exists with binary alphabet and finitely many states.
 * `ComputableInTimeAndSpaceOfLength`: the specialization to bounds on encoded input length.
 * `DecidableInTimeAndSpace`: a proof that a TM decides a language within a certain time
     and space bound.
-* `ComputesInSpace`: the machine produces an output within a space bound
-* `ComputesFunInSpace`: function computation within an input-indexed space bound
-* `ComputableInSpace`: computability by a finite-state binary machine within a space bound
-* `DecidableInSpace`: the Boolean indicator of a set is computable within a space bound
 
 -/
 
@@ -341,16 +341,16 @@ def ComputesInTime (tm : MultiTapeTM k Symbol State)
     (input output : List Symbol) (t : ℕ) : Prop :=
   tm.ComputesSuchThat input output (fun tm input ↦ tm.RunsInTime input t)
 
+/-- The machine computes `output` from `input` within the given space bound. -/
+def ComputesInSpace (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (s : ℕ) : Prop :=
+  tm.ComputesSuchThat input output (fun tm input ↦ tm.RunsInSpace input s)
+
 /-- The machine computes `output` from `input` within the shared time and space bounds. -/
 def ComputesInTimeAndSpace (tm : MultiTapeTM k Symbol State)
     (input output : List Symbol) (t s : ℕ) : Prop :=
   tm.ComputesSuchThat input output (fun tm input ↦
     tm.RunsInTime input t ∧ tm.RunsInSpace input s)
-
-/-- The machine computes `output` from `input` within the given space bound. -/
-def ComputesInSpace (tm : MultiTapeTM k Symbol State)
-    (input output : List Symbol) (s : ℕ) : Prop :=
-  tm.ComputesSuchThat input output (fun tm input ↦ tm.RunsInSpace input s)
 
 /-- The machine computes `f` relative to given encodings. For each argument `a`, the predicate
 `P a` holds for this machine and the encoded input `encIn a`. -/
@@ -373,16 +373,16 @@ def ComputesFunInTime {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t : α → ℕ) : Prop :=
   tm.ComputesFunSuchThat encIn encOut f (fun a tm input ↦ tm.RunsInTime input (t a))
 
+/-- The machine computes `f` relative to given encodings within the given space bound. -/
+def ComputesFunInSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (s : α → ℕ) : Prop :=
+  tm.ComputesFunSuchThat encIn encOut f (fun a tm input ↦ tm.RunsInSpace input (s a))
+
 /-- The machine computes `f` relative to given encodings within the given time and space bounds. -/
 def ComputesFunInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
   tm.ComputesFunSuchThat encIn encOut f
     (fun a tm input ↦ tm.RunsInTime input (t a) ∧ tm.RunsInSpace input (s a))
-
-/-- The machine computes `f` relative to given encodings within the given space bound. -/
-def ComputesFunInSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
-    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (s : α → ℕ) : Prop :=
-  tm.ComputesFunSuchThat encIn encOut f (fun a tm input ↦ tm.RunsInSpace input (s a))
 
 /-- Resource bounds can be weakened independently on every input. -/
 theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
@@ -419,18 +419,18 @@ def ComputableInTime {α β : Type*}
   ComputableSuchThat f encIn encOut (fun a tm input ↦ tm.RunsInTime input (t a))
 
 /-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
+within the supplied input-indexed space bound. -/
+def ComputableInSpace {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (s : α → ℕ) : Prop :=
+  ComputableSuchThat f encIn encOut (fun a tm input ↦ tm.RunsInSpace input (s a))
+
+/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
 within the supplied input-indexed bounds. -/
 def ComputableInTimeAndSpace {α β : Type*}
     (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableSuchThat f encIn encOut
     (fun a tm input ↦ tm.RunsInTime input (t a) ∧ tm.RunsInSpace input (s a))
-
-/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
-within the supplied input-indexed space bound. -/
-def ComputableInSpace {α β : Type*}
-    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (s : α → ℕ) : Prop :=
-  ComputableSuchThat f encIn encOut (fun a tm input ↦ tm.RunsInSpace input (s a))
 
 /-- There exists a binary Turing machine with finitely many states that, for every input `a`,
 computes `encOut (f a)` from `encIn a` in at most `t (encIn a).length` steps,
@@ -454,16 +454,16 @@ open scoped Classical in
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
   fun x => if x ∈ L then true else false
 
+/-- A set is decidable within the given input-indexed space bound when its Boolean indicator is
+computable in that bound. -/
+def DecidableInSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool) (s : α → ℕ) : Prop :=
+  ComputableInSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ s
+
 /-- A set is decidable within the given input-indexed bounds when its Boolean indicator is
 computable in those bounds. -/
 def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
-
-/-- A set is decidable within the given input-indexed space bound when its Boolean indicator is
-computable in that bound. -/
-def DecidableInSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool) (s : α → ℕ) : Prop :=
-  ComputableInSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ s
 
 /-- A deterministic path that ends halted never repeats a running configuration: from a repeated
 configuration the machine would cycle forever. -/
