@@ -13,9 +13,10 @@ public import Mathlib.Order.Lattice.Nat
 /-!
 # Head movement along run paths
 
-This file collects how a step moves the work-tape heads and changes the work tapes, and what this
-implies for the cells visited along a run path: a head moves by at most one cell per step, so it
-visits every cell between its first and last positions, and a cell changes only under its head.
+This file collects how a step moves the input and work-tape heads and changes the work tapes, and
+what this implies for the cells visited along a run path: a head moves by at most one cell per
+step, so it visits every cell between its first and last positions, and a cell changes only under
+its head.
 
 -/
 
@@ -45,7 +46,31 @@ lemma Step.workTapes_eq_of_ne {c c' : Cfg k Symbol State input} (h : ntm.Step c 
     rw [Action.apply_workTapes]
     cases ha : (a.workTapes i).1 <;> simp [ha, hz]
 
+/-- The input head moves by at most one cell in a single step. -/
+lemma Step.inputPos_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') :
+    |(c'.inputPos.val : ℤ) - c.inputPos.val| ≤ 1 := by
+  unfold Step at h
+  split at h
+  · simp [h]
+  · obtain ⟨a, _, rfl⟩ := h
+    have := val_moveInputPos_eq c.inputPos a.inputTape
+    rcases ha : a.inputTape <;> grind [SignType.cast, Action.apply_inputPos]
+
 namespace RunPath
+
+/-- A path that avoids `pos` before its last configuration stays on the side of its head. -/
+lemma inputPos_side (p : ntm.RunPath input) {pos : ℕ}
+    (hne : ∀ i : Fin p.length, (p i.castSucc).inputPos.val ≠ pos)
+    {c : Cfg k Symbol State input} (hc : c ∈ p) :
+    (p.head.inputPos.val ≤ pos → c.inputPos.val ≤ pos) ∧
+      (pos ≤ p.head.inputPos.val → pos ≤ c.inputPos.val) := by
+  obtain ⟨i, rfl⟩ := hc
+  induction i using Fin.induction with
+  | zero => exact ⟨id, id⟩
+  | succ i ih =>
+    have := abs_le.mp (Step.inputPos_le (p.step i))
+    have := hne i
+    omega
 
 /-- Every position between the first and the last position of a head along a path is visited,
 since the head moves by at most one cell per step. -/
