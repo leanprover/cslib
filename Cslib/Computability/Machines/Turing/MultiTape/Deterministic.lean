@@ -34,7 +34,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
-* `spaceUsed`: the space of the path of the first `t` steps from a configuration
+* `space`: the space of the path of the first `t` steps from a configuration
 * `Computes`: the machine halts with the given output on an input
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
@@ -306,19 +306,19 @@ noncomputable def spaceUsedByTape (cfg : Cfg k Symbol State input) (t : ℕ) (i 
 
 /-- The number of work tape cells visited in the first `t` steps from `cfg`: the space of the path
 of these steps. -/
-noncomputable abbrev spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ :=
+noncomputable abbrev space (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ :=
   (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).space
 
 /-- A zero-tape Turing machine uses zero space. -/
 @[simp]
-lemma spaceUsed_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h_zero : k = 0) :
-    tm.spaceUsed cfg t = 0 := by
+lemma space_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h_zero : k = 0) :
+    tm.space cfg t = 0 := by
   subst h_zero
   simp [MultiTapeNTM.RunPath.space]
 
 /-- Each tape's space usage is bounded by the total space used. -/
-lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    tm.spaceUsedByTape cfg t i ≤ tm.spaceUsed cfg t :=
+lemma spaceUsedByTape_le_space (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
+    tm.spaceUsedByTape cfg t i ≤ tm.space cfg t :=
   Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
 
 end Space

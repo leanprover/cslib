@@ -15,7 +15,7 @@ public import Mathlib.Order.Lattice.Nat
 
 This file collects lemmas about the set of positions visited by a work-tape head
 (`MultiTapeTM.visitedByTapeHead`) and the resulting space-usage measures
-(`MultiTapeTM.spaceUsedByTape`, `MultiTapeTM.spaceUsed`) and how the tape head positions
+(`MultiTapeTM.spaceUsedByTape`, `MultiTapeTM.space`) and how the tape head positions
 influence the cells that are modified on a tape.
 
 `MultiTapeTM.exists_spaceUsedByTape_max` shows that a computation whose space usage is bounded
@@ -242,9 +242,9 @@ lemma spaceUsedByTape_le (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) 
   Finset.card_image_le.trans_eq (by simp)
 
 /-- The space used by a computation is bounded linearly by the number of steps. -/
-lemma spaceUsed_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
-    tm.spaceUsed cfg t ≤ k * t + k := by
-  calc tm.spaceUsed cfg t
+lemma space_linear (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.space cfg t ≤ k * t + k := by
+  calc tm.space cfg t
       = ∑ i, (tm.spaceUsedByTape cfg t i) := by rfl
     _ ≤ ∑ i, (t + 1) := Finset.sum_le_sum (fun i _ => tm.spaceUsedByTape_le cfg t i)
     _ = k * t + k := by simp [Nat.mul_succ]
@@ -262,13 +262,13 @@ lemma spaceUsedByTape_mono
 usage of *every* tape is maximal. This turns a bound that holds at every point in time into a
 bound for the whole run. -/
 lemma exists_spaceUsedByTape_max (cfg : Cfg k Symbol State input) {s : ℕ}
-    (hs : ∀ t, tm.spaceUsed cfg t ≤ s) :
+    (hs : ∀ t, tm.space cfg t ≤ s) :
     ∃ T, ∀ t i, tm.spaceUsedByTape cfg t i ≤ tm.spaceUsedByTape cfg T i := by
   -- The space usage of a single tape is bounded, so it attains its supremum at some step `T i`.
   have h : ∀ i, ∃ Ti, ∀ t, tm.spaceUsedByTape cfg t i ≤ tm.spaceUsedByTape cfg Ti i := by
     intro i
     have hbdd : BddAbove (Set.range (tm.spaceUsedByTape cfg · i)) :=
-      ⟨s, by rintro _ ⟨t, rfl⟩; exact (tm.spaceUsedByTape_le_spaceUsed cfg t i).trans (hs t)⟩
+      ⟨s, by rintro _ ⟨t, rfl⟩; exact (tm.spaceUsedByTape_le_space cfg t i).trans (hs t)⟩
     obtain ⟨Ti, hTi⟩ := Nat.sSup_mem (Set.range_nonempty (tm.spaceUsedByTape cfg · i)) hbdd
     exact ⟨Ti, fun t => (le_csSup hbdd ⟨t, rfl⟩).trans hTi.ge⟩
   choose T hT using h
@@ -285,6 +285,6 @@ lemma _root_.Turing.MultiTapeNTM.RunPath.inWindow_of_space_le {p : tm.RunPath in
   have hz := tm.natAbs_le_spaceUsedByTape_of_mem_visited
     ((tm.mem_visitedByTapeHead (cfg := p.head) (t := p.time) (i := i)).mpr ⟨n, n.2, rfl⟩)
   rw [h0, sub_zero] at hz
-  exact mem_window.mpr (hz.trans ((tm.spaceUsedByTape_le_spaceUsed _ _ i).trans hs))
+  exact mem_window.mpr (hz.trans ((tm.spaceUsedByTape_le_space _ _ i).trans hs))
 
 end Turing.MultiTapeTM
