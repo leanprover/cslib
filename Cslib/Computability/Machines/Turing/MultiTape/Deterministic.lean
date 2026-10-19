@@ -418,30 +418,33 @@ def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
 
-/-- If a deterministic machine repeats a non-halting configuration, it never halts,
-because the sequence between the two configurations will loop forever.
-Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `Function.iterate_add_apply`. -/
-lemma not_halts_of_repeat_nonhalt
-    (cfg : Cfg k Symbol State input)
-    (h_not_halt : cfg.state ≠ none)
-    (t : ℕ)
-    (heq : tm.runFrom cfg (t + 1) = cfg) :
-    ∀ t', (tm.runFrom cfg t').state ≠ none := by
-  intro t'
-  -- The configuration will repeat every `t + 1` steps.
-  have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
-    intro n
-    unfold runFrom
-    rw [Nat.mul_comm, Function.iterate_mul]
-    exact Function.iterate_fixed heq n
-  by_contra hnh
-  -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
-  have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
-    have hle : t' ≤ t' * (t + 1) := by grind
-    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
-  simp [hloop t', h_not_halt] at h₁
-
 end MultiTapeTM
+
+namespace MultiTapeNTM.RunPath
+
+variable {tm : MultiTapeTM k Symbol State} {input : List Symbol}
+
+/-- A deterministic path that ends halted never repeats a running configuration: from a repeated
+configuration the machine would cycle forever. -/
+lemma injOn_running (p : tm.RunPath input)
+    (h : p.last.Halted) : Set.InjOn p {i | ¬(p i).Halted} := by
+  -- a repeat `p i = p j` with `i < j` is followed by the repeat `p (i + 1) = p (j + 1)`, so halting
+  -- at the end comes back to `p j`
+  have halted (j : Fin (p.length + 1)) : ∀ i < j, p i = p j → (p j).Halted := by
+    induction j using Fin.reverseInduction with
+    | last => exact fun _ _ _ ↦ h
+    | cast j ih =>
+      intro i hij heq
+      obtain ⟨i, rfl⟩ := Fin.exists_castSucc_eq.mpr (Fin.ne_last_of_lt hij)
+      rw [Fin.castSucc_lt_castSucc_iff] at hij
+      have hsucc : p i.succ = p j.succ := by
+        rw [← MultiTapeTM.step_iff.mp (p.step i), ← MultiTapeTM.step_iff.mp (p.step j), heq]
+      exact p.halted_mono (Fin.succ_le_castSucc_iff.mpr hij)
+        (hsucc ▸ ih _ (Fin.succ_lt_succ_iff.mpr hij) hsucc : (p i.succ).Halted)
+  intro i hi j hj hij
+  rcases lt_trichotomy i j with hlt | rfl | hlt
+  exacts [(hj (halted j i hlt hij)).elim, rfl, (hi (halted i j hlt hij.symm)).elim]
+
+end MultiTapeNTM.RunPath
 
 end Turing
