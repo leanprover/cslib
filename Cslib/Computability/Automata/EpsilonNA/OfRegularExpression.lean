@@ -6,14 +6,14 @@ Authors: Yusuf Demir
 
 module
 
-public import Cslib.Computability.Automata.EpsilonNA.Thompson
+public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
 public import Mathlib.Computability.RegularExpressions
 
 /-! # The ε-NA of a regular expression
 
 Thompson's construction [Thompson1968]: every regular expression is sent to an `εNA` with finitely
 many states that accepts exactly its language, by assembling the automata of
-`Cslib.Computability.Automata.EpsilonNA.Thompson`.
+`Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction`.
 
 ## Main definitions
 
