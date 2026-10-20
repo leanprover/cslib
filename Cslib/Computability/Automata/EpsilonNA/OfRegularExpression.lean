@@ -7,6 +7,7 @@ Authors: Yusuf Demir
 module
 
 public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
+public import Mathlib.Basic.Finite.Sum
 public import Mathlib.Computability.RegularExpressions
 
 /-! # The ε-NA of a regular expression
@@ -45,6 +46,23 @@ def State : RegularExpression α → Type
   | plus P Q => Bool ⊕ (P.State ⊕ Q.State)
   | comp P Q => P.State ⊕ Q.State
   | star P => Unit ⊕ P.State
+
+/-- The automaton of a regular expression has finitely many states. -/
+instance instFiniteState : (r : RegularExpression α) → Finite r.State
+  | zero => inferInstanceAs (Finite Unit)
+  | epsilon => inferInstanceAs (Finite Unit)
+  | char _ => inferInstanceAs (Finite Bool)
+  | plus P Q =>
+    haveI := instFiniteState P
+    haveI := instFiniteState Q
+    inferInstanceAs (Finite (Bool ⊕ (P.State ⊕ Q.State)))
+  | comp P Q =>
+    haveI := instFiniteState P
+    haveI := instFiniteState Q
+    inferInstanceAs (Finite (P.State ⊕ Q.State))
+  | star P =>
+    haveI := instFiniteState P
+    inferInstanceAs (Finite (Unit ⊕ P.State))
 
 /-- Thompson's construction: the `εNA` of a regular expression. -/
 def toEpsilonNA : (r : RegularExpression α) → FinAcc r.State α
