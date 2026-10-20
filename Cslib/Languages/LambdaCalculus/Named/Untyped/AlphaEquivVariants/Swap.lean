@@ -401,7 +401,7 @@ lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
         have hπxa : π x ≠ π a := fun he => hxa (π.injective he)
         have hπ'xa : π' x ≠ π' a := fun he => hxa (π'.injective he)
         have hπxz : π x ≠ z := by
-          contrapose! hzπ with he
+          contrapose hzπ with he
           rw [← he, vars_eq_fv_union_bv, fv_permute]
           exact Finset.mem_union_left _ <| Finset.mem_image.mpr ⟨x, hx, rfl⟩
         grind
