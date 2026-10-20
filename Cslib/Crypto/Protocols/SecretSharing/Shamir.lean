@@ -7,9 +7,8 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Protocols.SecretSharing.Scheme
-public import Mathlib.Probability.Distributions.Uniform
 public import Cslib.Crypto.Protocols.SecretSharing.Shamir.Polynomial
-import Cslib.Probability.PMF
+public import Cslib.Probability.PMF
 
 /-!
 # Shamir Secret Sharing
@@ -121,17 +120,16 @@ structure TailSampler (params : Params F Party) where
 /-- Uniform tail coefficients form the canonical privacy-compatible sampler. -/
 noncomputable def uniformTailSampler (params : Params F Party)
     [Fintype F] [Nonempty F] : TailSampler params where
-  gen := PMF.uniformOfFintype (Randomness params)
+  gen := uniformOfFintype (Randomness params)
   map_add_eq_self δ := by
     simpa using uniformOfFintype_map_equiv (Equiv.addRight δ)
 
 private noncomputable def privacyCorrectionPolynomial
     (params : Params F Party) (s : Finset Party)
     (secret₀ secret₁ : F) : _root_.Polynomial F :=
-  by
-    classical
-    exact _root_.Lagrange.interpolate s.attach (fun i : s => params.point i)
-      (fun i : s => (secret₀ - secret₁) / params.point i)
+  open scoped Classical in
+  _root_.Lagrange.interpolate s.attach (fun i : s => params.point i)
+    (fun i : s => (secret₀ - secret₁) / params.point i)
 
 private theorem points_injOn_subtype {F Party : Type*} [Field F] [Fintype Party]
     (params : Params F Party) (s : Finset Party) :

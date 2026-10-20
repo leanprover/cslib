@@ -380,7 +380,7 @@ theorem omegaPow_seq_prop [Inhabited α] :
     · apply strictMono_flatten hm h0
     · intro m
       change s.extract (f m) (f (m + 1)) ∈ l - 1
-      simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, ge_iff_le, not_le, true_and]
+      simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, not_le, true_and]
       apply hm; omega
 
 open scoped Classical in
@@ -402,7 +402,9 @@ theorem omegaPow_coind' [Inhabited α] (h_nn : [] ∉ l) (h_le : p ≤ l * p) : 
     induction n <;> grind [iter_helper]
   rw [omegaPow_seq_prop]
   use f
-  grind [strictMono_nat_of_lt_succ, iter_helper]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-09-29 (changes from lean#15378) -/
+  exact ⟨strictMono_nat_of_lt_succ fun n ↦ (h_f n).1, rfl, fun m ↦ (h_f m).2.1⟩
 
 /-- A "coinductive" rule for proving `p` is a subset of `l^ω`. -/
 theorem omegaPow_coind [Inhabited α] (h_le : p ≤ (l - 1) * p) : p ≤ l^ω := by

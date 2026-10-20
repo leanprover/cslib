@@ -6,9 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Init
-public import Mathlib.Probability.Distributions.Uniform
-public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+public import Cslib.Probability.PMF
 
 /-!
 # Pseudorandom generators: games and concrete security
@@ -31,6 +29,7 @@ In particular, a generator need not expand, and an expanding generator need not 
 
 namespace Cslib.Crypto.PRG
 
+open Cslib.Probability.PMF
 open scoped NNReal
 
 /-- A deterministic generator with seed space `Seed` and output space `Output`.
@@ -62,7 +61,7 @@ variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
 
 /-- The distribution obtained by applying the generator to a uniform seed. -/
 noncomputable def outputDist (G : Generator Seed Output) : PMF Output :=
-  (PMF.uniformOfFintype Seed).map G
+  (uniformOfFintype Seed).map G
 
 /-- Experiment 0 of Attack Game 3.1: give the adversary a generated output. -/
 noncomputable def realExperiment (G : Generator Seed Output)
@@ -71,7 +70,7 @@ noncomputable def realExperiment (G : Generator Seed Output)
 
 /-- Experiment 1 of Attack Game 3.1: give the adversary a uniform output. -/
 noncomputable def idealExperiment (adversary : Adversary Output) : PMF Bool :=
-  (PMF.uniformOfFintype Output).bind adversary
+  (uniformOfFintype Output).bind adversary
 
 /-- The absolute difference of the probabilities of outputting `true` in the two
 experiments, as in Attack Game 3.1 of [BonehShoup2023]. -/

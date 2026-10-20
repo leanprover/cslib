@@ -46,13 +46,11 @@ the equivalence class of `xs`. -/
 @[simp, scoped grind =]
 theorem congr_mtr_eq {xs : List Symbol} :
     c.toDA.mtr c.toDA.start xs = ⟦ xs ⟧ := by
-  generalize h_rev : xs.reverse = ys
-  induction ys generalizing xs
-  case nil => grind [List.reverse_eq_nil_iff]
-  case cons y ys h_ind =>
-    obtain ⟨rfl⟩ := List.reverse_eq_cons_iff.mp h_rev
-    specialize h_ind (xs := ys.reverse) (by grind)
-    grind [Quotient.lift_mk]
+  induction xs using List.reverseRecOn with
+  | nil => rfl
+  | append_singleton xs x ih =>
+    rw [FLTS.mtr_concat_eq, ih]
+    rfl
 
 /-- After consuming a finite word `ys` from the state `⟦ xs ⟧`, `c.toDA` reaches
 the state `⟦ xs ++ ys ⟧`. -/

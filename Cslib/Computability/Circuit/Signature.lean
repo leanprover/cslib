@@ -33,4 +33,23 @@ structure Signature where
 abbrev Interpretation (σ : Signature) (Carrier : Type*) :=
   (op : σ.Op) → (Fin (σ.Arity op) → Carrier) → Carrier
 
+/-- An operation with labels for all constants and operations of arity k. -/
+inductive FullOp (k : Nat) Carrier where
+  | fn : ((Fin k -> Carrier) -> Carrier) -> FullOp k Carrier
+  | con : Carrier → FullOp k Carrier
+
+/-- The signature for FullOp. -/
+def fullSignature (k : Nat) (Carrier : Type v) : Signature where
+  Op := FullOp k Carrier
+  Arity op := match op with
+    | .fn _ => k
+    | .con _ => 0
+
+/-- The natural interpretation for FullOp, where we evaluate each constant
+and function to itself. -/
+def fullInterpretation : Interpretation (fullSignature k Carrier) Carrier :=
+  fun op tuple ↦ match op with
+    | .fn f => f tuple
+    | .con c => c
+
 end Cslib.Circuits

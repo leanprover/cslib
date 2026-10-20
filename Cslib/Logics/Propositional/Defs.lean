@@ -8,7 +8,7 @@ module
 
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.Logic.InferenceSystem
-public import Mathlib.Data.FunLike.Basic
+public import Mathlib.Basic.FunLike.Basic
 public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
 
