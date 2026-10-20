@@ -31,6 +31,7 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
+public import Cslib.Computability.Automata.NA.ToEpsilonNA
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Automata.TwoWayNA.Basic
