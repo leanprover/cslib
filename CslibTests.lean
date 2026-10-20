@@ -36,4 +36,3 @@ import CslibTests.QueryComplexity
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
 import CslibTests.Synthesis
-import CslibTests.Thompson

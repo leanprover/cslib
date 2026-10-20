@@ -8,8 +8,6 @@ module
 
 public import Cslib.Computability.Automata.EpsilonNA.Thompson
 public import Mathlib.Computability.RegularExpressions
-public import Mathlib.Data.Fintype.Option
-public import Mathlib.Data.Fintype.Sum
 
 /-! # The ε-NA of a regular expression
 
@@ -20,11 +18,11 @@ many states that accepts exactly its language, by assembling the automata of
 ## Main definitions
 
 * `RegularExpression.State r`: the states of the automaton of `r`.
-* `RegularExpression.toεNA r`: the automaton of `r`.
+* `RegularExpression.toEpsilonNA r`: the automaton of `r`.
 
 ## Main statements
 
-* `RegularExpression.language_toεNA`: the automaton of `r` accepts exactly `r.matches'`.
+* `RegularExpression.language_toEpsilonNA`: the automaton of `r` accepts exactly `r.matches'`.
 
 ## References
 
@@ -48,50 +46,19 @@ def State : RegularExpression α → Type
   | comp P Q => P.State ⊕ Q.State
   | star P => Unit ⊕ P.State
 
-instance instFintypeState : (r : RegularExpression α) → Fintype r.State
-  | zero => inferInstanceAs (Fintype Unit)
-  | epsilon => inferInstanceAs (Fintype Unit)
-  | char _ => inferInstanceAs (Fintype Bool)
-  | plus P Q =>
-    letI := instFintypeState P
-    letI := instFintypeState Q
-    inferInstanceAs (Fintype (Option (Option (P.State ⊕ Q.State))))
-  | comp P Q =>
-    letI := instFintypeState P
-    letI := instFintypeState Q
-    inferInstanceAs (Fintype (P.State ⊕ Q.State))
-  | star P =>
-    letI := instFintypeState P
-    inferInstanceAs (Fintype (Unit ⊕ P.State))
-
-instance instDecidableEqState : (r : RegularExpression α) → DecidableEq r.State
-  | zero => inferInstanceAs (DecidableEq Unit)
-  | epsilon => inferInstanceAs (DecidableEq Unit)
-  | char _ => inferInstanceAs (DecidableEq Bool)
-  | plus P Q =>
-    letI := instDecidableEqState P
-    letI := instDecidableEqState Q
-    inferInstanceAs (DecidableEq (Option (Option (P.State ⊕ Q.State))))
-  | comp P Q =>
-    letI := instDecidableEqState P
-    letI := instDecidableEqState Q
-    inferInstanceAs (DecidableEq (P.State ⊕ Q.State))
-  | star P =>
-    letI := instDecidableEqState P
-    inferInstanceAs (DecidableEq (Unit ⊕ P.State))
-
 /-- Thompson's construction: the `εNA` of a regular expression. -/
-def toεNA : (r : RegularExpression α) → FinAcc r.State α
+def toEpsilonNA : (r : RegularExpression α) → FinAcc r.State α
   | zero => FinAcc.zero
   | epsilon => FinAcc.epsilon
   | char a => FinAcc.char a
-  | plus P Q => P.toεNA.union Q.toεNA
-  | comp P Q => P.toεNA.concat Q.toεNA
-  | star P => P.toεNA.star
+  | plus P Q => P.toEpsilonNA.union Q.toEpsilonNA
+  | comp P Q => P.toEpsilonNA.concat Q.toEpsilonNA
+  | star P => P.toEpsilonNA.star
 
 /-- The automaton of a regular expression accepts exactly its language. -/
 @[simp]
-theorem language_toεNA (r : RegularExpression α) : language r.toεNA = r.matches' := by
+theorem language_toEpsilonNA (r : RegularExpression α) :
+    language r.toEpsilonNA = r.matches' := by
   induction r with
   | zero => exact FinAcc.language_zero
   | epsilon => exact FinAcc.language_epsilon
