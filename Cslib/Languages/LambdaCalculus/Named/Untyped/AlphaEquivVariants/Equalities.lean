@@ -87,8 +87,7 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
       swap_comp_alphaEquiv_of_notMem_fv hum' hzm_fv'
     -- Chain by symmetry and transitivity of ∼p
     -- (z a) · m ∼p (z u)·(u a)·m ∼p (z u)·(u b)·m' ∼p (z b) · m'
-    have h_chain : (m.swap z a) =α (m'.swap z b) :=
-      AlphaEquiv.trans (AlphaEquiv.symm h_agree) (AlphaEquiv.trans h_swap h_agree')
+    have h_chain : (m.swap z a) =α (m'.swap z b) := h_agree.symm.trans (h_swap.trans h_agree')
     -- Convert swap to rename (since z ∉ vars) and apply the pi rule.
     -- Since z ∉ vars(m), swap z a = rename a z (by swap_comm + swap_eq_rename).
     rw [swap_comm, swap_eq_rename_of_notMem_vars hzm] at h_chain
