@@ -284,95 +284,94 @@ variable [HasFresh Var]
 /-- Lemma 6.1 [Crole2012]: Swap (transposition) preserves α-equivalence. -/
 lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h : m =α m') :
     (m.swap u v) =α (m'.swap u v) := by
-  by_cases huv : u = v
-  · simp_all
-  · change u ≠ v at huv
-    induction h with
-    | var => apply AlphaEquiv.refl
-    | @abs z a b m m' hm _ ih =>
-      have hza : z ≠ a := by simp_all
-      have hzb : z ≠ b := by simp_all
-      have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
-      have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
-      have hz : z = u ∨ z = v ∨ (z ≠ u ∧ z ≠ v) := by grind
-      -- we've got 27 cases to consider
-      rcases ha with ha | ha | ⟨hau, hav⟩
-      · rcases hb with hb | hb | ⟨hbu, hbv⟩
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          · simp_all
-          -- representative case: a = u; b = u; z = v
-          · subst ha hb hz
-            exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih huv
-          -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          · simp_all
-          · simp_all
-          -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          · simp_all
-          -- reuse representative case: a ≠ u, v; b = u; z = v
-          · subst ha hz
-            exact (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih.symm hbu hbv huv).symm
-          -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-      · rcases hb with hb | hb | ⟨hbu, hbv⟩
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          · simp_all
-          · simp_all
-          -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          -- reuse representative case: a = u; b = u; z = v
-          · subst ha hb hz
-            nth_rw 1 [swap_comm] at ih ⊢
-            nth_rw 2 [swap_comm] at ih ⊢
-            apply alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih hzb.symm
-          · simp_all
-          -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          -- reuse representative case: a ≠ u, v; b = u; z = v
-          · subst ha hz
-            nth_rw 1 [swap_comm] at ih ⊢
-            nth_rw 2 [swap_comm] at ih ⊢
-            refine (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih.symm hbv hbu huv.symm).symm
-          · simp_all
-          -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-      · rcases hb with hb | hb | ⟨hbu, hbv⟩
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          · simp_all
-          -- representative case: a ≠ u, v; b = u; z = v
-          · subst hb hz
-            exact alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih hau hav huv
-          -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          -- reuse representative case: a ≠ u, v; b = u; z = v
-          · subst hb hz
-            nth_rw 1 [swap_comm] at ih ⊢
-            nth_rw 2 [swap_comm] at ih ⊢
-            exact alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih hav hau huv.symm
-          · simp_all
-          -- reuse representative case: z ≠ u, v
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-        · rcases hz with hz | hz | ⟨hzu, hzv⟩
-          -- representative case: a ≠ u, v; b ≠ u, v; z = u
-          -- use z' = v
-          · subst hz
-            exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm ih hau hav hbu hbv
-          -- reuse representative case: a ≠ u, v; b ≠ u, v; z = u
-          -- after adjusting via swap commutativity and choosing z' = u
-          · subst hz
-            nth_rw 1 [swap_comm] at ih ⊢
-            nth_rw 2 [swap_comm] at ih ⊢
-            exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm ih hav hau hbv hbu
-          -- representative case: z ≠ u, v
-          -- use z' = z
-          · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
-    | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
+  obtain rfl | huv := eq_or_ne u v
+  · simpa using h
+  induction h with
+  | var => apply AlphaEquiv.refl
+  | @abs z a b m m' hm _ ih =>
+    have hza : z ≠ a := by grind
+    have hzb : z ≠ b := by grind
+    have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
+    have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
+    have hz : z = u ∨ z = v ∨ (z ≠ u ∧ z ≠ v) := by grind
+    -- we've got 27 cases to consider
+    rcases ha with ha | ha | ⟨hau, hav⟩
+    · rcases hb with hb | hb | ⟨hbu, hbv⟩
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        · grind
+        -- representative case: a = u; b = u; z = v
+        · subst ha hb hz
+          exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by grind) ih huv
+        -- reuse representative case: z ≠ u, v
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        · grind
+        · grind
+        -- reuse representative case: z ≠ u, v
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        · grind
+        -- reuse representative case: a ≠ u, v; b = u; z = v
+        · subst ha hz
+          exact (alphaEquiv_swap_preserve_abs_b_eq_u (by grind) ih.symm hbu hbv huv).symm
+        -- reuse representative case: z ≠ u, v
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+    · rcases hb with hb | hb | ⟨hbu, hbv⟩
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        · grind
+        · grind
+        -- reuse representative case: z ≠ u, v
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        -- reuse representative case: a = u; b = u; z = v
+        · subst ha hb hz
+          nth_rw 1 [swap_comm] at ih ⊢
+          nth_rw 2 [swap_comm] at ih ⊢
+          apply alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by grind) ih hzb.symm
+        · grind
+        -- reuse representative case: z ≠ u, v
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        -- reuse representative case: a ≠ u, v; b = u; z = v
+        · subst ha hz
+          nth_rw 1 [swap_comm] at ih ⊢
+          nth_rw 2 [swap_comm] at ih ⊢
+          refine (alphaEquiv_swap_preserve_abs_b_eq_u (by grind) ih.symm hbv hbu huv.symm).symm
+        · grind
+        -- reuse representative case: z ≠ u, v
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+    · rcases hb with hb | hb | ⟨hbu, hbv⟩
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        · grind
+        -- representative case: a ≠ u, v; b = u; z = v
+        · subst hb hz
+          exact alphaEquiv_swap_preserve_abs_b_eq_u (by grind) ih hau hav huv
+        -- reuse representative case: z ≠ u, v
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        -- reuse representative case: a ≠ u, v; b = u; z = v
+        · subst hb hz
+          nth_rw 1 [swap_comm] at ih ⊢
+          nth_rw 2 [swap_comm] at ih ⊢
+          exact alphaEquiv_swap_preserve_abs_b_eq_u (by grind) ih hav hau huv.symm
+        · grind
+        -- reuse representative case: z ≠ u, v
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+      · rcases hz with hz | hz | ⟨hzu, hzv⟩
+        -- representative case: a ≠ u, v; b ≠ u, v; z = u
+        -- use z' = v
+        · subst hz
+          exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm ih hau hav hbu hbv
+        -- reuse representative case: a ≠ u, v; b ≠ u, v; z = u
+        -- after adjusting via swap commutativity and choosing z' = u
+        · subst hz
+          nth_rw 1 [swap_comm] at ih ⊢
+          nth_rw 2 [swap_comm] at ih ⊢
+          exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm ih hav hau hbv hbu
+        -- representative case: z ≠ u, v
+        -- use z' = z
+        · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
+  | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
 /-- Lemma 6.2 part 2 [Crole2012]: permutations that agree on the free variables of a term act on
 it in the same way up to α-equivalence. The paper's hypothesis `free(E) ⊆ AS(π, π')` is
