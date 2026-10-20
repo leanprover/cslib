@@ -25,69 +25,67 @@ variable {Var : Type u} [DecidableEq Var]
 namespace LambdaCalculus.Named.Untyped.Term
 
 /-- A variable in a term is either free or bound. -/
-theorem vars_either_fv_or_bv {m : Term Var} : m.vars = m.fv ∪ m.bv := by
+theorem vars_eq_fv_union_bv {m : Term Var} : m.vars = m.fv ∪ m.bv := by
   induction m <;> grind
 
 /-- Renaming an unused variable has no effect. -/
 @[simp, scoped grind =]
-theorem rename_unused {m : Term Var} {x y : Var} : x ∉ m.vars → m.rename x y = m := by
+theorem rename_of_notMem_vars {m : Term Var} {x y : Var} (hx : x ∉ m.vars) :
+    m.rename x y = m := by
   induction m <;> grind
 
 /-- Renaming a variable to itself has no effect. -/
 @[simp, scoped grind =]
-theorem rename_same {m : Term Var} {x : Var} : m.rename x x = m := by
+theorem rename_self {m : Term Var} {x : Var} : m.rename x x = m := by
   induction m <;> grind
 
 /-- Renaming a used variable changes the set of variables. -/
-theorem rename_vars_used {m : Term Var} {x y : Var} : x ∈ m.vars →
+theorem vars_rename_of_mem {m : Term Var} {x y : Var} (hx : x ∈ m.vars) :
     (m.rename x y).vars = m.vars.erase x ∪ {y} := by
   induction m with
   | var z => grind
-  | abs z m ih =>
-    intro hx
-    by_cases hxm : x ∈ m.vars <;> grind
+  | abs z m ih => by_cases hxm : x ∈ m.vars <;> grind
   | app m n ihm ihn =>
-    intro hx
     by_cases hxm : x ∈ m.vars
     · by_cases hxn : x ∈ n.vars <;> grind
     · grind
 
 /-- Renaming removes the variable. -/
-theorem rename_remove {m : Term Var} {x y : Var} : x ≠ y → x ∉ (m.rename x y).vars := by
-  intro hxy
-  by_cases hx : x ∈ m.vars <;> grind [rename_vars_used]
+theorem notMem_vars_rename {m : Term Var} {x y : Var} (hxy : x ≠ y) :
+    x ∉ (m.rename x y).vars := by
+  by_cases hx : x ∈ m.vars <;> grind [vars_rename_of_mem]
 
 /-- The set of variables after renaming. -/
 @[simp, scoped grind =]
-theorem rename_vars {m : Term Var} {x y : Var} :
+theorem vars_rename {m : Term Var} {x y : Var} :
     (m.rename x y).vars = m.vars \ {x} ∪ (if x ∈ m.vars then {y} else ∅) := by
-  grind [rename_vars_used]
+  grind [vars_rename_of_mem]
 
 /-- The set of free variables after renaming. -/
-theorem rename_fv {m : Term Var} {x y : Var} :
-    y ∉ m.vars → (m.rename x y).fv = m.fv \ {x} ∪ (if x ∈ m.fv then {y} else ∅) := by
+theorem fv_rename {m : Term Var} {x y : Var} (hy : y ∉ m.vars) :
+    (m.rename x y).fv = m.fv \ {x} ∪ (if x ∈ m.fv then {y} else ∅) := by
   induction m with
   | var z => grind
-  | abs z m ih => grind [vars_either_fv_or_bv]
+  | abs z m ih => grind [vars_eq_fv_union_bv]
   | app m n ihm ihn => grind
 
 /-- Concatenation of renaming. -/
 @[simp, scoped grind =]
-theorem rename_concat {m : Term Var} {x y z : Var} : y ∉ m.vars →
+theorem rename_rename {m : Term Var} {x y z : Var} (hy : y ∉ m.vars) :
     (m.rename x y).rename y z = m.rename x z := by
   induction m <;> grind
 
 /-- Commutativity of renaming distinct variables. -/
-theorem rename_comm_fresh {m : Term Var} {x y z w : Var} :
-    x ≠ z → y ∉ m.vars ∪ {x, z} → w ∉ m.vars ∪ {x, z} →
+theorem rename_comm_of_ne {m : Term Var} {x y z w : Var} (hxz : x ≠ z)
+    (hy : y ∉ m.vars ∪ {x, z}) (hw : w ∉ m.vars ∪ {x, z}) :
     (m.rename x y).rename z w = (m.rename z w).rename x y := by
   induction m <;> grind
 
 /-- Commutativity of renaming. -/
-theorem rename_comm {m : Term Var} {x y z w : Var} :
-    y ∉ m.vars ∪ {x, z} → w ∉ m.vars ∪ {x, y, z} →
+theorem rename_comm {m : Term Var} {x y z w : Var} (hy : y ∉ m.vars ∪ {x, z})
+    (hw : w ∉ m.vars ∪ {x, y, z}) :
     (m.rename x y).rename (if z = x then y else z) w = (m.rename z w).rename x y := by
-  grind [rename_comm_fresh]
+  grind [rename_comm_of_ne]
 
 end LambdaCalculus.Named.Untyped.Term
 

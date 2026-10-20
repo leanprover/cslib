@@ -60,7 +60,7 @@ theorem AlphaEquiv.same_fv {m n : Term Var} : m =α n → m.fv = n.fv := by
   | app => grind
   | @abs y x1 x2 m1 m2 hy h ih =>
     grind =>
-      instantiate [rename_fv, vars_either_fv_or_bv]
+      instantiate [fv_rename, vars_eq_fv_union_bv]
       have : m1.fv \ {x1} = (m1.rename x1 y).fv \ {y}
       have : (m2.rename x2 y).fv \ {y} = m2.fv \ {x2}
 
@@ -249,7 +249,7 @@ theorem Subst.function_to_relation {m r : Term Var} {x : Var} : m.Subst x r (m[x
             grind [AlphaEquiv.symm, AlphaEquiv.rename_non_fv]
           · grind [AlphaEquiv.refl]
           · grind [AlphaEquiv.refl]
-          · grind [Subst.absIn, vars_either_fv_or_bv]
+          · grind [Subst.absIn, vars_eq_fv_union_bv]
         · grind [Subst.absIn]
 
 /-- Substituting a non-free variable has no effect. -/
@@ -274,7 +274,7 @@ theorem subst.non_free {m r : Term Var} {x : Var} : x ∉ m.fv → (m[x := r]) =
           apply AlphaEquiv.abs (y := w)
           · grind
           apply AlphaEquiv.trans (n := ((m.rename y z).rename z w))
-          · grind [AlphaEquiv.rename_preserve, rename_fv]
+          · grind [AlphaEquiv.rename_preserve, fv_rename]
           · grind [AlphaEquiv.refl]
         · simp only [subst_def, eq_2, hyx, ↓reduceIte, hyr, not_false_eq_true, AlphaEquiv_def]
           apply AlphaEquiv.context (c := Context.abs y Context.hole)
@@ -293,11 +293,11 @@ private lemma subst.abs_fresh_helper {m r : Term Var} {x y z : Var} :
       cases m' with
       | var w =>
         by_cases hwx : w = x
-        · grind [vars_either_fv_or_bv, AlphaEquiv.refl, AlphaEquiv.abs_non_fv]
+        · grind [vars_eq_fv_union_bv, AlphaEquiv.refl, AlphaEquiv.abs_non_fv]
         · by_cases hwy' : w = y'
           · obtain ⟨v, hv⟩ := fresh_exists <| free_union [vars] Var
             apply AlphaEquiv.abs (y := v) <;> grind [AlphaEquiv.var]
-          · grind [vars_either_fv_or_bv, AlphaEquiv.refl, AlphaEquiv.abs_non_fv]
+          · grind [vars_eq_fv_union_bv, AlphaEquiv.refl, AlphaEquiv.abs_non_fv]
       | app m1 m2 =>
         obtain ⟨w, hw⟩ := fresh_exists
           ((m1.app m2)[x := r].vars ∪ (((m1.app m2).rename y' z)[x := r]).vars
@@ -306,7 +306,7 @@ private lemma subst.abs_fresh_helper {m r : Term Var} {x y z : Var} :
         apply AlphaEquiv.abs (y := w) <;> grind [AlphaEquiv.app, AlphaEquiv.abs_elim]
       | abs w m1 =>
         by_cases hwy' : w = y'
-        · grind [vars_either_fv_or_bv, AlphaEquiv.abs_non_fv]
+        · grind [vars_eq_fv_union_bv, AlphaEquiv.abs_non_fv]
         · rw [rename]
           simp only [hwy', ↓reduceIte]
           by_cases hwx : w = x
@@ -335,7 +335,7 @@ private lemma subst.abs_fresh_helper {m r : Term Var} {x y z : Var} :
                   simp only [rename, hvy', hvz, ↓reduceIte]
                   apply AlphaEquiv.context (c := Context.abs v Context.hole)
                   grind [AlphaEquiv.trans, AlphaEquiv.abs_elim, AlphaEquiv.rename_preserve,
-                    rename_comm_fresh, AlphaEquiv.refl]
+                    rename_comm_of_ne, AlphaEquiv.refl]
               grind [AlphaEquiv.trans]
             · obtain ⟨v, hv⟩ := fresh_exists
                 (m1[x:=r].vars ∪ (m1.rename y' z)[x:=r].vars ∪ ((Term.abs w m1)[x := r]).vars ∪
@@ -357,13 +357,13 @@ private lemma subst.abs_fresh_helper {m r : Term Var} {x y z : Var} :
         · grind
         · apply AlphaEquiv.trans (n := ((m.rename x z).rename z w))
           · grind [AlphaEquiv.refl]
-          · grind [AlphaEquiv.rename_preserve, AlphaEquiv.symm, subst.non_free, rename_fv]
+          · grind [AlphaEquiv.rename_preserve, AlphaEquiv.symm, subst.non_free, fv_rename]
       · by_cases hyr : y ∈ r.fv
         · simp only [subst_def, eq_2, hyx, ↓reduceIte, hyr, not_true_eq_false, Finset.union_insert,
               Finset.union_singleton, AlphaEquiv_def]
           let s := (insert x (insert y (m.vars ∪ r.vars)))
           have hw := fresh_notMem s
-          grind [AlphaEquiv.refl, AlphaEquiv.trans, vars_either_fv_or_bv]
+          grind [AlphaEquiv.refl, AlphaEquiv.trans, vars_eq_fv_union_bv]
         · grind
     grind
 
@@ -437,13 +437,13 @@ theorem subst.commutativity {m r1 r2 : Term Var} {x y : Var} :
         (Term.abs w (((m.rename z w)[x := r1])[y := r2])) := by
         apply AlphaEquiv.trans (n := (((Term.abs w ((m.rename z w)[x := r1]))[y := r2])))
         · grind [subst.preserve_AlphaEquiv, subst.abs_fresh, AlphaEquiv.refl]
-        · grind [vars_either_fv_or_bv, AlphaEquiv.refl]
+        · grind [vars_eq_fv_union_bv, AlphaEquiv.refl]
       have hr : (Term.abs w (((m.rename z w)[y := r2])[x := (r1[y := r2])]))
         =α (((Term.abs z m)[y := r2])[x := (r1[y := r2])]) := by
         apply AlphaEquiv.symm
         apply AlphaEquiv.trans (n := ((Term.abs w ((m.rename z w)[y := r2]))[x := (r1[y := r2])]))
         · grind [subst.preserve_AlphaEquiv, subst.abs_fresh, AlphaEquiv.refl]
-        · grind [vars_either_fv_or_bv, AlphaEquiv.refl]
+        · grind [vars_eq_fv_union_bv, AlphaEquiv.refl]
       have hmid : (Term.abs w (((m.rename z w)[x := r1])[y := r2])) =α
         (Term.abs w (((m.rename z w)[y := r2])[x := (r1[y := r2])])) := by
         apply AlphaEquiv.context (c := Context.abs w Context.hole)

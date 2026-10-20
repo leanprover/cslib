@@ -53,7 +53,7 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquiv
   | var => constructor
   | @abs z x1 x2 m1 m2 hz _ ih =>
     have h1 : z ∉ ({x1, x2} : Finset Var) ∪ m1.fv ∪ m2.fv := by
-      simp_all [vars_either_fv_or_bv]
+      simp_all [vars_eq_fv_union_bv]
     have h2 : AlphaEquivPFresh (m1.swap x1 z) (m2.swap x2 z) := by
       grind [swap_eq_rename_of_notMem_vars]
     apply AlphaEquivPFresh.abs h1 h2
@@ -77,9 +77,9 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
       exact AlphaEquiv.swap_preserve ih
     -- From Lemma 6.2 part 2 via agreement sets
     have h_agree : ((m.swap u a).swap z u) =α (m.swap z a) := by
-      apply swap_comp_alphaEquiv_of_notMem_fv <;> grind [vars_either_fv_or_bv]
+      apply swap_comp_alphaEquiv_of_notMem_fv <;> grind [vars_eq_fv_union_bv]
     have h_agree' : ((m'.swap u b).swap z u) =α (m'.swap z b) := by
-      apply swap_comp_alphaEquiv_of_notMem_fv <;> grind [vars_either_fv_or_bv]
+      apply swap_comp_alphaEquiv_of_notMem_fv <;> grind [vars_eq_fv_union_bv]
     -- Chain by symmetry and transitivity of ∼p
     -- (z a) · m ∼p (z u)·(u a)·m ∼p (z u)·(u b)·m' ∼p (z b) · m'
     have h_chain : (m.swap z a) =α (m'.swap z b) := h_agree.symm.trans (h_swap.trans h_agree')
