@@ -126,7 +126,7 @@ lemma swap_swap {m : Term Var} {x y : Var} : (m.swap x y).swap x y = m := by
 /-- Swapping preserves size. -/
 @[simp]
 lemma swap_preserves_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.swap x y) = sizeOf m :=
-  permute_sizeOf _ _
+  permute_sizeOf ..
 
 /-- Swapping two unused variables has no effect. -/
 @[simp]
@@ -154,7 +154,7 @@ lemma swap_eq_rename_of_notMem_vars {m : Term Var} {x y : Var}
 
 /-- The set of free variables after a swap. -/
 lemma swap_fv {m : Term Var} {x y : Var} : (m.swap x y).fv = m.fv.image (Equiv.swap x y) :=
-  permute_fv _ _
+  permute_fv ..
 
 /-- Swapping preserves non-membership in `fv`. -/
 lemma notMem_fv_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.fv) :
@@ -164,7 +164,7 @@ lemma notMem_fv_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y
 
 /-- The set of vars after a swap. -/
 lemma swap_vars {m : Term Var} {x y : Var} : (m.swap x y).vars = m.vars.image (Equiv.swap x y) :=
-  permute_vars _ _
+  permute_vars ..
 
 /-- Swapping preserves non-membership in `vars`. -/
 lemma notMem_vars_swap {m : Term Var} {x y z : Var}
