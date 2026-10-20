@@ -29,6 +29,8 @@ variable {State Symbol : Type*}
 @[local grind =]
 instance : HasTau (Option α) := ⟨.none⟩
 
+instance : DecidableEqTau (Option α) := fun a => Option.decidableEqNone a
+
 /-- The `ε`-closure of a set of states `S` is the set of states reachable by any state in `S`
 by performing only `ε`-transitions. We use `LTS.τClosure` since `ε` (`Option.none`) is an instance
 of `HasTau.τ`. -/
@@ -36,58 +38,17 @@ abbrev εNA.εClosure (a : εNA State Symbol) (S : Set State) := a.τClosure S
 
 namespace εNA
 
-/-- A saturated `ε`-transition is a run along a list of `ε`s. -/
-theorem τSTr_iff_exists_mTr_replicate {a : εNA State Symbol} {s t : State} :
-    a.τSTr s t ↔ ∃ n, a.MTr s (List.replicate n none) t := by
-  constructor
-  · intro h
-    induction h with
-    | refl => exact ⟨0, .refl⟩
-    | tail _ htr ih =>
-      obtain ⟨n, hmtr⟩ := ih
-      refine ⟨n + 1, ?_⟩
-      rw [List.replicate_succ']
-      exact hmtr.stepR _ htr
-  · rintro ⟨n, hmtr⟩
-    induction n generalizing s with
-    | zero =>
-      obtain rfl := hmtr.nil_eq _
-      exact .refl
-    | succ n ih =>
-      obtain ⟨s', htr, hmtr'⟩ := LTS.MTr.cons_iff.mp hmtr
-      exact .head htr (ih hmtr')
-
-/-- A saturated run of an `εNA` along `xs.map some` is a run along a list of optional symbols
-which becomes `xs` once its `ε`s are dropped. -/
-theorem sMTr_map_some_iff {a : εNA State Symbol} {s t : State} {xs : List Symbol} :
-    a.SMTr s (xs.map some) t ↔
-      ∃ μs : List (Option Symbol), μs.reduceOption = xs ∧ a.MTr s μs t := by
-  constructor
-  · intro h
-    induction xs generalizing s with
-    | nil =>
-      cases h with
-      | τ hstr =>
-        obtain ⟨n, hmtr⟩ := τSTr_iff_exists_mTr_replicate.mp ((LTS.sTr_τSTr_iff _).mp hstr)
-        exact ⟨_, List.reduceOption_replicate_none, hmtr⟩
-    | cons x xs ih =>
-      cases h with
-      | stepL hstr hrest =>
-        obtain ⟨μs, hμs, hmtr⟩ := ih hrest
-        cases hstr with
-        | tr h₁ htr h₂ =>
-          obtain ⟨n₁, hmtr₁⟩ := τSTr_iff_exists_mTr_replicate.mp h₁
-          obtain ⟨n₂, hmtr₂⟩ := τSTr_iff_exists_mTr_replicate.mp h₂
-          refine ⟨List.replicate n₁ none ++ some x :: (List.replicate n₂ none ++ μs), ?_, ?_⟩
-          · simp [List.reduceOption_append, hμs]
-          · exact hmtr₁.comp _ (.stepL htr (hmtr₂.comp _ hmtr))
-  · rintro ⟨μs, rfl, hmtr⟩
-    induction hmtr with
-    | refl => exact LTS.SMTr.refl _ _
-    | @stepL _ μ _ _ _ htr _ ih =>
-      cases μ with
-      | none => exact LTS.SMTr.comp (.τ (.single htr)) ih
-      | some x => exact .stepL (.single htr) ih
+/-- Dropping the `ε`s of a list of optional symbols leaves the symbols of its `reduceOption`. -/
+private theorem filter_ne_τ_eq_map_some_iff {μs : List (Option Symbol)} {xs : List Symbol} :
+    μs.filter (· ≠ HasTau.τ) = xs.map some ↔ μs.reduceOption = xs := by
+  have hτ : (HasTau.τ : Option Symbol) = none := rfl
+  have h : μs.filter (· ≠ HasTau.τ) = μs.reduceOption.map some := by
+    simp only [hτ]
+    induction μs with
+    | nil => rfl
+    | cons μ μs ih => cases μ <;> simpa using ih
+  rw [h]
+  exact (List.map_injective_iff.mpr (Option.some_injective _)).eq_iff
 
 /-- The finite-word acceptance condition of an `εNA` is a set of accepting states. -/
 structure FinAcc (State Symbol : Type*) extends εNA State Symbol where
@@ -108,9 +69,14 @@ once its `ε`s are dropped. -/
 theorem mem_language_iff {a : FinAcc State Symbol} {xs : List Symbol} :
     xs ∈ language a ↔ ∃ s ∈ a.start, ∃ t ∈ a.accept,
       ∃ μs : List (Option Symbol), μs.reduceOption = xs ∧ a.MTr s μs t := by
+  have hvis : ∀ μ ∈ xs.map some, μ ≠ (HasTau.τ : Option Symbol) := by
+    intro μ hμ
+    obtain ⟨x, -, rfl⟩ := List.mem_map.mp hμ
+    exact Option.some_ne_none x
   rw [mem_language]
   exact exists_congr fun _ => and_congr_right fun _ => exists_congr fun _ =>
-    and_congr_right fun _ => sMTr_map_some_iff
+    and_congr_right fun _ => (LTS.sMTr_iff_exists_mTr_filter hvis).trans
+      (exists_congr fun _ => and_congr_left' filter_ne_τ_eq_map_some_iff)
 
 end FinAcc
 
