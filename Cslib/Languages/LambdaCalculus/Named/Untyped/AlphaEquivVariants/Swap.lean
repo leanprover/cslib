@@ -403,12 +403,9 @@ lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
         have hπ'xa : π' x ≠ π' a := fun he => hxa (π'.injective he)
         have hπ'xπa : π' x ≠ π a := by simp_all
         have hπxz : π x ≠ z := by
-          intro he
-          apply hzπ
-          rw [← he, vars_either_fv_or_bv]
-          apply Finset.mem_union_left
-          rw [permute_fv]
-          exact Finset.mem_image.mpr ⟨x, hx, rfl⟩
+          contrapose! hzπ with he
+          rw [← he, vars_either_fv_or_bv, permute_fv]
+          exact Finset.mem_union_left _ <| Finset.mem_image.mpr ⟨x, hx, rfl⟩
         have hπ'xz : π' x ≠ z := by simp_all
         simp [Equiv.swap_apply_def, hπ'xa, hπ'xπa, hπ'xz, hagree]
     rw [← permute_trans, ← permute_trans, permute_swap, permute_swap] at hbody
