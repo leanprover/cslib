@@ -183,16 +183,6 @@ theorem MTr.append_iff : lts.MTr s1 (μs ++ μs') s2 ↔ ∃ s, lts.MTr s1 μs s
   intro ⟨_, h, h'⟩
   exact h.comp lts h'
 
-/-- A map of states that sends transitions of `lts₁` to transitions of `lts₂` also sends
-multistep transitions to multistep transitions. -/
-theorem MTr.map {State₂ : Type*} {lts₁ : LTS State Label} {lts₂ : LTS State₂ Label}
-    {s s' : State} {μs : List Label} (f : State → State₂)
-    (hf : ∀ s μ s', lts₁.Tr s μ s' → lts₂.Tr (f s) μ (f s')) (h : lts₁.MTr s μs s') :
-    lts₂.MTr (f s) μs (f s') := by
-  induction h with
-  | refl => exact .refl
-  | stepL htr _ ih => exact .stepL (hf _ _ _ htr) ih
-
 /-- Single-step invariant. -/
 @[scoped grind =]
 def TrInv (p : State → Prop) : Prop :=

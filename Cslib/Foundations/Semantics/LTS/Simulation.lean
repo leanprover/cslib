@@ -124,6 +124,23 @@ theorem IsSimulation.sim_trace (hr : IsSimulation lts₁ lts₂ r) (hrel : r s�
       obtain ⟨s₂', hmtr₂, hrel'⟩ := ih hrel' hmtr
       use s₂', hmtr₂.stepL htr₂, hrel'
 
+/-- The graph of a map of states that sends transitions of `lts₁` to transitions of `lts₂` is a
+simulation. -/
+theorem IsSimulation.graph {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+    {f : State₁ → State₂} (hf : ∀ s μ s', lts₁.Tr s μ s' → lts₂.Tr (f s) μ (f s')) :
+    IsSimulation lts₁ lts₂ fun s t => t = f s := by
+  rintro s _ rfl μ s' htr
+  exact ⟨f s', hf s μ s' htr, rfl⟩
+
+/-- A map of states that sends transitions of `lts₁` to transitions of `lts₂` also sends
+multistep transitions to multistep transitions. -/
+theorem MTr.map {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s s' : State₁}
+    {μs : List Label} (f : State₁ → State₂)
+    (hf : ∀ s μ s', lts₁.Tr s μ s' → lts₂.Tr (f s) μ (f s')) (h : lts₁.MTr s μs s') :
+    lts₂.MTr (f s) μs (f s') := by
+  obtain ⟨_, hmtr, rfl⟩ := (IsSimulation.graph hf).sim_trace rfl μs s' h
+  exact hmtr
+
 /-- Simulation equivalence relates all states `s₁` and `s2` such that `s₁ ≤[lts₁ lts₂] s2` and
 `s2 ≤[lts₂ lts₁] s₁`. -/
 def SimulationEquiv (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) :
