@@ -8,7 +8,7 @@ module
 
 public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
 public import Cslib.Computability.Languages.Language
-import Mathlib.Data.List.ReduceOption
+public import Mathlib.Data.List.ReduceOption
 
 /-! # Thompson's construction
 

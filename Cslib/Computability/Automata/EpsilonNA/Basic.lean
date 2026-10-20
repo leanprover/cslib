@@ -8,7 +8,7 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.LTS.HasTau
-import Mathlib.Data.List.ReduceOption
+public import Mathlib.Data.List.ReduceOption
 
 /-! # Nondeterministic automata with ε-transitions. -/
 
