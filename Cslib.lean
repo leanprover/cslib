@@ -17,7 +17,7 @@ public import Cslib.Computability.Automata.EpsilonNA.Basic
 public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
 public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
 public import Cslib.Computability.Automata.EpsilonNA.ToNA
-public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
+public import Cslib.Computability.Automata.EpsilonNA.ToSingleStartAccept
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter

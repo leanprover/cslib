@@ -42,7 +42,7 @@ def State : RegularExpression α → Type
   | zero => Unit
   | epsilon => Unit
   | char _ => Bool
-  | plus P Q => Option (Option (P.State ⊕ Q.State))
+  | plus P Q => Bool ⊕ (P.State ⊕ Q.State)
   | comp P Q => P.State ⊕ Q.State
   | star P => Unit ⊕ P.State
 

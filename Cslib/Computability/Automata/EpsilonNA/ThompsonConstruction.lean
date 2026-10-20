@@ -6,7 +6,7 @@ Authors: Yusuf Demir
 
 module
 
-public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
+public import Cslib.Computability.Automata.EpsilonNA.ToSingleStartAccept
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.Union
@@ -141,8 +141,7 @@ theorem language_sum (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
 
 /-- The union of `a` and `b`: their disjoint sum, with a single initial state and a single
 accepting state added by `toSingleStartAccept`. -/
-def union (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
-    FinAcc (Option (Option (S₁ ⊕ S₂))) Symbol :=
+def union (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) : FinAcc (Bool ⊕ (S₁ ⊕ S₂)) Symbol :=
   (sum a b).toSingleStartAccept
 
 @[simp]
