@@ -9,6 +9,7 @@ module
 public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Semantics.LTS.Simulation
+public import Cslib.Foundations.Semantics.LTS.Union
 public import Mathlib.Data.List.ReduceOption
 
 /-! # Thompson's construction
@@ -21,7 +22,8 @@ with their languages.
 
 * `εNA.FinAcc.zero`, `εNA.FinAcc.epsilon`, `εNA.FinAcc.char x`: automata for the empty language,
   the empty word and the word `[x]`.
-* `εNA.FinAcc.sum a b`: the states and transitions of `a` and `b` side by side.
+* `εNA.FinAcc.sum a b`: the states and transitions of `a` and `b` side by side, through
+  `LTS.unionSum`.
 * `εNA.FinAcc.union a b`: `sum a b` with a single initial and a single accepting state, through
   `toSingleStartAccept`.
 * `εNA.FinAcc.concat a b`: `ε`-transitions from the accepting states of `a` to the initial states
@@ -106,48 +108,14 @@ theorem language_char (x : Symbol) : language (char x) = {[x]} := by
     exact ⟨false, Set.mem_singleton _, true, Set.mem_singleton _, [some x], rfl,
       .single _ ⟨rfl, rfl, rfl⟩⟩
 
-/-- The transitions of `sum a b`: those of `a` and those of `b`, side by side. -/
-inductive SumTr (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
-    S₁ ⊕ S₂ → Option Symbol → S₁ ⊕ S₂ → Prop
-  | left {s μ s'} : a.Tr s μ s' → SumTr a b (.inl s) μ (.inl s')
-  | right {s μ s'} : b.Tr s μ s' → SumTr a b (.inr s) μ (.inr s')
-
-/-- The disjoint sum of `a` and `b`: their states and transitions side by side, with the initial
-and the accepting states of both. -/
+/-- The disjoint sum of `a` and `b`: their states and transitions side by side (`LTS.unionSum`),
+with the initial and the accepting states of both. -/
 def sum (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) : FinAcc (S₁ ⊕ S₂) Symbol where
-  Tr := SumTr a b
+  toLTS := LTS.unionSum a.toLTS b.toLTS
   start := .inl '' a.start ∪ .inr '' b.start
   accept := .inl '' a.accept ∪ .inr '' b.accept
 
 variable {a : FinAcc S₁ Symbol} {b : FinAcc S₂ Symbol}
-
-/-- A run of `sum a b` from a state of `a` is a run of `a`. -/
-theorem sum_mTr_inl {s : S₁} {μs : List (Option Symbol)} {y : S₁ ⊕ S₂}
-    (h : (sum a b).MTr (.inl s) μs y) : ∃ t, y = .inl t ∧ a.MTr s μs t := by
-  induction μs generalizing s with
-  | nil =>
-    cases h
-    exact ⟨s, rfl, .refl⟩
-  | cons μ μs ih =>
-    obtain ⟨z, htr, h'⟩ := LTS.MTr.cons_iff.mp h
-    cases htr with
-    | left htr =>
-      obtain ⟨t, rfl, hrun⟩ := ih h'
-      exact ⟨t, rfl, .stepL htr hrun⟩
-
-/-- A run of `sum a b` from a state of `b` is a run of `b`. -/
-theorem sum_mTr_inr {s : S₂} {μs : List (Option Symbol)} {y : S₁ ⊕ S₂}
-    (h : (sum a b).MTr (.inr s) μs y) : ∃ t, y = .inr t ∧ b.MTr s μs t := by
-  induction μs generalizing s with
-  | nil =>
-    cases h
-    exact ⟨s, rfl, .refl⟩
-  | cons μ μs ih =>
-    obtain ⟨z, htr, h'⟩ := LTS.MTr.cons_iff.mp h
-    cases htr with
-    | right htr =>
-      obtain ⟨t, rfl, hrun⟩ := ih h'
-      exact ⟨t, rfl, .stepL htr hrun⟩
 
 @[simp]
 theorem language_sum (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
@@ -158,18 +126,16 @@ theorem language_sum (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
   · rintro ⟨_, hs', _, ht', μs, rfl, h⟩
     rcases (Set.mem_union _ _ _).mp hs' with hs' | hs'
     · obtain ⟨s, hs, rfl⟩ := (Set.mem_image _ _ _).mp hs'
-      obtain ⟨t, rfl, hrun⟩ := sum_mTr_inl h
+      obtain ⟨t, rfl, hrun⟩ := LTS.unionSum_mTr_inl h
       exact .inl ⟨s, hs, t, by simpa [sum] using ht', μs, rfl, hrun⟩
     · obtain ⟨s, hs, rfl⟩ := (Set.mem_image _ _ _).mp hs'
-      obtain ⟨t, rfl, hrun⟩ := sum_mTr_inr h
+      obtain ⟨t, rfl, hrun⟩ := LTS.unionSum_mTr_inr h
       exact .inr ⟨s, hs, t, by simpa [sum] using ht', μs, rfl, hrun⟩
   · rintro (⟨s, hs, t, ht, μs, rfl, h⟩ | ⟨s, hs, t, ht, μs, rfl, h⟩)
-    · have hcopy : (sum a b).MTr (.inl s) μs (.inl t) :=
-        h.map (fun s => (.inl s : S₁ ⊕ S₂)) fun _ _ _ => SumTr.left
+    · have hcopy : (sum a b).MTr (.inl s) μs (.inl t) := LTS.unionSum_mTr_inl_iff.mpr h
       exact ⟨.inl s, Set.mem_union_left _ (Set.mem_image_of_mem _ hs), .inl t,
         Set.mem_union_left _ (Set.mem_image_of_mem _ ht), μs, rfl, hcopy⟩
-    · have hcopy : (sum a b).MTr (.inr s) μs (.inr t) :=
-        h.map (fun s => (.inr s : S₁ ⊕ S₂)) fun _ _ _ => SumTr.right
+    · have hcopy : (sum a b).MTr (.inr s) μs (.inr t) := LTS.unionSum_mTr_inr_iff.mpr h
       exact ⟨.inr s, Set.mem_union_right _ (Set.mem_image_of_mem _ hs), .inr t,
         Set.mem_union_right _ (Set.mem_image_of_mem _ ht), μs, rfl, hcopy⟩
 
