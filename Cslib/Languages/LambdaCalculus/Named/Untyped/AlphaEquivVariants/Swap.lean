@@ -58,18 +58,18 @@ lemma permute_refl (m : Term Var) : m.permute (Equiv.refl Var) = m := by
 
 omit [DecidableEq Var] in
 /-- Permuting successively by `π` and `π'` is permutation by their composition. -/
-lemma permute_trans (m : Term Var) (π π' : Equiv.Perm Var) :
+lemma permute_permute (m : Term Var) (π π' : Equiv.Perm Var) :
     (m.permute π).permute π' = m.permute (π.trans π') := by
   induction m <;> simp_all [permute]
 
 omit [DecidableEq Var] in
 /-- Permuting a term preserves its size. -/
 @[simp]
-lemma permute_sizeOf (m : Term Var) (π : Equiv.Perm Var) : sizeOf (m.permute π) = sizeOf m := by
+lemma sizeOf_permute (m : Term Var) (π : Equiv.Perm Var) : sizeOf (m.permute π) = sizeOf m := by
   induction m <;> simp_all [permute]
 
 /-- Permuting a term transports its free variables pointwise. -/
-lemma permute_fv (m : Term Var) (π : Equiv.Perm Var) :
+lemma fv_permute (m : Term Var) (π : Equiv.Perm Var) :
     (m.permute π).fv = m.fv.image π := by
   induction m with
   | var x => simp [permute, fv]
@@ -77,7 +77,7 @@ lemma permute_fv (m : Term Var) (π : Equiv.Perm Var) :
   | abs x m ih => simp [permute, fv, ih, Finset.image_sdiff _ _ π.injective]
 
 /-- Permuting a term transports its variables pointwise. -/
-lemma permute_vars (m : Term Var) (π : Equiv.Perm Var) :
+lemma vars_permute (m : Term Var) (π : Equiv.Perm Var) :
     (m.permute π).vars = m.vars.image π := by
   induction m <;> simp_all [permute, Finset.image_union]
 
@@ -117,16 +117,16 @@ lemma swap_comm {m : Term Var} {x y : Var} : m.swap x y = m.swap y x := by
 /-- Swapping the same two variables twice has no effect. -/
 @[simp]
 lemma swap_swap {m : Term Var} {x y : Var} : (m.swap x y).swap x y = m := by
-  simp [swap, permute_trans]
+  simp [swap, permute_permute]
 
 /-- Swapping preserves size. -/
 @[simp]
-lemma swap_preserves_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.swap x y) = sizeOf m :=
-  permute_sizeOf ..
+lemma sizeOf_swap {m : Term Var} {x y : Var} : sizeOf (m.swap x y) = sizeOf m :=
+  sizeOf_permute ..
 
 /-- Swapping two unused variables has no effect. -/
 @[simp]
-lemma swap_unused {m : Term Var} {x y : Var} (hx : x ∉ m.vars) (hy : y ∉ m.vars) :
+lemma swap_of_notMem_vars {m : Term Var} {x y : Var} (hx : x ∉ m.vars) (hy : y ∉ m.vars) :
     m.swap x y = m := by
   rw [swap, permute_eq_of_eqOn_vars m _ (Equiv.refl Var), permute_refl]
   grind [Set.EqOn]
@@ -140,22 +140,22 @@ lemma swap_eq_rename_of_notMem_vars {m : Term Var} {x y : Var}
   induction m <;> grind [swap, rename, vars, permute]
 
 /-- The set of free variables after a swap. -/
-lemma swap_fv {m : Term Var} {x y : Var} : (m.swap x y).fv = m.fv.image (Equiv.swap x y) :=
-  permute_fv ..
+lemma fv_swap {m : Term Var} {x y : Var} : (m.swap x y).fv = m.fv.image (Equiv.swap x y) :=
+  fv_permute ..
 
 /-- Swapping preserves non-membership in `fv`. -/
 lemma notMem_fv_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.fv) :
     z ∉ (m.swap x y).fv := by
-  grind [swap_fv]
+  grind [fv_swap]
 
 /-- The set of vars after a swap. -/
-lemma swap_vars {m : Term Var} {x y : Var} : (m.swap x y).vars = m.vars.image (Equiv.swap x y) :=
-  permute_vars ..
+lemma vars_swap {m : Term Var} {x y : Var} : (m.swap x y).vars = m.vars.image (Equiv.swap x y) :=
+  vars_permute ..
 
 /-- Swapping preserves non-membership in `vars`. -/
 lemma notMem_vars_swap {m : Term Var} {x y z : Var}
     (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.vars) : z ∉ (m.swap x y).vars := by
-  grind [swap_vars]
+  grind [vars_swap]
 
 /-- `swap` and `rename` commute (modulo the permutation action on the variable arguments). -/
 lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
@@ -172,7 +172,7 @@ lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z 
 lemma swap_comp_eq_of_notMem_vars {m : Term Var} {a u z : Var}
     (hu : u ∉ m.vars) (hz : z ∉ m.vars) :
     (m.swap u a).swap z u = m.swap z a := by
-  rw [swap, swap, permute_trans]
+  rw [swap, swap, permute_permute]
   apply permute_eq_of_eqOn_vars
   grind [Set.EqOn]
 
@@ -182,14 +182,14 @@ when `a ∉ {u, v}`.
 Unlike `swap_comp_eq_of_notMem_vars`, this holds unconditionally (no freshness needed). -/
 lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a ≠ v) :
     (m.swap u v).swap v a = (m.swap u a).swap u v := by
-  simp only [swap, permute_trans]
+  simp only [swap, permute_permute]
   congr 1
   grind
 
 /-- If `u` is not among `m`'s variables, then `v` cannot appear in `m.swap u v`
 (the only way `v` could show up is as the image of `u`). -/
 lemma notMem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ (m.swap u v).vars := by
-  grind [swap_vars]
+  grind [vars_swap]
 
 /- The following 5 lemmas are representative of non-trivial cases of the 27 cases occurring
 in the proof of `AlphaEquiv.swap_preserve`. See Lemma 6.1 [Crole2012]. -/
@@ -403,10 +403,10 @@ lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
         have hπ'xa : π' x ≠ π' a := fun he => hxa (π'.injective he)
         have hπxz : π x ≠ z := by
           contrapose! hzπ with he
-          rw [← he, vars_eq_fv_union_bv, permute_fv]
+          rw [← he, vars_eq_fv_union_bv, fv_permute]
           exact Finset.mem_union_left _ <| Finset.mem_image.mpr ⟨x, hx, rfl⟩
         grind
-    rw [← permute_trans, ← permute_trans, permute_swap, permute_swap,
+    rw [← permute_permute, ← permute_permute, permute_swap, permute_swap,
       swap_eq_rename_of_notMem_vars hzπ, swap_eq_rename_of_notMem_vars hzπ'] at hbody
     exact AlphaEquiv.abs (y := z) (by grind) hbody
 
@@ -418,7 +418,7 @@ lemma swap_comp_alphaEquiv_of_notMem_fv {m : Term Var} {a u z : Var}
   let π' := Equiv.swap z a
   have h : Set.EqOn π π' m.fv := by grind [Set.EqOn]
   have h' := permute_alphaEquiv_of_eqOn_fv m π π' h
-  rwa [← permute_trans, permute_swap, permute_swap, permute_swap] at h'
+  rwa [← permute_permute, permute_swap, permute_swap, permute_swap] at h'
 
 end LambdaCalculus.Named.Untyped.Term
 
