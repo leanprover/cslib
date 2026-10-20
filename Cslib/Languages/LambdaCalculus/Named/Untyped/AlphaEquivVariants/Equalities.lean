@@ -66,25 +66,20 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
   | var => constructor
   | @abs u a b m m' hy _ ih =>
     -- We have: (u a) · m ∼p (u b) · m' (by induction: ih) and u # a, b, m, m' (by hy).
-    -- Extract freshness conditions from hy.
-    have hum : u ∉ m.fv := by aesop
-    have hum' : u ∉ m'.fv := by aesop
     -- Pick z ≠ u with z ∉ vars(m) ∪ vars(m') ∪ {a, b} (stronger than freshness).
     obtain ⟨z, hz⟩ := fresh_exists (m.vars ∪ m'.vars ∪ {a, b, u})
-    have hzm : z ∉ m.vars := by aesop
-    have hzm' : z ∉ m'.vars := by aesop
-    have hzm_fv : z ∉ m.fv := by simp_all [vars_either_fv_or_bv]
-    have hzm_fv' : z ∉ m'.fv := by simp_all [vars_either_fv_or_bv]
+    have hzm : z ∉ m.vars := by grind
+    have hzm' : z ∉ m'.vars := by grind
     -- Using Lemma 6.1 we get
     have h_swap : ((m.swap u a).swap z u) =α ((m'.swap u b).swap z u) := by
       nth_rw 2 [swap_comm]
       nth_rw 4 [swap_comm]
       exact AlphaEquiv.swap_preserve ih
     -- From Lemma 6.2 part 2 via agreement sets
-    have h_agree : ((m.swap u a).swap z u) =α (m.swap z a) :=
-      swap_comp_alphaEquiv_of_notMem_fv hum hzm_fv
-    have h_agree' : ((m'.swap u b).swap z u) =α (m'.swap z b) :=
-      swap_comp_alphaEquiv_of_notMem_fv hum' hzm_fv'
+    have h_agree : ((m.swap u a).swap z u) =α (m.swap z a) := by
+      apply swap_comp_alphaEquiv_of_notMem_fv <;> grind [vars_either_fv_or_bv]
+    have h_agree' : ((m'.swap u b).swap z u) =α (m'.swap z b) := by
+      apply swap_comp_alphaEquiv_of_notMem_fv <;> grind [vars_either_fv_or_bv]
     -- Chain by symmetry and transitivity of ∼p
     -- (z a) · m ∼p (z u)·(u a)·m ∼p (z u)·(u b)·m' ∼p (z b) · m'
     have h_chain : (m.swap z a) =α (m'.swap z b) := h_agree.symm.trans (h_swap.trans h_agree')
@@ -92,7 +87,7 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
     -- Since z ∉ vars(m), swap z a = rename a z (by swap_comm + swap_eq_rename).
     rw [swap_comm, swap_eq_rename_of_notMem_vars hzm] at h_chain
     rw [swap_comm, swap_eq_rename_of_notMem_vars hzm'] at h_chain
-    exact AlphaEquiv.abs (by aesop) h_chain
+    exact AlphaEquiv.abs (by grind) h_chain
   | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
 /-- **Theorem 4.1** [Crole2012]: `∼p` and `∼p#` are the same relation. -/
