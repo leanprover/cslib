@@ -115,8 +115,7 @@ lemma swap_self {m : Term Var} {x : Var} : m.swap x x = m := by
 
 /-- Swapping `x` and `y` is the same as swapping `y` and `x`. -/
 lemma swap_comm {m : Term Var} {x y : Var} : m.swap x y = m.swap y x := by
-  unfold swap
-  rw [Equiv.swap_comm]
+  rw [swap, swap, Equiv.swap_comm]
 
 /-- Swapping the same two variables twice has no effect. -/
 @[simp]
