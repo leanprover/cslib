@@ -389,29 +389,26 @@ lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
   | abs a m ih =>
     let z := HasFresh.fresh ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
     have hz := HasFresh.fresh_notMem ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
-    have hzπ : z ∉ (m.permute π).vars := by simp_all [z]
-    have hzπ' : z ∉ (m.permute π').vars := by simp_all [z]
+    have hzπ : z ∉ (m.permute π).vars := by grind
+    have hzπ' : z ∉ (m.permute π').vars := by grind
     have hbody : (m.permute (π.trans (Equiv.swap (π a) z))) =α
         (m.permute (π'.trans (Equiv.swap (π' a) z))) := by
       apply ih
       intro x hx
       simp only [Equiv.trans_apply]
       by_cases hxa : x = a
-      · simp_all
+      · grind
       · have hagree : π x = π' x := h (by simp [fv, hx, hxa])
         have hπxa : π x ≠ π a := fun he => hxa (π.injective he)
         have hπ'xa : π' x ≠ π' a := fun he => hxa (π'.injective he)
-        have hπ'xπa : π' x ≠ π a := by simp_all
         have hπxz : π x ≠ z := by
           contrapose! hzπ with he
           rw [← he, vars_either_fv_or_bv, permute_fv]
           exact Finset.mem_union_left _ <| Finset.mem_image.mpr ⟨x, hx, rfl⟩
-        have hπ'xz : π' x ≠ z := by simp_all
-        simp [Equiv.swap_apply_def, hπ'xa, hπ'xπa, hπ'xz, hagree]
-    rw [← permute_trans, ← permute_trans, permute_swap, permute_swap] at hbody
-    rw [swap_eq_rename_of_notMem_vars hzπ, swap_eq_rename_of_notMem_vars hzπ'] at hbody
-    unfold permute
-    apply AlphaEquiv.abs (y := z) (by simp_all [z]) hbody
+        grind
+    rw [← permute_trans, ← permute_trans, permute_swap, permute_swap,
+      swap_eq_rename_of_notMem_vars hzπ, swap_eq_rename_of_notMem_vars hzπ'] at hbody
+    exact AlphaEquiv.abs (y := z) (by grind) hbody
 
 /-- Lemma 6.2 part 2 [Crole2012] (specialized). -/
 lemma swap_comp_alphaEquiv_of_notMem_fv {m : Term Var} {a u z : Var}
