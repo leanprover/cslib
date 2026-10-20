@@ -38,6 +38,7 @@ theorem τSTr.refl [HasTau Label] {lts : LTS State Label} : lts.τSTr s s :=
   Relation.ReflTransGen.refl
 
 /-- Saturated transition relation. -/
+@[mk_iff]
 inductive STr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
   | refl : lts.STr s HasTau.τ s
   | tr : lts.τSTr s1 s2 → lts.Tr s2 μ s3 → lts.τSTr s3 s4 → lts.STr s1 μ s4
@@ -149,8 +150,7 @@ lemma τClosure_subset [HasTau Label] (lts : LTS State Label) :
 @[scoped grind =]
 theorem mem_τClosure_iff [HasTau Label] {lts : LTS State Label} {S : Set State} {s' : State} :
     s' ∈ lts.τClosure S ↔ ∃ s ∈ S, lts.τSTr s s' := by
-  rw [τClosure, mem_setImage]
-  exact exists_congr fun _ => and_congr_right fun _ => sTr_τSTr_iff lts
+  simp_rw [τClosure, mem_setImage, ← sTr_τSTr_iff, saturate_tr_sTr]
 
 /-- The `τ`-closure of the empty set is empty. -/
 @[simp, scoped grind =]
@@ -184,14 +184,8 @@ theorem saturate_setImage_of_ne_τ [HasTau Label] (lts : LTS State Label) {S : S
     {μ : Label} (hμ : μ ≠ HasTau.τ) :
     lts.saturate.setImage S μ = lts.τClosure (lts.setImage (lts.τClosure S) μ) := by
   ext s'
-  simp only [mem_τClosure_iff, mem_setImage]
-  constructor
-  · rintro ⟨s, hs, hstr⟩
-    cases hstr with
-    | refl => exact absurd rfl hμ
-    | tr h₁ htr h₂ => exact ⟨_, ⟨_, ⟨s, hs, h₁⟩, htr⟩, h₂⟩
-  · rintro ⟨s₂, ⟨s₁, ⟨s, hs, h₁⟩, htr⟩, h₂⟩
-    exact ⟨s, hs, STr.tr h₁ htr h₂⟩
+  simp [mem_setImage, saturate_tr_sTr, sTr_iff, hμ, mem_τClosure_iff]
+  grind
 
 /-- Saturated multistep transition relation. -/
 inductive SMTr [HasTau Label] (lts : LTS State Label) : State → List Label → State → Prop where
