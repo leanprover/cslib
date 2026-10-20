@@ -142,11 +142,9 @@ lemma swap_eq_rename_of_notMem_vars {m : Term Var} {x y : Var}
     (hy : y ∉ m.vars) : m.swap x y = m.rename x y := by
   induction m with
   | var z =>
-    unfold swap rename
-    grind [Term.vars, permute]
+    grind [swap, rename, Term.vars, permute]
   | abs z m ih =>
-    simp_all [Term.swap, Term.rename, Term.vars, permute]
-    grind
+    grind [Term.swap, Term.rename, Term.vars, permute]
   | app n1 n2 ih1 ih2 =>
     simp_all [Term.swap, Term.rename, Term.vars, permute]
 
@@ -157,8 +155,7 @@ lemma swap_fv {m : Term Var} {x y : Var} : (m.swap x y).fv = m.fv.image (Equiv.s
 /-- Swapping preserves non-membership in `fv`. -/
 lemma notMem_fv_swap {m : Term Var} {x y z : Var} (hzx : z ≠ x) (hzy : z ≠ y) (hzm : z ∉ m.fv) :
     z ∉ (m.swap x y).fv := by
-  rw [swap_fv]
-  grind
+  grind [swap_fv]
 
 /-- The set of vars after a swap. -/
 lemma swap_vars {m : Term Var} {x y : Var} : (m.swap x y).vars = m.vars.image (Equiv.swap x y) :=
