@@ -314,9 +314,7 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h : m =α m') :
           · simp_all
           -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst ha hz
-            apply AlphaEquiv.symm
-            exact
-              (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) (AlphaEquiv.symm ih) hbu hbv huv)
+            exact (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih.symm hbu hbv huv).symm
           -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
       · rcases hb with hb | hb | ⟨hbu, hbv⟩
@@ -328,27 +326,18 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h : m =α m') :
         · rcases hz with hz | hz | ⟨hzu, hzv⟩
           -- reuse representative case: a = u; b = u; z = v
           · subst ha hb hz
-            nth_rw 1 [swap_comm]
-            nth_rw 2 [swap_comm]
-            symm at hzb
-            nth_rw 1 [swap_comm] at ih
-            nth_rw 2 [swap_comm] at ih
-            apply alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih hzb
+            nth_rw 1 [swap_comm] at ih ⊢
+            nth_rw 2 [swap_comm] at ih ⊢
+            apply alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by simp_all) ih hzb.symm
           · simp_all
           -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
         · rcases hz with hz | hz | ⟨hzu, hzv⟩
           -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst ha hz
-            nth_rw 1 [swap_comm]
-            nth_rw 2 [swap_comm]
-            apply AlphaEquiv.symm
-            symm at huv
-            apply alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) _ hbv hbu huv
-            apply AlphaEquiv.symm
-            nth_rw 1 [swap_comm]
-            nth_rw 2 [swap_comm]
-            exact ih
+            nth_rw 1 [swap_comm] at ih ⊢
+            nth_rw 2 [swap_comm] at ih ⊢
+            refine (alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih.symm hbv hbu huv.symm).symm
           · simp_all
           -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
@@ -356,20 +345,16 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h : m =α m') :
         · rcases hz with hz | hz | ⟨hzu, hzv⟩
           · simp_all
           -- representative case: a ≠ u, v; b = u; z = v
-          · subst hb; subst hz
+          · subst hb hz
             exact alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih hau hav huv
           -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
         · rcases hz with hz | hz | ⟨hzu, hzv⟩
           -- reuse representative case: a ≠ u, v; b = u; z = v
           · subst hb hz
-            nth_rw 1 [swap_comm]
-            nth_rw 2 [swap_comm]
-            symm at huv
-            apply alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) _ hav hau huv
-            nth_rw 1 [swap_comm]
-            nth_rw 2 [swap_comm]
-            exact ih
+            nth_rw 1 [swap_comm] at ih ⊢
+            nth_rw 2 [swap_comm] at ih ⊢
+            exact alphaEquiv_swap_preserve_abs_b_eq_u (by simp_all) ih hav hau huv.symm
           · simp_all
           -- reuse representative case: z ≠ u, v
           · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzv
@@ -380,11 +365,9 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h : m =α m') :
             exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm ih hau hav hbu hbv
           -- reuse representative case: a ≠ u, v; b ≠ u, v; z = u
           -- after adjusting via swap commutativity and choosing z' = u
-          · rw [swap_comm (m := Term.abs a m) (x := u) (y := v),
-                swap_comm (m := Term.abs b m') (x := u) (y := v)]
-            subst hz
-            nth_rw 1 [swap_comm] at ih
-            nth_rw 2 [swap_comm] at ih
+          · subst hz
+            nth_rw 1 [swap_comm] at ih ⊢
+            nth_rw 2 [swap_comm] at ih ⊢
             exact alphaEquiv_swap_preserve_abs_fresh_z_eq_u hm ih hav hau hbv hbu
           -- representative case: z ≠ u, v
           -- use z' = z
