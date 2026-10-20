@@ -17,6 +17,7 @@ public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.TwoWayNA.OfNA
 public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
 public import Cslib.Computability.Languages.KleeneAlgorithm
+public import Cslib.Computability.Languages.RegularExpressions
 public import Mathlib.Computability.DFA
 public import Mathlib.Computability.RegularExpressions
 public import Mathlib.Basic.Finite.Sum
@@ -271,87 +272,18 @@ theorem IsRegular.regex {r : RegularExpression Symbol} :
   | comp P Q hP hQ => grind [matches', IsRegular.mul]
   | star P hP => grind [matches', IsRegular.kstar]
 
-theorem matches'_sum {α : Type*} (L : List (RegularExpression α)) :
-    (L.sum).matches' = (L.map matches').sum := by
-  induction L with
-  | nil => simp
-  | cons b L' ih => simp [ih]
-
-noncomputable instance {State : Type*} [Fintype State] (nfa : NA.FinAcc State Symbol) :
-    Fintype nfa.start :=
-  Fintype.ofFinite nfa.start
-
-noncomputable instance {State : Type*} [Fintype State] (nfa : NA.FinAcc State Symbol) :
-    Fintype nfa.accept :=
-  Fintype.ofFinite nfa.accept
-
-theorem language_sum_start {State : Type*} [Fintype State] {nfa : NA.FinAcc State Symbol} :
-    language nfa = (((nfa.start.toFinset).toList).map
-    (fun s ↦ language {nfa with start := {s}})).sum := by
-    -- The current statement is what is used,
-    -- but `∑ s ∈ nfa.start.toFinset, language {nfa with start := {s}}` is more natural.
-  ext xs
-  simp only [mem_language]
-  have memsum (l : List State) : xs ∈ (l.map (fun s ↦ language {nfa with start := {s}})).sum
-  ↔ ∃ s ∈ l, xs ∈ language {nfa with start := {s}} := by
-    induction l with
-    | nil => simp
-    | cons a l ih =>
-      simp only [map_cons, sum_cons, Language.mem_add, mem_cons, ih]
-      grind
-  rw [memsum]
-  simp only [Accepts, Finset.mem_toList, Set.mem_toFinset, mem_language, mem_singleton_iff,
-    exists_eq_left]
-
-theorem language_sum_accept {State : Type*} [Fintype State] {nfa : NA.FinAcc State Symbol} :
-    language nfa = (((nfa.accept.toFinset).toList).map
-    (fun t ↦ language {nfa with accept := {t}})).sum := by
-    -- The current statement is what is used,
-    -- but `∑ t ∈ nfa.accept.toFinset, language {nfa with accept := {t}}` is more natural.
-  ext xs
-  simp only [mem_language]
-  have memsum (l : List State) : xs ∈ (l.map (fun t ↦ language {nfa with accept := {t}})).sum
-  ↔ ∃ t ∈ l, xs ∈ language {nfa with accept := {t}} := by
-    induction l with
-    | nil => simp
-    | cons a l ih =>
-      simp only [map_cons, sum_cons, Language.mem_add, mem_cons, ih]
-      grind
-  rw [memsum]
-  simp only [Accepts, Finset.mem_toList, Set.mem_toFinset, mem_language, mem_singleton_iff,
-    exists_eq_left]
-  exact ⟨fun ⟨s, hs, t, ht, p⟩ ↦ ⟨t, ht, s, hs, p⟩, fun ⟨t, ht, s, hs, p⟩ ↦ ⟨s, hs, t, ht, p⟩⟩
-  -- Or replace the line above by `grind`
-
-theorem regex_of_nfa_singleton_start [Finite Symbol] {State : Type*} [Finite State]
-    (nfa : NA.FinAcc State Symbol) (hstart : ∃ s, nfa.start = {s}) :
-    ∃ r : RegularExpression Symbol, language nfa = r.matches' := by
-  have : Fintype State := Fintype.ofFinite State
-  rw [language_sum_accept]
-  let regex := (nfa.accept.toFinset.toList.map (fun t => (LTS.regex_of_nfa_singleton_start_accept
-    {nfa with accept := {t}} hstart (by simp)).choose)).sum
-  use regex
-  simp only [matches'_sum, regex]
-  apply congrArg sum
-  have (t : State) := (LTS.regex_of_nfa_singleton_start_accept
-    {nfa with accept := {t}} hstart (by simp)).choose_spec
-  simpa using fun s hs ↦ congrFun (funext this) s
-
 /-- A characterization of `Language.IsRegular` in terms of `RegularExpression`. -/
 theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol} :
     l.IsRegular ↔ ∃ r : RegularExpression Symbol, l = matches' r := by
-  refine ⟨fun h ↦ ?_, fun ⟨r, hr⟩ ↦  hr ▸ IsRegular.regex⟩
+  refine ⟨fun h ↦ ?_, fun ⟨r, hr⟩ ↦ hr ▸ IsRegular.regex⟩
   obtain ⟨State, _, nfa, rfl⟩ := IsRegular.iff_nfa.mp h
-  have : Fintype State := Fintype.ofFinite State
-  rw [language_sum_start]
-  let regex := (nfa.start.toFinset.toList.map (fun s => (regex_of_nfa_singleton_start
-    {nfa with start := {s}} (by simp)).choose)).sum
-  use regex
-  simp only [matches'_sum, regex]
-  apply congrArg sum
-  have (s : State) :=
-    (regex_of_nfa_singleton_start {nfa with start := {s}} (by simp)).choose_spec
-  simpa using fun s hs ↦ congrFun (funext this) s
+  have language_sum : language nfa =
+      ⨆ s ∈ nfa.start, ⨆ t ∈ nfa.accept, language {nfa with start := {s}, accept := {t}} := by
+    ext xs; simp [Accepts]
+  rw [language_sum]
+  exact RegularExpression.iSup_matches' fun _ _ ↦
+    RegularExpression.iSup_matches' fun _ _ ↦
+    LTS.regex_of_nfa_singleton_start_accept _ (by simp) (by simp)
 
 end RegularExpression
 

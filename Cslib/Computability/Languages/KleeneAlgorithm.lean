@@ -9,6 +9,7 @@ module
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.NA.Basic
+public import Cslib.Computability.Languages.RegularExpressions
 public import Mathlib.Computability.Language
 public import Mathlib.Computability.RegularExpressions
 
@@ -141,19 +142,6 @@ theorem findIdxButFirstLastRev?_eq {p : α → Bool} {as : List α} {i : ℕ} :
     simpa [show as.length - 1 - j' = j by lia] using hi_min j' (by lia)
 
 end List
-
-namespace RegularExpression
-
-variable {α : Type*}
-
-theorem mem_sum_matches' (rs : List (RegularExpression α)) (x : List α) :
-    x ∈ rs.sum.matches' ↔ ∃ r ∈ rs, x ∈ r.matches' := by
-  induction rs with
-  | nil => simp
-  | cons head tail ih =>
-    simp only [List.sum_cons, matches', Language.mem_add, ih, List.mem_cons, exists_eq_or_imp]
-
-end RegularExpression
 
 variable {Symbol : Type*} {n : ℕ}
 
