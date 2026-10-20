@@ -132,8 +132,7 @@ lemma swap_preserves_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.swap x y) = s
 lemma swap_unused {m : Term Var} {x y : Var} (hx : x ∉ m.vars) (hy : y ∉ m.vars) :
     m.swap x y = m := by
   rw [swap, permute_eq_of_eqOn_vars m _ (Equiv.refl Var), permute_refl]
-  intro z hz
-  grind
+  grind [Set.EqOn]
 
 /-- When `y ∉ m.vars`, `swap x y` and `rename x y` coincide.
 
