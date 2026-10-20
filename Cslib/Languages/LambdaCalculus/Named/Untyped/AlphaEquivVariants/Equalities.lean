@@ -105,7 +105,8 @@ theorem_wanted alphaEquiv_iff_alphaEquivRFresh (m n : Term Var) : m =α n ↔ Al
 
 /-- **Theorem 4.6** [Crole2012]: `∼r` and `∼r#` are the same relation. -/
 theorem_wanted alphaEquivR_iff_alphaEquivRFresh (m n : Term Var) :
-    AlphaEquivR m n ↔ AlphaEquivRFresh m n
+    AlphaEquivR m n ↔ AlphaEquivRFresh m n :=
+  (❰alphaEquiv_iff_alphaEquivR❱ m n).symm.trans (❰alphaEquiv_iff_alphaEquivRFresh❱ m n)
 
 end LambdaCalculus.Named.Untyped.Term
 
