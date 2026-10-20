@@ -433,7 +433,7 @@ theorem bddLang_eq_language_regex {r : ℕ} {lts : LTS (Fin n) Symbol}
       Finset.mem_univ, true_and, exists_exists_and_eq_and, matches', Language.mem_singleton]
       by_cases hxs : xs = []
       · simp only [hxs, ne_cons_self, and_false, exists_false, iff_false]
-        contrapose! heq
+        contrapose heq
         obtain ⟨_, hex, _⟩ := heq
         simpa using hex.to_mTr
       exact lts.bddLang_bound_zero s t hxs
