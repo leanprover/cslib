@@ -177,4 +177,8 @@ theorem join_inl_reflTransGen (r₁_ab : ReflTransGen r₁ a b) : ReflTransGen (
 theorem join_inr_reflTransGen (r₂_ab : ReflTransGen r₂ a b) : ReflTransGen (r₁ ⊔ r₂) a b :=
   ReflTransGen.mono le_sup_right _ _ r₂_ab
 
+theorem acyclic_le {r s : α → α → Prop}
+    (hle : r ≤ s) (ha : Acyclic s) : Acyclic r := by
+  grind [irrefl_iff_le_ne, TransGen.mono hle]
+
 end Relation
