@@ -6,6 +6,7 @@ Authors: Chi-Yun Hsu
 
 module
 
+public import Cslib.Init
 public import Mathlib.Computability.RegularExpressions
 public import Mathlib.Data.Set.Card
 
