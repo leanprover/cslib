@@ -199,7 +199,6 @@ lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a â‰  u) (hav : a â
     (m.swap u v).swap v a = (m.swap u a).swap u v := by
   simp only [swap, permute_trans]
   congr 1
-  ext x
   grind
 
 /-- If `u` is not among `m`'s variables, then `v` cannot appear in `m.swap u v`
