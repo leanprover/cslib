@@ -1379,7 +1379,6 @@ def Proof.cutElimAux [DecidableEq Atom] {Θ : Sequent Atom} (r : Proof Θ) :
       let t' := Proof.cutElimAux t (c⫠ :: R) (by grind only [multiset])
       exact (Proof.cutAdm (a := c) (Γ := Λ) (Δ := R) s' t').rwConclusion
         (by grind only [multiset])
-termination_by structural r
 
 /-- Cut elimination: given a proof `p` in CLL of a sequent for which there is a list representation
 `Γ`, produces a cut-free proof of the same sequent. -/
