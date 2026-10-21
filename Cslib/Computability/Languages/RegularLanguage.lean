@@ -281,9 +281,9 @@ theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol} :
       ⨆ s ∈ nfa.start, ⨆ t ∈ nfa.accept, language {nfa with start := {s}, accept := {t}} := by
     ext xs; simp [Accepts]
   rw [language_sum]
-  exact RegularExpression.iSup_matches' fun _ _ ↦
-    RegularExpression.iSup_matches' fun _ _ ↦
-    LTS.regex_of_nfa_singleton_start_accept _ (by simp) (by simp)
+  exact RegularExpression.iSup_matches' fun s _ ↦
+    RegularExpression.iSup_matches' fun t _ ↦
+    NA.FinAcc.regex_of_nfa_singleton_start_accept _ s t (by simp) (by simp)
 
 end RegularExpression
 
