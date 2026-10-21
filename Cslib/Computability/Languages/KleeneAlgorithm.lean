@@ -389,7 +389,7 @@ theorem bddLang_kstar (lts : LTS (Fin n) Symbol) (r : Fin n) :
 
 end kstar
 
-section Regex
+section regex
 
 open RegularExpression
 
@@ -453,7 +453,7 @@ theorem language_nfa_eq_regex_of_singleton_start_accept {nfa : NA.FinAcc (Fin n)
     language nfa = (nfa.toLTS.regex s t n).matches' := by
   simp [← LTS.bddLang_eq_language_regex, LTS.bddLang_eq_language_nfa, ← hstart, ← haccept]
 
-end Regex
+end regex
 
 end Cslib.LTS
 
