@@ -9,6 +9,7 @@ module
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Languages.RegularExpressions
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
+public import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
 # Kleene's Algorithm
@@ -391,17 +392,16 @@ open RegularExpression
 
 variable [Fintype Symbol]
 
+open Classical in
 /-- `Regex s t r` is the regular expression for the path from state `s` to `t`
 passing through states `< r`.
 When `r = 0`, `s = t`, the regex is empty string `ε` union all characters from state `s` to `s`.
 When `r = 0`, `s ≠ t`, the regex is all characters from state `s` to `t`.
 For `r + 1`, the regex is the union of `Regex s t r` and
 `(Regex s r r) (Regex r r r)∗ (Regex r t r)`. -/
-noncomputable def regex (lts : LTS (Fin n) Symbol) [∀ s t, DecidablePred fun x => lts.Tr s x t]
-    (s t : Fin n) : ℕ → RegularExpression Symbol
+noncomputable def regex (lts : LTS (Fin n) Symbol) (s t : Fin n) : ℕ → RegularExpression Symbol
   | 0 =>
-    let chars := (Finset.univ.filter
-      (fun x : Symbol ↦ lts.Tr s x t)).toList.map char
+    let chars := (Finset.univ.filter (fun x : Symbol ↦ lts.Tr s x t)).toList.map char
     if s = t then 1 + chars.sum else chars.sum
   | r + 1 =>
     if h : n ≤ r then regex lts s t r
@@ -410,8 +410,7 @@ noncomputable def regex (lts : LTS (Fin n) Symbol) [∀ s t, DecidablePred fun x
       regex lts s t r + regex lts s rFin r * (regex lts rFin rFin r).star * regex lts rFin t r
 
 /-- `LTS.Regex s t r` matches the language `LTS.bddLang s t r`. -/
-theorem bddLang_eq_language_regex {r : ℕ} {lts : LTS (Fin n) Symbol}
-    [∀ s t, DecidablePred fun x => lts.Tr s x t] {s t : Fin n} :
+theorem bddLang_eq_language_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fin n} :
     lts.bddLang s t r = (regex lts s t r).matches' := by
   induction r generalizing s t with
   | zero =>
@@ -444,8 +443,7 @@ theorem bddLang_eq_language_regex {r : ℕ} {lts : LTS (Fin n) Symbol}
 /-- An NFA with state type `Fin n` and with exactly one start state `s` and
 exactly one accept state `t` has a matching regular expression given by `LTS.regex s t n`. -/
 theorem language_nfa_eq_regex_of_singleton_start_accept {nfa : NA.FinAcc (Fin n) Symbol}
-    [∀ s t, DecidablePred fun x => nfa.toLTS.Tr s x t] {s t : Fin n}
-    (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
+    {s t : Fin n} (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
     language nfa = (nfa.toLTS.regex s t n).matches' := by
   simp [← LTS.bddLang_eq_language_regex, LTS.bddLang_eq_language_nfa, ← hstart, ← haccept]
 
@@ -474,9 +472,8 @@ theorem regex_of_nfa_singleton_start_accept [Finite Symbol] {State : Type*} [Fin
     (nfa : NA.FinAcc State Symbol) (s t : State)
     (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
     ∃ r : RegularExpression Symbol, language nfa = r.matches' := by
-  have : Fintype State := Fintype.ofFinite State
   have : Fintype Symbol := Fintype.ofFinite Symbol
-  let e := Fintype.equivFin State
+  let e := Finite.equivFin State
   classical
   simpa [language_eq_of_reindex nfa e hstart haccept] using
     ⟨_, LTS.language_nfa_eq_regex_of_singleton_start_accept (by dsimp) (by dsimp)⟩
