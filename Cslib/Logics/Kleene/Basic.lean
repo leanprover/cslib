@@ -29,6 +29,7 @@ and `!`.
   `Kleene.Value.iff`: the connectives.
 - `Kleene.Value.ofBool`: the embedding of `Bool`.
 - `Kleene.Value.InfoLE`, written `⊑`: the information order.
+- `Kleene.Value.equivOptionBool`: the equivalence with `Option Bool`, `unknown` as `none`.
 
 ## Main results
 
@@ -331,6 +332,56 @@ theorem infoLE_or_of_extends {f : Value → Value → Value}
   have key (x y : Bool) (ha : a ⊑ ofBool x) (hb : b ⊑ ofBool y) : f a b ⊑ ofBool (x || y) :=
     ext x y ▸ mono ha hb
   cases a <;> cases b <;> simp [infoLE_def, Bool.forall_bool] at key ⊢ <;> grind
+
+/-! ### The equivalence with `Option Bool` -/
+
+/-- The definite values as `some`, `unknown` as `none`. -/
+def toOption : Value → Option Bool
+  | .true => some Bool.true
+  | .false => some Bool.false
+  | .unknown => none
+
+/-- `some b` as `ofBool b`, `none` as `unknown`. -/
+def ofOption : Option Bool → Value
+  | some b => ofBool b
+  | none => .unknown
+
+@[simp, scoped grind =] theorem ofOption_some (b : Bool) : ofOption (some b) = ofBool b := rfl
+@[simp, scoped grind =] theorem ofOption_none : ofOption none = .unknown := rfl
+
+@[simp, scoped grind =] theorem toOption_ofBool (b : Bool) : toOption (ofBool b) = some b := by
+  cases b <;> rfl
+@[simp, scoped grind =] theorem toOption_true : toOption .true = some Bool.true := rfl
+@[simp, scoped grind =] theorem toOption_false : toOption .false = some Bool.false := rfl
+@[simp, scoped grind =] theorem toOption_unknown : toOption .unknown = none := rfl
+
+@[simp] theorem toOption_eq_none_iff {a : Value} : toOption a = none ↔ a = .unknown := by
+  cases a <;> simp [toOption]
+
+@[simp] theorem toOption_eq_some_iff {a : Value} {b : Bool} :
+    toOption a = some b ↔ a = ofBool b := by
+  cases a <;> cases b <;> simp [toOption]
+
+@[simp, scoped grind =] theorem toOption_not (a : Value) :
+    toOption (¬a) = (toOption a).map Bool.not := by cases a <;> rfl
+
+@[simp, scoped grind =] theorem ofOption_toOption (a : Value) : ofOption (toOption a) = a := by
+  cases a <;> rfl
+@[simp, scoped grind =] theorem toOption_ofOption (o : Option Bool) :
+    toOption (ofOption o) = o := by cases o <;> simp
+
+/-- `Kleene.Value` is `Option Bool` with `unknown` as `none`. -/
+@[simps (attr := scoped grind =)]
+def equivOptionBool : Value ≃ Option Bool where
+  toFun := toOption
+  invFun := ofOption
+  left_inv := ofOption_toOption
+  right_inv := toOption_ofOption
+
+/-- The information order, read through `ofOption`. -/
+@[simp] theorem ofOption_infoLE_iff {o o' : Option Bool} :
+    ofOption o ⊑ ofOption o' ↔ o = none ∨ o = o' := by
+  cases o <;> cases o' <;> simp [infoLE_def]
 
 end Value
 
