@@ -32,11 +32,6 @@ namespace FinAcc
 def toEpsilonNAFinAcc (a : NA.FinAcc State Symbol) : εNA.FinAcc State Symbol :=
   { a.toEpsilonNA with accept := a.accept }
 
-private theorem reduceOption_map_some (xs : List Symbol) : (xs.map some).reduceOption = xs := by
-  induction xs with
-  | nil => rfl
-  | cons x xs ih => simp [ih]
-
 open Acceptor in
 /-- The `εNA.FinAcc` constructed from an `NA.FinAcc` has the same language. -/
 @[simp]
@@ -48,8 +43,11 @@ theorem toEpsilonNAFinAcc_language_eq {a : NA.FinAcc State Symbol} :
   · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
     exact ⟨s, hs, t, ht, LTS.mapHom_mTr.mp h⟩
   · rintro ⟨s, hs, t, ht, h⟩
-    refine ⟨s, hs, t, ht, xs.map some, reduceOption_map_some xs, LTS.mapHom_mTr.mpr ?_⟩
-    rwa [Language.Hom.reduceOption_apply, reduceOption_map_some]
+    use s, hs, t, ht, xs.map some
+    split_ands
+    · simp [List.reduceOption]
+    · apply LTS.mapHom_mTr.mpr
+      simpa [Language.Hom.reduceOption_apply, List.reduceOption]
 
 end FinAcc
 
