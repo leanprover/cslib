@@ -133,7 +133,7 @@ def IsSimulationMap (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) 
   ∀ s₁ μ s₁', lts₁.Tr s₁ μ s₁' → lts₂.Tr (f s₁) μ (f s₁')
 
 /-- The graph of a simulation map is a simulation. -/
-theorem IsSimulation.graph {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+theorem IsSimulationMap.isSimulation {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     {f : State₁ → State₂} (hf : IsSimulationMap lts₁ lts₂ f) :
     IsSimulation lts₁ lts₂ fun s t => t = f s := by
   rintro s _ rfl μ s' htr
@@ -143,7 +143,7 @@ theorem IsSimulation.graph {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ 
 theorem IsSimulationMap.sim_trace {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     {f : State₁ → State₂} (hf : IsSimulationMap lts₁ lts₂ f) {s s' : State₁} {μs : List Label}
     (h : lts₁.MTr s μs s') : lts₂.MTr (f s) μs (f s') := by
-  obtain ⟨_, hmtr, rfl⟩ := (IsSimulation.graph hf).sim_trace rfl μs s' h
+  obtain ⟨_, hmtr, rfl⟩ := hf.isSimulation.sim_trace rfl μs s' h
   exact hmtr
 
 /-- Simulation equivalence relates all states `s₁` and `s2` such that `s₁ ≤[lts₁ lts₂] s2` and
