@@ -259,7 +259,7 @@ section RegularExpression
 open RegularExpression
 
 /-- Languages matching regular expressions are regular. -/
-theorem IsRegular.regex {r : RegularExpression Symbol} :
+theorem IsRegular.regex (r : RegularExpression Symbol) :
     r.matches'.IsRegular := by
   induction r with
   | zero => simp
@@ -272,15 +272,12 @@ theorem IsRegular.regex {r : RegularExpression Symbol} :
 /-- A characterization of `Language.IsRegular` in terms of `RegularExpression`. -/
 theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol} :
     l.IsRegular ↔ ∃ r : RegularExpression Symbol, l = matches' r := by
-  refine ⟨fun h ↦ ?_, fun ⟨r, hr⟩ ↦ hr ▸ IsRegular.regex⟩
-  obtain ⟨State, _, nfa, rfl⟩ := IsRegular.iff_nfa.mp h
-  have language_sum : language nfa =
-      ⨆ s ∈ nfa.start, ⨆ t ∈ nfa.accept, language {nfa with start := {s}, accept := {t}} := by
-    ext xs; simp [Accepts]
-  rw [language_sum]
-  exact RegularExpression.iSup_matches' fun s _ ↦
-    RegularExpression.iSup_matches' fun t _ ↦
-    NA.FinAcc.nfa_single_start_accept_eq_regex _ s t (by simp) (by simp)
+  constructor
+  · intro h
+    obtain ⟨State, _, nfa, rfl⟩ := IsRegular.iff_nfa.mp h
+    exact NA.FinAcc.nfa_eq_regex nfa
+  · rintro ⟨r, rfl⟩
+    exact IsRegular.regex r
 
 end RegularExpression
 

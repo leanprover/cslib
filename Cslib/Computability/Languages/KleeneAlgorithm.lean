@@ -465,12 +465,24 @@ theorem nfa_single_start_accept_reindex (nfa : NA.FinAcc State Symbol) (e : Stat
 
 /-- An NFA with exactly one start state and exactly one accept state
 has a matching regular expression. -/
-theorem nfa_single_start_accept_eq_regex [Finite Symbol] {State : Type*} [Finite State]
+theorem nfa_single_start_accept_eq_regex [Finite Symbol] [Finite State]
     (nfa : NA.FinAcc State Symbol) (s t : State)
     (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
     ∃ r : RegularExpression Symbol, language nfa = r.matches' := by
   let e := Finite.equivFin State
   exact ⟨_, (nfa_single_start_accept_reindex nfa e hstart haccept).trans
     (LTS.fin_nfa_single_start_accept_eq_regex _ (e s) (e t))⟩
+
+/-- Any NFA has a matching regular expression. -/
+theorem nfa_eq_regex [Finite Symbol] [Finite State] (nfa : NA.FinAcc State Symbol) :
+    ∃ r : RegularExpression Symbol, language nfa = r.matches' := by
+  obtain ⟨r, hr⟩ := RegularExpression.iSup_matches' (s := nfa.start ×ˢ nfa.accept)
+    (l := fun p ↦ language (NA.FinAcc.mk ⟨nfa.toLTS, {p.1}⟩ {p.2}))
+    (fun p _ ↦ nfa_single_start_accept_eq_regex _ p.1 p.2 rfl rfl)
+  use r
+  ext xs
+  rw [← hr, Language.mem_biSup]
+  simp [mem_language, Accepts]
+  grind
 
 end Cslib.Automata.NA.FinAcc
