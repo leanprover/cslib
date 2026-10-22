@@ -457,55 +457,20 @@ end regex
 
 end Cslib.LTS
 
-section reindex
+namespace Cslib.Automata.NA.FinAcc
 
 variable {State State' : Type*}
 
-namespace Cslib.LTS
-
-/-- Reindex an LTS by an equivalence on states. -/
-def reindex (lts : LTS State Symbol) (e : State ≃ State') :
-    LTS State' Symbol := LTS.mk fun s' a t' ↦ lts.Tr (e.symm s') a (e.symm t')
-
-theorem reindex_tr (lts : LTS State Symbol) (e : State ≃ State') (s t : State) (μ : Symbol) :
-    (lts.reindex e).Tr (e s) μ (e t) ↔ lts.Tr s μ t := by
-  simp [reindex]
-
-theorem reindex_isBisimulation (lts : LTS State Symbol) (e : State ≃ State') :
-    IsBisimulation lts (lts.reindex e) (fun s s' ↦ s' = e s) := by
-  intro s s' hss' μ
-  constructor
-  · intro t htr
-    use e t
-    simp [hss', reindex_tr, htr]
-  · intro t' htr'
-    use e.symm t'
-    simp [← hss', ← reindex_tr lts e, htr']
-
-theorem MTr.reindex (lts : LTS State Symbol) (e : State ≃ State') (s t : State) (μs : List Symbol) :
-    lts.MTr s μs t → (lts.reindex e).MTr (e s) μs (e t) := by
-  simpa using (reindex_isBisimulation lts e).bisim_trace (s₁ := s) (s₂ := e s) rfl μs t
-
-end Cslib.LTS
-
-namespace Cslib.Automata.NA.FinAcc
-
-theorem language_eq_of_reindex (nfa : NA.FinAcc State Symbol) (e : State ≃ State') (s t : State)
+theorem language_eq_of_reindex (nfa : NA.FinAcc State Symbol) (e : State ≃ State') {s t : State}
     (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
     language nfa = language (NA.FinAcc.mk (NA.mk (nfa.toLTS.reindex e) {e s}) {e t}) := by
   set nfa' := NA.FinAcc.mk (NA.mk (nfa.toLTS.reindex e) {e s}) {e t} with hnfa'
   ext xs
   have nfa_eq : nfa'.MTr (e s) xs (e t) ↔ nfa.MTr s xs t :=
-    ⟨by simpa [nfa', LTS.reindex] using (LTS.MTr.reindex nfa'.toLTS e.symm (e s) (e t) xs),
-      LTS.MTr.reindex nfa.toLTS e s t xs⟩
+    ⟨by simpa [nfa', LTS.reindex] using (LTS.reindex.bisim_trace nfa'.toLTS e.symm (e s) (e t) xs),
+      LTS.reindex.bisim_trace nfa.toLTS e s t xs⟩
   simp only [mem_language, Accepts, hstart, Set.mem_singleton_iff, haccept, exists_eq_left, hnfa']
   rw [nfa_eq]
-
-end Cslib.Automata.NA.FinAcc
-
-end reindex
-
-namespace Cslib.Automata.NA.FinAcc
 
 /-- An NFA with exactly one start state and exactly one accept state
 has a matching regular expression. -/
@@ -517,7 +482,7 @@ theorem regex_of_nfa_singleton_start_accept [Finite Symbol] {State : Type*} [Fin
   have : Fintype Symbol := Fintype.ofFinite Symbol
   let e := Fintype.equivFin State
   classical
-  simpa [language_eq_of_reindex nfa e s t hstart haccept] using
+  simpa [language_eq_of_reindex nfa e hstart haccept] using
     ⟨_, LTS.language_nfa_eq_regex_of_singleton_start_accept (by dsimp) (by dsimp)⟩
 
 end Cslib.Automata.NA.FinAcc
