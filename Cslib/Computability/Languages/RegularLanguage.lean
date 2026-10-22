@@ -280,7 +280,7 @@ theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol} :
   rw [language_sum]
   exact RegularExpression.iSup_matches' fun s _ ↦
     RegularExpression.iSup_matches' fun t _ ↦
-    NA.FinAcc.regex_of_nfa_singleton_start_accept _ s t (by simp) (by simp)
+    NA.FinAcc.nfa_single_start_accept_eq_regex _ s t (by simp) (by simp)
 
 end RegularExpression
 

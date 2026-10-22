@@ -35,7 +35,7 @@ from state `s` to state `t`, whose interior states are all under the bound `r`.
 have a matching regular expression
 - `LTS.bddLang_eq_language_nfa`: `bddLang` is equal to the language of an NFA
 when `boudnd` is greater than or equal to the total number of states.
-- `LTS.bddLang_eq_language_regex`: `LTS.Regex s t r` matches the language `LTS.bddLang s t r`.
+- `LTS.bddLang_eq_regex`: `LTS.Regex s t r` matches the language `LTS.bddLang s t r`.
 
 ## References
 
@@ -139,7 +139,7 @@ theorem findIdxButFirstLastRev?_eq {p : α → Bool} {as : List α} {i : ℕ} :
 
 end List
 
-variable {Symbol : Type*} {n : ℕ}
+variable {Symbol State State' : Type*} {n : ℕ}
 
 open List Cslib.Automata Acceptor
 
@@ -410,7 +410,7 @@ noncomputable def regex (lts : LTS (Fin n) Symbol) (s t : Fin n) : ℕ → Regul
       regex lts s t r + regex lts s rFin r * (regex lts rFin rFin r).star * regex lts rFin t r
 
 /-- `LTS.Regex s t r` matches the language `LTS.bddLang s t r`. -/
-theorem bddLang_eq_language_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fin n} :
+theorem bddLang_eq_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fin n} :
     lts.bddLang s t r = (regex lts s t r).matches' := by
   induction r generalizing s t with
   | zero =>
@@ -442,10 +442,9 @@ theorem bddLang_eq_language_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fi
 
 /-- An NFA with state type `Fin n` and with exactly one start state `s` and
 exactly one accept state `t` has a matching regular expression given by `LTS.regex s t n`. -/
-theorem language_nfa_eq_regex_of_singleton_start_accept {nfa : NA.FinAcc (Fin n) Symbol}
-    {s t : Fin n} (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
-    language nfa = (nfa.toLTS.regex s t n).matches' := by
-  simp [← LTS.bddLang_eq_language_regex, LTS.bddLang_eq_language_nfa, ← hstart, ← haccept]
+theorem fin_nfa_single_start_accept_eq_regex (lts : LTS (Fin n) Symbol) (s t : Fin n) :
+    language (NA.FinAcc.mk ⟨lts, {s}⟩ {t}) = (lts.regex s t n).matches' := by
+  rw [← LTS.bddLang_eq_regex, LTS.bddLang_eq_language_nfa lts s t le_rfl]
 
 end regex
 
@@ -453,11 +452,9 @@ end Cslib.LTS
 
 namespace Cslib.Automata.NA.FinAcc
 
-variable {State State' : Type*}
-
-theorem language_eq_of_reindex (nfa : NA.FinAcc State Symbol) (e : State ≃ State') {s t : State}
-    (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
-    language nfa = language (NA.FinAcc.mk (NA.mk (nfa.toLTS.reindex e) {e s}) {e t}) := by
+theorem nfa_single_start_accept_reindex (nfa : NA.FinAcc State Symbol) (e : State ≃ State')
+    {s t : State} (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
+    language nfa = language (NA.FinAcc.mk ⟨(nfa.toLTS.reindex e), {e s}⟩ {e t}) := by
   set nfa' := NA.FinAcc.mk (NA.mk (nfa.toLTS.reindex e) {e s}) {e t} with hnfa'
   ext xs
   have nfa_eq : nfa'.MTr (e s) xs (e t) ↔ nfa.MTr s xs t :=
@@ -468,12 +465,12 @@ theorem language_eq_of_reindex (nfa : NA.FinAcc State Symbol) (e : State ≃ Sta
 
 /-- An NFA with exactly one start state and exactly one accept state
 has a matching regular expression. -/
-theorem regex_of_nfa_singleton_start_accept [Finite Symbol] {State : Type*} [Finite State]
+theorem nfa_single_start_accept_eq_regex [Finite Symbol] {State : Type*} [Finite State]
     (nfa : NA.FinAcc State Symbol) (s t : State)
     (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
     ∃ r : RegularExpression Symbol, language nfa = r.matches' := by
   let e := Finite.equivFin State
-  simpa [language_eq_of_reindex nfa e hstart haccept] using
-    ⟨_, LTS.language_nfa_eq_regex_of_singleton_start_accept (by dsimp) (by dsimp)⟩
+  exact ⟨_, (nfa_single_start_accept_reindex nfa e hstart haccept).trans
+    (LTS.fin_nfa_single_start_accept_eq_regex _ (e s) (e t))⟩
 
 end Cslib.Automata.NA.FinAcc
