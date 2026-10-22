@@ -13,8 +13,13 @@ public import Mathlib.Tactic.DeriveFintype
 /-! # Truth values of Kleene's strong three-valued logic
 
 The truth values and connectives of Kleene's strong three-valued logic (K3) [Kleene1952], with the
-truth order `false < unknown < true`. These are the semantic domain for the propositions in
+truth order `false < unknown < true` and the information order `unknown ⊑ true`,
+`unknown ⊑ false`. These are the semantic domain for the propositions in
 `Cslib.Logics.Kleene.Semantics`.
+
+The truth order is the `LE` instance: `∧` and `∨` are its meet and join, and negation reverses
+it. In the information order `⊑`, `unknown` lies below both definite values; every connective
+is monotone in it.
 
 ## Main definitions
 
@@ -22,12 +27,15 @@ truth order `false < unknown < true`. These are the semantic domain for the prop
 - `Kleene.Value.not`, `Kleene.Value.and`, `Kleene.Value.or`, `Kleene.Value.imp`,
   `Kleene.Value.iff`: the connectives.
 - `Kleene.Value.ofBool`: the embedding of `Bool`.
+- `Kleene.Value.InfoLE`, written `⊑`: the information order.
 
 ## Main results
 
 - `LinearOrder Kleene.Value`, `BoundedOrder Kleene.Value`: the truth order, with `∧` as meet and
   `∨` as join.
 - `Kleene.Value.ofBool_and` and friends: `ofBool` commutes with the connectives.
+- `IsPartialOrder Kleene.Value Kleene.Value.InfoLE`, `Kleene.Value.InfoLE.and` and friends: the
+  information order is a partial order in which every connective is monotone.
 
 ## References
 
@@ -219,6 +227,7 @@ theorem ofBool_injective : Function.Injective ofBool := by decide
 @[simp] theorem ofBool_inj {a b : Bool} : ofBool a = ofBool b ↔ a = b := ofBool_injective.eq_iff
 
 @[simp] theorem ofBool_ne_unknown (b : Bool) : ofBool b ≠ .unknown := by decide +revert
+@[simp] theorem unknown_ne_ofBool (b : Bool) : .unknown ≠ ofBool b := (ofBool_ne_unknown b).symm
 
 @[simp, scoped grind =]
 theorem ofBool_not (b : Bool) : ofBool (!b) = ¬ofBool b := by decide +revert
@@ -228,6 +237,58 @@ theorem ofBool_and (a b : Bool) : ofBool (a && b) = (ofBool a ∧ ofBool b) := b
 
 @[simp, scoped grind =]
 theorem ofBool_or (a b : Bool) : ofBool (a || b) = (ofBool a ∨ ofBool b) := by decide +revert
+
+/-! ### The information order -/
+
+/-- The information order: `unknown` lies below every value, and the definite values are
+incomparable. It is distinct from the truth order `≤`. -/
+def InfoLE (a b : Value) : Prop := a = .unknown ∨ a = b
+
+@[inherit_doc] scoped infix:50 " ⊑ " => InfoLE
+
+theorem infoLE_def {a b : Value} : a ⊑ b ↔ a = .unknown ∨ a = b := Iff.rfl
+
+instance : DecidableRel InfoLE := fun _ _ => inferInstanceAs (Decidable (_ ∨ _))
+
+protected theorem InfoLE.refl (a : Value) : a ⊑ a := Or.inr rfl
+
+protected theorem InfoLE.trans {a b c : Value} : a ⊑ b → b ⊑ c → a ⊑ c := by decide +revert
+
+protected theorem InfoLE.antisymm {a b : Value} : a ⊑ b → b ⊑ a → a = b := by decide +revert
+
+instance : IsPartialOrder Value InfoLE where
+  refl := InfoLE.refl
+  trans _ _ _ := InfoLE.trans
+  antisymm _ _ := InfoLE.antisymm
+
+/-- `unknown` is the least informative value. -/
+@[simp] theorem unknown_infoLE (a : Value) : .unknown ⊑ a := Or.inl rfl
+
+@[simp] theorem infoLE_unknown_iff {a : Value} : a ⊑ .unknown ↔ a = .unknown := by
+  decide +revert
+
+/-- Definite values are maximal in the information order. -/
+@[simp] theorem ofBool_infoLE_iff {x : Bool} {b : Value} : ofBool x ⊑ b ↔ b = ofBool x := by
+  decide +revert
+
+@[simp] theorem true_infoLE_iff {b : Value} : .true ⊑ b ↔ b = .true := by decide +revert
+@[simp] theorem false_infoLE_iff {b : Value} : .false ⊑ b ↔ b = .false := by decide +revert
+
+/-! ### Monotonicity in the information order -/
+
+protected theorem InfoLE.not {a a' : Value} (h : a ⊑ a') : (¬a) ⊑ (¬a') := by decide +revert
+
+protected theorem InfoLE.and {a a' b b' : Value} (ha : a ⊑ a') (hb : b ⊑ b') :
+    (a ∧ b) ⊑ (a' ∧ b') := by decide +revert
+
+protected theorem InfoLE.or {a a' b b' : Value} (ha : a ⊑ a') (hb : b ⊑ b') :
+    (a ∨ b) ⊑ (a' ∨ b') := by decide +revert
+
+protected theorem InfoLE.imp {a a' b b' : Value} (ha : a ⊑ a') (hb : b ⊑ b') :
+    (a → b) ⊑ (a' → b') := ha.not.or hb
+
+protected theorem InfoLE.iff {a a' b b' : Value} (ha : a ⊑ a') (hb : b ⊑ b') :
+    (a ↔ b) ⊑ (a' ↔ b') := (ha.imp hb).and (hb.imp ha)
 
 end Value
 
