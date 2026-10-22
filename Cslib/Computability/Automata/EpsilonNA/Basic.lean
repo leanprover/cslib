@@ -38,17 +38,11 @@ abbrev εNA.εClosure (a : εNA State Symbol) (S : Set State) := a.τClosure S
 
 namespace εNA
 
-/-- Dropping the `ε`s of a list of optional symbols leaves the symbols of its `reduceOption`. -/
-private theorem filter_ne_τ_eq_map_some_iff {μs : List (Option Symbol)} {xs : List Symbol} :
-    μs.filter (· ≠ HasTau.τ) = xs.map some ↔ μs.reduceOption = xs := by
-  have hτ : (HasTau.τ : Option Symbol) = none := rfl
-  have h : μs.filter (· ≠ HasTau.τ) = μs.reduceOption.map some := by
-    simp only [hτ]
-    induction μs with
-    | nil => rfl
-    | cons μ μs ih => cases μ <;> simpa using ih
-  rw [h]
-  exact (List.map_injective_iff.mpr (Option.some_injective _)).eq_iff
+theorem filter_ne_τ_eq_map_some {μs : List (Option Symbol)} :
+    μs.filter (· ≠ HasTau.τ) = μs.reduceOption.map some := by
+  induction μs with
+  | nil => rfl
+  | cons μ μs ih => cases μ <;> simp_all [HasTau.τ, List.reduceOption]
 
 /-- The finite-word acceptance condition of an `εNA` is a set of accepting states. -/
 structure FinAcc (State Symbol : Type*) extends εNA State Symbol where
@@ -76,7 +70,8 @@ theorem mem_language_iff {a : FinAcc State Symbol} {xs : List Symbol} :
   rw [mem_language]
   exact exists_congr fun _ => and_congr_right fun _ => exists_congr fun _ =>
     and_congr_right fun _ => (LTS.sMTr_iff_exists_mTr_filter hvis).trans
-      (exists_congr fun _ => and_congr_left' filter_ne_τ_eq_map_some_iff)
+      (exists_congr fun _ => and_congr_left' <| by
+        rw [filter_ne_τ_eq_map_some, List.map_inj_right (fun _ _ => Option.some_inj.mp)])
 
 end FinAcc
 
