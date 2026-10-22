@@ -6,13 +6,9 @@ Authors: Brooke Gill, Chi-Yun Hsu
 
 module
 
-public import Cslib.Foundations.Semantics.LTS.Bisimulation
-public import Cslib.Computability.Automata.Acceptors.Acceptor
-public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Languages.RegularExpressions
-public import Mathlib.Computability.Language
-public import Mathlib.Computability.RegularExpressions
+public import Cslib.Foundations.Semantics.LTS.Bisimulation
 
 /-!
 # Kleene's Algorithm
