@@ -16,12 +16,11 @@ public import Mathlib.SetTheory.Cardinal.NatCard
 
 Kleene's algorithm constructs a regular expresssion by induction on a bound that restricts
 which interior states an execution may pass through.
-It is used to prove `Cslib.Language.IsRegular.iff_regex`, that every language accepted by
-a DFA comprised of finite states is the language of a regular expression.
+It is used to prove an direction of `Cslib.Language.IsRegular.iff_regex`, that
+every language accepted by a DFA comprised of finite states is the language of a regular expression.
 We implement Kleene's algorithm for the more general case of an NFA instead of DFA,
 since `Execution` is developed for `LTS` but not `FLTS`.
-The special case where the NFA has only one start state and one accept state is proved in
-`regex_of_nfa_singleton_start_accept` in this file.
+This main theorem is `NA.FinAcc.nfa_eq_regex`.
 
 ## Main definitions
 - `LTS.bddLang start last bound`: The language of finite words that are accepted by an execution
@@ -31,9 +30,8 @@ and all states of the execution except for the first and last are less than `bou
 from state `s` to state `t`, whose interior states are all under the bound `r`.
 
 ## Main results
-- `NA.FinAcc.regex_of_nfa_singleton_start_accept`: NFA with one start state and one accept state
-have a matching regular expression
-- `LTS.bddLang_eq_language_nfa`: `bddLang` is equal to the language of an NFA
+- `NA.FinAcc.nfa_eq_regex`: Any NFA has a matching regular expression..
+- `LTS.bddLang_eq_nfa`: `LTS.bddLang` is equal to the language of an NFA
 when `boudnd` is greater than or equal to the total number of states.
 - `LTS.bddLang_eq_regex`: `LTS.Regex s t r` matches the language `LTS.bddLang s t r`.
 
@@ -50,12 +48,12 @@ namespace List
 variable {α : Type*}
 
 /-- All but the first and last elements of the list `as` satisfy the predicate `p`. -/
-def allButFirstLast (p : α → Bool) (as : List α) : Prop :=
+def AllButFirstLast (p : α → Bool) (as : List α) : Prop :=
   ∀ x, x ∈ as.tail.dropLast → p x
 
 theorem allButFirstLast_iff_getElem (p : α → Bool) (as : List α) :
-    as.allButFirstLast p ↔ ∀ i (_ : 0 < i ∧ i < as.length - 1), p as[i] := by
-  simp only [allButFirstLast, forall_mem_iff_getElem, length_dropLast, length_tail,
+    as.AllButFirstLast p ↔ ∀ i (_ : 0 < i ∧ i < as.length - 1), p as[i] := by
+  simp only [AllButFirstLast, forall_mem_iff_getElem, length_dropLast, length_tail,
     getElem_dropLast, getElem_tail, forall_and_index]
   constructor
   · intro h i hi_pos hi_len
@@ -65,12 +63,12 @@ theorem allButFirstLast_iff_getElem (p : α → Bool) (as : List α) :
     exact h (a + 1) (by lia) (by lia)
 
 theorem allButFirstLast_imp {p q : α → Bool} {as : List α} (h : ∀ x, p x → q x)
-    (hp : as.allButFirstLast p) : as.allButFirstLast q :=
+    (hp : as.AllButFirstLast p) : as.AllButFirstLast q :=
   fun x hx ↦ h x <| hp x hx
 
 theorem allButFirstLast_append {p : α → Bool} {as bs : List α} (hlen : 0 < as.length)
-    (ha_last : p as[as.length - 1]) (ha : as.allButFirstLast p) (hb : bs.allButFirstLast p) :
-    (as ++ bs.tail).allButFirstLast p := by
+    (ha_last : p as[as.length - 1]) (ha : as.AllButFirstLast p) (hb : bs.AllButFirstLast p) :
+    (as ++ bs.tail).AllButFirstLast p := by
   rw [allButFirstLast_iff_getElem] at ha hb ⊢
   simp only [length_append, length_tail] at ha hb ⊢
   intro i hi
@@ -149,7 +147,7 @@ namespace Cslib.LTS
 where all states of the execution except for the first and last are less than `bound`. -/
 def BddExec (lts : LTS (Fin n) Symbol) (start : Fin n) (xs : List Symbol) (last : Fin n)
     (ss : List (Fin n)) (bound : ℕ) : Prop :=
-  lts.Execution start xs last ss ∧ ss.allButFirstLast (fun s ↦ s.val < bound)
+  lts.Execution start xs last ss ∧ ss.AllButFirstLast (fun s ↦ s.val < bound)
 
 /-- The language of finite words that are accepted by a `BddExec`. -/
 def bddLang (lts : LTS (Fin n) Symbol) (start last : Fin n) (bound : ℕ) : Language Symbol :=
@@ -158,8 +156,8 @@ def bddLang (lts : LTS (Fin n) Symbol) (start last : Fin n) (bound : ℕ) : Lang
 theorem bddLang_bound_zero (lts : LTS (Fin n) Symbol) (s t : Fin n) {xs : List Symbol}
    (hxs : ¬xs = []) : xs ∈ lts.bddLang s t 0 ↔ ∃ a, lts.Tr s a t ∧ xs = [a] := by
   refine ⟨fun ⟨ss, hex, hbdd⟩ ↦ ?_,
-    fun ⟨a, htr, hxs⟩ ↦ hxs ▸ ⟨[s, t], Execution.of_tr htr, by simp [allButFirstLast]⟩⟩
-  simp only [allButFirstLast, not_lt_zero, decide_false, Bool.false_eq_true, imp_false] at hbdd
+    fun ⟨a, htr, hxs⟩ ↦ hxs ▸ ⟨[s, t], Execution.of_tr htr, by simp [AllButFirstLast]⟩⟩
+  simp only [AllButFirstLast, not_lt_zero, decide_false, Bool.false_eq_true, imp_false] at hbdd
   have hxs_singleton : xs.length = 1 := by
     have len : ss.tail.dropLast.length = 0 := by simp [List.eq_nil_iff_forall_not_mem.mpr hbdd]
     have le : ss.length ≤ 2 := by rw [length_dropLast, length_tail] at len; lia
@@ -169,14 +167,14 @@ theorem bddLang_bound_zero (lts : LTS (Fin n) Symbol) (s t : Fin n) {xs : List S
   obtain ⟨a, ha⟩ : ∃ a, [a] = xs := by simpa [List.length_eq_succ_iff] using hxs_singleton
   exact ⟨a, by simpa [← ha] using hex.to_mTr, ha.symm⟩
 
-theorem bddLang_eq_language_nfa (lts : LTS (Fin n) Symbol) (s t : Fin n) {r : ℕ} (_ : n ≤ r) :
+theorem bddLang_eq_nfa (lts : LTS (Fin n) Symbol) (s t : Fin n) {r : ℕ} (_ : n ≤ r) :
     lts.bddLang s t r = language (NA.FinAcc.mk {Tr := lts.Tr, start := {s}} {t}) := by
   ext xs
   simp only [bddLang, mem_language, Accepts, Set.mem_singleton_iff]
   refine ⟨fun ⟨ss, hex, hbdd⟩ ↦ by simpa using hex.to_mTr, fun ⟨s', hs', t', ht', hmtr⟩ ↦ ?_⟩
   rw [hs', ht'] at hmtr
   obtain ⟨ss, hex⟩ := mTr_iff_execution.mp hmtr
-  exact ⟨ss, hex, by grind [allButFirstLast]⟩
+  exact ⟨ss, hex, by grind [AllButFirstLast]⟩
 
 section splitFirst
 
@@ -203,15 +201,15 @@ def splitFirstDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Sym
   | some i => xs.drop i
 
 theorem splitFirst_mem {lts : LTS (Fin n) Symbol} {s t r : Fin n} {xs : List Symbol}
-    {ss : List (Fin n)} (hex : lts.Execution s xs t ss) (hbdd : ss.allButFirstLast (· ≤ r))
-    (hbdd' : ¬ss.allButFirstLast (· < r)) :
+    {ss : List (Fin n)} (hex : lts.Execution s xs t ss) (hbdd : ss.AllButFirstLast (· ≤ r))
+    (hbdd' : ¬ss.AllButFirstLast (· < r)) :
     splitFirstTake xs ss r ∈ lts.bddLang s r r ∧
     splitFirstDrop xs ss r ∈ lts.bddLang r t (r + 1) := by
   have hisSome : (ss.findIdxButFirstLast? (· = r)).isSome := by
     rw [ss.findIdxButFirstLast?_isSome (· = r)]
     by_contra! hne
     simp only [ne_eq, decide_eq_true_eq] at hne
-    simp only [allButFirstLast, decide_eq_true_eq, not_forall] at hbdd hbdd'
+    simp only [AllButFirstLast, decide_eq_true_eq, not_forall] at hbdd hbdd'
     obtain ⟨u, hu, hnlt⟩ := hbdd'
     have hlt := lt_of_le_of_ne (hbdd u hu) (hne u hu)
     contradiction
@@ -244,7 +242,7 @@ theorem bddLang_splitFirst (lts : LTS (Fin n) Symbol) (s t r : Fin n) :
   rw [Language.mem_add, Language.mem_mul]
   constructor
   · intro ⟨ss, hex, hbdd⟩
-    by_cases hbdd' : allButFirstLast (· < r) ss
+    by_cases hbdd' : AllButFirstLast (· < r) ss
     · exact Or.inl ⟨ss, hex, hbdd'⟩
     right
     simp only [Order.lt_add_one_iff, Fin.val_fin_le] at hbdd
@@ -284,17 +282,17 @@ def splitLastDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symb
   | some i => xs.drop i
 
 theorem splitLast_mem {lts : LTS (Fin n) Symbol} {t r : Fin n} {xs : List Symbol}
-    {ss : List (Fin n)} (hex : lts.Execution r xs t ss) (hbdd : ss.allButFirstLast (· ≤ r)) :
+    {ss : List (Fin n)} (hex : lts.Execution r xs t ss) (hbdd : ss.AllButFirstLast (· ≤ r)) :
     splitLastTake xs ss r ∈ lts.bddLang r r (r + 1) ∧
     splitLastDrop xs ss r ∈ lts.bddLang r t r := by
   cases hi : ss.findIdxButFirstLastRev? (· = r) with
   | none =>
   simp only [splitLastTake, splitLastDrop, hi, bddLang, BddExec]
   constructor
-  · exact ⟨[r], Execution.refl r, by simp [allButFirstLast]⟩
+  · exact ⟨[r], Execution.refl r, by simp [AllButFirstLast]⟩
   · use ss
     refine ⟨hex, ?_⟩
-    simp only [allButFirstLast, decide_eq_true_eq, Fin.val_fin_lt] at hbdd ⊢
+    simp only [AllButFirstLast, decide_eq_true_eq, Fin.val_fin_lt] at hbdd ⊢
     simp only [findIdxButFirstLastRev?, findIdxButFirstLast?, tail_reverse, dropLast_reverse,
       Option.map_map, Option.map_eq_none_iff, findIdx?_eq_none_iff, mem_reverse,
       decide_eq_false_iff_not, tail_dropLast] at hi
@@ -319,7 +317,7 @@ theorem splitLast_mem {lts : LTS (Fin n) Symbol} {t r : Fin n} {xs : List Symbol
 
 theorem splitLastDrop_mem_nonempty {lts : LTS (Fin n) Symbol} {t r : Fin n} {xs : List Symbol}
     {ss : List (Fin n)} (hxs : xs ≠ []) (hex : lts.Execution r xs t ss)
-    (hbdd : ss.allButFirstLast (· ≤ r)) : splitLastDrop xs ss r ∈ lts.bddLang r t r - 1 := by
+    (hbdd : ss.AllButFirstLast (· ≤ r)) : splitLastDrop xs ss r ∈ lts.bddLang r t r - 1 := by
   rw [Language.mem_sub]
   refine ⟨(splitLast_mem hex hbdd).2, ?_⟩
   simp only [Language.mem_one]
@@ -382,7 +380,7 @@ theorem bddLang_kstar (lts : LTS (Fin n) Symbol) (r : Fin n) :
       exact allButFirstLast_append (by simp [hyex.length]) (by simpa using le_of_eq hyex.last)
         hybdd hzbdd
     · simp only [Language.mem_one] at hxs
-      simpa [hxs] using ⟨[r], Execution.refl r, by simp [allButFirstLast]⟩
+      simpa [hxs] using ⟨[r], Execution.refl r, by simp [AllButFirstLast]⟩
 
 end kstar
 
@@ -422,7 +420,7 @@ theorem bddLang_eq_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fin n} :
       exists_exists_and_eq_and, Language.mem_singleton]
       by_cases hxs : xs = []
       · simp only [← heq, hxs, ne_cons_self, and_false, exists_false, or_false, iff_true]
-        exact ⟨[s], Execution.refl s, by simp [allButFirstLast]⟩
+        exact ⟨[s], Execution.refl s, by simp [AllButFirstLast]⟩
       simpa [hxs] using lts.bddLang_bound_zero s t hxs
     · simp only [mem_sum_matches', mem_map, Finset.mem_toList, Set.Finite.mem_toFinset,
       Set.mem_ofPred_eq, exists_exists_and_eq_and, matches', Language.mem_singleton]
@@ -436,7 +434,7 @@ theorem bddLang_eq_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fin n} :
     simp only [regex]
     split_ifs with hr
     · have hr' : n ≤ r + 1 := by lia
-      rw [← ih, lts.bddLang_eq_language_nfa s t hr, lts.bddLang_eq_language_nfa s t hr']
+      rw [← ih, lts.bddLang_eq_nfa s t hr, lts.bddLang_eq_nfa s t hr']
     · rw [lts.bddLang_splitFirst (r := ⟨r, by lia⟩), lts.bddLang_splitLast, lts.bddLang_kstar]
       grind [matches'_add, matches'_mul, matches'_star]
 
@@ -444,7 +442,7 @@ theorem bddLang_eq_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fin n} :
 exactly one accept state `t` has a matching regular expression given by `LTS.regex s t n`. -/
 theorem fin_nfa_single_start_accept_eq_regex (lts : LTS (Fin n) Symbol) (s t : Fin n) :
     language (NA.FinAcc.mk ⟨lts, {s}⟩ {t}) = (lts.regex s t n).matches' := by
-  rw [← LTS.bddLang_eq_regex, LTS.bddLang_eq_language_nfa lts s t le_rfl]
+  rw [← LTS.bddLang_eq_regex, LTS.bddLang_eq_nfa lts s t le_rfl]
 
 end regex
 
@@ -455,7 +453,7 @@ namespace Cslib.Automata.NA.FinAcc
 theorem nfa_single_start_accept_reindex (nfa : NA.FinAcc State Symbol) (e : State ≃ State')
     {s t : State} (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
     language nfa = language (NA.FinAcc.mk ⟨(nfa.toLTS.reindex e), {e s}⟩ {e t}) := by
-  set nfa' := NA.FinAcc.mk (NA.mk (nfa.toLTS.reindex e) {e s}) {e t} with hnfa'
+  set nfa' := NA.FinAcc.mk ⟨(nfa.toLTS.reindex e), {e s}⟩ {e t} with hnfa'
   ext xs
   have nfa_eq : nfa'.MTr (e s) xs (e t) ↔ nfa.MTr s xs t :=
     ⟨by simpa [nfa', LTS.reindex] using (LTS.reindex.bisim_trace nfa'.toLTS e.symm (e s) (e t) xs),
