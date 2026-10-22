@@ -150,13 +150,13 @@ namespace Cslib.LTS
 
 /-- An execution of an LTS with state type `Fin n`,
 where all states of the execution except for the first and last are less than `bound`. -/
-def bddExec (lts : LTS (Fin n) Symbol) (start : Fin n) (xs : List Symbol) (last : Fin n)
+def BddExec (lts : LTS (Fin n) Symbol) (start : Fin n) (xs : List Symbol) (last : Fin n)
     (ss : List (Fin n)) (bound : ℕ) : Prop :=
   lts.Execution start xs last ss ∧ ss.allButFirstLast (fun s ↦ s.val < bound)
 
-/-- The language of finite words that are accepted by a `bddExec`. -/
+/-- The language of finite words that are accepted by a `BddExec`. -/
 def bddLang (lts : LTS (Fin n) Symbol) (start last : Fin n) (bound : ℕ) : Language Symbol :=
-  { xs | ∃ ss, lts.bddExec start xs last ss bound }
+  { xs | ∃ ss, lts.BddExec start xs last ss bound }
 
 theorem bddLang_bound_zero (lts : LTS (Fin n) Symbol) (s t : Fin n) {xs : List Symbol}
    (hxs : ¬xs = []) : xs ∈ lts.bddLang s t 0 ↔ ∃ a, lts.Tr s a t ∧ xs = [a] := by
@@ -292,7 +292,7 @@ theorem splitLast_mem {lts : LTS (Fin n) Symbol} {t r : Fin n} {xs : List Symbol
     splitLastDrop xs ss r ∈ lts.bddLang r t r := by
   cases hi : ss.findIdxButFirstLastRev? (· = r) with
   | none =>
-  simp only [splitLastTake, splitLastDrop, hi, bddLang, bddExec]
+  simp only [splitLastTake, splitLastDrop, hi, bddLang, BddExec]
   constructor
   · exact ⟨[r], Execution.refl r, by simp [allButFirstLast]⟩
   · use ss
