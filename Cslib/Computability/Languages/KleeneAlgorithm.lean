@@ -390,7 +390,7 @@ section regex
 
 open RegularExpression
 
-variable [Fintype Symbol]
+variable [Finite Symbol]
 
 open Classical in
 /-- `Regex s t r` is the regular expression for the path from state `s` to `t`
@@ -401,7 +401,7 @@ For `r + 1`, the regex is the union of `Regex s t r` and
 `(Regex s r r) (Regex r r r)∗ (Regex r t r)`. -/
 noncomputable def regex (lts : LTS (Fin n) Symbol) (s t : Fin n) : ℕ → RegularExpression Symbol
   | 0 =>
-    let chars := (Finset.univ.filter (fun x : Symbol ↦ lts.Tr s x t)).toList.map char
+    let chars := (Set.toFinite {x : Symbol | lts.Tr s x t}).toFinset.toList.map char
     if s = t then 1 + chars.sum else chars.sum
   | r + 1 =>
     if h : n ≤ r then regex lts s t r
@@ -418,14 +418,14 @@ theorem bddLang_eq_language_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fi
     simp only [regex]
     split_ifs with heq
     · simp only [matches', Language.mem_add, Language.mem_one, mem_sum_matches',
-      mem_map, Finset.mem_toList, Finset.mem_filter, Finset.mem_univ, true_and,
+      mem_map, Finset.mem_toList, Set.Finite.mem_toFinset, Set.mem_ofPred_eq,
       exists_exists_and_eq_and, Language.mem_singleton]
       by_cases hxs : xs = []
       · simp only [← heq, hxs, ne_cons_self, and_false, exists_false, or_false, iff_true]
         exact ⟨[s], Execution.refl s, by simp [allButFirstLast]⟩
       simpa [hxs] using lts.bddLang_bound_zero s t hxs
-    · simp only [mem_sum_matches', mem_map, Finset.mem_toList, Finset.mem_filter,
-      Finset.mem_univ, true_and, exists_exists_and_eq_and, matches', Language.mem_singleton]
+    · simp only [mem_sum_matches', mem_map, Finset.mem_toList, Set.Finite.mem_toFinset,
+      Set.mem_ofPred_eq, exists_exists_and_eq_and, matches', Language.mem_singleton]
       by_cases hxs : xs = []
       · simp only [hxs, ne_cons_self, and_false, exists_false, iff_false]
         contrapose heq
@@ -472,9 +472,7 @@ theorem regex_of_nfa_singleton_start_accept [Finite Symbol] {State : Type*} [Fin
     (nfa : NA.FinAcc State Symbol) (s t : State)
     (hstart : nfa.start = {s}) (haccept : nfa.accept = {t}) :
     ∃ r : RegularExpression Symbol, language nfa = r.matches' := by
-  have : Fintype Symbol := Fintype.ofFinite Symbol
   let e := Finite.equivFin State
-  classical
   simpa [language_eq_of_reindex nfa e hstart haccept] using
     ⟨_, LTS.language_nfa_eq_regex_of_singleton_start_accept (by dsimp) (by dsimp)⟩
 
