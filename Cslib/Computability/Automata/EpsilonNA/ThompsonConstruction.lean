@@ -211,11 +211,11 @@ theorem language_concat (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
     refine ⟨.inl s, Set.mem_image_of_mem _ hs, .inr t, Set.mem_image_of_mem _ ht,
       μs₁ ++ none :: μs₂,
       by simp [List.reduceOption_append], ?_⟩
-    have hcopy₁ : (concat a b).MTr (.inl s) μs₁ (.inl s₁) :=
-      h₁.map (fun s => (.inl s : S₁ ⊕ S₂)) fun _ _ _ => ConcatTr.left
-    have hcopy₂ : (concat a b).MTr (.inr s₂) μs₂ (.inr t) :=
-      h₂.map (fun s => (.inr s : S₁ ⊕ S₂)) fun _ _ _ => ConcatTr.right
-    exact hcopy₁.comp _ (.stepL (ConcatTr.bridge hs₁ hs₂) hcopy₂)
+    have hinl : LTS.IsSimulationMap a.toLTS (concat a b).toLTS Sum.inl :=
+      fun _ _ _ => ConcatTr.left
+    have hinr : LTS.IsSimulationMap b.toLTS (concat a b).toLTS Sum.inr :=
+      fun _ _ _ => ConcatTr.right
+    exact (hinl.sim_trace h₁).comp _ (.stepL (ConcatTr.bridge hs₁ hs₂) (hinr.sim_trace h₂))
 
 /-- The transitions of `star a`, whose states are a fresh hub `inl ()` and the states of `a`. -/
 inductive StarTr (a : FinAcc S₁ Symbol) : Unit ⊕ S₁ → Option Symbol → Unit ⊕ S₁ → Prop
@@ -282,10 +282,9 @@ theorem exists_star_mTr_of_mem_kstar {xs : List Symbol} (hxs : xs ∈ (language 
   | cons w L ih =>
     obtain ⟨μs₂, hμs₂, h₂⟩ := ih fun y hy => hL y (by simp [hy])
     obtain ⟨s, hs, t, ht, μs₁, rfl, h₁⟩ := mem_language_iff.mp (hL w (by simp))
-    have hcopy : (star a).MTr (.inr s) μs₁ (.inr t) :=
-      h₁.map (fun s => (.inr s : Unit ⊕ S₁)) fun _ _ _ => StarTr.inner
+    have hinr : LTS.IsSimulationMap a.toLTS (star a).toLTS Sum.inr := fun _ _ _ => StarTr.inner
     refine ⟨none :: (μs₁ ++ none :: μs₂), by simp [List.reduceOption_append, hμs₂], ?_⟩
-    exact .stepL (StarTr.enter hs) (hcopy.comp _ (.stepL (StarTr.exit ht) h₂))
+    exact .stepL (StarTr.enter hs) ((hinr.sim_trace h₁).comp _ (.stepL (StarTr.exit ht) h₂))
 
 @[simp]
 theorem language_star (a : FinAcc S₁ Symbol) : language (star a) = (language a)∗ := by

@@ -24,6 +24,8 @@ For an introduction to theory of simulation, we refer to [Sangiorgi2011].
 ## Main definitions
 
 - `IsSimulation lts₁ lts₂ r`: the relation `r` on the states of `lts₁` and `lts₂` is a simulation.
+- `IsSimulationMap lts₁ lts₂ f`: the map `f` from the states of `lts₁` to those of `lts₂` sends
+transitions to transitions.
 - `Similarity lts₁ lts₂` is the binary relation that relates any two states related by some
 simulation on `lts₁` and `lts₂`.
 - `SimulationEquiv lts₁ lts₂` is the binary relation on the states of `lts₁` and `lts₂` that relates
@@ -124,20 +126,23 @@ theorem IsSimulation.sim_trace (hr : IsSimulation lts₁ lts₂ r) (hrel : r s�
       obtain ⟨s₂', hmtr₂, hrel'⟩ := ih hrel' hmtr
       use s₂', hmtr₂.stepL htr₂, hrel'
 
-/-- The graph of a map of states that sends transitions of `lts₁` to transitions of `lts₂` is a
-simulation. -/
+/-- A map of states is a simulation map if it sends every transition of `lts₁` to a transition of
+`lts₂` with the same label. -/
+def IsSimulationMap (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) (f : State₁ → State₂) :
+    Prop :=
+  ∀ s₁ μ s₁', lts₁.Tr s₁ μ s₁' → lts₂.Tr (f s₁) μ (f s₁')
+
+/-- The graph of a simulation map is a simulation. -/
 theorem IsSimulation.graph {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
-    {f : State₁ → State₂} (hf : ∀ s μ s', lts₁.Tr s μ s' → lts₂.Tr (f s) μ (f s')) :
+    {f : State₁ → State₂} (hf : IsSimulationMap lts₁ lts₂ f) :
     IsSimulation lts₁ lts₂ fun s t => t = f s := by
   rintro s _ rfl μ s' htr
   exact ⟨f s', hf s μ s' htr, rfl⟩
 
-/-- A map of states that sends transitions of `lts₁` to transitions of `lts₂` also sends
-multistep transitions to multistep transitions. -/
-theorem MTr.map {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s s' : State₁}
-    {μs : List Label} (f : State₁ → State₂)
-    (hf : ∀ s μ s', lts₁.Tr s μ s' → lts₂.Tr (f s) μ (f s')) (h : lts₁.MTr s μs s') :
-    lts₂.MTr (f s) μs (f s') := by
+/-- A simulation map sends multistep transitions to multistep transitions. -/
+theorem IsSimulationMap.sim_trace {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+    {f : State₁ → State₂} (hf : IsSimulationMap lts₁ lts₂ f) {s s' : State₁} {μs : List Label}
+    (h : lts₁.MTr s μs s') : lts₂.MTr (f s) μs (f s') := by
   obtain ⟨_, hmtr, rfl⟩ := (IsSimulation.graph hf).sim_trace rfl μs s' h
   exact hmtr
 

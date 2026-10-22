@@ -109,8 +109,9 @@ theorem toSingleStartAccept_language_eq : language a.toSingleStartAccept = langu
   · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
     refine ⟨.inl false, Set.mem_singleton _, .inl true, Set.mem_singleton _,
       none :: (μs ++ [none]), by simp [List.reduceOption_append], ?_⟩
+    have hinr : LTS.IsSimulationMap a.toLTS a.toSingleStartAccept.toLTS Sum.inr :=
+      fun _ _ _ => toSingleStartAccept_tr_inr_inr.mpr
     exact .stepL (toSingleStartAccept_tr_start hs)
-      ((LTS.MTr.map Sum.inr (fun _ _ _ => toSingleStartAccept_tr_inr_inr.mpr) h).comp _
-        (.single _ (toSingleStartAccept_tr_accept ht)))
+      ((hinr.sim_trace h).comp _ (.single _ (toSingleStartAccept_tr_accept ht)))
 
 end Cslib.Automata.εNA.FinAcc
