@@ -168,7 +168,7 @@ theorem bddLang_bound_zero (lts : LTS (Fin n) Symbol) (s t : Fin n) {xs : List S
   exact ⟨a, by simpa [← ha] using hex.to_mTr, ha.symm⟩
 
 theorem bddLang_eq_nfa (lts : LTS (Fin n) Symbol) (s t : Fin n) {r : ℕ} (_ : n ≤ r) :
-    lts.bddLang s t r = language (NA.FinAcc.mk {Tr := lts.Tr, start := {s}} {t}) := by
+    lts.bddLang s t r = language (NA.FinAcc.mk ⟨lts, {s}⟩ {t}) := by
   ext xs
   simp only [bddLang, mem_language, Accepts, Set.mem_singleton_iff]
   refine ⟨fun ⟨ss, hex, hbdd⟩ ↦ by simpa using hex.to_mTr, fun ⟨s', hs', t', ht', hmtr⟩ ↦ ?_⟩
