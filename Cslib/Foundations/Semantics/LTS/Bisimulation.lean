@@ -678,9 +678,11 @@ theorem reindex.bisim_trace (lts₁ : LTS State₁ Label) (e : State₁ ≃ Stat
 theorem reindex.bisim_trace_iff (lts₁ : LTS State₁ Label) (e : State₁ ≃ State₂)
     (s₁ t₁ : State₁) (μs : List Label) :
     lts₁.MTr s₁ μs t₁ ↔ (lts₁.reindex e).MTr (e s₁) μs (e t₁) := by
-  refine ⟨reindex.bisim_trace lts₁ e s₁ t₁ μs, fun h ↦ ?_⟩
-  obtain ⟨_, htr, heq⟩ := (reindex.isBisimulation lts₁ e).inv.bisim_trace rfl μs (e t₁) h
-  rwa [e.injective heq]
+  constructor
+  · exact reindex.bisim_trace lts₁ e s₁ t₁ μs
+  · intro h
+    obtain ⟨_, htr, heq⟩ := (reindex.isBisimulation lts₁ e).inv.bisim_trace rfl μs (e t₁) h
+    rwa [e.injective heq]
 
 end Reindex
 
