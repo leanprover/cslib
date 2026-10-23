@@ -6,7 +6,8 @@ Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 
 module
 
-public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Data.Int.Interval
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 
 /-!
@@ -14,6 +15,12 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 
 Defines the space used by a run path of a multi-tape Turing machine. Space usage counts the
 positions visited by each work-tape head along the path and sums over the tapes.
+
+`MultiTapeNTM.RunPath.InWindow` says that every head of a run path stays within the window
+`[-s, s]`, which bounds the space of the path.
+
+`MultiTapeNTM.RunPath.space_map_le` bounds the space of a run path mapped by `RunPath.map` through
+the head positions of the original path.
 
 ## Design
 
@@ -40,10 +47,26 @@ which `DSPACE(1)` is exactly the class of regular languages.
 
 @[expose] public section
 
+namespace Turing
+
+/-- The window `[-s, s]` of tape positions allotted to a tape that uses `s` cells. -/
+@[scoped grind =]
+def window (s : ℕ) : Finset ℤ := Finset.Icc (-(s : ℤ)) s
+
+@[scoped grind =]
+lemma mem_window {s : ℕ} {z : ℤ} : z ∈ window s ↔ z.natAbs ≤ s := by
+  grind
+
+@[simp]
+lemma card_window (s : ℕ) : (window s).card = 2 * s + 1 := by
+  grind [Int.card_Icc]
+
+end Turing
+
 namespace Turing.MultiTapeNTM
 
-variable {k : ℕ} {State Symbol : Type*} {input : List Symbol}
-variable {ntm : MultiTapeNTM k Symbol State}
+variable {k k' : ℕ} {State State' Symbol : Type*} {input input' : List Symbol}
+variable {ntm : MultiTapeNTM k Symbol State} {ntm' : MultiTapeNTM k' Symbol State'}
 
 namespace RunPath
 
@@ -57,6 +80,63 @@ def spaceUsedByTape (p : ntm.RunPath input) (i : Fin k) : ℕ :=
 
 /-- The number of work tape cells visited along a run path. -/
 def space (p : ntm.RunPath input) : ℕ := ∑ i, p.spaceUsedByTape i
+
+/-- A set containing every position of a head along a path bounds the space used by its tape. -/
+lemma spaceUsedByTape_le_card (p : ntm.RunPath input) {i : Fin k} {S : Finset ℤ}
+    (h : ∀ c ∈ p, c.workTapePos i ∈ S) : p.spaceUsedByTape i ≤ S.card :=
+  Finset.card_le_card (Finset.image_subset_iff.mpr fun n _ => h (p n) ⟨n, rfl⟩)
+
+/-- Sets containing every position of the heads along a path bound its space by their total
+size. -/
+lemma space_le_sum_card (p : ntm.RunPath input) {S : Fin k → Finset ℤ}
+    (h : ∀ c ∈ p, ∀ i, c.workTapePos i ∈ S i) : p.space ≤ ∑ i, (S i).card :=
+  Finset.sum_le_sum fun i _ => p.spaceUsedByTape_le_card fun c hc => h c hc i
+
+/-- A path whose configurations all lie on another path visits no more cells. -/
+lemma space_le_of_subset {p q : ntm.RunPath input} (h : ∀ c ∈ q, c ∈ p) : q.space ≤ p.space :=
+  q.space_le_sum_card fun c hc _ =>
+    let ⟨n, hn⟩ := h c hc
+    hn ▸ Finset.mem_image_of_mem _ (Finset.mem_univ n)
+
+/-! ### Windows -/
+
+/-- Every head stays within the window `[-s, s]` along the path. -/
+def InWindow (p : ntm.RunPath input) (s : ℕ) : Prop :=
+  ∀ c ∈ p, ∀ i, c.workTapePos i ∈ window s
+
+/-- A path whose heads stay within `[-s, s]` visits at most `2 * s + 1` cells on each tape. -/
+lemma InWindow.space_le {p : ntm.RunPath input} {s : ℕ} (h : p.InWindow s) :
+    p.space ≤ k * (2 * s + 1) := by
+  simpa using p.space_le_sum_card h
+
+/-- Joining two paths whose heads stay within `[-s, s]` keeps them there. -/
+lemma InWindow.smash {p q : ntm.RunPath input} {h : p.last = q.head} {s : ℕ}
+    (hp : p.InWindow s) (hq : q.InWindow s) : InWindow (p.smash q h) s :=
+  fun _ hc => (RelSeries.mem_or_mem_of_mem_smash hc).elim (hp _) (hq _)
+
+/-! ### Mapped paths -/
+
+/-- If the head of tape `i'` of a mapped path follows the head of tape `i` of the source path, the
+two tapes visit the same cells. -/
+lemma visitedByTapeHead_map (p : ntm.RunPath input)
+    (f : (ntm.stepRel input).Hom (ntm'.stepRel input')) {i : Fin k} {i' : Fin k'}
+    (h : ∀ c ∈ p, (f c).workTapePos i' = c.workTapePos i) :
+    (p.map f).visitedByTapeHead i' = p.visitedByTapeHead i :=
+  Finset.image_congr fun n _ => h (p n) ⟨n, rfl⟩
+
+/-- **Space of a mapped path.** If tape `e j` of the mapped path follows tape `j` of `p`, and every
+other tape `l` stays in `window l`, the mapped path uses the space of `p` plus the cells of
+`window l` for every other tape `l`. -/
+lemma space_map_le (p : ntm.RunPath input) (f : (ntm.stepRel input).Hom (ntm'.stepRel input'))
+    (e : Fin k ↪ Fin k') (window : Fin k' → Finset ℤ)
+    (hfollow : ∀ c ∈ p, ∀ j, (f c).workTapePos (e j) = c.workTapePos j)
+    (hwindow : ∀ c ∈ p, ∀ l ∉ Set.range e, (f c).workTapePos l ∈ window l) :
+    (p.map f).space ≤ p.space + ∑ l ∈ (Finset.univ.map e)ᶜ, (window l).card := by
+  rw [space, space, ← Finset.sum_add_sum_compl (Finset.univ.map e), Finset.sum_map]
+  refine add_le_add (Finset.sum_le_sum fun j _ => (congrArg Finset.card
+    (p.visitedByTapeHead_map f fun c hc => hfollow c hc j)).le) (Finset.sum_le_sum fun l hl => ?_)
+  exact (p.map f).spaceUsedByTape_le_card fun _ ⟨n, hn⟩ =>
+    hn ▸ hwindow (p n) ⟨n, rfl⟩ l (by simpa using hl)
 
 end RunPath
 
