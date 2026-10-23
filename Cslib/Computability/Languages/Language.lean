@@ -128,4 +128,11 @@ theorem kstar_iff_mul_add : m = l∗ ↔ m = (l - 1) * m + 1 := by
   rw [self_eq_mul_add_iff, mul_one, sub_one_kstar]
   grind
 
+/-- The reverse version of Arden's lemma `Language.self_eq_mul_add_iff`. -/
+theorem self_eq_add_mul_iff {l m n : Language α} (hm : [] ∉ m) :
+    l = l * m + n ↔ l = n * m∗ := by
+  rw [← reverse_injective.eq_iff, ← reverse_injective.eq_iff (a := l)]
+  simp only [reverse_add, reverse_mul, reverse_kstar]
+  exact (self_eq_mul_add_iff (by simp [hm]))
+
 end Language
