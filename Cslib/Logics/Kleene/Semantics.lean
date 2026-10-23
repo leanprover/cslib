@@ -28,6 +28,8 @@ and negation is the defined connective `¬A := A → ⊥`. Since Kleene's implic
 - `Kleene.Valid`: validity, that is, satisfaction under every falsum-respecting valuation.
 - `Kleene.IsBotFree`: the propositions in which `⊥` does not occur.
 - `Kleene.Entails`: consequence, the generic notion over `Valuation.respectsBot`.
+- `Kleene.Valuation.classical` and `Kleene.ClassicalEntails`: the two-valued falsum-respecting
+  valuations, and consequence over them.
 
 ## Main results
 
@@ -41,6 +43,9 @@ and negation is the defined connective `¬A := A → ⊥`. Since Kleene's implic
   `Kleene.Value`.
 - `Kleene.not_deduction_theorem`: `A` entails `A`, but `A → A` is not valid for `⊥`-free `A`.
 - `Kleene.entails_of_mem_of_mem_not`: explosion, from `A` and `¬A` together.
+- `Kleene.Entails.classicalEntails` and `Kleene.not_entails_of_classicalEntails`: Kleene
+  consequence is strictly sub-classical. Excluded middle separates the two: it holds classically
+  for every proposition, and fails in Kleene for every `⊥`-free one.
 
 ## References
 
@@ -243,5 +248,63 @@ theorem entails_of_mem_of_mem_not [Bot Atom] {Γ : Set (PL.Proposition Atom)}
 theorem not_deduction_theorem [Bot Atom] {A : PL.Proposition Atom} (h : IsBotFree A) :
     Entails {A} A ∧ ¬Valid (A → A) :=
   ⟨entailsWithin_of_mem (Set.mem_singleton _), not_valid_imp_self h⟩
+
+/-! ### Comparison with classical consequence -/
+
+/-- The classical valuations: two-valued and falsum-respecting. -/
+def Valuation.classical [Bot Atom] : Set (Valuation Atom) :=
+  {v | (∃ b : Atom → Bool, v = Value.ofBool ∘ b) ∧ v ⊥ = .false}
+
+theorem Valuation.classical_subset_respectsBot [Bot Atom] :
+    (Valuation.classical : Set (Valuation Atom)) ⊆ Valuation.respectsBot :=
+  fun _ h => h.2
+
+/-- Consequence over classical valuations. -/
+abbrev ClassicalEntails [Bot Atom] (Γ : Set (PL.Proposition Atom)) (A : PL.Proposition Atom) :
+    Prop :=
+  EntailsWithin (Judgement Atom) InferenceSystem.Default Valuation.classical Γ A
+
+/-- Kleene consequence is sub-classical: whatever follows in Kleene follows classically. -/
+theorem Entails.classicalEntails [Bot Atom] {Γ : Set (PL.Proposition Atom)}
+    {A : PL.Proposition Atom} (h : Entails Γ A) : ClassicalEntails Γ A :=
+  h.anti Valuation.classical_subset_respectsBot
+
+/-- Under a two-valued valuation, every proposition evaluates to a classical truth value. -/
+theorem Valuation.exists_eval_ofBool_eq (b : Atom → Bool) (A : PL.Proposition Atom) :
+    ∃ c : Bool, Valuation.eval (Value.ofBool ∘ b) A = Value.ofBool c := by
+  induction A with
+  | atom p => exact ⟨b p, rfl⟩
+  | and _ _ ih₁ ih₂ =>
+    obtain ⟨c₁, hc₁⟩ := ih₁
+    obtain ⟨c₂, hc₂⟩ := ih₂
+    exact ⟨c₁ && c₂, by simp [Valuation.eval, hc₁, hc₂]⟩
+  | or _ _ ih₁ ih₂ =>
+    obtain ⟨c₁, hc₁⟩ := ih₁
+    obtain ⟨c₂, hc₂⟩ := ih₂
+    exact ⟨c₁ || c₂, by simp [Valuation.eval, hc₁, hc₂]⟩
+  | imp _ _ ih₁ ih₂ =>
+    obtain ⟨c₁, hc₁⟩ := ih₁
+    obtain ⟨c₂, hc₂⟩ := ih₂
+    exact ⟨!c₁ || c₂, by simp [Valuation.eval, hc₁, hc₂, Value.imp_eq_not_or]⟩
+
+/-- Excluded middle holds classically, for every proposition. -/
+theorem classicalEntails_or_not [Bot Atom] (A : PL.Proposition Atom) :
+    ClassicalEntails ∅ (A ∨ ¬A) := by
+  rintro v ⟨⟨b, rfl⟩, hv⟩ _
+  obtain ⟨c, hc⟩ := Valuation.exists_eval_ofBool_eq b A
+  cases c <;> simp [Satisfies.eval_eq_true_iff, Valuation.eval_not hv, hc]
+
+/-- Excluded middle fails in Kleene for `⊥`-free `A`. -/
+theorem not_entails_or_not [Bot Atom] {A : PL.Proposition Atom} (h : IsBotFree A) :
+    ¬Entails ∅ (A ∨ ¬A) :=
+  fun h' => not_valid_or_not h (validWithin_iff_entailsWithin_empty.mpr h')
+
+/-- Kleene consequence is strictly sub-classical. Some atom other than `⊥` is needed, since
+otherwise every proposition has its value fixed by `⊥`. -/
+theorem not_entails_of_classicalEntails [Bot Atom] [Nontrivial Atom] :
+    ¬∀ (Γ : Set (PL.Proposition Atom)) (A : PL.Proposition Atom),
+      ClassicalEntails Γ A → Entails Γ A := by
+  obtain ⟨p, hp⟩ := exists_ne (⊥ : Atom)
+  exact fun h => not_entails_or_not (IsBotFree.atom hp) (h ∅ _ (classicalEntails_or_not _))
 
 end Cslib.Logic.Kleene
