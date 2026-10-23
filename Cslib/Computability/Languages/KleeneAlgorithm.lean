@@ -14,26 +14,26 @@ public import Mathlib.SetTheory.Cardinal.NatCard
 /-!
 # Kleene's Algorithm
 
-Kleene's algorithm constructs a regular expresssion by induction on a bound that restricts
+Kleene's algorithm constructs a regular expression by induction on a bound that restricts
 which interior states an execution may pass through.
-It is used to prove an direction of `Cslib.Language.IsRegular.iff_regex`, that
+It is used to prove a direction of `Cslib.Language.IsRegular.iff_regex`, that
 every language accepted by a DFA comprised of finite states is the language of a regular expression.
 We implement Kleene's algorithm for the more general case of an NFA instead of DFA,
 since `Execution` is developed for `LTS` but not `FLTS`.
-This main theorem is `NA.FinAcc.nfa_eq_regex`.
+The main theorem is `NA.FinAcc.nfa_eq_regex`.
 
 ## Main definitions
 - `LTS.bddLang start last bound`: The language of finite words that are accepted by an execution
 of an LTS with state type `Fin n`, where the start state is `start`, the last state is `last`,
 and all states of the execution except for the first and last are less than `bound`.
-- `LTS.Regex s t r`: The regular expression for the executions of an LTS with state type `Fin n`
+- `LTS.regex s t r`: The regular expression for the executions of an LTS with state type `Fin n`
 from state `s` to state `t`, whose interior states are all under the bound `r`.
 
 ## Main results
-- `NA.FinAcc.nfa_eq_regex`: Any NFA has a matching regular expression..
+- `NA.FinAcc.nfa_eq_regex`: Any NFA has a matching regular expression.
 - `LTS.bddLang_eq_nfa`: `LTS.bddLang` is equal to the language of an NFA
-when `boudnd` is greater than or equal to the total number of states.
-- `LTS.bddLang_eq_regex`: `LTS.Regex s t r` matches the language `LTS.bddLang s t r`.
+when `bound` is greater than or equal to the total number of states.
+- `LTS.bddLang_eq_regex`: `LTS.regex s t r` matches the language `LTS.bddLang s t r`.
 
 ## References
 
@@ -181,7 +181,7 @@ section splitFirst
 /-- With an execution of the string `xs` through states `ss`,
 `splitFirstTake xs ss r` returns a prefix of `xs`
 which ends at the FIRST occurrence (excluding the first and last state) of state `r` in `ss`.
-When no such occurence of `r` exists, `splitFirstTake` returns the empty string; however,
+When no such occurrence of `r` exists, `splitFirstTake` returns the empty string; however,
 the current file does not use the `splitFirstTake` in such situation.
 The actual definition does not require an execution, just the string `xs` and the states `ss`. -/
 def splitFirstTake (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
@@ -192,7 +192,7 @@ def splitFirstTake (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Sym
 /-- With an execution of the string `xs` through states `ss`,
 `splitFirstDrop xs ss r` returns a suffix of `xs`
 which starts at the FIRST occurrence (excluding the first and last state) of state `r` in `ss`.
-When no such occurence of `r` exists, `splitFirstDrop` returns the full string; however,
+When no such occurrence of `r` exists, `splitFirstDrop` returns the full string; however,
 the current file does not use the `splitFirstDrop` in such situation.
 The actual definition does not require an execution, just the string `xs` and the states `ss`. -/
 def splitFirstDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
@@ -264,7 +264,7 @@ section splitLast
 /-- With an execution of the string `xs` through states `ss`,
 `splitLastTake xs ss r` returns a prefix of `xs`
 which ends at the LAST occurrence (excluding the first and last state) of state `r` in `ss`.
-When no such occurence of `r` exists, `splitLastTake` returns the empty string.
+When no such occurrence of `r` exists, `splitLastTake` returns the empty string.
 The actual definition does not require an execution, just the string `xs` and the states `ss`. -/
 def splitLastTake (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
   match ss.findIdxButFirstLastRev? (· = r) with
@@ -274,7 +274,7 @@ def splitLastTake (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symb
 /-- With an execution of the string `xs` through states `ss`,
 `splitLastDrop xs ss r` returns a prefix of `xs`
 which ends at the LAST occurrence (excluding the first and last state) of state `r` in `ss`.
-When no such occurence of `r` exists, `splitLastDrop` returns the full string .
+When no such occurrence of `r` exists, `splitLastDrop` returns the full string.
 The actual definition does not require an execution, just the string `xs` and the states `ss`. -/
 def splitLastDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
   match ss.findIdxButFirstLastRev? (· = r) with
@@ -391,12 +391,12 @@ open RegularExpression
 variable [Finite Symbol]
 
 open Classical in
-/-- `Regex s t r` is the regular expression for the path from state `s` to `t`
+/-- `regex s t r` is the regular expression for the path from state `s` to `t`
 passing through states `< r`.
 When `r = 0`, `s = t`, the regex is empty string `ε` union all characters from state `s` to `s`.
 When `r = 0`, `s ≠ t`, the regex is all characters from state `s` to `t`.
-For `r + 1`, the regex is the union of `Regex s t r` and
-`(Regex s r r) (Regex r r r)∗ (Regex r t r)`. -/
+For `r + 1`, the regex is the union of `regex s t r` and
+`(regex s r r) (regex r r r)∗ (regex r t r)`. -/
 noncomputable def regex (lts : LTS (Fin n) Symbol) (s t : Fin n) : ℕ → RegularExpression Symbol
   | 0 =>
     let chars := (Set.toFinite {x : Symbol | lts.Tr s x t}).toFinset.toList.map char
@@ -407,7 +407,7 @@ noncomputable def regex (lts : LTS (Fin n) Symbol) (s t : Fin n) : ℕ → Regul
       let rFin : Fin n := ⟨r, by lia⟩
       regex lts s t r + regex lts s rFin r * (regex lts rFin rFin r).star * regex lts rFin t r
 
-/-- `LTS.Regex s t r` matches the language `LTS.bddLang s t r`. -/
+/-- `LTS.regex s t r` matches the language `LTS.bddLang s t r`. -/
 theorem bddLang_eq_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fin n} :
     lts.bddLang s t r = (regex lts s t r).matches' := by
   induction r generalizing s t with
