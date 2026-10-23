@@ -35,6 +35,8 @@ and negation is the defined connective `¬A := A → ⊥`. Since Kleene's implic
   their components.
 - `Kleene.not_valid_of_isBotFree` and `Kleene.valid_bot_imp`: no `⊥`-free proposition is valid,
   while `⊥ → A` is valid for every `A`.
+- `Kleene.Valuation.eval_infoLE`: evaluation is monotone in the information order `⊑` on
+  `Kleene.Value`.
 
 ## References
 
@@ -47,7 +49,7 @@ universe u
 
 namespace Cslib.Logic.Kleene
 
-open scoped InferenceSystem
+open scoped InferenceSystem Value
 
 variable {Atom : Type u}
 
@@ -193,5 +195,17 @@ theorem not_valid_or_not [Bot Atom] {A : PL.Proposition Atom} (h : IsBotFree A) 
 theorem not_valid_imp_self [Bot Atom] {A : PL.Proposition Atom} (h : IsBotFree A) :
     ¬Valid (A → A) := fun hv => by
   simpa [Valuation.eval_unknownExceptBot h] using hv.eval_unknownExceptBot
+
+/-! ### Monotonicity in the information order -/
+
+/-- Evaluation is monotone in the information order: refining the values of the atoms refines
+the value of every proposition. -/
+theorem Valuation.eval_infoLE {v v' : Valuation Atom} (h : ∀ p, v p ⊑ v' p)
+    (A : PL.Proposition Atom) : v.eval A ⊑ v'.eval A := by
+  induction A with
+  | atom p => exact h p
+  | and _ _ ih₁ ih₂ => exact ih₁.and ih₂
+  | or _ _ ih₁ ih₂ => exact ih₁.or ih₂
+  | imp _ _ ih₁ ih₂ => exact ih₁.imp ih₂
 
 end Cslib.Logic.Kleene
