@@ -14,6 +14,8 @@ public import Mathlib.Algebra.Order.Floor.Div
 A gate of arity `k > 1` folds up to `k - 1` available values into an accumulator.
 Thus a product or sum of `z > 0` available values costs at most
 `(z - 1) ⌈/⌉ (k - 1)` gates. The fold construction needs no algebraic laws.
+When values are zero or a shared target, `full_select` keeps the first nonzero value
+with the same budget.
 -/
 
 @[expose] public section
@@ -77,5 +79,36 @@ theorem full_prod [Monoid U] (hk : 1 < k) (fs : List ((Fin n → U) → U))
   | cons seed fs =>
     simpa [List.prod_eq_foldl, List.foldl_map] using
       full_foldl hk (· * ·) fs seed (hfs seed (by simp)) (fun f hf => hfs f (by simp [hf]))
+
+private theorem foldl_select_eq [Zero U] [DecidableEq U] (values : List U) (seed value : U)
+    (hall : ∀ u ∈ seed :: values, u = 0 ∨ u = value)
+    (hmem : value ∈ seed :: values) :
+    values.foldl (fun a b => if a = 0 then b else a) seed = value := by
+  induction values generalizing seed with
+  | nil => simpa [eq_comm] using hmem
+  | cons head tail ih =>
+    simp only [List.foldl_cons]
+    split_ifs <;> apply ih <;> aesop
+
+/-- Select a target from available values that, at each input, are either zero or the target,
+with at least one equal to the target. Use the first value as the accumulator, then keep
+the first nonzero value while incorporating up to `k - 1` further values per gate. -/
+theorem full_select [Zero U] (hk : 1 < k)
+    (fs : List ((Fin n → U) → U)) (target : (Fin n → U) → U)
+    (hfs : ∀ f ∈ fs, f ∈ s) (hvalues : ∀ x, ∀ f ∈ fs, f x = 0 ∨ f x = target x)
+    (hselect : ∀ x, ∃ f ∈ fs, f x = target x) :
+    Synthesis (fullInterpretation (k := k)) s {target}
+      ((fs.length - 1) ⌈/⌉ (k - 1)) := by
+  classical
+  cases fs with
+  | nil => have := hselect 0; simp at this
+  | cons seed fs =>
+    have hfold (x : Fin n → U) :
+        fs.foldl (fun a f => if a = 0 then f x else a) (seed x) = target x := by
+      simpa [List.foldl_map] using
+        foldl_select_eq (fs.map (fun f => f x)) (seed x) (target x)
+          (by simpa using hvalues x) (by simpa [eq_comm] using hselect x)
+    simpa [hfold] using full_foldl hk (fun a b => if a = 0 then b else a) fs seed
+      (hfs seed (by simp)) (fun f hf => hfs f (by simp [hf]))
 
 end Cslib.Circuits.Synthesis
