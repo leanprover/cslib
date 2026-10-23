@@ -48,6 +48,7 @@ public section
 namespace Cslib.Circuits.Shannon
 
 open Filter Topology
+open Nat (card)
 
 universe v u
 variable {σ : Signature.{v}} {U : Type u}
@@ -55,7 +56,7 @@ variable {σ : Signature.{v}} {U : Type u}
 /-- A finite counting bound yields a hard function without asymptotic assumptions. -/
 theorem exists_hard_function_of_card_lt [Finite σ.Op] [Finite U]
     (I : Interpretation σ U) (n s : ℕ)
-    (h : (computableFunctions I n s).ncard < Nat.card U ^ (Nat.card U ^ n)) :
+    (h : (computableFunctions I n s).ncard < card U ^ (card U ^ n)) :
     ∃ f : (Fin n → U) → U, ∀ c : Circuit σ n 1, c.Computes I (single f) → s < c.size := by
   obtain ⟨f, _, hf⟩ := Set.exists_mem_notMem_of_ncard_lt_ncard
     (s := computableFunctions I n s) (t := Set.univ) (by simpa [Nat.card_fun] using h)
@@ -64,9 +65,8 @@ theorem exists_hard_function_of_card_lt [Finite σ.Op] [Finite U]
 /-- A finite Shannon criterion for the full basis, valid simultaneously for every arity,
 input count, and gate budget. The factorial correction accounts for gate relabelings. -/
 theorem exists_hard_full_function [Finite U] (k n s : ℕ)
-    (h : (s + 1) * (max s (Nat.card U ^ (Nat.card U ^ k) * (n + s) ^ k +
-      Nat.card U)) ^ s * (n + s) <
-        Nat.card U ^ (Nat.card U ^ n) * s.factorial) :
+    (h : (s + 1) * fullBasisLineBound (card U) k n s ^ s * (n + s) <
+        card U ^ (card U ^ n) * s.factorial) :
     ∃ f : (Fin n → U) → U, ∀ c : Circuit (fullSignature k U) n 1,
       c.Computes fullInterpretation (single f) → s < c.size := by
   apply exists_hard_function_of_card_lt
@@ -77,7 +77,7 @@ private theorem exists_card_le_exp [Finite σ.Op] (I : Interpretation σ U)
     (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∃ C : ℝ, ∀ n s : ℕ, n + 1 ≤ s →
       ((computableFunctions I n s).ncard : ℝ) ≤ Real.exp ((s : ℝ) * Real.log s + C * s) := by
-  let q := Nat.card σ.Op + 1
+  let q := card σ.Op + 1
   have hq : 1 ≤ q := Nat.succ_le_succ (Nat.zero_le _)
   refine ⟨Real.log (4 * (q : ℝ)) + 5, fun n s hn => ?_⟩
   let a := (computableFunctions I n s).ncard
@@ -92,7 +92,7 @@ private theorem exists_card_le_exp [Finite σ.Op] (I : Interpretation σ U)
       s ≤ (n + s + 1) ^ 2 := by nlinarith [Nat.le_mul_self (n + s + 1)]
       _ ≤ q * (n + s + 1) ^ 2 := by
         simpa only [one_mul] using Nat.mul_le_mul_right ((n + s + 1) ^ 2) hq
-  have hlines (g : ℕ) (hg : g ≤ s) : Nat.card (Line σ n g) ≤ q * (n + s + 1) ^ 2 :=
+  have hlines (g : ℕ) (hg : g ≤ s) : card (Line σ n g) ≤ q * (n + s + 1) ^ 2 :=
     (Line.card_le n g 2 arity_le).trans (Nat.mul_le_mul (Nat.le_succ _)
       (Nat.pow_le_pow_left (by omega : n + g + 1 ≤ n + s + 1) 2))
   have hcount : (a : ℝ) * s.factorial ≤
@@ -117,10 +117,10 @@ private theorem exists_card_le_exp [Finite σ.Op] (I : Interpretation σ U)
 
 private theorem eventually_card_le_exp_neg [Finite σ.Op] [Finite U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
-    ∀ᶠ n : ℕ in atTop, ((computableFunctions I n (Nat.card U ^ n / n)).ncard : ℝ) ≤
-      Real.exp (-((Nat.card U ^ n / n : ℕ) : ℝ)) *
-        (Nat.card U : ℝ) ^ (Nat.card U ^ n) := by
-  let q := Nat.card U
+    ∀ᶠ n : ℕ in atTop, ((computableFunctions I n (card U ^ n / n)).ncard : ℝ) ≤
+      Real.exp (-((card U ^ n / n : ℕ) : ℝ)) *
+        (card U : ℝ) ^ (card U ^ n) := by
+  let q := card U
   have hq : 1 < q := Finite.one_lt_card
   have hqR : (1 : ℝ) < q := by exact_mod_cast hq
   have hlogq : 0 < Real.log q := Real.log_pos hqR
@@ -156,10 +156,10 @@ signature whose operations have arity at most two: the fraction of functions com
 that budget tends to zero. -/
 theorem tendsto_card_computableFunctions_div [Finite σ.Op] [Finite U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
-    Tendsto (fun n : ℕ => ((computableFunctions I n (Nat.card U ^ n / n)).ncard : ℝ) /
-      (Nat.card U : ℝ) ^ (Nat.card U ^ n)) atTop (𝓝 0) := by
-  have hq : (0 : ℝ) < Nat.card U := by exact_mod_cast Nat.card_pos
-  have hbudget : Tendsto (fun n : ℕ => Nat.card U ^ n / n) atTop atTop :=
+    Tendsto (fun n : ℕ => ((computableFunctions I n (card U ^ n / n)).ncard : ℝ) /
+      (card U : ℝ) ^ (card U ^ n)) atTop (𝓝 0) := by
+  have hq : (0 : ℝ) < card U := by exact_mod_cast Nat.card_pos
+  have hbudget : Tendsto (fun n : ℕ => card U ^ n / n) atTop atTop :=
     tendsto_atTop_mono' atTop (Nat.eventually_add_one_le_pow_div Finite.one_lt_card)
       (tendsto_add_atTop_nat 1)
   refine squeeze_zero' (Eventually.of_forall fun n => by positivity) ?_
@@ -175,19 +175,19 @@ theorem exists_hard_function [Finite U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
       ∀ c : Circuit σ n 1,
-        c.Computes I (single f) → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
+        c.Computes I (single f) → (card U : ℝ) ^ n / n < (c.size : ℝ) := by
   have hfull : ∀ op, (fullSignature 2 U).Arity op ≤ 2 := by
     rintro (_ | _) <;> simp [fullSignature]
-  have hq : (0 : ℝ) < Nat.card U := by exact_mod_cast Nat.card_pos
+  have hq : (0 : ℝ) < card U := by exact_mod_cast Nat.card_pos
   apply eventually_atTop.mp
   filter_upwards [(tendsto_card_computableFunctions_div fullInterpretation hfull).eventually
     (gt_mem_nhds one_pos), eventually_ge_atTop 1] with n hn hn0
   rw [div_lt_one (pow_pos hq _)] at hn
   obtain ⟨f, hf⟩ := exists_hard_function_of_card_lt (fullInterpretation (k := 2) (Carrier := U))
-    n (Nat.card U ^ n / n) (by exact_mod_cast hn)
+    n (card U ^ n / n) (by exact_mod_cast hn)
   refine ⟨f, fun c hc => ?_⟩
   obtain ⟨d, hd, hsize⟩ := c.exists_simulation_le (fullInterpretation_simulatesWithCost I arity_le)
-  have hg : Nat.card U ^ n / n < c.size :=
+  have hg : card U ^ n / n < c.size :=
     (hf d fun x => (congrFun hd x).trans (hc x)).trans_le (hsize.trans (by simp))
   apply (div_lt_iff₀ (by exact_mod_cast (by lia : 0 < n) : (0 : ℝ) < n)).mpr
   exact_mod_cast (Nat.div_lt_iff_lt_mul (by lia : 0 < n)).mp hg
