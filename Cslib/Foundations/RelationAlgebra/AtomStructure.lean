@@ -29,7 +29,7 @@ namespace Cslib.RelationAlgebra
 The atom structure of a relation algebra in this axiomatic form (rather than as being derived from
 an existing instance) so that this can be used to construct a `RelationAlgebra` from its cycles.
 -/
-class AtomStructure (α : Type*) where
+structure AtomStructure (α : Type*) where
   conv : α → α
   id : Set α
   cycles : Set (α × α × α)
@@ -41,94 +41,102 @@ class AtomStructure (α : Type*) where
 
 namespace AtomStructure
 
-variable {α : Type*} [AtomStructure α]
+variable {α : Type*} (A : AtomStructure α)
 
 @[simp, grind =]
-theorem conv_conv (r : α) : conv (conv r) = r := by
-  grind [id_cycle, => cycle_left, id_exist r]
+theorem conv_conv (r : α) : A.conv (A.conv r) = r := by
+  grind [A.id_cycle, => A.cycle_left, A.id_exist r]
 
-theorem conv_eq_self_of_mem_id {r : α} (hr : r ∈ AtomStructure.id) : conv r = r := by
-  grind [id_cycle, => cycle_left, id_exist r, conv_cycles]
+theorem conv_eq_self_of_mem_id {r : α} (hr : r ∈ A.id) : A.conv r = r := by
+  grind [A.id_cycle, => A.cycle_left, A.id_exist r, A.conv_cycles]
 
 end AtomStructure
 
 /-- The complex relation algebra of an atom structure. "Complex" here is in the standard but archaic
   sense meaning subset. -/
-def ComplexAlgebra (α : Type*) := Set α
+structure ComplexAlgebra {α : Type*} (A : AtomStructure α) where
+  carrier : Set α
 
 namespace ComplexAlgebra
 
-open AtomStructure
+variable {α : Type*} (A : AtomStructure α)
 
-variable {α : Type*}
+def equivSet : ComplexAlgebra A ≃ Set α where
+  toFun := carrier
+  invFun := mk
+  left_inv _ := rfl
+  right_inv _ := rfl
 
-instance : Membership α (ComplexAlgebra α) := inferInstanceAs (Membership α (Set α))
+instance : Membership α (ComplexAlgebra A) := ⟨fun s a => a ∈ s.carrier⟩
 
-instance : BooleanAlgebra (ComplexAlgebra α) := inferInstanceAs (BooleanAlgebra (Set α))
+instance : BooleanAlgebra (ComplexAlgebra A) := (equivSet A).booleanAlgebra
+
+def orderIsoSet : ComplexAlgebra A ≃o Set α where
+  toEquiv := equivSet A
+  map_rel_iff' := Iff.rfl
 
 @[ext]
-theorem ext {s t : ComplexAlgebra α} (h : ∀ a, a ∈ s ↔ a ∈ t) : s = t :=
-  Set.ext h
+theorem ext {s t : ComplexAlgebra A} (h : ∀ a, a ∈ s ↔ a ∈ t) : s = t :=
+  (equivSet A).injective (Set.ext h)
 
-variable [AtomStructure α]
+instance : One (ComplexAlgebra A) where
+  one := ⟨A.id⟩
 
-instance : One (ComplexAlgebra α) where
-  one := AtomStructure.id
+instance : Mul (ComplexAlgebra A) where
+  mul x y := ⟨{t | ∃ r ∈ x, ∃ s ∈ y, (r, s, t) ∈ A.cycles}⟩
 
-instance : Mul (ComplexAlgebra α) where
-  mul x y := {t | ∃ r ∈ x, ∃ s ∈ y, (r, s, t) ∈ cycles}
+instance : Star (ComplexAlgebra A) where
+  star x := ⟨A.conv '' x.carrier⟩
 
-instance : Star (ComplexAlgebra α) where
-  star x := conv '' x
-
-instance : RelationAlgebra (ComplexAlgebra α) where
+instance : RelationAlgebra (ComplexAlgebra A) where
   mul_assoc a b c := by
     ext p
     constructor
     · rintro ⟨q, ⟨r, hr, s, hs, hrs⟩, t, ht, hqt⟩
-      obtain ⟨u, _⟩ := assoc (conv_cycles hqt) (conv_cycles hrs)
-      refine ⟨r, hr, conv u, ⟨s, hs, t, ht, ?_⟩, ?_⟩ <;> grind [=> conv_cycles]
+      obtain ⟨u, _⟩ := A.assoc (A.conv_cycles hqt) (A.conv_cycles hrs)
+      refine ⟨r, hr, A.conv u, ⟨s, hs, t, ht, ?_⟩, ?_⟩ <;> grind [=> A.conv_cycles]
     · rintro ⟨r, hr, q, ⟨s, hs, t, ht, hst⟩, hrq⟩
-      obtain ⟨u, hut, hrs⟩ := AtomStructure.assoc hrq hst
+      obtain ⟨u, hut, hrs⟩ := A.assoc hrq hst
       exact ⟨u, ⟨r, hr, s, hs, hrs⟩, t, ht, hut⟩
   one_mul x := by
     ext t
     constructor
     · rintro ⟨r, hr, s, hs, h⟩
-      have h' := conv_cycles h
-      rw [conv_eq_self_of_mem_id hr] at h'
-      have heq := Function.Involutive.injective conv_conv (id_cycle hr h')
+      have h' := A.conv_cycles h
+      rw [A.conv_eq_self_of_mem_id hr] at h'
+      have heq := Function.Involutive.injective A.conv_conv (A.id_cycle hr h')
       grind
     · intro ht
-      obtain ⟨s, hs, h⟩ := id_exist (conv t)
+      obtain ⟨s, hs, h⟩ := A.id_exist (A.conv t)
       refine ⟨s, hs, t, ht, ?_⟩
-      simpa [conv_eq_self_of_mem_id hs] using conv_cycles h
+      simpa [A.conv_eq_self_of_mem_id hs] using A.conv_cycles h
   mul_one x := by
     ext t
     constructor
     · rintro ⟨r, hr, s, hs, h⟩
-      grind [id_cycle hs]
+      grind [A.id_cycle hs]
     · intro ht
-      obtain ⟨s, hs, h⟩ := id_exist t
+      obtain ⟨s, hs, h⟩ := A.id_exist t
       exact ⟨t, ht, s, hs, h⟩
-  star_involutive := Function.LeftInverse.image_image conv_conv
+  star_involutive x :=
+    (equivSet A).injective (Function.LeftInverse.image_image A.conv_conv x.carrier)
   star_mul x y := by
     ext t
     constructor
     · rintro ⟨p, ⟨r, hr, s, hs, h⟩, rfl⟩
-      exact ⟨conv s, ⟨s, hs, rfl⟩, conv r, ⟨r, hr, rfl⟩, conv_cycles h⟩
+      exact ⟨A.conv s, ⟨s, hs, rfl⟩, A.conv r, ⟨r, hr, rfl⟩, A.conv_cycles h⟩
     · rintro ⟨s, ⟨s', hs, rfl⟩, r, ⟨r', hr, rfl⟩, h⟩
-      refine ⟨conv t, ⟨r', hr, s', hs, ?_⟩, conv_conv t⟩
-      simpa using conv_cycles h
+      refine ⟨A.conv t, ⟨r', hr, s', hs, ?_⟩, A.conv_conv t⟩
+      simpa using A.conv_cycles h
   sup_mul a b c := by
     ext t
     exact (exists_congr fun r => or_and_right).trans exists_or
-  star_sup a b := Set.image_union conv a b
+  star_sup a b := (equivSet A).injective (Set.image_union A.conv a.carrier b.carrier)
   tarski x y := by
     rintro t ⟨r, ⟨a, ha, rfl⟩, s, hs, h⟩ ht
     apply hs
     refine ⟨a, ha, t, ht, ?_⟩
-    simpa using cycle_left h
+    simpa using A.cycle_left h
 
 end ComplexAlgebra
 
@@ -151,7 +159,8 @@ private theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom 
     exists_atom_le_mul_right (isAtom_star_iff.mpr hp) (by simpa using star_mono h)
   exact ⟨star s, isAtom_star_iff.mpr hs, by simpa using star_mono hsa, by simpa using star_mono hps⟩
 
-instance [IsAtomic α] : AtomStructure {a : α // IsAtom a} where
+def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
+    AtomStructure {a : α // IsAtom a} where
   conv a := ⟨star a.val, isAtom_star_iff.mpr a.property⟩
   id := {a | a.val ≤ 1}
   cycles := Set.ofPred fun (r, s, t) => t.val ≤ r.val * s.val
@@ -176,8 +185,9 @@ instance [IsAtomic α] : AtomStructure {a : α // IsAtom a} where
 end Atomic
 
 noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebra α] :
-    RelationAlgebraEquiv α (ComplexAlgebra {a : α // IsAtom a}) where
-  toOrderIso := CompleteAtomicBooleanAlgebra.toSetOfIsAtom
+    RelationAlgebraEquiv α (ComplexAlgebra (atomStructure α)) where
+  toOrderIso := CompleteAtomicBooleanAlgebra.toSetOfIsAtom.trans
+    (ComplexAlgebra.orderIsoSet (atomStructure α)).symm
   map_mul' x y := by
     ext p
     constructor
@@ -191,12 +201,12 @@ noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebr
     ext p
     constructor
     · intro hp
-      refine ⟨AtomStructure.conv p, ?_, AtomStructure.conv_conv p⟩
+      refine ⟨(atomStructure α).conv p, ?_, (atomStructure α).conv_conv p⟩
       exact (star_mono hp).trans (le_of_eq (star_star x))
     · rintro ⟨a, ha, rfl⟩
       exact star_mono ha
 
 theorem complexAlgebraEquiv_apply {α : Type*} [CompleteAtomicRelationAlgebra α] (x : α) :
-    complexAlgebraEquiv x = {a | a.val ≤ x} := rfl
+    complexAlgebraEquiv x = ⟨{a | a.val ≤ x}⟩ := rfl
 
 end Cslib.RelationAlgebra
