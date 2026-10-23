@@ -250,6 +250,7 @@ public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.Kleene.Basic
+public import Cslib.Logics.Kleene.Semantics
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
