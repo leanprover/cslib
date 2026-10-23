@@ -158,17 +158,6 @@ theorem not_antitone : Antitone fun a : Value => ¬a := by decide
 @[simp, scoped grind =] protected theorem and_self (a : Value) : (a ∧ a) = a := inf_idem a
 @[simp, scoped grind =] protected theorem or_self (a : Value) : (a ∨ a) = a := sup_idem a
 
-protected theorem and_comm (a b : Value) : (a ∧ b) = (b ∧ a) := inf_comm a b
-protected theorem or_comm (a b : Value) : (a ∨ b) = (b ∨ a) := sup_comm a b
-
-protected theorem and_assoc (a b c : Value) : ((a ∧ b) ∧ c) = (a ∧ b ∧ c) := inf_assoc a b c
-protected theorem or_assoc (a b c : Value) : ((a ∨ b) ∨ c) = (a ∨ b ∨ c) := sup_assoc a b c
-
-protected theorem and_or_left (a b c : Value) : (a ∧ (b ∨ c)) = (a ∧ b ∨ a ∧ c) :=
-  inf_sup_left a b c
-protected theorem or_and_left (a b c : Value) : (a ∨ b ∧ c) = ((a ∨ b) ∧ (a ∨ c)) :=
-  sup_inf_left a b c
-
 protected theorem not_and (a b : Value) : (¬(a ∧ b)) = (¬a ∨ ¬b) := not_antitone.map_min
 protected theorem not_or (a b : Value) : (¬(a ∨ b)) = (¬a ∧ ¬b) := not_antitone.map_max
 
@@ -211,9 +200,9 @@ theorem unknown_iff_unknown : (Value.unknown ↔ Value.unknown) = .unknown := rf
 @[simp] theorem or_eq_false_iff {a b : Value} : (a ∨ b) = .false ↔ a = .false ∧ b = .false :=
   sup_eq_bot_iff
 
-@[simp] theorem not_eq_true_iff {a : Value} : (¬a) = .true ↔ a = .false := by grind
+@[simp] theorem not_eq_true_iff {a : Value} : (¬a) = .true ↔ a = .false := by decide +revert
 
-@[simp] theorem not_eq_false_iff {a : Value} : (¬a) = .false ↔ a = .true := by grind
+@[simp] theorem not_eq_false_iff {a : Value} : (¬a) = .false ↔ a = .true := by decide +revert
 
 /-! ### The embedding of `Bool` -/
 
@@ -229,16 +218,16 @@ theorem ofBool_injective : Function.Injective ofBool := by decide
 
 @[simp] theorem ofBool_inj {a b : Bool} : ofBool a = ofBool b ↔ a = b := ofBool_injective.eq_iff
 
-@[simp] theorem ofBool_ne_unknown (b : Bool) : ofBool b ≠ .unknown := by grind [cases Bool]
+@[simp] theorem ofBool_ne_unknown (b : Bool) : ofBool b ≠ .unknown := by decide +revert
 
 @[simp, scoped grind =]
-theorem ofBool_not (b : Bool) : ofBool (!b) = ¬ofBool b := by grind [cases Bool]
+theorem ofBool_not (b : Bool) : ofBool (!b) = ¬ofBool b := by decide +revert
 
 @[simp, scoped grind =]
-theorem ofBool_and (a b : Bool) : ofBool (a && b) = (ofBool a ∧ ofBool b) := by grind [cases Bool]
+theorem ofBool_and (a b : Bool) : ofBool (a && b) = (ofBool a ∧ ofBool b) := by decide +revert
 
 @[simp, scoped grind =]
-theorem ofBool_or (a b : Bool) : ofBool (a || b) = (ofBool a ∨ ofBool b) := by grind [cases Bool]
+theorem ofBool_or (a b : Bool) : ofBool (a || b) = (ofBool a ∨ ofBool b) := by decide +revert
 
 end Value
 
