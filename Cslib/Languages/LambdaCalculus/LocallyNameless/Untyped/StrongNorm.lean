@@ -54,8 +54,7 @@ lemma sn_app (t s : Term Var) (sn_t : SN FullBeta t) (sn_s : SN FullBeta s)
       intro u hstep
       cases hstep with
       | base h => cases h; grind
-      | appL _ h_s_red => apply ih_s _ h_s_red
-                          grind [Relation.ReflTransGen.head]
+      | appL _ h_s_red => grind [Relation.ReflTransGen.head]
       | appR _ h_t_red => apply ih_t _ h_t_red _ (SN.intro hs)
                           grind [Relation.ReflTransGen.head]
 

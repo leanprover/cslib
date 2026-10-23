@@ -42,8 +42,14 @@ abbrev ofContainers [Membership α β] (f : Frame α τ) : Model α τ β where
 /-- Abbreviation for `Model.ofContainers` where the container type is a `Set`. -/
 abbrev ofSets (f : Frame α τ) : Model α τ (Set α) := ofContainers f
 
-/-- The set model and predicate model of a frame are definitionally equal. -/
-theorem ofSets_eq_ofPredicates (f : Frame α τ) : ofSets f = ofPredicates f := rfl
+#adaptation_note
+/-- `Set α` is no longer definitionally `α → Prop` (changes from mathlib4#41506), so the set model
+and the predicate model of a frame no longer have the same type. Their valuations still agree
+under `Set.ofPred`, which is what this lemma now states. -/
+/-- The valuations of the set model and the predicate model of a frame agree under
+`Set.ofPred`. -/
+theorem ofSets_v_eq_ofPredicates_v (f : Frame α τ) (w : α) (P : α → Prop) :
+    (ofSets f).v w (.ofPred P) = (ofPredicates f).v w P := rfl
 
 end Model
 
