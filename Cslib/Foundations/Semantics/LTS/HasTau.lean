@@ -255,6 +255,65 @@ theorem saturate_mTr_sMTr_not_nil_iff [HasTau Label] {lts : LTS State Label}
         | cons x' xs' =>
           exact LTS.MTr.stepL htr ((ih (by simp)).mpr hmtr)
 
+/-- A saturated `τ`-transition is a run along a list of `τ`s. -/
+theorem τSTr_iff_exists_mTr_replicate [HasTau Label] {lts : LTS State Label} {s t : State} :
+    lts.τSTr s t ↔ ∃ n, lts.MTr s (List.replicate n HasTau.τ) t := by
+  constructor
+  · intro h
+    induction h with
+    | refl => exact ⟨0, .refl⟩
+    | tail _ htr ih =>
+      obtain ⟨n, hmtr⟩ := ih
+      refine ⟨n + 1, ?_⟩
+      rw [List.replicate_succ']
+      exact hmtr.stepR _ htr
+  · rintro ⟨n, hmtr⟩
+    induction n generalizing s with
+    | zero =>
+      obtain rfl := hmtr.nil_eq _
+      exact .refl
+    | succ n ih =>
+      obtain ⟨s', htr, hmtr'⟩ := MTr.cons_iff.mp hmtr
+      exact .head htr (ih hmtr')
+
+/-- A saturated run along a list of visible labels is a run whose labels, once the `τ`s are
+dropped, are that list. -/
+theorem sMTr_iff_exists_mTr_filter [HasTau Label] [DecidableEqTau Label]
+    {lts : LTS State Label} {s t : State} {μs : List Label} (hμs : ∀ μ ∈ μs, μ ≠ HasTau.τ) :
+    lts.SMTr s μs t ↔ ∃ νs : List Label, νs.filter (· ≠ HasTau.τ) = μs ∧ lts.MTr s νs t := by
+  constructor
+  · intro h
+    induction h with
+    | τ hstr =>
+      obtain ⟨n, hmtr⟩ := τSTr_iff_exists_mTr_replicate.mp ((sTr_τSTr_iff lts).mp hstr)
+      exact ⟨_, by simp, hmtr⟩
+    | @stepL s₁ μ s₂ μs s₃ hstr _ ih =>
+      have hμ : μ ≠ HasTau.τ := hμs μ (by simp)
+      obtain ⟨νs, hνs, hmtr⟩ := ih fun ν hν => hμs ν (by simp [hν])
+      cases hstr with
+      | refl => exact absurd rfl hμ
+      | tr h₁ htr h₂ =>
+        obtain ⟨n₁, hmtr₁⟩ := τSTr_iff_exists_mTr_replicate.mp h₁
+        obtain ⟨n₂, hmtr₂⟩ := τSTr_iff_exists_mTr_replicate.mp h₂
+        refine ⟨List.replicate n₁ HasTau.τ ++ μ :: (List.replicate n₂ HasTau.τ ++ νs), ?_,
+          hmtr₁.comp _ (.stepL htr (hmtr₂.comp _ hmtr))⟩
+        simpa [List.filter_append, hμ] using hνs
+  · rintro ⟨νs, rfl, hmtr⟩
+    clear hμs
+    induction hmtr with
+    | refl => exact SMTr.refl lts _
+    | @stepL s₁ ν s₂ νs s₃ htr _ ih =>
+      by_cases hν : ν = HasTau.τ
+      · subst hν
+        have hfilter : (HasTau.τ :: νs).filter (· ≠ HasTau.τ) = νs.filter (· ≠ HasTau.τ) := by
+          simp
+        rw [hfilter]
+        exact SMTr.comp (.τ (.single htr)) ih
+      · have hfilter : (ν :: νs).filter (· ≠ HasTau.τ) = ν :: νs.filter (· ≠ HasTau.τ) := by
+          simp [hν]
+        rw [hfilter]
+        exact .stepL (.single htr) ih
+
 end LTS
 
 end Cslib

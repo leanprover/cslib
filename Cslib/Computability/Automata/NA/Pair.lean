@@ -7,6 +7,7 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Languages.RegularLanguage
+public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
 /-! # Languages determined by pairs of states
 -/
