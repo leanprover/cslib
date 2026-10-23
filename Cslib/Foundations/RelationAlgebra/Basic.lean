@@ -37,6 +37,11 @@ class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul
   star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
   tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
 
+class CompleteRelationAlgebra (α : Type*) extends RelationAlgebra α, CompleteBooleanAlgebra α
+
+class CompleteAtomicRelationAlgebra (α : Type*) extends CompleteRelationAlgebra α,
+    CompleteAtomicBooleanAlgebra α
+
 namespace RelationAlgebra
 
 /-- A `RelationAlgebra` can be constructed using Tarski's original ten axioms. -/
@@ -80,6 +85,32 @@ theorem star_mono : Monotone (star : α → α) := by
 theorem mul_sup (a b c : α) : a * (b ⊔ c) = a * b ⊔ a * c := by
   apply star_injective
   simp [star_sup, sup_mul]
+
+theorem mul_mono {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) : a * c ≤ b * d := by
+  calc
+    a * c ≤ b * c := by rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr hab]
+    _ ≤ b * d := by rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr hcd]
+
+@[simp]
+theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
+  apply le_antisymm _ bot_le
+  calc
+    a * ⊥ ≤ a * (star a * ⊤)ᶜ := mul_mono le_rfl bot_le
+    _ ≤ ⊥ := by simpa using tarski (star a) ⊤
+
+@[simp]
+theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
+  (Equiv.Perm.star.toOrderIso star_mono star_mono).isAtom_iff a
+
+theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : IsAtom p) (h : p ≤ r * s) :
+    s ≤ star r * p := by
+  by_contra hsnot
+  have hsc : s ≤ (star r * p)ᶜ := le_compl_iff_disjoint_right.mpr (hs.not_le_iff_disjoint.mp hsnot)
+  have hc : p ≤ pᶜ := calc
+    p ≤ r * s := h
+    _ ≤ r * (star r * p)ᶜ := mul_mono le_rfl hsc
+    _ ≤ pᶜ := by simpa using tarski (star r) p
+  exact hp.ne_bot (le_compl_self.mp hc)
 
 theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
   calc

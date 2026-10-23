@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Basic
+public import Cslib.Foundations.RelationAlgebra.Hom
 public import Mathlib.Order.BooleanAlgebra.Set
 
 /-!
@@ -131,5 +131,72 @@ instance : RelationAlgebra (ComplexAlgebra α) where
     simpa using cycle_left h
 
 end ComplexAlgebra
+
+section Atomic
+
+variable {α : Type*} [RelationAlgebra α]
+
+private theorem exists_atom_le_mul_right [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
+    ∃ s, IsAtom s ∧ s ≤ b ∧ p ≤ a * s := by
+  have hmod : p ≤ a * (b ⊓ star a * p) := by simpa [inf_eq_right.mpr h] using left_modular a b p
+  obtain hb | ⟨s, hs, hsb⟩ := eq_bot_or_exists_atom_le (b ⊓ star a * p)
+  · rw [hb, mul_bot] at hmod
+    exact (hp.ne_bot (le_bot_iff.mp hmod)).elim
+  · use s, hs, hsb.trans inf_le_left
+    simpa using atom_cycle_left hp hs (hsb.trans inf_le_right)
+
+private theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
+    ∃ r, IsAtom r ∧ r ≤ a ∧ p ≤ r * b := by
+  obtain ⟨s, hs, hsa, hps⟩ :=
+    exists_atom_le_mul_right (isAtom_star_iff.mpr hp) (by simpa using star_mono h)
+  exact ⟨star s, isAtom_star_iff.mpr hs, by simpa using star_mono hsa, by simpa using star_mono hps⟩
+
+instance [IsAtomic α] : AtomStructure {a : α // IsAtom a} where
+  conv a := ⟨star a.val, isAtom_star_iff.mpr a.property⟩
+  id := {a | a.val ≤ 1}
+  cycles := Set.ofPred fun (r, s, t) => t.val ≤ r.val * s.val
+  assoc {r q p s t} h₁ h₂ := by
+    have hp : (p : α) ≤ r * s * t := by
+      rw [mul_assoc]
+      exact h₁.trans (mul_mono le_rfl h₂)
+    obtain ⟨q', hq', hq'rs, hpq'⟩ := exists_atom_le_mul_left p.property hp
+    aesop
+  id_cycle {s r p} hs h := by
+    ext
+    apply (r.property.le_iff_eq p.property.ne_bot).mp
+    simpa using h.trans (mul_mono le_rfl hs)
+  id_exist r := by
+    obtain ⟨s, hs, hs1, hrs⟩ := exists_atom_le_mul_right r.property (le_of_eq (mul_one r.val).symm)
+    aesop
+  conv_cycles {r s t} h := by
+    change star t.val ≤ star s.val * star r.val
+    simpa using star_mono h
+  cycle_left {r s t} h := atom_cycle_left s.property t.property h
+
+end Atomic
+
+noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebra α] :
+    RelationAlgebraEquiv α (ComplexAlgebra {a : α // IsAtom a}) where
+  toOrderIso := CompleteAtomicBooleanAlgebra.toSetOfIsAtom
+  map_mul' x y := by
+    ext p
+    constructor
+    · intro hp
+      obtain ⟨r, hr, hrx, hpr⟩ := exists_atom_le_mul_left p.property hp
+      obtain ⟨s, hs, hsy, hps⟩ := exists_atom_le_mul_right p.property hpr
+      exact ⟨⟨r, hr⟩, hrx, ⟨s, hs⟩, hsy, hps⟩
+    · rintro ⟨r, hr, s, hs, h⟩
+      exact h.trans (mul_mono hr hs)
+  map_star' x := by
+    ext p
+    constructor
+    · intro hp
+      refine ⟨AtomStructure.conv p, ?_, AtomStructure.conv_conv p⟩
+      exact (star_mono hp).trans (le_of_eq (star_star x))
+    · rintro ⟨a, ha, rfl⟩
+      exact star_mono ha
+
+theorem complexAlgebraEquiv_apply {α : Type*} [CompleteAtomicRelationAlgebra α] (x : α) :
+    complexAlgebraEquiv x = {a | a.val ≤ x} := rfl
 
 end Cslib.RelationAlgebra
