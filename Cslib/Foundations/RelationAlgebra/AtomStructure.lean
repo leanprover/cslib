@@ -17,7 +17,7 @@ be used as an implementation detail for other methods of constructing a relation
 
 ## References
 
-* Steven Givant, *Advanced Topics in Relation Algebras* (2017)
+* [Steven Givant, *Advanced Topics in Relation Algebras*][Givant2017]
 
 -/
 
