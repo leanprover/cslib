@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Semantics.LTS.Relation
+public import Cslib.Foundations.Semantics.LTS.SetImage
 
 /-!
 # LTS with a special "internal" transition `τ`.
@@ -37,6 +38,7 @@ theorem τSTr.refl [HasTau Label] {lts : LTS State Label} : lts.τSTr s s :=
   Relation.ReflTransGen.refl
 
 /-- Saturated transition relation. -/
+@[mk_iff]
 inductive STr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
   | refl : lts.STr s HasTau.τ s
   | tr : lts.τSTr s1 s2 → lts.Tr s2 μ s3 → lts.τSTr s3 s4 → lts.STr s1 μ s4
@@ -143,6 +145,47 @@ def τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State
 @[scoped grind .]
 lemma τClosure_subset [HasTau Label] (lts : LTS State Label) :
     S ⊆ lts.τClosure S := by grind [Set.mem_of_mem_of_subset, = τClosure]
+
+/-- The `τ`-closure of `S` consists of the states reachable from `S` by `τ`-transitions. -/
+@[scoped grind =]
+theorem mem_τClosure_iff [HasTau Label] {lts : LTS State Label} {S : Set State} {s' : State} :
+    s' ∈ lts.τClosure S ↔ ∃ s ∈ S, lts.τSTr s s' := by
+  simp_rw [τClosure, mem_setImage, ← sTr_τSTr_iff, saturate_tr_sTr]
+
+/-- The `τ`-closure of the empty set is empty. -/
+@[simp, scoped grind =]
+theorem τClosure_empty [HasTau Label] (lts : LTS State Label) : lts.τClosure ∅ = ∅ :=
+  lts.saturate.setImage_empty
+
+/-- The `τ`-closure distributes over binary unions. -/
+@[simp, scoped grind =]
+theorem τClosure_union [HasTau Label] (lts : LTS State Label) (S T : Set State) :
+    lts.τClosure (S ∪ T) = lts.τClosure S ∪ lts.τClosure T :=
+  lts.saturate.setImage_union S T HasTau.τ
+
+/-- Taking the `τ`-closure is monotone. -/
+@[gcongr]
+theorem τClosure_mono [HasTau Label] (lts : LTS State Label) {S T : Set State} (h : S ⊆ T) :
+    lts.τClosure S ⊆ lts.τClosure T :=
+  lts.saturate.setImage_mono h HasTau.τ
+
+/-- The `τ`-closure is idempotent. -/
+@[simp]
+theorem τClosure_τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) :
+    lts.τClosure (lts.τClosure S) = lts.τClosure S := by
+  refine Set.Subset.antisymm (fun s'' h => ?_) (τClosure_subset lts)
+  obtain ⟨s', hs', h₂⟩ := mem_τClosure_iff.mp h
+  obtain ⟨s, hs, h₁⟩ := mem_τClosure_iff.mp hs'
+  exact mem_τClosure_iff.mpr ⟨s, hs, Relation.ReflTransGen.trans h₁ h₂⟩
+
+/-- For a label other than `τ`, the saturated image of `S` is the `τ`-closure of the image of the
+`τ`-closure of `S`. -/
+theorem saturate_setImage_of_ne_τ [HasTau Label] (lts : LTS State Label) {S : Set State}
+    {μ : Label} (hμ : μ ≠ HasTau.τ) :
+    lts.saturate.setImage S μ = lts.τClosure (lts.setImage (lts.τClosure S) μ) := by
+  ext s'
+  simp [mem_setImage, saturate_tr_sTr, sTr_iff, hμ, mem_τClosure_iff]
+  grind
 
 /-- Saturated multistep transition relation. -/
 inductive SMTr [HasTau Label] (lts : LTS State Label) : State → List Label → State → Prop where

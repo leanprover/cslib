@@ -6,23 +6,19 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.DA.Congr
-public import Cslib.Computability.Automata.NA.Loop
-public import Cslib.Computability.Automata.NA.Preimage
 public import Cslib.Computability.Automata.DA.Prod
-public import Cslib.Computability.Automata.NA.Reverse
-public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
 public import Cslib.Computability.Automata.EpsilonNA.ToNA
+public import Cslib.Computability.Automata.NA.Preimage
+public import Cslib.Computability.Automata.NA.Reverse
+public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.ToEpsilonNA
-public import Cslib.Computability.Automata.TwoWayNA.OfNA
 public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
+public import Cslib.Computability.Automata.TwoWayNA.OfNA
+public import Cslib.Computability.Languages.KleeneAlgorithm
 public import Mathlib.Computability.DFA
-public import Mathlib.Computability.RegularExpressions
-public import Mathlib.Basic.Finite.Sum
-public import Mathlib.Data.Set.Card
 
 /-!
 # Regular languages
@@ -243,7 +239,18 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular :=
     ⟨Bool, inferInstance, εNA.FinAcc.char a, εNA.FinAcc.language_char a⟩
 
 /-- Languages matching regular expressions are regular. -/
-theorem IsRegular.regex {r : RegularExpression Symbol} : r.matches'.IsRegular :=
+theorem IsRegular.regex (r : RegularExpression Symbol) : r.matches'.IsRegular :=
   IsRegular.iff_epsilon_nfa.mpr ⟨r.State, inferInstance, r.toEpsilonNA, r.language_toEpsilonNA⟩
+
+open RegularExpression in
+/-- A characterization of `Language.IsRegular` in terms of `RegularExpression`. -/
+theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol} :
+    l.IsRegular ↔ ∃ r : RegularExpression Symbol, l = matches' r := by
+  constructor
+  · intro h
+    obtain ⟨State, _, nfa, rfl⟩ := IsRegular.iff_nfa.mp h
+    exact NA.FinAcc.nfa_eq_regex nfa
+  · rintro ⟨r, rfl⟩
+    exact IsRegular.regex r
 
 end Cslib.Language
