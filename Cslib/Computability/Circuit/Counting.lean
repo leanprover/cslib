@@ -41,6 +41,7 @@ keeping the number of operation tables explicit when the arity varies.
 
 namespace Cslib.Circuits
 
+open Nat (card)
 open scoped BigOperators
 
 universe v u
@@ -172,7 +173,7 @@ variable [Finite σ.Op]
 /-- Distinct functions and permutations of their irredundant gates give distinct presentations. -/
 theorem card_irredundantFunctions_mul_factorial_le (I : Interpretation σ U) (n g : ℕ) :
     (irredundantFunctions I n g).ncard * g.factorial ≤
-      Nat.card (Line σ n g) ^ g * (n + g) := by
+      card (Line σ n g) ^ g * (n + g) := by
   have h := Nat.card_le_card_of_injective _ (relabel_injective (I := I) (n := n) (g := g))
   simpa only [Nat.card_prod, Nat.card_coe_set_eq, Nat.card_fun, Nat.card_fin,
     Nat.card_eq_fintype_card, Fintype.card_perm, Fintype.card_fin, Wire.card] using h
@@ -204,7 +205,7 @@ theorem card_computableFunctions_le_sum (I : Interpretation σ U) (n s : ℕ) :
 /-- Bound the number of computable functions using a uniform line count `B`. The condition
 `s ≤ B` absorbs the extra factorial factors from circuits with fewer than `s` gates. -/
 theorem card_computableFunctions_mul_factorial_le (I : Interpretation σ U) (n s B : ℕ)
-    (hB : s ≤ B) (hlines : ∀ g ≤ s, Nat.card (Line σ n g) ≤ B) :
+    (hB : s ≤ B) (hlines : ∀ g ≤ s, card (Line σ n g) ≤ B) :
     (computableFunctions I n s).ncard * s.factorial ≤
       (s + 1) * B ^ s * (n + s) := by
   have hterm (g : ℕ) (hg : g ≤ s) :
@@ -214,7 +215,7 @@ theorem card_computableFunctions_mul_factorial_le (I : Interpretation σ U) (n s
           ((irredundantFunctions I n g).ncard * g.factorial) *
             (g + 1).ascFactorial (s - g) := by
         rw [mul_assoc, Nat.factorial_mul_ascFactorial, Nat.add_sub_of_le hg]
-      _ ≤ (Nat.card (Line σ n g) ^ g * (n + g)) * s ^ (s - g) :=
+      _ ≤ (card (Line σ n g) ^ g * (n + g)) * s ^ (s - g) :=
         Nat.mul_le_mul (card_irredundantFunctions_mul_factorial_le I n g)
           (by simpa [Nat.add_sub_of_le hg] using Nat.ascFactorial_le_pow_add g (s - g))
       _ ≤ (B ^ g * (n + s)) * B ^ (s - g) := by gcongr; exact hlines g hg
@@ -233,20 +234,24 @@ covers empty signatures and signatures containing only nullary operations. -/
 theorem card_computableFunctions_mul_factorial_le_of_arity_le
     (I : Interpretation σ U) (n s r : ℕ) (arity_le : ∀ op, σ.Arity op ≤ r) :
     (computableFunctions I n s).ncard * s.factorial ≤
-      (s + 1) * (max s (Nat.card σ.Op * (n + s + 1) ^ r)) ^ s * (n + s) := by
+      (s + 1) * (max s (card σ.Op * (n + s + 1) ^ r)) ^ s * (n + s) := by
   apply card_computableFunctions_mul_factorial_le I n s _ (Nat.le_max_left _ _)
   intro g hg
   exact (Line.card_le n g r arity_le).trans
     ((Nat.mul_le_mul_left _ (Nat.pow_le_pow_left (by omega : n + g + 1 ≤ n + s + 1) r)).trans
       (Nat.le_max_right _ _))
 
+/-- A uniform line budget for full-basis circuits with carrier size `q`, arity `k`,
+`n` inputs, and at most `s` gates. The maximum absorbs the factorial correction. -/
+abbrev fullBasisLineBound (q k n s : ℕ) : ℕ :=
+  max s (q ^ (q ^ k) * (n + s) ^ k + q)
+
 /-- The full-basis count keeps the number of operation tables explicit, so the arity may
 vary along with the number of inputs and the gate budget. -/
 theorem card_computableFunctions_full_mul_factorial_le [Finite U]
     (k n s : ℕ) :
     (computableFunctions (fullInterpretation (k := k) (Carrier := U)) n s).ncard * s.factorial ≤
-      (s + 1) * (max s (Nat.card U ^ (Nat.card U ^ k) * (n + s) ^ k +
-        Nat.card U)) ^ s * (n + s) := by
+      (s + 1) * fullBasisLineBound (card U) k n s ^ s * (n + s) := by
   apply card_computableFunctions_mul_factorial_le _ n s _ (Nat.le_max_left _ _)
   intro g hg
   apply le_trans ?_ (Nat.le_max_right _ _)
