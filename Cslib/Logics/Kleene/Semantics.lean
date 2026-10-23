@@ -24,6 +24,8 @@ condition on valuations (`Valuation.respectsBot`), not built into the type of va
 - `Kleene.Valuation.eval`: evaluation of a proposition under a valuation.
 - `Kleene.Valuation.respectsBot`: the valuations sending `⊥` to `false`.
 - `Kleene.Satisfies`, with the notation `⇓K3[v ⊨ A]`: satisfaction.
+- `Kleene.Valid`: validity, that is, satisfaction under every falsum-respecting valuation.
+- `Kleene.IsBotFree`: the propositions in which `⊥` does not occur.
 
 ## Main results
 
@@ -32,6 +34,9 @@ condition on valuations (`Valuation.respectsBot`), not built into the type of va
 - `Kleene.Satisfies.and_iff_and` and friends: satisfaction of compound propositions in terms of
   their components. `¬A` is satisfied iff `A` evaluates to `false`; unlike classically, this is
   stronger than `A` not being satisfied, since `A` may be `unknown`.
+- `Kleene.not_valid_of_isBotFree` and `Kleene.valid_bot_imp`: with a falsum in the language the
+  only validities come from `⊥`. No `⊥`-free proposition is valid, since the valuation sending every
+  other atom to `unknown` makes it `unknown`, while `⊥ → A` is valid for every `A`.
 
 ## References
 
@@ -140,5 +145,64 @@ theorem Satisfies.not_iff_eval_eq_false [Bot Atom] {v : Valuation Atom} (hv : v 
 theorem Satisfies.not_satisfies_of_not [Bot Atom] {v : Valuation Atom} (hv : v ⊥ = .false)
     {A : PL.Proposition Atom} (h : ⇓K3[v ⊨ ¬A]) : ¬⇓K3[v ⊨ A] := by
   grind [Satisfies.not_iff_eval_eq_false hv]
+
+/-! ### Validity -/
+
+/-- A proposition is valid if it is satisfied under every falsum-respecting valuation. -/
+def Valid [Bot Atom] (A : PL.Proposition Atom) : Prop := ∀ v ∈ Valuation.respectsBot, ⇓K3[v ⊨ A]
+
+/-- A proposition is `⊥`-free if the atom `⊥` does not occur in it. Since `¬A := A → ⊥`, no
+negation is `⊥`-free. -/
+inductive IsBotFree [Bot Atom] : PL.Proposition Atom → Prop
+  /-- An atom other than `⊥`. -/
+  | atom {p : Atom} (h : p ≠ ⊥) : IsBotFree (.atom p)
+  /-- Conjunction. -/
+  | and {A B : PL.Proposition Atom} (hA : IsBotFree A) (hB : IsBotFree B) : IsBotFree (A ∧ B)
+  /-- Disjunction. -/
+  | or {A B : PL.Proposition Atom} (hA : IsBotFree A) (hB : IsBotFree B) : IsBotFree (A ∨ B)
+  /-- Implication. -/
+  | imp {A B : PL.Proposition Atom} (hA : IsBotFree A) (hB : IsBotFree B) : IsBotFree (A → B)
+
+theorem isBotFree_atom_of_ne [Bot Atom] {p : Atom} (h : p ≠ ⊥) : IsBotFree (.atom p) :=
+  IsBotFree.atom h
+
+/-- The valuation sending `⊥` to `false` and every other atom to `unknown`. -/
+def Valuation.unknownExceptBot [Bot Atom] [DecidableEq Atom] : Valuation Atom :=
+  fun p => if p = ⊥ then .false else .unknown
+
+theorem Valuation.unknownExceptBot_mem_respectsBot [Bot Atom] [DecidableEq Atom] :
+    (Valuation.unknownExceptBot : Valuation Atom) ∈ Valuation.respectsBot := by
+  simp [Valuation.mem_respectsBot, Valuation.unknownExceptBot]
+
+theorem Valuation.eval_unknownExceptBot [Bot Atom] [DecidableEq Atom] {A : PL.Proposition Atom}
+    (h : IsBotFree A) : Valuation.unknownExceptBot.eval A = .unknown := by
+  induction h <;> simp [Valuation.unknownExceptBot, *]
+
+/-- No `⊥`-free proposition is valid: all are `unknown` under `Valuation.unknownExceptBot`. -/
+theorem not_valid_of_isBotFree [Bot Atom] {A : PL.Proposition Atom} (h : IsBotFree A) :
+    ¬Valid A := fun hv => by
+  classical
+  have := hv _ Valuation.unknownExceptBot_mem_respectsBot
+  simp [Satisfies.eval_eq_true_iff, Valuation.eval_unknownExceptBot h] at this
+
+/-- By contrast, explosion is valid, since `⊥` evaluates to `false`. -/
+theorem valid_bot_imp [Bot Atom] (A : PL.Proposition Atom) : Valid (⊥ → A) := fun _ hv => by
+  simp [Satisfies.eval_eq_true_iff, Valuation.mem_respectsBot.mp hv]
+
+/-- Excluded middle fails for `⊥`-free `A`, which evaluates to `unknown` under
+`Valuation.unknownExceptBot`, as then does `A ∨ ¬A`. -/
+theorem not_valid_or_not [Bot Atom] {A : PL.Proposition Atom} (h : IsBotFree A) :
+    ¬Valid (A ∨ ¬A) := fun hv => by
+  classical
+  have := hv _ Valuation.unknownExceptBot_mem_respectsBot
+  simp [Satisfies.eval_eq_true_iff, Valuation.eval_not Valuation.unknownExceptBot_mem_respectsBot,
+    Valuation.eval_unknownExceptBot h] at this
+
+/-- Even `A → A` fails for `⊥`-free `A`, since `unknown → unknown = unknown`. -/
+theorem not_valid_imp_self [Bot Atom] {A : PL.Proposition Atom} (h : IsBotFree A) :
+    ¬Valid (A → A) := fun hv => by
+  classical
+  have := hv _ Valuation.unknownExceptBot_mem_respectsBot
+  simp [Satisfies.eval_eq_true_iff, Valuation.eval_unknownExceptBot h] at this
 
 end Cslib.Logic.Kleene
