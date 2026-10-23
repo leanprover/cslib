@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Full.Aggregation
+public import Cslib.Computability.Circuit.Full.Decoder
 public import Cslib.Computability.Circuit.Full.Dictionary
 
 /-!
@@ -27,13 +28,19 @@ available. It builds the dictionaries once and then combines the chosen prescrip
 for each table. Table entries determine which dictionary outputs to use; they are
 fixed when constructing the circuit. Dictionary gates encode the marker and all
 possible assigned values.
+
+`synthesis_coordinateDictionaries` supplies the cell indicators by decoding available
+coordinates. An injective placement of coordinate tuples into cells allows padding:
+unused cells reuse the zero wire. `synthesis_sections` then assembles a function
+whose table depends on a section index. It masks each table lookup to zero outside
+its section and selects the surviving value, reusing the dictionaries for every section.
 -/
 
 @[expose] public section
 
 namespace Cslib.Circuits.Full
 
-variable {U : Type*} {n k B t : ℕ} {s : Set ((Fin n → U) → U)}
+variable {U : Type*} {n k d B t : ℕ} {s : Set ((Fin n → U) → U)}
 
 /-- Return `marker` when the address selects cell `(b, i)`, and zero otherwise. -/
 def blockIndicator [Zero U] (marker : U)
@@ -114,5 +121,67 @@ theorem synthesis_lookups [Zero U] [Fintype U]
   simpa using hdictionaries.trans
     (Synthesis.family (fun j => tables j ∘ address) _
       (fun j => synthesis_lookup hk marker hm address Set.subset_union_right (tables j)))
+
+/-- Each used cell reuses a decoded tuple indicator; unused cells reuse the zero wire.
+The injective placement may leave cells unused, so the last block can be padded. -/
+theorem blockIndicator_mem [Zero U] (marker : U) (coords : Fin d → (Fin n → U) → U)
+    (index : (Fin d → U) ↪ Fin B × Fin t) (hzero : (fun _ => 0) ∈ s)
+    (hindicators : Set.range (indicator 0 marker coords) ⊆ s) (b : Fin B) (i : Fin t) :
+    blockIndicator marker (fun x => index (fun j => coords j x)) b i ∈ s := by
+  classical
+  by_cases h : ∃ a, index a = (b, i)
+  · obtain ⟨a, ha⟩ := h
+    convert hindicators ⟨a, rfl⟩ using 1
+    ext x
+    simp [blockIndicator, indicator, ← ha, index.injective.eq_iff]
+  · convert hzero using 1
+    ext x
+    simp [blockIndicator, not_exists.mp h]
+
+/-- Decode the available coordinates, then build dictionaries for their assigned blocks.
+The budget adds the shared decoder and dictionary costs. Zero, the marker constant,
+and the coordinates must already be available. -/
+theorem synthesis_coordinateDictionaries [Zero U] [Fintype U] (hk : 2 ≤ k)
+    (marker : U) (coords : Fin d → (Fin n → U) → U)
+    (index : (Fin d → U) ↪ Fin B × Fin t)
+    (hzero : (fun _ => 0) ∈ s) (hmarker : (fun _ => marker) ∈ s)
+    (hcoords : ∀ i, coords i ∈ s) :
+    Synthesis (fullInterpretation (k := k)) s
+      (blockDictionaries marker (fun x => index (fun j => coords j x)))
+      ((∑ j ∈ Finset.range d, Fintype.card U ^ (j + 1)) +
+        B * ∑ j ∈ Finset.range t, Fintype.card U ^ (j + 1)) :=
+  (synthesis_indicators hk 0 marker coords hmarker hcoords).trans
+    (synthesis_blockDictionaries hk marker _ (Set.mem_union_left _ hzero)
+      (blockIndicator_mem marker coords index (Set.mem_union_left _ hzero) Set.subset_union_right))
+
+/-- Compute the table chosen by `sectionIndex`, using shared dictionaries and available
+section indicators. Read each table, mask its value to zero outside its section, then select
+the surviving value. Each section pays for its lookup and one masking gate; the final
+budget term combines the masked values. -/
+theorem synthesis_sections {α : Type*} [Zero U] [Fintype α] [DecidableEq α]
+    (hk : 2 ≤ k) (marker : U) (hm : marker ≠ 0) (sectionIndex : (Fin n → U) → α)
+    (address : (Fin n → U) → Fin B × Fin t)
+    (hsections : ∀ a, (fun x => if sectionIndex x = a then marker else 0) ∈ s)
+    (hdictionaries : blockDictionaries marker address ⊆ s) (tables : α → Fin B × Fin t → U) :
+    Synthesis (fullInterpretation (k := k)) s {fun x => tables (sectionIndex x) (address x)}
+      (Fintype.card α * (((B - 1) ⌈/⌉ (k - 1)) + 1) +
+        ((Fintype.card α - 1) ⌈/⌉ (k - 1))) := by
+  let part := fun a x => if sectionIndex x = a then tables a (address x) else 0
+  have hpart (a : α) : Synthesis (fullInterpretation (k := k)) s {part a}
+      (((B - 1) ⌈/⌉ (k - 1)) + 1) := by
+    have hlookup := synthesis_lookup hk marker hm address hdictionaries (tables a)
+    have hmask := Synthesis.full_gate (s := s ∪ {tables a ∘ address}) hk
+      (fun w : Fin 2 → U => if w 0 = marker then w 1 else 0)
+      (Fin.cons (fun x => if sectionIndex x = a then marker else 0)
+        (fun _ => tables a ∘ address)) (by simp [Fin.forall_fin_succ, hsections])
+    simpa [part, hm.symm] using hlookup.trans hmask
+  have hselect := Synthesis.full_select (s := s ∪ Set.range part) hk
+    (Finset.univ.toList.map part) (fun x => tables (sectionIndex x) (address x))
+    (by simp) (by
+      intro x f hf
+      obtain ⟨a, _, rfl⟩ := List.mem_map.mp hf
+      by_cases h : sectionIndex x = a <;> simp [part, h])
+    (fun x => ⟨part (sectionIndex x), by simp, by simp [part]⟩)
+  simpa using (Synthesis.family part _ hpart).trans hselect
 
 end Cslib.Circuits.Full
