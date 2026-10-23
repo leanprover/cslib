@@ -27,7 +27,7 @@ namespace Cslib
 variable {State Label : Type*}
 
 /--
-We first define what is denoted Tran* in [WinskelNielsen1995]: the extension of
+We first define what is denoted `Tran*` in [WinskelNielsen1995]: the extension of
 a transition relation with idle transitions.
 -/
 def LTS.withIdle (lts : LTS State Label) : LTS State (Option Label) :=

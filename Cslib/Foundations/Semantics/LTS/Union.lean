@@ -30,17 +30,12 @@ def union (lts1 lts2 : LTS State Label) : LTS State Label where
 /-- The union of two LTSs that have common supertypes for states and labels. -/
 def unionSubtype
 {S1 : State → Prop} {L1 : Label → Prop} {S2 : State → Prop} {L2 : Label → Prop}
-[DecidablePred S1] [DecidablePred L1] [DecidablePred S2] [DecidablePred L2]
 (lts1 : LTS (@Subtype State S1) (@Subtype Label L1))
 (lts2 : LTS (@Subtype State S2) (@Subtype Label L2)) :
   LTS State Label where
   Tr := fun s μ s' =>
-    if h : S1 s ∧ L1 μ ∧ S1 s' then
-      lts1.Tr ⟨s, h.1⟩ ⟨μ, h.2.1⟩ ⟨s', h.2.2⟩
-    else if h : S2 s ∧ L2 μ ∧ S2 s' then
-      lts2.Tr ⟨s, h.1⟩ ⟨μ, h.2.1⟩ ⟨s', h.2.2⟩
-    else
-      False
+    (∃ h : S1 s ∧ L1 μ ∧ S1 s', lts1.Tr ⟨s, h.1⟩ ⟨μ, h.2.1⟩ ⟨s', h.2.2⟩) ∨
+    (∃ h : S2 s ∧ L2 μ ∧ S2 s', lts2.Tr ⟨s, h.1⟩ ⟨μ, h.2.1⟩ ⟨s', h.2.2⟩)
 
 /-- Lifting of an `LTS State Label` to `LTS (State ⊕ State') Label`. -/
 def inl (lts : LTS State Label) :
