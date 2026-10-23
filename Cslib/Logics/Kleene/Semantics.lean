@@ -9,6 +9,7 @@ module
 public import Cslib.Logics.Kleene.Basic
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.Consequence
 
 /-! # Kleene semantics for propositional logic
 
@@ -26,6 +27,7 @@ and negation is the defined connective `¬A := A → ⊥`. Since Kleene's implic
 - `Kleene.Satisfies`, with the notation `⇓K3[v ⊨ A]`: satisfaction.
 - `Kleene.Valid`: validity, that is, satisfaction under every falsum-respecting valuation.
 - `Kleene.IsBotFree`: the propositions in which `⊥` does not occur.
+- `Kleene.Entails`: consequence, the generic notion over `Valuation.respectsBot`.
 
 ## Main results
 
@@ -37,6 +39,8 @@ and negation is the defined connective `¬A := A → ⊥`. Since Kleene's implic
   while `⊥ → A` is valid for every `A`.
 - `Kleene.Valuation.eval_infoLE`: evaluation is monotone in the information order `⊑` on
   `Kleene.Value`.
+- `Kleene.not_deduction_theorem`: `A` entails `A`, but `A → A` is not valid for `⊥`-free `A`.
+- `Kleene.entails_of_mem_of_mem_not`: explosion, from `A` and `¬A` together.
 
 ## References
 
@@ -142,10 +146,21 @@ theorem Satisfies.not_satisfies_of_not [Bot Atom] {v : Valuation Atom} (hv : v �
     {A : PL.Proposition Atom} (h : ⇓K3[v ⊨ ¬A]) : ¬⇓K3[v ⊨ A] := by
   grind [Satisfies.not_iff_eval_eq_false hv]
 
+/-! ### Judgemental contexts -/
+
+/-- A judgemental context is a valuation: the judgement `K3[v ⊨ A]` with the proposition missing. -/
+instance : HasHContext (Judgement Atom) (PL.Proposition Atom) :=
+  ⟨fun (v : Valuation Atom) A => K3[v ⊨ A]⟩
+
+@[simp, scoped grind =]
+theorem Judgement.fill_def {v : Valuation Atom} {A : PL.Proposition Atom} :
+    HasHContext.fill (α := Judgement Atom) v A = K3[v ⊨ A] := rfl
+
 /-! ### Validity -/
 
 /-- A proposition is valid if it is satisfied under every falsum-respecting valuation. -/
-def Valid [Bot Atom] (A : PL.Proposition Atom) : Prop := ∀ v ∈ Valuation.respectsBot, ⇓K3[v ⊨ A]
+abbrev Valid [Bot Atom] (A : PL.Proposition Atom) : Prop :=
+  ValidWithin (Judgement Atom) InferenceSystem.Default Valuation.respectsBot A
 
 /-- A proposition is `⊥`-free if the atom `⊥` does not occur in it. Since `¬A := A → ⊥`, no
 negation is `⊥`-free. -/
@@ -207,5 +222,26 @@ theorem Valuation.eval_infoLE {v v' : Valuation Atom} (h : ∀ p, v p ⊑ v' p)
   | and _ _ ih₁ ih₂ => exact ih₁.and ih₂
   | or _ _ ih₁ ih₂ => exact ih₁.or ih₂
   | imp _ _ ih₁ ih₂ => exact ih₁.imp ih₂
+
+/-! ### Consequence -/
+
+/-- Consequence over falsum-respecting valuations: every such valuation satisfying all the premises
+satisfies the conclusion. The structural lemmas are the generic `EntailsWithin.mono` (weakening)
+and `EntailsWithin.trans` (cut). -/
+abbrev Entails [Bot Atom] (Γ : Set (PL.Proposition Atom)) (A : PL.Proposition Atom) : Prop :=
+  EntailsWithin (Judgement Atom) InferenceSystem.Default Valuation.respectsBot Γ A
+
+/-- Explosion: `A` and `¬A` together entail everything, since no falsum-respecting valuation
+satisfies both. -/
+theorem entails_of_mem_of_mem_not [Bot Atom] {Γ : Set (PL.Proposition Atom)}
+    {A : PL.Proposition Atom} (h₁ : A ∈ Γ) (h₂ : (¬A) ∈ Γ) (B : PL.Proposition Atom) :
+    Entails Γ B :=
+  entailsWithin_of_incompatible h₁ h₂
+    (fun _ hv hA hnA => Satisfies.not_satisfies_of_not hv hnA hA) B
+
+/-- The deduction theorem fails: `A` entails `A`, but `A → A` is not valid for `⊥`-free `A`. -/
+theorem not_deduction_theorem [Bot Atom] {A : PL.Proposition Atom} (h : IsBotFree A) :
+    Entails {A} A ∧ ¬Valid (A → A) :=
+  ⟨entailsWithin_of_mem (Set.mem_singleton _), not_valid_imp_self h⟩
 
 end Cslib.Logic.Kleene
