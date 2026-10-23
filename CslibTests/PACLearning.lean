@@ -73,10 +73,14 @@ example : esampleComplexity (fun _ _ _ _ _ => False) C ε δ 𝒟 = ⊤ := by si
 example : esampleComplexity (fun _ _ _ _ _ => True) C ε δ 𝒟 = 0 := by
   simp
 
--- The generic API does not assume that admissible sample sizes are upward closed.
-example : esampleComplexity (fun m _ _ _ _ => m = 2 ∨ m = 5) C ε δ 𝒟 = (2 : ℕ) := by
-  rw [esampleComplexity_eq_natCast_iff (m := 2)]
-  grind
+-- Admissible sizes need not be upward closed; the witness need not be the minimum.
+example : sampleComplexity (fun m _ _ _ _ => m = 2 ∨ m = 5) C ε δ 𝒟
+    ⟨5, Or.inr rfl⟩ = 2 := by
+  have h : esampleComplexity (fun m _ _ _ _ => m = 2 ∨ m = 5) C ε δ 𝒟 = (2 : ℕ) := by
+    rw [esampleComplexity_eq_natCast_iff (m := 2)]
+    grind
+  rw [← natCast_sampleComplexity ⟨5, Or.inr rfl⟩] at h
+  exact_mod_cast h
 
 end SampleComplexity
 
@@ -106,5 +110,12 @@ example : evcDim (Set.univ : ConceptClass ℕ Bool) = ⊤ := by
     simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_singleton_iff, decide_eq_true_eq]
     exact ⟨And.left, fun hx => ⟨hx, hV hx⟩⟩
   simpa using hN (Finset.range (N + 1)) hW
+
+-- Bounds on the extended dimension also bound the natural-number view.
+example {α : Type*} {C : ConceptClass α Bool} (hC : HasFiniteVCDim C)
+    {W : Finset α} (hW : SetShatters C ↑W) : W.card ≤ vcDim C hC := by
+  have h := hW.card_le_evcDim
+  rw [← natCast_vcDim hC] at h
+  exact_mod_cast h
 
 end CslibTests.PACLearning
