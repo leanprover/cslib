@@ -21,8 +21,10 @@ To this end, we expect to leverage the combination of `Crypto` and [Languages](.
 
 ## Security games
 
-[`Negligible`](Negligible.lean) specializes Mathlib's `SuperpolynomialDecay` to natural security
-parameters, with zero, comparison, and polynomial-loss bounds.
+[`Negligible`](Negligible.lean) specializes Mathlib's `SuperpolynomialDecay` to nonnegative
+real-valued bounds at natural security parameters, with zero, addition, fixed finite sums,
+eventual comparison, and polynomial-loss bounds. Changing finitely many values preserves
+negligibility.
 
 ## Pseudorandom generators
 
