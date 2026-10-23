@@ -7,6 +7,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Init
+public import Mathlib.Data.ENat.Lattice
 public import Mathlib.MeasureTheory.Measure.Basic
 public import Mathlib.MeasureTheory.Constructions.Pi
 public import Mathlib.Order.SymmDiff
@@ -58,6 +59,8 @@ generic names like `error` and `optimalError` do not pollute the parent namespac
   the deterministic and randomized learners so sample-complexity lemmas can be shared.
 - `sampleComplexity`: sample complexity of a generic learner model.
 - `rsampleComplexity`: randomized sample complexity, i.e. `sampleComplexity IsRPACLearnerFor`.
+- `esampleComplexity`, `ersampleComplexity`: extended-natural versions, returning `⊤`
+  when no learner exists. Their monotonicity lemmas need no existence hypothesis.
 
 ## Binary classification
 
@@ -338,7 +341,8 @@ and `L := IsRPACLearnerFor` for the randomized one.
 **Caveat**: because `sInf` on `ℕ` returns `0` for the empty set, this definition returns `0`
 when no learner exists (e.g., a concept class of infinite VC dimension). It is only meaningful
 when the defining set `{m | L m ε δ C 𝒟}` is nonempty. The `IsPACLearnable.sampleComplexity_*`
-variants below discharge this nonemptiness from a learnability hypothesis. -/
+variants below discharge this nonemptiness from a learnability hypothesis. Use
+`esampleComplexity` to distinguish impossibility from zero-sample learning. -/
 noncomputable def sampleComplexity (L : LearnerModel α β) (C : ConceptClass α β)
     (ε δ : Set.Ioo (0 : ℝ≥0) 1) (𝒟 : Set (Measure (α × β))) : ℕ :=
   sInf {m : ℕ | L m ε δ C 𝒟}
@@ -348,6 +352,113 @@ randomized learner model `IsRPACLearnerFor`. The randomness space is pinned to `
 noncomputable def rsampleComplexity (C : ConceptClass α β) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
     (𝒟 : Set (Measure (α × β))) : ℕ :=
   sampleComplexity IsRPACLearnerFor.{_, _, 0} C ε δ 𝒟
+
+/-! ### Extended Sample Complexity -/
+
+/-- The least sample size admitting a learner, or `⊤` if no such size exists.
+Unlike `sampleComplexity`, this distinguishes impossibility from zero-sample learning. -/
+noncomputable def esampleComplexity (L : LearnerModel α β) (C : ConceptClass α β)
+    (ε δ : Set.Ioo (0 : ℝ≥0) 1) (𝒟 : Set (Measure (α × β))) : ℕ∞ :=
+  ⨅ m : ℕ, ⨅ _ : L m ε δ C 𝒟, (m : ℕ∞)
+
+/-- Extended randomized sample complexity, with randomness in `Type 0`. -/
+noncomputable def ersampleComplexity (C : ConceptClass α β) (ε δ : Set.Ioo (0 : ℝ≥0) 1)
+    (𝒟 : Set (Measure (α × β))) : ℕ∞ :=
+  esampleComplexity IsRPACLearnerFor.{_, _, 0} C ε δ 𝒟
+
+section
+variable {L : LearnerModel α β} {C : ConceptClass α β}
+variable {ε δ : Set.Ioo (0 : ℝ≥0) 1} {𝒟 : Set (Measure (α × β))}
+
+/-- Any admissible sample size bounds the extended sample complexity from above. -/
+theorem esampleComplexity_le {m : ℕ} (h : L m ε δ C 𝒟) :
+    esampleComplexity L C ε δ 𝒟 ≤ m :=
+  iInf₂_le_of_le m h le_rfl
+
+/-- A lower bound on extended sample complexity bounds every admissible sample size. -/
+theorem le_esampleComplexity_iff {n : ℕ∞} :
+    n ≤ esampleComplexity L C ε δ 𝒟 ↔ ∀ m, L m ε δ C 𝒟 → n ≤ m :=
+  le_iInf₂_iff
+
+/-- Sample complexity is infinite precisely when no sample size admits a learner. -/
+@[simp]
+theorem esampleComplexity_eq_top_iff :
+    esampleComplexity L C ε δ 𝒟 = ⊤ ↔ ¬ ∃ m, L m ε δ C 𝒟 := by
+  simp [esampleComplexity, iInf_eq_top]
+
+/-- Finite sample complexity is equivalent to the existence of a learner. -/
+theorem esampleComplexity_lt_top_iff :
+    esampleComplexity L C ε δ 𝒟 < ⊤ ↔ ∃ m, L m ε δ C 𝒟 := by
+  simp [lt_top_iff_ne_top]
+
+/-- A finite sample complexity is attained and is the least admissible sample size. -/
+theorem esampleComplexity_eq_natCast_iff {m : ℕ} :
+    esampleComplexity L C ε δ 𝒟 = m ↔
+      L m ε δ C 𝒟 ∧ ∀ n, L n ε δ C 𝒟 → m ≤ n := by
+  simp [esampleComplexity, ENat.iInf_eq_natCast_iff]
+
+/-- Zero sample complexity means that a learner can succeed without seeing any samples. -/
+@[simp]
+theorem esampleComplexity_eq_zero_iff :
+    esampleComplexity L C ε δ 𝒟 = 0 ↔ L 0 ε δ C 𝒟 := by
+  simpa using (esampleComplexity_eq_natCast_iff (L := L) (C := C) (ε := ε) (δ := δ)
+    (𝒟 := 𝒟) (m := 0))
+
+/-- When a learner exists, natural and extended sample complexity agree. -/
+theorem coe_sampleComplexity (h : ∃ m, L m ε δ C 𝒟) :
+    (sampleComplexity L C ε δ 𝒟 : ℕ∞) = esampleComplexity L C ε δ 𝒟 :=
+  ENat.natCast_sInf h
+
+end
+
+/-- Pointwise inclusion of admissible sample sizes reverses extended sample complexity.
+No existence assumption is needed, since the infimum of the empty set is `⊤`. -/
+theorem esampleComplexity_le_of_forall {L₁ L₂ : LearnerModel α β}
+    {ε₁ δ₁ ε₂ δ₂ : Set.Ioo (0 : ℝ≥0) 1} {C₁ C₂ : ConceptClass α β}
+    {𝒟₁ 𝒟₂ : Set (Measure (α × β))}
+    (hL : ∀ {m : ℕ}, L₁ m ε₁ δ₁ C₁ 𝒟₁ → L₂ m ε₂ δ₂ C₂ 𝒟₂) :
+    esampleComplexity L₂ C₂ ε₂ δ₂ 𝒟₂ ≤ esampleComplexity L₁ C₁ ε₁ δ₁ 𝒟₁ :=
+  le_iInf₂ fun m hm => iInf₂_le_of_le m (hL hm) le_rfl
+
+/-- Weaker confidence requires no more samples, including when learning is impossible. -/
+theorem esampleComplexity_antitone_δ {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1}
+    (hδ : δ₁.val ≤ δ₂.val) {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} :
+    esampleComplexity IsPACLearnerFor C ε δ₂ 𝒟 ≤
+      esampleComplexity IsPACLearnerFor C ε δ₁ 𝒟 :=
+  esampleComplexity_le_of_forall (fun h => h.mono_δ hδ)
+
+/-- Weaker accuracy requires no more samples, including when learning is impossible. -/
+theorem esampleComplexity_antitone_ε {ε₁ ε₂ δ : Set.Ioo (0 : ℝ≥0) 1}
+    (hε : ε₁.val ≤ ε₂.val) {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} :
+    esampleComplexity IsPACLearnerFor C ε₂ δ 𝒟 ≤
+      esampleComplexity IsPACLearnerFor C ε₁ δ 𝒟 :=
+  esampleComplexity_le_of_forall (fun h => h.mono_ε hε)
+
+/-- A smaller distribution family requires no more samples. -/
+theorem esampleComplexity_mono_family {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+    {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))} (h𝒟 : 𝒟 ⊆ 𝒟') :
+    esampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤
+      esampleComplexity IsPACLearnerFor C ε δ 𝒟' :=
+  esampleComplexity_le_of_forall (fun h => h.antitone_family h𝒟)
+
+/-- A smaller concept class requires no more samples. -/
+theorem esampleComplexity_mono_C {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+    {C C' : ConceptClass α β} (hC : C ⊆ C') {𝒟 : Set (Measure (α × β))} :
+    esampleComplexity IsPACLearnerFor C ε δ 𝒟 ≤
+      esampleComplexity IsPACLearnerFor C' ε δ 𝒟 :=
+  esampleComplexity_le_of_forall (fun h => h.antitone_C hC)
+
+/-- Weaker confidence requires no more samples for randomized learners. -/
+theorem ersampleComplexity_antitone_δ {ε δ₁ δ₂ : Set.Ioo (0 : ℝ≥0) 1}
+    (hδ : δ₁.val ≤ δ₂.val) {C : ConceptClass α β} {𝒟 : Set (Measure (α × β))} :
+    ersampleComplexity C ε δ₂ 𝒟 ≤ ersampleComplexity C ε δ₁ 𝒟 :=
+  esampleComplexity_le_of_forall (fun h => h.mono_δ hδ)
+
+/-- A smaller distribution family requires no more samples for randomized learners. -/
+theorem ersampleComplexity_mono_family {ε δ : Set.Ioo (0 : ℝ≥0) 1}
+    {C : ConceptClass α β} {𝒟 𝒟' : Set (Measure (α × β))} (h𝒟 : 𝒟 ⊆ 𝒟') :
+    ersampleComplexity C ε δ 𝒟 ≤ ersampleComplexity C ε δ 𝒟' :=
+  esampleComplexity_le_of_forall (fun h => h.antitone_family h𝒟)
 
 /-! ### Monotonicity of Sample Complexity
 
