@@ -37,7 +37,7 @@ attribute [scoped grind _=_] FinFun.mem_support_fn
 namespace FinFun
 
 @[inherit_doc]
-scoped infixr:25 " →₀ " => FinFun
+scoped infixr:25 (priority := high) " →₀ " => FinFun
 
 /-- Constructs a `FinFun` by restricting a function to a given support, filtering out all elements
 not mapped to 0 in the support. -/
