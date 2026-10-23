@@ -169,6 +169,16 @@ theorem dist_map_le (p q : PMF α) (f : α → β) :
     dist (p.map f) (q.map f) ≤ dist p q := by
   simpa [PMF.bind_pure_comp] using dist_bind_le p q (PMF.pure ∘ f)
 
+/-- The nonnegative form of `dist_bind_le`. -/
+theorem nndist_bind_le (p q : PMF α) (kernel : α → PMF β) :
+    nndist (p.bind kernel) (q.bind kernel) ≤ nndist p q :=
+  NNReal.coe_le_coe.mp (by simpa only [coe_nndist] using dist_bind_le p q kernel)
+
+/-- The nonnegative form of `dist_map_le`. -/
+theorem nndist_map_le (p q : PMF α) (f : α → β) :
+    nndist (p.map f) (q.map f) ≤ nndist p q :=
+  NNReal.coe_le_coe.mp (by simpa only [coe_nndist] using dist_map_le p q f)
+
 /-- Two PMFs are `ε`-statistically close when their statistical distance is at
 most `ε`. The `ℝ≥0` parameter rules out meaningless negative bounds. -/
 def StatisticallyClose (p q : PMF α) (ε : ℝ≥0) : Prop :=
