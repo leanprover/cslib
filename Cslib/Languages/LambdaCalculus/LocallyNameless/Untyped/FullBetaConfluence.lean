@@ -132,8 +132,8 @@ lemma para_open_close (x y z) (para : M ⭢ₚ M') : M⟦z ↜ x⟧⟦z ↝ fvar
   by grind
 
 /-- Parallel substitution respects fresh opening. -/
-lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ N ^ fvar x)
-    (para : M' ⭢ₚ N') : (M ^ M') ⭢ₚ (N ^ N') := by
+lemma para_open_out (L : Finset Var) (mem : ∀ x, x ∉ L → (M ^ fvar x) ⭢ₚ M' ^ fvar x)
+    (para : N ⭢ₚ N') : (M ^ N) ⭢ₚ (M' ^ N') := by
   grind [fresh_exists <| free_union [fv] Var]
 
 -- TODO: the Takahashi translation would be a much nicer and shorter proof, but I had difficultly
