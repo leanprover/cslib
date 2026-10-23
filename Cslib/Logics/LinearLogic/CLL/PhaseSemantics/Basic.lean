@@ -78,8 +78,8 @@ variable {P : Type*} [PhaseSpace P] {p q : P}
 /-! ## Basic operations -/
 
 /--
-Implication between two setsin a phase space: the set of elements m such that
-for all x ∈ X, we have m * x ∈ Y.
+Implication between two sets in a phase space: the set of elements `m` such that
+for all `x ∈ X`, we have `m * x ∈ Y`.
 -/
 def imp [PhaseSpace M] (X Y : Set M) : Set M := {m | ∀ x ∈ X, m * x ∈ Y}
 
