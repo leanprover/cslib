@@ -275,6 +275,17 @@ lemma RunPath.eq_take {p q : tm.RunPath input} (hhead : p.head = q.head) (h : p.
   rw [RelSeries.head_take, hhead]
   rfl
 
+/-- Every computation prefix ends at a configuration of any halted computation path. -/
+lemma ComputationPath.last_mem_of_halted (p : tm.ComputationPath input)
+    {q : tm.ComputationPath input} (hq : q.last.Halted) : p.last ∈ q.toRunPath := by
+  rcases le_total p.length q.length with h | h
+  · have hp := RunPath.eq_take (p.head_eq.trans q.head_eq.symm) h
+    exact ⟨⟨p.length, Nat.lt_succ_of_le h⟩, (congrArg RelSeries.last hp).symm⟩
+  · have hq' := congrArg RelSeries.last (RunPath.eq_take (q.head_eq.trans p.head_eq.symm) h)
+    rw [RelSeries.last_take] at hq'
+    rw [RunPath.last_eq_of_halted p.toRunPath _ (hq' ▸ hq), ← hq']
+    exact RelSeries.last_mem _
+
 /-- The computation paths of a deterministic machine are prefixes of one another, so a path visiting
 at most as many cells as another visits at most as many on each tape. -/
 lemma ComputationPath.spaceUsedByTape_le_of_space_le (p : tm.ComputationPath input)
