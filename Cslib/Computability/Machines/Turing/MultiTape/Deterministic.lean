@@ -31,6 +31,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
     symbols to exactly one action
 * `MultiTapeTM`: the TM itself
 * `tr`, `ofTr`: the derived transition function and construction from a function
+* `adapt`: the machine run through an adapter
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
@@ -110,6 +111,19 @@ lemma tr_ofTr (q₀ : State)
     (ofTr q₀ tr).tr q input work = tr q input work :=
   tr_iff.mp rfl
 
+/-- `tm` run through `adapter`: it reads what `tm` reads through `adapter` and performs the
+adaptation of the action of `tm`. -/
+noncomputable def adapt {k' : ℕ} (tm : MultiTapeTM k Symbol State)
+    (adapter : MultiTapeNTM.Adapter k k' Symbol State State) : MultiTapeTM k' Symbol State :=
+  ofTr tm.q₀ fun q inp work =>
+    adapter.action ⟨inp, work⟩ (tm.tr q (adapter.read ⟨inp, work⟩).inputSymbol
+      (adapter.read ⟨inp, work⟩).workTapeSymbols)
+
+/-- `tm.adapt adapter` follows `tm`, in the same states. -/
+lemma follows_adapt {k' : ℕ} {adapter : MultiTapeNTM.Adapter k k' Symbol State State} :
+    (tm.adapt adapter).Follows tm id adapter :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
 /-!
 ## Stepping a Turing Machine
 
@@ -168,27 +182,6 @@ public lemma step_workTapePos_of_state {cfg : Cfg k Symbol State input} {q : Sta
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
-
-/-- A configuration map semiconjugating the step functions is a homomorphism of the step relations,
-so it maps run paths with `RelSeries.map`. -/
-def stepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (h : Function.Semiconj f tm.step tm'.step) :
-    (tm.stepRel input).Hom (tm'.stepRel input') where
-  toFun := f
-  map_rel' hc := step_iff.mpr ((h _).symm.trans (congrArg f (step_iff.mp hc)))
-
-/-- A configuration map commuting with the step functions on running configurations is a
-homomorphism from the running steps of `tm` to the steps of `tm'`. -/
-@[simps! apply]
-def runningStepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (h : ∀ c, ¬c.Halted → tm'.step (f c) = f (tm.step c)) :
-    (tm.runningStepRel input).Hom (tm'.stepRel input') where
-  toFun := f
-  map_rel' {c _} hc := step_iff.mpr ((h c hc.1).trans (congrArg f (step_iff.mp hc.2)))
 
 end MultiTapeTM
 

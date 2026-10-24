@@ -39,6 +39,10 @@ requires every path of at least `t` steps to end in a halted configuration.
 * `Step`: the one-step relation on configurations
 * `RunPath`: finite relation series of steps
 * `ComputationPath`: a run path starting at the initial configuration
+* `Adapter`, `Follows`: a machine follows another when it performs each of its transitions,
+  reading and acting through an adapter
+* `Follows.runningStepHom`, `Follows.stepHom`: a configuration map that agrees with the adapter is a
+  homomorphism of step relations, so it maps run paths
 * `RunsInTime`: every computation path of at least the given length ends in a halted
   configuration
 
@@ -173,20 +177,6 @@ lemma exists_running (p : ntm.RunPath input) (h : p.last.Halted) :
 
 end RunPath
 
-/-- A machine never reads its output tape, so prepending a word to the output preserves steps. -/
-@[simps]
-def prependOutputHom (ntm : MultiTapeNTM k Symbol State) (pre : List Symbol) :
-    (ntm.stepRel input).Hom (ntm.stepRel input) where
-  toFun c := c.prependOutput pre
-  map_rel' {c c'} h := by
-    change ntm.Step c c' at h
-    change ntm.Step (c.prependOutput pre) (c'.prependOutput pre)
-    unfold Step at h ⊢
-    rcases hq : c.state with _ | q <;> simp only [hq, Cfg.prependOutput_state] at h ⊢
-    · rw [h]
-    · obtain ⟨a, ha, rfl⟩ := h
-      exact ⟨a, ha, Cfg.ext rfl rfl rfl rfl (by simp [Action.apply])⟩
-
 /-- A run path starting at the initial configuration for `input`. -/
 structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol)
     extends toRunPath : ntm.RunPath input where
@@ -209,6 +199,81 @@ def RunsInTime (ntm : MultiTapeNTM k Symbol State) (input : List Symbol) (t : �
 lemma RunsInTime.mono {input : List Symbol} {t t' : ℕ}
     (h : ntm.RunsInTime input t) (ht : t ≤ t') : ntm.RunsInTime input t' :=
   fun p hp ↦ h p (ht.trans hp)
+
+/-! ### Following a machine -/
+
+/-- How a machine with `k'` work tapes and states `State'` performs the transitions of a machine
+with `k` work tapes and states `State`: the symbols the inner machine reads, computed from those
+under the heads of the outer machine, and the outer action performing each inner action. -/
+structure Adapter (k k' : ℕ) (Symbol State State' : Type*) where
+  /-- the symbols the inner machine reads -/
+  read : HeadSymbols k' Symbol → HeadSymbols k Symbol
+  /-- the outer action performing an inner action -/
+  action : HeadSymbols k' Symbol → Action k Symbol State → Action k' Symbol State'
+
+/-- The adapter that relabels the states through `φ` and reads and acts on the same tapes. -/
+@[simps]
+def Adapter.mapState {State' : Type*} (φ : Option State → Option State') :
+    Adapter k k Symbol State State' :=
+  ⟨id, fun _ => Action.mapState φ⟩
+
+/-- `ntm'` follows `ntm` through `adapter`, in state `state q` while `ntm` is in state `q`: whatever
+`ntm` may do in `q` on what `adapter` reads, `ntm'` may do the adapted action in `state q`. -/
+def Follows {k' : ℕ} {State' : Type*} (ntm' : MultiTapeNTM k' Symbol State')
+    (ntm : MultiTapeNTM k Symbol State) (state : State → State')
+    (adapter : Adapter k k' Symbol State State') : Prop :=
+  ∀ q heads action,
+    ntm.Tr q (adapter.read heads).inputSymbol (adapter.read heads).workTapeSymbols action →
+      ntm'.Tr (state q) heads.inputSymbol heads.workTapeSymbols (adapter.action heads action)
+
+namespace Follows
+
+variable {k' : ℕ} {State' : Type*} {input' : List Symbol} {ntm' : MultiTapeNTM k' Symbol State'}
+  {state : State → State'} {adapter : Adapter k k' Symbol State State'}
+
+/-- **A follower mirrors the running steps.** If `ntm'` follows `ntm`, and `f` sends a configuration
+in state `q` to one in state `state q`, from which `adapter` reads what the configuration reads and
+on which each adapted action acts as the action acts on the configuration, then `f` maps each
+running step of `ntm` to a step of `ntm'`. -/
+def runningStepHom (h : ntm'.Follows ntm state adapter)
+    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
+    (hstate : ∀ c q, c.state = some q → (f c).state = some (state q))
+    (hread : ∀ c, adapter.read (f c).headSymbols = c.headSymbols)
+    (haction : ∀ c action,
+      (adapter.action (f c).headSymbols action).apply (f c) = f (action.apply c)) :
+    (ntm.runningStepRel input).Hom (ntm'.stepRel input') where
+  toFun := f
+  map_rel' {c _} := fun ⟨hrunning, hstep⟩ => by
+    obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp hrunning
+    simp only [Set.mem_ofPred_eq, Step, hq, hstate c q hq] at hstep ⊢
+    obtain ⟨action, hTr, rfl⟩ := hstep
+    exact ⟨_, h q _ action (by rwa [hread]), (haction c action).symm⟩
+
+/-- **A follower mirrors the steps.** As `runningStepHom`, for an `f` that relabels every state
+through `state`, so that it also keeps halted configurations halted. -/
+def stepHom (h : ntm'.Follows ntm state adapter)
+    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
+    (hstate : ∀ c, c.state.map state = (f c).state)
+    (hread : ∀ c, adapter.read (f c).headSymbols = c.headSymbols)
+    (haction : ∀ c action,
+      (adapter.action (f c).headSymbols action).apply (f c) = f (action.apply c)) :
+    (ntm.stepRel input).Hom (ntm'.stepRel input') where
+  toFun := f
+  map_rel' {c _} hc :=
+    if hc' : c.Halted then ((step_of_halt hc').mp hc).symm ▸
+      (step_of_halt ((hstate c).symm.trans (congrArg (Option.map state) hc'))).mpr rfl
+    else (h.runningStepHom f (fun c _ hq => (hstate c).symm.trans (congrArg (Option.map state) hq))
+      hread haction).map_rel ⟨hc', hc⟩
+
+end Follows
+
+/-- A machine never reads its output tape, so prepending a word to the output preserves steps. -/
+@[simps! apply]
+def prependOutputHom (ntm : MultiTapeNTM k Symbol State) (pre : List Symbol) :
+    (ntm.stepRel input).Hom (ntm.stepRel input) :=
+  Follows.stepHom (state := id) (adapter := .mapState id) (fun _ _ _ h => h) (·.prependOutput pre)
+    (fun _ => Option.map_id_apply) (fun _ => rfl) fun _ _ =>
+      Cfg.ext rfl rfl rfl rfl (by simp [Action.apply])
 
 end MultiTapeNTM
 

@@ -40,15 +40,17 @@ public instance [Finite State] : Finite (RepeatUntilBlankState State) :=
   Finite.of_injective (fun q => match q with | .run q => some q | .check => none)
     fun q q' h => by cases q <;> cases q' <;> simp_all
 
+/-- The state of the loop while `tm` runs: halting goes to `check`. -/
+def RepeatUntilBlank.runState (state : Option State) : Option (RepeatUntilBlankState State) :=
+  some (state.elim .check .run)
+
 /-- `tm`, with its halting transitions sent to the state `check`. From `check`, the machine halts
 if the cell under the head of tape `i` is blank and otherwise restarts `tm`, moving no head. -/
 public noncomputable def repeatUntilBlank (i : Fin k) (tm : MultiTapeTM k Symbol State) :
     MultiTapeTM k Symbol (RepeatUntilBlankState State) :=
   ofTr (.run tm.q₀) fun q inp work =>
     match q with
-    | .run q =>
-      let a := tm.tr q inp work
-      { a with state := some (a.state.elim .check .run) }
+    | .run q => (tm.tr q inp work).mapState RepeatUntilBlank.runState
     | .check =>
       { inputTape := 0, workTapes := fun _ => (none, 0), output := none,
         state := (work i).map fun _ => .run tm.q₀ }
@@ -57,37 +59,17 @@ namespace RepeatUntilBlank
 
 variable {i : Fin k} {tm : MultiTapeTM k Symbol State}
 
-/-- A configuration of `tm` as a configuration of `repeatUntilBlank i tm`: a live state `q` becomes
-`run q` and the halted state becomes `check`. -/
-def runCfg (cfg : Cfg k Symbol State input) :
-    Cfg k Symbol (RepeatUntilBlankState State) input :=
-  cfg.mapState (fun st => some (st.elim .check .run))
+/-- While `tm` runs, the loop follows it, with halting going to `check`. -/
+lemma follows_run : (repeatUntilBlank i tm).Follows tm .run (.mapState runState) :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
 
-@[simp]
-lemma workTapePos_runCfg (cfg : Cfg k Symbol State input) :
-    (runCfg cfg).workTapePos = cfg.workTapePos := rfl
-
-@[simp]
-lemma runCfg_wordsCfg_some (q : State) (ws : Fin k → List Symbol) (out : List Symbol) :
-    runCfg (input := input) (wordsCfg input (some q) ws out) =
-      wordsCfg input (some (.run q)) ws out := rfl
-
-@[simp]
-lemma runCfg_wordsCfg_none (ws : Fin k → List Symbol) (out : List Symbol) :
-    runCfg (State := State) (input := input) (wordsCfg input none ws out) =
-      wordsCfg input (some .check) ws out := rfl
-
-lemma q₀_repeatUntilBlank : (repeatUntilBlank i tm).q₀ = .run tm.q₀ := rfl
-
-/-- On `tm`'s live configurations, the looping machine mirrors `tm` step for step. -/
-lemma step_runCfg (cfg : Cfg k Symbol State input) (h : ¬ cfg.Halted) :
-    (repeatUntilBlank i tm).step (runCfg cfg) = runCfg (tm.step cfg) := by
-  obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp h
-  have hstate : (runCfg cfg).state = some (RepeatUntilBlankState.run q) := by
-    simp [runCfg, Cfg.mapState, hq]
-  rw [step_of_state hstate, step_of_state hq]
-  simp only [repeatUntilBlank, tr_ofTr]
-  rfl
+/-- A configuration of `tm` as one of `repeatUntilBlank i tm`, a live state `q` becoming `run q` and
+the halted state `check`: the loop mirrors the running steps of `tm`. -/
+@[simps! apply]
+noncomputable def runHom (i : Fin k) :
+    (tm.runningStepRel input).Hom ((repeatUntilBlank i tm).stepRel input) :=
+  follows_run.runningStepHom (Cfg.mapState runState)
+    (fun _ _ => congrArg runState) (fun _ => rfl) fun _ _ => rfl
 
 /-- From `check` on a `wordsCfg` configuration, the machine halts if the word on tape `i` is empty
 and otherwise restarts `tm`, leaving the words unchanged. -/
@@ -114,11 +96,10 @@ lemma exists_round {P : (input : List Symbol) → (Fin k → List Symbol) → Pr
       p.length ≤ t + 1 ∧ p.InWindow s := by
   obtain ⟨w', e, hQ, p, hhead, hlast, htime, hspace⟩ := h input w out hP
   obtain ⟨q, hqhead, hqlast, hqlen, hqmem⟩ := p.exists_running (by rw [hlast]; rfl)
-  let f := runningStepHom (tm' := repeatUntilBlank i tm) (input := input) runCfg step_runCfg
-  have hcheck : (repeatUntilBlank i tm).Step (q.map f).last
+  have hcheck : (repeatUntilBlank i tm).Step (q.map (runHom i)).last
       (wordsCfg input (if w' i = [] then none else some (.run tm.q₀)) w' (out ++ e)) := by
-    simp [f, hqlast, hlast, step_check]
-  refine ⟨w', e, hQ, (q.map f).snoc _ hcheck, by simp [f, hqhead, hhead], by simp,
+    simp [hqlast, hlast, runState, step_check]
+  refine ⟨w', e, hQ, (q.map (runHom i)).snoc _ hcheck, by simp [hqhead, hhead, runState], by simp,
     by simp [MultiTapeNTM.RunPath.time] at htime ⊢; lia, ?_⟩
   -- the heads of `tm` stay within `[-s, s]`, and reading tape `i` moves none of them
   have hwin := MultiTapeNTM.RunPath.inWindow_of_space_le (p := p) (by simp [hhead]) hspace
@@ -149,7 +130,7 @@ public theorem transformsTapes_repeatUntilBlank (i : Fin k) {tm : MultiTapeTM k 
       (fun input _ ws' emitted => R input ws' emitted)
       ((rounds + 1) * (t + 1)) (2 * k * s + k) := by
   intro input ws out hP0
-  rw [q₀_repeatUntilBlank]
+  rw [show (repeatUntilBlank i tm).q₀ = .run tm.q₀ from rfl]
   set start := wordsCfg (State := RepeatUntilBlankState State) input (some (.run tm.q₀)) ws out
     with hstart
   -- after `n ≤ rounds` rounds, the loop has a run path of at most `n * (t + 1)` steps within
@@ -161,10 +142,8 @@ public theorem transformsTapes_repeatUntilBlank (i : Fin k) {tm : MultiTapeTM k 
     intro n hn
     induction n with
     | zero =>
-      refine ⟨.singleton _ start, ws, [], rfl, by simp [hstart], by simp, ?_, hP0⟩
-      rintro _ ⟨_, rfl⟩ l
-      change start.workTapePos l ∈ _
-      simp [hstart, mem_window]
+      exact ⟨.singleton _ start, ws, [], rfl, by simp [hstart], by simp,
+        fun _ ⟨_, h⟩ _ => h ▸ by simp [RelSeries.singleton, hstart, mem_window], hP0⟩
     | succ n ih =>
       obtain ⟨p, wsn, acc, hhead, hlast, hlen, hwin, hPn⟩ := ih (by lia)
       obtain ⟨wsn', e, hQ, q, hqhead, hqlast, hqlen, hqwin⟩ :=
