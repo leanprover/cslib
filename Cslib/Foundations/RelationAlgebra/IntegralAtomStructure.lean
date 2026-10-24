@@ -307,385 +307,409 @@ def elabIntegralCycles : TermElab := fun stx expectedType? => do
 
 end
 
-def ra_1_1 : AtomStructure (IntegralAtom 0 0) := integral_cycles%
+namespace IdentityOnly
 
-def ra_1_2 : AtomStructure (IntegralAtom 1 0) :=
+def entry1 : AtomStructure (IntegralAtom 0 0) := integral_cycles%
+
+end IdentityOnly
+
+namespace OneSymm
+
+def entry1 : AtomStructure (IntegralAtom 1 0) :=
   integral_cycles% (symm := a)
 
-def ra_2_2 : AtomStructure (IntegralAtom 1 0) :=
+def entry2 : AtomStructure (IntegralAtom 1 0) :=
   integral_cycles% (symm := a) (a, a, a)
 
-def ra_1_3 : AtomStructure (IntegralAtom 0 1) :=
+end OneSymm
+
+namespace OneConv
+
+def entry1 : AtomStructure (IntegralAtom 0 1) :=
   integral_cycles% (nonsymm := a) (a, a, a)
 
-def ra_2_3 : AtomStructure (IntegralAtom 0 1) :=
+def entry2 : AtomStructure (IntegralAtom 0 1) :=
   integral_cycles% (nonsymm := a) (a, a, a~)
 
-def ra_3_3 : AtomStructure (IntegralAtom 0 1) :=
+def entry3 : AtomStructure (IntegralAtom 0 1) :=
   integral_cycles% (nonsymm := a) (a, a, a~) (a, a, a)
 
-def ra_1_7 : AtomStructure (IntegralAtom 2 0) :=
+end OneConv
+
+namespace TwoSymm
+
+def entry1 : AtomStructure (IntegralAtom 2 0) :=
   integral_cycles% (symm := [a, b]) (a, b, b)
 
-def ra_2_7 : AtomStructure (IntegralAtom 2 0) :=
+def entry2 : AtomStructure (IntegralAtom 2 0) :=
   integral_cycles% (symm := [a, b]) (a, b, b) (a, a, a)
 
-def ra_3_7 : AtomStructure (IntegralAtom 2 0) :=
+def entry3 : AtomStructure (IntegralAtom 2 0) :=
   integral_cycles% (symm := [a, b]) (a, b, b) (b, b, b)
 
-def ra_4_7 : AtomStructure (IntegralAtom 2 0) :=
+def entry4 : AtomStructure (IntegralAtom 2 0) :=
   integral_cycles% (symm := [a, b]) (a, b, b) (a, a, a) (b, b, b)
 
-def ra_5_7 : AtomStructure (IntegralAtom 2 0) :=
+def entry5 : AtomStructure (IntegralAtom 2 0) :=
   integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b)
 
-def ra_6_7 : AtomStructure (IntegralAtom 2 0) :=
+def entry6 : AtomStructure (IntegralAtom 2 0) :=
   integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b) (a, a, a)
 
-def ra_7_7 : AtomStructure (IntegralAtom 2 0) :=
+def entry7 : AtomStructure (IntegralAtom 2 0) :=
   integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b) (a, a, a) (b, b, b)
 
-def ra_1_37 : AtomStructure (IntegralAtom 1 1) :=
+end TwoSymm
+
+namespace OneSymmOneConv
+
+def entry1 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b~)
 
-def ra_2_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry2 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b~, b~) (b, b, b~)
 
-def ra_3_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry3 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b~, b~) (b, b, b~) (a, a, a)
 
-def ra_4_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry4 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b, b~) (a, b~, b~) (a, a, a)
 
-def ra_5_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry5 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (b, b, b~)
 
-def ra_6_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry6 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (b, b, b~) (a, a, a)
 
-def ra_7_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry7 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b, b~) (a, b~, b~) (a, a, a)
 
-def ra_8_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry8 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b, b~) (a, b~, b~) (b, b, b~)
 
-def ra_9_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry9 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b, b~) (a, b~, b~) (b, b, b~)
     (a, a, a)
 
-def ra_10_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry10 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b~) (b, b, b~) (b, b, b)
 
-def ra_11_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry11 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b~, b~) (b, b, b)
 
-def ra_12_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry12 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b~, b~) (a, a, a) (b, b, b)
 
-def ra_13_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry13 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b~, b~) (b, b, b~) (b, b, b)
 
-def ra_14_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry14 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b~, b~) (b, b, b~) (a, a, a) (b, b, b)
 
-def ra_15_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry15 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b, b~) (a, b~, b~) (a, a, a) (b, b, b)
 
-def ra_16_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry16 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, b, b) (a, b, b~) (a, b~, b~) (b, b, b~) (a, a, a)
     (b, b, b)
 
-def ra_17_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry17 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (b, b, b)
 
-def ra_18_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry18 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, a, a) (b, b, b)
 
-def ra_19_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry19 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (b, b, b~) (b, b, b)
 
-def ra_20_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry20 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (b, b, b~) (a, a, a) (b, b, b)
 
-def ra_21_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry21 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b~) (b, b, b)
 
-def ra_22_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry22 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b~) (a, a, a) (b, b, b)
 
-def ra_23_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry23 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b~) (b, b, b~) (b, b, b)
 
-def ra_24_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry24 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b~) (b, b, b~) (a, a, a) (b, b, b)
 
-def ra_25_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry25 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b~, b~) (a, a, a) (b, b, b)
 
-def ra_26_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry26 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b~) (a, b~, b~) (b, b, b)
 
-def ra_27_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry27 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b~) (a, b~, b~) (a, a, a) (b, b, b)
 
-def ra_28_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry28 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b~) (a, b~, b~) (b, b, b~) (b, b, b)
 
-def ra_29_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry29 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b~) (a, b~, b~) (b, b, b~) (a, a, a)
     (b, b, b)
 
-def ra_30_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry30 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b~, b~) (b, b, b)
 
-def ra_31_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry31 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b~, b~) (a, a, a) (b, b, b)
 
-def ra_32_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry32 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b~, b~) (b, b, b~) (b, b, b)
 
-def ra_33_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry33 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b~, b~) (b, b, b~) (a, a, a)
     (b, b, b)
 
-def ra_34_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry34 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b, b~) (a, b~, b~) (b, b, b)
 
-def ra_35_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry35 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b, b~) (a, b~, b~) (a, a, a)
     (b, b, b)
 
-def ra_36_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry36 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b, b~) (a, b~, b~) (b, b, b~)
     (b, b, b)
 
-def ra_37_37 : AtomStructure (IntegralAtom 1 1) :=
+def entry37 : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nonsymm := b) (a, a, b) (a, b, b) (a, b, b~) (a, b~, b~) (b, b, b~)
     (a, a, a) (b, b, b)
 
-def ra_1_65 : AtomStructure (IntegralAtom 3 0) :=
+end OneSymmOneConv
+
+namespace ThreeSymm
+
+def entry1 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, c)
 
-def ra_2_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry2 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, c) (b, c, c) (b, b, b)
 
-def ra_3_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry3 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, c) (b, b, c) (b, c, c) (b, b, b) (c, c, c)
 
-def ra_4_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry4 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, c) (a, c, c) (b, c, c) (a, a, a) (b, b, b) (c, c, c)
 
-def ra_5_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry5 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, c) (a, c, c) (b, b, c) (b, c, c) (a, a, a) (c, c, c)
 
-def ra_6_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry6 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, c) (a, c, c) (b, b, c) (b, c, c) (a, a, a) (b, b, b)
     (c, c, c)
 
-def ra_7_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry7 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, c) (b, b, c) (c, c, c)
 
-def ra_8_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry8 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, c) (a, c, c) (b, b, c) (b, c, c) (c, c, c)
 
-def ra_9_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry9 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, c) (a, c, c) (b, b, c) (b, c, c) (a, a, a)
     (c, c, c)
 
-def ra_10_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry10 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, c) (a, c, c) (b, b, c) (b, c, c) (a, a, a)
     (b, b, b) (c, c, c)
 
-def ra_11_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry11 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, c, c)
 
-def ra_12_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry12 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, c, c) (a, a, a)
 
-def ra_13_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry13 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, c, c) (b, b, b)
 
-def ra_14_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry14 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, c, c) (a, a, a) (b, b, b)
 
-def ra_15_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry15 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, c, c) (c, c, c)
 
-def ra_16_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry16 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, c, c) (a, a, a) (c, c, c)
 
-def ra_17_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry17 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, c, c) (b, b, b) (c, c, c)
 
-def ra_18_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry18 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, c, c) (a, a, a) (b, b, b) (c, c, c)
 
-def ra_19_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry19 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, b, c) (a, c, c) (b, c, c) (a, a, a) (b, b, b)
 
-def ra_20_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry20 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, b, c) (a, c, c) (b, c, c) (a, a, a) (b, b, b)
     (c, c, c)
 
-def ra_21_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry21 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, b, c) (b, c, c)
 
-def ra_22_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry22 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, b, c) (b, c, c) (a, a, a)
 
-def ra_23_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry23 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, b, c) (b, c, c) (b, b, b)
 
-def ra_24_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry24 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, b, c) (b, c, c) (a, a, a) (b, b, b)
 
-def ra_25_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry25 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, b, c) (b, c, c) (b, b, b) (c, c, c)
 
-def ra_26_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry26 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, c, c) (b, b, c) (b, c, c) (a, a, a) (b, b, b)
     (c, c, c)
 
-def ra_27_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry27 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c) (a, a, a)
 
-def ra_28_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry28 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c) (a, a, a)
     (b, b, b)
 
-def ra_29_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry29 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c) (a, a, a)
     (b, b, b) (c, c, c)
 
-def ra_30_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry30 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, c, c)
 
-def ra_31_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry31 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, c, c) (a, a, a)
 
-def ra_32_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry32 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, c, c) (a, a, a) (b, b, b)
 
-def ra_33_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry33 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, c, c) (a, a, a) (b, b, b)
     (c, c, c)
 
-def ra_34_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry34 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, b, c) (b, c, c)
 
-def ra_35_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry35 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, b, c) (b, c, c) (a, a, a)
 
-def ra_36_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry36 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, b, c) (b, c, c) (b, b, b)
 
-def ra_37_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry37 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, b, c) (b, c, c) (a, a, a)
     (b, b, b)
 
-def ra_38_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry38 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, b, c) (b, c, c) (c, c, c)
 
-def ra_39_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry39 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, b, c) (b, c, c) (a, a, a)
     (c, c, c)
 
-def ra_40_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry40 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, b, c) (b, c, c) (b, b, b)
     (c, c, c)
 
-def ra_41_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry41 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (b, b, c) (b, c, c) (a, a, a)
     (b, b, b) (c, c, c)
 
-def ra_42_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry42 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, c, c) (b, b, c)
 
-def ra_43_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry43 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (a, a, a)
 
-def ra_44_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry44 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (b, b, b)
 
-def ra_45_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry45 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (a, a, a) (b, b, b)
 
-def ra_46_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry46 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (a, a, a) (c, c, c)
 
-def ra_47_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry47 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (a, a, a) (b, b, b)
     (c, c, c)
 
-def ra_48_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry48 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (a, a, a)
     (c, c, c)
 
-def ra_49_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry49 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (a, a, a)
     (b, b, b) (c, c, c)
 
-def ra_50_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry50 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c)
 
-def ra_51_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry51 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c)
     (a, a, a)
 
-def ra_52_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry52 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c)
     (b, b, b)
 
-def ra_53_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry53 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c)
     (a, a, a) (b, b, b)
 
-def ra_54_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry54 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c)
     (c, c, c)
 
-def ra_55_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry55 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c)
     (a, a, a) (c, c, c)
 
-def ra_56_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry56 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c)
     (b, b, b) (c, c, c)
 
-def ra_57_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry57 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c) (b, c, c)
     (a, a, a) (b, b, b) (c, c, c)
 
-def ra_58_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry58 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (b, c, c)
 
-def ra_59_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry59 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (b, c, c)
     (a, a, a)
 
-def ra_60_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry60 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (b, c, c)
     (a, a, a) (b, b, b)
 
-def ra_61_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry61 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, c, c) (b, b, c) (b, c, c)
     (a, a, a) (b, b, b) (c, c, c)
 
-def ra_62_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry62 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c)
     (b, c, c)
 
-def ra_63_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry63 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c)
     (b, c, c) (a, a, a)
 
-def ra_64_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry64 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c)
     (b, c, c) (a, a, a) (b, b, b)
 
-def ra_65_65 : AtomStructure (IntegralAtom 3 0) :=
+def entry65 : AtomStructure (IntegralAtom 3 0) :=
   integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, b, c) (a, c, c) (b, b, c)
     (b, c, c) (a, a, a) (b, b, b) (c, c, c)
+
+end ThreeSymm
 
 end IntegralAtom
 
