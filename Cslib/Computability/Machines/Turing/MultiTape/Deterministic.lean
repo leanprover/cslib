@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Basic.Sign.Defs
+public import Mathlib.Dynamics.PeriodicPts.Defs
 public import Cslib.Computability.Machines.Turing.MultiTape.Space
 
 /-!
@@ -34,7 +35,6 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
-* `space`: the space of the path of the first `t` steps from a configuration
 * `Computes`: the machine halts with the given output on an input
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
@@ -57,6 +57,15 @@ def MultiTapeNTM.IsDeterministic (ntm : MultiTapeNTM k Symbol State) : Prop :=
   ∀ (q : State) (input : Option Symbol) (work : Fin k → Option Symbol),
     ∃! action, ntm.Tr q input work action
 
+/-- Adapting a deterministic machine gives a deterministic machine. -/
+lemma MultiTapeNTM.IsDeterministic.adapt {ntm : MultiTapeNTM k Symbol State} {k' : ℕ}
+    {readIn : Option Symbol → (Fin k' → Option Symbol) → Option Symbol}
+    {readWork : (Fin k' → Option Symbol) → Fin k → Option Symbol}
+    {act : (Fin k' → Option Symbol) → Action k Symbol State → Action k' Symbol State}
+    (h : ntm.IsDeterministic) : (ntm.adapt readIn readWork act).IsDeterministic := fun q inp work =>
+  (h q (readIn inp work) (readWork work)).elim fun a ha hu =>
+    ⟨act work a, ⟨a, ha, rfl⟩, fun _ ⟨b, hb, hab⟩ => hab ▸ congrArg (act work) (hu b hb)⟩
+
 /--
 A multi-tape Turing machine with `k` work tapes over the alphabet of `Option Symbol` (where `none`
 is the blank tape symbol). Note that it is not required that `Symbol` or `State` are finite
@@ -75,6 +84,10 @@ instance : CoeOut (MultiTapeTM k Symbol State) (MultiTapeNTM k Symbol State) :=
 namespace MultiTapeTM
 
 variable {tm : MultiTapeTM k Symbol State}
+
+/-- The deterministic machine `tm` with its output writes erased. -/
+abbrev eraseOutput (tm : MultiTapeTM k Symbol State) : MultiTapeTM k Symbol State :=
+  ⟨tm.toMultiTapeNTM.eraseOutput, tm.deterministic.adapt⟩
 
 /-- The unique action related to the given state and read symbols by `Tr`. -/
 noncomputable def tr (tm : MultiTapeTM k Symbol State) (q : State) (input : Option Symbol)
@@ -170,16 +183,6 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
 
-/-- A configuration map semiconjugating the step functions is a homomorphism of the step relations,
-so it maps run paths with `RelSeries.map`. -/
-def stepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (h : Function.Semiconj f tm.step tm'.step) :
-    (tm.stepRel input).Hom (tm'.stepRel input') where
-  toFun := f
-  map_rel' hc := step_iff.mpr ((h _).symm.trans (congrArg f (step_iff.mp hc)))
-
 /-- A configuration map commuting with the step functions on running configurations is a
 homomorphism from the running steps of `tm` to the steps of `tm'`. -/
 @[simps! apply]
@@ -224,6 +227,32 @@ lemma ComputationPath.eq_ofDeterministic (p : tm.ComputationPath input) :
   rcases p with ⟨p, hp⟩
   congr 1
   exact (RunPath.eq_ofDeterministic p).trans (by rw [hp]; rfl)
+
+/-- Deterministic run paths from the same configuration are prefixes of one another: the shorter one
+is the longer one, cut at its length. -/
+lemma RunPath.eq_take {p q : tm.RunPath input} (hhead : p.head = q.head) (h : p.length ≤ q.length) :
+    p = q.take ⟨p.length, Nat.lt_succ_of_le h⟩ := by
+  refine p.eq_ofDeterministic.trans ((eq_ofDeterministic (q.take _)).trans ?_).symm
+  rw [RelSeries.head_take, hhead]
+  rfl
+
+/-- The computation paths of a deterministic machine are prefixes of one another, so a path visiting
+at most as many cells as another visits at most as many on each tape. -/
+lemma ComputationPath.spaceUsedByTape_le_of_space_le (p : tm.ComputationPath input)
+    {q : tm.ComputationPath input} (h : p.space ≤ q.space) :
+    p.spaceUsedByTape ≤ q.spaceUsedByTape := by
+  -- a shorter path is a prefix of a longer one, so it visits fewer cells on each tape
+  have hmono {p q : tm.ComputationPath input} (h : p.time ≤ q.time) :
+      p.spaceUsedByTape ≤ q.spaceUsedByTape := fun i => by
+    change RunPath.spaceUsedByTape p.toRunPath i ≤ RunPath.spaceUsedByTape q.toRunPath i
+    rw [RunPath.eq_take (by rw [p.head_eq, q.head_eq]) h]
+    exact Finset.card_le_card (RunPath.visitedByTapeHead_take_subset _ _ i)
+  rcases le_total p.time q.time with hpq | hqp
+  · exact hmono hpq
+  -- a longer `p` visits no more cells than `q`, so it visits exactly those of `q`
+  have h : ∑ j, p.spaceUsedByTape j ≤ ∑ j, q.spaceUsedByTape j := h
+  exact fun i => ((Finset.sum_eq_sum_iff_of_le fun j _ => hmono hqp j).mp
+    (le_antisymm (Finset.sum_le_sum fun j _ => hmono hqp j) h) i (Finset.mem_univ i)).ge
 
 /-- A step-preserving map sends the path of `t` steps from `cfg` to the path of `t` steps from the
 image of `cfg`. -/
@@ -280,66 +309,6 @@ lemma runsInTime_of_halted {input : List Symbol} {t : ℕ}
   intro p hp
   rw [computationPath_last_eq_runFrom p, runFrom_eq_of_halt _ _ hp h]
   exact h
-
-/-- The work-tape head moves by at most one cell in a single step. -/
-lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
-    |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 := by
-  cases hstate : c.state with
-  | none => simp [step_of_halt hstate]
-  | some q => rw [step_of_state hstate]; exact workTapePos_apply_le _ c i
-
-section Space
-/-! Now we define space usage and add some helper lemmas. -/
-
-/-- The set of positions visited by the head of work tape `i` in the computation starting from
-configuration `cfg` up to step `t`. -/
-noncomputable def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    Finset ℤ :=
-  Finset.univ.image fun n : Fin (t + 1) => (tm.runFrom cfg n).workTapePos i
-
-/--
-The number of work tape cells visited by the head of tape `i` in the computation starting from
-configuration `cfg` up to step `t`.
--/
-noncomputable def spaceUsedByTape (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : ℕ :=
-  (tm.visitedByTapeHead cfg t i).card
-
-/-- The number of work tape cells visited in the first `t` steps from `cfg`: the space of the path
-of these steps. -/
-noncomputable abbrev space (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ :=
-  (MultiTapeNTM.RunPath.ofDeterministic tm cfg t).space
-
-/-- A zero-tape Turing machine uses zero space. -/
-@[simp]
-lemma space_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h_zero : k = 0) :
-    tm.space cfg t = 0 := by
-  subst h_zero
-  simp [MultiTapeNTM.RunPath.space]
-
-/-- Each tape's space usage is bounded by the total space used. -/
-lemma spaceUsedByTape_le_space (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
-    tm.spaceUsedByTape cfg t i ≤ tm.space cfg t :=
-  Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
-
-end Space
-
-/-- In `t` steps the input head moves at most `t` positions to the right. -/
-lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
-    (cfg : Cfg k Symbol State input) (t : ℕ) :
-    ((tm.runFrom cfg t).inputPos : ℕ) ≤ (cfg.inputPos : ℕ) + t := by
-  induction t with
-  | zero => simp [runFrom]
-  | succ t ih =>
-    rw [runFrom, Function.iterate_succ_apply', ← runFrom]
-    by_cases hq : (tm.runFrom cfg t).state = none
-    · rw [step_of_halt hq]
-      omega
-    · obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp hq
-      have h : ((tm.step (tm.runFrom cfg t)).inputPos : ℕ) ≤
-          ((tm.runFrom cfg t).inputPos : ℕ) + 1 := by
-        rw [step_inputPos_of_state hq]
-        exact val_moveInputPos_le _ _
-      omega
 
 /-- The machine eventually halts on `input` with the given `output`. -/
 def Computes (tm : MultiTapeTM k Symbol State) (input output : List Symbol) : Prop :=
@@ -401,29 +370,36 @@ def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
 
-/-- If a deterministic machine repeats a non-halting configuration, it never halts,
-because the sequence between the two configurations will loop forever.
-Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `Function.iterate_add_apply`. -/
-lemma not_halts_of_repeat_nonhalt
-    (cfg : Cfg k Symbol State input)
-    (h_not_halt : cfg.state ≠ none)
-    (t : ℕ)
-    (heq : tm.runFrom cfg (t + 1) = cfg) :
-    ∀ t', (tm.runFrom cfg t').state ≠ none := by
-  intro t'
-  -- The configuration will repeat every `t + 1` steps.
-  have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
-    intro n
-    unfold runFrom
-    rw [Nat.mul_comm, Function.iterate_mul]
-    exact Function.iterate_fixed heq n
-  by_contra hnh
-  -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
-  have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
-    have hle : t' ≤ t' * (t + 1) := by grind
-    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
-  simp [hloop t', h_not_halt] at h₁
+/-- A deterministic path that ends halted never repeats a running configuration: from a repeated
+configuration the machine would cycle forever. -/
+lemma _root_.Turing.MultiTapeNTM.RunPath.injOn_running (p : tm.RunPath input)
+    (h : p.last.Halted) : Set.InjOn p {i | ¬(p i).Halted} := by
+  intro i hi j hj hij
+  wlog hlt : i < j generalizing i j
+  · rcases (not_lt.mp hlt).lt_or_eq with h' | h'
+    · exact (this hj hi hij.symm h').symm
+    · exact h'.symm
+  exfalso
+  have hp (n : Fin (p.length + 1)) : p n = tm.step^[n] p.head := runPath_apply_eq_runFrom p n
+  -- `p i` is a periodic point of period `j - i`
+  have hper : Function.IsPeriodicPt tm.step (j - i) (p i) := by
+    change tm.step^[j - i] (p i) = p i
+    conv_rhs => rw [hij]
+    rw [hp j, hp i, ← Function.iterate_add_apply]
+    congr 1
+    omega
+  -- so the halted last configuration already occurs within one period after `i`, before `j`
+  have hk : (p.length - i) % (j - i) + i < j := by
+    have := Nat.mod_lt (p.length - i) (show 0 < j.val - i.val by omega)
+    omega
+  refine p.not_halted_of_le (i := ⟨_, hk.trans j.isLt⟩) hk.le hj ?_
+  rw [hp, Function.iterate_add_apply, ← hp, hper.iterate_mod_apply, hp,
+    ← Function.iterate_add_apply]
+  convert h using 2
+  rw [RelSeries.last, hp (Fin.last _)]
+  congr 1
+  simp only [Fin.val_last]
+  omega
 
 end MultiTapeTM
 
