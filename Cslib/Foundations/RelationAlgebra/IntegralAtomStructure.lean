@@ -58,86 +58,48 @@ def cycleClosure (generators : Finset (Cycle s n)) : Finset (Cycle s n) :=
 
 public meta section
 
-open Lean Elab Term Meta
+open Lean Elab Term Meta Parser Tactic
 
-declare_syntax_cat integralCycleAtom
-syntax ident ("˘")? : integralCycleAtom
+structure IntegralCyclesConfig where
+  symm : Array Name := #[]
+  nonsymm : Array Name := #[]
 
-declare_syntax_cat integralCycle
-syntax "(" integralCycleAtom "," integralCycleAtom "," integralCycleAtom ")" : integralCycle
+private def elabIntegralCycleNames (item : ConfigEval.ConfigItem) : TermElabM (Array Name) := do
+  item.checkNotBool
+  match item.value with
+  | `($name:ident) => return #[name.getId.eraseMacroScopes]
+  | `([$names,*]) => names.getElems.mapM fun name => do
+      unless name.raw.isIdent do throwErrorAt name "expected an atom name"
+      return name.raw.getId.eraseMacroScopes
+  | value => ConfigEval.evalTermOrExprWithElab ⟨value⟩
 
-declare_syntax_cat integralCycleOption
-syntax "(" &"symm" ":=" ident,* ")" : integralCycleOption
-syntax "(" &"nonsymm" ":=" ident,* ")" : integralCycleOption
+private declare_term_config_elab elabIntegralCyclesConfig IntegralCyclesConfig where
+  option symm := fun cfg item => return { cfg with symm := ← elabIntegralCycleNames item }
+  option nonsymm := fun cfg item => return { cfg with nonsymm := ← elabIntegralCycleNames item }
 
-syntax (name := integralCycles)
-  "integral_cycles%" (atomic(integralCycleOption))* integralCycle* : term
+syntax (name := integralCycles) "integral_cycles%" optConfig
+  ("(" ident ("~")? "," ident ("~")? "," ident ("~")? ")")* : term
 
-@[term_elab integralCycles]
+@[no_expose, term_elab integralCycles]
 def elabIntegralCycles : TermElab := fun stx expectedType? => do
-  let `(integral_cycles% $options:integralCycleOption* $cycles:integralCycle*) := stx
+  let `(integral_cycles% $cfg:optConfig $[($r $[~%$rc]?, $s $[~%$sc]?, $t $[~%$tc]?)]*) := stx
     | throwUnsupportedSyntax
-  let parseAtom (stx : Syntax) : TermElabM (Ident × Bool) := do
-    let `(integralCycleAtom| $name:ident $[˘%$mark]?) := stx | throwUnsupportedSyntax
-    return (name, mark.isSome)
-  let mut symmNames : Array Name := #[]
-  let mut nonsymmNames : Array Name := #[]
-  let mut hasSymm := false
-  let mut hasNonsymm := false
-  for option in options do
-    let (isNonsymm, names) ← match option with
-      | `(integralCycleOption| (symm := $names:ident,*)) => pure (false, names.getElems)
-      | `(integralCycleOption| (nonsymm := $names:ident,*)) => pure (true, names.getElems)
-      | _ => throwUnsupportedSyntax
-    if isNonsymm then
-      if hasNonsymm then
-        throwErrorAt option "duplicate nonsymm declaration"
-      hasNonsymm := true
-    else
-      if hasSymm then
-        throwErrorAt option "duplicate symm declaration"
-      hasSymm := true
-    for name in names do
-      if symmNames.contains name.getId || nonsymmNames.contains name.getId then
-        throwErrorAt name "atom '{name.getId}' is declared more than once"
-      if isNonsymm then
-        nonsymmNames := nonsymmNames.push name.getId
-      else
-        symmNames := symmNames.push name.getId
-  let cycles ← cycles.mapM fun cycle => do
-    let `(integralCycle| ($r, $s, $t)) := cycle
-      | throwUnsupportedSyntax
-    return (← parseAtom r, ← parseAtom s, ← parseAtom t)
-  let mut names : Array Name := #[]
-  let mut converseNames : Array Name := #[]
-  for (r, s, t) in cycles do
-    for (name, isConverse) in #[r, s, t] do
-      unless names.contains name.getId do
-        names := names.push name.getId
-      if isConverse && !converseNames.contains name.getId then
-        converseNames := converseNames.push name.getId
-  for name in names do
-    unless symmNames.contains name || nonsymmNames.contains name do
-      if converseNames.contains name then
-        nonsymmNames := nonsymmNames.push name
-      else
-        symmNames := symmNames.push name
-  let atomTerm (atom : Ident × Bool) : TermElabM (TSyntax `term) := do
-    let (name, isConverse) := atom
-    if let some i := symmNames.findIdx? (· == name.getId) then
+  let config ← elabIntegralCyclesConfig cfg (logExceptions := false)
+  let atomTerm (ref : Ident) (isConverse : Bool) : TermElabM (TSyntax `term) := do
+    let name := ref.getId.eraseMacroScopes
+    if let some i := config.symm.findIdx? (· == name) then
       `(IntegralAtom.symm $(quote i))
-    else if let some i := nonsymmNames.findIdx? (· == name.getId) then
+    else if let some i := config.nonsymm.findIdx? (· == name) then
       `(IntegralAtom.nsymm $(quote i) $(quote isConverse))
     else
-      throwErrorAt name "unknown atom '{name.getId}'"
-  let cycleTerms ← cycles.mapM fun (r, s, t) => do
-    `(($(← atomTerm r), $(← atomTerm s), $(← atomTerm t)))
-  let s := quote symmNames.size
-  let n := quote nonsymmNames.size
-  let generators ← if cycleTerms.isEmpty then
-    `(term| (∅ : Finset (Cycle $s $n)))
-  else
-    `(term| ({$[$cycleTerms:term],*} : Finset (Cycle $s $n)))
+      throwErrorAt ref "undeclared atom '{name}'"
+  let mut cycleTerms : Array (TSyntax `term) := #[]
+  for r in r, rc in rc, s in s, sc in sc, t in t, tc in tc do
+    cycleTerms := cycleTerms.push <|
+      ← `(($(← atomTerm r rc.isSome), $(← atomTerm s sc.isSome), $(← atomTerm t tc.isSome)))
+  let s := quote config.symm.size
+  let n := quote config.nonsymm.size
+  let generators ← `(term| ([$[$cycleTerms:term],*] : List (Cycle $s $n)).toFinset)
   let generated ← `(term|
     ({ conv := IntegralAtom.conv
        id := {IntegralAtom.one}
@@ -157,30 +119,41 @@ instance (generators : Finset (Cycle s n)) :
 
 def ra_1_1 : AtomStructure (IntegralAtom 0 0) := integral_cycles%
 
-def ra_1_2 : AtomStructure (IntegralAtom 1 0) := integral_cycles% (symm := a)
+def ra_1_2 : AtomStructure (IntegralAtom 1 0) :=
+  integral_cycles% (symm := a)
 
-def ra_2_2 : AtomStructure (IntegralAtom 1 0) := integral_cycles% (a, a, a)
+def ra_2_2 : AtomStructure (IntegralAtom 1 0) :=
+  integral_cycles% (symm := a) (a, a, a)
 
-def ra_1_3 : AtomStructure (IntegralAtom 0 1) := integral_cycles% (nonsymm := a) (a, a, a)
+def ra_1_3 : AtomStructure (IntegralAtom 0 1) :=
+  integral_cycles% (nonsymm := a) (a, a, a)
 
-def ra_2_3 : AtomStructure (IntegralAtom 0 1) := integral_cycles% (a, a, a˘)
+def ra_2_3 : AtomStructure (IntegralAtom 0 1) :=
+  integral_cycles% (nonsymm := a) (a, a, a~)
 
-def ra_3_3 : AtomStructure (IntegralAtom 0 1) := integral_cycles% (a, a, a˘) (a, a, a)
+def ra_3_3 : AtomStructure (IntegralAtom 0 1) :=
+  integral_cycles% (nonsymm := a) (a, a, a~) (a, a, a)
 
-def ra_1_7 : AtomStructure (IntegralAtom 2 0) := integral_cycles% (a, b, b)
+def ra_1_7 : AtomStructure (IntegralAtom 2 0) :=
+  integral_cycles% (symm := [a, b]) (a, b, b)
 
-def ra_2_7 : AtomStructure (IntegralAtom 2 0) := integral_cycles% (a, b, b) (a, a, a)
+def ra_2_7 : AtomStructure (IntegralAtom 2 0) :=
+  integral_cycles% (symm := [a, b]) (a, b, b) (a, a, a)
 
-def ra_3_7 : AtomStructure (IntegralAtom 2 0) := integral_cycles% (a, b, b) (b, b, b)
+def ra_3_7 : AtomStructure (IntegralAtom 2 0) :=
+  integral_cycles% (symm := [a, b]) (a, b, b) (b, b, b)
 
-def ra_4_7 : AtomStructure (IntegralAtom 2 0) := integral_cycles% (a, b, b) (a, a, a) (b, b, b)
+def ra_4_7 : AtomStructure (IntegralAtom 2 0) :=
+  integral_cycles% (symm := [a, b]) (a, b, b) (a, a, a) (b, b, b)
 
-def ra_5_7 : AtomStructure (IntegralAtom 2 0) := integral_cycles% (a, a, b) (a, b, b)
+def ra_5_7 : AtomStructure (IntegralAtom 2 0) :=
+  integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b)
 
-def ra_6_7 : AtomStructure (IntegralAtom 2 0) := integral_cycles% (a, a, b) (a, b, b) (a, a, a)
+def ra_6_7 : AtomStructure (IntegralAtom 2 0) :=
+  integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b) (a, a, a)
 
 def ra_7_7 : AtomStructure (IntegralAtom 2 0) :=
-  integral_cycles% (a, a, b) (a, b, b) (a, a, a) (b, b, b)
+  integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b) (a, a, a) (b, b, b)
 
 -- TODO: proof of counts
 -- every RA with m/n atoms is iso to one of these, and there are 1, 2, 3, 7, ... in the quotient
