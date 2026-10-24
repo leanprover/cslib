@@ -39,6 +39,8 @@ requires every path of at least `t` steps to end in a halted configuration.
 * `Step`: the one-step relation on configurations
 * `RunPath`: finite relation series of steps
 * `ComputationPath`: a run path starting at the initial configuration
+* `adapt`, `adaptHom`: a machine run through an adapter for its reads and actions, and the
+  configuration maps that carry its run paths along
 * `RunsInTime`: every computation path of at least the given length ends in a halted
   configuration
 
@@ -141,6 +143,17 @@ lemma length_output_mono (p : ntm.RunPath input) :
   have : ntm.Step (p i.castSucc) (p i.succ) := p.step i
   grind [Step, Action.apply_output]
 
+/-- The input head moves at most one position to the right per step. -/
+lemma inputPos_last_le (p : ntm.RunPath input) :
+    (p.last.inputPos : ℕ) ≤ p.head.inputPos + p.length := by
+  induction p using RelSeries.inductionOn' with
+  | singleton c => simp
+  | snoc p c h ih =>
+    have : (c.inputPos : ℕ) ≤ p.last.inputPos + 1 := by
+      grind [Step, Action.apply_inputPos, val_moveInputPos_le]
+    simp only [RelSeries.last_snoc, RelSeries.head_snoc, RelSeries.snoc_length]
+    omega
+
 /-- Once a run path is halted, its configuration stays unchanged. -/
 lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.last = p.head := by
   induction p using RelSeries.inductionOn' with
@@ -186,6 +199,41 @@ def prependOutputHom (ntm : MultiTapeNTM k Symbol State) (pre : List Symbol) :
     · rw [h]
     · obtain ⟨a, ha, rfl⟩ := h
       exact ⟨a, ha, Cfg.ext rfl rfl rfl rfl (by simp [Action.apply])⟩
+
+section Adapt
+
+variable {k' : ℕ} (readIn : Option Symbol → (Fin k' → Option Symbol) → Option Symbol)
+  (readWork : (Fin k' → Option Symbol) → Fin k → Option Symbol)
+  (act : (Fin k' → Option Symbol) → Action k Symbol State → Action k' Symbol State)
+
+/-- `ntm` run through an adapter: the machine reads the input symbol and the work symbols of `ntm`
+through `readIn` and `readWork`, and performs the adaptation `act` of each action of `ntm`. -/
+def adapt (ntm : MultiTapeNTM k Symbol State) : MultiTapeNTM k' Symbol State where
+  q₀ := ntm.q₀
+  Tr q inp work a := ∃ a₀, ntm.Tr q (readIn inp work) (readWork work) a₀ ∧ act work a₀ = a
+
+variable {readIn readWork act} in
+/-- A configuration map matching an adapter preserves steps: it keeps the state, the adapted machine
+reads through it what `ntm` reads, and it carries the effect of an action to the effect of its
+adaptation. -/
+def adaptHom {input' : List Symbol} (f : Cfg k Symbol State input → Cfg k' Symbol State input')
+    (hstate : ∀ c, (f c).state = c.state)
+    (hin : ∀ c, readIn (f c).inputSymbol (f c).workTapeSymbols = c.inputSymbol)
+    (hwork : ∀ c, readWork (f c).workTapeSymbols = c.workTapeSymbols)
+    (happly : ∀ c a, (act (f c).workTapeSymbols a).apply (f c) = f (a.apply c)) :
+    (ntm.stepRel input).Hom ((ntm.adapt readIn readWork act).stepRel input') where
+  toFun := f
+  map_rel' {c c'} h := by
+    change ntm.Step c c' at h
+    change (ntm.adapt readIn readWork act).Step (f c) (f c')
+    unfold Step at h ⊢
+    rw [hstate]
+    rcases hq : c.state with _ | q <;> simp only [hq] at h ⊢
+    · rw [h]
+    · obtain ⟨a, ha, rfl⟩ := h
+      exact ⟨_, ⟨a, by rwa [hin, hwork], rfl⟩, (happly c a).symm⟩
+
+end Adapt
 
 /-- A run path starting at the initial configuration for `input`. -/
 structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symbol)
