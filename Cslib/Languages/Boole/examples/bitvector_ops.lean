@@ -4,9 +4,9 @@ import Smt
 open Strata
 
 /-
-Verification example for bitwise operators (`&`, `|`, `^`, `>>`, `>>s`, `<<`,
+Verification example for bitwise operators (`&`, `|`, `^`, `>>`, `ashr`, `<<`,
 `~`) on `bvN` types, lowering to the corresponding `Bv{N}.And`/`Or`/`Xor`/
-`UShr`/`SShr`/`Shl`/`Not` Core operations (`>>` is unsigned, `>>s` is signed).
+`UShr`/`SShr`/`Shl`/`Not` Core operations (`>>` is unsigned, `ashr` is signed).
 -/
 
 -- Exercises & and | (X25519 scalar clamping).
@@ -14,7 +14,7 @@ private def bitvectorOpsSeed : StrataDDM.Program :=
 #strata
 program Boole;
 
-procedure clamp_seed(b0: bv8, b31: bv8) returns (r0: bv8, r31: bv8)
+procedure clamp_seed(b0: bv W8, b31: bv W8) returns (r0: bv W8, r31: bv W8)
 spec {
   ensures r0  == b0  & bv{8}(0b11111000);
   ensures r31 == (b31 & bv{8}(0b01111111)) | bv{8}(0b01000000);
@@ -29,23 +29,23 @@ spec {
 #end
 
 /-- info:
-Obligation: clamp_seed_ensures_0_496
+Obligation: clamp_seed_ensures_0_506
 Property: assert
 Result: ✅ pass
 
-Obligation: clamp_seed_ensures_1_538
+Obligation: clamp_seed_ensures_1_548
 Property: assert
 Result: ✅ pass
 
-Obligation: clamp_seed_ensures_2_602
+Obligation: clamp_seed_ensures_2_612
 Property: assert
 Result: ✅ pass
 
-Obligation: clamp_seed_ensures_3_649
+Obligation: clamp_seed_ensures_3_659
 Property: assert
 Result: ✅ pass
 
-Obligation: clamp_seed_ensures_4_696
+Obligation: clamp_seed_ensures_4_706
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in
@@ -60,7 +60,7 @@ private def bitvectorShiftXorSeed : StrataDDM.Program :=
 #strata
 program Boole;
 
-procedure bv_shift_xor(b: bv8, k: bv8) returns (r_not: bv8, r_xor: bv8, r_hi: bv8, r_lo: bv8)
+procedure bv_shift_xor(b: bv W8, k: bv W8) returns (r_not: bv W8, r_xor: bv W8, r_hi: bv W8, r_lo: bv W8)
 spec {
   ensures r_not == ~b;
   ensures r_xor == b ^ k;
@@ -84,35 +84,35 @@ spec {
 #end
 
 /-- info:
-Obligation: bv_shift_xor_ensures_0_1716
+Obligation: bv_shift_xor_ensures_0_1738
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_shift_xor_ensures_1_1739
+Obligation: bv_shift_xor_ensures_1_1761
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_shift_xor_ensures_2_1765
+Obligation: bv_shift_xor_ensures_2_1787
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_shift_xor_ensures_3_1799
+Obligation: bv_shift_xor_ensures_3_1821
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_shift_xor_ensures_4_1874
+Obligation: bv_shift_xor_ensures_4_1896
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_shift_xor_ensures_5_1937
+Obligation: bv_shift_xor_ensures_5_1959
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_shift_xor_ensures_6_2015
+Obligation: bv_shift_xor_ensures_6_2037
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_shift_xor_ensures_7_2108
+Obligation: bv_shift_xor_ensures_7_2130
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in
@@ -122,35 +122,35 @@ theorem bitvectorShiftXorSeed_smtVCsCorrect : Strata.smtVCsCorrectBoole bitvecto
   gen_smt_vcs_boole
   all_goals (first | grind | decide)
 
--- Exercises >>s (arithmetic/signed right shift): vacated bits are filled with
+-- Exercises ashr (arithmetic/signed right shift): vacated bits are filled with
 -- the sign bit, unlike >> which fills with 0.
 private def bitvectorSShrSeed : StrataDDM.Program :=
 #strata
 program Boole;
 
-procedure bv_sshr(b: bv8) returns (r: bv8)
+procedure bv_sshr(b: bv W8) returns (r: bv W8)
 spec {
-  ensures r == b >>s bv{8}(1);
+  ensures r == b ashr bv{8}(1);
   // negative value: sign bit propagates into vacated position
-  ensures bv{8}(0b10000000) >>s bv{8}(1) == bv{8}(0b11000000);
+  ensures bv{8}(0b10000000) ashr bv{8}(1) == bv{8}(0b11000000);
   // positive value: behaves like unsigned shift
-  ensures bv{8}(0b01000000) >>s bv{8}(1) == bv{8}(0b00100000);
+  ensures bv{8}(0b01000000) ashr bv{8}(1) == bv{8}(0b00100000);
 }
 {
-  r := b >>s bv{8}(1);
+  r := b ashr bv{8}(1);
 };
 #end
 
 /-- info:
-Obligation: bv_sshr_ensures_0_3378
+Obligation: bv_sshr_ensures_0_3405
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_sshr_ensures_1_3472
+Obligation: bv_sshr_ensures_1_3500
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_sshr_ensures_2_3584
+Obligation: bv_sshr_ensures_2_3613
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in
@@ -160,51 +160,51 @@ theorem bitvectorSShrSeed_smtVCsCorrect : Strata.smtVCsCorrectBoole bitvectorSSh
   gen_smt_vcs_boole
   all_goals (try smt +mono)
 
--- Exercises signed bitvector comparisons (<s, <=s, >s, >=s).
+-- Exercises signed bitvector comparisons (slt, sle, sgt, sge).
 -- In bv8 signed interpretation: 0xFF = -1, 0x7F = 127.
 private def bitvectorSignedCmpSeed : StrataDDM.Program :=
 #strata
 program Boole;
 
-procedure bv_signed_cmp(a: bv8, b: bv8) returns ()
+procedure bv_signed_cmp(a: bv W8, b: bv W8) returns ()
 spec {
-  ensures bv{8}(255) <s  bv{8}(0);
-  ensures bv{8}(127) >s  bv{8}(0);
-  ensures bv{8}(255) <=s bv{8}(0);
-  ensures bv{8}(127) >=s bv{8}(0);
-  ensures bv{8}(0)   <=s bv{8}(0);
-  ensures bv{8}(0)   >=s bv{8}(0);
-  ensures bv{8}(255) <s  bv{8}(1);
+  ensures bv{8}(255) slt bv{8}(0);
+  ensures bv{8}(127) sgt bv{8}(0);
+  ensures bv{8}(255) sle bv{8}(0);
+  ensures bv{8}(127) sge bv{8}(0);
+  ensures bv{8}(0)   sle bv{8}(0);
+  ensures bv{8}(0)   sge bv{8}(0);
+  ensures bv{8}(255) slt bv{8}(1);
 }
 { };
 #end
 
 /-- info:
-Obligation: bv_signed_cmp_ensures_0_4390
+Obligation: bv_signed_cmp_ensures_0_4427
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_signed_cmp_ensures_1_4425
+Obligation: bv_signed_cmp_ensures_1_4462
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_signed_cmp_ensures_2_4460
+Obligation: bv_signed_cmp_ensures_2_4497
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_signed_cmp_ensures_3_4495
+Obligation: bv_signed_cmp_ensures_3_4532
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_signed_cmp_ensures_4_4530
+Obligation: bv_signed_cmp_ensures_4_4567
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_signed_cmp_ensures_5_4565
+Obligation: bv_signed_cmp_ensures_5_4602
 Property: assert
 Result: ✅ pass
 
-Obligation: bv_signed_cmp_ensures_6_4600
+Obligation: bv_signed_cmp_ensures_6_4637
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in

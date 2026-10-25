@@ -10,11 +10,11 @@ public import Cslib.Init
 public import Mathlib.Order.SetNotation
 public import Mathlib.Data.Set.Basic
 
-@[expose] public section
-
 /-!
 # Saturation
 -/
+
+@[expose] public section
 
 namespace Set
 

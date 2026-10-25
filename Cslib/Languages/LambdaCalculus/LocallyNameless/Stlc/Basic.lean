@@ -9,10 +9,6 @@ module
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
-@[expose] public section
-
-set_option linter.unusedDecidableInType false
-
 /-! # λ-calculus
 
 The simply typed λ-calculus, with a locally nameless representation of syntax.
@@ -24,6 +20,10 @@ The simply typed λ-calculus, with a locally nameless representation of syntax.
   this is partially adapted
 
 -/
+
+@[expose] public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 
@@ -110,8 +110,8 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
     case cons =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x'
-    case neg => grind
-    case pos => grind [(weaken der ?_).perm perm]
+    · have := (weaken der ?_).perm perm <;> grind
+    · grind
   case abs =>
     grind [Typing.abs <| free_union Var, subst_open_var _ _ _ _ ?_ der.lc]
 

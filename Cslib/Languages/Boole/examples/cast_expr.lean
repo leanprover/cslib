@@ -14,7 +14,7 @@ private def castExprSeed : StrataDDM.Program :=
 #strata
 program Boole;
 
-procedure cast_bv8_nonneg(x: bv8) returns ()
+procedure cast_bv8_nonneg(x: bv W8) returns ()
 spec {
   ensures 0 <= as_uint(x);
 }
@@ -22,7 +22,7 @@ spec {
   assert 0 <= as_uint(x);
 };
 
-procedure cast_bv64_nonneg(x: bv64) returns ()
+procedure cast_bv64_nonneg(x: bv W64) returns ()
 spec {
   ensures 0 <= as_uint(x);
 }
@@ -30,7 +30,7 @@ spec {
   assert 0 <= as_uint(x);
 };
 
-procedure cast_bv32_bounded(x: bv32) returns ()
+procedure cast_bv32_bounded(x: bv W32) returns ()
 spec {
   ensures 0 <= as_uint(x) && as_uint(x) < 4294967296;
 }
@@ -38,7 +38,7 @@ spec {
   assert 0 <= as_uint(x) && as_uint(x) < 4294967296;
 };
 
-procedure cast_bv1_nonneg(x: bv1) returns ()
+procedure cast_bv1_nonneg(x: bv W1) returns ()
 spec {
   ensures 0 <= as_uint(x);
 }
@@ -46,7 +46,7 @@ spec {
   assert 0 <= as_uint(x);
 };
 
-procedure cast_bv16_nonneg(x: bv16) returns ()
+procedure cast_bv16_nonneg(x: bv W16) returns ()
 spec {
   ensures 0 <= as_uint(x);
 }
@@ -54,7 +54,7 @@ spec {
   assert 0 <= as_uint(x);
 };
 
-procedure cast_bv128_nonneg(x: bv128) returns ()
+procedure cast_bv128_nonneg(x: bv W128) returns ()
 spec {
   ensures 0 <= as_uint(x);
 }
@@ -64,51 +64,51 @@ spec {
 #end
 
 /-- info:
-Obligation: assert_1_525
+Obligation: assert_1_527
 Property: assert
 Result: ✅ pass
 
-Obligation: cast_bv8_nonneg_ensures_0_494
+Obligation: cast_bv8_nonneg_ensures_0_496
 Property: assert
 Result: ✅ pass
 
-Obligation: assert_3_640
+Obligation: assert_3_644
 Property: assert
 Result: ✅ pass
 
-Obligation: cast_bv64_nonneg_ensures_2_609
+Obligation: cast_bv64_nonneg_ensures_2_613
 Property: assert
 Result: ✅ pass
 
-Obligation: assert_5_783
+Obligation: assert_5_789
 Property: assert
 Result: ✅ pass
 
-Obligation: cast_bv32_bounded_ensures_4_725
+Obligation: cast_bv32_bounded_ensures_4_731
 Property: assert
 Result: ✅ pass
 
-Obligation: assert_7_923
+Obligation: assert_7_931
 Property: assert
 Result: ✅ pass
 
-Obligation: cast_bv1_nonneg_ensures_6_892
+Obligation: cast_bv1_nonneg_ensures_6_900
 Property: assert
 Result: ✅ pass
 
-Obligation: assert_9_1038
+Obligation: assert_9_1048
 Property: assert
 Result: ✅ pass
 
-Obligation: cast_bv16_nonneg_ensures_8_1007
+Obligation: cast_bv16_nonneg_ensures_8_1017
 Property: assert
 Result: ✅ pass
 
-Obligation: assert_11_1155
+Obligation: assert_11_1167
 Property: assert
 Result: ✅ pass
 
-Obligation: cast_bv128_nonneg_ensures_10_1124
+Obligation: cast_bv128_nonneg_ensures_10_1136
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in

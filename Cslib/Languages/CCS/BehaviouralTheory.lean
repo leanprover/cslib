@@ -10,8 +10,6 @@ public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Foundations.Syntax.Congruence
 public import Cslib.Languages.CCS.Semantics
 
-@[expose] public section
-
 /-! # Behavioural theory of CCS
 
 ## Main results
@@ -23,6 +21,8 @@ Additionally, some standard laws of bisimilarity for CCS, including:
 - `CCS.bisimilarity_par_comm`: P | Q ~ Q | P
 - `CCS.bisimilarity_choice_comm`: P + Q ~ Q + P
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -213,7 +213,7 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
         cases htr with grind
       · grind [HomBisimilarity.refl, ChoiceComm]
   case bisim h =>
-    grind [ChoiceComm]
+    grind [IsBisimulation, ChoiceComm]
 
 private inductive ChoiceAssoc : Process Name Constant → Process Name Constant → Prop where
   | assoc : ChoiceAssoc (choice p (choice q r)) (choice (choice p q) r)
@@ -262,7 +262,7 @@ theorem bisimilarity_congr_pre :
   case pre p' q' μ hbis =>
     unfold lts
     constructor <;> intro _ _ <;> [exists q'; exists p'] <;> grind
-  case bisim => grind [Bisimilarity.largest_bisimulation]
+  case bisim => grind [IsBisimulation, IsBisimulation.le_bisimilarity]
 
 @[local grind]
 private inductive ResBisim : Process Name Constant → Process Name Constant → Prop where
@@ -283,17 +283,25 @@ theorem bisimilarity_congr_res :
   case left =>
     intro s1' htr
     cases htr with | res _ _ htr =>
-    obtain ⟨q', _⟩ := Bisimilarity.is_bisimulation.follow_fst h htr
+    obtain ⟨q', _, bisim⟩ := h.follow_fst htr
     exists res a q'
     unfold lts at *
-    grind
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    split_ands
+    · grind
+    · exact ResBisim.res bisim
   case right =>
     intro s2' htr
     cases htr with | res _ _ htr =>
-    obtain ⟨p', _⟩ := Bisimilarity.is_bisimulation.follow_snd h htr
+    obtain ⟨p', _, bisim⟩ := h.follow_snd htr
     exists res a p'
     unfold lts at *
-    grind
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    split_ands
+    · grind
+    · exact ResBisim.res bisim
 
 private inductive ChoiceBisim : Process Name Constant → Process Name Constant → Prop where
 | choice : (p ~[lts (defs := defs)] q) → ChoiceBisim (choice p r) (choice q r)
@@ -320,7 +328,7 @@ theorem bisimilarity_congr_choice :
         constructor
         · apply Tr.choiceL htr2
         · constructor
-          apply Bisimilarity.largest_bisimulation hb hr2
+          apply hb.le_bisimilarity _ _ hr2
       case choiceR a b c htr =>
         exists s1'
         constructor
@@ -334,7 +342,7 @@ theorem bisimilarity_congr_choice :
       constructor
       · assumption
       constructor
-      apply Bisimilarity.largest_bisimulation hb hr2
+      apply hb.le_bisimilarity _ _ hr2
   case right =>
     intro s2' htr
     cases r
@@ -347,7 +355,7 @@ theorem bisimilarity_congr_choice :
         constructor
         · apply Tr.choiceL htr1
         · constructor
-          apply Bisimilarity.largest_bisimulation hb hr1
+          apply hb.le_bisimilarity _ _ hr1
       case choiceR a b c htr =>
         exists s2'
         constructor
@@ -361,7 +369,7 @@ theorem bisimilarity_congr_choice :
       constructor
       · assumption
       · constructor
-        apply Bisimilarity.largest_bisimulation hb hr1
+        apply hb.le_bisimilarity _ _ hr1
 
 @[local grind]
 private inductive ParBisim : Process Name Constant → Process Name Constant → Prop where

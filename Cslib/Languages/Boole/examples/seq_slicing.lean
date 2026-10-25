@@ -37,7 +37,7 @@ spec {
   mid  := Sequence.subrange(s, 1, 3);
 };
 
-procedure seq_empty_bv64_seed() returns (s: Sequence bv64)
+procedure seq_empty_bv64_seed() returns (s: Sequence (bv W64))
 spec {
   ensures Sequence.length(s) == 1;
   ensures Sequence.select(s, 0) == bv{64}(0);
@@ -114,15 +114,15 @@ Obligation: seq_slicing_seed_ensures_6_1150
 Property: assert
 Result: ✅ pass
 
-Obligation: seq_empty_bv64_seed_post_seq_empty_bv64_seed_ensures_8_1421_calls_Sequence.select_0
+Obligation: seq_empty_bv64_seed_post_seq_empty_bv64_seed_ensures_8_1425_calls_Sequence.select_0
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: seq_empty_bv64_seed_ensures_7_1386
+Obligation: seq_empty_bv64_seed_ensures_7_1390
 Property: assert
 Result: ✅ pass
 
-Obligation: seq_empty_bv64_seed_ensures_8_1421
+Obligation: seq_empty_bv64_seed_ensures_8_1425
 Property: assert
 Result: ✅ pass
 

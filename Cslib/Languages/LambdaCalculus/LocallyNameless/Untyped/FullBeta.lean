@@ -6,13 +6,9 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.Data.Relation
+public import Cslib.Foundations.Relation.Attr
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
-
-public section
-
-set_option linter.unusedDecidableInType false
 
 /-! # β-reduction for the λ-calculus
 
@@ -23,6 +19,10 @@ set_option linter.unusedDecidableInType false
   this is partially adapted
 
 -/
+
+public section
+
+set_option linter.unusedDecidableInType false
 
 namespace Cslib
 
@@ -63,6 +63,7 @@ theorem redex_app_l_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app M N ↠β�
 theorem redex_app_r_cong (redex : M ↠βᶠ M') (lc_N : LC N) : app N M ↠βᶠ app N M' := by
   induction redex <;> grind
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /- Single reduction `app M (fvar x) ⭢βᶠ N` implies reduction on `M` or a root beta step. -/
 @[scoped grind →]
 lemma invert_step_app_fvar (step : app M (fvar x) ⭢βᶠ N) :
@@ -70,7 +71,7 @@ lemma invert_step_app_fvar (step : app M (fvar x) ⭢βᶠ N) :
   cases step
   case base h => cases h with | beta => exact .inr ⟨_, rfl, rfl⟩
   case appR step_M _ => exact .inl ⟨_, rfl, step_M⟩
-  all_goals grind [cases Xi]
+  all_goals grind only [cases Xi]
 
 variable [HasFresh Var] [DecidableEq Var]
 
@@ -88,7 +89,7 @@ lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M
 lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (h_lc : LC t) :
     s [ x := t ] ⭢βᶠ s' [ x := t ] := by
   induction step with
-  | base => grind [subst_open]
+  | base beta => cases beta; grind [subst_open]
   | abs  => grind [Xi.abs <| free_union Var]
   | _ => grind
 
@@ -98,13 +99,13 @@ lemma redex_subst_cong (s s' : Term Var) (x y : Var) (step : s ⭢βᶠ s') :
   redex_subst_cong_lc _ _ _ _ step (.fvar y)
 
 /-- An β-reduction step does not introduce new free variables. -/
-lemma step_not_fv (step : M ⭢βᶠ N) (hw : w ∉ M.fv) : w ∉ N.fv := by
+lemma step_not_fv (step : M ⭢βᶠ N) : N.fv ⊆ M.fv := by
   induction step with
   | base h => cases h with | beta => grind [open_preserve_not_fvar]
-  | abs =>
+  | @abs M N =>
     have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
     have := open_close x
-    grind [close_preserve_not_fvar, open_fresh_preserve_not_fvar]
+    grind [open_preserve_not_fvar 0 M N]
   | _ => grind
 
 /-- Abstracting then closing preserves a single reduction. -/
@@ -174,7 +175,7 @@ lemma step_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ⭢βᶠ t') (h_
 
 /- `step_subst_cong_r` can be generalized to multiple reductions `t ↠βᶠ t'`.
    This requires s to be locally closed, locally closedness of t and t'
-   can be infered by the fact t reduces to t' -/
+   can be inferred by the fact t reduces to t' -/
 lemma steps_subst_cong_r {x : Var} (s t t' : Term Var) (step : t ↠βᶠ t') (h_lc : LC s) :
     (s [ x := t ]) ↠βᶠ (s [ x := t' ]) := by
   induction step with

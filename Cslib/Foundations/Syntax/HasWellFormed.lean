@@ -8,6 +8,8 @@ module
 
 public import Cslib.Init
 
+/-! Notation typeclass for well-formedness. -/
+
 public section
 
 namespace Cslib

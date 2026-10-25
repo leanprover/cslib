@@ -78,15 +78,13 @@ Result: ✅ pass-/
 
 `function f(params) : R := ε z . pred(z, params);` declares an uninterpreted
 function `f` together with the axiom:
-  ∀ params, ∀ z, z = f(params) → pred(z, params)
+  ∀ params, (∃ z, pred(z, params)) → (∀ z, z = f(params) → pred(z, params))
 
 This lets a specification define a function by its property rather than its
 implementation — similar to Verus choose-based spec functions.
 
-Note: unlike `w := ε z . pred(z)` (which guards soundness with an existence
-assertion), the function form emits the axiom unconditionally. The user must
-ensure `pred` is satisfiable for all inputs (e.g. via a precondition) to avoid
-an unsound axiom.
+The function is total even when no witness exists. To conclude that its result
+satisfies `pred`, establish existence, for example with a precondition.
 -/
 
 private def chooseFnSeed : StrataDDM.Program :=
@@ -109,7 +107,7 @@ spec {
 #end
 
 /-- info:
-Obligation: test_choose_fn_ensures_1_2711
+Obligation: test_choose_fn_ensures_1_2642
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in
@@ -119,9 +117,8 @@ theorem chooseFnSeed_smtVCsCorrect : Strata.smtVCsCorrectBoole chooseFnSeed := b
   gen_smt_vcs_boole
   all_goals (first | smt | smt +mono | omega | trivial | grind)
 
--- Without the ∃ precondition the ensures still passes, because the axiom
--- `∀ z, z = best(x) → good(z, x)` unconditionally asserts good(best(x), x).
--- This demonstrates that soundness relies on the caller supplying the witness.
+-- Without the ∃ precondition, the guarded axiom does not establish good(best(x), x).
+-- The solver must not report a pass without an existence fact.
 private def chooseFnNoPrecondSeed : StrataDDM.Program :=
 #strata
 program Boole;
@@ -141,12 +138,8 @@ spec {
 #end
 
 /-- info:
-Obligation: test_no_precond_ensures_0_3573
+Obligation: test_no_precond_ensures_0_3419
 Property: assert
-Result: ✅ pass-/
+Result: ❓ unknown-/
 #guard_msgs in
 #eval Strata.Boole.verify "cvc5" chooseFnNoPrecondSeed (options := .quiet)
-
-theorem chooseFnNoPrecondSeed_smtVCsCorrect : Strata.smtVCsCorrectBoole chooseFnNoPrecondSeed := by
-  gen_smt_vcs_boole
-  all_goals (try smt +mono)

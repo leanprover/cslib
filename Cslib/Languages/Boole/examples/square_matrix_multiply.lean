@@ -45,51 +45,51 @@ spec
 #end
 
 /-- info:
-Obligation: entry_invariant_0_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_0_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_0_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_1_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_1_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_1_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_1_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_2_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_2_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_2_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_2_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_2_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_2_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_2_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_2_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_1_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_1_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_1
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in

@@ -71,43 +71,43 @@ spec
 #end
 
 /-- info:
-Obligation: entry_invariant_0_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_0_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_0_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_1_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_1_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_1_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_1_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_1_2
+Obligation: insertLoopInvAssert_entry_invariant_loop_1_2
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_1_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_1_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_1_2
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_2
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_1
 Property: assert
 Result: ✅ pass
 
@@ -126,15 +126,15 @@ set_option maxHeartbeats 1000000 in
 theorem bubbleSortPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole bubbleSortPgm := by
   gen_smt_vcs_boole
   all_goals (try (first | omega | trivial))
-  case entry_invariant_1_1 =>
+  case insertLoopInvAssert_entry_invariant_loop_1_1 =>
     intro A1 n1 i1 A4 _ _ _ _ _ x hx
     have hxeq : x = n1 - 1 := by omega
     rw [hxeq]
     omega
-  case entry_invariant_1_2 =>
+  case insertLoopInvAssert_entry_invariant_loop_1_2 =>
     intro A1 n1 i1 A4 _ _ _ _ H
     exact H
-  case arbitrary_iter_maintain_invariant_1_2 =>
+  case insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_2 =>
     intro A1 n1 i1 A4 j3 A6 _ _ _ _ _ _ _ _ _ _ _ _ H5 _ _ x y hxy
     by_cases hcond : A6.select j3 < A6.select (j3 - 1)
     · simp only [if_pos hcond]
@@ -151,7 +151,7 @@ theorem bubbleSortPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole bubbleSortPgm :=
           exact H5 x y hxy
     · rw [if_neg hcond]
       exact H5 x y hxy
-  case arbitrary_iter_maintain_invariant_1_1 =>
+  case insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_1 =>
     intro A1 n1 i1 A4 j3 A6 _ _ _ _ _ _ _ _ _ _ _ H4 _ _ _ bv10 hbv10
     by_cases hcond : A6.select j3 < A6.select (j3 - 1)
     · simp only [if_pos hcond]
@@ -171,33 +171,27 @@ theorem bubbleSortPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole bubbleSortPgm :=
       · subst hb1; omega
       · have := H4 bv10 (by omega)
         omega
-  case arbitrary_iter_maintain_invariant_0_1 =>
-    intro A1 n1 i1 A4 j3 A6 j4 A8 _ h1 h2 h3 H_A4pre h4 H_entry2 H5'
-    have hc : n1 - 1 > i1 := by omega
-    simp only [if_pos hc] at *
-    intro _ _ _ _ _ _ _ _ _ Hj4run Hj4pre _ bv13 bv14 hbv
-    by_cases hb : bv13 < i1
-    · exact Hj4pre bv13 bv14 ⟨hbv.1, hb⟩
-    · have hbeq : bv13 = i1 := by omega
-      have hj4eq : j4 = i1 := by omega
-      rw [hbeq, ← hj4eq]
-      exact Hj4run bv14 (by omega)
-  case BubbleSort_ensures_0_461 =>
+  case insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_1 =>
     intro A1 n1 i1 A4 j3 A6 j4 A8
-    by_cases houter : 0 < n1 - 1
-    · simp only [if_pos houter] at *
-      intro i2 A10 _ _ h2 h3
-      have hc2 : n1 - 1 > i1 := by omega
-      simp only [if_pos hc2] at *
-      intro _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hi2a hi2b Hfinal _ bv15 bv16 hbv
-      by_cases hb : bv15 < i2
-      · exact Hfinal bv15 bv16 ⟨hbv, hb⟩
-      · have heq : bv15 = i2 := by omega
-        have heq2 : bv16 = i2 := by omega
-        rw [heq, heq2]
-        omega
-    · simp only [if_neg houter, true_implies] at *
-      intro i2 A10 _ _ bv15 bv16 hbv
-      have heq : bv15 = bv16 := by omega
+    intros
+    rename_i hJ Hmin Hsorted hnJ b0 b1 hb
+    have hc : n1 - 1 > i1 := by omega
+    simp only [hc, ↓reduceIte] at hJ Hmin Hsorted hnJ ⊢
+    by_cases hlt : b0 < i1
+    · exact Hsorted b0 b1 ⟨hb.1, hlt⟩
+    · have hb0 : b0 = j4 := by omega
+      rw [hb0]
+      exact Hmin b1 (by omega)
+  case BubbleSort_ensures_0_461 =>
+    intro A1 n1 i1 A4 j3 A6 j4 A8 i2 A10
+    intros
+    rename_i Hfinal hnI b0 b1 hb
+    by_cases houter : 0 < n1 - 1 <;> simp only [houter, ↓reduceIte] at Hfinal hnI ⊢
+    · by_cases hlt : b0 < i2
+      · exact Hfinal b0 b1 ⟨hb, hlt⟩
+      · have heq : b0 = b1 := by omega
+        rw [heq]
+        exact Int.le_refl _
+    · have heq : b0 = b1 := by omega
       rw [heq]
-      omega
+      exact Int.le_refl _

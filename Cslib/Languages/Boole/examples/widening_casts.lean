@@ -14,7 +14,7 @@ private def wideningCastsSeed : StrataDDM.Program :=
 program Boole;
 
 // `as_uint(v[i])` lowers to `Bv32.ToUInt` Core op → SMT-LIB 2.7 `ubv_to_int`.
-procedure widening_cast_seed(v: Map int bv32, n: int) returns ()
+procedure widening_cast_seed(v: Map int (bv W32), n: int) returns ()
 spec {
   requires 0 <= n;
   ensures ∀ i: int . 0 <= i && i < n ==> 0 <= (as_uint(v[i]));
@@ -25,11 +25,11 @@ spec {
 #end
 
 /-- info:
-Obligation: assert_2_544
+Obligation: assert_2_548
 Property: assert
 Result: ✅ pass
 
-Obligation: widening_cast_seed_ensures_1_474
+Obligation: widening_cast_seed_ensures_1_478
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in

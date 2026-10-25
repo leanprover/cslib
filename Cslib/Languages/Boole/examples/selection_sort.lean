@@ -69,51 +69,51 @@ spec
 #end
 
 /-- info:
-Obligation: entry_invariant_0_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_0_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_0_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_2
+Obligation: insertLoopInvAssert_entry_invariant_loop_0_2
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_1_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_1_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_1_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_1_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_1_2
+Obligation: insertLoopInvAssert_entry_invariant_loop_1_2
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_1_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_1_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_1_2
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_2
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_2
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_2
 Property: assert
 Result: ✅ pass
 
@@ -128,4 +128,14 @@ Result: ✅ pass-/
 set_option maxHeartbeats 1000000 in
 theorem selectionSortPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole selectionSortPgm := by
   gen_smt_vcs_boole
-  all_goals (first | omega | trivial | grind)
+  all_goals (try (first | omega | trivial | grind))
+  -- The outer loop condition `i < n - 1` makes the inner loop's guard `i + 1 < n` true, so
+  -- every `if i + 1 < n` in these two swap goals reduces; unfolding `select`/`store` then
+  -- lets `grind` split on whether the queried index is one of the two swapped positions.
+  case insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_1 |
+      insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_0_2 =>
+    intro n A1 i A4 j3 m3 j4 m4
+    intros
+    have hc : i + 1 < n := by omega
+    simp only [hc, ↓reduceIte, SmtArray.select, SmtArray.store] at *
+    grind

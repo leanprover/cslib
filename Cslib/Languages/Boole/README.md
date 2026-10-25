@@ -2,8 +2,9 @@
 
 **Boole** is an intermediate language for program verification in Lean. It extends the Strata/Core
 intermediate language and serves as a research playground for experimenting with new verification
-features. This directory contains example algorithms expressed in Boole and verified using
-different pipelines.
+features. Boole is developed in [strata-org/Strata-Boole](https://github.com/strata-org/Strata-Boole).
+This directory contains example algorithms expressed in Boole and verified using different
+pipelines.
 
 ## Prerequisites
 
@@ -23,7 +24,7 @@ In addition:
   `cvc5` binary. Make sure `cvc5` is on your `PATH` when running Lean.
 - If you use `import Smt` (e.g. to run `all_goals smt`), Lean also needs to load cvc5's native
   bindings at runtime. This requires passing `--load-dynlib` to Lean (see below).
-- If you ran `lake update`, you likely already have a suitable `cvc5` binary under
+- After `lake build`, you likely already have a suitable `cvc5` binary under
   `.lake/packages/cvc5`; `scripts/boole-smt.sh` can help run Lean with the right setup.
 
 ## Build Instructions
@@ -37,7 +38,7 @@ git clone --branch Boole-sandbox https://github.com/leanprover/cslib
 Build and test the project using Lean's standard workflow:
 
 ```bash
-lake update && lake build
+lake exe cache get && lake build
 ```
 
 Some files will fail to build if you don't have `cvc5` installed on your machine. However, you can
@@ -53,11 +54,11 @@ Since Boole extends Strata/Core, its syntax closely resembles Boogie. Below is a
 program written in Boole:
 
 ```lean
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
 
 open Strata
 
-def maxExample : Strata.Program :=
+def maxExample : StrataDDM.Program :=
 #strata
 program Boole;
 
@@ -73,7 +74,7 @@ procedure max (x: int, y: int) returns (r: int)
 #end
 ```
 
-The `Strata.MetaVerifier` module provides the infrastructure to parse, type-check, and verify Boole
+The `StrataBoole.MetaVerifier` module provides the infrastructure to parse, type-check, and verify Boole
 programs.
 
 The code between the `#strata` and `#end` macros defines the program. The line `program Boole;`
@@ -89,11 +90,11 @@ For the `max` procedure, we are interested in the following properties:
 These properties can be expressed as specifications:
 
 ```lean
-import Strata.MetaVerifier
+import StrataBoole.MetaVerifier
 
 open Strata
 
-def maxExample : Strata.Program :=
+def maxExample : StrataDDM.Program :=
 #strata
 program Boole;
 
@@ -142,11 +143,11 @@ to run a Boole file with the right environment is:
 You should see output similar to the following in Lean's InfoView:
 
 ```
-Obligation: loopSimple_ensures_0
+Obligation: max_ensures_0_312
 Property: assert
 Result: ✅ pass
 
-Obligation: loopSimple_ensures_1
+Obligation: max_ensures_1_340
 Property: assert
 Result: ✅ pass
 ```
@@ -155,7 +156,7 @@ While this approach leverages powerful automated solvers, it has some limitation
 
 * It does not allow users to inspect or simplify goals before sending them to the solver, which can
 hinder debugging.
-* It relies on trusting the solver's correctness, which is not guranteed given their complexity.
+* It relies on trusting the solver's correctness, which is not guaranteed given their complexity.
 
 ### Lean-Based Verification
 
@@ -166,34 +167,32 @@ resulting obligations into Lean.
 You can try this approach by proving the following theorem:
 
 ```lean
-theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrect maxExample := by
-  gen_smt_vcs
+theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrectBoole maxExample := by
+  gen_smt_vcs_boole
 ```
 
-The `gen_smt_vcs` tactic automatically generates the SMT-IR verification conditions and lifts them
+The `gen_smt_vcs_boole` tactic automatically generates the SMT-IR verification conditions and lifts them
 to Lean goals. After running it, you will obtain goals of the form:
 
 ```lean
-case loopSimple_ensures_1
-⊢ ∀ («$__y1» «$__x0» : Int),
-  (if «$__x0» ≥ «$__y1» then «$__x0» ≥ «$__y1» else True) →
-    (if if «$__x0» ≥ «$__y1» then False else True then if «$__x0» ≥ «$__y1» then False else True else True) →
-      (if «$__x0» ≥ «$__y1» then «$__x0» else «$__y1») = «$__x0» ∨
-        (if «$__x0» ≥ «$__y1» then «$__x0» else «$__y1») = «$__y1»
+case max_ensures_0_312
+⊢ ∀ («y@1» «x@1» : Int),
+    (if «x@1» ≥ «y@1» then «x@1» ≥ «y@1» else True) →
+      (if if «x@1» ≥ «y@1» then False else True then if «x@1» ≥ «y@1» then False else True else True) →
+        (if «x@1» ≥ «y@1» then «x@1» else «y@1») ≥ «x@1» ∧ (if «x@1» ≥ «y@1» then «x@1» else «y@1») ≥ «y@1»
 
-case loopSimple_ensures_0
-⊢ ∀ («$__y1» «$__x0» : Int),
-  (if «$__x0» ≥ «$__y1» then «$__x0» ≥ «$__y1» else True) →
-    (if if «$__x0» ≥ «$__y1» then False else True then if «$__x0» ≥ «$__y1» then False else True else True) →
-      (if «$__x0» ≥ «$__y1» then «$__x0» else «$__y1») ≥ «$__x0» ∧
-        (if «$__x0» ≥ «$__y1» then «$__x0» else «$__y1») ≥ «$__y1»
+case max_ensures_1_340
+⊢ ∀ («y@1» «x@1» : Int),
+    (if «x@1» ≥ «y@1» then «x@1» ≥ «y@1» else True) →
+      (if if «x@1» ≥ «y@1» then False else True then if «x@1» ≥ «y@1» then False else True else True) →
+        (if «x@1» ≥ «y@1» then «x@1» else «y@1») = «x@1» ∨ (if «x@1» ≥ «y@1» then «x@1» else «y@1») = «y@1»
 ```
 
 These goals can be discharged using standard Lean tactics. For example:
 
 ```lean
-theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrect maxExample := by
-  gen_smt_vcs
+theorem maxExample_smtVCsCorrect : Strata.smtVCsCorrectBoole maxExample := by
+  gen_smt_vcs_boole
   all_goals smt
 ```
 

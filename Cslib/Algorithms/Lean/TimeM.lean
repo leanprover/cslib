@@ -9,9 +9,6 @@ module
 public import Cslib.Init
 public import Mathlib.Algebra.Group.Defs
 
-
-@[expose] public section
-
 /-!
 
 # TimeM: Time Complexity Monad
@@ -40,6 +37,9 @@ actual wall time, or as more complex types in order to model more general costs.
 
 See [Danielsson2008] for the discussion.
 -/
+
+@[expose] public section
+
 namespace Cslib.Algorithms.Lean
 
 /-- A monad for tracking time complexity of computations.

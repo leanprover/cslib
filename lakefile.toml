@@ -1,7 +1,7 @@
 name = "cslib"
 version = "0.1.0"
-defaultTargets = ["Cslib"]
-testDriver = "runTests"
+defaultTargets = ["Cslib", "BooleExamples"]
+testDriver = "CslibTests"
 lintDriver = "batteries/runLinter"
 
 [leanOptions]
@@ -12,46 +12,32 @@ weak.linter.flexible = true
 weak.linter.pythonStyle = false
 weak.linter.checkInitImports = false
 weak.linter.allScriptsDocumented = false
-
-[[require]]
-name = "Strata"
-git = "https://github.com/strata-org/Strata"
-rev = "e912c9bba0ad82244185e9c75b9535a6aedbd0f3"
-
-[[require]]
-name = "Strata-Boole"
-git = "https://github.com/strata-org/Strata-Boole"
-rev = "897964f1397eaee070ba0e867216a749dbfcbc42"
-
-[[require]]
-name = "StrataDDM"
-git = "https://github.com/strata-org/Strata-DDM"
-rev = "55307b6705f6286d6ad04e326fb3a28f297f1712"
-
-[[require]]
-name = "smt"
-git = "https://github.com/ufmg-smite/lean-smt"
-rev = "7d1d8239e78daa5197f9a71948776c4627049f5f"
+# this is currently not extensible for unicode not used in Mathlib
+weak.linter.unicodeLinter = false
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.29.1"
+rev = "fabf563a7c95a166b8d7b6efca11c8b4dc9d911f"
+
+# Boole, its translation to Strata Core, and lean-smt. Strata-Boole pins the same Mathlib.
+[[require]]
+name = "StrataBoole"
+git = "https://github.com/strata-org/Strata-Boole"
+rev = "9fc1193c48549eba06aa6aef1e434e3e5e7de4c6"
 
 [[lean_lib]]
 name = "Cslib"
-globs = ["Cslib.*"]
+
+[[lean_lib]]
+name = "BooleExamples"
+globs = ["Cslib.Languages.Boole.examples.+"]
 
 [[lean_lib]]
 name = "CslibTests"
-globs = ["CslibTests.+"]
+leanOptions = {weak.linter.style.header = false}
 
 [[lean_exe]]
 name = "checkInitImports"
 srcDir = "scripts"
 root = "CheckInitImports"
-
-[[lean_exe]]
-name = "runTests"
-srcDir = "scripts"
-root = "RunTests"

@@ -11,8 +11,6 @@ public import Mathlib.Algebra.Group.Idempotent
 public import Mathlib.Order.Closure
 public import Cslib.Logics.LinearLogic.CLL.Basic
 
-@[expose] public section
-
 /-!
 # Phase semantics for Classical Linear Logic
 
@@ -54,11 +52,11 @@ Several lemmas about facts and orthogonality useful in the proof of soundness ar
 * [J.-Y. Girard, *Linear Logic: its syntax and semantics*][Girard1995]
 -/
 
-namespace Cslib
+@[expose] public section
+
+namespace Cslib.Logic.CLL
 
 universe u v
-
-namespace CLL
 
 open scoped Pointwise
 open Set
@@ -151,9 +149,10 @@ structure Fact (P : Type*) [PhaseSpace P] where
   (carrier : Set P)
   (property : isFact carrier)
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 instance : SetLike (Fact P) P where
   coe := Fact.carrier
-  coe_injective' _ _ _ := by grind [cases Fact]
+  coe_injective _ _ _ := by grind only [cases Fact]
 
 instance : PartialOrder (Fact P) := PartialOrder.ofSetLike (Fact P) P
 
@@ -176,12 +175,12 @@ lemma subset_dual_dual {G : Set P} :
 lemma of_Fact {G : Fact P} {p : P}
     (hp : ∀ q, (∀ r ∈ G, q * r ∈ PhaseSpace.bot) → p * q ∈ PhaseSpace.bot) : p ∈ G := by
   rw [← SetLike.mem_coe, G.eq]
-  grind
+  simpa
 
 @[scoped grind =, simp] lemma mem_carrier (G : Fact P) : G.carrier = (G : Set P) := rfl
 
 /-- Construct a fact from a set G and a proof that its biorthogonal closure is contained in G. -/
-@[simps] def Fact.mk_subset (G : Set P) (h : G⫠⫠ ⊆ G) : Fact P where
+@[simps] def Fact.mkSubset (G : Set P) (h : G⫠⫠ ⊆ G) : Fact P where
   carrier := G
   property := by grind [isFact, orth_extensive]
 
@@ -189,8 +188,8 @@ lemma dual_subset_dual {G H : Set P} (h : G ⊆ H) :
     H⫠ ⊆ G⫠ := fun _ hp _ hq => hp _ (h hq)
 
 /-- Construct a fact from a set G and a proof that G equals the orthogonal of some set H. -/
-@[simps!] def Fact.mk_dual (G H : Set P) (h : G = H⫠) : Fact P :=
-  Fact.mk_subset G <| by rw [h, triple_orth]
+@[simps!] def Fact.mkDual (G H : Set P) (h : G = H⫠) : Fact P :=
+  Fact.mkSubset G <| by rw [h, triple_orth]
 
 lemma coe_mk {X : Set P} {h : isFact X} : ((⟨X, h⟩ : Fact P) : Set P) = X := rfl
 
@@ -207,7 +206,7 @@ lemma orth_one_eq_bot :
     simpa [orthogonal, mem_setOf, mul_one] using hm
 
 /-- The fact given by the dual of G. -/
-@[simps!] def dualFact (G : Set P) : Fact P := Fact.mk_dual (G⫠) G rfl
+@[simps!] def dualFact (G : Set P) : Fact P := Fact.mkDual (G⫠) G rfl
 
 lemma dual_dual_subset_Fact_iff {G : Set P} {H : Fact P} : G⫠⫠ ⊆ H ↔ G ⊆ H := by
   constructor <;> rw [H.eq] <;> grind
@@ -229,7 +228,7 @@ lemma mul_mem_one (hp : p ∈ (1 : Fact P)) (hq : q ∈ (1 : Fact P)) : p * q �
   grind
 
 instance : Top (Fact P) where
-  top := Fact.mk_subset Set.univ <| fun _ _ => Set.mem_univ _
+  top := Fact.mkSubset Set.univ <| fun _ _ => Set.mem_univ _
 
 @[scoped grind =, simp] lemma coe_top : ((⊤ : Fact P) : Set P) = Set.univ := rfl
 
@@ -248,7 +247,7 @@ lemma mem_zero : p ∈ (0 : Fact P) ↔ ∀ q, p * q ∈ PhaseSpace.bot := by
   simp [← SetLike.mem_coe]
 
 instance : Bot (Fact P) where
-  bot := Fact.mk_dual (PhaseSpace.bot : Set P) {1} (orth_one_eq_bot).symm
+  bot := Fact.mkDual (PhaseSpace.bot : Set P) {1} (orth_one_eq_bot).symm
 
 /-- In a phase space, `G⫠⫠` is the smallest fact containing `G`. -/
 lemma biorth_least_fact (G : Set P) :
@@ -257,9 +256,15 @@ lemma biorth_least_fact (G : Set P) :
   have h_min :
       ∀ {F : Set P}, isFact F → G ⊆ F → G⫠⫠ ⊆ F := by
     intro F hF hGF
-    have : F = c F := by grind [isFact]
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    have : F = c F := by
+      simp only [isFact] at hF
+      rw [hF]
+      symm at hF ⊢
+      apply ClosureOperator.IsClosed.closure_eq (congrArg orthogonal (congrArg orthogonal hF))
     have hF_closed : c.IsClosed F := (c.isClosed_iff).2 this.symm
-    simpa [c] using ClosureOperator.closure_min hGF hF_closed
+    simpa [c] using! ClosureOperator.closure_min hGF hF_closed
   apply h_min
 
 /-- `0` is the least fact (w.r.t. inclusion). -/
@@ -299,7 +304,7 @@ lemma inter_isFact_of_isFact {A B : Set P}
   let FB : Fact P := ⟨B, hB⟩
   have h := sInf_isFact (S := ({FA, FB} : Set (Fact P)))
   simpa [carriersInf, Set.image_pair, sInf_insert, sInf_singleton, inf_eq_inter]
-    using h
+    using! h
 
 instance : InfSet (Fact P) where
   sInf S := ⟨carriersInf S, sInf_isFact (S := S)⟩
@@ -322,7 +327,7 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
     grind [Fact.eq]
 
 instance : Min (Fact P) where
-  min G H := Fact.mk_dual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
+  min G H := Fact.mkDual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
 
 @[simp] lemma coe_min {G H : Fact P} : ((G ⊓ H : Fact P) : Set P) = (G : Set P) ∩ H := rfl
 
@@ -390,7 +395,7 @@ def parr (X Y : Fact P) : Fact P := dualFact ((X⫠) * (Y⫠))
   refine SetLike.coe_injective ?_
   rw [tensor]
   refine Set.Subset.antisymm ?_ ?_
-  · simp only [dualFact, mk_dual, mk_subset, coe_mk]
+  · simp only [dualFact, mkDual, mkSubset, coe_mk]
     rw [dual_dual_subset_Fact_iff]
     grind [SetLike.mem_coe, Set.mem_mul]
   · exact Set.Subset.trans (orth_extensive _) <| orth_antitone <| orth_antitone <|
@@ -413,7 +418,7 @@ lemma coe_tensor_assoc {G H K : Fact P} :
     ((G ⊗ H) ⊗ K : Set P) = ((G : Set P) * ((H : Set P) * (K : Set P)))⫠⫠ := by
   simp only [tensor]
   refine Set.Subset.antisymm ?_ ?_
-  · simp only [dualFact, mk_dual, mk_subset, coe_mk, dual_dual_subset_dual_iff]
+  · simp only [dualFact, mkDual, mkSubset, coe_mk, dual_dual_subset_dual_iff]
     rw [K.eq]
     refine tensor_assoc_aux.trans ?_
     rw [← K.eq]
@@ -438,9 +443,11 @@ lemma tensor_le_tensor {G K H} {L : Fact P} (hGK : G ≤ K) (hHL : H ≤ L) : (G
 
 lemma tensor_of_par {G H : Fact P} : (G ⊗ H) = (Gᗮ ⅋ Hᗮ)ᗮ :=
   SetLike.coe_injective <| by
-    simp only [tensor, parr, dualFact, mk_dual, mk_subset, coe_mk]
+    simp only [tensor, parr, dualFact, mkDual, mkSubset, coe_mk]
     rw [G.eq, H.eq]
-    grind
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    rfl
 
 lemma par_of_tensor {G H : Fact P} : (G ⅋ H) = (Gᗮ ⊗ Hᗮ)ᗮ := by
   simp [tensor_of_par]
@@ -465,7 +472,7 @@ def linImpl (X Y : Fact P) : Fact P := dualFact ((X : Set P) * (Y : Set P)⫠)
 
 lemma linImpl_of_tensor {G H : Fact P} : (G ⊸ H) = (G ⊗ Hᗮ)ᗮ :=
   SetLike.coe_injective <| by
-    simp only [linImpl, tensor, coe_neg, dualFact, mk_dual, mk_subset, coe_mk]
+    simp only [linImpl, tensor, coe_neg, dualFact, mkDual, mkSubset, coe_mk]
     apply Set.Subset.antisymm <;> grind
 
 lemma par_of_linImpl {G H : Fact P} : (G ⅋ H) = (Gᗮ ⊸ H) :=
@@ -583,14 +590,14 @@ lemma le_plus_right {G H : Fact P} : H ≤ G ⊕ H := fun _ hx ↦
 
 lemma tensor_distrib_plus : (G ⊗ (H ⊕ K) : Fact P) = (G ⊗ H) ⊕ (G ⊗ K) := by
   refine SetLike.coe_injective <| Set.Subset.antisymm ?_ ?_
-  · rw [tensor, dualFact, mk_dual_coe, oplus, dualFact, mk_dual_coe]
+  · rw [tensor, dualFact, mkDual_coe, oplus, dualFact, mkDual_coe]
     rw [dual_dual_subset_Fact_iff, G.eq]
     refine tensor_assoc_aux.trans ?_
-    rw [Set.mul_union, oplus, dualFact, mk_dual_coe, tensor, dualFact, mk_dual_coe]
+    rw [Set.mul_union, oplus, dualFact, mkDual_coe, tensor, dualFact, mkDual_coe]
     exact dual_subset_dual <| dual_subset_dual <|
       Set.union_subset_union subset_dual_dual subset_dual_dual
-  · rw [oplus, dualFact, mk_dual_coe, dual_dual_subset_Fact_iff, tensor, dualFact, mk_dual_coe,
-      tensor, dualFact, mk_dual_coe, Set.union_subset_iff]
+  · rw [oplus, dualFact, mkDual_coe, dual_dual_subset_Fact_iff, tensor, dualFact, mkDual_coe,
+      tensor, dualFact, mkDual_coe, Set.union_subset_iff]
     simp only [dual_dual_subset_Fact_iff]
     exact ⟨(Set.mul_subset_mul_left le_plus_left).trans mul_subset_tensor,
            (Set.mul_subset_mul_left le_plus_right).trans mul_subset_tensor⟩
@@ -634,7 +641,7 @@ lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H �
   rw [coe_top]
   rw [Set.eq_univ_iff_forall]
   intro x
-  simp only [parr, dualFact, mk_dual, mk_subset, coe_mk, coe_top]
+  simp only [parr, dualFact, mkDual, mkSubset, coe_mk, coe_top]
   rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq]
   intro w hw
   rcases Set.mem_mul.mp hw with ⟨y, hy, z, hz, rfl⟩
@@ -697,6 +704,4 @@ def interpProp [PhaseSpace M] (v : Atom → Fact M) : Proposition Atom → Fact 
 
 end PhaseSpace
 
-end CLL
-
-end Cslib
+end Cslib.Logic.CLL

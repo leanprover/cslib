@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
-@[expose] public section
-
 /-! # Concatenation of nondeterministic automata. -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA
 
@@ -90,6 +90,7 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
     · grind [concat_run_left_right]
   · exact concat_run_right hc n hl (Nat.find_spec hr')
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
 `concat na1 na2` that is the concatenation of the two runs. -/
 theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : ωSequence State2}
@@ -97,7 +98,11 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
     ∃ ss, (concat na1 na2).Run (xs1 ++ω xs2) ss ∧ ss.drop xs1.length = ss2.map inr := by
   by_cases h_xs1 : xs1.length = 0
   · obtain ⟨rfl⟩ : xs1 = [] := List.eq_nil_iff_length_eq_zero.mpr h_xs1
-    refine ⟨ss2.map inr, by simp only [concat]; grind [Run, LTS.OmegaExecution], by simp⟩
+    use ss2.map inr
+    split_ands
+    · simp [concat]
+      grind only [LTS.OmegaExecution, = Set.mem_union, = get_map, = Set.mem_image, Run]
+    · simp
   · obtain ⟨s0, _, _, _, h_mtr⟩ := h1
     obtain ⟨ss1, _, _, _, _⟩ := LTS.Execution.of_mTr h_mtr
     let ss := (ss1.map inl).take xs1.length ++ω ss2.map inr
@@ -105,7 +110,9 @@ theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : �
     · grind [concat, get_append_left]
     · have (k) (h_k : ¬ k < xs1.length) : k + 1 - xs1.length = k - xs1.length + 1 := by grind
       simp only [concat]
-      grind [Run, LTS.OmegaExecution, get_append_right', get_append_left, LTS.Execution]
+      grind only [Run, LTS.OmegaExecution, get_append_right', get_append_left,
+        = List.length_take, = get_map, = List.length_map, = min_def, = List.getElem_take,
+        = List.getElem_map]
     · grind [drop_append_of_le_length]
 
 namespace Buchi
@@ -138,20 +145,20 @@ namespace FinAcc
 
 /-- `finConcat na1 na2` is the concatenation of the "totalized" versions of `na1` and `na2`. -/
 def finConcat (na1 : FinAcc State1 Symbol) (na2 : FinAcc State2 Symbol)
-  : NA ((State1 ⊕ Unit) ⊕ (State2 ⊕ Unit)) Symbol :=
-  concat ⟨na1.totalize, inl '' na1.accept⟩ na2.totalize
+  : NA (Option State1 ⊕ Option State2) Symbol :=
+  concat ⟨na1.totalize, some '' na1.accept⟩ na2.totalize
 
 variable {na1 : FinAcc State1 Symbol} {na2 : FinAcc State2 Symbol}
 
 /-- `finConcat na1 na2` is total. -/
 instance : (finConcat na1 na2).Total where
   total s x := match s with
-    | inl _ => ⟨inl (inr ()), by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
-    | inr _ => ⟨inr (inr ()), by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
+    | inl _ => ⟨inl none, by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
+    | inr _ => ⟨inr none, by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
 
 /-- `finConcat na1 na2` accepts the concatenation of the languages of `na1` and `na2`. -/
 theorem finConcat_language_eq [Inhabited Symbol] :
-    language (FinAcc.mk (finConcat na1 na2) (inr '' (inl '' na2.accept))) =
+    language (FinAcc.mk (finConcat na1 na2) (inr '' (some '' na2.accept))) =
     language na1 * language na2 := by
   ext xl
   constructor
@@ -159,22 +166,31 @@ theorem finConcat_language_eq [Inhabited Symbol] :
     obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.extend_omegaExecution h_mtr
     have hc : (finConcat na1 na2).Run (xl ++ω xs) ss := by grind [Run]
     have hr : (ss xl.length).isRight := by grind
-    obtain ⟨n, _⟩ := concat_run_proj hc hr
+    obtain ⟨n, _, _, ss2, h_run2, _⟩ := concat_run_proj hc hr
     refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
     · grind [totalize_language_eq, take_append_of_le_length]
     · have : ss xl.length = (ss.drop n) (xl.length - n) := by grind
-      grind [drop_append_of_le_length, take_append_of_le_length, totalize_run_mtr]
+      #adaptation_note
+      /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+      have : ss xl.length = inr (ss2 (xl.length - n)) := by grind
+      have hl : (ss2 (xl.length - n)).isSome := by grind
+      obtain ⟨s2, t2, h_mtr2, _, _, _⟩ := totalize_run_mtr h_run2 hl
+      refine ⟨s2, ?_, t2, ?_, ?_⟩ <;> grind [drop_append_of_le_length, take_append_of_le_length]
     · exact xl.take_append_drop n
   · rintro ⟨xl1, h_xl1, xl2, h_xl2, rfl⟩
     rw [← totalize_language_eq] at h_xl1
     obtain ⟨_, h_s2, _, _, h_mtr2⟩ := h_xl2
-    obtain ⟨_, _, h_run2, _, _⟩ := totalize_mtr_run h_s2 h_mtr2
+    obtain ⟨_, ss2, h_run2, _, _⟩ := totalize_mtr_run h_s2 h_mtr2
     obtain ⟨ss, ⟨_, h_ωtr⟩, _⟩ := concat_run_exists h_xl1 h_run2
-    grind [
-      finConcat, List.length_append, take_append_of_le_length,
-      extract_eq_drop_take, =_ append_append_ωSequence, get_drop xl2.length xl1.length ss,
-      LTS.OmegaExecution.extract_mTr h_ωtr (zero_le (xl1.length + xl2.length))
-    ]
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    have h_mtr := LTS.OmegaExecution.extract_mTr h_ωtr (zero_le (a := xl1.length + xl2.length))
+    simp [← append_append_ωSequence, extract_eq_drop_take,
+      take_append_of_le_length, ← List.length_append] at h_mtr
+    have : ss (xl1.length + xl2.length) = (ss.drop xl1.length) xl2.length := by grind
+    have : ss (xl1.length + xl2.length) = inr (ss2 xl2.length) := by grind
+    refine ⟨ss 0, ?_, ss (xl1.length + xl2.length), ?_, ?_⟩ <;>
+      grind [finConcat, List.length_append]
 
 end FinAcc
 

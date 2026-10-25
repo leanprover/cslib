@@ -12,7 +12,7 @@ private def labeledBlockSeed :=
 #strata
 program Boole;
 
-var x : bv32;
+var x : bv W32;
 
 procedure main() returns ()
 spec {
@@ -30,7 +30,7 @@ spec {
 #end
 
 /-- info:
-Obligation: assert_1_511
+Obligation: assert_1_513
 Property: assert
 Result: ✅ pass-/
 #guard_msgs in

@@ -89,7 +89,14 @@ Result: ✅ pass-/
 #guard_msgs in
 #eval Strata.Boole.verify "cvc5" mutualRecursionSeed (options := .quiet)
 
-theorem mutualRecursionSeed_smtVCsCorrect : Strata.smtVCsCorrectBoole mutualRecursionSeed := by
+-- Open gap: Strata's VC-to-Lean translation has no datatypes yet, so this
+-- program's verification conditions cannot become Lean goals (strata-org/Strata#1480).
+/--
+error: gen_smt_vcs: cannot translate verification condition 'even_body_calls_MyNat..pred_0' to a Lean goal: Error: variable 'Translate.Var.us
+  { name := "MyNat", arity := 0 }' not found in context
+-/
+#guard_msgs in
+example : Strata.smtVCsCorrectBoole mutualRecursionSeed := by
   gen_smt_vcs_boole
   all_goals (first | smt +mono | smt | omega | trivial | grind)
 

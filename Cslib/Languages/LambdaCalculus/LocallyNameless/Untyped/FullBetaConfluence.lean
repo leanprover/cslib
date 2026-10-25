@@ -7,12 +7,13 @@ Authors: Chris Henson
 module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+public import Cslib.Foundations.Relation.Confluence
+
+/-! # β-confluence for the λ-calculus -/
 
 @[expose] public section
 
 set_option linter.unusedDecidableInType false
-
-/-! # β-confluence for the λ-calculus -/
 
 namespace Cslib
 
@@ -202,6 +203,7 @@ theorem para_confluence : Confluent (@Parallel Var) :=
   para_diamond.toConfluent
 
 /-- β-reduction is confluent. -/
+@[wikidata Q1308502]
 theorem confluence_beta : Confluent (@FullBeta Var) := by
   have eq : ReflTransGen (@Parallel Var) = ReflTransGen (@FullBeta Var) := by
     ext

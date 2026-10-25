@@ -90,51 +90,51 @@ spec
 #end
 
 /-- info:
-Obligation: callElimAssert_Partition_requires_2_1039_17
+Obligation: callElimAssert_Partition_requires_2_1039_5
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Partition_requires_3_1058_18
+Obligation: callElimAssert_Partition_requires_3_1058_6
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Quicksort_requires_0_739_10
+Obligation: callElimAssert_Quicksort_requires_0_739_13
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Quicksort_requires_1_758_11
+Obligation: callElimAssert_Quicksort_requires_1_758_14
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Quicksort_requires_0_739_4
+Obligation: callElimAssert_Quicksort_requires_0_739_19
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Quicksort_requires_1_758_5
+Obligation: callElimAssert_Quicksort_requires_1_758_20
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_21_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_21_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_2
+Obligation: insertLoopInvAssert_entry_invariant_loop_21_2
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_21_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_21_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_2
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_21_2
 Property: assert
 Result: ✅ pass
 

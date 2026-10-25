@@ -7,8 +7,7 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Languages.CombinatoryLogic.Defs
-
-@[expose] public section
+public import Cslib.Foundations.Relation.Confluence
 
 /-!
 # SKI reduction is confluent
@@ -38,6 +37,8 @@ confluent in a single step.
 for its reflexive-transitive closure. This closure is exactly `↠`, which implies the
 **Church-Rosser** theorem as sketched above.
 -/
+
+@[expose] public section
 
 namespace Cslib
 
@@ -93,13 +94,9 @@ theorem reflTransGen_parallelReduction_mRed :
   ext a b
   constructor
   · apply Relation.reflTransGen_of_isTrans_reflexive
-    · exact Relation.reflexive_reflTransGen
-    · infer_instance
-    · exact @mRed_of_parallelReduction
+    exact @mRed_of_parallelReduction
   · apply Relation.reflTransGen_of_isTrans_reflexive
-    · exact Relation.reflexive_reflTransGen
-    · infer_instance
-    · exact fun a a' h => Relation.ReflTransGen.single (parallelReduction_of_red h)
+    exact fun a a' h => Relation.ReflTransGen.single (parallelReduction_of_red h)
 
 /-!
 Irreducibility for the (partially applied) primitive combinators.

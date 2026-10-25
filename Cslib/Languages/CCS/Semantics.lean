@@ -10,8 +10,6 @@ public import Cslib.Foundations.Semantics.LTS.HasTau
 public meta import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Languages.CCS.Basic
 
-@[expose] public section
-
 /-! # Semantics of CCS
 
 ## Main definitions
@@ -19,6 +17,8 @@ public import Cslib.Languages.CCS.Basic
 - `CCS.lts`: the `LTS` of CCS.
 
 -/
+
+@[expose] public section
 
 namespace Cslib
 
