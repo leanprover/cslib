@@ -182,7 +182,7 @@ private declare_term_config_elab elabIntegralCyclesConfig IntegralCyclesConfig w
 The `integral_cycles%` term elaborator constructs an integral atom structure from cycle generators.
 You must specify symmetric diversity atoms with `(symm := [a, ...])` and one representative of each
 pair of nonsymmetric atoms with `(nsymm := [b, ...])`. Either may be omitted and for single atoms
-`(symm := a)` is also accepted.
+`(symm := a)` is also accepted. All atom names must be distinct across both options.
 
 After these options, list cycles as space-separated  triples with `(r, s, t)` for `t ≤ r * s`,
 and use postfix `~` for converse. Only diversity atoms appear in these triples: the elaborator
@@ -239,11 +239,31 @@ def elabIntegralCycles : TermElab := fun stx expectedType? => do
       #[mkNatLit config.symm.size, mkNatLit config.nsymm.size, cycles, mask]
     for i in [:3] do
       let type ← whnf (← inferType result)
-      let .forallE _ prop _ _ := type | throwError "expected a certificate"
-      let proof ← if i == 0 then
-        elabTermEnsuringType (← `(by rw [cycleClosure, maskOfFinset_biUnion]; decide)) prop
-      else
-        mkDecideProof prop
+      let .forallE _ prop _ _ := type |
+        throwError "internal error in `integral_cycles%`: unexpected certificate handling"
+      let saved ← Term.saveState
+      let proof ← try
+        withSynthesize do
+          if i == 0 then
+            elabTermEnsuringType
+              (← `((maskOfFinset_biUnion _ _ _).trans (by decide +kernel))) prop
+          else
+            elabTermEnsuringType (← `(by decide +kernel)) prop
+      catch
+        | .error .. =>
+          saved.restore (restoreInfo := true)
+          let mut names : NameSet := ∅
+          for name in config.symm ++ config.nsymm do
+            if names.contains name then throwErrorAt cfg "duplicate atom name '{name}'"
+            names := names.insert name
+          match i with
+          | 0 =>
+            throwError "internal error in `integral_cycles%`: failed to verify the cycle encoding"
+          | 1 =>
+            throwError "`integral_cycles%` could not prove associativity of the generated cycles"
+          | _ =>
+            throwError "`integral_cycles%` could not prove that all generators are diversity cycles"
+        | ex => throw ex
       result := mkApp result proof
     ensureHasType expectedType? result
 
