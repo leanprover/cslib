@@ -17,7 +17,7 @@ public import Mathlib.Tactic.DeriveFintype
 # Integral atom structures
 
 This module abstractly defines the atoms of an integral relation algebra, along with a
-characterization of its identity and non-identity cyles that form an atom structure when
+characterization of its identity and non-identity cycles that form an atom structure when
 shown to be associative.
 
 To concretely construct such an algebra, see the `integral_cycles%` elaborator
