@@ -203,7 +203,7 @@ private def IntegralCyclesConfig.atomExpr (config : IntegralCyclesConfig)
       mkApp4 (mkConst ``IntegralAtom.nsymm) s n (toExpr i) (toExpr isConverse))
   throwErrorAt ref "undeclared atom '{name}'"
 
-/-- Elaborate a theorem's next proof argument, reporting a stage-specific failure. -/
+/-- Elaborate a theorem's next proof argument, reporting the stage and original error on failure. -/
 private def elabIntegralCyclesProof (f : Expr) (proof : Term)
     (errorMessage : MessageData) : TermElabM Expr := do
   let .forallE _ prop _ _ ← whnf (← inferType f) |
@@ -212,9 +212,10 @@ private def elabIntegralCyclesProof (f : Expr) (proof : Term)
   try
     withSynthesize <| elabTermEnsuringType proof prop
   catch
-    | .error .. =>
+    | ex@(.error ..) =>
       saved.restore (restoreInfo := true)
-      throwError errorMessage
+      logError errorMessage
+      throw ex
     | ex => throw ex
 
 /-- Elaborate `integral_cycles%`. -/

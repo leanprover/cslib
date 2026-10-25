@@ -79,12 +79,38 @@ example : AtomStructure (IntegralAtom 1 0) := integral_cycles% (symm := a) (b, a
 example : AtomStructure (IntegralAtom 0 1) := integral_cycles% (nsymm := a) (a, b~, a)
 
 -- Both empty and nonempty generators can fail the associativity check.
-/-- error: `integral_cycles%` could not prove associativity of the generated cycles -/
+/--
+error: `integral_cycles%` could not prove associativity of the generated cycles
+---
+error: Tactic `decide` proved that the proposition
+  (IntegralAtom.checkRows IntegralAtom.conv fun r u =>
+      IntegralAtom.maskRow 17831185 (1 + 2 + 2 * 0) ↑r.atomIndex ↑u.atomIndex) =
+    true
+is false
+-/
 #guard_msgs in
 example : AtomStructure (IntegralAtom 2 0) := integral_cycles% (symm := [a, b])
 
-/-- error: `integral_cycles%` could not prove associativity of the generated cycles -/
+/--
+error: `integral_cycles%` could not prove associativity of the generated cycles
+---
+error: Tactic `decide` proved that the proposition
+  (IntegralAtom.checkRows IntegralAtom.conv fun r u =>
+      IntegralAtom.maskRow 17839377 (1 + 2 + 2 * 0) ↑r.atomIndex ↑u.atomIndex) =
+    true
+is false
+-/
 #guard_msgs in
 example : AtomStructure (IntegralAtom 2 0) := integral_cycles% (symm := [a, b]) (a, a, a)
+
+/--
+error: maximum recursion depth has been reached
+use `set_option maxRecDepth <num>` to increase limit
+use `set_option diagnostics true` to get diagnostic information
+-/
+#guard_msgs in
+set_option maxRecDepth 16 in
+example : AtomStructure (IntegralAtom 1 1) :=
+  integral_cycles% (symm := a) (nsymm := b) (a, b, b~)
 
 end CslibTests
