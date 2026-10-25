@@ -16,8 +16,9 @@ public import Mathlib.Tactic.DeriveFintype
 /-!
 # Integral atom structures
 
-This module abstractly defines the atoms of an integral relation algebra, along with a 
-characterization of its identity and non-identity cyles.
+This module abstractly defines the atoms of an integral relation algebra, along with a
+characterization of its identity and non-identity cyles that form an atom structure when
+shown to be associative.
 
 To concretely construct such an algebra, see the `integral_cycles%` elaborator
 in `Cslib.Foundations.RelationAlgebra.IntegralCycles`.
@@ -104,6 +105,22 @@ theorem cycleClosure_id_cycle (g : Finset (Cycle s n))
   obtain ⟨c, hc, h⟩ := Finset.mem_biUnion.mp h
   simp [cycleOrbit] at h
   grind [conv_conv, conv_one]
+
+/-- Construct an `AtomStructure` from diversity cycle generators whose closure is associative. -/
+def ofCycles (generators : Finset (Cycle s n))
+    (hassoc : ∀ {r q p u t}, (r, q, p) ∈ cycleClosure generators →
+      (u, t, q) ∈ cycleClosure generators →
+      ∃ q', (q', t, p) ∈ cycleClosure generators ∧ (r, u, q') ∈ cycleClosure generators)
+    (hg : ∀ c ∈ generators, let (r, u, t) := c; r ≠ one ∧ u ≠ one ∧ t ≠ one) :
+    AtomStructure (IntegralAtom s n) where
+  conv := conv
+  id := {one}
+  cycles := cycleClosure generators
+  assoc := hassoc
+  id_cycle := by rintro _ _ _ rfl; exact cycleClosure_id_cycle _ hg
+  id_exist r := ⟨one, rfl, cycleClosure_id_exist _ r⟩
+  conv_cycles := cycleClosure_conv_cycles _
+  cycle_left := cycleClosure_cycle_left _
 
 end IntegralAtom
 
