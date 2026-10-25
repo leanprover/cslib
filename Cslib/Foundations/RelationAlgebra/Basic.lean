@@ -134,15 +134,17 @@ def IsIntegral (α : Type*) [RelationAlgebra α] : Prop := IsAtom (1 : α)
 def identityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1}
 
 /-- The set of symmetric diversity atoms, those below the complement of identity. -/
-def symmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a = a}
+def symmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
+  {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a = a}
 
 /-- The set of nonsymmetric diversity atoms. The diversity condition follows from
 `le_compl_one_of_mem_nonsymmetricDiversityAtoms`. -/
-def nonsymmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ star a ≠ a}
+def nonsymmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
+  {a : α | IsAtom a ∧ star a ≠ a}
 
 /-- Every nonsymmetric atom lies below the complement of identity. -/
 theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
-    (h : a ∈ nonsymmetricDiversityAtoms) : a ≤ 1ᶜ := by
+    (h : a ∈ nonsymmetricDiversityAtoms α) : a ≤ 1ᶜ := by
   rw [le_compl_iff_disjoint_right, ← h.1.not_le_iff_disjoint]
   intro ha
   have hstar : a ≤ star a := by calc
