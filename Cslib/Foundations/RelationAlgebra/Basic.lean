@@ -7,6 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Init
+public import Mathlib.Algebra.Order.Monoid.Unbundled.Basic
 public import Mathlib.Algebra.Star.Basic
 public import Mathlib.Order.Atoms
 public import Cslib.Foundations.Order.Huntington
@@ -88,16 +89,21 @@ theorem mul_sup (a b c : α) : a * (b ⊔ c) = a * b ⊔ a * c := by
   apply star_injective
   simp [star_sup, sup_mul]
 
-theorem mul_mono {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) : a * c ≤ b * d := by
-  calc
-    a * c ≤ b * c := by rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr hab]
-    _ ≤ b * d := by rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr hcd]
+instance : MulLeftMono α where
+  elim a b c h := by
+    change a * b ≤ a * c
+    rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr h]
+
+instance : MulRightMono α where
+  elim a b c h := by
+    change b * a ≤ c * a
+    rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr h]
 
 @[simp]
 theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
   apply le_antisymm _ bot_le
   calc
-    a * ⊥ ≤ a * (star a * ⊤)ᶜ := mul_mono le_rfl bot_le
+    a * ⊥ ≤ a * (star a * ⊤)ᶜ := mul_le_mul_right bot_le a
     _ ≤ ⊥ := by simpa using tarski (star a) ⊤
 
 @[simp]
@@ -110,7 +116,7 @@ theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : IsAtom p) (h : p ≤ 
   have hsc : s ≤ (star r * p)ᶜ := le_compl_iff_disjoint_right.mpr (hs.not_le_iff_disjoint.mp hsnot)
   have hc : p ≤ pᶜ := calc
     p ≤ r * s := h
-    _ ≤ r * (star r * p)ᶜ := mul_mono le_rfl hsc
+    _ ≤ r * (star r * p)ᶜ := mul_le_mul_right hsc r
     _ ≤ pᶜ := by simpa using tarski (star r) p
   exact hp.ne_bot (le_compl_self.mp hc)
 
@@ -121,7 +127,7 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ ≤ (a * (b ⊓ star a * c) ⊔ a * (star a * c)ᶜ) ⊓ c := by
       apply inf_le_inf_right
       apply sup_le_sup_left
-      rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr inf_le_right]
+      exact mul_le_mul_right inf_le_right a
     _ ≤ (a * (b ⊓ star a * c) ⊔ cᶜ) ⊓ c := by
       apply inf_le_inf_right
       apply sup_le_sup_left
@@ -152,7 +158,7 @@ theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
   have hstar : a ≤ star a := by calc
      a = a * 1 ⊓ 1 := by rw [mul_one, inf_eq_left.mpr ha]
      _ ≤ a * (1 ⊓ star a * 1) := left_modular a 1 1
-     _ ≤ 1 * (1 ⊓ star a * 1) := by rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr ha]
+     _ ≤ 1 * (1 ⊓ star a * 1) := mul_le_mul_left ha _
      _ = 1 ⊓ star a := by rw [one_mul, mul_one]
      _ ≤ star a := inf_le_right
   have : star a ≤ a := by calc

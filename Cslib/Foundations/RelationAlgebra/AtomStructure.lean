@@ -173,13 +173,13 @@ def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
   assoc {r q p s t} h₁ h₂ := by
     have hp : (p : α) ≤ r * s * t := by
       rw [mul_assoc]
-      exact h₁.trans (mul_mono le_rfl h₂)
+      exact h₁.trans (mul_le_mul_right h₂ _)
     obtain ⟨q', hq', hq'rs, hpq'⟩ := exists_atom_le_mul_left p.property hp
     aesop
   id_cycle {s r p} hs h := by
     ext
     apply (r.property.le_iff_eq p.property.ne_bot).mp
-    simpa using h.trans (mul_mono le_rfl hs)
+    simpa using h.trans (mul_le_mul_right hs _)
   id_exist r := by
     obtain ⟨s, hs, hs1, hrs⟩ := exists_atom_le_mul_right r.property (le_of_eq (mul_one r.val).symm)
     aesop
@@ -204,7 +204,7 @@ noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebr
       obtain ⟨s, hs, hsy, hps⟩ := exists_atom_le_mul_right p.property hpr
       exact ⟨⟨r, hr⟩, hrx, ⟨s, hs⟩, hsy, hps⟩
     · rintro ⟨r, hr, s, hs, h⟩
-      exact h.trans (mul_mono hr hs)
+      exact h.trans (mul_le_mul' hr hs)
   map_star' x := by
     ext p
     constructor
