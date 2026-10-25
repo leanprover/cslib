@@ -133,7 +133,7 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
 def IsIntegral (α : Type*) [RelationAlgebra α] : Prop := IsAtom (1 : α)
 
 /-- The set of identity atoms. -/
-def identityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1}
+def identityAtoms (α : Type*) [RelationAlgebra α] : Set α := {a : α | IsAtom a ∧ a ≤ 1}
 
 /-- The set of symmetric diversity atoms, those below the complement of identity. -/
 def symmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
