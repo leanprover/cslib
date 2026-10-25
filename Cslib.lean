@@ -17,6 +17,7 @@ public import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
 public import Cslib.Algorithms.Lean.Sort.Insertion
 public import Cslib.Algorithms.Lean.Sort.Merge
 public import Cslib.Algorithms.Lean.TimeM
+public import Cslib.Algorithms.Lean.TimeM.Asymptotics
 public import Cslib.Algorithms.StatefulProcesses.DiffieHellman.Basic
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
