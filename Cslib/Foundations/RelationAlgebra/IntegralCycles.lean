@@ -203,12 +203,30 @@ private def IntegralCyclesConfig.atomExpr (config : IntegralCyclesConfig)
       mkApp4 (mkConst ``IntegralAtom.nsymm) s n (toExpr i) (toExpr isConverse))
   throwErrorAt ref "undeclared atom '{name}'"
 
+/-- Elaborate a theorem's next proof argument, reporting a stage-specific failure. -/
+private def elabIntegralCyclesProof (f : Expr) (proof : Term)
+    (errorMessage : MessageData) : TermElabM Expr := do
+  let .forallE _ prop _ _ ← whnf (← inferType f) |
+    throwError "internal error in `integral_cycles%`: unexpected proof handling"
+  let saved ← Term.saveState
+  try
+    withSynthesize <| elabTermEnsuringType proof prop
+  catch
+    | .error .. =>
+      saved.restore (restoreInfo := true)
+      throwError errorMessage
+    | ex => throw ex
+
 /-- Elaborate `integral_cycles%`. -/
 @[no_expose, term_elab integralCycles]
 def elabIntegralCycles : TermElab := fun stx expectedType? => do
   let `(integral_cycles% $cfg:optConfig $[($r $[~%$rc]?, $s $[~%$sc]?, $t $[~%$tc]?)]*) := stx
     | throwUnsupportedSyntax
   let config ← elabIntegralCyclesConfig cfg (logExceptions := false)
+  let mut names : NameSet := ∅
+  for name in config.symm ++ config.nsymm do
+    if names.contains name then throwErrorAt cfg "duplicate atom name '{name}'"
+    names := names.insert name
   let mut cycleTerms : Array Expr := #[]
   let mut generators : Finset (Cycle config.symm.size config.nsymm.size) := ∅
   for r in r, rc in rc, s in s, sc in sc, t in t, tc in tc do
@@ -223,37 +241,17 @@ def elabIntegralCycles : TermElab := fun stx expectedType? => do
   let mut cycles := mkApp (mkConst ``Finset.empty [Level.zero]) (mkApp2 (mkConst ``Cycle) s n)
   for c in cycleTerms.reverse do cycles ← mkAppM ``Insert.insert #[c, cycles]
   withoutErrToSorry <| withSynthesize do
-    let mut result := mkAppN (mkConst ``cycleClosure_assoc_of_checkRows) #[s, n, cycles, mask]
-    for i in [:3] do
-      if i == 2 then result := mkAppN (mkConst ``ofCycles) #[s, n, cycles, result]
-      let type ← whnf (← inferType result)
-      let .forallE _ prop _ _ := type |
-        throwError "internal error in `integral_cycles%`: unexpected certificate handling"
-      let saved ← Term.saveState
-      let proof ← try
-        withSynthesize do
-          if i == 0 then
-            elabTermEnsuringType
-              (← `((maskOfFinset_biUnion _ _ _).trans (by decide +kernel))) prop
-          else
-            elabTermEnsuringType (← `(by decide +kernel)) prop
-      catch
-        | .error .. =>
-          saved.restore (restoreInfo := true)
-          let mut names : NameSet := ∅
-          for name in config.symm ++ config.nsymm do
-            if names.contains name then throwErrorAt cfg "duplicate atom name '{name}'"
-            names := names.insert name
-          match i with
-          | 0 =>
-            throwError "internal error in `integral_cycles%`: failed to verify the cycle encoding"
-          | 1 =>
-            throwError "`integral_cycles%` could not prove associativity of the generated cycles"
-          | _ =>
-            throwError "`integral_cycles%` could not prove that all generators are diversity cycles"
-        | ex => throw ex
-      result := mkApp result proof
-    ensureHasType expectedType? result
+    let assoc := mkAppN (mkConst ``cycleClosure_assoc_of_checkRows) #[s, n, cycles, mask]
+    let hmask ← elabIntegralCyclesProof assoc
+      (← `((maskOfFinset_biUnion _ _ _).trans (by decide +kernel)))
+      "internal error in `integral_cycles%`: failed to verify the cycle encoding"
+    let hcheck ← elabIntegralCyclesProof (mkApp assoc hmask) (← `(by decide +kernel))
+      "`integral_cycles%` could not prove associativity of the generated cycles"
+    let hassoc := mkApp2 assoc hmask hcheck
+    let result := mkAppN (mkConst ``ofCycles) #[s, n, cycles, hassoc]
+    let hdiversity ← elabIntegralCyclesProof result (← `(by decide +kernel))
+      "`integral_cycles%` could not prove that all generators are diversity cycles"
+    ensureHasType expectedType? (mkApp result hdiversity)
 
 end IntegralAtom
 
