@@ -155,25 +155,6 @@ theorem isIntegral_iff : IsIntegral (ComplexAlgebra A) ↔ ∃ a, A.id = {a} :=
 
 end ComplexAlgebra
 
-section Atomic
-
-variable {α : Type*} [RelationAlgebra α]
-
-private theorem exists_atom_le_mul_right [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
-    ∃ s, IsAtom s ∧ s ≤ b ∧ p ≤ a * s := by
-  have hmod : p ≤ a * (b ⊓ star a * p) := by simpa [inf_eq_right.mpr h] using left_modular a b p
-  obtain hb | ⟨s, hs, hsb⟩ := eq_bot_or_exists_atom_le (b ⊓ star a * p)
-  · rw [hb, mul_bot] at hmod
-    exact (hp.ne_bot (le_bot_iff.mp hmod)).elim
-  · use s, hs, hsb.trans inf_le_left
-    simpa using atom_cycle_left hp hs (hsb.trans inf_le_right)
-
-private theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
-    ∃ r, IsAtom r ∧ r ≤ a ∧ p ≤ r * b := by
-  obtain ⟨s, hs, hsa, hps⟩ :=
-    exists_atom_le_mul_right (isAtom_star_iff.mpr hp) (by simpa using star_mono h)
-  exact ⟨star s, isAtom_star_iff.mpr hs, by simpa using star_mono hsa, by simpa using star_mono hps⟩
-
 /-- The atom structure formed by the atoms of an atomic relation algebra. -/
 def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
     AtomStructure {a : α // IsAtom a} where
@@ -196,9 +177,7 @@ def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
   conv_cycles {r s t} h := by
     change star t.val ≤ star s.val * star r.val
     simpa using star_mono h
-  cycle_left {r s t} h := atom_cycle_left s.property t.property h
-
-end Atomic
+  cycle_left {r s t} h := atom_cycle_left s.property t.property.ne_bot h
 
 /-- The isomorphism from a complete atomic relation algebra to the complex algebra of its
 atom structure. -/

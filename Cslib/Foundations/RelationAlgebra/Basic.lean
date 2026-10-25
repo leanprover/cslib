@@ -110,7 +110,7 @@ theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
 theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
   (Equiv.Perm.star.toOrderIso star_mono star_mono).isAtom_iff a
 
-theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : IsAtom p) (h : p ≤ r * s) :
+theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : p ≠ ⊥) (h : p ≤ r * s) :
     s ≤ star r * p := by
   by_contra hsnot
   have hsc : s ≤ (star r * p)ᶜ := le_compl_iff_disjoint_right.mpr (hs.not_le_iff_disjoint.mp hsnot)
@@ -118,7 +118,7 @@ theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : IsAtom p) (h : p ≤ 
     p ≤ r * s := h
     _ ≤ r * (star r * p)ᶜ := mul_le_mul_right hsc r
     _ ≤ pᶜ := by simpa using tarski (star r) p
-  exact hp.ne_bot (le_compl_self.mp hc)
+  simp_all
 
 theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
   calc
@@ -134,6 +134,23 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
       simpa only [star_star] using tarski (star a) c
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
+
+/-- If an atom lies below a product, its right factor can be replaced by an atom below it. -/
+theorem exists_atom_le_mul_right [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
+    ∃ s, IsAtom s ∧ s ≤ b ∧ p ≤ a * s := by
+  have hmod : p ≤ a * (b ⊓ star a * p) := by simpa [inf_eq_right.mpr h] using left_modular a b p
+  obtain hb | ⟨s, hs, hsb⟩ := eq_bot_or_exists_atom_le (b ⊓ star a * p)
+  · rw [hb, mul_bot] at hmod
+    exact (hp.ne_bot (le_bot_iff.mp hmod)).elim
+  · use s, hs, hsb.trans inf_le_left
+    simpa using atom_cycle_left hp hs.ne_bot (hsb.trans inf_le_right)
+
+/-- If an atom lies below a product, its left factor can be replaced by an atom below it. -/
+theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
+    ∃ r, IsAtom r ∧ r ≤ a ∧ p ≤ r * b := by
+  obtain ⟨s, hs, hsa, hps⟩ :=
+    exists_atom_le_mul_right (isAtom_star_iff.mpr hp) (by simpa using star_mono h)
+  exact ⟨star s, isAtom_star_iff.mpr hs, by simpa using star_mono hsa, by simpa using star_mono hps⟩
 
 /-- A relation algebra is *integral* when its identity is an atom. -/
 def IsIntegral (α : Type*) [RelationAlgebra α] : Prop := IsAtom (1 : α)
