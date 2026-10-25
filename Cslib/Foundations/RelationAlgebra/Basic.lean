@@ -7,6 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Init
+public import Mathlib.Algebra.Order.Monoid.Unbundled.Basic
 public import Mathlib.Algebra.Star.Basic
 public import Mathlib.Order.Atoms
 public import Cslib.Foundations.Order.Huntington
@@ -36,6 +37,13 @@ class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul
   sup_mul (a b c : α) : (a ⊔ b) * c = a * c ⊔ b * c
   star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
   tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
+
+/-- The relation algebra of a complete Boolean algebra. -/
+class CompleteRelationAlgebra (α : Type*) extends RelationAlgebra α, CompleteBooleanAlgebra α
+
+/-- The relation algebra of a complete and atomic Boolean algebra. -/
+class CompleteAtomicRelationAlgebra (α : Type*) extends CompleteRelationAlgebra α,
+    CompleteAtomicBooleanAlgebra α
 
 namespace RelationAlgebra
 
@@ -81,6 +89,37 @@ theorem mul_sup (a b c : α) : a * (b ⊔ c) = a * b ⊔ a * c := by
   apply star_injective
   simp [star_sup, sup_mul]
 
+instance : MulLeftMono α where
+  elim a b c h := by
+    change a * b ≤ a * c
+    rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr h]
+
+instance : MulRightMono α where
+  elim a b c h := by
+    change b * a ≤ c * a
+    rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr h]
+
+@[simp]
+theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
+  apply le_antisymm _ bot_le
+  calc
+    a * ⊥ ≤ a * (star a * ⊤)ᶜ := mul_le_mul_right bot_le a
+    _ ≤ ⊥ := by simpa using tarski (star a) ⊤
+
+@[simp]
+theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
+  (Equiv.Perm.star.toOrderIso star_mono star_mono).isAtom_iff a
+
+theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : p ≠ ⊥) (h : p ≤ r * s) :
+    s ≤ star r * p := by
+  by_contra hsnot
+  have hsc : s ≤ (star r * p)ᶜ := le_compl_iff_disjoint_right.mpr (hs.not_le_iff_disjoint.mp hsnot)
+  have hc : p ≤ pᶜ := calc
+    p ≤ r * s := h
+    _ ≤ r * (star r * p)ᶜ := mul_le_mul_right hsc r
+    _ ≤ pᶜ := by simpa using tarski (star r) p
+  simp_all
+
 theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
   calc
     a * b ⊓ c = (a * (b ⊓ star a * c) ⊔ a * (b ⊓ (star a * c)ᶜ)) ⊓ c := by
@@ -88,7 +127,7 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ ≤ (a * (b ⊓ star a * c) ⊔ a * (star a * c)ᶜ) ⊓ c := by
       apply inf_le_inf_right
       apply sup_le_sup_left
-      rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr inf_le_right]
+      exact mul_le_mul_right inf_le_right a
     _ ≤ (a * (b ⊓ star a * c) ⊔ cᶜ) ⊓ c := by
       apply inf_le_inf_right
       apply sup_le_sup_left
@@ -96,28 +135,47 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
 
+/-- If an atom lies below a product, its right factor can be replaced by an atom below it. -/
+theorem exists_atom_le_mul_right [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
+    ∃ s, IsAtom s ∧ s ≤ b ∧ p ≤ a * s := by
+  have hmod : p ≤ a * (b ⊓ star a * p) := by simpa [inf_eq_right.mpr h] using left_modular a b p
+  obtain hb | ⟨s, hs, hsb⟩ := eq_bot_or_exists_atom_le (b ⊓ star a * p)
+  · rw [hb, mul_bot] at hmod
+    exact (hp.ne_bot (le_bot_iff.mp hmod)).elim
+  · use s, hs, hsb.trans inf_le_left
+    simpa using atom_cycle_left hp hs.ne_bot (hsb.trans inf_le_right)
+
+/-- If an atom lies below a product, its left factor can be replaced by an atom below it. -/
+theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
+    ∃ r, IsAtom r ∧ r ≤ a ∧ p ≤ r * b := by
+  obtain ⟨s, hs, hsa, hps⟩ :=
+    exists_atom_le_mul_right (isAtom_star_iff.mpr hp) (by simpa using star_mono h)
+  exact ⟨star s, isAtom_star_iff.mpr hs, by simpa using star_mono hsa, by simpa using star_mono hps⟩
+
 /-- A relation algebra is *integral* when its identity is an atom. -/
-def Integral : Prop := IsAtom (1 : α)
+def IsIntegral (α : Type*) [RelationAlgebra α] : Prop := IsAtom (1 : α)
 
 /-- The set of identity atoms. -/
-def IdentityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1}
+def identityAtoms (α : Type*) [RelationAlgebra α] : Set α := {a : α | IsAtom a ∧ a ≤ 1}
 
 /-- The set of symmetric diversity atoms, those below the complement of identity. -/
-def SymmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a = a}
+def symmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
+  {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a = a}
 
 /-- The set of nonsymmetric diversity atoms. The diversity condition follows from
 `le_compl_one_of_mem_nonsymmetricDiversityAtoms`. -/
-def NonsymmetricDiversityAtoms : Set α := {a : α | IsAtom a ∧ star a ≠ a}
+def nonsymmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
+  {a : α | IsAtom a ∧ star a ≠ a}
 
 /-- Every nonsymmetric atom lies below the complement of identity. -/
 theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
-    (h : a ∈ NonsymmetricDiversityAtoms) : a ≤ 1ᶜ := by
+    (h : a ∈ nonsymmetricDiversityAtoms α) : a ≤ 1ᶜ := by
   rw [le_compl_iff_disjoint_right, ← h.1.not_le_iff_disjoint]
   intro ha
   have hstar : a ≤ star a := by calc
      a = a * 1 ⊓ 1 := by rw [mul_one, inf_eq_left.mpr ha]
      _ ≤ a * (1 ⊓ star a * 1) := left_modular a 1 1
-     _ ≤ 1 * (1 ⊓ star a * 1) := by rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr ha]
+     _ ≤ 1 * (1 ⊓ star a * 1) := mul_le_mul_left ha _
      _ = 1 ⊓ star a := by rw [one_mul, mul_one]
      _ ≤ star a := inf_le_right
   have : star a ≤ a := by calc
