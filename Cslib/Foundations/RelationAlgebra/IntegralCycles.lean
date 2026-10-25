@@ -25,7 +25,7 @@ to roughly four to five atoms.
 
 -/
 
-@[expose] public section
+@[expose] public meta section
 
 namespace Cslib.RelationAlgebra
 namespace IntegralAtom
@@ -144,17 +144,6 @@ theorem cycleClosure_assoc_of_checkRows (generators : Finset (Cycle s n)) (mask 
     obtain ⟨a, ha⟩ := atomIndex_surjective ⟨i, lt_of_maskRow_testBit hi⟩
     exact ⟨a, congrArg Fin.val ha⟩
 
-/-- Construct an `AtomStructure` from cycle generators using a bitmask associativity check. -/
-def ofCyclesOfCheckRows (generators : Finset (Cycle s n)) (mask : ℕ)
-    (hmask : maskOfFinset cycleIndex (cycleClosure generators) = mask)
-    (hcheck : checkRows (α := IntegralAtom s n) conv
-      (fun r u => maskRow mask (1 + s + 2 * n) (atomIndex r) (atomIndex u)))
-    (hg : ∀ c ∈ generators, let (r, u, t) := c; r ≠ one ∧ u ≠ one ∧ t ≠ one) :
-    AtomStructure (IntegralAtom s n) :=
-  ofCycles generators (cycleClosure_assoc_of_checkRows generators mask hmask hcheck) hg
-
-public meta section
-
 open Lean Elab Term Meta Parser Tactic
 
 /-- Options for `integral_cycles%`. -/
@@ -214,7 +203,6 @@ private def IntegralCyclesConfig.atomExpr (config : IntegralCyclesConfig)
       mkApp4 (mkConst ``IntegralAtom.nsymm) s n (toExpr i) (toExpr isConverse))
   throwErrorAt ref "undeclared atom '{name}'"
 
-set_option compiler.relaxedMetaCheck true in
 /-- Elaborate `integral_cycles%`. -/
 @[no_expose, term_elab integralCycles]
 def elabIntegralCycles : TermElab := fun stx expectedType? => do
@@ -235,9 +223,9 @@ def elabIntegralCycles : TermElab := fun stx expectedType? => do
   let mut cycles := mkApp (mkConst ``Finset.empty [Level.zero]) (mkApp2 (mkConst ``Cycle) s n)
   for c in cycleTerms.reverse do cycles ← mkAppM ``Insert.insert #[c, cycles]
   withoutErrToSorry <| withSynthesize do
-    let mut result := mkAppN (mkConst ``ofCyclesOfCheckRows)
-      #[mkNatLit config.symm.size, mkNatLit config.nsymm.size, cycles, mask]
+    let mut result := mkAppN (mkConst ``cycleClosure_assoc_of_checkRows) #[s, n, cycles, mask]
     for i in [:3] do
+      if i == 2 then result := mkAppN (mkConst ``ofCycles) #[s, n, cycles, result]
       let type ← whnf (← inferType result)
       let .forallE _ prop _ _ := type |
         throwError "internal error in `integral_cycles%`: unexpected certificate handling"
@@ -266,8 +254,6 @@ def elabIntegralCycles : TermElab := fun stx expectedType? => do
         | ex => throw ex
       result := mkApp result proof
     ensureHasType expectedType? result
-
-end
 
 end IntegralAtom
 
