@@ -7,6 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.Hom
+public import Mathlib.Data.Fintype.Powerset
 public import Mathlib.Order.BooleanAlgebra.Set
 
 /-!
@@ -73,7 +74,10 @@ def equivSet : ComplexAlgebra A ≃ Set α where
 
 instance : Membership α (ComplexAlgebra A) := ⟨fun s a => a ∈ s.carrier⟩
 
-instance : BooleanAlgebra (ComplexAlgebra A) := (equivSet A).booleanAlgebra
+instance : CompleteAtomicBooleanAlgebra (ComplexAlgebra A) :=
+  (equivSet A).completeAtomicBooleanAlgebra
+
+instance [Finite α] : Finite (ComplexAlgebra A) := Finite.of_equiv (Set α) (equivSet A).symm
 
 /-- Order isomorphism with the powerset of the atom type. -/
 def orderIsoSet : ComplexAlgebra A ≃o Set α where
@@ -142,6 +146,8 @@ instance : RelationAlgebra (ComplexAlgebra A) where
     apply hs
     refine ⟨a, ha, t, ht, ?_⟩
     simpa using A.cycle_left h
+
+instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 
 end ComplexAlgebra
 
