@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
+public import Cslib.Foundations.RelationAlgebra.IntegralCycles
 public import Mathlib.Data.Fin.VecNotation
 public import Mathlib.SetTheory.Cardinal.Finite
 
