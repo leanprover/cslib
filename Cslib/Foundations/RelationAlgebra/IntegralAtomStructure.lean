@@ -268,8 +268,8 @@ private declare_term_config_elab elabIntegralCyclesConfig IntegralCyclesConfig w
 
 /--
 The `integral_cycles%` term elaborator constructs an integral atom structure from cycle generators.
-You must symmetric diversity atoms with `(symm := [a, ...])` and one representative of each pair of
-nonsymmetric atoms with `(nsymm := [b, ...])`. Either may be omitted and for single atoms 
+You must specify symmetric diversity atoms with `(symm := [a, ...])` and one representative of each
+pair of nonsymmetric atoms with `(nsymm := [b, ...])`. Either may be omitted and for single atoms
 `(symm := a)` is also accepted.
 
 After these options, list cycles as space-separated  triples with `(r, s, t)` for `t ≤ r * s`,
