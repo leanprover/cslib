@@ -122,6 +122,12 @@ def ofCycles (generators : Finset (Cycle s n))
   conv_cycles := cycleClosure_conv_cycles _
   cycle_left := cycleClosure_cycle_left _
 
+/-- The complex algebra constructed from diversity cycles is integral. -/
+@[simp]
+theorem isIntegral_ofCycles (generators : Finset (Cycle s n)) (hassoc) (hg) :
+    IsIntegral (ComplexAlgebra (ofCycles generators hassoc hg)) :=
+  (ComplexAlgebra.isIntegral_iff _).mpr ⟨one, rfl⟩
+
 end IntegralAtom
 
 end Cslib.RelationAlgebra

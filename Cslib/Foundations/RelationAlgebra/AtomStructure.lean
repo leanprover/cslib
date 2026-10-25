@@ -149,6 +149,10 @@ instance : RelationAlgebra (ComplexAlgebra A) where
 
 instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 
+/-- A complex algebra is integral exactly when its identity set is a singleton. -/
+theorem isIntegral_iff : IsIntegral (ComplexAlgebra A) ↔ ∃ a, A.id = {a} :=
+  ((orderIsoSet A).isAtom_iff (1 : ComplexAlgebra A)).symm.trans Set.isAtom_iff
+
 end ComplexAlgebra
 
 section Atomic
