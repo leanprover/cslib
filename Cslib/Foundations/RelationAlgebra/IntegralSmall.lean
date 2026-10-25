@@ -37,8 +37,8 @@ def oneSymm : Fin 2 → AtomStructure (IntegralAtom 1 0) :=
 
 /-- The three atom structures with one pair of nonsymmetric atoms. -/
 def oneConv : Fin 3 → AtomStructure (IntegralAtom 0 1) :=
-  ![integral_cycles% (nsymm := a) (a, a, a),
-    integral_cycles% (nsymm := a) (a, a, a~),
+  ![integral_cycles% (nsymm := a) (a, a, a~),
+    integral_cycles% (nsymm := a) (a, a, a),
     integral_cycles% (nsymm := a) (a, a, a~) (a, a, a)]
 
 /-- The seven atom structures with two symmetric diversity atoms. -/

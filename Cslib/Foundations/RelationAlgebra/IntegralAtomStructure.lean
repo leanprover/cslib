@@ -54,16 +54,16 @@ def conv : IntegralAtom s n → IntegralAtom s n
   | symm i => symm i
   | nsymm i b => nsymm i (!b)
 
-/-- A an integral cycle is a triple of integral atoms. -/
+/-- An integral cycle is a triple of integral atoms. -/
 abbrev Cycle (s n : ℕ) := IntegralAtom s n × IntegralAtom s n × IntegralAtom s n
 
-/-- The "Peircean" orbit of a cycle. " -/
+/-- The Peircean orbit of a cycle under the converse and cycle rules. -/
 def cycleOrbit : Cycle s n → Finset (Cycle s n)
   | (r, u, t) =>
     {(r, u, t), (conv u, conv r, conv t), (conv r, t, u),
       (conv t, r, conv u), (u, conv t, conv r), (t, conv u, r)}
 
-/-- A cycle orbit along with all identity cycles. -/
+/-- The union of the Peircean orbits of the generators and all identity cycles. -/
 def cycleClosure (generators : Finset (Cycle s n)) : Finset (Cycle s n) :=
   (generators ∪ Finset.univ.image (fun a => (one, a, a))).biUnion cycleOrbit
 
@@ -225,7 +225,7 @@ theorem cycleClosure_assoc_of_checkRows (generators : Finset (Cycle s n)) (mask 
     obtain ⟨a, ha⟩ := atomIndex_surjective ⟨i, lt_of_maskRow_testBit hi⟩
     exact ⟨a, congrArg Fin.val ha⟩
 
-/-- Construction of a `AtomStructure` from a set of generators and compatible mask. -/
+/-- Construction of an `AtomStructure` from a set of generators and a compatible mask. -/
 def ofCycles (generators : Finset (Cycle s n)) (mask : ℕ)
     (hmask : maskOfFinset cycleIndex (cycleClosure generators) = mask)
     (hcheck : checkRows (α := IntegralAtom s n) conv
@@ -245,11 +245,11 @@ public meta section
 
 open Lean Elab Term Meta Parser Tactic
 
-/-- Options for `integral_cycles%` -/
+/-- Options for `integral_cycles%`. -/
 structure IntegralCyclesConfig where
-  /-- names of symmetric atoms -/
+  /-- Names of symmetric diversity atoms. -/
   symm : Array Name := #[]
-  /-- names of nonsymmetric atoms -/
+  /-- Names of one representative from each pair of nonsymmetric atoms. -/
   nsymm : Array Name := #[]
 
 /-- Elaborate an atom name. -/
@@ -266,16 +266,29 @@ private declare_term_config_elab elabIntegralCyclesConfig IntegralCyclesConfig w
   option symm := fun cfg item => return { cfg with symm := ← elabIntegralCycleNames item }
   option nsymm := fun cfg item => return { cfg with nsymm := ← elabIntegralCycleNames item }
 
-/-- 
-The `integral_cycles%` term elaborator alows constructing a relation algebra from its cycles. You
-must specify `(symm := [a, ...])` and `(nsymm := [b, ...])` then list tuples of cycles, using `~`
-for the postfix converse operation. This will prove that the given atom structure is lawful,
-from which a `RelationAlgebra` instance can be synthesized.
+/--
+The `integral_cycles%` term elaborator constructs an integral atom structure from cycle generators.
+You must symmetric diversity atoms with `(symm := [a, ...])` and one representative of each pair of
+nonsymmetric atoms with `(nsymm := [b, ...])`. Either may be omitted and for single atoms 
+`(symm := a)` is also accepted.
+
+After these options, list cycles as space-separated  triples with `(r, s, t)` for `t ≤ r * s`,
+and use postfix `~` for converse. Only diversity atoms appear in these triples: the elaborator
+inserts all identity cycles automatically and calculates the closure.
+
+The elaborator checks the atom-structure axioms and returns an `AtomStructure (IntegralAtom s n)`,
+where `s` and `n` are the lengths of the two lists. Its `ComplexAlgebra` has a `RelationAlgebra`
+instance. For example:
+
+```lean
+example : AtomStructure (IntegralAtom 1 1) :=
+  integral_cycles% (symm := a) (nsymm := b) (a, b, b~)
+```
 -/
 syntax (name := integralCycles) "integral_cycles%" optConfig
   ("(" ident ("~")? "," ident ("~")? "," ident ("~")? ")")* : term
 
-/-- Elaborate an `IntegralAtom` from `integral_cycles%` -/
+/-- Elaborate an `IntegralAtom` from `integral_cycles%`. -/
 private def IntegralCyclesConfig.atomExpr (config : IntegralCyclesConfig)
     (ref : Ident) (isConverse : Bool) :
     TermElabM (IntegralAtom config.symm.size config.nsymm.size × Expr) := do
@@ -290,7 +303,7 @@ private def IntegralCyclesConfig.atomExpr (config : IntegralCyclesConfig)
   throwErrorAt ref "undeclared atom '{name}'"
 
 set_option compiler.relaxedMetaCheck true in
-/-- Elaborate `integral_cycles%` -/
+/-- Elaborate `integral_cycles%`. -/
 @[no_expose, term_elab integralCycles]
 def elabIntegralCycles : TermElab := fun stx expectedType? => do
   let `(integral_cycles% $cfg:optConfig $[($r $[~%$rc]?, $s $[~%$sc]?, $t $[~%$tc]?)]*) := stx
