@@ -191,6 +191,7 @@ public import Cslib.Foundations.Relation.Preserves
 public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
+public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Pi
