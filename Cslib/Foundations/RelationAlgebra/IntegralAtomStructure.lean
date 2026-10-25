@@ -54,13 +54,16 @@ def conv : IntegralAtom s n → IntegralAtom s n
   | symm i => symm i
   | nsymm i b => nsymm i (!b)
 
+/-- A an integral cycle is a triple of integral atoms. -/
 abbrev Cycle (s n : ℕ) := IntegralAtom s n × IntegralAtom s n × IntegralAtom s n
 
+/-- The "Peircean" orbit of a cycle. " -/
 def cycleOrbit : Cycle s n → Finset (Cycle s n)
   | (r, u, t) =>
     {(r, u, t), (conv u, conv r, conv t), (conv r, t, u),
       (conv t, r, conv u), (u, conv t, conv r), (t, conv u, r)}
 
+/-- A cycle orbit along with all identity cycles. -/
 def cycleClosure (generators : Finset (Cycle s n)) : Finset (Cycle s n) :=
   (generators ∪ Finset.univ.image (fun a => (one, a, a))).biUnion cycleOrbit
 
@@ -105,6 +108,7 @@ theorem cycleClosure_id_cycle (g : Finset (Cycle s n))
   simp [cycleOrbit] at h
   grind [conv_conv, conv_one]
 
+/-- A natural number indexing of integral atoms. -/
 def atomIndex : IntegralAtom s n → Fin (1 + s + 2 * n)
   | .one => ⟨0, by lia⟩
   | .symm i => ⟨i + 1, by lia⟩
@@ -123,6 +127,7 @@ theorem atomIndex_surjective : Function.Surjective (@atomIndex s n) := by
   refine ⟨.nsymm ⟨(i - s) / 2, by lia⟩ (decide ((i - s) % 2 = 1)), ?_⟩
   grind [atomIndex, Bool.toNat]
 
+/-- The embedding from cycles to natural numbers. -/
 def cycleIndex : Cycle s n ↪ ℕ where
   toFun := fun (r, u, t) =>
     ((atomIndex r : ℕ) * (1 + s + 2 * n) + atomIndex u) * (1 + s + 2 * n) + atomIndex t
@@ -135,6 +140,7 @@ def cycleIndex : Cycle s n ↪ ℕ where
     · exact atomIndex_injective hu
     · exact atomIndex_injective ht
 
+/-- Fold over a finset to get a bitmask encoding. -/
 def maskOfFinset {α : Type*} (code : α → ℕ) (xs : Finset α) : ℕ := xs.fold (· ||| ·) 0 (2 ^ code ·)
 
 theorem testBit_maskOfFinset_iff {α : Type*} (code : α → ℕ) (xs : Finset α) (i : ℕ) :
@@ -158,6 +164,7 @@ theorem maskOfFinset_biUnion {α β : Type*} [DecidableEq β]
   rw [Finset.fold_op_rel_iff_or (r := fun i => (Nat.testBit · i))] <;>
     grind [testBit_maskOfFinset_iff]
 
+/-- An equivalent characterization of associativity using bitmasks. -/
 def checkRows {α : Type*} [Fintype α] (conv : α → α) (row : α → α → Nat) : Bool :=
   Finset.univ.inf fun r =>
     Finset.univ.inf fun s =>
@@ -184,6 +191,7 @@ theorem assoc_of_checkRows {α : Type*} [Fintype α] (cycles : Set (α × α × 
   obtain ⟨i, hi⟩ := Nat.exists_testBit_of_ne_zero this
   grind
 
+/-- Extract particular bits from the encoding. -/
 def maskRow (mask count r s : Nat) : Nat :=
   (mask >>> ((r * count + s) * count)) &&& (2 ^ count - 1)
 
@@ -217,6 +225,7 @@ theorem cycleClosure_assoc_of_checkRows (generators : Finset (Cycle s n)) (mask 
     obtain ⟨a, ha⟩ := atomIndex_surjective ⟨i, lt_of_maskRow_testBit hi⟩
     exact ⟨a, congrArg Fin.val ha⟩
 
+/-- Construction of a `AtomStructure` from a set of generators and compatible mask. -/
 def ofCycles (generators : Finset (Cycle s n)) (mask : ℕ)
     (hmask : maskOfFinset cycleIndex (cycleClosure generators) = mask)
     (hcheck : checkRows (α := IntegralAtom s n) conv
@@ -236,10 +245,14 @@ public meta section
 
 open Lean Elab Term Meta Parser Tactic
 
+/-- Options for `integral_cycles%` -/
 structure IntegralCyclesConfig where
+  /-- names of symmetric atoms -/
   symm : Array Name := #[]
+  /-- names of nonsymmetric atoms -/
   nsymm : Array Name := #[]
 
+/-- Elaborate an atom name. -/
 private def elabIntegralCycleNames (item : ConfigEval.ConfigItem) : TermElabM (Array Name) := do
   item.checkNotBool
   match item.value with
@@ -253,9 +266,16 @@ private declare_term_config_elab elabIntegralCyclesConfig IntegralCyclesConfig w
   option symm := fun cfg item => return { cfg with symm := ← elabIntegralCycleNames item }
   option nsymm := fun cfg item => return { cfg with nsymm := ← elabIntegralCycleNames item }
 
+/-- 
+The `integral_cycles%` term elaborator alows constructing a relation algebra from its cycles. You
+must specify `(symm := [a, ...])` and `(nsymm := [b, ...])` then list tuples of cycles, using `~`
+for the postfix converse operation. This will prove that the given atom structure is lawful,
+from which a `RelationAlgebra` instance can be synthesized.
+-/
 syntax (name := integralCycles) "integral_cycles%" optConfig
   ("(" ident ("~")? "," ident ("~")? "," ident ("~")? ")")* : term
 
+/-- Elaborate an `IntegralAtom` from `integral_cycles%` -/
 private def IntegralCyclesConfig.atomExpr (config : IntegralCyclesConfig)
     (ref : Ident) (isConverse : Bool) :
     TermElabM (IntegralAtom config.symm.size config.nsymm.size × Expr) := do
@@ -270,6 +290,7 @@ private def IntegralCyclesConfig.atomExpr (config : IntegralCyclesConfig)
   throwErrorAt ref "undeclared atom '{name}'"
 
 set_option compiler.relaxedMetaCheck true in
+/-- Elaborate `integral_cycles%` -/
 @[no_expose, term_elab integralCycles]
 def elabIntegralCycles : TermElab := fun stx expectedType? => do
   let `(integral_cycles% $cfg:optConfig $[($r $[~%$rc]?, $s $[~%$sc]?, $t $[~%$tc]?)]*) := stx

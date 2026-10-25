@@ -37,8 +37,10 @@ class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul
   star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
   tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
 
+/-- The relation algebra of a complete Boolean algebra. -/
 class CompleteRelationAlgebra (α : Type*) extends RelationAlgebra α, CompleteBooleanAlgebra α
 
+/-- The relation algebra of a complete and atomic Boolean algebra. -/
 class CompleteAtomicRelationAlgebra (α : Type*) extends CompleteRelationAlgebra α,
     CompleteAtomicBooleanAlgebra α
 

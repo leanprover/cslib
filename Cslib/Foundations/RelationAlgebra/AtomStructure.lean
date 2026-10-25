@@ -13,7 +13,7 @@ public import Mathlib.Order.BooleanAlgebra.Set
 # Atom structures
 
 The relation algebra characterized by its atoms. This has a relatively minimal API as it will mostly
-be used as an implementation detail for other methods of constructing a relation algebra.
+be used for constructing a relation algebra.
 
 ## References
 
@@ -30,8 +30,12 @@ The atom structure of a relation algebra in this axiomatic form (rather than as 
 an existing instance) so that this can be used to construct a `RelationAlgebra` from its cycles.
 -/
 structure AtomStructure (α : Type*) where
+  /-- The converse operation. While this can also be formulated as a relation, it is conveinient to 
+    present as a function for stating the cycle rules. -/
   conv : α → α
+  /-- The set of identity atoms. -/
   id : Set α
+  /-- The set of atom cyles, where (r, s, t) requires that `t ≤ r * s` -/
   cycles : Set (α × α × α)
   assoc : (r, q, p) ∈ cycles → (s, t, q) ∈ cycles → ∃ q', (q', t, p) ∈ cycles ∧ (r, s, q') ∈ cycles
   id_cycle : s ∈ id → (r, s, p) ∈ cycles → p = r
@@ -52,15 +56,16 @@ theorem conv_eq_self_of_mem_id {r : α} (hr : r ∈ A.id) : A.conv r = r := by
 
 end AtomStructure
 
-/-- The complex relation algebra of an atom structure. "Complex" here is in the standard but archaic
-  sense meaning subset. -/
+/-- The complex relation algebra of an atom structure. "Complex" here is older sense of subset. -/
 structure ComplexAlgebra {α : Type*} (A : AtomStructure α) where
+  /-- The underlying set. -/
   carrier : Set α
 
 namespace ComplexAlgebra
 
 variable {α : Type*} (A : AtomStructure α)
 
+/-- Equivalence with the carrier set. -/
 def equivSet : ComplexAlgebra A ≃ Set α where
   toFun := carrier
   invFun := mk
@@ -71,6 +76,7 @@ instance : Membership α (ComplexAlgebra A) := ⟨fun s a => a ∈ s.carrier⟩
 
 instance : BooleanAlgebra (ComplexAlgebra A) := (equivSet A).booleanAlgebra
 
+/-- Order isomorphism with the carrier set. -/
 def orderIsoSet : ComplexAlgebra A ≃o Set α where
   toEquiv := equivSet A
   map_rel_iff' := Iff.rfl
@@ -159,6 +165,7 @@ private theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom 
     exists_atom_le_mul_right (isAtom_star_iff.mpr hp) (by simpa using star_mono h)
   exact ⟨star s, isAtom_star_iff.mpr hs, by simpa using star_mono hsa, by simpa using star_mono hps⟩
 
+/-- The atom structure formed by the atoms of an atomic relation algebra. -/
 def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
     AtomStructure {a : α // IsAtom a} where
   conv a := ⟨star a.val, isAtom_star_iff.mpr a.property⟩
@@ -184,6 +191,7 @@ def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
 
 end Atomic
 
+/-- The isomorphism between a relation algebra and its atoms. -/
 noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebra α] :
     RelationAlgebraEquiv α (ComplexAlgebra (atomStructure α)) where
   toOrderIso := CompleteAtomicBooleanAlgebra.toSetOfIsAtom.trans
