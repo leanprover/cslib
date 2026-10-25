@@ -5,6 +5,7 @@ Authors: Chris Henson
 -/
 
 import Cslib.Foundations.RelationAlgebra.IntegralCycles
+import Cslib.Foundations.RelationAlgebra.IntegralSmall
 
 /-! Tests for the `integral_cycles%` elaborator and its diagnostics. -/
 
@@ -28,6 +29,28 @@ example : AtomStructure (IntegralAtom 0 1) :=
 
 example : AtomStructure (IntegralAtom 1 1) :=
   integral_cycles% (symm := a) (nsymm := b) (a, b, b~)
+
+--- check that a few small relation algebras have the cycles we expected
+section OneConv
+
+open IntegralAtom
+
+theorem oneConv_zero_diversity_cycles : ∀ (b c d : Bool),
+    (nsymm 0 b, nsymm 0 c, nsymm 0 d) ∈ (oneConv 0).cycles ↔ b = c ∧ d = !b := by
+  dsimp [oneConv, ofCycles]
+  decide +kernel
+
+theorem oneConv_one_diversity_cycles : ∀ (b c d : Bool),
+    (nsymm 0 b, nsymm 0 c, nsymm 0 d) ∈ (oneConv 1).cycles ↔ b ≠ c ∨ d = b := by
+  dsimp [oneConv, ofCycles]
+  decide +kernel
+
+theorem oneConv_two_diversity_cycles : ∀ (b c d : Bool),
+    (nsymm 0 b, nsymm 0 c, nsymm 0 d) ∈ (oneConv 2).cycles := by
+  dsimp [oneConv, ofCycles]
+  decide +kernel
+
+end OneConv
 
 -- Atom names must be unique, including across the two options.
 /-- error: duplicate atom name 'a' -/
