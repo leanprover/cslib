@@ -188,6 +188,9 @@ public import Cslib.Foundations.Relation.Termination
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
+public import Cslib.Foundations.RelationAlgebra.IntegralCycles
+public import Cslib.Foundations.RelationAlgebra.IntegralSmall
 public import Cslib.Foundations.RelationAlgebra.Pi
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.Semantics.FLTS.Basic
