@@ -7,8 +7,10 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
+public import Mathlib.Combinatorics.Colex
 
 public meta import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
+public meta import Mathlib.Combinatorics.Colex
 public meta import Mathlib.Data.Finset.Fold
 public meta import Mathlib.Data.Fintype.Sigma
 public meta import Mathlib.Data.Fintype.Sum
@@ -62,19 +64,13 @@ def cycleIndex : Cycle s n ↪ ℕ where
     · exact atomIndex_injective hu
     · exact atomIndex_injective ht
 
-/-- Fold over a finset to get a bitmask encoding. -/
-def maskOfFinset {α : Type*} (code : α → ℕ) (xs : Finset α) : ℕ := xs.fold (· ||| ·) 0 (2 ^ code ·)
+/-- Encode a finset using `Finset.equivBitIndices` on its image under `code`. -/
+def maskOfFinset {α : Type*} (code : α → ℕ) (xs : Finset α) : ℕ :=
+  Finset.equivBitIndices.symm (xs.image code)
 
 theorem testBit_maskOfFinset_iff {α : Type*} (code : α → ℕ) (xs : Finset α) (i : ℕ) :
     (maskOfFinset code xs).testBit i = true ↔ ∃ a ∈ xs, code a = i := by
-  unfold maskOfFinset
-  rw [Finset.fold_op_rel_iff_or (r := fun i => (Nat.testBit · i))] <;> grind
-
-theorem testBit_maskOfFinset {α : Type*} (code : α → ℕ) (hinj : Function.Injective code)
-    (xs : Finset α) (a : α) :
-    (maskOfFinset code xs).testBit (code a) = true ↔ a ∈ xs := by
-  rw [testBit_maskOfFinset_iff]
-  simp [hinj.eq_iff]
+  simp [maskOfFinset, ← Nat.mem_bitIndices, ← List.mem_toFinset]
 
 theorem maskOfFinset_biUnion {α β : Type*} [DecidableEq β]
     (code : β → ℕ) (xs : Finset α) (f : α → Finset β) :
@@ -141,8 +137,9 @@ theorem cycleClosure_assoc_of_checkRows (generators : Finset (Cycle s n)) (mask 
       cycleClosure_conv_cycles _ (cycleClosure_cycle_left _ (cycleClosure_conv_cycles _ h))
   · intro r u t
     rw [Function.comp_apply, maskRow_testBit _ _ _ _ _ (atomIndex t).is_lt, ← hmask]
-    exact (testBit_maskOfFinset cycleIndex cycleIndex.injective
-      (cycleClosure generators) (r, u, t)).symm
+    change (r, u, t) ∈ cycleClosure generators ↔
+      (maskOfFinset cycleIndex (cycleClosure generators)).testBit (cycleIndex (r, u, t))
+    simp [testBit_maskOfFinset_iff]
   · intro r u i hi
     obtain ⟨a, ha⟩ := atomIndex_surjective ⟨i, lt_of_maskRow_testBit hi⟩
     exact ⟨a, congrArg Fin.val ha⟩
