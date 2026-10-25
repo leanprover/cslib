@@ -32,10 +32,10 @@ abbrev signature {S : Type} (s : ValueSort S) : Signature S where
   tests := ⟨Unit, fun _ => 1⟩
   testInput _ _ := s
 
-abbrev additionModel {S : Type} (Carrier : S → Type) (s : ValueSort S)
-    (add : (w : Nat) → Value Carrier w s → Value Carrier w s → Option (Value Carrier w s))
-    (isZero : (w : Nat) → Value Carrier w s → Option Bool) : Model (signature s) where
-  Carrier := Carrier
+abbrev additionModel {S : Type} (D : S → Type) (s : ValueSort S)
+    (add : (w : Nat) → Value D w s → Value D w s → Option (Value D w s))
+    (isZero : (w : Nat) → Value D w s → Option Bool) : Model (signature s) where
+  D := D
   operation w op args := match op with
     | .increment =>
       if h : (args 0).val + 1 < 2 ^ w then some ⟨(args 0).val + 1, h⟩ else none
@@ -62,13 +62,13 @@ def doubleCell {S : Type} (s : ValueSort S) : Program (signature s) 2 :=
   [.op (.word 0 0), .op (.apply .increment 0 ![0]), .op (.load s 1 0),
    .op (.apply .add 1 ![1, 1]), .op (.store s 0 1), .halt]
 
-def initial {S : Type} [DecidableEq S] (Carrier : S → Type)
-    (zero : (s : ValueSort S) → Value Carrier 3 s) (s : ValueSort S)
-    (v : Value Carrier 3 s) : Data Carrier 3 2 :=
-  (⟨fun t _ => zero t, fun t _ => zero t⟩ : Data Carrier 3 2).write s 1 v
+def initial {S : Type} [DecidableEq S] (D : S → Type)
+    (zero : (s : ValueSort S) → Value D 3 s) (s : ValueSort S)
+    (v : Value D 3 s) : Data D 3 2 :=
+  (⟨fun t _ => zero t, fun t _ => zero t⟩ : Data D 3 2).write s 1 v
 
-def wordInitial (v : Fin 8) : Data words.Carrier 3 2 :=
-  initial words.Carrier (fun s => match s with | .word => 0 | .data e => nomatch e) .word v
+def wordInitial (v : Fin 8) : Data words.D 3 2 :=
+  initial words.D (fun s => match s with | .word => 0 | .data e => nomatch e) .word v
 
 def fieldInitial (K : Type) [Field K] (v : K) : Data (fun _ : Unit => K) 3 2 :=
   initial (fun _ : Unit => K) (fun s => match s with | .word => 0 | .data _ => 0) (.data ()) v
@@ -82,7 +82,7 @@ example : (runFrom (finiteField 5) 3 (doubleCell (.data ()))
 
 example (x : ℝ) : (runFrom reals 3 (doubleCell (.data ()))
     ⟨0, fieldInitial ℝ x, .running⟩ 6).data.mem (.data ()) 1 = x + x := by
-  simp [runFrom, Function.iterate_succ_apply', step, doubleCell, Op.eval, fieldInitial, initial,
+  simp [runFrom, Function.iterate_succ_apply', step, doubleCell, DataInstr.eval, fieldInitial, initial,
     Instr.eval, Data.set, Data.write, Function.update]
 
 -- Five steps reach the halt instruction; the sixth executes it. Extra steps are padding.
@@ -112,18 +112,18 @@ example : runFrom { finiteField 5 with test := fun _ _ _ => none } 3 branchProgr
     ⟨0, fieldInitial (ZMod 5) 1, .running⟩ 2 = ⟨0, fieldInitial (ZMod 5) 1, .faulted⟩ := rfl
 
 -- Terminal configurations remain fixed even when their instruction pointer is invalid.
-example (data : Data words.Carrier 3 2) :
+example (data : Data words.D 3 2) :
     runFrom words 3 [] ⟨42, data, .halted⟩ 10 = ⟨42, data, .halted⟩ := by
   exact Function.iterate_fixed
     (step_of_halt (M := words) (p := []) (cfg := ⟨42, data, .halted⟩) rfl) 10
 
-example (data : Data words.Carrier 3 2) :
+example (data : Data words.D 3 2) :
     runFrom words 3 [] ⟨42, data, .faulted⟩ 10 = ⟨42, data, .faulted⟩ := by
   exact Function.iterate_fixed
     (step_of_fault (M := words) (p := []) (cfg := ⟨42, data, .faulted⟩) rfl) 10
 
 -- Zero width still has one address; literals are checked rather than silently truncated.
-def zeroWidth : Cfg words.Carrier 0 1 :=
+def zeroWidth : Cfg words.D 0 1 :=
   { pc := 0
     data.regs := fun s _ => match s with | .word => 0 | .data e => nomatch e
     data.mem := fun s _ => match s with | .word => 0 | .data e => nomatch e }
@@ -132,7 +132,7 @@ example : (runFrom words 0 [.op (.word 0 0), .halt] zeroWidth 2).Halted := by de
 example : (runFrom words 0 [.op (.word 0 1), .halt] zeroWidth 2).Faulted := by decide
 
 -- The same finite-path API as Turing machines, with iteration giving its endpoint.
-example (cfg : Cfg words.Carrier 3 2) (t : Nat) :
+example (cfg : Cfg words.D 3 2) (t : Nat) :
     (RunPath.ofDeterministic words 3 (doubleCell .word) cfg t).last =
       runFrom words 3 (doubleCell .word) cfg t := rfl
 
