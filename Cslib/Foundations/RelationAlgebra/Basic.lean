@@ -81,23 +81,20 @@ def ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
 
 variable {α : Type*} [RelationAlgebra α]
 
+@[gcongr]
 theorem star_mono : Monotone (star : α → α) := by
   intro a b h
-  rw [← sup_eq_right, ← star_sup, sup_eq_right.mpr h]
+  rw [← sup_eq_right, ← star_sup, sup_of_le_right h]
 
 theorem mul_sup (a b c : α) : a * (b ⊔ c) = a * b ⊔ a * c := by
   apply star_injective
   simp [star_sup, sup_mul]
 
 instance : MulLeftMono α where
-  elim a b c h := by
-    change a * b ≤ a * c
-    rw [← sup_eq_right, ← mul_sup, sup_eq_right.mpr h]
+  elim a b c h := by simp [← sup_eq_right, ← mul_sup, sup_of_le_right h]
 
 instance : MulRightMono α where
-  elim a b c h := by
-    change b * a ≤ c * a
-    rw [← sup_eq_right, ← sup_mul, sup_eq_right.mpr h]
+  elim a b c h := by simp [← sup_eq_right, ← sup_mul, sup_of_le_right h]
 
 @[simp]
 theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
@@ -124,14 +121,8 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
   calc
     a * b ⊓ c = (a * (b ⊓ star a * c) ⊔ a * (b ⊓ (star a * c)ᶜ)) ⊓ c := by
       rw [← mul_sup, ← inf_sup_left, sup_compl_eq_top, inf_top_eq]
-    _ ≤ (a * (b ⊓ star a * c) ⊔ a * (star a * c)ᶜ) ⊓ c := by
-      apply inf_le_inf_right
-      apply sup_le_sup_left
-      exact mul_le_mul_right inf_le_right a
-    _ ≤ (a * (b ⊓ star a * c) ⊔ cᶜ) ⊓ c := by
-      apply inf_le_inf_right
-      apply sup_le_sup_left
-      simpa only [star_star] using tarski (star a) c
+    _ ≤ (a * (b ⊓ star a * c) ⊔ a * (star a * c)ᶜ) ⊓ c := by gcongr; exact inf_le_right
+    _ ≤ (a * (b ⊓ star a * c) ⊔ cᶜ) ⊓ c := by grw [← tarski (star a) c, star_star]
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
 
