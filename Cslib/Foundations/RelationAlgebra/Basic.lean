@@ -86,6 +86,32 @@ theorem star_mono : Monotone (star : α → α) := by
   intro a b h
   rw [← sup_eq_right, ← star_sup, sup_of_le_right h]
 
+/-- Converse as an automorphism of a relation algebra. -/
+@[simps! apply symm_apply]
+def starOrderIso : α ≃o α := Equiv.Perm.star.toOrderIso star_mono star_mono
+
+attribute [to_dual existing] BooleanAlgebra.toBot
+
+@[to_dual (attr := simp)]
+theorem star_bot : star (⊥ : α) = ⊥ := (starOrderIso : α ≃o α).map_bot
+
+@[simp, to_dual self]
+theorem star_le_star_iff {a b : α} : star a ≤ star b ↔ a ≤ b := starOrderIso.le_iff_le
+
+@[simp, to_dual self]
+theorem star_lt_star_iff {a b : α} : star a < star b ↔ a < b := starOrderIso.lt_iff_lt
+
+@[to_dual existing (attr := simp)]
+theorem star_inf (a b : α) : star (a ⊓ b) = star a ⊓ star b := starOrderIso.map_inf a b
+
+@[simp]
+theorem star_compl (a : α) : star aᶜ = (star a)ᶜ :=
+  (starOrderIso.isCompl isCompl_compl).compl_eq.symm
+
+@[simp]
+theorem star_sdiff (a b : α) : star (a \ b) = star a \ star b := by
+  rw [sdiff_eq, star_inf, star_compl, sdiff_eq]
+
 theorem mul_sup (a b c : α) : a * (b ⊔ c) = a * b ⊔ a * c := by
   apply star_injective
   simp [star_sup, sup_mul]
@@ -103,9 +129,9 @@ theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
     a * ⊥ ≤ a * (star a * ⊤)ᶜ := mul_le_mul_right bot_le a
     _ ≤ ⊥ := by simpa using tarski (star a) ⊤
 
-@[simp]
+@[to_dual (attr := simp)]
 theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
-  (Equiv.Perm.star.toOrderIso star_mono star_mono).isAtom_iff a
+  starOrderIso.isAtom_iff a
 
 theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : p ≠ ⊥) (h : p ≤ r * s) :
     s ≤ star r * p := by
