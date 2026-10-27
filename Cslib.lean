@@ -2,6 +2,18 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import Cslib.Algorithms.CCS.VendingMachine
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
+public import Cslib.Algorithms.Lean.Query.Arith.Defs
+public import Cslib.Algorithms.Lean.Query.Arith.Lemmas
+public import Cslib.Algorithms.Lean.Query.Bounds
+public import Cslib.Algorithms.Lean.Query.FreeM
+public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
+public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas
+public import Cslib.Algorithms.Lean.Query.Sort.IsSort
+public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
+public import Cslib.Algorithms.Lean.Query.Sort.LowerBound
+public import Cslib.Algorithms.Lean.Query.Sort.Merge.Bounds
+public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
+public import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
 public import Cslib.Algorithms.Lean.Sort.Insertion
 public import Cslib.Algorithms.Lean.Sort.Merge
 public import Cslib.Algorithms.Lean.TimeM
@@ -71,11 +83,13 @@ public import Cslib.Computability.Languages.Congruences.Basic
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.MyhillCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
+public import Cslib.Computability.Languages.KleeneAlgorithm
 public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.LanguageHom
 public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
+public import Cslib.Computability.Languages.RegularExpressions
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Languages.Slice
@@ -112,6 +126,7 @@ public import Cslib.Computability.URM.Defs
 public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
+public import Cslib.Crypto.Negligible
 public import Cslib.Crypto.Primitives.PRG.Asymptotic
 public import Cslib.Crypto.Primitives.PRG.Basic
 public import Cslib.Crypto.Primitives.PRG.Defs
@@ -197,6 +212,7 @@ public import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 public import Cslib.Foundations.Semantics.LTS.Relation
 public import Cslib.Foundations.Semantics.LTS.Reverse
+public import Cslib.Foundations.Semantics.LTS.SetImage
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.Termination
 public import Cslib.Foundations.Semantics.LTS.Total
