@@ -32,6 +32,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `MultiTapeTM`: the TM itself
 * `tr`, `ofTr`: the derived transition function and construction from a function
 * `adapt`: the machine run through an adapter
+* `wire`: two machines on the same tapes wired into one
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
@@ -111,18 +112,50 @@ lemma tr_ofTr (q₀ : State)
     (ofTr q₀ tr).tr q input work = tr q input work :=
   tr_iff.mp rfl
 
+/-- The transitions of `tm` performed through `adapter`: it reads what `tm` reads through `adapter`
+and performs the adaptation of the action of `tm`. -/
+noncomputable def adaptedTr {k' : ℕ} {State' : Type*} (tm : MultiTapeTM k Symbol State)
+    (adapter : MultiTapeNTM.Adapter k k' Symbol State State') (q : State) (inp : Option Symbol)
+    (work : Fin k' → Option Symbol) : Action k' Symbol State' :=
+  adapter.action ⟨inp, work⟩ (tm.tr q (adapter.read ⟨inp, work⟩).inputSymbol
+    (adapter.read ⟨inp, work⟩).workTapeSymbols)
+
 /-- `tm` run through `adapter`: it reads what `tm` reads through `adapter` and performs the
 adaptation of the action of `tm`. -/
 noncomputable def adapt {k' : ℕ} (tm : MultiTapeTM k Symbol State)
     (adapter : MultiTapeNTM.Adapter k k' Symbol State State) : MultiTapeTM k' Symbol State :=
-  ofTr tm.q₀ fun q inp work =>
-    adapter.action ⟨inp, work⟩ (tm.tr q (adapter.read ⟨inp, work⟩).inputSymbol
-      (adapter.read ⟨inp, work⟩).workTapeSymbols)
+  ofTr tm.q₀ (tm.adaptedTr adapter)
 
 /-- `tm.adapt adapter` follows `tm`, in the same states. -/
-lemma follows_adapt {k' : ℕ} {adapter : MultiTapeNTM.Adapter k k' Symbol State State} :
+lemma Adapt.follows {k' : ℕ} {adapter : MultiTapeNTM.Adapter k k' Symbol State State} :
     (tm.adapt adapter).Follows tm id adapter :=
   fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+/-- `tm₀` and `tm₁` wired into one machine on their shared tapes, which starts in `q₀`: in a state
+`inl q` it performs the transition of `tm₀` in `q`, and in `inr q` that of `tm₁`. The wires `next₀`
+and `next₁` say where the steps of each machine lead: within the same machine, to the other
+machine, or to halting. -/
+noncomputable def wire {State₀ State₁ : Type*} (tm₀ : MultiTapeTM k Symbol State₀)
+    (tm₁ : MultiTapeTM k Symbol State₁) (next₀ : Option State₀ → Option (State₀ ⊕ State₁))
+    (next₁ : Option State₁ → Option (State₀ ⊕ State₁)) (q₀ : State₀ ⊕ State₁) :
+    MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
+  ofTr q₀ fun q => q.elim (tm₀.adaptedTr (.mapState next₀)) (tm₁.adaptedTr (.mapState next₁))
+
+namespace Wire
+
+variable {State₀ State₁ : Type*} {tm₀ : MultiTapeTM k Symbol State₀}
+  {tm₁ : MultiTapeTM k Symbol State₁} {next₀ : Option State₀ → Option (State₀ ⊕ State₁)}
+  {next₁ : Option State₁ → Option (State₀ ⊕ State₁)} {q₀ : State₀ ⊕ State₁}
+
+/-- In its states `inl q`, the wiring follows `tm₀`, its steps leading along `next₀`. -/
+lemma follows_left : (wire tm₀ tm₁ next₀ next₁ q₀).Follows tm₀ .inl (.mapState next₀) :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+/-- In its states `inr q`, the wiring follows `tm₁`, its steps leading along `next₁`. -/
+lemma follows_right : (wire tm₀ tm₁ next₀ next₁ q₀).Follows tm₁ .inr (.mapState next₁) :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+end Wire
 
 /-!
 ## Stepping a Turing Machine

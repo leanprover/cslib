@@ -79,7 +79,7 @@ public lemma outCfg_workTapeSymbols_castSucc (c : Cfg k Symbol State input) (j :
 machine. -/
 @[expose, simps! apply] public noncomputable def outCfgHom (tm : MultiTapeTM k Symbol State) :
     (tm.stepRel input).Hom (tm.outputToTape.stepRel input) :=
-  follows_adapt.stepHom outCfg (fun _ => Option.map_id_apply)
+  Adapt.follows.stepHom outCfg (fun _ => Option.map_id_apply)
     (fun c => HeadSymbols.ext rfl (funext (outCfg_workTapeSymbols_castSucc c))) fun c a => by
       refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
         cases h : a.output <;> simp [h, Action.apply, tapeOfList_append_single, SignType.cast]

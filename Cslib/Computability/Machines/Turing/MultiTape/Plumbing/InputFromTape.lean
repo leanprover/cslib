@@ -161,7 +161,7 @@ machine. -/
 @[expose, simps! apply] public noncomputable def inCfgHom (tm : MultiTapeTM k Symbol State)
     (mark : Symbol) (outerInput : List Symbol) :
     (tm.stepRel input).Hom (tm.inputFromTape.stepRel outerInput) :=
-  follows_adapt.stepHom (inCfg mark · outerInput) (fun _ => Option.map_id_apply)
+  Adapt.follows.stepHom (inCfg mark · outerInput) (fun _ => Option.map_id_apply)
     (fun c => HeadSymbols.ext (inCfg_workTapeSymbols_vip c)
       (funext (inCfg_workTapeSymbols_castAdd c))) fun c a => by
       simp only [Cfg.headSymbols_workTapeSymbols, inCfg_workTapeSymbols_vip,

@@ -212,10 +212,9 @@ structure Adapter (k k' : ℕ) (Symbol State State' : Type*) where
   action : HeadSymbols k' Symbol → Action k Symbol State → Action k' Symbol State'
 
 /-- The adapter that relabels the states through `φ` and reads and acts on the same tapes. -/
-@[simps]
 def Adapter.mapState {State' : Type*} (φ : Option State → Option State') :
     Adapter k k Symbol State State' :=
-  ⟨id, fun _ => Action.mapState φ⟩
+  ⟨id, fun _ a => { a with state := φ a.state }⟩
 
 /-- `ntm'` follows `ntm` through `adapter`, in state `state q` while `ntm` is in state `q`: whatever
 `ntm` may do in `q` on what `adapter` reads, `ntm'` may do the adapted action in `state q`. -/
@@ -273,7 +272,7 @@ def prependOutputHom (ntm : MultiTapeNTM k Symbol State) (pre : List Symbol) :
     (ntm.stepRel input).Hom (ntm.stepRel input) :=
   Follows.stepHom (state := id) (adapter := .mapState id) (fun _ _ _ h => h) (·.prependOutput pre)
     (fun _ => Option.map_id_apply) (fun _ => rfl) fun _ _ =>
-      Cfg.ext rfl rfl rfl rfl (by simp [Action.apply])
+      Cfg.ext rfl rfl rfl rfl (by simp [Action.apply, Adapter.mapState])
 
 end MultiTapeNTM
 

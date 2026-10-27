@@ -233,11 +233,6 @@ sub-machine's configurations into the combined machine by exactly such a state r
     (c : Cfg k Symbol State input) : Cfg k Symbol State' input :=
   ⟨φ c.state, c.inputPos, c.workTapes, c.workTapePos, c.output⟩
 
-/-- Remap the successor state of an action through `φ`, leaving its effect on the tapes alone. -/
-@[simps] def Action.mapState {State' : Type*} (φ : Option State → Option State')
-    (action : Action k Symbol State) : Action k Symbol State' :=
-  { action with state := φ action.state }
-
 /-- The initial configuration for a starting state and an input string. -/
 @[simp]
 def Cfg.init (q₀ : State) (input : List Symbol) : Cfg k Symbol State input :=

@@ -35,32 +35,28 @@ namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State₀ State₁ : Type*} {input : List Symbol}
 
-/-- The state of the sequential composition while `tm₀` runs: halting hands over to `tm₁` in its
-initial state. -/
-def Sequential.leftState (tm₁ : MultiTapeTM k Symbol State₁) (state : Option State₀) :
-    Option (State₀ ⊕ State₁) :=
-  some (state.elim (.inr tm₁.q₀) .inl)
+/-- The state of the sequential composition while `tm₀` runs: halting hands over to the second
+machine in its state `q₁`. -/
+def Sequential.leftState (q₁ : State₁) (state : Option State₀) : Option (State₀ ⊕ State₁) :=
+  some (state.elim (.inr q₁) .inl)
 
 /-- The sequential composition of `tm₀` and `tm₁`: it behaves like `tm₀` until `tm₀` would halt,
 at which point it switches to the initial state of `tm₁` and behaves like `tm₁`. The switch is
 folded into the halting transition of `tm₀`, so it costs no step. -/
 noncomputable def seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁) :
     MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
-  ofTr (.inl tm₀.q₀) fun q inp work =>
-    match q with
-    | .inl q₀ => (tm₀.tr q₀ inp work).mapState (Sequential.leftState tm₁)
-    | .inr q₁ => (tm₁.tr q₁ inp work).mapState (Option.map .inr)
+  wire tm₀ tm₁ (Sequential.leftState tm₁.q₀) (Option.map .inr) (.inl tm₀.q₀)
 
 variable {tm₀ : MultiTapeTM k Symbol State₀} {tm₁ : MultiTapeTM k Symbol State₁}
 
 namespace Sequential
 
 /-- A configuration of the first phase: a configuration of `tm₀`, with a halted state mapped to
-the initial state of the second phase. Under this map, the whole first phase of `seq` mirrors the
+the state `q₁` of the second phase. Under this map, the whole first phase of `seq` mirrors the
 run of `tm₀`, *including* its halting step. -/
-def leftCfg (tm₁ : MultiTapeTM k Symbol State₁) (cfg : Cfg k Symbol State₀ input) :
+def leftCfg (q₁ : State₁) (cfg : Cfg k Symbol State₀ input) :
     Cfg k Symbol (State₀ ⊕ State₁) input :=
-  cfg.mapState (leftState tm₁)
+  cfg.mapState (leftState q₁)
 
 /-- A configuration of the second phase. Under this map, the second phase of `seq` mirrors the
 run of `tm₁`. -/
@@ -68,28 +64,20 @@ def rightCfg (cfg : Cfg k Symbol State₁ input) :
     Cfg k Symbol (State₀ ⊕ State₁) input :=
   cfg.mapState (Option.map .inr)
 
-/-- In its first phase, `seq tm₀ tm₁` follows `tm₀`, with halting handing over to `tm₁`. -/
-lemma follows_left : (tm₀.seq tm₁).Follows tm₀ .inl (.mapState (leftState tm₁)) :=
-  fun _ _ _ h => tr_iff.mp h ▸ rfl
-
-/-- In its second phase, `seq tm₀ tm₁` follows `tm₁`. -/
-lemma follows_right : (tm₀.seq tm₁).Follows tm₁ .inr (.mapState (Option.map .inr)) :=
-  fun _ _ _ h => tr_iff.mp h ▸ rfl
-
 /-- The first phase of `seq tm₀ tm₁` mirrors the running steps of `tm₀`. -/
 @[simps! apply]
 noncomputable def leftCfgHom : (tm₀.runningStepRel input).Hom ((tm₀.seq tm₁).stepRel input) :=
-  follows_left.runningStepHom (leftCfg tm₁)
-    (fun _ _ => congrArg (leftState tm₁)) (fun _ => rfl) fun _ _ => rfl
+  Wire.follows_left.runningStepHom (leftCfg tm₁.q₀)
+    (fun _ _ => congrArg (leftState tm₁.q₀)) (fun _ => rfl) fun _ _ => rfl
 
 /-- The second phase of `seq tm₀ tm₁` mirrors the steps of `tm₁`. -/
 @[simps! apply]
 noncomputable def rightCfgHom : (tm₁.stepRel input).Hom ((tm₀.seq tm₁).stepRel input) :=
-  follows_right.stepHom rightCfg (fun _ => rfl) (fun _ => rfl) fun _ _ => rfl
+  Wire.follows_right.stepHom rightCfg (fun _ => rfl) (fun _ => rfl) fun _ _ => rfl
 
 /-- A halted configuration of the first phase is the start of the second phase. -/
-lemma leftCfg_of_halt {cfg : Cfg k Symbol State₀ input} (h : cfg.state = none) :
-    leftCfg tm₁ cfg = rightCfg (cfg.withState (some tm₁.q₀)) := by
+lemma leftCfg_of_halt {q₁ : State₁} {cfg : Cfg k Symbol State₀ input} (h : cfg.state = none) :
+    leftCfg q₁ cfg = rightCfg (cfg.withState (some q₁)) := by
   simp [leftCfg, leftState, rightCfg, Cfg.withState, Cfg.mapState, h]
 
 end Sequential
@@ -100,7 +88,7 @@ run path of `tm₁` started where `tm₀` halted, gives a run path of `seq` of a
 which visits only cells that the two paths visit. -/
 theorem exists_runPath_seq {p₀ : tm₀.RunPath input} (h₀ : p₀.last.Halted)
     {p₁ : tm₁.RunPath input} (h₁ : p₁.head = p₀.last.withState (some tm₁.q₀)) :
-    ∃ p : (tm₀.seq tm₁).RunPath input, p.head = leftCfg tm₁ p₀.head ∧
+    ∃ p : (tm₀.seq tm₁).RunPath input, p.head = leftCfg tm₁.q₀ p₀.head ∧
       p.last = rightCfg p₁.last ∧ p.length ≤ p₀.length + p₁.length ∧
       ∀ i, p.visitedByTapeHead i ⊆ p₀.visitedByTapeHead i ∪ p₁.visitedByTapeHead i := by
   -- `seq` takes the running steps of `tm₀`, then the steps of `tm₁`
