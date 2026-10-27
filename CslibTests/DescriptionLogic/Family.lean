@@ -109,7 +109,7 @@ Ana and Bob are married and have a daughter, Carla, who has a son, Davi. -/
 
 inductive Person where
   | ana | bob | carla | davi
-deriving DecidableEq
+deriving DecidableEq, Inhabited
 
 open Person
 
@@ -131,8 +131,9 @@ def roleP : Role → Person → Person → Prop
   | hasChild, x, y => (x = ana ∧ y = carla) ∨ (x = bob ∧ y = carla) ∨ (x = carla ∧ y = davi)
   | hasHusband, x, y => x = ana ∧ y = bob
 
-def I : Interpretation Person Role Name :=
-  ⟨fun A => {x | concP A x}, roleP⟩
+def I : Interpretation Person Role Name where
+  conc A := {x | concP A x}
+  role := roleP
 
 /-- The interpretation `I` is a model of the family TBox. -/
 theorem I_isModel : I.IsModel family := by
@@ -147,7 +148,8 @@ theorem I_isModel : I.IsModel family := by
       Set.mem_ofPred_eq, concP, roleP]
     decide
 
-/-- Ana is a grandmother: an ABox assertion. -/
+/-- Ana is a grandmother: an ABox assertion. Individual names are interpreted in the domain by
+`id`, since here the names of individuals are the elements of the domain `Person`. -/
 example : I.SatAssertion id (.concept (n Grandmother) ana) := by
   rw [Interpretation.SatAssertion, Satisfies.alc_atom_iff]
   simp [I, concP]

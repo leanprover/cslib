@@ -20,8 +20,8 @@ as the corresponding Kripke structure. Instance checking is modal satisfaction, 
 ## Main definitions
 
 - `Concept`: ALC concepts.
-- `Interpretation`: DL interpretations `(Δ, ·ᴵ)`, and `Interpretation.toModal`, the corresponding
-  Kripke structure.
+- `Interpretation`: DL interpretations `(Δ, ·ᴵ)` over a nonempty domain `Δ`, and
+  `Interpretation.toModal`, the corresponding Kripke structure.
 - `ALC[I,x ⊨ C]`: the individual `x` is an instance of `C` in `I`.
 - `TAxiom`, `TBox`: concept inclusions `C ⊑ D` and concept equalities `C ≡ D`. A concept equality
   holds in `I` iff `C` and `D` are logically equivalent (`Proposition.Equiv`) in `I.toModal`.
@@ -46,12 +46,14 @@ open scoped InferenceSystem Modal.Proposition Satisfies Frame
 concept names. -/
 abbrev Concept (Role ConceptName : Type*) := Modal.Proposition (mkUnary Role) ConceptName
 
-/-- A DL interpretation over the domain `Δ`. -/
+/-- A DL interpretation over the nonempty domain `Δ`. -/
 structure Interpretation (Δ Role ConceptName : Type*) where
   /-- Extension of concept names. -/
   conc : ConceptName → Set Δ
   /-- Extension of role names. -/
   role : Role → Δ → Δ → Prop
+  /-- The domain is nonempty. -/
+  nonempty : Nonempty Δ := by infer_instance
 
 /-- The Kripke structure corresponding to an interpretation. -/
 def Interpretation.toModal (I : Interpretation Δ Role ConceptName) :
