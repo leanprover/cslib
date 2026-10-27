@@ -160,15 +160,15 @@ public lemma val_moveInputPos_sub_one_eq_clampMove (mark : Symbol) (c : Cfg k Sy
 machine. -/
 @[expose, simps! apply] public noncomputable def inCfgHom (tm : MultiTapeTM k Symbol State)
     (mark : Symbol) (outerInput : List Symbol) :
-    (tm.stepRel input).Hom (tm.inputFromTape.stepRel outerInput) :=
-  Adapt.follows.stepHom (inCfg mark · outerInput) (fun _ => Option.map_id_apply)
+    (tm.stepRel input).Hom (tm.inputFromTape.stepRel outerInput) := by
+  refine Adapt.follows.stepHom (inCfg mark · outerInput) (fun _ => Option.map_id_apply)
     (fun c => HeadSymbols.ext (inCfg_workTapeSymbols_vip c)
-      (funext (inCfg_workTapeSymbols_castAdd c))) fun c a => by
-      simp only [Cfg.headSymbols_workTapeSymbols, inCfg_workTapeSymbols_vip,
-        inCfg_workTapeSymbols_flag]
-      refine Cfg.ext rfl (by simp [inCfg]) ?_ ?_ rfl <;> funext l <;>
-        induction l using Fin.addCases <;>
-        simp [inCfg, Action.apply, val_moveInputPos_sub_one_eq_clampMove mark]
+      (funext (inCfg_workTapeSymbols_castAdd c))) fun c a => ?_
+  simp only [Cfg.headSymbols_workTapeSymbols, inCfg_workTapeSymbols_vip, inCfg_workTapeSymbols_flag]
+  refine Cfg.ext rfl (by simp [inCfg]) (funext fun l => ?_) (funext fun l => ?_) rfl <;>
+    induction l using Fin.addCases with
+    | left j => simp [inCfg, Action.apply]
+    | right j => simp [inCfg, Action.apply, val_moveInputPos_sub_one_eq_clampMove mark]
 
 /-- **Space of the input-redirected path.** The `k` inner tapes visit exactly what the original
 path visits; the two extra tapes (virtual input, flag) each move only with the simulated input

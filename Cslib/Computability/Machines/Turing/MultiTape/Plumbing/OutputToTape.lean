@@ -81,8 +81,11 @@ machine. -/
     (tm.stepRel input).Hom (tm.outputToTape.stepRel input) :=
   Adapt.follows.stepHom outCfg (fun _ => Option.map_id_apply)
     (fun c => HeadSymbols.ext rfl (funext (outCfg_workTapeSymbols_castSucc c))) fun c a => by
-      refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> induction l using Fin.lastCases <;>
-        cases h : a.output <;> simp [h, Action.apply, tapeOfList_append_single, SignType.cast]
+      refine Cfg.ext rfl rfl (funext fun l => ?_) (funext fun l => ?_) rfl <;>
+        induction l using Fin.lastCases with
+        | last =>
+          cases h : a.output <;> simp [h, Action.apply, tapeOfList_append_single, SignType.cast]
+        | cast j => simp [Action.apply]
 
 /-- The initial configuration of the redirected machine is the original's through `outCfg`. -/
 public lemma initCfg_outputToTape (tm : MultiTapeTM k Symbol State) (input : List Symbol) :

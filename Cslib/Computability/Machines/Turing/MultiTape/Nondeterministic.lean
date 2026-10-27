@@ -203,8 +203,10 @@ lemma RunsInTime.mono {input : List Symbol} {t t' : ℕ}
 /-! ### Following a machine -/
 
 /-- How a machine with `k'` work tapes and states `State'` performs the transitions of a machine
-with `k` work tapes and states `State`: the symbols the inner machine reads, computed from those
-under the heads of the outer machine, and the outer action performing each inner action. -/
+with `k` work tapes and states `State`. A transition turns the symbols under the heads into an
+action, so the outer machine translates both ends: `read` computes the symbols the inner machine
+reads from those under the outer heads, and `action` turns the inner action into an outer one,
+which may also depend on the outer symbols. -/
 structure Adapter (k k' : ℕ) (Symbol State State' : Type*) where
   /-- the symbols the inner machine reads -/
   read : HeadSymbols k' Symbol → HeadSymbols k Symbol
