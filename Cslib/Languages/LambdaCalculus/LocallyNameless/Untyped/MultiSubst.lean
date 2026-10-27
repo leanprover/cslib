@@ -7,11 +7,12 @@ Authors: David Wegmann
 
 module
 
-public import Cslib.Foundations.Data.Relation
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Syntax.HasSubstitution
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
+
+/-! Multiple substitution for untyped lambda calculus. -/
 
 @[expose] public section
 
@@ -26,7 +27,7 @@ open scoped Context
 
 variable {Var : Type u} {Base : Type v} [DecidableEq Var]
 
-/-- An environment in context of multi substition is a list of pairs of
+/-- An environment in context of multi substitution is a list of pairs of
     variable targets and terms to be substituted for that target -/
 abbrev Env (Var : Type u) := Context Var (Term Var)
 
@@ -49,10 +50,10 @@ def Env.fv (E : Env Var) : Finset Var :=
 attribute [scoped grind =] Env.fv
 
 /-- An environment is locally closed if all terms in the environment are locally closed -/
-abbrev env_LC (E : Env Var) : Prop := ∀ {x M}, ⟨x, M⟩ ∈ E → LC M
+abbrev envLC (E : Env Var) : Prop := ∀ {x M}, ⟨x, M⟩ ∈ E → LC M
 
 /-- Adding a locally closed term to an environment preserves local closure -/
-lemma env_LC_cons (lc_sub : LC sub) (lc_E : env_LC E) : env_LC (⟨ x, sub ⟩ :: E) := by
+lemma envLC_cons (lc_sub : LC sub) (lc_E : envLC E) : envLC (⟨ x, sub ⟩ :: E) := by
   grind
 
 /-- Multi-substitution of a fresh variable does nothing -/
@@ -61,8 +62,8 @@ lemma multiSubst_fvar_fresh (E : Env Var) : ∀ x ∉ E.dom, multiSubst E (fvar 
 
 /-- If x is neither a free variable of an environment Ns or a term M, then
     x is also not a free variable of the multi-substitution of Ns into M -/
-lemma multiSubst_preserves_not_fvar (M : Term Var) (E : Env Var) (nmem : x ∉ M.fv ∪ E.fv) :
-    x ∉ (multiSubst E M).fv := by
+lemma multiSubst_preserves_not_fvar (M : Term Var) (E : Env Var) :
+    (multiSubst E M).fv ⊆ M.fv ∪ E.fv := by
   induction E with grind [subst_preserve_not_fvar]
 
 /-- Multi-substitution propagates recursively through an application -/
@@ -79,7 +80,7 @@ lemma multiSubst_abs (M : Term Var) (E : Env Var) :
     provided that the variable is not in the domain of the environment
     and the environment is locally closed -/
 lemma multiSubst_open_var [HasFresh Var] (M : Term Var) (E : Env Var) (x : Var)
-  (h_ndom : x ∉ E.dom) (h_lc : env_LC E) :
+  (h_ndom : x ∉ E.dom) (h_lc : envLC E) :
     multiSubst E (M ^ fvar x) = multiSubst E M ^ fvar x := by
   induction E with grind
 

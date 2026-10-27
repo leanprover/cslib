@@ -135,15 +135,15 @@ Obligation: assert_6_2412
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_FIND_MAXIMUM_SUBARRAY_requires_2_1741_26
+Obligation: callElimAssert_FIND_MAXIMUM_SUBARRAY_requires_2_1741_6
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_FIND_MAXIMUM_SUBARRAY_requires_2_1741_17
+Obligation: callElimAssert_FIND_MAXIMUM_SUBARRAY_requires_2_1741_15
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_FIND_MAX_CROSSING_SUBARRAY_requires_7_3595_7
+Obligation: callElimAssert_FIND_MAX_CROSSING_SUBARRAY_requires_7_3595_25
 Property: assert
 Result: ✅ pass
 

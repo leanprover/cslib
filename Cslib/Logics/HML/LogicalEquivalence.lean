@@ -9,12 +9,12 @@ module
 public import Cslib.Logics.HML.Basic
 public import Cslib.Foundations.Logic.LogicalEquivalence
 
-@[expose] public section
-
 /-! # Logical Equivalence in HML
 
 This module defines logical equivalence for HML propositions and instantiates `LogicalEquivalence`.
 -/
+
+@[expose] public section
 
 namespace Cslib.Logic.HML
 
@@ -105,7 +105,7 @@ instance judgementalContext :
 instance : LogicalEquivalence
     (Proposition Label) (Satisfies.Judgement State Label) (Satisfies.Bundled) where
   eqv := Proposition.Equiv
-  eqv_fill_valid {a b : Proposition Label} (heqv : a.Equiv (State := State) b)
+  eqvFillValid {a b : Proposition Label} (heqv : a.Equiv (State := State) b)
       (c : HasHContext.Context (Satisfies.Judgement State Label) (Proposition Label))
       (h : Satisfies.Bundled c<[a]) : Satisfies.Bundled c<[b] := by
     simp only [Satisfies.bundled_char, HasHContext.fill, Satisfies.Context.fill]

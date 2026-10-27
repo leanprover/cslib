@@ -9,9 +9,9 @@ module
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Foundations.Data.OmegaSequence.Temporal
 
-@[expose] public section
-
 /-! # Loop construction on nondeterministic automata. -/
+
+@[expose] public section
 
 namespace Cslib.Automata.NA
 
@@ -20,7 +20,7 @@ open scoped Run LTS
 
 variable {Symbol State : Type*}
 
-/-- `na.loop` mimics `na`, but can nondeterministically decide to "loop back" by identifing
+/-- `na.loop` mimics `na`, but can nondeterministically decide to "loop back" by identifying
 an accepting state of `na` with a starting state of `na`.  This identification is achieved
 via a new dummy state `()`, which is the sole starting state and the sole accepting state
 of `na.loop`. -/
@@ -92,6 +92,7 @@ theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
     exact neq.imp (congrArg List.length)
   · grind [loop_run_from_left]
 
+set_option linter.tacticAnalysis.verifyGrindOnly false in
 open List in
 /-- For any finite word in `language na`, there is a corresponding finite run of `na.loop`. -/
 theorem loop_fin_run_exists {xl : List Symbol} (h : xl ∈ language na) :
@@ -127,7 +128,8 @@ theorem loop_run_exists [Inhabited Symbol] {xls : ωSequence (List Symbol)}
     ∃ ss, na.loop.Run xls.flatten ss ∧ ∀ k, ss (xls.cumLen k) = inl () := by
   let ts := ωSequence.const (inl () : Unit ⊕ State)
   have h_mtr (k : ℕ) : na.loop.MTr (ts k) (xls k) (ts (k + 1)) := by grind [loop_fin_run_mtr]
-  have h_pos (k : ℕ) : (xls k).length > 0 := by grind
+  have (k : ℕ) : xls k ≠ [] := by grind
+  have h_pos (k : ℕ) : (xls k).length > 0 := List.length_pos_iff.mpr (this k)
   obtain ⟨ss, _, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
   use ss
   grind [Run.mk, FinAcc.loop, cumLen_zero (ls := xls)]
@@ -145,8 +147,10 @@ theorem loop_language_eq [Inhabited Symbol] :
     rintro xs ⟨ss, h_run, h_acc⟩
     obtain ⟨k, h1, h2⟩ : ∃ k > 0, (ss k).isLeft :=
       by grind [FinAcc.loop, frequently_atTop'.mp h_acc 0]
-    obtain ⟨n, _⟩ := loop_run_one_iter h_run h1 h2
-    refine ⟨xs.take n, by grind, xs.drop n, ?_, by simp⟩
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+    obtain ⟨n, _, h, _⟩ := loop_run_one_iter h_run h1 h2
+    refine ⟨xs.take n, h, xs.drop n, ?_, by simp⟩
     refine ⟨ss.drop n, by grind, ?_⟩
     apply (drop_frequently_iff_frequently n).mpr
     grind
@@ -156,7 +160,10 @@ theorem loop_language_eq [Inhabited Symbol] :
     use ss, h_run
     apply frequently_iff_strictMono.mpr
     use xls.cumLen, ?_, by grind
-    grind [cumLen_strictMono, List.eq_nil_iff_length_eq_zero]
+    apply cumLen_strictMono
+    intro k
+    apply List.length_pos_iff.mpr
+    grind
 
 end Buchi
 
@@ -165,14 +172,14 @@ namespace FinAcc
 open scoped Computability
 
 /-- `finLoop na` is the loop construction applied to the "totalized" version of `na`. -/
-def finLoop (na : FinAcc State Symbol) : NA (Unit ⊕ (State ⊕ Unit)) Symbol :=
-  FinAcc.loop ⟨na.totalize, inl '' na.accept⟩
+def finLoop (na : FinAcc State Symbol) : NA (Unit ⊕ Option State) Symbol :=
+  FinAcc.loop ⟨na.totalize, some '' na.accept⟩
 
 /-- `finLoop na` is total, assuming that `na` has at least one start state. -/
 instance [h : Nonempty na.start] : na.finLoop.Total where
   total s x := match s with
-    | inl _ => ⟨inr (inr ()), by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h⟩
-    | inr _ => ⟨inr (inr ()), by grind [finLoop, loop, NA.totalize, LTS.totalize]⟩
+    | inl _ => ⟨inr none, by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h⟩
+    | inr _ => ⟨inr none, by grind [finLoop, loop, NA.totalize, LTS.totalize]⟩
 
 /-- `finLoop na` accepts the Kleene star of the language of `na`, assuming that
 the latter is nonempty. -/
@@ -191,10 +198,13 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
       obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by
         simp only [mem_singleton_iff] at h_acc
         grind
-      obtain ⟨n, h_n, _, _, h_ωtr'⟩ := loop_run_one_iter h_run h1 h2
+      obtain ⟨n, h_n, h_take, h_drop, h_ωtr'⟩ := loop_run_one_iter h_run h1 h2
       left; refine ⟨xl.take n, ?_, xl.drop n, ?_, ?_⟩
-      · grind [totalize_language_eq, take_append_of_le_length]
-      · refine ⟨ss n, by grind, ss xl.length, by grind, ?_⟩
+      · #adaptation_note
+        /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
+        change List.take n xl ∈ language na - 1 -- canonicalize membership instance
+        grind [totalize_language_eq, take_append_of_le_length]
+      · refine ⟨ss n, by aesop, ss xl.length, by grind, ?_⟩
         have := LTS.OmegaExecution.extract_mTr h_ωtr' (show 0 ≤ xl.length - n by grind)
         have : n + (xl.length - n) = xl.length := by grind
         have : ((xl ++ω xs).drop n).extract 0 (xl.length - n) = xl.drop n := by

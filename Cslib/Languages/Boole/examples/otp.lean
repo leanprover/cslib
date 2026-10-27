@@ -213,15 +213,15 @@ Obligation: RoundTripLemma_ensures_6_3572
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Encrypt_requires_0_2680_27
+Obligation: callElimAssert_Encrypt_requires_0_2680_18
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Decrypt_requires_3_3085_22
+Obligation: callElimAssert_Decrypt_requires_3_3085_24
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_RoundTripLemma_requires_5_3538_17
+Obligation: callElimAssert_RoundTripLemma_requires_5_3538_28
 Property: assert
 Result: ✅ pass
 
@@ -345,23 +345,23 @@ Obligation: loop_invariant_calls_Sequence.select_2
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: entry_invariant_0_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_18_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_18_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_2
+Obligation: insertLoopInvAssert_entry_invariant_loop_18_2
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_3
+Obligation: insertLoopInvAssert_entry_invariant_loop_18_3
 Property: assert
 Result: ✅ pass
 
-Obligation: measure_lb_0
+Obligation: insertLoopInvAssert_measure_lb_loop_18
 Property: assert
 Result: ✅ pass
 
@@ -373,23 +373,23 @@ Obligation: set_cipher_calls_Sequence.select_1
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_18_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_18_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_2
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_18_2
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_3
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_18_3
 Property: assert
 Result: ✅ pass
 
-Obligation: measure_decrease_0
+Obligation: insertLoopInvAssert_measure_decrease_loop_18
 Property: assert
 Result: ✅ pass
 
@@ -429,23 +429,23 @@ Obligation: loop_invariant_calls_Sequence.select_2
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: entry_invariant_0_0
+Obligation: insertLoopInvAssert_entry_invariant_loop_19_0
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_1
+Obligation: insertLoopInvAssert_entry_invariant_loop_19_1
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_2
+Obligation: insertLoopInvAssert_entry_invariant_loop_19_2
 Property: assert
 Result: ✅ pass
 
-Obligation: entry_invariant_0_3
+Obligation: insertLoopInvAssert_entry_invariant_loop_19_3
 Property: assert
 Result: ✅ pass
 
-Obligation: measure_lb_0
+Obligation: insertLoopInvAssert_measure_lb_loop_19
 Property: assert
 Result: ✅ pass
 
@@ -457,23 +457,23 @@ Obligation: set_result_calls_Sequence.select_1
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_0
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_19_0
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_1
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_19_1
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_2
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_19_2
 Property: assert
 Result: ✅ pass
 
-Obligation: arbitrary_iter_maintain_invariant_0_3
+Obligation: insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_19_3
 Property: assert
 Result: ✅ pass
 
-Obligation: measure_decrease_0
+Obligation: insertLoopInvAssert_measure_decrease_loop_19
 Property: assert
 Result: ✅ pass
 
@@ -493,51 +493,51 @@ Obligation: RoundTrip_post_RoundTrip_ensures_14_8185_calls_Sequence.select_1
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: callElimAssert_Encrypt_requires_0_6318_13
+Obligation: callElimAssert_Encrypt_requires_0_6318_4
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Encrypt_requires_1_6339_14
+Obligation: callElimAssert_Encrypt_requires_1_6339_5
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Encrypt_requires_2_6379_15
+Obligation: callElimAssert_Encrypt_requires_2_6379_6
 Property: assert
 Result: ✅ pass
 
-Obligation: assume_callElimAssume_Encrypt_ensures_4_6465_17_calls_Sequence.select_0
+Obligation: assume_callElimAssume_Encrypt_ensures_4_6465_8_calls_Sequence.select_0
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: assume_callElimAssume_Encrypt_ensures_4_6465_17_calls_Sequence.select_1
+Obligation: assume_callElimAssume_Encrypt_ensures_4_6465_8_calls_Sequence.select_1
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: assume_callElimAssume_Encrypt_ensures_4_6465_17_calls_Sequence.select_2
+Obligation: assume_callElimAssume_Encrypt_ensures_4_6465_8_calls_Sequence.select_2
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: callElimAssert_Decrypt_requires_5_7174_4
+Obligation: callElimAssert_Decrypt_requires_5_7174_13
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Decrypt_requires_6_7195_5
+Obligation: callElimAssert_Decrypt_requires_6_7195_14
 Property: assert
 Result: ✅ pass
 
-Obligation: callElimAssert_Decrypt_requires_7_7235_6
+Obligation: callElimAssert_Decrypt_requires_7_7235_15
 Property: assert
 Result: ✅ pass
 
-Obligation: assume_callElimAssume_Decrypt_ensures_9_7321_8_calls_Sequence.select_0
+Obligation: assume_callElimAssume_Decrypt_ensures_9_7321_17_calls_Sequence.select_0
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: assume_callElimAssume_Decrypt_ensures_9_7321_8_calls_Sequence.select_1
+Obligation: assume_callElimAssume_Decrypt_ensures_9_7321_17_calls_Sequence.select_1
 Property: out-of-bounds access check
 Result: ✅ pass
 
-Obligation: assume_callElimAssume_Decrypt_ensures_9_7321_8_calls_Sequence.select_2
+Obligation: assume_callElimAssume_Decrypt_ensures_9_7321_17_calls_Sequence.select_2
 Property: out-of-bounds access check
 Result: ✅ pass
 

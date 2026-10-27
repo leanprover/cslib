@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Fabrizio Montesi. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fabrizio Montesi, Ching-Tsun Chou, Chris Henson.
+Authors: Fabrizio Montesi, Ching-Tsun Chou, Chris Henson
 -/
 
 module
@@ -10,8 +10,6 @@ public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
-
-@[expose] public section
 
 /-! # Nondeterministic Automaton
 
@@ -30,6 +28,8 @@ type `State → Symbol → Set State`; it gets automatically expanded to the for
 * [J. E. Hopcroft, R. Motwani, J. D. Ullman,
   *Introduction to Automata Theory, Languages, and Computation*][Hopcroft2006]
 -/
+
+@[expose] public section
 
 open Filter
 

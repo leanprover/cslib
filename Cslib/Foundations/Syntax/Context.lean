@@ -8,6 +8,8 @@ module
 
 public import Cslib.Init
 
+/-! Typeclasses for contexts, with heterogeneous and homogeneous variants. -/
+
 @[expose] public section
 
 namespace Cslib

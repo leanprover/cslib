@@ -27,11 +27,15 @@ jobs:
           test -n "$cvc5_bin"
           echo "$(dirname "$cvc5_bin")" >> "$GITHUB_PATH"
       - name: Build
-        run: lake build
+        run: lake build --wfail --iofail
       - name: Test
-        run: lake test
+        run: lake test --wfail --iofail
       - name: Lint
         run: lake lint
+      - name: "lake exe mk_all --check"
+        run: |
+          set -e
+          lake exe mk_all --check
       #- name: "lake shake"
       #  run: |
       #    set -e
@@ -40,6 +44,6 @@ jobs:
         run: |
           set -e
           lake exe checkInitImports
-      - uses: leanprover-community/lint-style-action@main
+      - uses: leanprover-community/lint-style-action@e6128ab22cb03b509075ae46c33727e3952ffab7 # 2026-05-12
         with:
           mode: check

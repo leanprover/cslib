@@ -10,8 +10,6 @@ public import Cslib.Foundations.Syntax.Context
 public import Mathlib.Tactic.ToAdditive
 public import Mathlib.Tactic.ToDual
 
-@[expose] public section
-
 /-! # Calculus of Communicating Systems (CCS)
 
 CCS [Milner80], as presented in [Sangiorgi2011]. In the semantics (see `CCS.lts`), we adopt the
@@ -30,6 +28,8 @@ option of constant definitions (K = P).
 * [R. Milner, *A Calculus of Communicating Systems*][Milner80]
 * [D. Sangiorgi, *Introduction to Bisimulation and Coinduction*][Sangiorgi2011]
 -/
+
+@[expose] public section
 
 namespace Cslib.CCS
 
@@ -87,7 +87,7 @@ def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool :=
   | _, _ => false
 
 theorem isCo_iff [DecidableEq Name] {μ μ' : Act Name} : isCo μ μ' ↔ Co μ μ' := by
-  grind [cases Act]
+  cases μ <;> cases μ' <;> grind
 
 /-- `Act.Co` is decidable if `Name` equality is decidable. -/
 instance [DecidableEq Name] {μ μ' : Act Name} : Decidable (Co μ μ') :=
