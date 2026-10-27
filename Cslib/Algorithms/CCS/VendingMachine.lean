@@ -84,8 +84,7 @@ theorem vm_ltsD_ltsND_not_bisim : ¬(vm ~[ltsD, ltsND] vm) := by
   let p₁ := `(CCS| (Tea. const Constant.vm) + (Coffee. const Constant.vm))
   let q₁ := `(CCS| Tea. const Constant.vm)
   have ltsD_vm_deterministic : ltsD.DeterministicStateLabel vm Coin := by
-    intro _ _ htr₁ htr₂
-    grind [const_tr htr₁, const_tr htr₂]
+    grind
   have h : r p₁ q₁ :=
     match_deterministic
       hbisim hr
