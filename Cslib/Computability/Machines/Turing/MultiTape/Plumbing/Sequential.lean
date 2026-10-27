@@ -83,9 +83,10 @@ lemma leftCfg_of_halt {q₁ : State₁} {cfg : Cfg k Symbol State₀ input} (h :
 end Sequential
 
 open Sequential in
-/-- **Sequential composition of runs.** A run path of `tm₀` to a halted configuration, followed by a
-run path of `tm₁` started where `tm₀` halted, gives a run path of `seq` of at most as many steps,
-which visits only cells that the two paths visit. -/
+/-- **Sequential composition of runs.** A run path of `tm₀` to a halted configuration and a run path
+of `tm₁` started where `tm₀` halted combine into a run path of `seq`: the first path up to its first
+halted configuration, followed by the second. It takes at most as many steps as the two paths
+together, and visits only cells that they visit. -/
 theorem exists_runPath_seq {p₀ : tm₀.RunPath input} (h₀ : p₀.last.Halted)
     {p₁ : tm₁.RunPath input} (h₁ : p₁.head = p₀.last.withState (some tm₁.q₀)) :
     ∃ p : (tm₀.seq tm₁).RunPath input, p.head = leftCfg tm₁.q₀ p₀.head ∧

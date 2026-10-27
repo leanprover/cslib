@@ -120,13 +120,15 @@ noncomputable def adaptedTr {k' : ℕ} {State' : Type*} (tm : MultiTapeTM k Symb
   adapter.action ⟨inp, work⟩ (tm.tr q (adapter.read ⟨inp, work⟩).inputSymbol
     (adapter.read ⟨inp, work⟩).workTapeSymbols)
 
-/-- `tm` run through `adapter`: it reads what `tm` reads through `adapter` and performs the
-adaptation of the action of `tm`. -/
+/-- `tm` run through `adapter`, a `MultiTapeNTM.Adapter`: the adapter computes what `tm` reads
+from the symbols under the heads of the new machine, and gives the action of the new machine
+performing each action of `tm`. In state `q`, `tm.adapt adapter` performs the adaptation of the
+action of `tm` in `q` on what the adapter reads. -/
 noncomputable def adapt {k' : ℕ} (tm : MultiTapeTM k Symbol State)
     (adapter : MultiTapeNTM.Adapter k k' Symbol State State) : MultiTapeTM k' Symbol State :=
   ofTr tm.q₀ (tm.adaptedTr adapter)
 
-/-- `tm.adapt adapter` follows `tm`, in the same states. -/
+/-- `tm.adapt adapter` follows `tm`. -/
 lemma Adapt.follows {k' : ℕ} {adapter : MultiTapeNTM.Adapter k k' Symbol State State} :
     (tm.adapt adapter).Follows tm id adapter :=
   fun _ _ _ h => tr_iff.mp h ▸ rfl
