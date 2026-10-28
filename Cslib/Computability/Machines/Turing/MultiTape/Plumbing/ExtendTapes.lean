@@ -128,7 +128,7 @@ agrees with the adapter defining `extendTapes`. -/
 @[expose, simps! apply] public noncomputable def embedHom (tm : MultiTapeTM k Symbol State)
     (e : Fin k ↪ Fin k') (extraTapes : Fin k' → ℤ → Option Symbol) (extraPos : Fin k' → ℤ) :
     (tm.stepRel input).Hom ((tm.extendTapes e).stepRel input) :=
-  Adapt.follows.stepHom (embed e · extraTapes extraPos) (fun _ => Option.map_id_apply)
+  adapt.follows.stepHom (embed e · extraTapes extraPos) (fun _ => Option.map_id_apply)
     (fun c => HeadSymbols.ext rfl (funext (embed_workTapeSymbols_embed e c extraTapes extraPos)))
     fun c a => by
       refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext l <;> simp only [Action.apply, embed] <;>

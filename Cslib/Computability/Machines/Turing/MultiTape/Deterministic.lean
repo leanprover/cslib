@@ -129,7 +129,7 @@ noncomputable def adapt {k' : ℕ} (tm : MultiTapeTM k Symbol State)
   ofTr tm.q₀ (tm.adaptedTr adapter)
 
 /-- `tm.adapt adapter` follows `tm`. -/
-lemma Adapt.follows {k' : ℕ} {adapter : MultiTapeNTM.Adapter k k' Symbol State State} :
+lemma adapt.follows {k' : ℕ} {adapter : MultiTapeNTM.Adapter k k' Symbol State State} :
     (tm.adapt adapter).Follows tm id adapter :=
   fun _ _ _ h => tr_iff.mp h ▸ rfl
 
@@ -143,7 +143,7 @@ noncomputable def wire {State₀ State₁ : Type*} (tm₀ : MultiTapeTM k Symbol
     MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
   ofTr q₀ fun q => q.elim (tm₀.adaptedTr (.mapState next₀)) (tm₁.adaptedTr (.mapState next₁))
 
-namespace Wire
+namespace wire
 
 variable {State₀ State₁ : Type*} {tm₀ : MultiTapeTM k Symbol State₀}
   {tm₁ : MultiTapeTM k Symbol State₁} {next₀ : Option State₀ → Option (State₀ ⊕ State₁)}
@@ -157,7 +157,7 @@ lemma follows_left : (wire tm₀ tm₁ next₀ next₁ q₀).Follows tm₀ .inl 
 lemma follows_right : (wire tm₀ tm₁ next₀ next₁ q₀).Follows tm₁ .inr (.mapState next₁) :=
   fun _ _ _ h => tr_iff.mp h ▸ rfl
 
-end Wire
+end wire
 
 /-!
 ## Stepping a Turing Machine

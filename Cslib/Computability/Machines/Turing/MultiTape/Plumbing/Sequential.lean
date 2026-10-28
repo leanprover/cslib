@@ -67,13 +67,13 @@ def rightCfg (cfg : Cfg k Symbol State₁ input) :
 /-- The first phase of `seq tm₀ tm₁` mirrors the running steps of `tm₀`. -/
 @[simps! apply]
 noncomputable def leftCfgHom : (tm₀.runningStepRel input).Hom ((tm₀.seq tm₁).stepRel input) :=
-  Wire.follows_left.runningStepHom (leftCfg tm₁.q₀)
+  wire.follows_left.runningStepHom (leftCfg tm₁.q₀)
     (fun _ _ => congrArg (leftState tm₁.q₀)) (fun _ => rfl) fun _ _ => rfl
 
 /-- The second phase of `seq tm₀ tm₁` mirrors the steps of `tm₁`. -/
 @[simps! apply]
 noncomputable def rightCfgHom : (tm₁.stepRel input).Hom ((tm₀.seq tm₁).stepRel input) :=
-  Wire.follows_right.stepHom rightCfg (fun _ => rfl) (fun _ => rfl) fun _ _ => rfl
+  wire.follows_right.stepHom rightCfg (fun _ => rfl) (fun _ => rfl) fun _ _ => rfl
 
 /-- A halted configuration of the first phase is the start of the second phase. -/
 lemma leftCfg_of_halt {q₁ : State₁} {cfg : Cfg k Symbol State₀ input} (h : cfg.state = none) :
