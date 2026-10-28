@@ -1,0 +1,50 @@
+-- numSubsts:  1
+-- bind depth: 1
+-- depth:      2
+-- substs:     1,1,2,False
+\x0.x0
+-- numSubsts:  2
+-- bind depth: 1
+-- depth:      3
+-- substs:     1,1,2,False 1,1,2,False
+\x0.x0
+-- numSubsts:  3
+-- bind depth: 1
+-- depth:      4
+-- substs:     1,1,2,False 1,1,2,False 1,1,2,False
+\x0.x0
+-- numSubsts:  4
+-- bind depth: 1
+-- depth:      5
+-- substs:     1,1,2,False 1,1,2,False 1,1,2,False 1,1,2,False
+\x0.x0
+-- numSubsts:  5
+-- bind depth: 1
+-- depth:      6
+-- substs:     summary: occs=1.0,sizeB=1.0,sizeA=2.0,capt=0.0
+\x0.x0
+-- numSubsts:  6
+-- bind depth: 1
+-- depth:      7
+-- substs:     summary: occs=1.0,sizeB=1.0,sizeA=2.0,capt=0.0
+\x0.x0
+-- numSubsts:  7
+-- bind depth: 1
+-- depth:      8
+-- substs:     summary: occs=1.0,sizeB=1.0,sizeA=2.0,capt=0.0
+\x0.x0
+-- numSubsts:  8
+-- bind depth: 1
+-- depth:      9
+-- substs:     summary: occs=1.0,sizeB=1.0,sizeA=2.0,capt=0.0
+\x0.x0
+-- numSubsts:  9
+-- bind depth: 1
+-- depth:      10
+-- substs:     summary: occs=1.0,sizeB=1.0,sizeA=2.0,capt=0.0
+\x0.x0
+-- numSubsts:  10
+-- bind depth: 1
+-- depth:      11
+-- substs:     summary: occs=1.0,sizeB=1.0,sizeA=2.0,capt=0.0
+\x0.x0
