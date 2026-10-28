@@ -8,6 +8,7 @@
   - [Pull Request Titles](#pull-request-titles)
   - [Testing](#testing)
   - [Linting](#linting)
+    - [Weekly linters and `grind` suggestions](#weekly-linters-and-grind-suggestions)
   - [Imports](#imports)
 - [Getting started](#getting-started)
   - [Before you start: coordination to avoid rework](#before-you-start-coordination-to-avoid-rework)
@@ -90,6 +91,40 @@ CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. The
 
 - *syntax linters*, which appear as you write your code and will give warnings in `lake build`
 - *environment linters*, which can be run using `lake lint` or the `#lint` command
+
+### Weekly linters and `grind` suggestions
+
+Some linters run only in a weekly CI job (see [weekly-lints.yml](/.github/workflows/weekly-lints.yml)).
+One of them, `mergeWithGrind`, suggests replacing a sequence of tactics with a single `grind` call.
+Such replacements make proofs shorter, but can make them noticeably slower to elaborate.
+
+When a PR accepts these suggestions, please report the change in elaboration time of each affected
+declaration in the PR description, following the pattern of Mathlib PRs such as
+[mathlib4#36764](https://github.com/leanprover-community/mathlib4/pull/36764).
+To measure a declaration, put these options in front of it, both before and after the change:
+
+```lean
+set_option Elab.async false in
+set_option trace.profiler true in
+theorem foo ... := by
+  grind
+```
+
+The first top-level line of the trace, `[Elab.command] [<seconds>] ✅️ theorem foo ...`, gives the
+total time of the declaration in seconds. Without `Elab.async false`, the proof is elaborated
+asynchronously and its time is reported separately, in an `[Elab.async] ... elaborating proof of foo`
+line. Steps faster than `trace.profiler.threshold` (10 ms by default) are not reported.
+Remove these options before committing.
+
+The PR description can then list the results like this:
+
+```markdown
+Trace profiling results (differences <30 ms considered measurement noise):
+* `Cslib.Foo.bar`: unchanged
+* `Cslib.Foo.baz`: 85 ms → 140 ms
+
+Profiled using `set_option Elab.async false in set_option trace.profiler true in`.
+```
 
 ## Imports
 
