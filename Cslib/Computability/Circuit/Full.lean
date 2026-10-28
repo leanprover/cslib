@@ -124,7 +124,7 @@ private theorem exists_full_synthesis_finset [DecidableEq U]
     obtain ⟨a, ha⟩ := exists_full_synthesis_point (f point) default point
     obtain ⟨b, hb⟩ := ih
     have hstep := ha.full_binary hb (fun v acc => if v = default then acc else v)
-    exact ⟨_, by convert hstep using 2; funext x; by_cases hx : x = point <;> simp [hx, hp]⟩
+    grind
 
 private theorem fullInterpretation_isComplete_two [Finite U] :
     (fullInterpretation (k := 2) (Carrier := U)).IsComplete where
