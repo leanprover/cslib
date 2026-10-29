@@ -50,7 +50,7 @@ the halted state the test `inr ()`: the loop mirrors the running steps of `tm`. 
 @[simps! apply]
 noncomputable def runHom (i : Fin k) :
     (tm.runningStepRel input).Hom ((repeatUntilBlank i tm).stepRel input) :=
-  wire.follows_left.runningStepHom (Sequential.leftCfg ())
+  follows_wire_left.runningStepHom (Sequential.leftCfg ())
     (fun _ _ => congrArg (Sequential.leftState ())) (fun _ => rfl) fun _ _ => rfl
 
 /-- From the test on a `wordsCfg` configuration, the machine halts if the word on tape `i` is empty
