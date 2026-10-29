@@ -143,6 +143,12 @@ noncomputable def wire {State₀ State₁ : Type*} (tm₀ : MultiTapeTM k Symbol
     MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
   ofTr q₀ fun q => q.elim (tm₀.adaptedTr (.mapState next₀)) (tm₁.adaptedTr (.mapState next₁))
 
+/-- The wire of a first machine that runs in its own states: halting hands over to the second
+machine in its state `q₁`. -/
+def handOver {State₀ State₁ : Type*} (q₁ : State₁) (state : Option State₀) :
+    Option (State₀ ⊕ State₁) :=
+  some (state.elim (.inr q₁) .inl)
+
 section wire
 
 variable {State₀ State₁ : Type*} {tm₀ : MultiTapeTM k Symbol State₀}

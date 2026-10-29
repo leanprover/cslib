@@ -6,7 +6,7 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
+public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 
 /-!
 # Repeating a machine until a tape goes blank
@@ -38,7 +38,7 @@ noncomputable def RepeatUntilBlank.blankTest (i : Fin k) : MultiTapeTM k Symbol 
 the cell under the head of tape `i` is blank and otherwise restarts `tm`. -/
 public noncomputable def repeatUntilBlank (i : Fin k) (tm : MultiTapeTM k Symbol State) :
     MultiTapeTM k Symbol (State ⊕ Unit) :=
-  wire tm (RepeatUntilBlank.blankTest i) (Sequential.leftState ()) (Option.map fun _ => .inl tm.q₀)
+  wire tm (RepeatUntilBlank.blankTest i) (handOver ()) (Option.map fun _ => .inl tm.q₀)
     (.inl tm.q₀)
 
 namespace RepeatUntilBlank
@@ -50,8 +50,8 @@ the halted state the test `inr ()`: the loop mirrors the running steps of `tm`. 
 @[simps! apply]
 noncomputable def runHom (i : Fin k) :
     (tm.runningStepRel input).Hom ((repeatUntilBlank i tm).stepRel input) :=
-  follows_wire_left.runningStepHom (Sequential.leftCfg ())
-    (fun _ _ => congrArg (Sequential.leftState ())) (fun _ => rfl) fun _ _ => rfl
+  follows_wire_left.runningStepHom (Cfg.mapState (handOver ()))
+    (fun _ _ => congrArg (handOver ())) (fun _ => rfl) fun _ _ => rfl
 
 /-- From the test on a `wordsCfg` configuration, the machine halts if the word on tape `i` is empty
 and otherwise restarts `tm`, leaving the words unchanged. -/
@@ -80,9 +80,9 @@ lemma exists_round {P : (input : List Symbol) → (Fin k → List Symbol) → Pr
   obtain ⟨q, hqhead, hqlast, hqlen, hqmem⟩ := p.exists_running (by rw [hlast]; rfl)
   have hcheck : (repeatUntilBlank i tm).Step (q.map (runHom i)).last
       (wordsCfg input (if w' i = [] then none else some (.inl tm.q₀)) w' (out ++ e)) := by
-    simp [hqlast, hlast, Sequential.leftCfg, Sequential.leftState, step_check]
+    simp [hqlast, hlast, handOver, step_check]
   refine ⟨w', e, hQ, (q.map (runHom i)).snoc _ hcheck,
-    by simp [hqhead, hhead, Sequential.leftCfg, Sequential.leftState], by simp,
+    by simp [hqhead, hhead, handOver], by simp,
     by simp [MultiTapeNTM.RunPath.time] at htime ⊢; lia, ?_⟩
   -- the heads of `tm` stay within `[-s, s]`, and reading tape `i` moves none of them
   have hwin := MultiTapeNTM.RunPath.inWindow_of_space_le (p := p) (by simp [hhead]) hspace

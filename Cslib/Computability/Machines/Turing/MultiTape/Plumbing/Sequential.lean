@@ -35,17 +35,12 @@ namespace Turing.MultiTapeTM
 
 variable {k : ℕ} {Symbol State₀ State₁ : Type*} {input : List Symbol}
 
-/-- The state of the sequential composition while `tm₀` runs: halting hands over to the second
-machine in its state `q₁`. -/
-def Sequential.leftState (q₁ : State₁) (state : Option State₀) : Option (State₀ ⊕ State₁) :=
-  some (state.elim (.inr q₁) .inl)
-
 /-- The sequential composition of `tm₀` and `tm₁`: it behaves like `tm₀` until `tm₀` would halt,
 at which point it switches to the initial state of `tm₁` and behaves like `tm₁`. The switch is
 folded into the halting transition of `tm₀`, so it costs no step. -/
 noncomputable def seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁) :
     MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
-  wire tm₀ tm₁ (Sequential.leftState tm₁.q₀) (Option.map .inr) (.inl tm₀.q₀)
+  wire tm₀ tm₁ (handOver tm₁.q₀) (Option.map .inr) (.inl tm₀.q₀)
 
 variable {tm₀ : MultiTapeTM k Symbol State₀} {tm₁ : MultiTapeTM k Symbol State₁}
 
@@ -56,7 +51,7 @@ the state `q₁` of the second phase. Under this map, the whole first phase of `
 run of `tm₀`, *including* its halting step. -/
 def leftCfg (q₁ : State₁) (cfg : Cfg k Symbol State₀ input) :
     Cfg k Symbol (State₀ ⊕ State₁) input :=
-  cfg.mapState (leftState q₁)
+  cfg.mapState (handOver q₁)
 
 /-- A configuration of the second phase. Under this map, the second phase of `seq` mirrors the
 run of `tm₁`. -/
@@ -68,7 +63,7 @@ def rightCfg (cfg : Cfg k Symbol State₁ input) :
 @[simps! apply]
 noncomputable def leftCfgHom : (tm₀.runningStepRel input).Hom ((tm₀.seq tm₁).stepRel input) :=
   follows_wire_left.runningStepHom (leftCfg tm₁.q₀)
-    (fun _ _ => congrArg (leftState tm₁.q₀)) (fun _ => rfl) fun _ _ => rfl
+    (fun _ _ => congrArg (handOver tm₁.q₀)) (fun _ => rfl) fun _ _ => rfl
 
 /-- The second phase of `seq tm₀ tm₁` mirrors the steps of `tm₁`. -/
 @[simps! apply]
@@ -78,7 +73,7 @@ noncomputable def rightCfgHom : (tm₁.stepRel input).Hom ((tm₀.seq tm₁).ste
 /-- A halted configuration of the first phase is the start of the second phase. -/
 lemma leftCfg_of_halt {q₁ : State₁} {cfg : Cfg k Symbol State₀ input} (h : cfg.state = none) :
     leftCfg q₁ cfg = rightCfg (cfg.withState (some q₁)) := by
-  simp [leftCfg, leftState, rightCfg, Cfg.withState, Cfg.mapState, h]
+  simp [leftCfg, handOver, rightCfg, Cfg.withState, Cfg.mapState, h]
 
 end Sequential
 
