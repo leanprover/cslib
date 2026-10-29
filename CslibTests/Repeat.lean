@@ -37,4 +37,7 @@ def mississimiss : List Char := "mississimiss".toList
 #guard ["i", "iss", "issi", "miss", "s", "si", "ss", "ssi"].all
   fun s => s.toList ∈ rightMaximalRepeats mississimiss
 
+-- A word of length `n` has at most `n - 1` right-maximal repeats, and `aaaa` has three.
+#guard (rightMaximalRepeats "aaaa".toList).length = 3
+
 end CslibTests.Repeat
