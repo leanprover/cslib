@@ -302,10 +302,10 @@ theorem bisimilarity_is_congruence
   | _ => grind [bisimilarity_congr_pre, bisimilarity_congr_par,
                 bisimilarity_congr_choice, bisimilarity_congr_res]
 
-instance : Congruence (HomBisimilarity (lts (defs := defs))) := ⟨⟩
+instance : Congruence ~[lts (defs := defs)] := ⟨⟩
 
 /-- Bisimilarity is a congruence in CCS. -/
-instance bisimilarityCongruence : LawfulCongruence (HomBisimilarity (lts (defs := defs))) where
+instance bisimilarityCongruence : LawfulCongruence ~[lts (defs := defs)] where
   elim := by grind [Covariant, bisimilarity_is_congruence]
 
 end CCS
