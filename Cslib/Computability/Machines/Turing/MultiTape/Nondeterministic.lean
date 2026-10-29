@@ -41,8 +41,8 @@ requires every path of at least `t` steps to end in a halted configuration.
 * `ComputationPath`: a run path starting at the initial configuration
 * `Adapter`, `Follows`: a machine follows another when it performs each of its transitions,
   reading and acting through an adapter
-* `Follows.runningStepHom`, `Follows.stepHom`: a configuration map that agrees with the adapter is a
-  homomorphism of step relations, so it maps run paths
+* `Follows.step`, `Follows.runningStepHom`, `Follows.stepHom`: a configuration map that agrees with
+  the adapter maps steps to steps, so it is a homomorphism of step relations and maps run paths
 * `RunsInTime`: every computation path of at least the given length ends in a halted
   configuration
 
@@ -232,6 +232,24 @@ namespace Follows
 variable {k' : ℕ} {State' : Type*} {input' : List Symbol} {ntm' : MultiTapeNTM k' Symbol State'}
   {state : State → State'} {adapter : Adapter k k' Symbol State State'}
 
+/-- **A follower mirrors a step.** If `ntm'` follows `ntm`, and the map `f` relabels the state of
+`c` through `state`, reads through `adapter` what `c` reads, and carries the action of a step from
+`c` to its adaptation, then `f` maps the step to a step of `ntm'`. -/
+lemma step (h : ntm'.Follows ntm state adapter)
+    (f : Cfg k Symbol State input → Cfg k' Symbol State' input') {c c' : Cfg k Symbol State input}
+    (hstep : ntm.Step c c') (hstate : c.state.map state = (f c).state)
+    (hread : adapter.read (f c).headSymbols = c.headSymbols)
+    (haction : ∀ action, action.apply c = c' →
+      (adapter.action (f c).headSymbols action).apply (f c) = f c') :
+    ntm'.Step (f c) (f c') := by
+  rcases hq : c.state with _ | q
+  · rw [(step_of_halt hq).mp hstep]
+    exact (step_of_halt (show (f c).state = none by rw [← hstate, hq]; rfl)).mpr rfl
+  · simp only [Step, hq, Option.map_some] at hstep hstate
+    obtain ⟨action, hTr, rfl⟩ := hstep
+    rw [Step, ← hstate]
+    exact ⟨_, h q _ action (by rwa [hread]), (haction action rfl).symm⟩
+
 /-- **A follower mirrors the running steps.** If `ntm'` follows `ntm`, and `f` sends a configuration
 in state `q` to one in state `state q`, from which `adapter` reads what the configuration reads and
 on which each adapted action acts as the action acts on the configuration, then `f` maps each
@@ -242,13 +260,9 @@ def runningStepHom (h : ntm'.Follows ntm state adapter)
     (hread : ∀ c, adapter.read (f c).headSymbols = c.headSymbols)
     (haction : ∀ c action,
       (adapter.action (f c).headSymbols action).apply (f c) = f (action.apply c)) :
-    (ntm.runningStepRel input).Hom (ntm'.stepRel input') where
-  toFun := f
-  map_rel' {c _} := fun ⟨hrunning, hstep⟩ => by
-    obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp hrunning
-    simp only [Set.mem_ofPred_eq, Step, hq, hstate c q hq] at hstep ⊢
-    obtain ⟨action, hTr, rfl⟩ := hstep
-    exact ⟨_, h q _ action (by rwa [hread]), (haction c action).symm⟩
+    (ntm.runningStepRel input).Hom (ntm'.stepRel input') :=
+  ⟨f, fun {c _} ⟨hrunning, hstep⟩ ↦ (Option.ne_none_iff_exists'.mp hrunning).elim fun q hq ↦
+    h.step f hstep (by rw [hq, hstate c q hq]; rfl) (hread c) fun action h ↦ h ▸ haction c action⟩
 
 /-- **A follower mirrors the steps.** As `runningStepHom`, for an `f` that relabels every state
 through `state`, so that it also keeps halted configurations halted. -/
@@ -258,13 +272,8 @@ def stepHom (h : ntm'.Follows ntm state adapter)
     (hread : ∀ c, adapter.read (f c).headSymbols = c.headSymbols)
     (haction : ∀ c action,
       (adapter.action (f c).headSymbols action).apply (f c) = f (action.apply c)) :
-    (ntm.stepRel input).Hom (ntm'.stepRel input') where
-  toFun := f
-  map_rel' {c _} hc :=
-    if hc' : c.Halted then ((step_of_halt hc').mp hc).symm ▸
-      (step_of_halt ((hstate c).symm.trans (congrArg (Option.map state) hc'))).mpr rfl
-    else (h.runningStepHom f (fun c _ hq => (hstate c).symm.trans (congrArg (Option.map state) hq))
-      hread haction).map_rel ⟨hc', hc⟩
+    (ntm.stepRel input).Hom (ntm'.stepRel input') :=
+  ⟨f, fun hstep ↦ h.step f hstep (hstate _) (hread _) fun action h ↦ h ▸ haction _ action⟩
 
 end Follows
 
