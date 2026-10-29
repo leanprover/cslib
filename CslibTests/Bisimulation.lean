@@ -84,7 +84,54 @@ example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ 
 example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ :=
   Bisimilarity.symm (State₁ := State₁) h
 
+example (h : s₁ ~n[lts₁,lts₂] s₂) : s₂ ~n[lts₂,lts₁] s₁ := by
+  symm
+  exact h
+
+example (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) : BisimilarityOmega lts₂ lts₁ s₂ s₁ := by
+  symm
+  exact h
+
+example (h : s₁ ~[lts₁,lts₂] s₂) : BisimilarityOmega lts₁ lts₂ s₁ s₂ := h.omega
+
+example (hmn : m ≤ n) (h : s₁ ~n[lts₁,lts₂] s₂) :
+    s₁ ~m[lts₁,lts₂] s₂ := BisimilarityApprox.antitone hmn _ _ h
+
+example [lts₁.ImageFinite] [lts₂.ImageFinite] (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) :
+    s₁ ~[lts₁,lts₂] s₂ := h.bisimilarity
+
+example [lts₁.ImageFinite] [lts₂.ImageFinite] :
+    BisimilarityOmega lts₁ lts₂ s₁ s₂ ↔ s₁ ~[lts₁,lts₂] s₂ := by simp
+
 end Heterogeneous
+
+example (lts : LTS State Label) (n : ℕ) (s : State) : s ~n[lts] s := by rfl
+
+-- A single transition and an infinite loop agree for one round but differ in the second.
+private def countdownLTS : LTS ℕ Unit := ⟨fun s _ t => s = t + 1⟩
+
+private def loopLTS : LTS Unit Unit := ⟨fun _ _ _ => True⟩
+
+example : 0 ~0[countdownLTS,loopLTS] () := by simp
+
+example : 1 ~(0 + 1)[countdownLTS,loopLTS] () := by
+  intro μ
+  exact ⟨fun _ _ => ⟨(), trivial, trivial⟩, fun _ _ => ⟨0, rfl, trivial⟩⟩
+
+private theorem countdown_not_approx_two : ¬(1 ~2[countdownLTS,loopLTS] ()) := by
+  intro h
+  obtain ⟨s, hs, hr⟩ := h.follow_snd (show loopLTS.Tr () () () from trivial)
+  obtain ⟨t, ht, _⟩ := hr.follow_snd (show loopLTS.Tr () () () from trivial)
+  change 1 = s + 1 at hs
+  change s = t + 1 at ht
+  omega
+
+-- Both directions of matching matter, including across different state types.
+example : ¬(() ~2[loopLTS,countdownLTS] 1) :=
+  fun h => countdown_not_approx_two h.symm
+
+example : ¬ BisimilarityOmega countdownLTS loopLTS 1 () :=
+  fun h => countdown_not_approx_two (h 2)
 
 -- A relation can be a bisimulation up to bisimilarity without itself being a bisimulation.
 -- Soundness gives a bisimulation on its closure and bisimilarity of its related states.

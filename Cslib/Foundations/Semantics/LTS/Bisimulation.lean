@@ -10,6 +10,8 @@ public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 public import Mathlib.Tactic.TFAE
 
+import Mathlib.Data.Fintype.Order
+
 /-! # Bisimulation and Bisimilarity
 
 A bisimulation is a binary relation on the states of two `LTS`s, which establishes a tight semantic
@@ -29,6 +31,8 @@ For an introduction to theory of bisimulation, we refer to [Sangiorgi2011].
 
 - `IsBisimulation lts₁ lts₂ r`: the relation `r` is a bisimulation between `lts₁` and `lts₂`.
 - `Bisimilarity lts₁ lts₂`: states related by some bisimulation between `lts₁` and `lts₂`.
+- `BisimilarityApprox lts₁ lts₂ n`: the depth-`n` stratum of bisimilarity.
+- `BisimilarityOmega lts₁ lts₂`: the intersection of all finite strata.
 - `UpToHomBisimilarity lts₁ lts₂ r`: the closure of `r` under bisimilarity in each LTS.
 - `IsBisimulationUpTo lts₁ lts₂ r`: transitions from states related by `r` can be matched with
   derivatives in `UpToHomBisimilarity lts₁ lts₂ r`.
@@ -44,12 +48,15 @@ The `Hom` variants specialize these definitions to comparing states in the same 
 - `s₁ ~[lts₁,lts₂] s₂`: the states `s₁` and `s₂` are bisimilar under `lts₁` and `lts₂`.
 - `s₁ ≈[lts₁,lts₂] s₂`: the states `s₁` and `s₂` are weakly bisimilar under `lts₁` and `lts₂`.
 - `s₁ ~[lts] s₂` and `s₁ ≈[lts] s₂`: the corresponding homogeneous relations.
+- `s₁ ~n[lts₁,lts₂] s₂` and `s₁ ~n[lts] s₂`: depth-`n` approximations of bisimilarity.
 
 ## Main statements
 
 - `LTS.IsBisimulation.inv`: the inverse of a bisimulation is a bisimulation.
 - `HomBisimilarity.eqv`: homogeneous bisimilarity is an equivalence relation (see `Equivalence`).
 - `Bisimilarity.isBisimulation`: bisimilarity is itself a bisimulation.
+- `BisimilarityOmega.eq_bisimilarity`: on image-finite LTSs, the omega approximation is
+  bisimilarity.
 - `IsBisimulation.le_bisimilarity`: bisimilarity is the largest bisimulation.
 - `Bisimilarity.gfp`: the union of bisimilarity and any bisimulation is equal to bisimilarity.
 - `LTS.IsBisimulationUpTo.isBisimulation`: if `r` is a bisimulation up to bisimilarity,
@@ -272,6 +279,239 @@ theorem Bisimilarity.gfp (r : State₁ → State₂ → Prop) (h : IsBisimulatio
 /-- `calc` support for bisimilarity. -/
 instance : Trans (Bisimilarity lts₁ lts₂) (Bisimilarity lts₂ lts₃) (Bisimilarity lts₁ lts₃) where
   trans := Bisimilarity.trans
+
+/-! ## Stratification of bisimilarity
+
+Following [Sangiorgi2011], the finite strata start with the universal relation and require
+matching transitions into the preceding stratum. Their intersection is written `∼ω` in the book.
+For general LTSs this intersection can be strictly larger than bisimilarity.
+-/
+
+/-- The depth-`n` approximation of bisimilarity, written `∼n` in [Sangiorgi2011]. At depth zero
+all states are related; at depth `n + 1`, transitions must match with derivatives related at
+depth `n`. -/
+def BisimilarityApprox (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) :
+    ℕ → State₁ → State₂ → Prop
+  | 0, _, _ => True
+  | n + 1, s₁, s₂ => ∀ μ,
+      (∀ s₁', lts₁.Tr s₁ μ s₁' →
+        ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ BisimilarityApprox lts₁ lts₂ n s₁' s₂') ∧
+      (∀ s₂', lts₂.Tr s₂ μ s₂' →
+        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ BisimilarityApprox lts₁ lts₂ n s₁' s₂')
+
+/-- The depth-`n` approximation of bisimilarity within one LTS. -/
+abbrev HomBisimilarityApprox (lts : LTS State Label) := BisimilarityApprox lts lts
+
+open Lean Parser in
+/-- Parse an approximation depth without consuming the LTS brackets as array indexing. -/
+meta def bisimilarityDepth := withForbidden "[" (termParser maxPrec)
+
+/-- Notation for the depth-`n` approximation of bisimilarity between two LTSs. -/
+scoped macro s:term:max " ~" n:bisimilarityDepth "[" lts₁:term "," lts₂:term "] "
+    s':term:max : term => do
+  let depth : Lean.TSyntax `term := ⟨n.raw⟩
+  `(BisimilarityApprox $lts₁ $lts₂ $depth $s $s')
+
+/-- Notation for the depth-`n` approximation of bisimilarity within one LTS. -/
+scoped macro s:term:max " ~" n:bisimilarityDepth "[" lts:term "] " s':term:max : term => do
+  let depth : Lean.TSyntax `term := ⟨n.raw⟩
+  `(HomBisimilarityApprox $lts $depth $s $s')
+
+/-- Every pair of states belongs to the zeroth stratum. -/
+@[simp]
+theorem BisimilarityApprox.zero : s₁ ~0[lts₁,lts₂] s₂ := trivial
+
+/-- Membership in a successor stratum is given by matching transitions into the previous one. -/
+theorem BisimilarityApprox.succ_iff : s₁ ~(n + 1)[lts₁,lts₂] s₂ ↔
+    ∀ μ,
+      (∀ s₁', lts₁.Tr s₁ μ s₁' →
+        ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~n[lts₁,lts₂] s₂') ∧
+      (∀ s₂', lts₂.Tr s₂ μ s₂' →
+        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~n[lts₁,lts₂] s₂') := Iff.rfl
+
+/-- Follow a transition by the first state, consuming one level of approximation. -/
+theorem BisimilarityApprox.follow_fst (h : s₁ ~(n + 1)[lts₁,lts₂] s₂)
+    (htr : lts₁.Tr s₁ μ s₁') :
+    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~n[lts₁,lts₂] s₂' :=
+  (h μ).1 s₁' htr
+
+/-- Follow a transition by the second state, consuming one level of approximation. -/
+theorem BisimilarityApprox.follow_snd (h : s₁ ~(n + 1)[lts₁,lts₂] s₂)
+    (htr : lts₂.Tr s₂ μ s₂') :
+    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~n[lts₁,lts₂] s₂' :=
+  (h μ).2 s₂' htr
+
+/-- Each stratum is contained in the preceding stratum. -/
+theorem BisimilarityApprox.succ_le (n : ℕ) :
+    BisimilarityApprox lts₁ lts₂ (n + 1) ≤ BisimilarityApprox lts₁ lts₂ n := by
+  induction n with
+  | zero => exact fun _ _ _ => trivial
+  | succ n ih =>
+    intro s₁ s₂ h μ
+    constructor
+    · intro s₁' htr
+      obtain ⟨s₂', ht, hr⟩ := h.follow_fst htr
+      exact ⟨s₂', ht, ih _ _ hr⟩
+    · intro s₂' htr
+      obtain ⟨s₁', ht, hr⟩ := h.follow_snd htr
+      exact ⟨s₁', ht, ih _ _ hr⟩
+
+/-- The strata decrease with depth. -/
+theorem BisimilarityApprox.antitone : Antitone (BisimilarityApprox lts₁ lts₂) := by
+  intro m n h
+  induction h with
+  | refl => exact le_refl _
+  | step h ih => exact le_trans (succ_le _) ih
+
+/-- Bisimilar states belong to every finite stratum. -/
+theorem Bisimilarity.approx (h : s₁ ~[lts₁,lts₂] s₂) (n : ℕ) :
+    s₁ ~n[lts₁,lts₂] s₂ := by
+  induction n generalizing s₁ s₂ with
+  | zero => trivial
+  | succ n ih =>
+    intro μ
+    constructor
+    · intro s₁' htr
+      obtain ⟨s₂', ht, hr⟩ := h.follow_fst htr
+      exact ⟨s₂', ht, ih hr⟩
+    · intro s₂' htr
+      obtain ⟨s₁', ht, hr⟩ := h.follow_snd htr
+      exact ⟨s₁', ht, ih hr⟩
+
+/-- Each finite stratum is symmetric, including between different state types. -/
+@[symm]
+theorem BisimilarityApprox.symm {State₁ State₂ : Type*}
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s₁ : State₁} {s₂ : State₂}
+    (h : s₁ ~n[lts₁,lts₂] s₂) :
+    s₂ ~n[lts₂,lts₁] s₁ := by
+  induction n generalizing s₁ s₂ with
+  | zero => trivial
+  | succ n ih =>
+    intro μ
+    constructor
+    · intro s₂' htr
+      obtain ⟨s₁', ht, hr⟩ := h.follow_snd htr
+      exact ⟨s₁', ht, ih hr⟩
+    · intro s₁' htr
+      obtain ⟨s₂', ht, hr⟩ := h.follow_fst htr
+      exact ⟨s₂', ht, ih hr⟩
+
+/-- Finite strata compose across LTSs at the same depth. -/
+theorem BisimilarityApprox.trans
+    (h₁ : s₁ ~n[lts₁,lts₂] s₂)
+    (h₂ : s₂ ~n[lts₂,lts₃] s₃) :
+    s₁ ~n[lts₁,lts₃] s₃ := by
+  induction n generalizing s₁ s₂ s₃ with
+  | zero => trivial
+  | succ n ih =>
+    intro μ
+    constructor
+    · intro s₁' htr
+      obtain ⟨s₂', ht₂, hr₁⟩ := h₁.follow_fst htr
+      obtain ⟨s₃', ht₃, hr₂⟩ := h₂.follow_fst ht₂
+      exact ⟨s₃', ht₃, ih hr₁ hr₂⟩
+    · intro s₃' htr
+      obtain ⟨s₂', ht₂, hr₂⟩ := h₂.follow_snd htr
+      obtain ⟨s₁', ht₁, hr₁⟩ := h₁.follow_snd ht₂
+      exact ⟨s₁', ht₁, ih hr₁ hr₂⟩
+
+/-- Homogeneous finite strata are reflexive. -/
+@[refl]
+theorem HomBisimilarityApprox.refl (n : ℕ) (s : State) :
+    s ~n[lts] s := (HomBisimilarity.refl s).approx n
+
+/-- Each homogeneous finite stratum is an equivalence relation. -/
+theorem HomBisimilarityApprox.eqv (n : ℕ) : Equivalence (HomBisimilarityApprox lts n) where
+  refl := HomBisimilarityApprox.refl n
+  symm := BisimilarityApprox.symm
+  trans := BisimilarityApprox.trans
+
+/-- The omega approximation of bisimilarity, written `∼ω` in [Sangiorgi2011], is the
+intersection of all finite strata. It need not coincide with bisimilarity for general LTSs. -/
+def BisimilarityOmega (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
+    (s₁ : State₁) (s₂ : State₂) : Prop :=
+  ∀ n, s₁ ~n[lts₁,lts₂] s₂
+
+/-- The omega approximation of bisimilarity within one LTS. -/
+abbrev HomBisimilarityOmega (lts : LTS State Label) := BisimilarityOmega lts lts
+
+/-- Membership in the omega approximation means membership in every finite stratum. -/
+theorem BisimilarityOmega.iff_forall : BisimilarityOmega lts₁ lts₂ s₁ s₂ ↔
+    ∀ n, s₁ ~n[lts₁,lts₂] s₂ := Iff.rfl
+
+/-- Bisimilar states belong to the omega approximation. -/
+theorem Bisimilarity.omega (h : s₁ ~[lts₁,lts₂] s₂) : BisimilarityOmega lts₁ lts₂ s₁ s₂ :=
+  h.approx
+
+/-- The omega approximation is symmetric across LTSs. -/
+@[symm]
+theorem BisimilarityOmega.symm {State₁ State₂ : Type*}
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s₁ : State₁} {s₂ : State₂}
+    (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) : BisimilarityOmega lts₂ lts₁ s₂ s₁ :=
+  fun n => (h n).symm
+
+/-- The omega approximation composes across LTSs. -/
+theorem BisimilarityOmega.trans (h₁ : BisimilarityOmega lts₁ lts₂ s₁ s₂)
+    (h₂ : BisimilarityOmega lts₂ lts₃ s₂ s₃) : BisimilarityOmega lts₁ lts₃ s₁ s₃ :=
+  fun n => (h₁ n).trans (h₂ n)
+
+/-- The homogeneous omega approximation is reflexive. -/
+@[refl]
+theorem HomBisimilarityOmega.refl (s : State) : HomBisimilarityOmega lts s s :=
+  (HomBisimilarity.refl s).omega
+
+/-- The homogeneous omega approximation is an equivalence relation. -/
+theorem HomBisimilarityOmega.eqv : Equivalence (HomBisimilarityOmega lts) where
+  refl := HomBisimilarityOmega.refl
+  symm := BisimilarityOmega.symm
+  trans := BisimilarityOmega.trans
+
+/-- If the second LTS is image-finite, a transition by the first state has a matching
+derivative related at every finite depth. -/
+theorem BisimilarityOmega.follow_fst [hfin : lts₂.ImageFinite]
+    (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) (htr : lts₁.Tr s₁ μ s₁') :
+    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ BisimilarityOmega lts₁ lts₂ s₁' s₂' := by
+  classical
+  have := hfin s₂ μ
+  by_contra hnone
+  -- If every derivative fails at some depth, finiteness gives a common depth of failure.
+  have hbad : ∀ t : lts₂.image s₂ μ, ∃ n, ¬(s₁' ~n[lts₁,lts₂] t) := by
+    intro t
+    by_contra ht
+    push Not at ht
+    exact hnone ⟨t, t.property, ht⟩
+  choose depth hdepth using hbad
+  obtain ⟨N, hN⟩ := Finite.exists_le depth
+  obtain ⟨t, ht, hr⟩ := (h (N + 1)).follow_fst htr
+  exact hdepth ⟨t, ht⟩ (BisimilarityApprox.antitone (hN ⟨t, ht⟩) _ _ hr)
+
+/-- If the first LTS is image-finite, a transition by the second state has a matching
+derivative related at every finite depth. -/
+theorem BisimilarityOmega.follow_snd [lts₁.ImageFinite]
+    (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) (htr : lts₂.Tr s₂ μ s₂') :
+    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ BisimilarityOmega lts₁ lts₂ s₁' s₂' := by
+  obtain ⟨s₁', ht, hr⟩ := h.symm.follow_fst htr
+  exact ⟨s₁', ht, hr.symm⟩
+
+/-- On image-finite LTSs, the omega approximation is a bisimulation.
+This is the image-finite stratification result of [Sangiorgi2011]. -/
+theorem BisimilarityOmega.isBisimulation [lts₁.ImageFinite] [lts₂.ImageFinite] :
+    IsBisimulation lts₁ lts₂ (BisimilarityOmega lts₁ lts₂) := by
+  intro s₁ s₂ h μ
+  exact ⟨fun _ ht => h.follow_fst ht, fun _ ht => h.follow_snd ht⟩
+
+/-- On image-finite LTSs, membership in every finite stratum implies bisimilarity. -/
+theorem BisimilarityOmega.bisimilarity [lts₁.ImageFinite] [lts₂.ImageFinite]
+    (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) : s₁ ~[lts₁,lts₂] s₂ :=
+  BisimilarityOmega.isBisimulation.le_bisimilarity _ _ h
+
+/-- On image-finite LTSs, the omega approximation coincides with bisimilarity. -/
+@[simp]
+theorem BisimilarityOmega.eq_bisimilarity (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
+    [lts₁.ImageFinite] [lts₂.ImageFinite] :
+    BisimilarityOmega lts₁ lts₂ = Bisimilarity lts₁ lts₂ := by
+  funext s₁ s₂
+  exact propext ⟨BisimilarityOmega.bisimilarity, Bisimilarity.omega⟩
 
 section Order
 
