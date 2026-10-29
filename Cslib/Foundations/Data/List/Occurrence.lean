@@ -24,6 +24,7 @@ positions at which `u` occurs in `w`. Positions start at `0`.
 * `List.occursAt_iff_getElem?`: occurrences in terms of letters.
 * `List.OccursAt.trans`: an occurrence inside an occurrence is an occurrence.
 * `List.mem_occurrences` and `List.pairwise_lt_occurrences`.
+* `List.length_occurrences_le`: a nonempty word occurs at most `w.length` times in `w`.
 -/
 
 @[expose] public section
@@ -106,6 +107,10 @@ theorem occursAt_append_singleton_iff {c : α} :
       rw [getElem_concat_length rfl]
       exact hc
 
+/-- The occurrences in `c :: w` after its first position are the occurrences in `w`. -/
+theorem occursAt_cons_succ {c : α} : u.OccursAt (c :: w) (i + 1) ↔ u.OccursAt w i :=
+  Iff.rfl
+
 /-- The positions at which `u` occurs in `w`, in increasing order. -/
 def occurrences [DecidableEq α] (u w : List α) : List ℕ :=
   (range (w.length + 1)).filter fun i => decide (u.OccursAt w i)
@@ -125,5 +130,19 @@ theorem mem_occurrences_of_ne_nil [DecidableEq α] (hu : u ≠ []) :
 theorem pairwise_lt_occurrences [DecidableEq α] (u w : List α) :
     (u.occurrences w).Pairwise (· < ·) :=
   pairwise_lt_range.filter _
+
+/-- A nonempty word occurs at most `w.length` times in `w`, since it cannot start at the end of
+`w`. -/
+theorem length_occurrences_le [DecidableEq α] (hu : u ≠ []) :
+    (u.occurrences w).length ≤ w.length := by
+  have hend : ¬u.OccursAt w w.length := fun h => by
+    have := h.add_length_le hu
+    have := length_pos_iff.mpr hu
+    omega
+  have h₁ : ((range w.length).filter fun i => decide (u.OccursAt w i)).length ≤ w.length :=
+    (length_filter_le _ _).trans (by simp)
+  have h₂ : ([w.length].filter fun i => decide (u.OccursAt w i)).length = 0 := by simp [hend]
+  rw [occurrences, range_succ, filter_append, length_append]
+  omega
 
 end List
