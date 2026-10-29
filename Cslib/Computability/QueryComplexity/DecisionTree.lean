@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2026 Vignesh Karri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Vignesh Karri
+Authors: Vignesh Karri, Samuel Schlesinger
 -/
 
 module
@@ -15,7 +15,7 @@ public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 A decision tree over `n` variables queries one coordinate at a time and branches on the answer,
 until it reaches a leaf holding an output bit. It computes `f : BooleanFunction n` when every input
-reaches a leaf labelled `f x`.
+`x` reaches a leaf labelled `f x`.
 
 `D(f)`, the decision tree complexity, is the least depth of a tree computing `f`. This file
 proves `C(f) ≤ D(f)`: the set of queries made when evaluating an input forms a certificate for
@@ -25,16 +25,18 @@ that input. Together with `Measures.lean` that gives the chain
 
 ## Main definitions
 
-- `DecisionTree`: a decision tree over `n` Boolean variables.
+- `DecisionTree n`: a decision tree over `n` Boolean variables.
 - `DecisionTree.Computes`: when a tree computes a given Boolean function.
-- `DecisionTree.depth`, `DecisionTree.cost`: worst-case and per-input query counts.
+- `DecisionTree.depth`: the number of queries in the worst case.
 - `DecisionTree.complexity`: `D(f)`, the least depth of a tree computing `f`.
-- `DecisionTree.path`: the partial assignment recording the queries made on an input.
+- `DecisionTree.queries`: the coordinates queried on an input.
 
 ## Main results
 
 - `DecisionTree.complexity_le_card`: `D(f) ≤ n`.
 - `DecisionTree.certificateComplexity_le_complexity`: `C(f) ≤ D(f)`.
+- `DecisionTree.complexity_eq_card_of_sensitivityAt_eq_card`: an input sensitive to every
+  coordinate forces `D(f) = n`.
 
 ## References
 
@@ -49,6 +51,8 @@ that input. Together with `Measures.lean` that gives the chain
 
 namespace Cslib.QueryComplexity
 
+open BitString
+
 variable {n : ℕ}
 
 /-! ## Decision trees -/
@@ -56,7 +60,7 @@ variable {n : ℕ}
 /-- A decision tree over `n` Boolean variables: either a leaf holding the output
 bit, or a node querying one coordinate. The left child is taken when the answer is
 `false`, the right child when it is `true`. -/
-inductive DecisionTree (n : Nat) where
+inductive DecisionTree (n : ℕ) where
   | leaf (output : Bool) : DecisionTree n
   | node (i : Fin n) : DecisionTree n → DecisionTree n → DecisionTree n
 
@@ -70,8 +74,14 @@ def eval : DecisionTree n → BitString n → Bool
   | .leaf b, _ => b
   | .node i l r, x => if x i then r.eval x else l.eval x
 
-/-- Decision Tree t computes f if for all inputs evaluating x on t gives the
-correct function value. -/
+@[simp]
+lemma eval_leaf (b : Bool) (x : BitString n) : (leaf b : DecisionTree n).eval x = b := rfl
+
+@[simp]
+lemma eval_node (i : Fin n) (l r : DecisionTree n) (x : BitString n) :
+    (node i l r).eval x = if x i then r.eval x else l.eval x := rfl
+
+/-- A tree computes `f` when it outputs `f x` on every input `x`. -/
 def Computes (t : DecisionTree n) (f : BooleanFunction n) : Prop :=
   ∀ x, t.eval x = f x
 
@@ -92,234 +102,207 @@ lemma depth_leaf (b : Bool) : (leaf b : DecisionTree n).depth = 0 := rfl
 lemma depth_node (i : Fin n) (l r : DecisionTree n) :
     (node i l r).depth = max l.depth r.depth + 1 := rfl
 
-/-! ## Paths
+/-! ## Querying a list of coordinates
 
-The queries and answers along the route an input takes, as a `PartialAssignment n`.
-This is used later when we prove that the path an input takes from route to
-leaf if a valid certificate for it.
+`graft is k acc` queries the coordinates of `is` in turn, recording the answers in `acc`, and then
+continues with the tree `k acc'` for the assignment `acc'` reached. With leaves as continuations
+this is the tree that queries every coordinate and reads off `f`, so every function has a tree of
+depth `n`. Other continuations give trees that query a certificate and then continue with a tree
+for the restricted function.
 -/
 
-/-- The cost of running `t` on `x`: the number of queries actually made, i.e.
-the length of the single root-to-leaf path that `x` follows. -/
-def cost : DecisionTree n → BitString n → ℕ
-  | .leaf _, _ => 0
-  | .node i l r, x => (if x i then r.cost x else l.cost x) + 1
+/-- Query the coordinates of `is` in turn, starting from the assignment `acc`, then continue with
+the tree `k acc'` for the assignment `acc'` reached. -/
+def graft : List (Fin n) → (BitString n → DecisionTree n) → BitString n → DecisionTree n
+  | [], k, acc => k acc
+  | i :: is, k, acc =>
+    .node i (graft is k (Function.update acc i false)) (graft is k (Function.update acc i true))
 
 @[simp]
-lemma cost_leaf (b : Bool) (x : BitString n) : (leaf b : DecisionTree n).cost x = 0 := rfl
+lemma graft_nil (k : BitString n → DecisionTree n) (acc : BitString n) : graft [] k acc = k acc :=
+  rfl
 
-/-- A node charges one query, then continues into the child `x` selects. -/
 @[simp]
-lemma cost_node (i : Fin n) (l r : DecisionTree n) (x : BitString n) :
-    (node i l r).cost x = (if x i then r.cost x else l.cost x) + 1 := rfl
+lemma graft_cons (i : Fin n) (is : List (Fin n)) (k : BitString n → DecisionTree n)
+    (acc : BitString n) :
+    graft (i :: is) k acc =
+      .node i (graft is k (Function.update acc i false))
+        (graft is k (Function.update acc i true)) :=
+  rfl
 
-/-- The route one input takes is no longer than the longest route in the tree. -/
-theorem cost_le_depth (t : DecisionTree n) (x : BitString n) : cost t x ≤ depth t := by
-  induction t with
-  | leaf out => simp
-  | node i l r l_ih r_ih =>
-    by_cases h : x i
-    · -- `x i` is true, so both `cost` and `eval` descend the RIGHT child
-      simp only [cost_node, h, ↓reduceIte, depth_node, add_le_add_iff_right, le_sup_iff]
-      exact Or.inr r_ih
-    · simp_all
-
-/-! ## The brute-force tree
-
-Every `f` is computed by some tree: one that queries every coordinate and
-then reads off the answer. This proves the set in the `complexity` definition is nonempty.
--/
-
-/-- Query each coordinate of `is` in turn, then answer `f` on the accumulated
-input. `acc` records the answers so far; coordinates not yet queried keep whatever
-value `acc` came in with. -/
-def bruteForce (f : BooleanFunction n) : List (Fin n) → BitString n → DecisionTree n
-  | [], acc => .leaf (f acc)
-  | i :: is, acc =>
-    .node i (bruteForce f is (Function.update acc i false))
-    (bruteForce f is (Function.update acc i true))
-
-/-- The tree asks exactly one question per coordinate of `is`. -/
-theorem depth_bruteForce (is : List (Fin n)) (acc : BitString n) (f : BooleanFunction n) :
-    (bruteForce f is acc).depth = is.length := by
+/-- Running the grafted tree on `x` runs the continuation at the assignment taking `x` on `is`
+and `acc` elsewhere. -/
+theorem eval_graft (is : List (Fin n)) (k : BitString n → DecisionTree n) (acc x : BitString n) :
+    (graft is k acc).eval x = (k fun j => if j ∈ is then x j else acc j).eval x := by
   induction is generalizing acc with
-  | nil => simp [bruteForce]
-  | cons head tail tail_ih =>
-    simp [bruteForce, tail_ih]
-
-/-- Correctness in the generalized form. -/
-theorem eval_bruteForce (is : List (Fin n)) (acc : BitString n) (f : BooleanFunction n)
-    (x : BitString n)
-    (h : ∀ j, j ∉ is → x j = acc j) : (bruteForce f is acc).eval x = f x := by
-  induction is generalizing acc with
-  | nil =>
-    have hacc : acc = x := by grind
-    simp [bruteForce, eval, hacc]
+  | nil => simp
   | cons i is ih =>
-    have key : ∀ b : Bool, x i = b →
-        (bruteForce f is (Function.update acc i b)).eval x = f x := by
-      intro b hb
-      refine ih _ fun j hj => ?_
-      by_cases hji : j = i
-      · subst hji; simp [hb]
-      · rw [Function.update_of_ne hji]
-        exact h j (by simp [hji, hj])
-    simp only [bruteForce, eval]
-    by_cases hxi : x i = true
-    · simp [hxi, key true hxi]
-    · simp only [Bool.not_eq_true] at hxi
-      simp [hxi, key false hxi]
+    have : (graft (i :: is) k acc).eval x = (graft is k (Function.update acc i (x i))).eval x := by
+      cases hx : x i <;> simp [hx]
+    rw [this, ih]
+    congr 2
+    funext j
+    by_cases hj : j ∈ is
+    · simp [hj]
+    · by_cases hji : j = i
+      · subst hji; simp
+      · simp [hj, hji]
 
-/-- The brute-force tree for `f`: query every coordinate, in the order given by
-`List.finRange n`. -/
+/-- Grafting adds at most the number of queried coordinates to the depth. -/
+theorem depth_graft_le (is : List (Fin n)) (k : BitString n → DecisionTree n) (acc : BitString n)
+    {d : ℕ} (hk : ∀ b, (k b).depth ≤ d) : (graft is k acc).depth ≤ is.length + d := by
+  induction is generalizing acc with
+  | nil => simpa using hk acc
+  | cons i is ih =>
+    simp only [graft_cons, depth_node, List.length_cons]
+    have := ih (Function.update acc i false)
+    have := ih (Function.update acc i true)
+    omega
+
+/-- Query the coordinates of `is` in turn, then output `f` of the assignment reached. -/
+def queryAll (f : BooleanFunction n) (is : List (Fin n)) (acc : BitString n) : DecisionTree n :=
+  graft is (fun b => .leaf (f b)) acc
+
+/-- Running `queryAll` on `x` outputs `f` at the assignment taking `x` on `is` and `acc`
+elsewhere. -/
+theorem eval_queryAll (f : BooleanFunction n) (is : List (Fin n)) (acc x : BitString n) :
+    (queryAll f is acc).eval x = f fun j => if j ∈ is then x j else acc j :=
+  eval_graft is _ acc x
+
+/-- `queryAll` makes at most one query per entry of `is`. -/
+theorem depth_queryAll_le (f : BooleanFunction n) (is : List (Fin n)) (acc : BitString n) :
+    (queryAll f is acc).depth ≤ is.length := by
+  simpa [queryAll] using depth_graft_le is (fun b => .leaf (f b)) acc (d := 0) fun _ => le_rfl
+
+/-- The tree querying every coordinate, in the order of `List.finRange n`, and reading off `f`. -/
 def fullTree (f : BooleanFunction n) : DecisionTree n :=
-  bruteForce f (List.finRange n) (fun _ => false)
+  queryAll f (List.finRange n) (fun _ => false)
 
 /-- Every function is computed by some tree. -/
-theorem fullTree_computes (f : BooleanFunction n) : (fullTree f).Computes f := by
-  intro x
-  apply eval_bruteForce
-  simp
+theorem fullTree_computes (f : BooleanFunction n) : (fullTree f).Computes f := fun x => by
+  simp [fullTree, eval_queryAll]
 
-/-- The depth of this brute force tree is `n`. -/
-@[simp]
-theorem depth_fullTree (f : BooleanFunction n) : (fullTree f).depth = n := by
-  unfold fullTree
-  simp [depth_bruteForce]
+/-- Querying every coordinate takes `n` queries. -/
+theorem depth_fullTree_le (f : BooleanFunction n) : (fullTree f).depth ≤ n :=
+  (depth_queryAll_le f _ _).trans_eq (List.length_finRange ..)
 
-/-- `D(f)`: the least depth over all decision trees computing f. -/
+/-- `D(f)`: the least depth of a decision tree computing `f`. -/
 noncomputable def complexity (f : BooleanFunction n) : ℕ :=
-  sInf {k | ∃ t : DecisionTree n, t.Computes f ∧ t.depth = k}
+  sInf {d | ∃ t : DecisionTree n, t.Computes f ∧ t.depth ≤ d}
 
-/-- Upper-bound rule for `D(f)`. -/
+/-- Upper-bound rule for `D(f)`: exhibit one tree. -/
 theorem complexity_le_depth {t : DecisionTree n} {f : BooleanFunction n} (h : t.Computes f) :
-  complexity f ≤ t.depth := by
-  apply Nat.sInf_le
-  exact ⟨t, h, rfl⟩
+    complexity f ≤ t.depth :=
+  Nat.sInf_le ⟨t, h, le_rfl⟩
 
-/-- The set of achievable depths is non-empty. -/
-theorem depths_nonempty (f : BooleanFunction n) :
-    {k | ∃ t : DecisionTree n, t.Computes f ∧ t.depth = k}.Nonempty :=
-  ⟨n, fullTree f, fullTree_computes f, depth_fullTree f⟩
-
-/-- `D(f) ≤ n`: querying everything is always an option. -/
+/-- `D(f) ≤ n`: querying every coordinate is always an option. -/
 theorem complexity_le_card (f : BooleanFunction n) : complexity f ≤ n :=
-  (complexity_le_depth (fullTree_computes f)).trans_eq (depth_fullTree f)
+  (complexity_le_depth (fullTree_computes f)).trans (depth_fullTree_le f)
 
-/-- An optimal tree exists. This follows from `Nat.sInf_mem`. -/
+/-- Some tree computing `f` has depth exactly `D(f)`. -/
 theorem exists_computes_depth_eq_complexity (f : BooleanFunction n) :
-    ∃ t : DecisionTree n, t.Computes f ∧ t.depth = complexity f :=
-  Nat.sInf_mem (depths_nonempty f)
+    ∃ t : DecisionTree n, t.Computes f ∧ t.depth = complexity f := by
+  obtain ⟨t, ht, hd⟩ :=
+    Nat.sInf_mem (s := {d | ∃ t : DecisionTree n, t.Computes f ∧ t.depth ≤ d})
+      ⟨_, fullTree f, fullTree_computes f, le_rfl⟩
+  exact ⟨t, ht, le_antisymm hd (complexity_le_depth ht)⟩
 
-theorem le_complexity {f : BooleanFunction n} {k : ℕ}
-    (h : ∀ t : DecisionTree n, t.Computes f → k ≤ t.depth) : k ≤ complexity f :=
-  le_csInf (depths_nonempty f) fun _ hb => by
-    obtain ⟨t, ht, rfl⟩ := hb
-    exact h t ht
+/-- `D(f) ≤ d` if and only if some tree of depth at most `d` computes `f`. -/
+theorem complexity_le_iff {f : BooleanFunction n} {d : ℕ} :
+    complexity f ≤ d ↔ ∃ t : DecisionTree n, t.Computes f ∧ t.depth ≤ d := by
+  refine ⟨fun h => ?_, fun ⟨_, ht, hd⟩ => (complexity_le_depth ht).trans hd⟩
+  obtain ⟨t, ht, hd⟩ := exists_computes_depth_eq_complexity f
+  exact ⟨t, ht, hd.trans_le h⟩
 
-/-- The path of `x` through `t` is the partial assignment recording every query
-made along the route `x` takes, together with the answer given. -/
-def path : DecisionTree n → BitString n → PartialAssignment n
-  | .leaf _, _ => fun _ => none
-  | .node i l r, x =>
-    if x i then Function.update (path r x) i (x i) else Function.update (path l x) i (x i)
+/-- Lower-bound rule for `D(f)`: a bound that holds for every tree computing `f`. -/
+theorem le_complexity_iff {f : BooleanFunction n} {d : ℕ} :
+    d ≤ complexity f ↔ ∀ t : DecisionTree n, t.Computes f → d ≤ t.depth := by
+  refine ⟨fun h t ht => h.trans (complexity_le_depth ht), fun h => ?_⟩
+  obtain ⟨t, ht, hd⟩ := exists_computes_depth_eq_complexity f
+  exact (h t ht).trans hd.le
 
-/-- The path partial assignment of x agrees with x. -/
-theorem agrees_path {t : DecisionTree n} {x : BitString n} : Agrees (path t x) x := by
+/-- Only constant functions are computed without any query. -/
+theorem complexity_eq_zero_iff {f : BooleanFunction n} :
+    complexity f = 0 ↔ ∀ x y, f x = f y := by
+  constructor
+  · intro h
+    obtain ⟨t, ht, hd⟩ := exists_computes_depth_eq_complexity f
+    cases t with
+    | leaf b => exact fun x y => (ht x).symm.trans (ht y)
+    | node i l r => simp [h] at hd
+  · intro h
+    exact Nat.le_zero.1 (complexity_le_depth (t := .leaf (f fun _ => false)) fun x => h _ x)
+
+/-! ## Queries
+
+The coordinates queried along the route an input takes. Inputs agreeing with `x` on them follow
+the same route, so they form a certificate for `x`.
+-/
+
+/-- The coordinates queried on the route `x` takes through `t`. -/
+def queries : DecisionTree n → BitString n → Finset (Fin n)
+  | .leaf _, _ => ∅
+  | .node i l r, x => insert i (if x i then r.queries x else l.queries x)
+
+@[simp]
+lemma queries_leaf (b : Bool) (x : BitString n) : (leaf b : DecisionTree n).queries x = ∅ := rfl
+
+@[simp]
+lemma queries_node (i : Fin n) (l r : DecisionTree n) (x : BitString n) :
+    (node i l r).queries x = insert i (if x i then r.queries x else l.queries x) := rfl
+
+/-- At most `depth t` coordinates are queried on any input. -/
+theorem card_queries_le_depth (t : DecisionTree n) (x : BitString n) :
+    (t.queries x).card ≤ t.depth := by
   induction t with
-  | leaf _ => simp [Agrees, path]
-  | node j l r l_ih r_ih =>
-    intro i b hb
-    simp only [path] at hb
-    rcases eq_or_ne i j with rfl | hij
-    · split at hb <;> simpa using hb
-    · split at hb
-      · exact r_ih i b (by rwa [Function.update_of_ne hij] at hb)
-      · exact l_ih i b (by rwa [Function.update_of_ne hij] at hb)
+  | leaf _ => simp
+  | node i l r ihl ihr =>
+    refine (Finset.card_insert_le _ _).trans ?_
+    rw [depth_node]
+    split
+    · exact Nat.add_le_add_right (ihr.trans (le_max_right _ _)) 1
+    · exact Nat.add_le_add_right (ihl.trans (le_max_left _ _)) 1
 
-lemma agrees_of_agrees_update {C : PartialAssignment n} {x y : BitString n} {j : Fin n}
-    (hC : Agrees C x) (h : Agrees (Function.update C j (some (x j))) y) : Agrees C y := by
-  intro k c hk
-  rcases eq_or_ne k j with rfl | hkj
-  · have hy : y k = x k := h k (x k) (by simp)
-    rw [hy, hC k c hk]
-  · exact h k c (by rwa [Function.update_of_ne hkj])
-
-/-- If y agrees with the path partial assignment of x, then they both follow the
-same route from root to leaf. -/
-theorem routing {t : DecisionTree n} {x : BitString n} {y : BitString n} :
-    Agrees (path t x) y → t.eval y = t.eval x := by
+/-- Inputs agreeing with `x` on the coordinates queried for `x` reach the same leaf. -/
+theorem eval_eq_of_forall_mem_queries (t : DecisionTree n) {x y : BitString n}
+    (h : ∀ i ∈ t.queries x, y i = x i) : t.eval y = t.eval x := by
   induction t with
-  | leaf _ => simp [Agrees, path, eval]
-  | node j l r l_ih r_ih =>
-    intro h
-    -- the queried coordinate is recorded, so `y` must answer it exactly as `x` did
-    have hj : y j = x j := h j (x j) (by simp only [path]; split <;> simp)
-    simp only [path] at h
-    -- hence `y` takes the same branch, and the IH handles the subtree
-    simp only [eval, hj]
-    by_cases hxj : x j = true
-    · rw [ite_eq_left hxj] at h
-      simp only [ite_eq_left hxj]
-      exact r_ih (agrees_of_agrees_update agrees_path h)
-    · rw [ite_eq_right hxj] at h
-      simp only [ite_eq_right hxj]
-      exact l_ih (agrees_of_agrees_update agrees_path h)
+  | leaf _ => rfl
+  | node i l r ihl ihr =>
+    simp only [queries_node, Finset.mem_insert, forall_eq_or_imp] at h
+    obtain ⟨hi, h⟩ := h
+    simp only [eval, hi]
+    split_ifs at h ⊢
+    · exact ihr h
+    · exact ihl h
 
-/-- Recording one more query enlarges the support by at most one coordinate. -/
-lemma support_update_subset (C : PartialAssignment n) (j : Fin n) (b : Bool) :
-    support (Function.update C j (some b)) ⊆ insert j (support C) := by
-  intro i hi
-  rcases eq_or_ne i j with rfl | hij
-  · exact Finset.mem_insert_self _ _
-  · rw [mem_support, Function.update_of_ne hij] at hi
-    exact Finset.mem_insert_of_mem (mem_support.mpr hi)
+/-- The queries made on `x` by a tree computing `f` are a certificate for `x`. -/
+theorem isCertificate_queries {f : BooleanFunction n} {t : DecisionTree n} (ht : t.Computes f)
+    (x : BitString n) : IsCertificate f x (t.queries x) :=
+  fun y hy => (ht y).symm.trans ((t.eval_eq_of_forall_mem_queries hy).trans (ht x))
 
-/-- The size of the path is at most the number of queries made. The inequality is not
-strict because making duplicate queries is allowed. -/
-theorem size_path_le_cost (t : DecisionTree n) (x : BitString n) :
-    size (path t x) ≤ cost t x := by
-  induction t with
-  | leaf b => simp [path, size, support]
-  | node j l r l_ih r_ih =>
-    simp only [path, cost]
-    by_cases hxj : x j = true
-    · simp only [ite_eq_left hxj]
-      calc size (Function.update (path r x) j (some (x j)))
-          ≤ (insert j (support (path r x))).card :=
-            Finset.card_le_card (support_update_subset _ _ _)
-        _ ≤ (support (path r x)).card + 1 := Finset.card_insert_le _ _
-        _ ≤ cost r x + 1 := Nat.add_le_add_right r_ih 1
-    · simp only [ite_eq_right hxj]
-      calc size (Function.update (path l x) j (some (x j)))
-          ≤ (insert j (support (path l x))).card :=
-            Finset.card_le_card (support_update_subset _ _ _)
-        _ ≤ (support (path l x)).card + 1 := Finset.card_insert_le _ _
-        _ ≤ cost l x + 1 := Nat.add_le_add_right l_ih 1
-
-/-- The path is a certificate. -/
-theorem path_mem_forcingAssignments {f : BooleanFunction n} {t : DecisionTree n} (ht : t.Computes f)
-    (x : BitString n) : path t x ∈ forcingAssignments f x :=
-  mem_forcingAssignments.mpr
-    ⟨agrees_path, fun y hy => (ht y).symm.trans ((routing hy).trans (ht x))⟩
-
-/-- Pointwise: `Cₓ(f) ≤ D(f)`, by running the chain
-`Cₓ(f) ≤ size (path t x) ≤ cost t x ≤ depth t` over every tree computing `f`. -/
+/-- Pointwise: `C(f, x) ≤ D(f)`. The queries made on `x` certify it, and a tree of depth `d`
+makes at most `d` of them. -/
 theorem certificateComplexityAt_le_complexity (f : BooleanFunction n) (x : BitString n) :
-    certificateComplexityAt f x ≤ complexity f := by
-  apply le_complexity
-  intro t ht
-  calc certificateComplexityAt f x
-      ≤ size (path t x) := certificateComplexityAt_le
-          ((forces_iff_isCertificate_support agrees_path).mp
-            (mem_forcingAssignments.mp (path_mem_forcingAssignments ht x)).2)
-    _ ≤ cost t x := size_path_le_cost t x
-    _ ≤ t.depth := cost_le_depth t x
+    certificateComplexityAt f x ≤ complexity f :=
+  le_complexity_iff.2 fun t ht =>
+    (certificateComplexityAt_le (isCertificate_queries ht x)).trans (t.card_queries_le_depth x)
 
 /-- `C(f) ≤ D(f)`. -/
 theorem certificateComplexity_le_complexity (f : BooleanFunction n) :
     certificateComplexity f ≤ complexity f :=
   Finset.sup_le fun x _ => certificateComplexityAt_le_complexity f x
+
+/-- The whole chain at one input: `s(f, x) ≤ D(f)`. -/
+theorem sensitivityAt_le_complexity (f : BooleanFunction n) (x : BitString n) :
+    sensitivityAt f x ≤ complexity f :=
+  (sensitivityAt_le_sensitivity f x).trans <| (sensitivity_le_blockSensitivity f).trans <|
+    (blockSensitivity_le_certificateComplexity f).trans (certificateComplexity_le_complexity f)
+
+/-- A function sensitive to every coordinate at some input needs to query all of them. -/
+theorem complexity_eq_card_of_sensitivityAt_eq_card {f : BooleanFunction n} {x : BitString n}
+    (h : sensitivityAt f x = n) : complexity f = n :=
+  le_antisymm (complexity_le_card f) (h.symm.trans_le (sensitivityAt_le_complexity f x))
 
 end DecisionTree
 
