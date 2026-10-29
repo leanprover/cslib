@@ -37,7 +37,7 @@ abbrev Env (Var : Type u) := Context Var (Term Var)
 def multiSubst (E : Env Var) (M : Term Var) : Term Var :=
   match E with
   | [] => M
-  | ⟨i, sub⟩ :: E' => (multiSubst E' M) [ i := sub ]
+  | ⟨i, sub⟩ :: E' => (multiSubst E' M)[i := sub]
 
 /-- The free variables of an environment are the union of
     the free variables of all terms in the environment.

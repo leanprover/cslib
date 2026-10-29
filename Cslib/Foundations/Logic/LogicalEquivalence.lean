@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.Congruence
+public import Cslib.Foundations.Logic.InferenceSystem
 
 /-! Typeclass and notation for logical equivalence. -/
 
@@ -15,21 +16,15 @@ public import Cslib.Foundations.Syntax.Congruence
 
 namespace Cslib.Logic
 
-/-- A logical equivalence for a given type of `Judgement`s is a congruence on propositions that
-preserves validity of judgements under any judgemental context. -/
-class LogicalEquivalence
-    (Proposition : Type u) [HasContext Proposition]
-    (Judgement : Type v) [HasHContext Judgement Proposition]
-    (Valid : Judgement → Sort w) where
-  /-- The logical equivalence relation. -/
-  eqv (a b : Proposition) : Prop
-  /-- Proof that `eqv` is a congruence. -/
-  [congruence : Congruence Proposition eqv]
-  /-- Validity is preserved for any judgemental context. -/
-  eqvFillValid (heqv : eqv a b) (c : HasHContext.Context Judgement Proposition)
-    (h : Valid (c<[a])) : Valid (c<[b])
+open scoped InferenceSystem
 
-@[inherit_doc]
-scoped infix:29 " ≡ " => LogicalEquivalence.eqv
+/-- A logical equivalence `eqv` for an inference system `S` is a congruence on propositions (of type
+`α`) that preserves validity of judgements under any judgemental context. -/
+class LogicalEquivalence S (eqv : α → α → Prop)
+    [HasContext α] [Congruence eqv] [HasHContext Judgement α] [InferenceSystem S Judgement]
+    extends LawfulCongruence eqv where
+  /-- Validity is preserved for any judgemental context. -/
+  eqvFillValid (heqv : a ≡[eqv] b) (c : HasHContext.Context Judgement α)
+    (h : S⇓(c<[a])) : S⇓(c<[b])
 
 end Cslib.Logic

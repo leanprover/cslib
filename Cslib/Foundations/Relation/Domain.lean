@@ -6,8 +6,8 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 module
 
-public import Cslib.Foundations.Relation.Defs
 public import Mathlib.Data.Set.Basic
+public import Cslib.Foundations.Relation.Defs
 
 /-! # Relations: Domain and Codomain
 
@@ -34,6 +34,9 @@ variable {β : Type*} {r : α → β → Prop}
 @[simp, grind =] lemma mem_dom : a ∈ dom r ↔ ∃ b, r a b := .rfl
 @[simp, grind =] lemma mem_cod : b ∈ cod r ↔ ∃ a, r a b := .rfl
 
+theorem of_dom (hab : r a b) : a ∈ dom r := by grind
+theorem of_cod (hab : r a b) : b ∈ cod r := by grind
+
 @[gcongr] lemma dom_mono (h : r₁ ≤ r₂) : dom r₁ ⊆ dom r₂ := fun a ⟨b, hab⟩ => ⟨b, h a b hab⟩
 @[gcongr] lemma cod_mono (h : r₁ ≤ r₂) : cod r₁ ⊆ cod r₂ := fun b ⟨a, hab⟩ => ⟨a, h a b hab⟩
 
@@ -46,8 +49,7 @@ lemma cod_empty : cod (emptyHRelation : α → β → Prop) = ∅ := by grind
 @[simp, grind =]
 lemma dom_eq_empty_iff : dom r = ∅ ↔ r = emptyHRelation where
   mp h := by
-    ext a b
-    simp
+    ext a
     grind => have : a ∈ dom r; finish
   mpr := by grind
 
@@ -55,7 +57,6 @@ lemma dom_eq_empty_iff : dom r = ∅ ↔ r = emptyHRelation where
 lemma cod_eq_empty_iff : cod r = ∅ ↔ r = emptyHRelation where
   mp h := by
     ext a b
-    simp
     grind => have : b ∈ cod r; finish
   mpr h := by grind
 

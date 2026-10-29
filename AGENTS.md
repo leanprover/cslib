@@ -1,4 +1,4 @@
-# Copilot Instructions for CSLib
+# Project Instructions
 
 ## Repository Overview
 
@@ -18,12 +18,12 @@
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
 | `lake build` | Build the library | After any code change |
-| `lake build --wfail --iofail` | Build with CI strictness (fails on warnings) | **Always use before committing** |
+| `lake build --wfail --iofail` | Build with CI strictness (fails on warnings) | Before committing |
 | `lake test` | Run all tests (builds CslibTests + checks init imports) | After changes to verify correctness |
 | `lake lint` | Run environment linters (Batteries/Mathlib) | Before committing |
 | `lake exe lint-style` | Run text-based style linters | Before committing |
-| `lake exe mk_all --module --check` | Verify Cslib.lean imports all modules | After adding new files |
-| `lake exe mk_all --module` | Auto-update Cslib.lean imports | After adding new files |
+| `lake exe mk_all --check` | Verify Cslib.lean imports all modules | After adding new files |
+| `lake exe mk_all` | Auto-update Cslib.lean imports | After adding new files |
 
 ### Full CI Validation Sequence
 
@@ -31,7 +31,7 @@ Run these commands **in order** to replicate CI checks locally:
 
 ```bash
 lake build --wfail --iofail
-lake exe mk_all --module --check
+lake exe mk_all --check
 lake test
 lake lint
 lake exe lint-style
@@ -64,8 +64,7 @@ lake exe lint-style
 │   └── Logics/          # Logic formalisations (e.g., Linear Logic, Hennessy-Milner Logic)
 ├── CslibTests/          # Test files
 ├── scripts/             # Build and maintenance scripts
-│   ├── noshake.json     # Import exceptions for shake tool
-│   └── nolints.json     # Lint exceptions
+│   └── noshake.json     # Import exceptions for shake tool
 └── .github/workflows/   # CI workflows
 ```
 
@@ -79,9 +78,9 @@ Every file in `Cslib/` must transitively import `Cslib/Init.lean`. This sets up 
 - `Cslib.Init` itself
 
 ### 2. New Files Must Be Added to Cslib.lean
-When creating a new `.lean` file in `Cslib/`, add its import to `Cslib.lean`. Run:
+When creating a new `.lean` file in `Cslib/`, add its import to `Cslib.lean` by running:
 ```bash
-lake exe mk_all --module
+lake exe mk_all
 ```
 
 ### 3. PR Title Convention
@@ -103,15 +102,22 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: $LIST_OF_AUTHORS
 -/
 ```
+where $YEAR should be replaced with the current year, $AUTHOR_NAME with the name of the file creator, and $LIST_OF_AUTHORS with the list of authors (this is just the file creator if there are no additional authors).
+
+### 5. Always Read Local README.md Files
+
+Before working on any file or directory, **always read** all `README.md` files in all directories throughout the entire repository.
+
+These files contain essential context that must be understood before making changes.
 
 ## Code Style
 
 - Follow everything written in /CONTRIBUTING.md
-- Follow [Mathlib style guide](https://leanprover-community.github.io/contribute/style.html)
-- Use domain-specific variable names (e.g., `State` for state types, `μ` for transition labels)
-- Keep proofs readable; golfing is welcome if proofs remain clear
-- Use existing typeclasses for common concepts (transitions, reductions)
-- Use `module` keyword at the start of files with `public import` statements
+- Follow the [Mathlib code style](https://leanprover-community.github.io/contribute/style.html)
+- Use domain-specific variable names when dealing with APIs that have a clear intention (e.g., `State` for state types, `μ` for transition labels).
+- Keep proofs readable; golfing is welcome if proofs remain clear.
+- Use existing typeclasses for common concepts (`Congruence`, `Context`, etc.).
+- Use the `module` keyword at the start of files with `public import` statements.
 
 ## Linter Configuration
 
@@ -122,18 +128,11 @@ Linters are configured in `lakefile.toml`.
 ### Creating a New Module
 1. Create file in appropriate `Cslib/` subdirectory
 2. Add `import Cslib.Init` (or import a module that imports it)
-3. Run `lake exe mk_all --module`
+3. Run `lake exe mk_all`
 4. Run `lake build --wfail --iofail`
 5. Run `lake test` to verify init imports
 
 ### Adding Tests
 1. Create or modify a file in `CslibTests/`
-2. Add import to `CslibTests.lean` if new file
+2. Add import to `CslibTests.lean` if it is a new file
 3. Run `lake test`
-
-## Trust These Instructions
-
-Only search for additional information if:
-- A command fails with an unexpected error
-- You need details about a specific module's API
-- The instructions appear incomplete for your specific task

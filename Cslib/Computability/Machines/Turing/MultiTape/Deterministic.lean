@@ -1,0 +1,422 @@
+/-
+Copyright (c) 2026 Christian Reitwiessner. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christian Reitwiessner, Samuel Schlesinger
+-/
+
+module
+
+public import Mathlib.Algebra.Order.Group.Abs
+public import Mathlib.Algebra.Order.Group.Int
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Basic.Sign.Defs
+public import Cslib.Foundations.Data.RelatesInSteps
+public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
+
+/-!
+# Deterministic Multi-Tape Turing Machines
+
+Defines deterministic Turing machines with a read-only input tape, `k` work tapes and one write-only
+output tape.
+The tapes contain symbols from `Option Symbol` for a finite alphabet `Symbol` (where `none` is the
+blank symbol).
+
+## Design
+
+The multi-tape Turing machine uses a read-only input tape, `k` work tapes and a write-only output
+tape.
+The input head can move freely on the input, but any move attempt beyond one cell outside the input
+results in no movement.
+The transition function can optionally output one symbol, which models the write-only output tape.
+Because of these restrictions, we ignore the input and output tapes for space usage of the machine.
+The space usage is defined as the total number of cells the work tape heads visited during
+execution.
+
+Restricting the movement of the input head is not essential, but useful because it allows
+us to easily bound the number of possible configurations of a space-bounded machine. Most textbooks
+have this restriction.
+
+Instead of considering the cells _visited_ by the work tape heads, some textbooks
+(including [AroraBarak09]) only consider the number of cells that contain
+a non-blank symbol at some point in the execution or the number of cells written to. This allows
+work tape heads to freely move at no cost as long as they do not write. It is
+important to note that this causes `DSPACE(1)` to include `DSPACE(log log n)`, a class that
+contains e.g. the non-regular language `{0^n 1^n | n ∈ ℕ}` (it is accepted by a TM that writes a
+single marker on the work tape and then counts the number of symbols by work tape head movement
+without writing).
+Defining space usage via "cells visited" thus yields the more fine-grained "complexity world" in
+which `DSPACE(1)` is exactly the class of regular languages.
+
+This definition is adapted from the one in [Papadimitriou94], chapter 2.3 including
+the sub-linear space modifications from chapter 2.5 with the following changes:
+- We allow Turing machines to choose to not write on a tape. This is equivalent to
+  writing the read symbol again but makes it easier to reason about the semantics.
+- Our tapes are infinite in both directions instead of just to the right. This definition is
+  equivalent (see [AroraBarak09], Claim 1.4). It saves us from having to add a "start marker" to
+  the alphabet.
+- We only have a single halting state. The different ways to halt (accepting, rejecting, etc) can
+  be distinguished based on the output.
+- The way to prevent the input head to move outside the input is enforced by the interpretation
+  and not by a restriction on the transition function. The two definitions are equivalent, but
+  not restricting the transition function makes it easier to define a universal machine.
+
+## Important Declarations
+
+We define a number of structures and concepts related to multi-tape Turing machine computation:
+
+* `MultiTapeTM`: the TM itself
+* `spaceUsed`: the number of work tape cells touched by the heads until a certain step
+* `TransitionRelation`: the transition relation from one configuration to the next
+* `spaceUsed`: the number of tape cells touched by work tape heads, our main space measure
+* `ComputesInTimeAndSpace`: a proof that a specific TM computes an output from an input in a certain
+    number of steps and using a certain number of tape cells
+* `ComputesFunInTimeAndSpace`: a machine computes a function between specified encodings,
+    respecting time and space bounds on each actual input.
+* `ComputableInTimeAndSpace`: such a machine exists with binary alphabet and finitely many states.
+* `ComputableInTimeAndSpaceOfLength`: the specialization to bounds on encoded input length.
+* `DecidableInTimeAndSpace`: a proof that a TM decides a language within a certain time
+    and space bound.
+
+There are two ways to talk about the behaviour of a multi-tape Turing machine, and they are
+proven to be equivalent.
+
+* `MultiTapeTM.runFrom`: the configuration reached after a given number of execution steps
+* `RelatesInSteps tm.TransitionRelation cfg cfg' t`: a proof that `tm` transforms the configuration
+    `cfg` into `cfg'` in exactly `t` steps
+
+## References
+
+* [C. Papadimitriou, *Computational Complexity*][Papadimitriou94]
+* [S. Arora, B. Barak, *Computational Complexity: A Modern Approach*][AroraBarak09]
+* [M. Sipser, *Introduction to the Theory of Computation*][Sipser2013]
+
+-/
+
+@[expose] public section
+
+open Cslib Relation
+
+namespace Turing
+
+variable {k : ℕ} {State Symbol : Type*}
+
+/--
+A multi-tape Turing machine with `k` work tapes over the alphabet of `Option Symbol` (where `none`
+is the blank tape symbol). Note that it is not required that `Symbol` or `State` are finite
+to keep the definition more general. The restriction will be introduced once we start talking about
+computability by Turing machines in general.
+-/
+structure MultiTapeTM (k : ℕ) (Symbol State : Type*) where
+  /-- initial state -/
+  q₀ : State
+  /-- transition function, mapping a state, the current input symbol and a tuple of work head
+  symbols to a movement for the input head, actions on the work tape, optionally a symbol to output
+  and the successor state -/
+  tr (q : State) (input : Option Symbol) (work : Fin k → Option Symbol) :
+    Action k Symbol State
+
+namespace MultiTapeTM
+
+variable {tm : MultiTapeTM k Symbol State}
+
+section Cfg
+
+/-!
+## Stepping a Turing Machine
+
+This section defines the step function that lets the machine transition from one configuration to
+the next, and the configuration reached after a number of steps. Configurations themselves are
+defined in `Cslib.Computability.Machines.Turing.MultiTape.Configuration`.
+-/
+
+/-- The step function corresponding to a `MultiTapeTM`. -/
+def step (cfg : Cfg k Symbol State input) : Cfg k Symbol State input :=
+  match cfg.state with
+  -- in the halting state, we stay at the configuration
+  | none => cfg
+  | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).apply cfg
+
+/-- The symbol (optionally) output when executing one step starting from configuration `cfg`. -/
+def outputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
+  match cfg.state with
+  | none => none
+  | some q => (tm.tr q cfg.inputSymbol cfg.workTapeSymbols).output
+
+/-- The initial configuration corresponding to an input string. -/
+@[simp]
+def initCfg (input : List Symbol) : Cfg k Symbol State input := Cfg.init tm.q₀ input
+
+@[simp]
+lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
+    tm.step cfg = cfg := by
+  unfold step
+  rw [h]
+
+/-- The configuration reached by running the Turing machine for `t` steps from `cfg`.
+If the Turing machine halts, it will stay at the halting configuration. -/
+def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input := tm.step^[t] cfg
+
+@[simp]
+lemma runFrom_zero {cfg : Cfg k Symbol State input} :
+    tm.runFrom cfg 0 = cfg := by
+  simp [runFrom]
+
+lemma runFrom_succ_eq_step {cfg : Cfg k Symbol State input} {t : ℕ} :
+    tm.runFrom cfg (t + 1) = tm.runFrom (tm.step cfg) t := by
+  simp [runFrom, Function.iterate_succ_apply]
+
+lemma runFrom_succ_eq_step' {cfg : Cfg k Symbol State input} {t : ℕ} :
+    tm.runFrom cfg (t + 1) = tm.step (tm.runFrom cfg t) := by
+  simp [runFrom, Function.iterate_succ_apply']
+
+/-- Running `a + b` steps equals running `b` steps from the configuration reached after `a`. -/
+lemma runFrom_add (cfg : Cfg k Symbol State input) (a b : ℕ) :
+    tm.runFrom cfg (a + b) = tm.runFrom (tm.runFrom cfg a) b := by
+  unfold runFrom
+  rw [Nat.add_comm, Function.iterate_add_apply]
+
+/-- If a function `f` that maps the configurations of one TM to those of another one commutes with
+their `step` function, then it also commutes with their `runFrom` function. -/
+lemma runFrom_comm_of_step {k' : ℕ} {State' : Type*} {input input' : List Symbol}
+    {tm : MultiTapeTM k Symbol State} {tm' : MultiTapeTM k' Symbol State'}
+    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
+    (hstep : ∀ cfg, tm'.step (f cfg) = f (tm.step cfg))
+    (cfg : Cfg k Symbol State input) (n : ℕ) :
+    tm'.runFrom (f cfg) n = f (tm.runFrom cfg n) :=
+  (Function.Semiconj.iterate_right (fun c => (hstep c).symm) n cfg).symm
+
+/-- Running from a halting configuration stays at that configuration. -/
+@[simp]
+lemma runFrom_of_halt (cfg : Cfg k Symbol State input) (h : cfg.state = none) {n : ℕ} :
+    tm.runFrom cfg n = cfg :=
+  Function.iterate_fixed (step_of_halt h) n
+
+@[simp]
+lemma outputSymbol_of_halt {cfg : Cfg k Symbol State input} (h_halt : cfg.state = none) :
+    tm.outputSymbol cfg = none := by
+  simp [outputSymbol, h_halt]
+
+/-- The work-tape head moves by at most one cell in a single step. -/
+lemma workTapePos_step_le (c : Cfg k Symbol State input) (i : Fin k) :
+    |(tm.step c).workTapePos i - c.workTapePos i| ≤ 1 := by
+  unfold step
+  cases hstate : c.state with
+  | none => simp
+  | some q => exact workTapePos_apply_le _ c i
+
+end Cfg
+
+section Space
+/-! Now we define space usage and add some helper lemmas. -/
+
+/-- The set of positions visited by the head of work tape `i` in the computation starting from
+configuration `cfg` up to step `t`. -/
+def visitedByTapeHead (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : Finset ℤ :=
+  (Finset.range (t + 1)).image fun t' => (tm.runFrom cfg t').workTapePos i
+
+/--
+The number of work tape cells touched by the head of tape `i` in the computation starting from
+configuration `cfg` up to step `t`.
+-/
+def spaceUsedByTape (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) : ℕ :=
+  (tm.visitedByTapeHead cfg t i).card
+
+/--
+The number of work tape cells touched by a computation starting from configuration
+`cfg` up to step `t`.
+-/
+def spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) : ℕ := ∑ i, tm.spaceUsedByTape cfg t i
+
+/-- A zero-tape Turing machine uses zero space. -/
+@[simp]
+lemma spaceUsed_zero_tapes_eq_zero (cfg : Cfg k Symbol State input) (t : ℕ) (h_zero : k = 0) :
+    tm.spaceUsed cfg t = 0 := by
+  unfold spaceUsed
+  subst h_zero
+  simp
+
+/-- Each tape's space usage is bounded by the total space used. -/
+lemma spaceUsedByTape_le_spaceUsed (cfg : Cfg k Symbol State input) (t : ℕ) (i : Fin k) :
+    tm.spaceUsedByTape cfg t i ≤ tm.spaceUsed cfg t :=
+  Finset.single_le_sum (fun _ _ => Nat.zero_le _) (Finset.mem_univ i)
+
+/-- The space used up to step `t` is the space touched by the configurations up to step `t`. -/
+lemma spaceUsed_eq_spaceUsedOfCfgs (cfg : Cfg k Symbol State input) (t : ℕ) :
+    tm.spaceUsed cfg t = spaceUsedOfCfgs ((List.range (t + 1)).map (tm.runFrom cfg)) := by
+  unfold spaceUsed spaceUsedByTape spaceUsedOfCfgs
+  refine Finset.sum_congr rfl fun i _ => congrArg Finset.card ?_
+  ext z
+  simp [visitedByTapeHead, visitedOfCfgs]
+
+end Space
+
+open Cfg
+
+/--
+The `TransitionRelation` corresponding to a `MultiTapeTM k Symbol`
+is defined by the `step` function,
+which maps a configuration to its next configuration.
+-/
+@[scoped grind =]
+def TransitionRelation (c₁ c₂ : Cfg k Symbol State input) : Prop := tm.step c₁ = c₂
+
+/-- One step appends the symbol (optionally) emitted by that step to the output tape. -/
+@[simp]
+lemma step_output (cfg : Cfg k Symbol State input) :
+    (tm.step cfg).output = cfg.output ++ (tm.outputSymbol cfg).toList := by
+  unfold step outputSymbol Action.apply
+  cases cfg.state <;> simp
+
+/-- The output does not change after the machine has halted. -/
+lemma runFrom_output_eq_of_halt
+    (tm : MultiTapeTM k Symbol State)
+    (cfg : Cfg k Symbol State input) {τ t : ℕ} (hle : τ ≤ t)
+    (hhalt : (tm.runFrom cfg τ).state = none) :
+    (tm.runFrom cfg t).output = (tm.runFrom cfg τ).output := by
+  conv_lhs => rw [← Nat.sub_add_cancel hle, Nat.add_comm]
+  rw [runFrom_add, runFrom_of_halt _ hhalt]
+
+/-- A proof that the Turing machine `tm` on input `input` outputs `output` in at most `t` steps
+and uses exactly `s` space.
+Note that this does not require the alphabet or state set to be finite. -/
+def ComputesInTimeAndSpace
+    (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol)
+    (t s : ℕ) : Prop :=
+  (tm.runFrom (tm.initCfg input) t).state = none ∧
+  (tm.runFrom (tm.initCfg input) t).output = output ∧
+  tm.spaceUsed (tm.initCfg input) t = s
+
+/-- A machine computes `f` between the supplied encodings, with bounds depending on the input.
+The machine's alphabet and state type need not be finite. -/
+def ComputesFunInTimeAndSpace {α β : Type*}
+    (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol)
+    (f : α → β) (t s : α → ℕ) : Prop :=
+  ∀ a, ∃ t' ≤ t a, ∃ s' ≤ s a,
+    ComputesInTimeAndSpace tm (encIn a) (encOut (f a)) t' s'
+
+/-- A function is computable within the input-indexed bounds by a machine with binary alphabet
+and finitely many states. -/
+def ComputableInTimeAndSpace {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
+    (t s : α → ℕ) : Prop :=
+  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
+    ComputesFunInTimeAndSpace tm encIn encOut f t s
+
+/-- There exists a binary Turing machine with finitely many states that, for every input `a`,
+computes `encOut (f a)` from `encIn a` in at most `t (encIn a).length` steps,
+using at most `s (encIn a).length` work-tape cells. -/
+abbrev ComputableInTimeAndSpaceOfLength {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
+    (t s : ℕ → ℕ) : Prop :=
+  ComputableInTimeAndSpace f encIn encOut
+    (fun a => t (encIn a).length) (fun a => s (encIn a).length)
+
+/-- Resource bounds can be weakened independently on every input. -/
+theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
+    {tm : MultiTapeTM k Symbol State} {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol}
+    {f : α → β} {t s t' s' : α → ℕ}
+    (h : ComputesFunInTimeAndSpace tm encIn encOut f t s)
+    (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
+    ComputesFunInTimeAndSpace tm encIn encOut f t' s' := fun a => by
+  obtain ⟨u, hu, v, hv, hc⟩ := h a
+  exact ⟨u, hu.trans (ht a), v, hv.trans (hs a), hc⟩
+
+/-- Computability is monotone in the resource bounds. -/
+theorem ComputableInTimeAndSpace.mono {α β : Type*}
+    {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {t s t' s' : α → ℕ}
+    (h : ComputableInTimeAndSpace f encIn encOut t s)
+    (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
+    ComputableInTimeAndSpace f encIn encOut t' s' := by
+  obtain ⟨k, State, hfinite, tm, htm⟩ := h
+  exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
+
+open Classical in
+/-- The Boolean indicator function of a set. -/
+noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
+  fun x => if x ∈ L then true else false
+
+/-- A set is decidable within the given input-indexed bounds when its Boolean indicator is. -/
+def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
+    (t s : α → ℕ) : Prop :=
+  ComputableInTimeAndSpace (indicator L) enc ⟨fun b => [b], by intro a b h; simpa using h⟩ t s
+
+/-- This lemma translates between the relational notion and the iterated step notion. The latter
+can be more convenient especially for deterministic machines as we have here. -/
+@[scoped grind =]
+lemma relatesInSteps_iff_runFrom_eq
+    (tm : MultiTapeTM k Symbol State)
+    (cfg₁ cfg₂ : Cfg k Symbol State input)
+    (t : ℕ) :
+    RelatesInSteps tm.TransitionRelation cfg₁ cfg₂ t ↔ tm.runFrom cfg₁ t = cfg₂ := by
+  unfold runFrom
+  induction t generalizing cfg₁ cfg₂ with
+  | zero => simp
+  | succ t ih =>
+    rw [RelatesInSteps.succ_iff, Function.iterate_succ_apply']
+    constructor
+    · grind
+    · intro h_runFrom
+      use tm.step^[t] cfg₁
+      grind
+
+/-- The Turing machine `tm` halts after exactly `t` steps on input `input`
+if its state is `none` at step `t` and non-none at step `t - 1`.
+Note that every Turing machine hast to perform at least one step to halt. -/
+def haltsAtStep (tm : MultiTapeTM k Symbol State) (input : List Symbol) (t : ℕ) : Bool :=
+  (tm.runFrom (tm.initCfg input) t).state.isNone &&
+  !(tm.runFrom (tm.initCfg input) (t - 1)).state.isNone
+
+/-- If a Turing machine halts, the time step is uniquely determined. -/
+lemma halting_step_unique
+    {tm : MultiTapeTM k Symbol State}
+    {input : List Symbol}
+    {t₁ t₂ : ℕ}
+    (h_halts₁ : tm.haltsAtStep input t₁)
+    (h_halts₂ : tm.haltsAtStep input t₂) :
+    t₁ = t₂ := by
+  wlog h : t₁ ≤ t₂
+  · exact (this h_halts₂ h_halts₁ (Nat.le_of_not_le h)).symm
+  obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
+  cases d with
+  | zero => rfl
+  | succ d =>
+    have halts₁ : (tm.runFrom (tm.initCfg input) t₁).state = none := by
+      simp [haltsAtStep] at h_halts₁
+      exact h_halts₁.left
+    have halts₂ : (tm.runFrom (tm.initCfg input) (d + t₁)).state ≠ none := by
+      grind [haltsAtStep, runFrom]
+    refine absurd ?_ halts₂
+    rw [Nat.add_comm, runFrom_add, tm.runFrom_of_halt _ halts₁]
+    exact halts₁
+
+/-- If a deterministic machine repeats a non-halting configuration, it never halts,
+because the sequence between the two configurations will loop forever.
+Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
+using `tm.runFrom_add`. -/
+lemma not_halts_of_repeat_nonhalt
+    (cfg : Cfg k Symbol State input)
+    (h_not_halt : cfg.state ≠ none)
+    (t : ℕ)
+    (heq : tm.runFrom cfg (t + 1) = cfg) :
+    ∀ t', (tm.runFrom cfg t').state ≠ none := by
+  intro t'
+  -- The configuration will repeat every `t + 1` steps.
+  have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
+    intro n
+    unfold runFrom
+    rw [Nat.mul_comm, Function.iterate_mul]
+    exact Function.iterate_fixed heq n
+  by_contra hnh
+  -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
+  have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
+    have hle : t' ≤ t' * (t + 1) := by grind
+    obtain ⟨tΔ , htΔ⟩ := Nat.exists_eq_add_of_le hle
+    rw [htΔ, tm.runFrom_add]
+    simp [hnh]
+  simp [hloop t', h_not_halt] at h₁
+
+end MultiTapeTM
+
+end Turing

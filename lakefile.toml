@@ -18,13 +18,13 @@ weak.linter.unicodeLinter = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "fabf563a7c95a166b8d7b6efca11c8b4dc9d911f"
+rev = "v4.34.0"
 
 # Boole, its translation to Strata Core, and lean-smt. Strata-Boole pins the same Mathlib.
 [[require]]
 name = "StrataBoole"
 git = "https://github.com/strata-org/Strata-Boole"
-rev = "9fc1193c48549eba06aa6aef1e434e3e5e7de4c6"
+rev = "bbd81cf8"
 
 [[lean_lib]]
 name = "Cslib"

@@ -20,6 +20,6 @@ class HasWellFormed (α : Type u) where
   wf (x : α) : Prop
 
 /-- Notation for well-formedness. -/
-notation x:max "✓" => HasWellFormed.wf x
+macro x:term:max noWs "✓" : term => `(HasWellFormed.wf $x)
 
 end Cslib

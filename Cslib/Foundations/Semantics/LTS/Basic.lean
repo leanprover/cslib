@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
+public import Cslib.Foundations.Relation.Defs
 public import Mathlib.Data.Set.Finite.Basic
 public import Mathlib.Order.SetNotation
 
@@ -25,8 +25,12 @@ relation `Tr` between states. We follow the style and conventions in [Sangiorgi2
 - `LTS.MTr` extends the transition relation of any LTS to a multistep transition relation,
 formalising the inference system and admissible rules for such relations in [Montesi2023].
 
+- `LTS.BoundedUpTo` records an explicit global execution-length bound. `LTS.Bounded`,
+`LTS.Terminating`, and `LTS.Acyclic` distinguish globally bounded execution length, absence of
+infinite executions, and absence of nonempty cycles.
+
 - Definitions for all the common classes of LTSs: image-finite, finitely branching, finite-state,
-finite, and deterministic.
+and deterministic.
 
 ## Main statements
 
@@ -62,6 +66,10 @@ structure LTS (State : Type u) (Label : Type v) where
   Tr : State → Label → State → Prop
 
 namespace LTS
+
+/-- The unlabelled transition relation underlying an LTS. -/
+def UnlabelledTr (lts : LTS State Label) : State → State → Prop :=
+  fun s1 s2 => ∃ μ, lts.Tr s1 μ s2
 
 section MultiStep
 
@@ -148,7 +156,7 @@ theorem MTr.single_invert (s1 : State) (μ : Label) (s2 : State) :
     cases hmtr
     exact htr
 
-/-- A 1-sized multistep transition is exactly a single transision with the given label. -/
+/-- A 1-sized multistep transition is exactly a single transition with the given label. -/
 @[simp] theorem MTr.singleton_iff (s1 : State) (μ : Label) (s2 : State) :
   lts.MTr s1 [μ] s2 ↔ lts.Tr s1 μ s2 := ⟨MTr.single_invert lts s1 μ s2, MTr.single lts⟩
 
@@ -213,16 +221,25 @@ section Classes
 
 variable {State : Type u} {Label : Type v} (lts : LTS State Label)
 
-/-- An lts is deterministic if a state cannot reach different states with the same transition
-label. -/
+/-- A state `s` is deterministic for a label `μ` if `s` has at most one `μ`-derivative. -/
+@[scoped grind =]
+def DeterministicStateLabel (s : State) (μ : Label) : Prop :=
+  ∀ s₁ s₂, lts.Tr s μ s₁ → lts.Tr s μ s₂ → s₁ = s₂
+
+/-- A state `s` is deterministic if it is deterministic for all labels. -/
+@[scoped grind =]
+def DeterministicState (s : State) : Prop := ∀ μ, lts.DeterministicStateLabel s μ
+
+/-- An lts is deterministic if it is deterministic at every state. -/
 @[scoped grind]
 class Deterministic (lts : LTS State Label) where
-  deterministic (s1 : State) (μ : Label) (s2 s3 : State) :
-    lts.Tr s1 μ s2 → lts.Tr s1 μ s3 → s2 = s3
+  /-- For all states and labels, there is at most one state reachable from a given state
+  with a given label. -/
+  deterministic : ∀ s, lts.DeterministicState s
 
-theorem Deterministic.eq_of_tr {lts : LTS State Label} [lts.Deterministic]
+theorem Deterministic.eq_of_tr {lts : LTS State Label} [h : lts.Deterministic]
     (htr : lts.Tr s1 μ s2) (htr' : lts.Tr s1 μ s2') : s2 = s2' :=
-  Deterministic.deterministic s1 μ s2 s2' htr htr'
+  h.deterministic s1 μ s2 s2' htr htr'
 
 /-- In a deterministic lts, multistep transitions with a given start state and trace reach a unique
 end state. -/
@@ -304,24 +321,29 @@ abbrev ImageFinite := ∀ s μ, Finite (lts.image s μ)
 
 /-- In a deterministic LTS, if a state has a `μ`-derivative, then it can have no other
 `μ`-derivative. -/
-@[scoped grind .]
-theorem deterministic_not_lto [h : lts.Deterministic] :
-  ∀ s μ s' s'', s' ≠ s'' → lts.Tr s μ s' → ¬lts.Tr s μ s'' := by grind
+@[scoped grind ⇒]
+theorem DeterministicStateLabel.not_tr_of_ne (hdet : lts.DeterministicStateLabel s μ)
+    (hne : s₁ ≠ s₂) (htr₁ : lts.Tr s μ s₁) : ¬lts.Tr s μ s₂ := by
+  grind
 
-@[scoped grind _=_]
-theorem deterministic_tr_image_singleton [lts.Deterministic] :
+@[scoped grind ⇒]
+theorem DeterministicStateLabel.image_singleton_iff_tr (h : lts.DeterministicStateLabel s μ) :
     lts.image s μ = {s'} ↔ lts.Tr s μ s' := by
   have := (lts.image s μ).eq_singleton_iff_unique_mem (a := s')
   grind
 
-/-- In a deterministic LTS, any image is either a singleton or the empty set. -/
-@[scoped grind .]
-theorem deterministic_image_char [lts.Deterministic] (s : State) (μ : Label) :
-    (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by grind
+/-- If `s` is deterministic for `μ`, then the `μ`-image of `s` is either a singleton or the empty
+set. -/
+@[scoped grind →]
+theorem DeterministicStateLabel.image_char (h : lts.DeterministicStateLabel s μ) :
+    (∃ s', lts.image s μ = { s' }) ∨ (lts.image s μ = ∅) := by
+  grind [=_ image_singleton_iff_tr]
 
-/-- In a deterministic LTS, the image of any state-label combination is finite. -/
-instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) := by
-  have hDet := deterministic_image_char lts s μ
+/-- If `s` is deterministic at `μ`, then the `μ`-image of `s` is finite. -/
+@[scoped grind →]
+theorem DeterministicStateLabel.finite_image (h : lts.DeterministicStateLabel s μ) :
+    Finite (lts.image s μ) := by
+  have hDet := image_char lts h
   cases hDet
   case inl hDet =>
     obtain ⟨s', hDet'⟩ := hDet
@@ -330,6 +352,9 @@ instance [lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) 
   case inr hDet =>
     simp only [hDet]
     apply Set.finite_empty
+
+instance [h : lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) :=
+  DeterministicStateLabel.finite_image lts (h.deterministic s μ)
 
 /-- Every deterministic LTS is also image-finite. -/
 instance deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := inferInstance
@@ -356,15 +381,25 @@ attribute [instance] FinitelyBranching.image_finite FinitelyBranching.finite_sta
 /-- Every LTS with finite types for states and labels is also finitely branching. -/
 instance FinitelyBranching.of_finite [Finite State] [Finite Label] : lts.FinitelyBranching where
 
-/-- An LTS is acyclic if there are no infinite multistep transitions. -/
+/-- An LTS is bounded up to `n` if every finite execution has length strictly less than `n`. -/
+def BoundedUpTo (lts : LTS State Label) (n : ℕ) : Prop :=
+  ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
+
+/-- An LTS is bounded if there is a global bound on the length of all of its finite executions. -/
+class Bounded (lts : LTS State Label) where
+  bounded : ∃ n, lts.BoundedUpTo n
+
+/-- An LTS is terminating if its underlying unlabelled transition relation is terminating,
+equivalently if it admits no infinite execution. -/
+class Terminating (lts : LTS State Label) where
+  terminating : Relation.Terminating lts.UnlabelledTr
+
+/-- An LTS is acyclic if its underlying unlabelled transition relation contains no nonempty
+cycle. -/
 class Acyclic (lts : LTS State Label) where
-  acyclic : ∃ n, ∀ s1 μs s2, lts.MTr s1 μs s2 → μs.length < n
+  [acyclic : Relation.Acyclic lts.UnlabelledTr]
 
-/-- An LTS is finite if it is finite-state and acyclic.
-
-We call this `FiniteLTS` instead of just `Finite` to avoid confusion with the standard `Finite`
-class. -/
-class FiniteLTS [Finite State] (lts : LTS State Label) extends lts.Acyclic
+attribute [instance] Acyclic.acyclic
 
 end Classes
 

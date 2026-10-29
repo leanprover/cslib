@@ -35,6 +35,8 @@ Core definitions for perfect secrecy following [KatzLindell2020], Chapter 2.
 
 namespace Cslib.Crypto.Protocols.PerfectSecrecy.EncScheme
 
+open Cslib.Probability.PMF
+
 universe u
 variable {M K C : Type u}
 
@@ -58,7 +60,7 @@ the marginal distribution. -/
 noncomputable def posteriorMsgDist (scheme : EncScheme M K C)
     (msgDist : PMF M) (c : C)
     (hc : c ∈ (scheme.marginalCiphertextDist msgDist).support) : PMF M :=
-  Cslib.Probability.PMF.posteriorDist msgDist scheme.ciphertextDist c hc
+  posteriorDist msgDist scheme.ciphertextDist c hc
 
 @[simp]
 theorem posteriorMsgDist_apply (scheme : EncScheme M K C)
@@ -66,7 +68,7 @@ theorem posteriorMsgDist_apply (scheme : EncScheme M K C)
     (hc : c ∈ (scheme.marginalCiphertextDist msgDist).support) (m : M) :
     scheme.posteriorMsgDist msgDist c hc m =
       scheme.jointDist msgDist (m, c) / scheme.marginalCiphertextDist msgDist c :=
-  rfl
+  posteriorDist_apply msgDist scheme.ciphertextDist c hc m
 
 /-- An encryption scheme is perfectly secret if the posterior message
 distribution equals the prior for every ciphertext with positive probability

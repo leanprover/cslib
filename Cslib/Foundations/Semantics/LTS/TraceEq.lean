@@ -115,7 +115,6 @@ scoped notation s:max " ~tr[" lts "] " s':max => HomTraceEq lts s s'
 @[refl] theorem HomTraceEq.refl (s : State) : s ~tr[lts] s := rfl
 
 @[simp] theorem TraceEq.flip_eq : flip (TraceEq lts₁ lts₂) = TraceEq lts₂ lts₁ := by
-  ext s₁ s₂
   grind [flip, TraceEq]
 
 /-- Trace equivalence is symmetric. -/
@@ -136,19 +135,19 @@ theorem HomTraceEq.eqv : Equivalence (· ~tr[lts] ·) where
 instance : Trans (TraceEq lts₁ lts₂) (TraceEq lts₂ lts₃) (TraceEq lts₁ lts₃) where
   trans := TraceEq.trans
 
-/-- For trace-equivalent states, any multistep transition of one can be mimiced by the other. -/
+/-- For trace-equivalent states, any multistep transition of one can be mimicked by the other. -/
 theorem TraceEq.exists_mTr_of_mTr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     (h : s₁ ~tr[lts₁,lts₂] s₂) (htr : lts₁.MTr s₁ μs s₁') : ∃ s₂', lts₂.MTr s₂ μs s₂' := by
   rw [←mem_traces_iff, ←h]
   exact ⟨s₁', htr⟩
 
-/-- For trace-equivalent states, any single-step transition of one can be mimiced by the other. -/
+/-- For trace-equivalent states, any single-step transition of one can be mimicked by the other. -/
 theorem TraceEq.exists_tr_of_tr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     (h : s₁ ~tr[lts₁,lts₂] s₂) (htr : lts₁.Tr s₁ μ s₁') : ∃ s₂', lts₂.Tr s₂ μ s₂' := by
   rw [←mem_traces_singleton_iff, ←h, mem_traces_singleton_iff]
   exact ⟨s₁', htr⟩
 
-/-- For deterministic lts's, trace equivalence is preseved by respective transitions with the same
+/-- For deterministic lts's, trace equivalence is preserved by respective transitions with the same
 label. -/
 theorem TraceEq.traceEq_of_tr_of_tr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     [hdet₁ : lts₁.Deterministic] [hdet₂ : lts₂.Deterministic] (h : s₁ ~tr[lts₁,lts₂] s₂)

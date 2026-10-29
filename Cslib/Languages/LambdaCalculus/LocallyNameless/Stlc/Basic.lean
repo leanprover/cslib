@@ -117,7 +117,7 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
 
 /-- Substitution for a context weakened by a single type. -/
 lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) :
-    Γ ⊢ (t [x := s]) ∶ τ := by
+    Γ ⊢ (t[x := s]) ∶ τ := by
   grind [subst_aux]
 
 /-- Typing preservation for opening. -/
@@ -125,7 +125,7 @@ theorem preservation_open {xs : Finset Var}
     (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) :
     Γ ⊢ m ^ n ∶ τ := by
   have ⟨fresh, _⟩ := fresh_exists <| free_union [Term.fv] Var
-  grind [subst_intro fresh _ _ ?_ der.lc, typing_subst_head]
+  grind [subst_intro fresh _ _ ?_, typing_subst_head]
 
 end LambdaCalculus.LocallyNameless.Stlc.Typing
 

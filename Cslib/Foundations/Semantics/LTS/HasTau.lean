@@ -23,6 +23,9 @@ class HasTau (Label : Type v) where
   /-- The internal transition label, also known as τ. -/
   τ : Label
 
+/-- Checking whether an element is `τ` is decidable. -/
+abbrev DecidableEqTau (α : Type*) [HasTau α] := ∀ a : α, Decidable (a = HasTau.τ)
+
 namespace LTS
 
 /-- Saturated τ-transition relation. -/
