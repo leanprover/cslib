@@ -173,6 +173,7 @@ public import Cslib.Foundations.Data.Polynomial.Monotone
 public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
+public import Cslib.Foundations.Logic.Consequence
 public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
@@ -269,6 +270,8 @@ public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.HML.Basic
+public import Cslib.Logics.Kleene.Basic
+public import Cslib.Logics.Kleene.Semantics
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
