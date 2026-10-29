@@ -48,7 +48,8 @@ The `Hom` variants specialize these definitions to comparing states in the same 
 - `s₁ ~[lts₁,lts₂] s₂`: the states `s₁` and `s₂` are bisimilar under `lts₁` and `lts₂`.
 - `s₁ ≈[lts₁,lts₂] s₂`: the states `s₁` and `s₂` are weakly bisimilar under `lts₁` and `lts₂`.
 - `s₁ ~[lts] s₂` and `s₁ ≈[lts] s₂`: the corresponding homogeneous relations.
-- `s₁ ~n[lts₁,lts₂] s₂` and `s₁ ~n[lts] s₂`: depth-`n` approximations of bisimilarity.
+- `s₁ ~[lts₁,lts₂;n] s₂` and `s₁ ~[lts;n] s₂`: depth-`n` approximations of bisimilarity.
+- `~[lts₁,lts₂;n]` and `~[lts;n]`: the corresponding approximation relations.
 
 ## Main statements
 
@@ -305,51 +306,49 @@ def BisimilarityApprox (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Labe
       (∀ s₂', lts₂.Tr s₂ μ s₂' →
         ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ BisimilarityApprox lts₁ lts₂ n s₁' s₂')
 
-/-- The depth-`n` approximation of bisimilarity within one LTS. -/
-abbrev HomBisimilarityApprox (lts : LTS State Label) := BisimilarityApprox lts lts
-
-open Lean Parser in
-/-- Parse an approximation depth without consuming the LTS brackets as array indexing. -/
-meta def bisimilarityDepth := withForbidden "[" (termParser maxPrec)
-
 /-- Notation for the depth-`n` approximation of bisimilarity between two LTSs. -/
-scoped macro s:term:max " ~" n:bisimilarityDepth "[" lts₁:term "," lts₂:term "] "
-    s':term:max : term => do
-  let depth : Lean.TSyntax `term := ⟨n.raw⟩
-  `(BisimilarityApprox $lts₁ $lts₂ $depth $s $s')
+scoped notation "~[" lts₁ "," lts₂ ";" n "]" => BisimilarityApprox lts₁ lts₂ n
+
+/-- Infix notation for the depth-`n` approximation of bisimilarity of two states. -/
+scoped notation s:max " ~[" lts₁ "," lts₂ ";" n "] " s':max =>
+  BisimilarityApprox lts₁ lts₂ n s s'
+
+/-- The depth-`n` approximation of bisimilarity within one LTS. -/
+abbrev HomBisimilarityApprox (lts : LTS State Label) (n : ℕ) := ~[lts,lts;n]
 
 /-- Notation for the depth-`n` approximation of bisimilarity within one LTS. -/
-scoped macro s:term:max " ~" n:bisimilarityDepth "[" lts:term "] " s':term:max : term => do
-  let depth : Lean.TSyntax `term := ⟨n.raw⟩
-  `(HomBisimilarityApprox $lts $depth $s $s')
+scoped notation "~[" lts ";" n "]" => HomBisimilarityApprox lts n
+
+/-- Infix notation for the depth-`n` approximation of homogeneous bisimilarity of two states. -/
+scoped notation s:max " ~[" lts ";" n "] " s':max => HomBisimilarityApprox lts n s s'
 
 /-- Every pair of states belongs to the zeroth stratum. -/
 @[simp]
-theorem BisimilarityApprox.zero : s₁ ~0[lts₁,lts₂] s₂ := trivial
+theorem BisimilarityApprox.zero : s₁ ~[lts₁,lts₂;0] s₂ := trivial
 
 /-- Membership in a successor stratum is given by matching transitions into the previous one. -/
-theorem BisimilarityApprox.succ_iff : s₁ ~(n + 1)[lts₁,lts₂] s₂ ↔
+theorem BisimilarityApprox.succ_iff : s₁ ~[lts₁,lts₂;n + 1] s₂ ↔
     ∀ μ,
       (∀ s₁', lts₁.Tr s₁ μ s₁' →
-        ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~n[lts₁,lts₂] s₂') ∧
+        ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;n] s₂') ∧
       (∀ s₂', lts₂.Tr s₂ μ s₂' →
-        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~n[lts₁,lts₂] s₂') := Iff.rfl
+        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;n] s₂') := Iff.rfl
 
 /-- Follow a transition by the first state, consuming one level of approximation. -/
-theorem BisimilarityApprox.follow_fst (h : s₁ ~(n + 1)[lts₁,lts₂] s₂)
+theorem BisimilarityApprox.follow_fst (h : s₁ ~[lts₁,lts₂;n + 1] s₂)
     (htr : lts₁.Tr s₁ μ s₁') :
-    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~n[lts₁,lts₂] s₂' :=
+    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;n] s₂' :=
   (h μ).1 s₁' htr
 
 /-- Follow a transition by the second state, consuming one level of approximation. -/
-theorem BisimilarityApprox.follow_snd (h : s₁ ~(n + 1)[lts₁,lts₂] s₂)
+theorem BisimilarityApprox.follow_snd (h : s₁ ~[lts₁,lts₂;n + 1] s₂)
     (htr : lts₂.Tr s₂ μ s₂') :
-    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~n[lts₁,lts₂] s₂' :=
+    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;n] s₂' :=
   (h μ).2 s₂' htr
 
 /-- Each stratum is contained in the preceding stratum. -/
 theorem BisimilarityApprox.succ_le (n : ℕ) :
-    BisimilarityApprox lts₁ lts₂ (n + 1) ≤ BisimilarityApprox lts₁ lts₂ n := by
+    ~[lts₁,lts₂;n + 1] ≤ ~[lts₁,lts₂;n] := by
   induction n with
   | zero => exact fun _ _ _ => trivial
   | succ n ih =>
@@ -363,7 +362,7 @@ theorem BisimilarityApprox.succ_le (n : ℕ) :
       exact ⟨s₁', ht, ih _ _ hr⟩
 
 /-- The strata decrease with depth. -/
-theorem BisimilarityApprox.antitone : Antitone (BisimilarityApprox lts₁ lts₂) := by
+theorem BisimilarityApprox.antitone : Antitone (fun n => ~[lts₁,lts₂;n]) := by
   intro m n h
   induction h with
   | refl => exact le_refl _
@@ -371,7 +370,7 @@ theorem BisimilarityApprox.antitone : Antitone (BisimilarityApprox lts₁ lts₂
 
 /-- Bisimilar states belong to every finite stratum. -/
 theorem Bisimilarity.approx (h : s₁ ~[lts₁,lts₂] s₂) (n : ℕ) :
-    s₁ ~n[lts₁,lts₂] s₂ := by
+    s₁ ~[lts₁,lts₂;n] s₂ := by
   induction n generalizing s₁ s₂ with
   | zero => trivial
   | succ n ih =>
@@ -388,8 +387,8 @@ theorem Bisimilarity.approx (h : s₁ ~[lts₁,lts₂] s₂) (n : ℕ) :
 @[symm]
 theorem BisimilarityApprox.symm {State₁ State₂ : Type*}
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s₁ : State₁} {s₂ : State₂}
-    (h : s₁ ~n[lts₁,lts₂] s₂) :
-    s₂ ~n[lts₂,lts₁] s₁ := by
+    (h : s₁ ~[lts₁,lts₂;n] s₂) :
+    s₂ ~[lts₂,lts₁;n] s₁ := by
   induction n generalizing s₁ s₂ with
   | zero => trivial
   | succ n ih =>
@@ -404,9 +403,9 @@ theorem BisimilarityApprox.symm {State₁ State₂ : Type*}
 
 /-- Finite strata compose across LTSs at the same depth. -/
 theorem BisimilarityApprox.trans
-    (h₁ : s₁ ~n[lts₁,lts₂] s₂)
-    (h₂ : s₂ ~n[lts₂,lts₃] s₃) :
-    s₁ ~n[lts₁,lts₃] s₃ := by
+    (h₁ : s₁ ~[lts₁,lts₂;n] s₂)
+    (h₂ : s₂ ~[lts₂,lts₃;n] s₃) :
+    s₁ ~[lts₁,lts₃;n] s₃ := by
   induction n generalizing s₁ s₂ s₃ with
   | zero => trivial
   | succ n ih =>
@@ -424,10 +423,10 @@ theorem BisimilarityApprox.trans
 /-- Homogeneous finite strata are reflexive. -/
 @[refl]
 theorem HomBisimilarityApprox.refl (n : ℕ) (s : State) :
-    s ~n[lts] s := (HomBisimilarity.refl s).approx n
+    s ~[lts;n] s := (HomBisimilarity.refl s).approx n
 
 /-- Each homogeneous finite stratum is an equivalence relation. -/
-theorem HomBisimilarityApprox.eqv (n : ℕ) : Equivalence (HomBisimilarityApprox lts n) where
+theorem HomBisimilarityApprox.eqv (n : ℕ) : Equivalence ~[lts;n] where
   refl := HomBisimilarityApprox.refl n
   symm := BisimilarityApprox.symm
   trans := BisimilarityApprox.trans
@@ -436,14 +435,14 @@ theorem HomBisimilarityApprox.eqv (n : ℕ) : Equivalence (HomBisimilarityApprox
 intersection of all finite strata. It need not coincide with bisimilarity for general LTSs. -/
 def BisimilarityOmega (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
     (s₁ : State₁) (s₂ : State₂) : Prop :=
-  ∀ n, s₁ ~n[lts₁,lts₂] s₂
+  ∀ n, s₁ ~[lts₁,lts₂;n] s₂
 
 /-- The omega approximation of bisimilarity within one LTS. -/
 abbrev HomBisimilarityOmega (lts : LTS State Label) := BisimilarityOmega lts lts
 
 /-- Membership in the omega approximation means membership in every finite stratum. -/
 theorem BisimilarityOmega.iff_forall : BisimilarityOmega lts₁ lts₂ s₁ s₂ ↔
-    ∀ n, s₁ ~n[lts₁,lts₂] s₂ := Iff.rfl
+    ∀ n, s₁ ~[lts₁,lts₂;n] s₂ := Iff.rfl
 
 /-- Bisimilar states belong to the omega approximation. -/
 theorem Bisimilarity.omega (h : s₁ ~[lts₁,lts₂] s₂) : BisimilarityOmega lts₁ lts₂ s₁ s₂ :=
@@ -481,7 +480,7 @@ theorem BisimilarityOmega.follow_fst [hfin : lts₂.ImageFinite]
   have := hfin s₂ μ
   by_contra hnone
   -- If every derivative fails at some depth, finiteness gives a common depth of failure.
-  have hbad : ∀ t : lts₂.image s₂ μ, ∃ n, ¬(s₁' ~n[lts₁,lts₂] t) := by
+  have hbad : ∀ t : lts₂.image s₂ μ, ∃ n, ¬(s₁' ~[lts₁,lts₂;n] t) := by
     intro t
     by_contra ht
     push Not at ht

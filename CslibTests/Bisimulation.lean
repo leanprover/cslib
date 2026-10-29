@@ -76,6 +76,18 @@ example (h : s₁ ~[lts₁] s₁) : (~[lts₁]) s₁ s₁ := h
 
 example (s : State₁) : ((~[lts₁,lts₂]) s) = Bisimilarity lts₁ lts₂ s := rfl
 
+-- Approximation notation supports the same relation and application forms as bisimilarity.
+example : Equivalence ~[lts₁;n] := HomBisimilarityApprox.eqv n
+
+example (h : s₁ ~[lts₁,lts₂;n] s₂) : (~[lts₁,lts₂;n]) s₁ s₂ := h
+
+example (h : s₁ ~[lts₁;n] s₁) : (~[lts₁;n]) s₁ s₁ := h
+
+example (s : State₁) : ((~[lts₁,lts₂;n + 1]) s) =
+    BisimilarityApprox lts₁ lts₂ (n + 1) s := rfl
+
+example (s : State₁) : ((~[lts₁;0]) s) = HomBisimilarityApprox lts₁ 0 s := rfl
+
 -- Symmetry must support different state types and universes, as the relations do.
 example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ := h.symm
 
@@ -95,7 +107,7 @@ example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ 
 example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ :=
   Bisimilarity.symm (State₁ := State₁) h
 
-example (h : s₁ ~n[lts₁,lts₂] s₂) : s₂ ~n[lts₂,lts₁] s₁ := by
+example (h : s₁ ~[lts₁,lts₂;n] s₂) : s₂ ~[lts₂,lts₁;n] s₁ := by
   symm
   exact h
 
@@ -105,8 +117,8 @@ example (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) : BisimilarityOmega lts�
 
 example (h : s₁ ~[lts₁,lts₂] s₂) : BisimilarityOmega lts₁ lts₂ s₁ s₂ := h.omega
 
-example (hmn : m ≤ n) (h : s₁ ~n[lts₁,lts₂] s₂) :
-    s₁ ~m[lts₁,lts₂] s₂ := BisimilarityApprox.antitone hmn _ _ h
+example (hmn : m ≤ n) (h : s₁ ~[lts₁,lts₂;n] s₂) :
+    s₁ ~[lts₁,lts₂;m] s₂ := BisimilarityApprox.antitone hmn _ _ h
 
 example [lts₁.ImageFinite] [lts₂.ImageFinite] (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) :
     s₁ ~[lts₁,lts₂] s₂ := h.bisimilarity
@@ -116,20 +128,20 @@ example [lts₁.ImageFinite] [lts₂.ImageFinite] :
 
 end Heterogeneous
 
-example (lts : LTS State Label) (n : ℕ) (s : State) : s ~n[lts] s := by rfl
+example (lts : LTS State Label) (n : ℕ) (s : State) : s ~[lts;n] s := by rfl
 
 -- A single transition and an infinite loop agree for one round but differ in the second.
 private def countdownLTS : LTS ℕ Unit := ⟨fun s _ t => s = t + 1⟩
 
 private def loopLTS : LTS Unit Unit := ⟨fun _ _ _ => True⟩
 
-example : 0 ~0[countdownLTS,loopLTS] () := by simp
+example : 0 ~[countdownLTS,loopLTS;0] () := by simp
 
-example : 1 ~(0 + 1)[countdownLTS,loopLTS] () := by
+example : 1 ~[countdownLTS,loopLTS;0 + 1] () := by
   intro μ
   exact ⟨fun _ _ => ⟨(), trivial, trivial⟩, fun _ _ => ⟨0, rfl, trivial⟩⟩
 
-private theorem countdown_not_approx_two : ¬(1 ~2[countdownLTS,loopLTS] ()) := by
+private theorem countdown_not_approx_two : ¬(1 ~[countdownLTS,loopLTS;2] ()) := by
   intro h
   obtain ⟨s, hs, hr⟩ := h.follow_snd (show loopLTS.Tr () () () from trivial)
   obtain ⟨t, ht, _⟩ := hr.follow_snd (show loopLTS.Tr () () () from trivial)
@@ -138,7 +150,7 @@ private theorem countdown_not_approx_two : ¬(1 ~2[countdownLTS,loopLTS] ()) := 
   omega
 
 -- Both directions of matching matter, including across different state types.
-example : ¬(() ~2[loopLTS,countdownLTS] 1) :=
+example : ¬(() ~[loopLTS,countdownLTS;2] 1) :=
   fun h => countdown_not_approx_two h.symm
 
 example : ¬ BisimilarityOmega countdownLTS loopLTS 1 () :=
