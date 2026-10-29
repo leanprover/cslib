@@ -31,6 +31,8 @@ We define a number of structures and concepts related to multi-tape Turing machi
     symbols to exactly one action
 * `MultiTapeTM`: the TM itself
 * `tr`, `ofTr`: the derived transition function and construction from a function
+* `adapt`: the machine run through an adapter
+* `wire`: two machines on the same tapes wired into one
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
@@ -110,6 +112,59 @@ lemma tr_ofTr (q₀ : State)
     (ofTr q₀ tr).tr q input work = tr q input work :=
   tr_iff.mp rfl
 
+/-- The transitions of `tm` performed through `adapter`: it reads what `tm` reads through `adapter`
+and performs the adaptation of the action of `tm`. -/
+noncomputable def adaptedTr {k' : ℕ} {State' : Type*} (tm : MultiTapeTM k Symbol State)
+    (adapter : MultiTapeNTM.Adapter k k' Symbol State State') (q : State) (inp : Option Symbol)
+    (work : Fin k' → Option Symbol) : Action k' Symbol State' :=
+  adapter.action ⟨inp, work⟩ (tm.tr q (adapter.read ⟨inp, work⟩).inputSymbol
+    (adapter.read ⟨inp, work⟩).workTapeSymbols)
+
+/-- `tm` run through `adapter`, a `MultiTapeNTM.Adapter`: the adapter computes what `tm` reads
+from the symbols under the heads of the new machine, and gives the action of the new machine
+performing each action of `tm`. In state `q`, `tm.adapt adapter` performs the adaptation of the
+action of `tm` in `q` on what the adapter reads. -/
+noncomputable def adapt {k' : ℕ} (tm : MultiTapeTM k Symbol State)
+    (adapter : MultiTapeNTM.Adapter k k' Symbol State State) : MultiTapeTM k' Symbol State :=
+  ofTr tm.q₀ (tm.adaptedTr adapter)
+
+/-- `tm.adapt adapter` follows `tm`. -/
+lemma follows_adapt {k' : ℕ} {adapter : MultiTapeNTM.Adapter k k' Symbol State State} :
+    (tm.adapt adapter).Follows tm id adapter :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+/-- `tm₀` and `tm₁` wired into one machine on their shared tapes, which starts in `q₀`: in a state
+`inl q` it performs the transition of `tm₀` in `q`, and in `inr q` that of `tm₁`. The wires `next₀`
+and `next₁` say where the steps of each machine lead: within the same machine, to the other
+machine, or to halting. -/
+noncomputable def wire {State₀ State₁ : Type*} (tm₀ : MultiTapeTM k Symbol State₀)
+    (tm₁ : MultiTapeTM k Symbol State₁) (next₀ : Option State₀ → Option (State₀ ⊕ State₁))
+    (next₁ : Option State₁ → Option (State₀ ⊕ State₁)) (q₀ : State₀ ⊕ State₁) :
+    MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
+  ofTr q₀ fun q => q.elim (tm₀.adaptedTr (.mapState next₀)) (tm₁.adaptedTr (.mapState next₁))
+
+/-- The wire of a first machine that runs in its own states: halting hands over to the second
+machine in its state `q₁`. -/
+def handOver {State₀ State₁ : Type*} (q₁ : State₁) (state : Option State₀) :
+    Option (State₀ ⊕ State₁) :=
+  some (state.elim (.inr q₁) .inl)
+
+section wire
+
+variable {State₀ State₁ : Type*} {tm₀ : MultiTapeTM k Symbol State₀}
+  {tm₁ : MultiTapeTM k Symbol State₁} {next₀ : Option State₀ → Option (State₀ ⊕ State₁)}
+  {next₁ : Option State₁ → Option (State₀ ⊕ State₁)} {q₀ : State₀ ⊕ State₁}
+
+/-- In its states `inl q`, the wiring follows `tm₀`, its steps leading along `next₀`. -/
+lemma follows_wire_left : (wire tm₀ tm₁ next₀ next₁ q₀).Follows tm₀ .inl (.mapState next₀) :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+/-- In its states `inr q`, the wiring follows `tm₁`, its steps leading along `next₁`. -/
+lemma follows_wire_right : (wire tm₀ tm₁ next₀ next₁ q₀).Follows tm₁ .inr (.mapState next₁) :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+end wire
+
 /-!
 ## Stepping a Turing Machine
 
@@ -168,27 +223,6 @@ public lemma step_workTapePos_of_state {cfg : Cfg k Symbol State input} {q : Sta
 lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
-
-/-- A configuration map semiconjugating the step functions is a homomorphism of the step relations,
-so it maps run paths with `RelSeries.map`. -/
-def stepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (h : Function.Semiconj f tm.step tm'.step) :
-    (tm.stepRel input).Hom (tm'.stepRel input') where
-  toFun := f
-  map_rel' hc := step_iff.mpr ((h _).symm.trans (congrArg f (step_iff.mp hc)))
-
-/-- A configuration map commuting with the step functions on running configurations is a
-homomorphism from the running steps of `tm` to the steps of `tm'`. -/
-@[simps! apply]
-def runningStepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (h : ∀ c, ¬c.Halted → tm'.step (f c) = f (tm.step c)) :
-    (tm.runningStepRel input).Hom (tm'.stepRel input') where
-  toFun := f
-  map_rel' {c _} hc := step_iff.mpr ((h c hc.1).trans (congrArg f (step_iff.mp hc.2)))
 
 end MultiTapeTM
 
@@ -384,30 +418,33 @@ def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
 
-/-- If a deterministic machine repeats a non-halting configuration, it never halts,
-because the sequence between the two configurations will loop forever.
-Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `Function.iterate_add_apply`. -/
-lemma not_halts_of_repeat_nonhalt
-    (cfg : Cfg k Symbol State input)
-    (h_not_halt : cfg.state ≠ none)
-    (t : ℕ)
-    (heq : tm.runFrom cfg (t + 1) = cfg) :
-    ∀ t', (tm.runFrom cfg t').state ≠ none := by
-  intro t'
-  -- The configuration will repeat every `t + 1` steps.
-  have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
-    intro n
-    unfold runFrom
-    rw [Nat.mul_comm, Function.iterate_mul]
-    exact Function.iterate_fixed heq n
-  by_contra hnh
-  -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
-  have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
-    have hle : t' ≤ t' * (t + 1) := by grind
-    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
-  simp [hloop t', h_not_halt] at h₁
-
 end MultiTapeTM
+
+namespace MultiTapeNTM.RunPath
+
+variable {tm : MultiTapeTM k Symbol State} {input : List Symbol}
+
+/-- A deterministic path that ends halted never repeats a running configuration: from a repeated
+configuration the machine would cycle forever. -/
+lemma injOn_running (p : tm.RunPath input)
+    (h : p.last.Halted) : Set.InjOn p {i | ¬(p i).Halted} := by
+  -- a repeat `p i = p j` with `i < j` is followed by the repeat `p (i + 1) = p (j + 1)`, so halting
+  -- at the end comes back to `p j`
+  have halted (j : Fin (p.length + 1)) : ∀ i < j, p i = p j → (p j).Halted := by
+    induction j using Fin.reverseInduction with
+    | last => exact fun _ _ _ ↦ h
+    | cast j ih =>
+      intro i hij heq
+      obtain ⟨i, rfl⟩ := Fin.exists_castSucc_eq.mpr (Fin.ne_last_of_lt hij)
+      rw [Fin.castSucc_lt_castSucc_iff] at hij
+      have hsucc : p i.succ = p j.succ := by
+        rw [← MultiTapeTM.step_iff.mp (p.step i), ← MultiTapeTM.step_iff.mp (p.step j), heq]
+      exact p.halted_mono (Fin.succ_le_castSucc_iff.mpr hij)
+        (hsucc ▸ ih _ (Fin.succ_lt_succ_iff.mpr hij) hsucc : (p i.succ).Halted)
+  intro i hi j hj hij
+  rcases lt_trichotomy i j with hlt | rfl | hlt
+  exacts [(hj (halted j i hlt hij)).elim, rfl, (hi (halted i j hlt hij.symm)).elim]
+
+end MultiTapeNTM.RunPath
 
 end Turing
