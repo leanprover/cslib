@@ -29,7 +29,7 @@ variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 
 /-- The test of tape `i`: it halts if the cell under the head of tape `i` is blank and otherwise
 stays in its only state, moving no head. -/
-noncomputable def RepeatUntilBlank.blankTest (i : Fin k) : MultiTapeTM k Symbol Unit :=
+def RepeatUntilBlank.blankTest (i : Fin k) : MultiTapeTM k Symbol Unit :=
   ofTr () fun _ _ work =>
     { inputTape := 0, workTapes := fun _ => (none, 0), output := none,
       state := (work i).map fun _ => () }
@@ -60,8 +60,8 @@ lemma step_check (ws : Fin k → List Symbol) (out : List Symbol) :
       wordsCfg input (if ws i = [] then none else some (.inl tm.q₀)) ws out := by
   rw [step_of_state rfl]
   refine Cfg.ext ?_ ?_ ?_ ?_ ?_ <;> cases h : ws i <;>
-    simp [repeatUntilBlank, wire, adaptedTr, blankTest, MultiTapeNTM.Adapter.mapState,
-      Cfg.workTapeSymbols, tapeOfList_zero, wordsCfg, Action.apply, SignType.cast, h]
+    simp [repeatUntilBlank, wire, adaptedTr, blankTest, Cfg.workTapeSymbols, tapeOfList_zero,
+      wordsCfg, Action.apply, SignType.cast, h]
 
 /-- One round of the loop. If `tm` transforms words satisfying `P` within `t` steps and `s` cells,
 then from `tm`'s initial state on such words `w` the loop has a run path of at most `t + 1` steps
