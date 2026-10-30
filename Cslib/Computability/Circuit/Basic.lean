@@ -51,24 +51,62 @@ structure Circuit (σ : Signature) (inputCount outputCount : Nat) where
   /-- The input or internal-gate wire carrying each output. -/
   outputs : Fin outputCount → Wire inputCount size
 
+@[ext (iff := false)]
+protected theorem Circuit.ext {c₁ c₂ : Circuit σ inputCount outputCount} (hsize : c₁.size = c₂.size)
+    (hp : c₁.program = hsize ▸ c₂.program) (ho : c₁.outputs = hsize ▸ c₂.outputs) : c₁ = c₂ := by
+  cases c₁
+  cases c₂
+  cases hsize
+  dsimp only at hp ho
+  rw [hp, ho]
+
 /-- The zero-gate circuit whose outputs are the inputs chosen by `select`. Projections,
 duplications, and permutations of the inputs cost no gates. -/
 def Circuit.wiring (σ : Signature) (select : Fin outputCount → Fin inputCount) :
     Circuit σ inputCount outputCount :=
-  ⟨.empty, fun output => Wire.input (select output)⟩
+  ⟨.empty, .input ∘ select⟩
 
 /-- The zero-gate identity circuit, whose outputs are its inputs. -/
-abbrev Circuit.id (σ : Signature) (inputCount : Nat) : Circuit σ inputCount inputCount :=
-  Circuit.wiring σ _root_.id
+protected abbrev Circuit.id (σ : Signature) (inputCount : Nat) : Circuit σ inputCount inputCount :=
+  .wiring σ id
 
 @[simp] theorem Circuit.size_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).size = 0 := rfl
+    (wiring σ select).size = 0 := rfl
 
 @[simp] theorem Circuit.program_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).program = .empty := rfl
+    (wiring σ select).program = .empty := rfl
 
 @[simp] theorem Circuit.outputs_wiring (select : Fin outputCount → Fin inputCount) :
-    (Circuit.wiring σ select).outputs = fun output => Wire.input (select output) := rfl
+    (wiring σ select).outputs = .input ∘ select := rfl
+
+/-- Map the inputs of a circuit through a function. -/
+@[implicit_reducible, simps -fullyApplied size program outputs]
+def Circuit.mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (c : Circuit σ inputCount outputCount) : Circuit σ inputCount' outputCount where
+  size := c.size
+  program := c.program.mapInputs f
+  outputs := .mapInputs f ∘ c.outputs
+
+@[simp]
+theorem Circuit.mapInputs_mapInputs {inputCount' inputCount'' : ℕ}
+    (g : Fin inputCount' → Fin inputCount'') (f : Fin inputCount → Fin inputCount')
+    (c : Circuit σ inputCount outputCount) : (c.mapInputs f).mapInputs g = c.mapInputs (g ∘ f) :=
+  Circuit.ext rfl (by simp) (funext <| by simp)
+
+/-- Map the outputs of a circuit through a function. -/
+@[implicit_reducible, simps -fullyApplied size program outputs]
+def Circuit.comapOutputs {outputCount' : ℕ} (f : Fin outputCount' → Fin outputCount)
+    (c : Circuit σ inputCount outputCount) : Circuit σ inputCount outputCount' where
+  size := c.size
+  program := c.program
+  outputs := c.outputs ∘ f
+
+@[simp]
+theorem Circuit.comapOutputs_comapOutputs {outputCount' outputCount'' : ℕ}
+    (g : Fin outputCount'' → Fin outputCount') (f : Fin outputCount' → Fin outputCount)
+    (c : Circuit σ inputCount outputCount) :
+    (c.comapOutputs f).comapOutputs g = c.comapOutputs (f ∘ g) :=
+  Circuit.ext rfl rfl (funext <| by simp)
 
 /-- Every gate in a circuit has at most `r` arguments. -/
 def Circuit.FanInAtMost (c : Circuit σ inputCount outputCount) (r : Nat) : Prop :=

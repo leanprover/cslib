@@ -102,11 +102,21 @@ namespace Circuit
 variable {I : Interpretation σ U}
 
 /-- Feed the outputs of `c` to the inputs of `d`. -/
-def comp (d : Circuit σ m p) (c : Circuit σ n m) : Circuit σ n p :=
+protected def comp (d : Circuit σ m p) (c : Circuit σ n m) : Circuit σ n p :=
   ⟨c.program.append c.outputs d.program, Program.appendedWire c.outputs ∘ d.outputs⟩
 
 @[simp] theorem size_comp (d : Circuit σ m p) (c : Circuit σ n m) :
     (d.comp c).size = c.size + d.size := rfl
+
+@[simp]
+theorem program_comp (d : Circuit σ m p) (c : Circuit σ n m) :
+    (d.comp c).program = c.program.append c.outputs d.program :=
+  rfl
+
+@[simp]
+theorem outputs_comp (d : Circuit σ m p) (c : Circuit σ n m) :
+    (d.comp c).outputs = Program.appendedWire c.outputs ∘ d.outputs :=
+  rfl
 
 @[simp] theorem eval_comp (d : Circuit σ m p) (c : Circuit σ n m) (x : Fin n → U) :
     (d.comp c).eval I x = d.eval I (c.eval I x) := by

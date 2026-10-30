@@ -37,21 +37,21 @@ namespace Wire
 variable {inputCount gateCount : Nat} {α : Sort*}
 
 /-- Define a function on wires from its values on inputs and on gates. -/
-def elim (inputs : Fin inputCount → α) (gates : Fin gateCount → α) :
+protected def elim (inputs : Fin inputCount → α) (gates : Fin gateCount → α) :
     Wire inputCount gateCount → α
   | input i => inputs i
   | gate j => gates j
 
 @[simp] theorem elim_input (inputs : Fin inputCount → α) (gates : Fin gateCount → α)
-    (i : Fin inputCount) : elim inputs gates (input i) = inputs i := rfl
+    (i : Fin inputCount) : Wire.elim inputs gates (input i) = inputs i := rfl
 
 @[simp] theorem elim_gate (inputs : Fin inputCount → α) (gates : Fin gateCount → α)
-    (j : Fin gateCount) : elim inputs gates (gate j) = gates j := rfl
+    (j : Fin gateCount) : Wire.elim inputs gates (gate j) = gates j := rfl
 
 /-- A wire is an input or a gate. -/
 def equiv (inputCount gateCount : Nat) :
     Wire inputCount gateCount ≃ Fin inputCount ⊕ Fin gateCount where
-  toFun := elim Sum.inl Sum.inr
+  toFun := Wire.elim Sum.inl Sum.inr
   invFun := Sum.elim input gate
   left_inv wire := by cases wire <;> rfl
   right_inv wire := by cases wire <;> rfl
@@ -59,8 +59,31 @@ def equiv (inputCount gateCount : Nat) :
 instance : Fintype (Wire inputCount gateCount) :=
   Fintype.ofEquiv _ (equiv inputCount gateCount).symm
 
-@[simp] theorem card : Fintype.card (Wire inputCount gateCount) = inputCount + gateCount := by
+@[simp]
+protected theorem card : Fintype.card (Wire inputCount gateCount) = inputCount + gateCount := by
   simp [Fintype.card_congr (equiv inputCount gateCount)]
+
+/-- Map the input of a wire through a function, if it's connected to one. -/
+def mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') :
+    Wire inputCount gateCount → Wire inputCount' gateCount
+  | .input i => .input <| f i
+  | .gate g => .gate g
+
+@[simp]
+theorem mapInputs_input {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (i : Fin inputCount) : (.input i : Wire inputCount gateCount).mapInputs f = .input (f i) :=
+  rfl
+
+@[simp]
+theorem mapInputs_gate {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (g : Fin gateCount) : (.gate g : Wire inputCount gateCount).mapInputs f = .gate g :=
+  rfl
+
+@[simp]
+theorem mapInputs_mapInputs {inputCount' inputCount'' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (g : Fin inputCount' → Fin inputCount'') (w : Wire inputCount gateCount) :
+    (w.mapInputs f).mapInputs g = w.mapInputs (g ∘ f) := by
+  cases w <;> rfl
 
 /-- Regard a wire as a wire in a namespace with one additional gate. -/
 def castSucc : Wire inputCount gateCount → Wire inputCount (gateCount + 1)
