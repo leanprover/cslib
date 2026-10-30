@@ -11,12 +11,13 @@ public import Cslib.Logics.Modal.Unary.Basic
 /-! # Basic Temporal Logic (BTL)
 
 The basic temporal language has two unary modalities: `F` (sometime in the future) and
-`P` (sometime in the past). Their duals are `G` (always in the future) and `H` (always in
-the past).
+`P` (sometime in the past).
 
 ## Notation
 
-Open `Cslib.Logic.Modal.BTL` for `F`, `P`, `G`, `H`, and the judgement `BTL[m,w ⊨ φ]`.
+Open `Cslib.Logic.Modal.BTL` for the directions `F` and `P` and the judgement `BTL[m,w ⊨ φ]`.
+With `Cslib.Logic` open, use the standard dynamic modalities `d⟨F⟩φ` and `d⟨P⟩φ` for
+sometime in the future and past, and `d[F]φ` and `d[P]φ` for always in the future and past.
 Satisfaction is expressed by `⇓BTL[m,w ⊨ φ]`, using the modal inference system.
 
 ## References
@@ -33,10 +34,12 @@ namespace BTL
 /-- The two directions of the basic temporal language. -/
 inductive Direction where
   /-- Into the future. -/
-  | future
+  | F
   /-- Into the past. -/
-  | past
+  | P
   deriving DecidableEq
+
+export Direction (F P)
 
 /-- The modal signature of the basic temporal language. -/
 abbrev τBTL : PFunctor := PFunctor.mkUnary Direction
@@ -44,22 +47,13 @@ abbrev τBTL : PFunctor := PFunctor.mkUnary Direction
 /-- Temporal propositions, with a unary modality for each direction. -/
 abbrev Proposition Atom := Modal.Proposition τBTL Atom
 
-/-! Operator notation for BTL. -/
-
-/-- Sometime in the future. -/
-scoped prefix:40 "F" => fun φ => d⟨Direction.future⟩φ
-/-- Sometime in the past. -/
-scoped prefix:40 "P" => fun φ => d⟨Direction.past⟩φ
-/-- Every time in the future: 'It is always going to be the case that ...' -/
-scoped prefix:40 "G" => fun φ => d[Direction.future]φ
-/-- Every time in the past: 'It has always been the case that ...' -/
-scoped prefix:40 "H" => fun φ => d[Direction.past]φ
+@[scoped grind =, modal =]
+theorem Proposition.always_eq_not_future_not (φ : Proposition Atom) :
+    (d[F]φ) = ¬d⟨F⟩¬φ := rfl
 
 @[scoped grind =, modal =]
-theorem Proposition.always_eq_not_future_not (φ : Proposition Atom) : (G φ) = ¬F¬φ := rfl
-
-@[scoped grind =, modal =]
-theorem Proposition.hasAlwaysBeen_eq_not_past_not (φ : Proposition Atom) : (H φ) = ¬P¬φ := rfl
+theorem Proposition.hasAlwaysBeen_eq_not_past_not (φ : Proposition Atom) :
+    (d[P]φ) = ¬d⟨P⟩¬φ := rfl
 
 /-- A temporal model consists of an accessibility relation and a valuation at each world.
 
@@ -81,8 +75,8 @@ inverse of each other. Modally, this is witnessed by `btl_future_past_prop` and
 -/
 def Model.toFrame (m : Model World Atom) : Frame World τBTL :=
   Frame.ofRelations fun
-    | .future => m.r
-    | .past => flip m.r
+    | .F => m.r
+    | .P => flip m.r
 
 /-- Interprets a temporal model as a unary modal model. -/
 def Model.toModal (m : Model World Atom) : Modal.Model World τBTL Atom := ⟨m.toFrame, m.v⟩
@@ -92,17 +86,17 @@ theorem Model.toModal_toFrame (m : Model World Atom) : m.toModal.toFrame = m.toF
 
 @[simp, scoped grind =, modal =]
 theorem Model.toFrame_future_iff (m : Model World Atom) (w w' : World) :
-    m.toFrame.diagonal .future w w' ↔ m.r w w' := Iff.rfl
+    m.toFrame.diagonal F w w' ↔ m.r w w' := Iff.rfl
 
 @[simp, scoped grind =, modal =]
 theorem Model.toFrame_past_iff (m : Model World Atom) (w w' : World) :
-    m.toFrame.diagonal .past w w' ↔ m.r w' w := Iff.rfl
+    m.toFrame.diagonal P w w' ↔ m.r w' w := Iff.rfl
 
 /-- Shortcut for `Modal[BTL.Model.toModal m,w ⊨ φ]`. -/
 scoped notation "BTL[" m "," w " ⊨ " φ "]" => Modal[BTL.Model.toModal m,w ⊨ φ]
 
 /-- The future and past modalities in a BTL model have inverse diagonal relations. -/
-instance (m : Model World Atom) : m.toModal.toFrame.DiagonalInverse .future .past where
+instance (m : Model World Atom) : m.toModal.toFrame.DiagonalInverse F P where
   diagonalInverse w w' := by simp [Model.toFrame_past_iff, Model.toFrame_future_iff]
 
 end BTL
@@ -116,43 +110,43 @@ variable {m : BTL.Model World Atom} {w w' : World} {φ : BTL.Proposition Atom}
 theorem Satisfies.btl_atom_iff {a : Atom} : ⇓BTL[m,w ⊨ a] ↔ m.v w a := Iff.rfl
 
 @[scoped grind =]
-theorem Satisfies.btl_future_iff_exists : ⇓BTL[m,w ⊨ F φ] ↔ ∃ w', m.r w w' ∧ ⇓BTL[m,w' ⊨ φ] :=
+theorem Satisfies.btl_future_iff_exists : ⇓BTL[m,w ⊨ d⟨F⟩φ] ↔ ∃ w', m.r w w' ∧ ⇓BTL[m,w' ⊨ φ] :=
   Satisfies.dynDiamond_iff_exists
 
 @[scoped grind =]
-theorem Satisfies.btl_past_iff_exists : ⇓BTL[m,w ⊨ P φ] ↔ ∃ w', m.r w' w ∧ ⇓BTL[m,w' ⊨ φ] :=
+theorem Satisfies.btl_past_iff_exists : ⇓BTL[m,w ⊨ d⟨P⟩φ] ↔ ∃ w', m.r w' w ∧ ⇓BTL[m,w' ⊨ φ] :=
   Satisfies.dynDiamond_iff_exists
 
 @[scoped grind =]
-theorem Satisfies.btl_always_iff_forall : ⇓BTL[m,w ⊨ G φ] ↔ ∀ w', m.r w w' → ⇓BTL[m,w' ⊨ φ] :=
+theorem Satisfies.btl_always_iff_forall : ⇓BTL[m,w ⊨ d[F]φ] ↔ ∀ w', m.r w w' → ⇓BTL[m,w' ⊨ φ] :=
   Satisfies.dynBox_iff_forall
 
 @[scoped grind =]
 theorem Satisfies.btl_hasAlwaysBeen_iff_forall :
-    ⇓BTL[m,w ⊨ H φ] ↔ ∀ w', m.r w' w → ⇓BTL[m,w' ⊨ φ] := Satisfies.dynBox_iff_forall
+    ⇓BTL[m,w ⊨ d[P]φ] ↔ ∀ w', m.r w' w → ⇓BTL[m,w' ⊨ φ] := Satisfies.dynBox_iff_forall
 
 @[modal ⇒]
-theorem Satisfies.btl_future_intro (hr : m.r w w') (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ F φ] :=
+theorem Satisfies.btl_future_intro (hr : m.r w w') (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨F⟩φ] :=
   btl_future_iff_exists.mpr ⟨w', hr, h⟩
 
 @[modal ⇒]
-theorem Satisfies.btl_past_intro (hr : m.r w' w) (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ P φ] :=
+theorem Satisfies.btl_past_intro (hr : m.r w' w) (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨P⟩φ] :=
   btl_past_iff_exists.mpr ⟨w', hr, h⟩
 
 @[modal ⇒]
-theorem Satisfies.btl_always_elim (h : ⇓BTL[m,w ⊨ G φ]) (hr : m.r w w') : ⇓BTL[m,w' ⊨ φ] :=
+theorem Satisfies.btl_always_elim (h : ⇓BTL[m,w ⊨ d[F]φ]) (hr : m.r w w') : ⇓BTL[m,w' ⊨ φ] :=
   btl_always_iff_forall.mp h w' hr
 
 @[modal ⇒]
-theorem Satisfies.btl_hasAlwaysBeen_elim (h : ⇓BTL[m,w ⊨ H φ]) (hr : m.r w' w) : ⇓BTL[m,w' ⊨ φ] :=
+theorem Satisfies.btl_hasAlwaysBeen_elim (h : ⇓BTL[m,w ⊨ d[P]φ]) (hr : m.r w' w) : ⇓BTL[m,w' ⊨ φ] :=
   btl_hasAlwaysBeen_iff_forall.mp h w' hr
 
 /-- If a proposition holds now, then it is always going to be the case that it was true. -/
-theorem Satisfies.btl_future_past : ⇓BTL[m,w ⊨ φ → G P φ] :=
+theorem Satisfies.btl_future_past : ⇓BTL[m,w ⊨ φ → d[F](d⟨P⟩φ)] :=
   Satisfies.dynBox_dynDiamond_diagonalInverse₁
 
 /-- If a proposition holds now, then it has always been the case that it will be true. -/
-theorem Satisfies.btl_past_future : ⇓BTL[m,w ⊨ φ → H F φ] :=
+theorem Satisfies.btl_past_future : ⇓BTL[m,w ⊨ φ → d[P](d⟨F⟩φ)] :=
   Satisfies.dynBox_dynDiamond_diagonalInverse₂
 
 end Cslib.Logic.Modal
