@@ -309,13 +309,8 @@ def bisimulationStep (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
     (∀ s₂', lts₂.Tr s₂ μ s₂' → ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂')
   monotone' := by
     intro r s hrs s₁ s₂ h μ
-    constructor
-    · intro s₁' ht
-      obtain ⟨s₂', ht', hr⟩ := (h μ).1 s₁' ht
-      exact ⟨s₂', ht', hrs _ _ hr⟩
-    · intro s₂' ht
-      obtain ⟨s₁', ht', hr⟩ := (h μ).2 s₂' ht
-      exact ⟨s₁', ht', hrs _ _ hr⟩
+    change ∀ x y, r x y → s x y at hrs
+    grind only
 
 theorem isBisimulation_iff_le_bisimulationStep :
     IsBisimulation lts₁ lts₂ r ↔ r ≤ bisimulationStep lts₁ lts₂ r := Iff.rfl
@@ -378,7 +373,7 @@ theorem BisimilarityApprox.top_eq_bisimilarity (lts₁ : LTS State₁ Label)
       (bisimulationStep lts₁ lts₂).isFixedPt_gfp le_top o
 
 /-- The zeroth stratum is the universal relation. -/
-@[simp]
+@[scoped grind =, simp]
 theorem BisimilarityApprox.zero_eq : ~[lts₁,lts₂;0] = ⊤ := OrdinalApprox.gfpApprox_zero _
 
 /-- A successor stratum applies the one-step operator to the preceding stratum. -/
@@ -392,9 +387,7 @@ theorem BisimilarityApprox.add_one {o : WithTop Ordinal} :
 
 /-- Every pair of states belongs to the zeroth stratum. -/
 @[simp]
-theorem BisimilarityApprox.zero : s₁ ~[lts₁,lts₂;0] s₂ := by
-  rw [BisimilarityApprox.zero_eq]
-  trivial
+theorem BisimilarityApprox.zero : s₁ ~[lts₁,lts₂;0] s₂ := by simp
 
 /-- Membership in a successor stratum is given by matching transitions into the previous one. -/
 theorem BisimilarityApprox.succ_iff {o : WithTop Ordinal} : s₁ ~[lts₁,lts₂;o + 1] s₂ ↔
@@ -535,20 +528,9 @@ theorem BisimilarityApprox.trans {State₁ State₂ State₃ : Type u}
     | zero => exact BisimilarityApprox.zero
     | add_one o ih =>
       simp only [WithTop.coe_add, WithTop.coe_one] at h₁ h₂ ⊢
-      rw [BisimilarityApprox.succ_iff]
-      intro μ
-      constructor
-      · intro s₁' htr
-        obtain ⟨s₂', ht₂, hr₁⟩ := h₁.follow_fst htr
-        obtain ⟨s₃', ht₃, hr₂⟩ := h₂.follow_fst ht₂
-        exact ⟨s₃', ht₃, ih hr₁ hr₂⟩
-      · intro s₃' htr
-        obtain ⟨s₂', ht₂, hr₂⟩ := h₂.follow_snd htr
-        obtain ⟨s₁', ht₁, hr₁⟩ := h₁.follow_snd ht₂
-        exact ⟨s₁', ht₁, ih hr₁ hr₂⟩
+      grind only [BisimilarityApprox.succ_iff]
     | limit o ho ih =>
-      rw [BisimilarityApprox.limit_iff ho] at h₁ h₂ ⊢
-      exact fun o' ho' => ih o' ho' (h₁ o' ho') (h₂ o' ho')
+      grind only [BisimilarityApprox.limit_iff]
 
 /-- Finite strata compose even when the state types inhabit different universes. -/
 theorem BisimilarityApprox.trans_nat {n : ℕ}
@@ -558,18 +540,7 @@ theorem BisimilarityApprox.trans_nat {n : ℕ}
   induction n generalizing s₁ s₂ s₃ with
   | zero => exact BisimilarityApprox.zero
   | succ n ih =>
-    simp only [Nat.cast_succ, WithTop.coe_add, WithTop.coe_one,
-      WithTop.coe_natCast, BisimilarityApprox.succ_iff] at h₁ h₂ ⊢
-    intro μ
-    constructor
-    · intro s₁' ht₁
-      obtain ⟨s₂', ht₂, hr₁⟩ := (h₁ μ).1 s₁' ht₁
-      obtain ⟨s₃', ht₃, hr₂⟩ := (h₂ μ).1 s₂' ht₂
-      exact ⟨s₃', ht₃, ih hr₁ hr₂⟩
-    · intro s₃' ht₃
-      obtain ⟨s₂', ht₂, hr₂⟩ := (h₂ μ).2 s₃' ht₃
-      obtain ⟨s₁', ht₁, hr₁⟩ := (h₁ μ).2 s₂' ht₂
-      exact ⟨s₁', ht₁, ih hr₁ hr₂⟩
+    grind [Nat.cast_succ, WithTop.coe_natCast, BisimilarityApprox.succ_iff]
 
 /-- Homogeneous ordinal strata are reflexive. -/
 @[refl]
