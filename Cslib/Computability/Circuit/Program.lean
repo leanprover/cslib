@@ -187,6 +187,17 @@ def Program.mapInputs {gateCount inputCount' : ℕ} (f : Fin inputCount → Fin 
   | .gate p l => .gate (p.mapInputs f) (l.mapInputs f)
 
 @[simp]
+theorem Program.mapInputs_empty {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') :
+    (.empty : Program σ inputCount 0).mapInputs f = .empty :=
+  rfl
+
+@[simp]
+theorem Program.mapInputs_gate {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (p : Program σ inputCount gateCount) (l : Line σ inputCount gateCount) :
+    (p.gate l).mapInputs f = .gate (p.mapInputs f) (l.mapInputs f) :=
+  rfl
+
+@[simp]
 theorem Program.mapInputs_mapInputs {inputCount' inputCount'' : ℕ}
     (g : Fin inputCount' → Fin inputCount'') (f : Fin inputCount → Fin inputCount')
     (p : Program σ inputCount gateCount) : (p.mapInputs f).mapInputs g = p.mapInputs (g ∘ f) := by

@@ -70,6 +70,16 @@ def mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') :
   | .gate g => .gate g
 
 @[simp]
+theorem mapInputs_input {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (i : Fin inputCount) : (.input i : Wire inputCount gateCount).mapInputs f = .input (f i) :=
+  rfl
+
+@[simp]
+theorem mapInputs_gate {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (g : Fin gateCount) : (.gate g : Wire inputCount gateCount).mapInputs f = .gate g :=
+  rfl
+
+@[simp]
 theorem mapInputs_mapInputs {inputCount' inputCount'' : ℕ} (f : Fin inputCount → Fin inputCount')
     (g : Fin inputCount' → Fin inputCount'') (w : Wire inputCount gateCount) :
     (w.mapInputs f).mapInputs g = w.mapInputs (g ∘ f) := by
