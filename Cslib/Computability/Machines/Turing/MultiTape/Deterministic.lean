@@ -31,10 +31,21 @@ We define a number of structures and concepts related to multi-tape Turing machi
     symbols to exactly one action
 * `MultiTapeTM`: the TM itself
 * `tr`, `ofTr`: the derived transition function and construction from a function
+* `adapt`: the machine run through an adapter
+* `wire`: two machines on the same tapes wired into one
 * `step`, `runFrom`: the successor configuration and iteration of this function
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
 * `Computes`: the machine halts with the given output on an input
+* `ComputesSuchThat`: computation satisfying a predicate on the machine and input
+* `ComputesFunSuchThat`: function computation satisfying such a predicate for each argument
+* `ComputableSuchThat`: such a machine exists with binary alphabet and finitely many states
+* `ComputesInTime` and `ComputesFunInTime`: computation within a time bound
+* `ComputableInTime`: computability by a finite-state binary machine within a time bound
+* `ComputesInSpace`: the machine produces an output within a space bound
+* `ComputesFunInSpace`: function computation within an input-indexed space bound
+* `ComputableInSpace`: computability by a finite-state binary machine within a space bound
+* `DecidableInSpace`: the Boolean indicator of a set is computable within a space bound
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
 * `ComputableInTimeAndSpace`: such a machine exists with binary alphabet and finitely many states.
@@ -110,6 +121,59 @@ lemma tr_ofTr (q₀ : State)
     (ofTr q₀ tr).tr q input work = tr q input work :=
   tr_iff.mp rfl
 
+/-- The transitions of `tm` performed through `adapter`: it reads what `tm` reads through `adapter`
+and performs the adaptation of the action of `tm`. -/
+noncomputable def adaptedTr {k' : ℕ} {State' : Type*} (tm : MultiTapeTM k Symbol State)
+    (adapter : MultiTapeNTM.Adapter k k' Symbol State State') (q : State) (inp : Option Symbol)
+    (work : Fin k' → Option Symbol) : Action k' Symbol State' :=
+  adapter.action ⟨inp, work⟩ (tm.tr q (adapter.read ⟨inp, work⟩).inputSymbol
+    (adapter.read ⟨inp, work⟩).workTapeSymbols)
+
+/-- `tm` run through `adapter`, a `MultiTapeNTM.Adapter`: the adapter computes what `tm` reads
+from the symbols under the heads of the new machine, and gives the action of the new machine
+performing each action of `tm`. In state `q`, `tm.adapt adapter` performs the adaptation of the
+action of `tm` in `q` on what the adapter reads. -/
+noncomputable def adapt {k' : ℕ} (tm : MultiTapeTM k Symbol State)
+    (adapter : MultiTapeNTM.Adapter k k' Symbol State State) : MultiTapeTM k' Symbol State :=
+  ofTr tm.q₀ (tm.adaptedTr adapter)
+
+/-- `tm.adapt adapter` follows `tm`. -/
+lemma follows_adapt {k' : ℕ} {adapter : MultiTapeNTM.Adapter k k' Symbol State State} :
+    (tm.adapt adapter).Follows tm id adapter :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+/-- `tm₀` and `tm₁` wired into one machine on their shared tapes, which starts in `q₀`: in a state
+`inl q` it performs the transition of `tm₀` in `q`, and in `inr q` that of `tm₁`. The wires `next₀`
+and `next₁` say where the steps of each machine lead: within the same machine, to the other
+machine, or to halting. -/
+noncomputable def wire {State₀ State₁ : Type*} (tm₀ : MultiTapeTM k Symbol State₀)
+    (tm₁ : MultiTapeTM k Symbol State₁) (next₀ : Option State₀ → Option (State₀ ⊕ State₁))
+    (next₁ : Option State₁ → Option (State₀ ⊕ State₁)) (q₀ : State₀ ⊕ State₁) :
+    MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
+  ofTr q₀ fun q => q.elim (tm₀.adaptedTr (.mapState next₀)) (tm₁.adaptedTr (.mapState next₁))
+
+/-- The wire of a first machine that runs in its own states: halting hands over to the second
+machine in its state `q₁`. -/
+def handOver {State₀ State₁ : Type*} (q₁ : State₁) (state : Option State₀) :
+    Option (State₀ ⊕ State₁) :=
+  some (state.elim (.inr q₁) .inl)
+
+section wire
+
+variable {State₀ State₁ : Type*} {tm₀ : MultiTapeTM k Symbol State₀}
+  {tm₁ : MultiTapeTM k Symbol State₁} {next₀ : Option State₀ → Option (State₀ ⊕ State₁)}
+  {next₁ : Option State₁ → Option (State₀ ⊕ State₁)} {q₀ : State₀ ⊕ State₁}
+
+/-- In its states `inl q`, the wiring follows `tm₀`, its steps leading along `next₀`. -/
+lemma follows_wire_left : (wire tm₀ tm₁ next₀ next₁ q₀).Follows tm₀ .inl (.mapState next₀) :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+/-- In its states `inr q`, the wiring follows `tm₁`, its steps leading along `next₁`. -/
+lemma follows_wire_right : (wire tm₀ tm₁ next₀ next₁ q₀).Follows tm₁ .inr (.mapState next₁) :=
+  fun _ _ _ h => tr_iff.mp h ▸ rfl
+
+end wire
+
 /-!
 ## Stepping a Turing Machine
 
@@ -169,27 +233,6 @@ lemma step_of_halt {cfg : Cfg k Symbol State input} (h : cfg.state = none) :
     tm.step cfg = cfg :=
   step_iff.mp ((MultiTapeNTM.step_of_halt h).mpr rfl)
 
-/-- A configuration map semiconjugating the step functions is a homomorphism of the step relations,
-so it maps run paths with `RelSeries.map`. -/
-def stepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (h : Function.Semiconj f tm.step tm'.step) :
-    (tm.stepRel input).Hom (tm'.stepRel input') where
-  toFun := f
-  map_rel' hc := step_iff.mpr ((h _).symm.trans (congrArg f (step_iff.mp hc)))
-
-/-- A configuration map commuting with the step functions on running configurations is a
-homomorphism from the running steps of `tm` to the steps of `tm'`. -/
-@[simps! apply]
-def runningStepHom {k' : ℕ} {State' : Type*} {input' : List Symbol}
-    {tm' : MultiTapeTM k' Symbol State'}
-    (f : Cfg k Symbol State input → Cfg k' Symbol State' input')
-    (h : ∀ c, ¬c.Halted → tm'.step (f c) = f (tm.step c)) :
-    (tm.runningStepRel input).Hom (tm'.stepRel input') where
-  toFun := f
-  map_rel' {c _} hc := step_iff.mpr ((h c hc.1).trans (congrArg f (step_iff.mp hc.2)))
-
 end MultiTapeTM
 
 namespace MultiTapeNTM
@@ -231,6 +274,17 @@ lemma RunPath.eq_take {p q : tm.RunPath input} (hhead : p.head = q.head) (h : p.
   refine p.eq_ofDeterministic.trans ((eq_ofDeterministic (q.take _)).trans ?_).symm
   rw [RelSeries.head_take, hhead]
   rfl
+
+/-- Every computation prefix ends at a configuration of any halted computation path. -/
+lemma ComputationPath.last_mem_of_halted (p : tm.ComputationPath input)
+    {q : tm.ComputationPath input} (hq : q.last.Halted) : p.last ∈ q.toRunPath := by
+  rcases le_total p.length q.length with h | h
+  · have hp := RunPath.eq_take (p.head_eq.trans q.head_eq.symm) h
+    exact ⟨⟨p.length, Nat.lt_succ_of_le h⟩, (congrArg RelSeries.last hp).symm⟩
+  · have hq' := congrArg RelSeries.last (RunPath.eq_take (q.head_eq.trans p.head_eq.symm) h)
+    rw [RelSeries.last_take] at hq'
+    rw [RunPath.last_eq_of_halted p.toRunPath _ (hq' ▸ hq), ← hq']
+    exact RelSeries.last_mem _
 
 /-- The computation paths of a deterministic machine are prefixes of one another, so a path visiting
 at most as many cells as another visits at most as many on each tape. -/
@@ -329,15 +383,65 @@ def Computes (tm : MultiTapeTM k Symbol State) (input output : List Symbol) : Pr
   ∃ u, (tm.runFrom (tm.initCfg input) u).Halted ∧
     (tm.runFrom (tm.initCfg input) u).output = output
 
+/-- The machine computes `output` from `input`, and `P` holds for this machine and input. -/
+def ComputesSuchThat (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (P : MultiTapeTM k Symbol State → List Symbol → Prop) : Prop :=
+  tm.Computes input output ∧ P tm input
+
+/-- A condition on a computation can be weakened. -/
+theorem ComputesSuchThat.mono {output : List Symbol}
+    {P Q : MultiTapeTM k Symbol State → List Symbol → Prop}
+    (h : tm.ComputesSuchThat input output P) (hPQ : P tm input → Q tm input) :
+    tm.ComputesSuchThat input output Q :=
+  ⟨h.1, hPQ h.2⟩
+
+/-- The machine computes `output` from `input` within the given time bound. -/
+def ComputesInTime (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (t : ℕ) : Prop :=
+  tm.ComputesSuchThat input output (fun tm input ↦ tm.RunsInTime input t)
+
+/-- The machine computes `output` from `input` within the given space bound. -/
+def ComputesInSpace (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (s : ℕ) : Prop :=
+  tm.ComputesSuchThat input output (fun tm input ↦ tm.RunsInSpace input s)
+
 /-- The machine computes `output` from `input` within the shared time and space bounds. -/
 def ComputesInTimeAndSpace (tm : MultiTapeTM k Symbol State)
     (input output : List Symbol) (t s : ℕ) : Prop :=
-  tm.Computes input output ∧ tm.RunsInTime input t ∧ tm.RunsInSpace input s
+  tm.ComputesSuchThat input output (fun tm input ↦
+    tm.RunsInTime input t ∧ tm.RunsInSpace input s)
+
+/-- The machine computes `f` relative to given encodings. For each argument `a`, the predicate
+`P a` holds for this machine and the encoded input `encIn a`. -/
+def ComputesFunSuchThat {α β : Type*} (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β)
+    (P : α → MultiTapeTM k Symbol State → List Symbol → Prop) : Prop :=
+  ∀ a, tm.ComputesSuchThat (encIn a) (encOut (f a)) (P a)
+
+/-- Conditions on a function computation can be weakened independently on every input. -/
+theorem ComputesFunSuchThat.mono {α β : Type*}
+    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β}
+    {P Q : α → MultiTapeTM k Symbol State → List Symbol → Prop}
+    (h : tm.ComputesFunSuchThat encIn encOut f P)
+    (hPQ : ∀ a, P a tm (encIn a) → Q a tm (encIn a)) :
+    tm.ComputesFunSuchThat encIn encOut f Q :=
+  fun a ↦ (h a).mono (hPQ a)
+
+/-- The machine computes `f` relative to given encodings within the given time bound. -/
+def ComputesFunInTime {α β : Type*} (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t : α → ℕ) : Prop :=
+  tm.ComputesFunSuchThat encIn encOut f (fun a tm input ↦ tm.RunsInTime input (t a))
+
+/-- The machine computes `f` relative to given encodings within the given space bound. -/
+def ComputesFunInSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (s : α → ℕ) : Prop :=
+  tm.ComputesFunSuchThat encIn encOut f (fun a tm input ↦ tm.RunsInSpace input (s a))
 
 /-- The machine computes `f` relative to given encodings within the given time and space bounds. -/
 def ComputesFunInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
-  ∀ a, tm.ComputesInTimeAndSpace (encIn a) (encOut (f a)) (t a) (s a)
+  tm.ComputesFunSuchThat encIn encOut f
+    (fun a tm input ↦ tm.RunsInTime input (t a) ∧ tm.RunsInSpace input (s a))
 
 /-- Resource bounds can be weakened independently on every input. -/
 theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
@@ -345,15 +449,47 @@ theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
     (h : tm.ComputesFunInTimeAndSpace encIn encOut f t s)
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
     tm.ComputesFunInTimeAndSpace encIn encOut f t' s' :=
-  fun a ↦ ⟨(h a).1, (h a).2.1.mono (ht a), (h a).2.2.mono (hs a)⟩
+  ComputesFunSuchThat.mono h fun a ⟨hₜ, hₛ⟩ ↦ ⟨hₜ.mono (ht a), hₛ.mono (hs a)⟩
+
+/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states.
+For each argument `a`, the predicate `P a` holds for this machine and the encoded input `encIn a`.
+-/
+def ComputableSuchThat {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
+    (P : ∀ {k : ℕ} {State : Type}, α → MultiTapeTM k Bool State → List Bool → Prop) : Prop :=
+  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
+    tm.ComputesFunSuchThat encIn encOut f P
+
+/-- Conditions on computability can be weakened independently on every input. -/
+theorem ComputableSuchThat.mono {α β : Type*}
+    {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool}
+    {P Q : ∀ {k : ℕ} {State : Type}, α → MultiTapeTM k Bool State → List Bool → Prop}
+    (h : ComputableSuchThat f encIn encOut P)
+    (hPQ : ∀ {k : ℕ} {State : Type} (tm : MultiTapeTM k Bool State) a,
+      P a tm (encIn a) → Q a tm (encIn a)) :
+    ComputableSuchThat f encIn encOut Q := by
+  obtain ⟨k, State, hfinite, tm, htm⟩ := h
+  exact ⟨k, State, hfinite, tm, htm.mono (hPQ tm)⟩
+
+/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
+within the supplied input-indexed time bound. -/
+def ComputableInTime {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (t : α → ℕ) : Prop :=
+  ComputableSuchThat f encIn encOut (fun a tm input ↦ tm.RunsInTime input (t a))
+
+/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
+within the supplied input-indexed space bound. -/
+def ComputableInSpace {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (s : α → ℕ) : Prop :=
+  ComputableSuchThat f encIn encOut (fun a tm input ↦ tm.RunsInSpace input (s a))
 
 /-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
 within the supplied input-indexed bounds. -/
 def ComputableInTimeAndSpace {α β : Type*}
     (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : α → ℕ) : Prop :=
-  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
-    tm.ComputesFunInTimeAndSpace encIn encOut f t s
+  ComputableSuchThat f encIn encOut
+    (fun a tm input ↦ tm.RunsInTime input (t a) ∧ tm.RunsInSpace input (s a))
 
 /-- There exists a binary Turing machine with finitely many states that, for every input `a`,
 computes `encOut (f a)` from `encIn a` in at most `t (encIn a).length` steps,
@@ -369,14 +505,18 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
     {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {t s t' s' : α → ℕ}
     (h : ComputableInTimeAndSpace f encIn encOut t s)
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
-    ComputableInTimeAndSpace f encIn encOut t' s' := by
-  obtain ⟨k, State, hfinite, tm, htm⟩ := h
-  exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
+    ComputableInTimeAndSpace f encIn encOut t' s' :=
+  ComputableSuchThat.mono h fun _ a ⟨hₜ, hₛ⟩ ↦ ⟨hₜ.mono (ht a), hₛ.mono (hs a)⟩
 
 open scoped Classical in
 /-- The Boolean indicator function of a set. -/
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
   fun x => if x ∈ L then true else false
+
+/-- A set is decidable within the given input-indexed space bound when its Boolean indicator is
+computable in that bound. -/
+def DecidableInSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool) (s : α → ℕ) : Prop :=
+  ComputableInSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ s
 
 /-- A set is decidable within the given input-indexed bounds when its Boolean indicator is
 computable in those bounds. -/
@@ -384,30 +524,33 @@ def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
 
-/-- If a deterministic machine repeats a non-halting configuration, it never halts,
-because the sequence between the two configurations will loop forever.
-Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `Function.iterate_add_apply`. -/
-lemma not_halts_of_repeat_nonhalt
-    (cfg : Cfg k Symbol State input)
-    (h_not_halt : cfg.state ≠ none)
-    (t : ℕ)
-    (heq : tm.runFrom cfg (t + 1) = cfg) :
-    ∀ t', (tm.runFrom cfg t').state ≠ none := by
-  intro t'
-  -- The configuration will repeat every `t + 1` steps.
-  have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
-    intro n
-    unfold runFrom
-    rw [Nat.mul_comm, Function.iterate_mul]
-    exact Function.iterate_fixed heq n
-  by_contra hnh
-  -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
-  have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
-    have hle : t' ≤ t' * (t + 1) := by grind
-    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
-  simp [hloop t', h_not_halt] at h₁
-
 end MultiTapeTM
+
+namespace MultiTapeNTM.RunPath
+
+variable {tm : MultiTapeTM k Symbol State} {input : List Symbol}
+
+/-- A deterministic path that ends halted never repeats a running configuration: from a repeated
+configuration the machine would cycle forever. -/
+lemma injOn_running (p : tm.RunPath input)
+    (h : p.last.Halted) : Set.InjOn p {i | ¬(p i).Halted} := by
+  -- a repeat `p i = p j` with `i < j` is followed by the repeat `p (i + 1) = p (j + 1)`, so halting
+  -- at the end comes back to `p j`
+  have halted (j : Fin (p.length + 1)) : ∀ i < j, p i = p j → (p j).Halted := by
+    induction j using Fin.reverseInduction with
+    | last => exact fun _ _ _ ↦ h
+    | cast j ih =>
+      intro i hij heq
+      obtain ⟨i, rfl⟩ := Fin.exists_castSucc_eq.mpr (Fin.ne_last_of_lt hij)
+      rw [Fin.castSucc_lt_castSucc_iff] at hij
+      have hsucc : p i.succ = p j.succ := by
+        rw [← MultiTapeTM.step_iff.mp (p.step i), ← MultiTapeTM.step_iff.mp (p.step j), heq]
+      exact p.halted_mono (Fin.succ_le_castSucc_iff.mpr hij)
+        (hsucc ▸ ih _ (Fin.succ_lt_succ_iff.mpr hij) hsucc : (p i.succ).Halted)
+  intro i hi j hj hij
+  rcases lt_trichotomy i j with hlt | rfl | hlt
+  exacts [(hj (halted j i hlt hij)).elim, rfl, (hi (halted i j hlt hij.symm)).elim]
+
+end MultiTapeNTM.RunPath
 
 end Turing
