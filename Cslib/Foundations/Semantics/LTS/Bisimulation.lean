@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Semantics.LTS.TraceEq
+public import Mathlib.SetTheory.Ordinal.FixedPointApproximants
 public import Mathlib.Tactic.TFAE
 
 import Mathlib.Data.Fintype.Order
@@ -31,8 +32,8 @@ For an introduction to theory of bisimulation, we refer to [Sangiorgi2011].
 
 - `IsBisimulation lts₁ lts₂ r`: the relation `r` is a bisimulation between `lts₁` and `lts₂`.
 - `Bisimilarity lts₁ lts₂`: states related by some bisimulation between `lts₁` and `lts₂`.
-- `BisimilarityApprox lts₁ lts₂ n`: the depth-`n` stratum of bisimilarity.
-- `BisimilarityOmega lts₁ lts₂`: the intersection of all finite strata.
+- `bisimulationStep lts₁ lts₂`: the monotone one-step bisimulation operator.
+- `BisimilarityApprox lts₁ lts₂ o`: the stratum of bisimilarity at an index in `WithTop Ordinal`.
 - `UpToHomBisimilarity lts₁ lts₂ r`: the closure of `r` under bisimilarity in each LTS.
 - `IsBisimulationUpTo lts₁ lts₂ r`: transitions from states related by `r` can be matched with
   derivatives in `UpToHomBisimilarity lts₁ lts₂ r`.
@@ -48,16 +49,20 @@ The `Hom` variants specialize these definitions to comparing states in the same 
 - `s₁ ~[lts₁,lts₂] s₂`: the states `s₁` and `s₂` are bisimilar under `lts₁` and `lts₂`.
 - `s₁ ≈[lts₁,lts₂] s₂`: the states `s₁` and `s₂` are weakly bisimilar under `lts₁` and `lts₂`.
 - `s₁ ~[lts] s₂` and `s₁ ≈[lts] s₂`: the corresponding homogeneous relations.
-- `s₁ ~[lts₁,lts₂;n] s₂` and `s₁ ~[lts;n] s₂`: depth-`n` approximations of bisimilarity.
-- `~[lts₁,lts₂;n]` and `~[lts;n]`: the corresponding approximation relations.
+- `s₁ ~[lts₁,lts₂;o] s₂` and `s₁ ~[lts;o] s₂`: approximations of bisimilarity.
+- `~[lts₁,lts₂;o]` and `~[lts;o]`: the corresponding approximation relations.
+  Ordinals and natural numbers coerce to `WithTop Ordinal`; `open scoped Ordinal` enables `ω`.
+  The index `⊤` denotes the intersection of all ordinal strata.
 
 ## Main statements
 
 - `LTS.IsBisimulation.inv`: the inverse of a bisimulation is a bisimulation.
 - `HomBisimilarity.eqv`: homogeneous bisimilarity is an equivalence relation (see `Equivalence`).
 - `Bisimilarity.isBisimulation`: bisimilarity is itself a bisimulation.
-- `BisimilarityOmega.eq_bisimilarity`: on image-finite LTSs, the omega approximation is
+- `BisimilarityApprox.top_eq_bisimilarity`: the top endpoint is bisimilarity for all LTSs.
+- `BisimilarityApprox.omega_eq_bisimilarity`: on image-finite LTSs, the omega approximation is
   bisimilarity.
+- `BisimilarityApprox.stabilizes`: the ordinal strata eventually stabilize at bisimilarity.
 - `IsBisimulation.le_bisimilarity`: bisimilarity is the largest bisimulation.
 - `Bisimilarity.gfp`: the union of bisimilarity and any bisimulation is equal to bisimilarity.
 - `LTS.IsBisimulationUpTo.isBisimulation`: if `r` is a bisimulation up to bisimilarity,
@@ -78,6 +83,8 @@ equivalence coincide.
 @[expose] public section
 
 namespace Cslib.LTS
+
+universe u
 
 variable {State₁ State₂ Label : Type*} {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
 
@@ -289,234 +296,350 @@ instance : Trans ~[lts₁,lts₂] ~[lts₂,lts₃] ~[lts₁,lts₃] where
 
 /-! ## Stratification of bisimilarity
 
-Following [Sangiorgi2011], the finite strata start with the universal relation and require
-matching transitions into the preceding stratum. Their intersection is written `∼ω` in the book.
-For general LTSs this intersection can be strictly larger than bisimilarity.
+Following [Sangiorgi2011], the strata start with the universal relation and require matching
+transitions into the preceding stratum at successors. Limit ordinals intersect earlier strata;
+the added top ordinal `⊤` intersects all ordinal strata and equals bisimilarity.
 -/
 
-/-- The depth-`n` approximation of bisimilarity, written `∼n` in [Sangiorgi2011]. At depth zero
-all states are related; at depth `n + 1`, transitions must match with derivatives related at
-depth `n`. -/
+/-- The one-step bisimulation operator. -/
+def bisimulationStep (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) :
+    (State₁ → State₂ → Prop) →o (State₁ → State₂ → Prop) where
+  toFun r s₁ s₂ := ∀ μ,
+    (∀ s₁', lts₁.Tr s₁ μ s₁' → ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂') ∧
+    (∀ s₂', lts₂.Tr s₂ μ s₂' → ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂')
+  monotone' := by
+    intro r s hrs s₁ s₂ h μ
+    constructor
+    · intro s₁' ht
+      obtain ⟨s₂', ht', hr⟩ := (h μ).1 s₁' ht
+      exact ⟨s₂', ht', hrs _ _ hr⟩
+    · intro s₂' ht
+      obtain ⟨s₁', ht', hr⟩ := (h μ).2 s₂' ht
+      exact ⟨s₁', ht', hrs _ _ hr⟩
+
+theorem isBisimulation_iff_le_bisimulationStep :
+    IsBisimulation lts₁ lts₂ r ↔ r ≤ bisimulationStep lts₁ lts₂ r := Iff.rfl
+
+/-- The greatest fixed point of the one-step operator is bisimilarity. -/
+theorem bisimulationStep_gfp : (bisimulationStep lts₁ lts₂).gfp = ~[lts₁,lts₂] :=
+  le_antisymm
+    ((isBisimulation_iff_le_bisimulationStep.mpr
+      ((bisimulationStep lts₁ lts₂).gfp_le_map le_rfl)).le_bisimilarity)
+    ((bisimulationStep lts₁ lts₂).le_gfp
+      (isBisimulation_iff_le_bisimulationStep.mp (Bisimilarity.isBisimulation ..)))
+
+/-- The approximation of bisimilarity indexed by ordinals with an added top endpoint.
+Ordinal stages use `OrdinalApprox.gfpApprox`; at `⊤` we intersect all ordinal stages,
+corresponding to the infinity approximation in [Sangiorgi2011]. -/
 def BisimilarityApprox (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) :
-    ℕ → State₁ → State₂ → Prop
-  | 0, _, _ => True
-  | n + 1, s₁, s₂ => ∀ μ,
-      (∀ s₁', lts₁.Tr s₁ μ s₁' →
-        ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ BisimilarityApprox lts₁ lts₂ n s₁' s₂') ∧
-      (∀ s₂', lts₂.Tr s₂ μ s₂' →
-        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ BisimilarityApprox lts₁ lts₂ n s₁' s₂')
+    WithTop Ordinal → State₁ → State₂ → Prop :=
+  WithTop.recTopCoe (⨅ o, OrdinalApprox.gfpApprox (bisimulationStep lts₁ lts₂) ⊤ o)
+    (OrdinalApprox.gfpApprox (bisimulationStep lts₁ lts₂) ⊤)
 
-/-- Notation for the depth-`n` approximation of bisimilarity between two LTSs. -/
-scoped notation "~[" lts₁ "," lts₂ ";" n "]" => BisimilarityApprox lts₁ lts₂ n
+/-- Notation for the ordinal-indexed approximation of bisimilarity between two LTSs. -/
+scoped notation "~[" lts₁ "," lts₂ ";" o "]" => BisimilarityApprox lts₁ lts₂ o
 
-/-- Infix notation for the depth-`n` approximation of bisimilarity of two states. -/
-scoped notation s:max " ~[" lts₁ "," lts₂ ";" n "] " s':max =>
-  BisimilarityApprox lts₁ lts₂ n s s'
+/-- Infix notation for the ordinal-indexed approximation of bisimilarity of two states. -/
+scoped notation s:max " ~[" lts₁ "," lts₂ ";" o "] " s':max =>
+  BisimilarityApprox lts₁ lts₂ o s s'
 
-/-- The depth-`n` approximation of bisimilarity within one LTS. -/
-abbrev HomBisimilarityApprox (lts : LTS State Label) (n : ℕ) := ~[lts,lts;n]
+/-- The ordinal-indexed approximation of bisimilarity within one LTS. -/
+abbrev HomBisimilarityApprox (lts : LTS State Label) (o : WithTop Ordinal) := ~[lts,lts;o]
 
-/-- Notation for the depth-`n` approximation of bisimilarity within one LTS. -/
-scoped notation "~[" lts ";" n "]" => HomBisimilarityApprox lts n
+/-- Notation for the ordinal-indexed approximation of bisimilarity within one LTS. -/
+scoped notation "~[" lts ";" o "]" => HomBisimilarityApprox lts o
 
-/-- Infix notation for the depth-`n` approximation of homogeneous bisimilarity of two states. -/
-scoped notation s:max " ~[" lts ";" n "] " s':max => HomBisimilarityApprox lts n s s'
+/-- Infix notation for the ordinal-indexed approximation of homogeneous bisimilarity. -/
+scoped notation s:max " ~[" lts ";" o "] " s':max => HomBisimilarityApprox lts o s s'
+
+/-- At an ordinal index, the approximation is mathlib's greatest-fixed-point approximant. -/
+theorem BisimilarityApprox.coe_eq (o : Ordinal) :
+    ~[lts₁,lts₂;o] = OrdinalApprox.gfpApprox (bisimulationStep lts₁ lts₂) ⊤ o := rfl
+
+/-- The top endpoint intersects all ordinal strata. -/
+theorem BisimilarityApprox.top_eq_iInf : ~[lts₁,lts₂;⊤] = ⨅ o : Ordinal, ~[lts₁,lts₂;o] := rfl
+
+/-- Membership at the top endpoint means membership at every ordinal stage. -/
+theorem BisimilarityApprox.top_iff : s₁ ~[lts₁,lts₂;⊤] s₂ ↔
+    ∀ o : Ordinal, s₁ ~[lts₁,lts₂;o] s₂ := by
+  rw [BisimilarityApprox.top_eq_iInf]
+  simp only [iInf_apply, iInf_Prop_eq]
+
+/-- The intersection of all ordinal strata is bisimilarity, for arbitrary LTSs. -/
+@[simp]
+theorem BisimilarityApprox.top_eq_bisimilarity (lts₁ : LTS State₁ Label)
+    (lts₂ : LTS State₂ Label) : ~[lts₁,lts₂;⊤] = ~[lts₁,lts₂] := by
+  change (⨅ o, OrdinalApprox.gfpApprox (bisimulationStep lts₁ lts₂) ⊤ o) = _
+  apply le_antisymm
+  · obtain ⟨o, ho⟩ := OrdinalApprox.gfp_mem_range_gfpApprox (bisimulationStep lts₁ lts₂)
+    exact (iInf_le _ o).trans (ho.trans bisimulationStep_gfp).le
+  · rw [← bisimulationStep_gfp]
+    exact le_iInf fun o => OrdinalApprox.le_gfpApprox_of_mem_fixedPoints _
+      (bisimulationStep lts₁ lts₂).isFixedPt_gfp le_top o
+
+/-- The zeroth stratum is the universal relation. -/
+@[simp]
+theorem BisimilarityApprox.zero_eq : ~[lts₁,lts₂;0] = ⊤ := OrdinalApprox.gfpApprox_zero _
+
+/-- A successor stratum applies the one-step operator to the preceding stratum. -/
+theorem BisimilarityApprox.add_one {o : WithTop Ordinal} :
+    ~[lts₁,lts₂;o + 1] = bisimulationStep lts₁ lts₂ ~[lts₁,lts₂;o] := by
+  cases o using WithTop.recTopCoe with
+  | top =>
+    rw [WithTop.top_add, BisimilarityApprox.top_eq_bisimilarity, ← bisimulationStep_gfp]
+    exact (bisimulationStep lts₁ lts₂).map_gfp.symm
+  | coe o => exact OrdinalApprox.gfpApprox_add_one _ le_top o
 
 /-- Every pair of states belongs to the zeroth stratum. -/
 @[simp]
-theorem BisimilarityApprox.zero : s₁ ~[lts₁,lts₂;0] s₂ := trivial
+theorem BisimilarityApprox.zero : s₁ ~[lts₁,lts₂;0] s₂ := by
+  rw [BisimilarityApprox.zero_eq]
+  trivial
 
 /-- Membership in a successor stratum is given by matching transitions into the previous one. -/
-theorem BisimilarityApprox.succ_iff : s₁ ~[lts₁,lts₂;n + 1] s₂ ↔
+theorem BisimilarityApprox.succ_iff {o : WithTop Ordinal} : s₁ ~[lts₁,lts₂;o + 1] s₂ ↔
     ∀ μ,
       (∀ s₁', lts₁.Tr s₁ μ s₁' →
-        ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;n] s₂') ∧
+        ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;o] s₂') ∧
       (∀ s₂', lts₂.Tr s₂ μ s₂' →
-        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;n] s₂') := Iff.rfl
+        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;o] s₂') := by
+  rw [BisimilarityApprox.add_one]
+  rfl
 
 /-- Follow a transition by the first state, consuming one level of approximation. -/
-theorem BisimilarityApprox.follow_fst (h : s₁ ~[lts₁,lts₂;n + 1] s₂)
+theorem BisimilarityApprox.follow_fst {o : WithTop Ordinal} (h : s₁ ~[lts₁,lts₂;o + 1] s₂)
     (htr : lts₁.Tr s₁ μ s₁') :
-    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;n] s₂' :=
-  (h μ).1 s₁' htr
+    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;o] s₂' :=
+  (BisimilarityApprox.succ_iff.mp h μ).1 s₁' htr
 
 /-- Follow a transition by the second state, consuming one level of approximation. -/
-theorem BisimilarityApprox.follow_snd (h : s₁ ~[lts₁,lts₂;n + 1] s₂)
+theorem BisimilarityApprox.follow_snd {o : WithTop Ordinal} (h : s₁ ~[lts₁,lts₂;o + 1] s₂)
     (htr : lts₂.Tr s₂ μ s₂') :
-    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;n] s₂' :=
-  (h μ).2 s₂' htr
+    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;o] s₂' :=
+  (BisimilarityApprox.succ_iff.mp h μ).2 s₂' htr
 
-/-- Each stratum is contained in the preceding stratum. -/
-theorem BisimilarityApprox.succ_le (n : ℕ) :
-    ~[lts₁,lts₂;n + 1] ≤ ~[lts₁,lts₂;n] := by
-  induction n with
-  | zero => exact fun _ _ _ => trivial
-  | succ n ih =>
-    intro s₁ s₂ h μ
-    constructor
-    · intro s₁' htr
-      obtain ⟨s₂', ht, hr⟩ := h.follow_fst htr
-      exact ⟨s₂', ht, ih _ _ hr⟩
-    · intro s₂' htr
-      obtain ⟨s₁', ht, hr⟩ := h.follow_snd htr
-      exact ⟨s₁', ht, ih _ _ hr⟩
+/-- The strata decrease with the ordinal index. -/
+theorem BisimilarityApprox.antitone : Antitone (fun o => ~[lts₁,lts₂;o]) := by
+  intro o o' hoo'
+  cases o using WithTop.recTopCoe with
+  | top =>
+    have heq := WithTop.top_le_iff.mp hoo'
+    subst o'
+    exact le_rfl
+  | coe o =>
+    cases o' using WithTop.recTopCoe with
+    | top => exact iInf_le _ o
+    | coe o' => exact OrdinalApprox.gfpApprox_anti_right _ (WithTop.coe_le_coe.mp hoo')
 
-/-- The strata decrease with depth. -/
-theorem BisimilarityApprox.antitone : Antitone (fun n => ~[lts₁,lts₂;n]) := by
+/-- The restriction to natural-number indices is decreasing. -/
+theorem BisimilarityApprox.antitone_nat : Antitone (fun n : ℕ => ~[lts₁,lts₂;n]) := by
   intro m n h
-  induction h with
-  | refl => exact le_refl _
-  | step h ih => exact le_trans (succ_le _) ih
+  exact BisimilarityApprox.antitone (by exact_mod_cast h)
 
-/-- Bisimilar states belong to every finite stratum. -/
-theorem Bisimilarity.approx (h : s₁ ~[lts₁,lts₂] s₂) (n : ℕ) :
-    s₁ ~[lts₁,lts₂;n] s₂ := by
-  induction n generalizing s₁ s₂ with
-  | zero => trivial
+/-- Each successor stratum is contained in the preceding stratum. -/
+theorem BisimilarityApprox.succ_le (o : Ordinal) : ~[lts₁,lts₂;o + 1] ≤ ~[lts₁,lts₂;o] :=
+  BisimilarityApprox.antitone (WithTop.coe_le_coe.mpr (lt_add_one o).le)
+
+theorem BisimilarityApprox.limit_iff {o : Ordinal} (ho : Order.IsSuccLimit o) :
+    s₁ ~[lts₁,lts₂;o] s₂ ↔ ∀ o' < o, s₁ ~[lts₁,lts₂;o'] s₂ := by
+  change OrdinalApprox.gfpApprox (bisimulationStep lts₁ lts₂) ⊤ o s₁ s₂ ↔ _
+  rw [OrdinalApprox.gfpApprox_of_isSuccLimit _ ho]
+  simp only [iInf_apply, iInf_Prop_eq, Subtype.forall, Set.mem_Iio,
+    BisimilarityApprox, WithTop.recTopCoe_coe]
+
+theorem BisimilarityApprox.natCast_eq_iterate (n : ℕ) :
+    ~[lts₁,lts₂;n] = (bisimulationStep lts₁ lts₂)^[n] ⊤ := by
+  induction n with
+  | zero => exact BisimilarityApprox.zero_eq
   | succ n ih =>
-    intro μ
-    constructor
-    · intro s₁' htr
-      obtain ⟨s₂', ht, hr⟩ := h.follow_fst htr
-      exact ⟨s₂', ht, ih hr⟩
-    · intro s₂' htr
-      obtain ⟨s₁', ht, hr⟩ := h.follow_snd htr
-      exact ⟨s₁', ht, ih hr⟩
+    simp only [Nat.cast_succ, BisimilarityApprox.add_one, ih, Function.iterate_succ_apply']
 
-/-- Each finite stratum is symmetric, including between different state types. -/
+open scoped Ordinal
+
+/-- The omega stratum is the intersection of the finite strata. -/
+theorem BisimilarityApprox.omega_iff : s₁ ~[lts₁,lts₂;ω] s₂ ↔
+    ∀ n : ℕ, s₁ ~[lts₁,lts₂;n] s₂ := by
+  rw [BisimilarityApprox.limit_iff Ordinal.isSuccLimit_omega0]
+  constructor
+  · intro h n
+    exact h n (Ordinal.natCast_lt_omega0 n)
+  · intro h o' ho'
+    obtain ⟨n, rfl⟩ := Ordinal.lt_omega0.mp ho'
+    exact h n
+
+/-- Bisimilar states belong to every ordinal stratum. -/
+theorem Bisimilarity.approx (h : s₁ ~[lts₁,lts₂] s₂) (o : WithTop Ordinal) :
+    s₁ ~[lts₁,lts₂;o] s₂ := by
+  have hfix : ~[lts₁,lts₂] ∈ Function.fixedPoints (bisimulationStep lts₁ lts₂) := by
+    rw [← bisimulationStep_gfp]
+    exact (bisimulationStep lts₁ lts₂).isFixedPt_gfp
+  cases o using WithTop.recTopCoe with
+  | top =>
+    exact BisimilarityApprox.top_iff.mpr fun o =>
+      OrdinalApprox.le_gfpApprox_of_mem_fixedPoints _ hfix le_top o _ _ h
+  | coe o => exact OrdinalApprox.le_gfpApprox_of_mem_fixedPoints _ hfix le_top o _ _ h
+
+/-- For all LTSs, some ordinal stratum coincides with bisimilarity. -/
+theorem BisimilarityApprox.exists_eq_bisimilarity (lts₁ : LTS State₁ Label)
+    (lts₂ : LTS State₂ Label) : ∃ o : Ordinal, ~[lts₁,lts₂;o] = ~[lts₁,lts₂] := by
+  obtain ⟨o, ho⟩ := OrdinalApprox.gfp_mem_range_gfpApprox (bisimulationStep lts₁ lts₂)
+  exact ⟨o, ho.trans bisimulationStep_gfp⟩
+
+/-- Once a stratum reaches bisimilarity, every later stratum equals bisimilarity. -/
+theorem BisimilarityApprox.eq_bisimilarity_of_le {o o' : WithTop Ordinal} (hoo' : o ≤ o')
+    (ho : ~[lts₁,lts₂;o] = ~[lts₁,lts₂]) : ~[lts₁,lts₂;o'] = ~[lts₁,lts₂] := by
+  apply le_antisymm
+  · rw [← ho]
+    exact BisimilarityApprox.antitone hoo'
+  · exact fun _ _ h => h.approx o'
+
+/-- The ordinal stratification eventually stabilizes at bisimilarity. -/
+theorem BisimilarityApprox.stabilizes (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) :
+    ∃ o : Ordinal, ∀ o' : WithTop Ordinal, (o : WithTop Ordinal) ≤ o' →
+      ~[lts₁,lts₂;o'] = ~[lts₁,lts₂] := by
+  obtain ⟨o, ho⟩ := BisimilarityApprox.exists_eq_bisimilarity lts₁ lts₂
+  exact ⟨o, fun _ hoo' => BisimilarityApprox.eq_bisimilarity_of_le hoo' ho⟩
+
+/-- Each ordinal stratum is symmetric. -/
 @[symm]
 theorem BisimilarityApprox.symm {State₁ State₂ : Type*}
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s₁ : State₁} {s₂ : State₂}
-    (h : s₁ ~[lts₁,lts₂;n] s₂) :
-    s₂ ~[lts₂,lts₁;n] s₁ := by
-  induction n generalizing s₁ s₂ with
-  | zero => trivial
-  | succ n ih =>
-    intro μ
-    constructor
-    · intro s₂' htr
-      obtain ⟨s₁', ht, hr⟩ := h.follow_snd htr
-      exact ⟨s₁', ht, ih hr⟩
-    · intro s₁' htr
-      obtain ⟨s₂', ht, hr⟩ := h.follow_fst htr
-      exact ⟨s₂', ht, ih hr⟩
+    (h : s₁ ~[lts₁,lts₂;o] s₂) :
+    s₂ ~[lts₂,lts₁;o] s₁ := by
+  cases o using WithTop.recTopCoe with
+  | top =>
+    rw [BisimilarityApprox.top_eq_bisimilarity] at h ⊢
+    exact h.symm
+  | coe o =>
+    induction o using Ordinal.limitRecOn generalizing s₁ s₂ with
+    | zero => exact BisimilarityApprox.zero
+    | add_one o ih =>
+      simp only [WithTop.coe_add, WithTop.coe_one] at h ⊢
+      grind [BisimilarityApprox.succ_iff, h.follow_fst, h.follow_snd]
+    | limit o ho ih =>
+      grind [BisimilarityApprox.limit_iff]
 
-/-- Finite strata compose across LTSs at the same depth. -/
-theorem BisimilarityApprox.trans
-    (h₁ : s₁ ~[lts₁,lts₂;n] s₂)
-    (h₂ : s₂ ~[lts₂,lts₃;n] s₃) :
+/-- Ordinal strata compose across LTSs in a common state universe at the same ordinal index. -/
+theorem BisimilarityApprox.trans {State₁ State₂ State₃ : Type u}
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {lts₃ : LTS State₃ Label}
+    {s₁ : State₁} {s₂ : State₂} {s₃ : State₃} {o : WithTop Ordinal}
+    (h₁ : s₁ ~[lts₁,lts₂;o] s₂)
+    (h₂ : s₂ ~[lts₂,lts₃;o] s₃) :
+    s₁ ~[lts₁,lts₃;o] s₃ := by
+  cases o using WithTop.recTopCoe with
+  | top =>
+    rw [BisimilarityApprox.top_eq_bisimilarity] at h₁ h₂ ⊢
+    exact h₁.trans h₂
+  | coe o =>
+    induction o using Ordinal.limitRecOn generalizing s₁ s₂ s₃ with
+    | zero => exact BisimilarityApprox.zero
+    | add_one o ih =>
+      simp only [WithTop.coe_add, WithTop.coe_one] at h₁ h₂ ⊢
+      rw [BisimilarityApprox.succ_iff]
+      intro μ
+      constructor
+      · intro s₁' htr
+        obtain ⟨s₂', ht₂, hr₁⟩ := h₁.follow_fst htr
+        obtain ⟨s₃', ht₃, hr₂⟩ := h₂.follow_fst ht₂
+        exact ⟨s₃', ht₃, ih hr₁ hr₂⟩
+      · intro s₃' htr
+        obtain ⟨s₂', ht₂, hr₂⟩ := h₂.follow_snd htr
+        obtain ⟨s₁', ht₁, hr₁⟩ := h₁.follow_snd ht₂
+        exact ⟨s₁', ht₁, ih hr₁ hr₂⟩
+    | limit o ho ih =>
+      rw [BisimilarityApprox.limit_iff ho] at h₁ h₂ ⊢
+      exact fun o' ho' => ih o' ho' (h₁ o' ho') (h₂ o' ho')
+
+/-- Finite strata compose even when the state types inhabit different universes. -/
+theorem BisimilarityApprox.trans_nat {n : ℕ}
+    (h₁ : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂)
+    (h₂ : s₂ ~[lts₂,lts₃;(n : Ordinal)] s₃) :
     s₁ ~[lts₁,lts₃;n] s₃ := by
   induction n generalizing s₁ s₂ s₃ with
-  | zero => trivial
+  | zero => exact BisimilarityApprox.zero
   | succ n ih =>
+    simp only [Nat.cast_succ, WithTop.coe_add, WithTop.coe_one,
+      WithTop.coe_natCast, BisimilarityApprox.succ_iff] at h₁ h₂ ⊢
     intro μ
     constructor
-    · intro s₁' htr
-      obtain ⟨s₂', ht₂, hr₁⟩ := h₁.follow_fst htr
-      obtain ⟨s₃', ht₃, hr₂⟩ := h₂.follow_fst ht₂
+    · intro s₁' ht₁
+      obtain ⟨s₂', ht₂, hr₁⟩ := (h₁ μ).1 s₁' ht₁
+      obtain ⟨s₃', ht₃, hr₂⟩ := (h₂ μ).1 s₂' ht₂
       exact ⟨s₃', ht₃, ih hr₁ hr₂⟩
-    · intro s₃' htr
-      obtain ⟨s₂', ht₂, hr₂⟩ := h₂.follow_snd htr
-      obtain ⟨s₁', ht₁, hr₁⟩ := h₁.follow_snd ht₂
+    · intro s₃' ht₃
+      obtain ⟨s₂', ht₂, hr₂⟩ := (h₂ μ).2 s₃' ht₃
+      obtain ⟨s₁', ht₁, hr₁⟩ := (h₁ μ).2 s₂' ht₂
       exact ⟨s₁', ht₁, ih hr₁ hr₂⟩
 
-/-- Homogeneous finite strata are reflexive. -/
+/-- Homogeneous ordinal strata are reflexive. -/
 @[refl]
-theorem HomBisimilarityApprox.refl (n : ℕ) (s : State) :
-    s ~[lts;n] s := (HomBisimilarity.refl s).approx n
+theorem HomBisimilarityApprox.refl (o : WithTop Ordinal) (s : State) :
+    s ~[lts;o] s := (HomBisimilarity.refl s).approx o
 
-/-- Each homogeneous finite stratum is an equivalence relation. -/
-theorem HomBisimilarityApprox.eqv (n : ℕ) : Equivalence ~[lts;n] where
-  refl := HomBisimilarityApprox.refl n
+/-- Each homogeneous ordinal stratum is an equivalence relation. -/
+theorem HomBisimilarityApprox.eqv (o : WithTop Ordinal) : Equivalence ~[lts;o] where
+  refl := HomBisimilarityApprox.refl o
   symm := BisimilarityApprox.symm
   trans := BisimilarityApprox.trans
 
-/-- The omega approximation of bisimilarity, written `∼ω` in [Sangiorgi2011], is the
-intersection of all finite strata. It need not coincide with bisimilarity for general LTSs. -/
-def BisimilarityOmega (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
-    (s₁ : State₁) (s₂ : State₂) : Prop :=
-  ∀ n, s₁ ~[lts₁,lts₂;n] s₂
-
-/-- The omega approximation of bisimilarity within one LTS. -/
-abbrev HomBisimilarityOmega (lts : LTS State Label) := BisimilarityOmega lts lts
-
-/-- Membership in the omega approximation means membership in every finite stratum. -/
-theorem BisimilarityOmega.iff_forall : BisimilarityOmega lts₁ lts₂ s₁ s₂ ↔
-    ∀ n, s₁ ~[lts₁,lts₂;n] s₂ := Iff.rfl
-
-/-- Bisimilar states belong to the omega approximation. -/
-theorem Bisimilarity.omega (h : s₁ ~[lts₁,lts₂] s₂) : BisimilarityOmega lts₁ lts₂ s₁ s₂ :=
-  h.approx
-
-/-- The omega approximation is symmetric across LTSs. -/
-@[symm]
-theorem BisimilarityOmega.symm {State₁ State₂ : Type*}
-    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s₁ : State₁} {s₂ : State₂}
-    (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) : BisimilarityOmega lts₂ lts₁ s₂ s₁ :=
-  fun n => (h n).symm
-
-/-- The omega approximation composes across LTSs. -/
-theorem BisimilarityOmega.trans (h₁ : BisimilarityOmega lts₁ lts₂ s₁ s₂)
-    (h₂ : BisimilarityOmega lts₂ lts₃ s₂ s₃) : BisimilarityOmega lts₁ lts₃ s₁ s₃ :=
-  fun n => (h₁ n).trans (h₂ n)
-
-/-- The homogeneous omega approximation is reflexive. -/
-@[refl]
-theorem HomBisimilarityOmega.refl (s : State) : HomBisimilarityOmega lts s s :=
-  (HomBisimilarity.refl s).omega
-
-/-- The homogeneous omega approximation is an equivalence relation. -/
-theorem HomBisimilarityOmega.eqv : Equivalence (HomBisimilarityOmega lts) where
-  refl := HomBisimilarityOmega.refl
-  symm := BisimilarityOmega.symm
-  trans := BisimilarityOmega.trans
+theorem BisimilarityApprox.trans_omega (h₁ : s₁ ~[lts₁,lts₂;ω] s₂)
+    (h₂ : s₂ ~[lts₂,lts₃;ω] s₃) : s₁ ~[lts₁,lts₃;ω] s₃ :=
+  BisimilarityApprox.omega_iff.mpr fun n =>
+    (BisimilarityApprox.omega_iff.mp h₁ n).trans_nat (BisimilarityApprox.omega_iff.mp h₂ n)
 
 /-- If the second LTS is image-finite, a transition by the first state has a matching
 derivative related at every finite depth. -/
-theorem BisimilarityOmega.follow_fst [hfin : lts₂.ImageFinite]
-    (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) (htr : lts₁.Tr s₁ μ s₁') :
-    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ BisimilarityOmega lts₁ lts₂ s₁' s₂' := by
+theorem BisimilarityApprox.follow_fst_omega [hfin : lts₂.ImageFinite]
+    (h : s₁ ~[lts₁,lts₂;ω] s₂) (htr : lts₁.Tr s₁ μ s₁') :
+    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;ω] s₂' := by
   classical
   have := hfin s₂ μ
   by_contra hnone
   -- If every derivative fails at some depth, finiteness gives a common depth of failure.
-  have hbad : ∀ t : lts₂.image s₂ μ, ∃ n, ¬(s₁' ~[lts₁,lts₂;n] t) := by
+  have hbad : ∀ t : lts₂.image s₂ μ, ∃ n : ℕ, ¬(s₁' ~[lts₁,lts₂;(n : Ordinal)] t) := by
     intro t
     by_contra ht
     push Not at ht
-    exact hnone ⟨t, t.property, ht⟩
+    exact hnone ⟨t, t.property, BisimilarityApprox.omega_iff.mpr ht⟩
   choose depth hdepth using hbad
   obtain ⟨N, hN⟩ := Finite.exists_le depth
-  obtain ⟨t, ht, hr⟩ := (h (N + 1)).follow_fst htr
-  exact hdepth ⟨t, ht⟩ (BisimilarityApprox.antitone (hN ⟨t, ht⟩) _ _ hr)
+  have hs : s₁ ~[lts₁,lts₂;(N : Ordinal) + 1] s₂ := by
+    simpa only [Nat.cast_add, Nat.cast_one, WithTop.coe_natCast] using
+      BisimilarityApprox.omega_iff.mp h (N + 1)
+  obtain ⟨t, ht, hr⟩ := hs.follow_fst htr
+  exact hdepth ⟨t, ht⟩ (BisimilarityApprox.antitone_nat (hN ⟨t, ht⟩) _ _ hr)
 
 /-- If the first LTS is image-finite, a transition by the second state has a matching
 derivative related at every finite depth. -/
-theorem BisimilarityOmega.follow_snd [lts₁.ImageFinite]
-    (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) (htr : lts₂.Tr s₂ μ s₂') :
-    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ BisimilarityOmega lts₁ lts₂ s₁' s₂' := by
-  obtain ⟨s₁', ht, hr⟩ := h.symm.follow_fst htr
+theorem BisimilarityApprox.follow_snd_omega [lts₁.ImageFinite]
+    (h : s₁ ~[lts₁,lts₂;ω] s₂) (htr : lts₂.Tr s₂ μ s₂') :
+    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;ω] s₂' := by
+  obtain ⟨s₁', ht, hr⟩ := h.symm.follow_fst_omega htr
   exact ⟨s₁', ht, hr.symm⟩
 
 /-- On image-finite LTSs, the omega approximation is a bisimulation.
-This is the image-finite stratification result of [Sangiorgi2011]. -/
-theorem BisimilarityOmega.isBisimulation [lts₁.ImageFinite] [lts₂.ImageFinite] :
-    IsBisimulation lts₁ lts₂ (BisimilarityOmega lts₁ lts₂) := by
+This is the image-finite stratification result in [Sangiorgi2011]. -/
+theorem BisimilarityApprox.isBisimulation_omega [lts₁.ImageFinite] [lts₂.ImageFinite] :
+    IsBisimulation lts₁ lts₂ ~[lts₁,lts₂;ω] := by
   intro s₁ s₂ h μ
-  exact ⟨fun _ ht => h.follow_fst ht, fun _ ht => h.follow_snd ht⟩
+  exact ⟨fun _ ht => h.follow_fst_omega ht, fun _ ht => h.follow_snd_omega ht⟩
 
 /-- On image-finite LTSs, membership in every finite stratum implies bisimilarity. -/
-theorem BisimilarityOmega.bisimilarity [lts₁.ImageFinite] [lts₂.ImageFinite]
-    (h : BisimilarityOmega lts₁ lts₂ s₁ s₂) : s₁ ~[lts₁,lts₂] s₂ :=
-  BisimilarityOmega.isBisimulation.le_bisimilarity _ _ h
+theorem BisimilarityApprox.bisimilarity_of_omega [lts₁.ImageFinite] [lts₂.ImageFinite]
+    (h : s₁ ~[lts₁,lts₂;ω] s₂) : s₁ ~[lts₁,lts₂] s₂ :=
+  BisimilarityApprox.isBisimulation_omega.le_bisimilarity _ _ h
 
 /-- On image-finite LTSs, the omega approximation coincides with bisimilarity. -/
 @[simp]
-theorem BisimilarityOmega.eq_bisimilarity (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
-    [lts₁.ImageFinite] [lts₂.ImageFinite] :
-    BisimilarityOmega lts₁ lts₂ = Bisimilarity lts₁ lts₂ := by
+theorem BisimilarityApprox.omega_eq_bisimilarity (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
+    [lts₁.ImageFinite] [lts₂.ImageFinite] : ~[lts₁,lts₂;ω] = ~[lts₁,lts₂] := by
   funext s₁ s₂
-  exact propext ⟨BisimilarityOmega.bisimilarity, Bisimilarity.omega⟩
+  exact propext ⟨BisimilarityApprox.bisimilarity_of_omega, (fun h => h.approx ω)⟩
+
+/-- On image-finite LTSs, every stratum at or beyond omega is bisimilarity. -/
+theorem BisimilarityApprox.eq_bisimilarity [lts₁.ImageFinite] [lts₂.ImageFinite]
+    {o : WithTop Ordinal} (ho : (ω : Ordinal) ≤ o) : ~[lts₁,lts₂;o] = ~[lts₁,lts₂] :=
+  BisimilarityApprox.eq_bisimilarity_of_le ho (BisimilarityApprox.omega_eq_bisimilarity ..)
 
 section Order
 
