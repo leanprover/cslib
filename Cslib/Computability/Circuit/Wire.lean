@@ -63,6 +63,7 @@ instance : Fintype (Wire inputCount gateCount) :=
 protected theorem card : Fintype.card (Wire inputCount gateCount) = inputCount + gateCount := by
   simp [Fintype.card_congr (equiv inputCount gateCount)]
 
+/-- Map the input of a wire through a function, if it's connected to one. -/
 def mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') :
     Wire inputCount gateCount → Wire inputCount' gateCount
   | .input i => .input <| f i

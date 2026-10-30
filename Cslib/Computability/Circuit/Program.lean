@@ -67,6 +67,7 @@ protected theorem Line.ext {l₁ l₂ : Line σ inputCount gateCount} (hop : l�
   dsimp only at hw
   rw [hw]
 
+/-- Map the inputs of a line through a function, if it is connected to any. -/
 @[implicit_reducible, simps -fullyApplied op wires]
 def Line.mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
     (l : Line σ inputCount gateCount) : Line σ inputCount' gateCount where
@@ -179,6 +180,7 @@ theorem Program.foldr_rel (p : Program σ inputCount gateCount) (R : α → β �
   | empty => exact hinit
   | gate q line ih => exact ih (hstep line hinit)
 
+/-- Map the inputs of a program through a function. -/
 def Program.mapInputs {gateCount inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') :
     Program σ inputCount gateCount → Program σ inputCount' gateCount
   | .empty => .empty

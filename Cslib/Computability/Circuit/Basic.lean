@@ -79,6 +79,7 @@ protected abbrev Circuit.id (σ : Signature) (inputCount : Nat) : Circuit σ inp
 @[simp] theorem Circuit.outputs_wiring (select : Fin outputCount → Fin inputCount) :
     (wiring σ select).outputs = .input ∘ select := rfl
 
+/-- Map the inputs of a circuit through a function. -/
 @[implicit_reducible, simps -fullyApplied size program outputs]
 def Circuit.mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
     (c : Circuit σ inputCount outputCount) : Circuit σ inputCount' outputCount where
@@ -92,6 +93,7 @@ theorem Circuit.mapInputs_mapInputs {inputCount' inputCount'' : ℕ}
     (c : Circuit σ inputCount outputCount) : (c.mapInputs f).mapInputs g = c.mapInputs (g ∘ f) :=
   Circuit.ext rfl (by simp) (funext <| by simp)
 
+/-- Map the outputs of a circuit through a function. -/
 @[implicit_reducible, simps -fullyApplied size program outputs]
 def Circuit.comapOutputs {outputCount' : ℕ} (f : Fin outputCount' → Fin outputCount)
     (c : Circuit σ inputCount outputCount) : Circuit σ inputCount outputCount' where
