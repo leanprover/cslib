@@ -34,6 +34,7 @@ import CslibTests.PFunctorFree
 import CslibTests.PRG
 import CslibTests.Query
 import CslibTests.QueryComplexity
+import CslibTests.RAM
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
 import CslibTests.Synthesis
