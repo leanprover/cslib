@@ -87,7 +87,7 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
       · cases h_beta with
         | refl => grind [open_close]
         | single => exact .single (Xi.abs {w} (by grind [FullBeta.redex_subst_cong]))
-      · rw [open_close w N 0 (by grind)]
+      · rw [open_closeRec w N 0 (by grind)]
         exact FullEta.redex_abs_close h_eta
 
 open Commute in

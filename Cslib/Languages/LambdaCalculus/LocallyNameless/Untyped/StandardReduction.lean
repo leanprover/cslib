@@ -376,7 +376,7 @@ lemma StandardSeq.abs_cong (xs : Finset Var)
   have ⟨n, hseq⟩ := cofin w (by grind)
   have hlc := beta_lc lc (.fvar w)
   have habs : StandardSeq n (abs M) (abs M') := by
-    rw [open_close w M 0 (by grind), open_close w M' 0 (by grind)]
+    rw [open_closeRec w M 0 (by grind), open_closeRec w M' 0 (by grind)]
     exact hseq.abs_close hlc
   exact ⟨n, habs⟩
 
