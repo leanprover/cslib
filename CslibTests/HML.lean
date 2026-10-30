@@ -16,7 +16,7 @@ open scoped InferenceSystem
 example [∀ p μ, Finite ((CCS.lts (defs := defs)).image p μ)] :
     TheoryEq (HML.Model.toModal
       ⟨CCS.lts (defs := defs), fun _ (_ : Unit) => True⟩) =
-      HomBisimilarity (CCS.lts (defs := defs)) := theoryEq_eq_bisimilarity ..
+      ~[CCS.lts (defs := defs)] := theoryEq_eq_bisimilarity ..
 
 example (m : HML.Model State Label Atom) (htr : m.lts.Tr s μ s')
     (hφ : ⇓HML[m,s' ⊨ φ]) : ⇓HML[m,s ⊨ d⟨μ⟩φ] := by grind only [modal]
