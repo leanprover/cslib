@@ -4,12 +4,31 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Samuel Schlesinger
 -/
 
-import Cslib.Crypto.Primitives.PRG.Asymptotic
+import Cslib.Crypto.Primitives.PRG.Statistical
 
 open Cslib.Crypto.PRG Cslib.Probability.PMF Filter
 open scoped NNReal Topology
 
 namespace CslibTests.PRG
+
+open Cslib.Crypto Cslib.Probability.PMF
+
+-- Statistical distance and its security consequences need no finite ambient type.
+example : dist (PMF.pure (0 : ℕ)) (PMF.pure 1) = 1 := by
+  apply dist_eq_one_of_disjoint_support
+  simp
+
+example (p q : PMF ℕ) {ε : ℝ≥0} (h : StatisticallyClose p q ε) :
+    (Generator.mk (id : ℕ → ℕ)).Secure (fun _ => True) ε p q := by
+  apply Generator.secure_of_statisticallyClose
+  simpa [Generator.outputDist, PMF.map_id] using h
+
+-- The same asymptotic theorem handles sample spaces depending on the parameter.
+example (samples : ∀ n : ℕ, PMF (Fin (n + 1))) :
+    Family.Secure (fun n => Generator.mk (id : Fin (n + 1) → Fin (n + 1)))
+      (fun _ => True) samples samples := by
+  apply Family.secure_of_statisticallyIndistinguishable
+  simpa [Generator.outputDist, PMF.map_id] using StatisticallyIndistinguishable.refl samples
 
 -- Generators support ordinary function application and extensionality.
 example {Seed Output : Type*} (G H : Generator Seed Output)
