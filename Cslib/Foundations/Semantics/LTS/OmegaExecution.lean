@@ -32,7 +32,7 @@ variable {State Label : Type*} {lts : LTS State Label}
 theorem OmegaExecution.extract_execution
     (h : lts.OmegaExecution ss μs) {n m : ℕ} (hnm : n ≤ m) :
     lts.Execution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) := by
-  grind [Execution.mk]
+  grind only [Execution.mk, OmegaExecution, = length_extract, = get_extract]
 
 /-- Any multistep transition extracted from an infinite execution is valid. -/
 theorem OmegaExecution.extract_mTr
@@ -95,7 +95,6 @@ theorem OmegaExecution.flatten_execution' [Inhabited Label] [Inhabited State]
       segment_lower_bound (cumLen_strictMono hpos) cumLen_zero n
     refine ⟨segment μls.cumLen n, k, ?_, hk⟩
     have := segment_upper_bound (cumLen_strictMono hpos) cumLen_zero n
-    simp [cumLen_succ] at this
     grind
   have hlen (k : ℕ) : (μls k).length = (sls.map List.dropLast k).length := by grind
   have hclen : μls.cumLen = (sls.map List.dropLast).cumLen := by ext k; induction k <;> grind

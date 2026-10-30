@@ -82,7 +82,7 @@ theorem sub_one_mul : (l - 1) * l = l * l - 1 := by
   ext x; constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
     constructor
-    · exact ⟨u, Set.mem_of_mem_inter_left h_u, v, h_v, rfl⟩
+    · exact ⟨u, ((mem_sub_one u).mp h_u).1, v, h_v, rfl⟩
     · by_contra h
       have := mem_sub_one u |>.mp h_u
       have := mem_one (u ++ v) |>.mp h
@@ -111,7 +111,7 @@ theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
     have h3 : ¬ xl = [] := by grind [one_def]
     obtain ⟨x, xl', h_xl'⟩ := exists_cons_of_ne_nil h3
     subst h_xl'
-    refine ⟨x, mem_preimage.mp (h_xl x ?_), xl'.flatten, join_mem_kstar ?_, ?_⟩ <;> grind
+    refine ⟨x, (mem_sub_one x).mpr (h_xl x ?_), xl'.flatten, join_mem_kstar ?_, ?_⟩ <;> grind
   · rintro ⟨y, ⟨h_y, h_1⟩, z, h_z, rfl⟩
     refine ⟨?_, ?_⟩
     · apply (show l * l∗ ≤ l∗ by exact mul_kstar_le_kstar)
@@ -127,5 +127,12 @@ theorem sub_one_kstar : (l - 1)∗ = l∗ := by
 theorem kstar_iff_mul_add : m = l∗ ↔ m = (l - 1) * m + 1 := by
   rw [self_eq_mul_add_iff, mul_one, sub_one_kstar]
   grind
+
+/-- The reverse version of Arden's lemma `Language.self_eq_mul_add_iff`. -/
+theorem self_eq_add_mul_iff {l m n : Language α} (hm : [] ∉ m) :
+    l = l * m + n ↔ l = n * m∗ := by
+  rw [← reverse_injective.eq_iff, ← reverse_injective.eq_iff (a := l)]
+  simp only [reverse_add, reverse_mul, reverse_kstar]
+  exact (self_eq_mul_add_iff (by simp [hm]))
 
 end Language

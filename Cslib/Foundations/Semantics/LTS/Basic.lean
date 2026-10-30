@@ -258,14 +258,34 @@ section Classes
 
 variable {State : Type u} {Label : Type v} (lts : LTS State Label)
 
+/-- The `μ`-image of a state `s` is the set of all `μ`-derivatives of `s`. -/
+@[scoped grind =]
+def image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ s' }
+
 /-- A state `s` is deterministic for a label `μ` if `s` has at most one `μ`-derivative. -/
 @[scoped grind =]
 def DeterministicStateLabel (s : State) (μ : Label) : Prop :=
   ∀ s₁ s₂, lts.Tr s μ s₁ → lts.Tr s μ s₂ → s₁ = s₂
 
+/-- Determinism at a state and label means that its image is a subsingleton. -/
+theorem deterministicStateLabel_iff_subsingleton_image {lts : LTS State Label} :
+    lts.DeterministicStateLabel s μ ↔ (lts.image s μ).Subsingleton :=
+  ⟨fun h _ h₁ _ h₂ => h _ _ h₁ h₂, fun h _ _ h₁ h₂ => h h₁ h₂⟩
+
+alias ⟨DeterministicStateLabel.subsingleton_image, _⟩ :=
+  deterministicStateLabel_iff_subsingleton_image
+
 /-- A state `s` is deterministic if it is deterministic for all labels. -/
 @[scoped grind =]
 def DeterministicState (s : State) : Prop := ∀ μ, lts.DeterministicStateLabel s μ
+
+/-- A state is deterministic exactly when each of its labelled images is a subsingleton. -/
+theorem deterministicState_iff_subsingleton_image {lts : LTS State Label} :
+    lts.DeterministicState s ↔ ∀ μ, (lts.image s μ).Subsingleton :=
+  forall_congr' fun _ => deterministicStateLabel_iff_subsingleton_image
+
+alias ⟨DeterministicState.subsingleton_image, _⟩ :=
+  deterministicState_iff_subsingleton_image
 
 /-- An lts is deterministic if it is deterministic at every state. -/
 @[scoped grind]
@@ -273,6 +293,14 @@ class Deterministic (lts : LTS State Label) where
   /-- For all states and labels, there is at most one state reachable from a given state
   with a given label. -/
   deterministic : ∀ s, lts.DeterministicState s
+
+/-- An LTS is deterministic exactly when every labelled image is a subsingleton. -/
+theorem deterministic_iff_subsingleton_image {lts : LTS State Label} :
+    lts.Deterministic ↔ ∀ s μ, (lts.image s μ).Subsingleton :=
+  ⟨fun h s => (h.deterministic s).subsingleton_image,
+    fun h => ⟨fun s => deterministicState_iff_subsingleton_image.mpr (h s)⟩⟩
+
+alias ⟨Deterministic.subsingleton_image, _⟩ := deterministic_iff_subsingleton_image
 
 theorem Deterministic.eq_of_tr {lts : LTS State Label} [h : lts.Deterministic]
     (htr : lts.Tr s1 μ s2) (htr' : lts.Tr s1 μ s2') : s2 = s2' :=
@@ -289,69 +317,11 @@ theorem Deterministic.eq_of_mTr {lts : LTS State Label} [lts.Deterministic]
     rw [eq_of_tr htr htr'] at hmtr
     exact ih hmtr hmtr'
 
-/-- The `μ`-image of a state `s` is the set of all `μ`-derivatives of `s`. -/
-@[scoped grind =]
-def image (s : State) (μ : Label) : Set State := { s' : State | lts.Tr s μ s' }
-
 /-- The `μs`-image of a state `s`, where `μs` is a list of labels, is the set of all
 `μs`-derivatives of `s`. -/
 @[scoped grind =]
 def imageMultistep (s : State) (μs : List Label) : Set State :=
   { s' : State | lts.MTr s μs s' }
-
-/-- The `μ`-image of a set of states `S` is the union of all `μ`-images of the states in `S`. -/
-@[scoped grind =]
-def setImage (S : Set State) (μ : Label) : Set State :=
-  ⋃ s ∈ S, lts.image s μ
-
-/-- The `μs`-image of a set of states `S`, where `μs` is a list of labels, is the union of all
-`μs`-images of the states in `S`. -/
-@[scoped grind =]
-def setImageMultistep (S : Set State) (μs : List Label) : Set State :=
-  ⋃ s ∈ S, lts.imageMultistep s μs
-
-/-- Characterisation of `setImage` wrt `Tr`. -/
-@[scoped grind =]
-theorem mem_setImage {lts : LTS State Label} :
-  s' ∈ lts.setImage S μ ↔ ∃ s ∈ S, lts.Tr s μ s' := by
-  simp only [setImage, Set.mem_iUnion, exists_prop]
-  grind
-
-theorem tr_setImage {lts : LTS State Label} (hs : s ∈ S) (htr : lts.Tr s μ s') :
-  s' ∈ lts.setImage S μ := by grind
-
-/-- Characterisation of `setImageMultistep` with `MTr`. -/
-@[scoped grind =]
-theorem mem_setImageMultistep {lts : LTS State Label} :
-  s' ∈ lts.setImageMultistep S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
-  simp only [setImageMultistep, Set.mem_iUnion, exists_prop]
-  grind
-
-@[scoped grind <=]
-theorem mTr_setImage {lts : LTS State Label} (hs : s ∈ S) (htr : lts.MTr s μs s') :
-  s' ∈ lts.setImageMultistep S μs := by grind
-
-/-- The image of the empty set is always the empty set. -/
-@[scoped grind =]
-theorem setImage_empty (lts : LTS State Label) : lts.setImage ∅ μ = ∅ := by grind
-
-@[scoped grind =]
-lemma setImageMultistep_setImage_head (lts : LTS State Label) :
-  lts.setImageMultistep S (μ :: μs) = lts.setImageMultistep (lts.setImage S μ ) μs := by grind
-
-/-- Characterisation of `setImageMultistep` as `List.foldl` on `setImage`. -/
-@[scoped grind _=_]
-theorem setImageMultistep_foldl_setImage (lts : LTS State Label) :
-  lts.setImageMultistep = List.foldl lts.setImage := by
-  ext S μs s'
-  induction μs generalizing S <;> grind
-
-/-- Characterisation of membership in `List.foldl lts.setImage` with `MTr`. -/
-@[scoped grind =]
-theorem mem_foldl_setImage (lts : LTS State Label) :
-  s' ∈ List.foldl lts.setImage S μs ↔ ∃ s ∈ S, lts.MTr s μs s' := by
-  rw [← setImageMultistep_foldl_setImage]
-  exact mem_setImageMultistep
 
 /-- An lts is image-finite if all images of its states are finite. -/
 abbrev ImageFinite := ∀ s μ, Finite (lts.image s μ)
@@ -379,19 +349,11 @@ theorem DeterministicStateLabel.image_char (h : lts.DeterministicStateLabel s μ
 /-- If `s` is deterministic at `μ`, then the `μ`-image of `s` is finite. -/
 @[scoped grind →]
 theorem DeterministicStateLabel.finite_image (h : lts.DeterministicStateLabel s μ) :
-    Finite (lts.image s μ) := by
-  have hDet := image_char lts h
-  cases hDet
-  case inl hDet =>
-    obtain ⟨s', hDet'⟩ := hDet
-    simp only [hDet']
-    apply Set.finite_singleton
-  case inr hDet =>
-    simp only [hDet]
-    apply Set.finite_empty
+    Finite (lts.image s μ) :=
+  h.subsingleton_image.finite
 
 instance [h : lts.Deterministic] (s : State) (μ : Label) : Finite (lts.image s μ) :=
-  DeterministicStateLabel.finite_image lts (h.deterministic s μ)
+  (h.subsingleton_image s μ).finite
 
 /-- Every deterministic LTS is also image-finite. -/
 instance deterministic_imageFinite [lts.Deterministic] : lts.ImageFinite := inferInstance
@@ -438,18 +400,6 @@ class Acyclic (lts : LTS State Label) where
 
 attribute [instance] Acyclic.acyclic
 
-/-- In a deterministic lts, a state's traces are determined by any of its predecessors. -/
-theorem Deterministic.traces_of_tr {lts : LTS State Label} [lts.Deterministic]
-    (h : lts.Tr s μ s') : lts.traces s' = {μs | μ :: μs ∈ lts.traces s} := by
-  ext μs
-  constructor
-  · intro ⟨s'', hmtr⟩
-    use s'', MTr.stepL h hmtr
-  · intro ⟨s'', hmtr⟩
-    rcases hmtr with (_ | ⟨htr, hmtr⟩)
-    rw [←deterministic _ _ _ _ h htr] at hmtr
-    exact ⟨s'', hmtr⟩
-
 /-- In a deterministic lts, a state's traces are determined by any of its multi-step predecessors.
 -/
 theorem Deterministic.traces_of_mTr {lts : LTS State Label} [lts.Deterministic]
@@ -462,6 +412,11 @@ theorem Deterministic.traces_of_mTr {lts : LTS State Label} [lts.Deterministic]
     obtain ⟨smid, hmid, hmid'⟩ := hmtr.split
     rw [Deterministic.eq_of_mTr h hmid]
     use s'', hmid'
+
+/-- In a deterministic lts, a state's traces are determined by any of its predecessors. -/
+theorem Deterministic.traces_of_tr {lts : LTS State Label} [lts.Deterministic]
+    (h : lts.Tr s μ s') : lts.traces s' = {μs | μ :: μs ∈ lts.traces s} := by
+  simpa using Deterministic.traces_of_mTr (MTr.single lts h)
 
 end Classes
 

@@ -9,7 +9,7 @@ import Cslib.Computability.Circuit.Depth
 /-! # Circuit tests
 
 These tests exercise zero-gate wiring, shared internal gates, multiple outputs,
-and the size and depth conventions of the generic circuit model.
+program fold order, and the size and depth conventions of the generic circuit model.
 -/
 
 namespace CslibTests.Circuits
@@ -36,6 +36,11 @@ def nandResultTwice : Line nandSignature 2 1 where
 
 def andProgram : Program nandSignature 2 2 :=
   .gate (.gate .empty nandInputs) nandResultTwice
+
+-- Recording each line's gate count distinguishes the two traversal directions.
+example : andProgram.foldl (fun {k} acc _ => k :: acc) [] = [1, 0] := rfl
+
+example : andProgram.foldr (fun {k} _ acc => k :: acc) [] = [0, 1] := rfl
 
 /-- The first output is AND and the second is NAND. Both reuse the first gate. -/
 def andNandCircuit : Circuit nandSignature 2 2 where

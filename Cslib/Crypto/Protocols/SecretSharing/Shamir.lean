@@ -127,10 +127,9 @@ noncomputable def uniformTailSampler (params : Params F Party)
 private noncomputable def privacyCorrectionPolynomial
     (params : Params F Party) (s : Finset Party)
     (secret₀ secret₁ : F) : _root_.Polynomial F :=
-  by
-    classical
-    exact _root_.Lagrange.interpolate s.attach (fun i : s => params.point i)
-      (fun i : s => (secret₀ - secret₁) / params.point i)
+  open scoped Classical in
+  _root_.Lagrange.interpolate s.attach (fun i : s => params.point i)
+    (fun i : s => (secret₀ - secret₁) / params.point i)
 
 private theorem points_injOn_subtype {F Party : Type*} [Field F] [Fintype Party]
     (params : Params F Party) (s : Finset Party) :
