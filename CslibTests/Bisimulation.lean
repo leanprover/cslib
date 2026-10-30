@@ -65,6 +65,17 @@ section Heterogeneous
 variable {State₁ State₂ Label : Type*} {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
 variable {s₁ : State₁} {s₂ : State₂}
 
+-- Relation notation works without states and supports ordinary and partial application.
+example : IsBisimulation lts₁ lts₂ ~[lts₁,lts₂] := Bisimilarity.isBisimulation ..
+
+example : Equivalence ~[lts₁] := HomBisimilarity.eqv
+
+example (h : s₁ ~[lts₁,lts₂] s₂) : (~[lts₁,lts₂]) s₁ s₂ := h
+
+example (h : s₁ ~[lts₁] s₁) : (~[lts₁]) s₁ s₁ := h
+
+example (s : State₁) : ((~[lts₁,lts₂]) s) = Bisimilarity lts₁ lts₂ s := rfl
+
 -- Symmetry must support different state types and universes, as the relations do.
 example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ := h.symm
 
@@ -106,7 +117,7 @@ private theorem onlyFalse_upTo : IsBisimulationUpTo completeLTS completeLTS only
   exact ⟨fun s _ => ⟨false, trivial, onlyFalse_closure s false⟩,
     fun t _ => ⟨false, trivial, onlyFalse_closure false t⟩⟩
 
-example : onlyFalse ≤ HomBisimilarity completeLTS := onlyFalse_upTo.le_bisimilarity
+example : onlyFalse ≤ ~[completeLTS] := onlyFalse_upTo.le_bisimilarity
 
 example : ¬ IsHomBisimulation completeLTS onlyFalse := by
   intro h
