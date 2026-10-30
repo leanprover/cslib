@@ -126,12 +126,12 @@ theorem Satisfies.btl_past_always_iff :
     ⇓BTL[m,w ⊨ d[P]φ] ↔ ∀ w', m.r w' w → ⇓BTL[m,w' ⊨ φ] := Satisfies.dynBox_iff_forall
 
 @[modal ⇒]
-theorem Satisfies.btl_future_sometime_intro (hr : m.r w w') (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨F⟩φ] :=
-  btl_future_sometime_iff.mpr ⟨w', hr, h⟩
+theorem Satisfies.btl_future_sometime_intro (hr : m.r w w') (h : ⇓BTL[m,w' ⊨ φ]) :
+    ⇓BTL[m,w ⊨ d⟨F⟩φ] := btl_future_sometime_iff.mpr ⟨w', hr, h⟩
 
 @[modal ⇒]
-theorem Satisfies.btl_past_sometime_intro (hr : m.r w' w) (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨P⟩φ] :=
-  btl_past_sometime_iff.mpr ⟨w', hr, h⟩
+theorem Satisfies.btl_past_sometime_intro (hr : m.r w' w) (h : ⇓BTL[m,w' ⊨ φ]) :
+    ⇓BTL[m,w ⊨ d⟨P⟩φ] := btl_past_sometime_iff.mpr ⟨w', hr, h⟩
 
 @[modal ⇒]
 theorem Satisfies.btl_future_always_elim (h : ⇓BTL[m,w ⊨ d[F]φ]) (hr : m.r w w') : ⇓BTL[m,w' ⊨ φ] :=
