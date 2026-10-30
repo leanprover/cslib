@@ -62,6 +62,28 @@ instance : Fintype (Wire inputCount gateCount) :=
 @[simp] theorem card : Fintype.card (Wire inputCount gateCount) = inputCount + gateCount := by
   simp [Fintype.card_congr (equiv inputCount gateCount)]
 
+/-- The set of inputs that the wire is connected to. -/
+protected def support : Wire inputCount gateCount → Set (Fin inputCount)
+  | .input i => {i}
+  | .gate _ => ∅
+
+@[simp]
+theorem support_input (i : Fin inputCount) : (.input i : Wire inputCount gateCount).support = {i} :=
+  rfl
+
+@[simp]
+theorem support_gate (g : Fin gateCount) : (.gate g : Wire inputCount gateCount).support = ∅ :=
+  rfl
+
+@[simp]
+theorem mem_support {w : Wire inputCount gateCount} {input : Fin inputCount} :
+    input ∈ w.support ↔ w = .input input := by
+  cases w <;> simp [eq_comm]
+
+@[simp]
+theorem subsingleton_support (w : Wire inputCount gateCount) : w.support.Subsingleton := by
+  cases w <;> simp
+
 /-- Regard a wire as a wire in a namespace with one additional gate. -/
 def castSucc : Wire inputCount gateCount → Wire inputCount (gateCount + 1)
   | input i => input i
