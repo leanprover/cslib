@@ -8,6 +8,7 @@ module
 
 public import Cslib.Init
 public import Mathlib.Computability.Language
+public import Mathlib.Data.List.ReduceOption
 
 /-!
 # Language homomorphism
@@ -95,6 +96,16 @@ def lift : (α → List β) ≃ (Hom α β) where
 
 /-- `lift.toFun` is in fact `List.flatMap`. -/
 theorem lift_eq_flatMap (f : α → List β) : lift f = List.flatMap f :=
+  rfl
+
+/-- Dropping the `none`s from a list of options is a language homomorphism. -/
+def reduceOption : Hom (Option α) α where
+  toFun := List.reduceOption
+  map_nil' := List.reduceOption_nil
+  map_append' := List.reduceOption_append
+
+@[simp]
+theorem reduceOption_apply (as : List (Option α)) : reduceOption as = as.reduceOption :=
   rfl
 
 end Hom

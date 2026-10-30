@@ -59,4 +59,82 @@ def unionSum (lts1 : LTS State1 Label) (lts2 : LTS State2 Label) :
     LTS (State1 ⊕ State2) Label :=
   unionSubtype lts1.inl lts2.inr
 
+section unionSum
+
+variable {State1 State2 : Type*} {lts1 : LTS State1 Label} {lts2 : LTS State2 Label}
+
+@[simp]
+theorem unionSum_tr_inl_inl {s s' : State1} {μ : Label} :
+    (unionSum lts1 lts2).Tr (.inl s) μ (.inl s') ↔ lts1.Tr s μ s' := by
+  simp [unionSum, unionSubtype, LTS.inl]
+
+@[simp]
+theorem unionSum_tr_inr_inr {s s' : State2} {μ : Label} :
+    (unionSum lts1 lts2).Tr (.inr s) μ (.inr s') ↔ lts2.Tr s μ s' := by
+  simp [unionSum, unionSubtype, LTS.inr]
+
+@[simp]
+theorem unionSum_not_tr_inl_inr {s : State1} {s' : State2} {μ : Label} :
+    ¬(unionSum lts1 lts2).Tr (.inl s) μ (.inr s') := by
+  simp [unionSum, unionSubtype]
+
+@[simp]
+theorem unionSum_not_tr_inr_inl {s : State2} {s' : State1} {μ : Label} :
+    ¬(unionSum lts1 lts2).Tr (.inr s) μ (.inl s') := by
+  simp [unionSum, unionSubtype]
+
+/-- A run of `unionSum lts1 lts2` from a state of `lts1` stays among the states of `lts1`, where it
+is a run of `lts1`. -/
+theorem unionSum_mTr_inl {s : State1} {μs : List Label} {y : State1 ⊕ State2}
+    (h : (unionSum lts1 lts2).MTr (.inl s) μs y) : ∃ t, y = .inl t ∧ lts1.MTr s μs t := by
+  induction μs generalizing s with
+  | nil =>
+    cases h
+    exact ⟨s, rfl, .refl⟩
+  | cons μ μs ih =>
+    obtain ⟨z, htr, h'⟩ := MTr.cons_iff.mp h
+    rcases z with z | z
+    · obtain ⟨t, rfl, hrun⟩ := ih h'
+      exact ⟨t, rfl, .stepL (unionSum_tr_inl_inl.mp htr) hrun⟩
+    · exact absurd htr unionSum_not_tr_inl_inr
+
+/-- A run of `unionSum lts1 lts2` from a state of `lts2` stays among the states of `lts2`, where it
+is a run of `lts2`. -/
+theorem unionSum_mTr_inr {s : State2} {μs : List Label} {y : State1 ⊕ State2}
+    (h : (unionSum lts1 lts2).MTr (.inr s) μs y) : ∃ t, y = .inr t ∧ lts2.MTr s μs t := by
+  induction μs generalizing s with
+  | nil =>
+    cases h
+    exact ⟨s, rfl, .refl⟩
+  | cons μ μs ih =>
+    obtain ⟨z, htr, h'⟩ := MTr.cons_iff.mp h
+    rcases z with z | z
+    · exact absurd htr unionSum_not_tr_inr_inl
+    · obtain ⟨t, rfl, hrun⟩ := ih h'
+      exact ⟨t, rfl, .stepL (unionSum_tr_inr_inr.mp htr) hrun⟩
+
+/-- The runs of `unionSum lts1 lts2` between states of `lts1` are the runs of `lts1`. -/
+theorem unionSum_mTr_inl_iff {s t : State1} {μs : List Label} :
+    (unionSum lts1 lts2).MTr (.inl s) μs (.inl t) ↔ lts1.MTr s μs t := by
+  refine ⟨fun h => ?_, fun h => ?_⟩
+  · obtain ⟨t', ht', hrun⟩ := unionSum_mTr_inl h
+    obtain rfl := Sum.inl.inj ht'
+    exact hrun
+  · induction h with
+    | refl => exact .refl
+    | stepL htr _ ih => exact .stepL (unionSum_tr_inl_inl.mpr htr) ih
+
+/-- The runs of `unionSum lts1 lts2` between states of `lts2` are the runs of `lts2`. -/
+theorem unionSum_mTr_inr_iff {s t : State2} {μs : List Label} :
+    (unionSum lts1 lts2).MTr (.inr s) μs (.inr t) ↔ lts2.MTr s μs t := by
+  refine ⟨fun h => ?_, fun h => ?_⟩
+  · obtain ⟨t', ht', hrun⟩ := unionSum_mTr_inr h
+    obtain rfl := Sum.inr.inj ht'
+    exact hrun
+  · induction h with
+    | refl => exact .refl
+    | stepL htr _ ih => exact .stepL (unionSum_tr_inr_inr.mpr htr) ih
+
+end unionSum
+
 end Cslib.LTS
