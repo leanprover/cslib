@@ -7,6 +7,7 @@ import CslibTests.CircuitComplexity
 import CslibTests.CircuitComposition
 import CslibTests.CircuitCounting
 import CslibTests.Circuits
+import CslibTests.Cobham
 import CslibTests.Commitment
 import CslibTests.Complexity.Combinators
 import CslibTests.Congruence

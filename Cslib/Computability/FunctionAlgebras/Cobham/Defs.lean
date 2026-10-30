@@ -1,0 +1,243 @@
+/-
+Copyright (c) 2026 Bolton Bailey. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bolton Bailey
+-/
+module
+
+public import Cslib.Init
+public import Mathlib.Data.Fin.Tuple.Basic
+import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
+
+/-!
+# Cobham's function algebra
+
+This file defines Cobham's machine-independent characterization
+of the polynomial-time computable functions
+[Cobham, *The intrinsic computational difficulty of functions*][Cobham1965],
+as a model of computation on strings `List Symbol` over an arbitrary alphabet `Symbol`:
+This is the smallest class of functions `(Fin n → List Symbol) → List Symbol` that
+
+* contains projections,
+* contains the constant empty string function,
+* contains the symbol consing functions,
+* contains the smash functions,
+* is closed under composition,
+* and is closed under "limited" or "bounded" recursion on notation.
+
+The algebra is presented as a syntax `Cobham Symbol n` of terms denoting `n`-ary string functions,
+with semantics given by `Cobham.eval`.
+Cobham's condition that the recursively defined functions obey their length bounds is enforced by
+the predicate `Cobham.Limited`.
+
+The functions are multi-arity (indexed by `Fin n` argument vectors) because limited
+recursion on notation inherently produces functions of higher arity.
+
+## Main definitions
+
+- `Cslib.Cobham` — the terms of Cobham's function algebra over an alphabet `Symbol`
+- `Cslib.Cobham.recNotation` — the recursion-on-notation combinator on string functions
+- `Cslib.Cobham.eval` — the string function denoted by a term
+- `Cslib.Cobham.Limited` — the side condition that every recursion in a term is bounded
+  by its bounding term
+
+## Proofs Wanted
+
+- `Cslib.Cobham.exists_limited_iff_polyTimeComputable` — Cobham's characterization of
+  polynomial time: over the binary alphabet, the functions denoted by limited unary terms are
+  exactly the polynomial-time computable functions
+  (`Cslib.Turing.SingleTapeTM.PolyTimeComputable`). Proof wanted.
+- `Cslib.Cobham.exists_limited_iff_multiTapePolyTimeComputable` — the same characterization
+  against the multi-tape model. Proof wanted.
+
+## Design notes
+
+Cobham's paper operates over natural numbers,
+but essentially only manipulates these numbers through operations on the list of digits.
+In light of this, and for the convenience in recursive definitions,
+we modify Cobham's definition slightly to work over strings of arbitrary `Symbol` type,
+rather than naturals.
+
+### Length bounding syntax approaches
+
+There are essentially two slightly different ways of handling the part of the definition that
+ensures the recursions are bounded.
+
+In Cobham's original formulation, a function is included in the set of
+recursive constructions that allows us to obtain an output
+the length of which is a multiplication of lengths of input.
+This type of function seems to be known as a "smash function".
+Originally this smash function was `x ^ length y`, but `c^(length x * length y)` for a 1-character
+string `c` is also possible (e.g. [Beckmann2016]).
+The presence of a smash function ensures we can create functions of polynomial blowup of any degree.
+The limited recursion is then length-bounded by another function of the class.
+
+The alternative is to bound the recursion not by another function of the class,
+but by a generic multivariable polynomial in the lengths of the inputs.
+This obviates the need for a smash function.
+Proof that this is equivalent to FP can be found in [Clote1999] Lemma 3.90, where it is called
+"polynomially bounded recursion on notation".
+Implementing this version is a TODO.
+
+### Enforcing the bounding condition
+
+In `Cobham.boundedRec`, while we provide a bound, we do not enforce this bound always holds
+either in the syntax or in the evaluation.
+We do this to avoid mutual recursion.
+Instead, we add a predicate `Limited` which checks that the bound always holds, which we can use
+to examine the class of functions that are actually bounded.
+
+## References
+
+* [A. Cobham, *The intrinsic computational difficulty of functions*][Cobham1965]
+  [Link](https://www.cs.toronto.edu/~sacook/homepage/cobham_intrinsic.pdf)
+* [Beckmann et al., "Cobham Recursive Set Functions"][Beckmann2016]
+  [Link](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/CRSF_paperone/paperoneRevisedAPALNov2015.pdf)
+* [Clote, *Computation Models and Function Algebras*][Clote1999]
+  [Link](https://bioinformatics.bc.edu/clotelab/pub/cloteHandbookRecTheory.pdf)
+-/
+
+@[expose] public section
+
+universe u
+
+namespace Cslib
+
+variable {Symbol : Type u}
+
+/--
+**Terms of Cobham's function algebra** over the alphabet `Symbol`. A term of type
+`Cobham Symbol n` denotes an `n`-ary function on strings `List Symbol` (see
+`Cobham.eval`):
+the projections, the empty string, the cons operation for each symbol `x ↦ a :: x`,
+and the smash function, closed under composition and recursion on notation.
+-/
+inductive Cobham (Symbol : Type u) : ℕ → Type u
+  /-- The `i`-th projection. -/
+  | proj {n : ℕ} (i : Fin n) : Cobham Symbol n
+  /-- The empty-string constant (at every arity). -/
+  | empty {n : ℕ} : Cobham Symbol n
+  /-- The cons function `x ↦ a :: x` for the symbol `a`. -/
+  | cons (a : Symbol) : Cobham Symbol 1
+  /-- The smash function returning a list of `a` of length |x₀| * |x₁|. -/
+  | smash (a : Symbol) : Cobham Symbol 2
+  /-- Composition of an `m`-ary term with `m` terms of arity `n`. -/
+  | comp {m n : ℕ} (f : Cobham Symbol m) (gs : Fin m → Cobham Symbol n) : Cobham Symbol n
+  /-- Limited recursion on notation on the first argument, with the given base case, a
+  step `step a` for each symbol `a`, and the given bounding term. -/
+  | boundedRec {n : ℕ} (base : Cobham Symbol n) (step : Symbol → Cobham Symbol (n + 2))
+      (bound : Cobham Symbol (n + 1)) : Cobham Symbol (n + 1)
+
+namespace Cobham
+
+/-- **Recursion on notation**: the string analogue of primitive recursion, recursing on
+the symbol structure of the first argument.
+
+`recNotation base step v x` computes `base v` when `x` is empty, and on `a :: x` applies the
+step function `step a` selected by the symbol `a` to the argument vector consisting of the
+tail `x`, the recursive value on the tail, and the parameters `v`. -/
+def recNotation {n : ℕ} (base : (Fin n → List Symbol) → List Symbol)
+    (step : Symbol → (Fin (n + 2) → List Symbol) → List Symbol) (v : Fin n → List Symbol) :
+    List Symbol → List Symbol
+  | [] => base v
+  | a :: x => step a (Fin.cons x (Fin.cons (recNotation base step v x) v))
+
+@[simp] theorem recNotation_nil {n : ℕ} (base : (Fin n → List Symbol) → List Symbol)
+    (step : Symbol → (Fin (n + 2) → List Symbol) → List Symbol) (v : Fin n → List Symbol) :
+    recNotation base step v [] = base v := rfl
+
+@[simp] theorem recNotation_cons {n : ℕ} (base : (Fin n → List Symbol) → List Symbol)
+    (step : Symbol → (Fin (n + 2) → List Symbol) → List Symbol) (v : Fin n → List Symbol)
+    (a : Symbol) (x : List Symbol) :
+    recNotation base step v (a :: x) =
+      step a (Fin.cons x (Fin.cons (recNotation base step v x) v)) := rfl
+
+/-- The string function denoted by a term. The bounding term of a `boundedRec` plays no
+role in evaluation; it is checked by `Cobham.Limited`. -/
+def eval {n : ℕ} (t : Cobham Symbol n) (v : Fin n → List Symbol) : List Symbol :=
+  match t with
+  | proj i => v i
+  | empty => []
+  | cons a => a :: v 0
+  | smash a => List.replicate ((v 0).length * (v 1).length) a
+  | comp f gs => f.eval fun i => (gs i).eval v
+  | boundedRec base step _ =>
+      recNotation base.eval (fun a => (step a).eval) (Fin.tail v) (v 0)
+
+@[simp] theorem eval_proj {n : ℕ} (i : Fin n) (v : Fin n → List Symbol) :
+    (proj i).eval v = v i := rfl
+
+@[simp] theorem eval_empty {n : ℕ} (v : Fin n → List Symbol) :
+    empty.eval v = [] := rfl
+
+@[simp] theorem eval_cons (a : Symbol) (v : Fin 1 → List Symbol) :
+    (cons a).eval v = a :: v 0 := rfl
+
+@[simp] theorem eval_smash (a : Symbol) (v : Fin 2 → List Symbol) :
+    (smash a).eval v = List.replicate ((v 0).length * (v 1).length) a := rfl
+
+@[simp] theorem eval_comp {m n : ℕ} (f : Cobham Symbol m) (gs : Fin m → Cobham Symbol n)
+    (v : Fin n → List Symbol) : (comp f gs).eval v = f.eval fun i => (gs i).eval v := rfl
+
+@[simp] theorem eval_boundedRec {n : ℕ} (base : Cobham Symbol n)
+    (step : Symbol → Cobham Symbol (n + 2)) (bound : Cobham Symbol (n + 1))
+    (v : Fin (n + 1) → List Symbol) :
+    (boundedRec base step bound).eval v =
+      recNotation base.eval (fun a => (step a).eval) (Fin.tail v) (v 0) := rfl
+
+/-- A term is **limited** when every recursion in it is limited in Cobham's sense: the
+result of each `boundedRec base step bound` is length-bounded, uniformly in the arguments,
+by `bound`. -/
+def Limited {n : ℕ} : Cobham Symbol n → Prop
+  | proj _ => True
+  | empty => True
+  | cons _ => True
+  | smash _ => True
+  | comp f gs => f.Limited ∧ ∀ i, (gs i).Limited
+  | boundedRec base step bound =>
+      base.Limited ∧ (∀ a, (step a).Limited) ∧ bound.Limited ∧
+        ∀ v x, (recNotation base.eval (fun a => (step a).eval) v x).length ≤
+          (bound.eval (Fin.cons x v)).length
+
+@[simp] theorem limited_proj {n : ℕ} (i : Fin n) : (proj i : Cobham Symbol n).Limited := trivial
+
+@[simp] theorem limited_empty {n : ℕ} : (empty : Cobham Symbol n).Limited := trivial
+
+@[simp] theorem limited_cons (a : Symbol) : (cons a).Limited := trivial
+
+@[simp] theorem limited_smash (a : Symbol) : (smash a).Limited := trivial
+
+@[simp] theorem limited_comp {m n : ℕ} (f : Cobham Symbol m) (gs : Fin m → Cobham Symbol n) :
+    (comp f gs).Limited ↔ f.Limited ∧ ∀ i, (gs i).Limited := Iff.rfl
+
+@[simp] theorem limited_boundedRec {n : ℕ} (base : Cobham Symbol n)
+    (step : Symbol → Cobham Symbol (n + 2)) (bound : Cobham Symbol (n + 1)) :
+    (boundedRec base step bound).Limited ↔
+      base.Limited ∧ (∀ a, (step a).Limited) ∧ bound.Limited ∧
+        ∀ v x, (recNotation base.eval (fun a => (step a).eval) v x).length ≤
+          (bound.eval (Fin.cons x v)).length := Iff.rfl
+
+open Turing.SingleTapeTM in
+/-- **Cobham's characterization of polynomial time**: a binary string function
+is denoted by a limited unary term if and only if it is computable in polynomial time by a
+single-tape Turing machine. -/
+proof_wanted exists_limited_iff_polyTimeComputable (f : List Bool → List Bool) :
+    (∃ c : Cobham Bool 1, c.Limited ∧ ∀ x, c.eval (fun _ => x) = f x) ↔
+      Nonempty (PolyTimeComputable f)
+
+open Turing.MultiTapeTM in
+/-- **Cobham's characterization of polynomial time, multi-tape version**: a binary
+string function is denoted by a limited unary term if and only if it is computable in polynomial
+time by a multi-tape Turing machine. The number of tapes is existentially quantified by
+`ComputableInTimeAndSpace`. The space bound is a separate polynomial, which is no extra
+assumption: a machine running for `t` steps visits at most `t + 1` cells per tape. -/
+proof_wanted exists_limited_iff_multiTapePolyTimeComputable (f : List Bool → List Bool) :
+    (∃ c : Cobham Bool 1, c.Limited ∧ ∀ x, c.eval (fun _ => x) = f x) ↔
+      ∃ time space : Polynomial ℕ,
+        ComputableInTimeAndSpaceOfLength f (Function.Embedding.refl _)
+          (Function.Embedding.refl _) (fun n => time.eval n) (fun n => space.eval n)
+
+end Cobham
+
+end Cslib
