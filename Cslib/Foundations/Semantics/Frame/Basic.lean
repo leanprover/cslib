@@ -63,6 +63,9 @@ theorem diagonal_of_r [PFunctor.Unary τ] {f : Frame World τ} (h : f.r op w ws)
 class DiagonalInverse (f : Frame World τ) (op₁ op₂ : τ.A) where
   diagonalInverse : ∀ w w', f.diagonal op₁ w w' ↔ f.diagonal op₂ w' w
 
+instance (f : Frame World τ) (op₁ op₂ : τ.A) [inst : f.DiagonalInverse op₁ op₂] :
+    f.DiagonalInverse op₂ op₁ := ⟨fun w w' => (inst.diagonalInverse w' w).symm⟩
+
 /-- A frame is diagonally symmetric at `op` if, whenever `w` accesses `ws`, some component of `ws`
 accesses the constant sequence at `w`. -/
 class DiagonalSymm (f : Frame World τ) (op : τ.A) where

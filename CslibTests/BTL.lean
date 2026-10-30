@@ -17,20 +17,20 @@ private def timeline : BTL.Model Nat Unit where
   v w _ := w = 1
 
 example : ⇓BTL[timeline,0 ⊨ d⟨F⟩(() : Unit)] := by
-  rw [Satisfies.btl_future_iff_exists]
+  rw [Satisfies.btl_future_sometime_iff]
   exact ⟨1, by simp [timeline], rfl⟩
 
 example : ⇓BTL[timeline,2 ⊨ d⟨P⟩(() : Unit)] := by
-  rw [Satisfies.btl_past_iff_exists]
+  rw [Satisfies.btl_past_sometime_iff]
   exact ⟨1, by simp [timeline], rfl⟩
 
 example : ⇓BTL[timeline,0 ⊨ d[F](() : Unit)] := by
-  rw [Satisfies.btl_always_iff_forall]
+  rw [Satisfies.btl_future_always_iff]
   intro w hw
   exact hw.1.symm
 
 example : ⇓BTL[timeline,2 ⊨ d[P](() : Unit)] := by
-  rw [Satisfies.btl_hasAlwaysBeen_iff_forall]
+  rw [Satisfies.btl_past_always_iff]
   intro w hw
   change w = 1
   have := hw.1
@@ -38,13 +38,13 @@ example : ⇓BTL[timeline,2 ⊨ d[P](() : Unit)] := by
 
 -- Endpoint boxes are vacuous, and endpoint diamonds are false.
 example : ⇓BTL[timeline,0 ⊨ d[P]⊥] := by
-  rw [Satisfies.btl_hasAlwaysBeen_iff_forall]
+  rw [Satisfies.btl_past_always_iff]
   intro w hw
   have := hw.1
   grind
 
 example : ⇓BTL[timeline,2 ⊨ ¬d⟨F⟩⊤] := by
-  rw [Satisfies.not_iff_not, Satisfies.btl_future_iff_exists]
+  rw [Satisfies.not_iff_not, Satisfies.btl_future_sometime_iff]
   rintro ⟨w, hw, _⟩
   obtain ⟨h₁, h₂⟩ := hw
   grind
@@ -52,7 +52,7 @@ example : ⇓BTL[timeline,2 ⊨ ¬d⟨F⟩⊤] := by
 -- The present is not implicitly included.
 example : ⇓BTL[timeline,1 ⊨ ¬d⟨F⟩(() : Unit) ∧ ¬d⟨P⟩(() : Unit)] := by
   simp only [Satisfies.and_iff_and, Satisfies.not_iff_not,
-    Satisfies.btl_future_iff_exists, Satisfies.btl_past_iff_exists, Satisfies.btl_atom_iff]
+    Satisfies.btl_future_sometime_iff, Satisfies.btl_past_sometime_iff, Satisfies.btl_atom_iff]
   change (¬∃ w, (1 + 1 = w ∧ w < 3) ∧ w = 1) ∧
     (¬∃ w, (w + 1 = 1 ∧ 1 < 3) ∧ w = 1)
   grind
@@ -61,17 +61,17 @@ example : ⇓BTL[timeline,1 ⊨ ¬d⟨F⟩(() : Unit) ∧ ¬d⟨P⟩(() : Unit)]
 example : ⇓BTL[timeline,0 ⊨ d⟨F⟩(d⟨F⟩⊤) ∧ ¬d⟨F⟩¬(() : Unit)] := by
   rw [Satisfies.and_iff_and]
   constructor
-  · apply Satisfies.btl_future_intro (w' := 1) (by simp [timeline])
-    apply Satisfies.btl_future_intro (w' := 2) (by simp [timeline])
+  · apply Satisfies.btl_future_sometime_intro (w' := 1) (by simp [timeline])
+    apply Satisfies.btl_future_sometime_intro (w' := 2) (by simp [timeline])
     exact Satisfies.true
-  · rw [Satisfies.not_iff_not, Satisfies.btl_future_iff_exists]
+  · rw [Satisfies.not_iff_not, Satisfies.btl_future_sometime_iff]
     rintro ⟨w, hw, h⟩
     exact h hw.1.symm
 
 -- Temporal propositions support the existing modal automation and equivalence API.
 example (m : BTL.Model World Atom) (hr : m.r w w') (φ : BTL.Proposition Atom)
     (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨F⟩φ] := by
-  rw [Satisfies.btl_future_iff_exists]
+  rw [Satisfies.btl_future_sometime_iff]
   exact ⟨w', hr, h⟩
 
 example (m : BTL.Model World Atom) (φ : BTL.Proposition Atom) :

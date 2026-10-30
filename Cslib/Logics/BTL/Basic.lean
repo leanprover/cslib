@@ -110,36 +110,36 @@ variable {m : BTL.Model World Atom} {w w' : World} {φ : BTL.Proposition Atom}
 theorem Satisfies.btl_atom_iff {a : Atom} : ⇓BTL[m,w ⊨ a] ↔ m.v w a := Iff.rfl
 
 @[scoped grind =]
-theorem Satisfies.btl_future_iff_exists : ⇓BTL[m,w ⊨ d⟨F⟩φ] ↔ ∃ w', m.r w w' ∧ ⇓BTL[m,w' ⊨ φ] :=
+theorem Satisfies.btl_future_sometime_iff : ⇓BTL[m,w ⊨ d⟨F⟩φ] ↔ ∃ w', m.r w w' ∧ ⇓BTL[m,w' ⊨ φ] :=
   Satisfies.dynDiamond_iff_exists
 
 @[scoped grind =]
-theorem Satisfies.btl_past_iff_exists : ⇓BTL[m,w ⊨ d⟨P⟩φ] ↔ ∃ w', m.r w' w ∧ ⇓BTL[m,w' ⊨ φ] :=
+theorem Satisfies.btl_past_sometime_iff : ⇓BTL[m,w ⊨ d⟨P⟩φ] ↔ ∃ w', m.r w' w ∧ ⇓BTL[m,w' ⊨ φ] :=
   Satisfies.dynDiamond_iff_exists
 
 @[scoped grind =]
-theorem Satisfies.btl_always_iff_forall : ⇓BTL[m,w ⊨ d[F]φ] ↔ ∀ w', m.r w w' → ⇓BTL[m,w' ⊨ φ] :=
+theorem Satisfies.btl_future_always_iff : ⇓BTL[m,w ⊨ d[F]φ] ↔ ∀ w', m.r w w' → ⇓BTL[m,w' ⊨ φ] :=
   Satisfies.dynBox_iff_forall
 
 @[scoped grind =]
-theorem Satisfies.btl_hasAlwaysBeen_iff_forall :
+theorem Satisfies.btl_past_always_iff :
     ⇓BTL[m,w ⊨ d[P]φ] ↔ ∀ w', m.r w' w → ⇓BTL[m,w' ⊨ φ] := Satisfies.dynBox_iff_forall
 
 @[modal ⇒]
-theorem Satisfies.btl_future_intro (hr : m.r w w') (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨F⟩φ] :=
-  btl_future_iff_exists.mpr ⟨w', hr, h⟩
+theorem Satisfies.btl_future_sometime_intro (hr : m.r w w') (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨F⟩φ] :=
+  btl_future_sometime_iff.mpr ⟨w', hr, h⟩
 
 @[modal ⇒]
-theorem Satisfies.btl_past_intro (hr : m.r w' w) (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨P⟩φ] :=
-  btl_past_iff_exists.mpr ⟨w', hr, h⟩
+theorem Satisfies.btl_past_sometime_intro (hr : m.r w' w) (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨P⟩φ] :=
+  btl_past_sometime_iff.mpr ⟨w', hr, h⟩
 
 @[modal ⇒]
-theorem Satisfies.btl_always_elim (h : ⇓BTL[m,w ⊨ d[F]φ]) (hr : m.r w w') : ⇓BTL[m,w' ⊨ φ] :=
-  btl_always_iff_forall.mp h w' hr
+theorem Satisfies.btl_future_always_elim (h : ⇓BTL[m,w ⊨ d[F]φ]) (hr : m.r w w') : ⇓BTL[m,w' ⊨ φ] :=
+  btl_future_always_iff.mp h w' hr
 
 @[modal ⇒]
-theorem Satisfies.btl_hasAlwaysBeen_elim (h : ⇓BTL[m,w ⊨ d[P]φ]) (hr : m.r w' w) : ⇓BTL[m,w' ⊨ φ] :=
-  btl_hasAlwaysBeen_iff_forall.mp h w' hr
+theorem Satisfies.btl_past_always_elim (h : ⇓BTL[m,w ⊨ d[P]φ]) (hr : m.r w' w) : ⇓BTL[m,w' ⊨ φ] :=
+  btl_past_always_iff.mp h w' hr
 
 /-- If a proposition holds now, then it is always going to be the case that it was true. -/
 theorem Satisfies.btl_future_past : ⇓BTL[m,w ⊨ φ → d[F](d⟨P⟩φ)] :=
