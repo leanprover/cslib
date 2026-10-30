@@ -70,6 +70,23 @@ abbrev Circuit.id (σ : Signature) (inputCount : Nat) : Circuit σ inputCount in
 @[simp] theorem Circuit.outputs_wiring (select : Fin outputCount → Fin inputCount) :
     (Circuit.wiring σ select).outputs = fun output => Wire.input (select output) := rfl
 
+/-- The set of inputs that the circuit is connected to. -/
+protected def Circuit.support (c : Circuit σ inputCount outputCount) : Set (Fin inputCount) :=
+  c.program.support ∪ {input | ∃ output, c.outputs output = .input input}
+
+theorem Circuit.support_program_union_iUnion (c : Circuit σ inputCount outputCount) :
+    c.program.support ∪ ⋃ i, (c.outputs i).support = c.support := by
+  ext
+  simp [Circuit.support]
+
+theorem Circuit.support_program_subset_support (c : Circuit σ inputCount outputCount) :
+    c.program.support ⊆ c.support :=
+  Set.subset_union_left
+
+theorem Circuit.support_outputs_subset_support (c : Circuit σ inputCount outputCount)
+    (i : Fin outputCount) : (c.outputs i).support ⊆ c.support :=
+  fun _ h ↦ .inr ⟨i, by simpa using h⟩
+
 /-- Every gate in a circuit has at most `r` arguments. -/
 def Circuit.FanInAtMost (c : Circuit σ inputCount outputCount) (r : Nat) : Prop :=
   c.program.FanInAtMost r

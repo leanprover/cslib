@@ -77,6 +77,24 @@ def Line.mapWires
     (argument : Fin (σ.Arity line.op)) :
     (line.mapWires wireMap).wires argument = wireMap (line.wires argument) := rfl
 
+/-- The set of inputs that the line is connected to. -/
+protected def Line.support (l : Line σ inputCount gateCount) : Set (Fin inputCount) :=
+  {input | ∃ i, l.wires i = .input input}
+
+@[simp]
+theorem Line.mem_support {l : Line σ inputCount gateCount} {input : Fin inputCount} :
+    input ∈ l.support ↔ ∃ i, l.wires i = .input input :=
+  .rfl
+
+theorem Line.iUnion_support_wires (l : Line σ inputCount gateCount) :
+    ⋃ i, (l.wires i).support = l.support := by
+  ext
+  simp
+
+theorem Line.support_wires_subset_support (l : Line σ inputCount gateCount)
+    (i : Fin (σ.Arity l.op)) : (l.wires i).support ⊆ l.support :=
+  fun _ h ↦ ⟨i, by simpa using h⟩
+
 /-- A topologically ordered straight-line program, indexed by its gate count. -/
 inductive Program (σ : Signature.{v}) (inputCount : Nat) : Nat → Type v where
   | empty : Program σ inputCount 0
@@ -157,6 +175,29 @@ theorem Program.foldr_rel (p : Program σ inputCount gateCount) (R : α → β �
   induction p generalizing a b with
   | empty => exact hinit
   | gate q line ih => exact ih (hstep line hinit)
+
+/-- The set of inputs that the program is connected to. -/
+protected def Program.support {gateCount : ℕ} :
+    Program σ inputCount gateCount → Set (Fin inputCount)
+  | .empty => ∅
+  | .gate p l => p.support ∪ l.support
+
+@[simp]
+theorem Program.support_empty : (.empty : Program σ inputCount 0).support = ∅ :=
+  rfl
+
+@[simp]
+theorem Program.support_gate (p : Program σ inputCount gateCount)
+    (l : Line σ inputCount gateCount) : (p.gate l).support = p.support ∪ l.support :=
+  rfl
+
+theorem Program.support_subset_support_gate (p : Program σ inputCount gateCount)
+    (l : Line σ inputCount gateCount) : p.support ⊆ (p.gate l).support :=
+  Set.subset_union_left
+
+theorem Program.lineSupport_subset_support_gate (p : Program σ inputCount gateCount)
+    (l : Line σ inputCount gateCount) : l.support ⊆ (p.gate l).support :=
+  Set.subset_union_right
 
 /-- Every gate in a program has at most `r` arguments. -/
 def Program.FanInAtMost {gateCount : Nat} : (program : Program σ inputCount gateCount) → Nat → Prop
