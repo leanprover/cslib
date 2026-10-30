@@ -38,7 +38,6 @@ namespace Xi
 variable {R : Term Var → Term Var → Prop} {M N : Term Var}
 
 /-- The right side of a congruence step is locally closed. -/
-@[scoped grind →]
 lemma step_lc_r (hR : ∀ {M' N'}, R M' N' → LC N') (step : Xi R M N) : LC N := by
   induction step with
   | base h => exact hR h
