@@ -58,6 +58,27 @@ def Line.equiv (σ : Signature) (inputCount gateCount : Nat) :
   left_inv _ := rfl
   right_inv _ := rfl
 
+@[ext (iff := false)]
+protected theorem Line.ext {l₁ l₂ : Line σ inputCount gateCount} (hop : l₁.op = l₂.op)
+    (hw : l₁.wires = hop ▸ l₂.wires) : l₁ = l₂ := by
+  cases l₁
+  cases l₂
+  cases hop
+  dsimp only at hw
+  rw [hw]
+
+@[implicit_reducible, simps -fullyApplied op wires]
+def Line.mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (l : Line σ inputCount gateCount) : Line σ inputCount' gateCount where
+  op := l.op
+  wires := .mapInputs f ∘ l.wires
+
+@[simp]
+theorem Line.mapInputs_mapInputs {inputCount' inputCount'' : ℕ}
+    (g : Fin inputCount' → Fin inputCount'') (f : Fin inputCount → Fin inputCount')
+    (l : Line σ inputCount gateCount) : (l.mapInputs f).mapInputs g = l.mapInputs (g ∘ f) := by
+  ext <;> simp
+
 /-- Apply a function to every wire read by a line. -/
 def Line.mapWires
     (line : Line σ sourceInputCount sourceGateCount)
@@ -157,6 +178,17 @@ theorem Program.foldr_rel (p : Program σ inputCount gateCount) (R : α → β �
   induction p generalizing a b with
   | empty => exact hinit
   | gate q line ih => exact ih (hstep line hinit)
+
+def Program.mapInputs {gateCount inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') :
+    Program σ inputCount gateCount → Program σ inputCount' gateCount
+  | .empty => .empty
+  | .gate p l => .gate (p.mapInputs f) (l.mapInputs f)
+
+@[simp]
+theorem Program.mapInputs_mapInputs {inputCount' inputCount'' : ℕ}
+    (g : Fin inputCount' → Fin inputCount'') (f : Fin inputCount → Fin inputCount')
+    (p : Program σ inputCount gateCount) : (p.mapInputs f).mapInputs g = p.mapInputs (g ∘ f) := by
+  induction p <;> simp! [*]
 
 /-- Every gate in a program has at most `r` arguments. -/
 def Program.FanInAtMost {gateCount : Nat} : (program : Program σ inputCount gateCount) → Nat → Prop
