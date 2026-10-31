@@ -993,24 +993,19 @@ def Proof.bangCutAdm [DecidableEq Atom]
     {Γ Δ : List (Proposition Atom)}
     (p : CF⇓((!a) ::ₘ Γ)) (q : CF⇓(ʔ(a⫠) ::ₘ Δ)) :
     CF⇓((Γ : Sequent Atom) + Δ) := by
-  have go : ∀ k : ℕ, ∀ {Γ Δ : List (Proposition Atom)}
-      (p : CF⇓((!a) ::ₘ Γ)) (q : CF⇓(ʔ(a⫠) ::ₘ Δ)),
-      p.val.height = k → CF⇓((Γ : Sequent Atom) + Δ) := by
-    intro k
-    induction k using Nat.strongRec with | ind k ih => ?_
-    intro Γ Δ p q hk
-    let recur {Γ' : List (Proposition Atom)}
-        (p' : CF⇓((!a) ::ₘ Γ')) (hlt : p'.val.height < p.val.height) :
-        CF⇓((Γ' : Sequent Atom) + Δ) :=
-      ih p'.val.height (by lia) p' q rfl
-    rcases Proof.cutStep (a := !a) (by intro b hb; cases hb)
-        p.val p.property rfl q recur with v | r
-    · match v with
-      | .bang hG p0 =>
-          exact Proof.questMulticut (a := a) (n := 1) cutSmaller hG p0
-            (q.rwConclusion rfl)
-    · exact r
-  exact go p.val.height p q rfl
+  let recur {Γ' : List (Proposition Atom)}
+      (p' : CF⇓((!a) ::ₘ Γ')) (hlt : p'.val.height < p.val.height) :
+      CF⇓((Γ' : Sequent Atom) + Δ) :=
+    Proof.bangCutAdm cutSmaller p' q
+  rcases Proof.cutStep (a := !a) (by intro b hb; cases hb)
+      p.val p.property rfl q recur with v | r
+  · match v with
+    | .bang hG p0 =>
+        exact Proof.questMulticut (a := a) (n := 1) cutSmaller hG p0
+          (q.rwConclusion rfl)
+  · exact r
+termination_by p.val.height
+decreasing_by assumption
 
 /-- Reverse the exponential cut orientation using `bangCutAdm`, duality, and exchange.
 This is a wrapper, not a recursive call that swaps premises at the same measure. -/
@@ -1071,29 +1066,24 @@ def Proof.cutAdmNonExponential [DecidableEq Atom]
     (cutSmaller : CutAdmissibleBelow Atom a.rank)
     (notQuest : ∀ b, a ≠ ʔb)
     (dualNotQuest : ∀ b, a⫠ ≠ ʔb) : CutAdmissibleAt a := by
-  have go : ∀ k : ℕ, ∀ {Γ Δ : List (Proposition Atom)}
-      (p : CF⇓(a ::ₘ Γ)) (q : CF⇓(a⫠ ::ₘ Δ)),
-      p.val.height + q.val.height = k → CF⇓((Γ : Sequent Atom) + Δ) := by
-    intro k
-    induction k using Nat.strongRec with | ind k ih => ?_
-    intro Γ Δ p q hk
-    let recurLeft {Γ' : List (Proposition Atom)}
-        (p' : CF⇓(a ::ₘ Γ')) (hlt : p'.val.height < p.val.height) :
-        CF⇓((Γ' : Sequent Atom) + Δ) :=
-      ih (p'.val.height + q.val.height) (by lia) p' q rfl
-    rcases Proof.cutStep notQuest p.val p.property rfl q recurLeft with vp | r
-    · let p' : CF⇓((a⫠)⫠ ::ₘ Γ) :=
-        p.rwConclusion (by simp [Proposition.dual_involution a])
-      let recurRight {Δ' : List (Proposition Atom)}
-        (q' : CF⇓(a⫠ ::ₘ Δ')) (hlt : q'.val.height < q.val.height) :
-          CF⇓((Δ' : Sequent Atom) + Γ) :=
-        (ih (p.val.height + q'.val.height) (by lia) p q' rfl).rwConclusion
-      rcases Proof.cutStep dualNotQuest q.val q.property rfl p' recurRight with vq | r
-      · exact Proof.cutPrincipal cutSmaller vp vq
-      · exact r.rwConclusion
-    · exact r
   intro Γ Δ p q
-  exact go (p.val.height + q.val.height) p q rfl
+  let recurLeft {Γ' : List (Proposition Atom)}
+      (p' : CF⇓(a ::ₘ Γ')) (hlt : p'.val.height < p.val.height) :
+      CF⇓((Γ' : Sequent Atom) + Δ) :=
+    Proof.cutAdmNonExponential cutSmaller notQuest dualNotQuest p' q
+  rcases Proof.cutStep notQuest p.val p.property rfl q recurLeft with vp | r
+  · let p' : CF⇓((a⫠)⫠ ::ₘ Γ) :=
+      p.rwConclusion (by simp [Proposition.dual_involution a])
+    let recurRight {Δ' : List (Proposition Atom)}
+      (q' : CF⇓(a⫠ ::ₘ Δ')) (hlt : q'.val.height < q.val.height) :
+        CF⇓((Δ' : Sequent Atom) + Γ) :=
+      (Proof.cutAdmNonExponential cutSmaller notQuest dualNotQuest p q').rwConclusion
+    rcases Proof.cutStep dualNotQuest q.val q.property rfl p' recurRight with vq | r
+    · exact Proof.cutPrincipal cutSmaller vp vq
+    · exact r.rwConclusion
+  · exact r
+termination_by Γ Δ p q => p.val.height + q.val.height
+decreasing_by all_goals lia
 
 /-- The proposition-size induction step for cut admissibility.
 Dispatches to `bangCutAdm`, `questCutAdm`, or `cutAdmNonExponential` depending on
