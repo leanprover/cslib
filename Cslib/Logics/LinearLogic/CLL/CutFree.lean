@@ -492,15 +492,10 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
       ∀ {n : ℕ} {Δ : List (Proposition Atom)},
         Θ = Multiset.replicate n (ʔ(a⫠)) + Δ →
         CF⇓((Γ : Sequent Atom) + Δ)
-  let ax : ∀ {c : Proposition Atom} {n : ℕ} {Δ : List (Proposition Atom)},
-      c ::ₘ ([c⫠] : List (Proposition Atom)) = Multiset.replicate n (ʔ(a⫠)) + Δ →
-      CF⇓((Γ : Sequent Atom) + Δ) :=
-    fun {c} {n} {Δ} h =>
-      Proof.questMulticutAx (a := a) (Γ := Γ) hΓ p h
   (Proof.IsCutFree.rec
       (motive := motive)
       /- ax -/
-      (ax := ax)
+      (ax := Proof.questMulticutAx hΓ p)
       /- one -/
       (one := by
         intro n Δ h
