@@ -117,47 +117,23 @@ def Proof.IsCutFree.rec
       @motive (a ::ₘ Γ) p hp →
       @motive ((!a) ::ₘ Γ) (.bang hΓ p) (isCutFree_bang hp))
     {Γ} {p} (h : p.IsCutFree) : @motive Γ p h :=
-  match p, h with
-  | .ax, _ => ax
-  | .one, _ => one
-  | .top, _ => top
-  | .bot p, hp =>
-    bot p (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract bang
-      (p := p) hp)
-  | .parr p, hp =>
-    parr p (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract bang
-      (p := p) hp)
-  | .tensor p q, hpq =>
-    tensor p q
-      (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract bang
-        hpq.1)
-      (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract bang
-        hpq.2)
-  | .oplus₁ p, hp =>
-    oplus₁ p (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract
-      bang (p := p) hp)
-  | .oplus₂ p, hp =>
-    oplus₂ p (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract
-      bang (p := p) hp)
-  | .with p q, hpq =>
-    «with» p q
-      (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract bang
-        hpq.1)
-      (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract bang
-        hpq.2)
-  | .quest p, hp =>
-    quest p (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract
-      bang (p := p) hp)
-  | .weaken p, hp =>
-    weaken p (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract
-      bang (p := p) hp)
-  | .contract p, hp =>
-    contract p (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract
-      bang (p := p) hp)
-  | .bang hΓ p, hp =>
-    bang hΓ p (IsCutFree.rec ax one top bot parr tensor oplus₁ oplus₂ «with» quest weaken contract
-      bang (p := p) hp)
-  | .cut _ _, h => nomatch h
+  let rec go {Γ : Sequent Atom} {p : Proof Γ} (h : p.IsCutFree) : @motive Γ p h :=
+    match p, h with
+    | .ax, _ => ax
+    | .one, _ => one
+    | .top, _ => top
+    | .bot p, hp => bot p (go (p := p) hp)
+    | .parr p, hp => parr p (go (p := p) hp)
+    | .tensor p q, hpq => tensor p q (go hpq.1) (go hpq.2)
+    | .oplus₁ p, hp => oplus₁ p (go (p := p) hp)
+    | .oplus₂ p, hp => oplus₂ p (go (p := p) hp)
+    | .with p q, hpq => «with» p q (go hpq.1) (go hpq.2)
+    | .quest p, hp => quest p (go (p := p) hp)
+    | .weaken p, hp => weaken p (go (p := p) hp)
+    | .contract p, hp => contract p (go (p := p) hp)
+    | .bang hΓ p, hp => bang hΓ p (go (p := p) hp)
+    | .cut _ _, h => nomatch h
+  go h
 
 /-- Transporting a conclusion preserves cut-freeness. -/
 @[simp, scoped grind .]
