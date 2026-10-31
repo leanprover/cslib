@@ -382,9 +382,9 @@ abbrev CutAdmissibleAt (a : Proposition Atom) := ∀ {Γ Δ : List (Proposition 
   CF⇓(a ::ₘ Γ) → CF⇓(a⫠ ::ₘ Δ) → CF⇓((Γ : Sequent Atom) + Δ)
 
 /-- The outer induction hypothesis for cut admissibility: for all propositions `a` with
-`sizeOf a < rank`, cut is admissible at `a`. -/
-abbrev CutAdmissibleBelow (Atom : Type u) (rank : ℕ) :=
-  ∀ {a : Proposition Atom}, a.rank < rank → CutAdmissibleAt a
+`sizeOf a < bound`, cut is admissible at `a`. -/
+abbrev CutAdmissibleBelow (Atom : Type u) (bound : ℕ) :=
+  ∀ {a : Proposition Atom}, sizeOf a < bound → CutAdmissibleAt a
 
 /-- Locate a selected question mark or a residual head using `Sequent.splitReplicateCons`. -/
 def splitHead [DecidableEq Atom] {a b : Proposition Atom} {Θ : Sequent Atom} {n : ℕ}
@@ -482,11 +482,11 @@ def Proof.questMulticutAx [DecidableEq Atom] {a : Proposition Atom}
 /-- Exponential/multicut helper: given `p : CF⇓(a ::ₘ Γ)` (the "substitutend") and
 `q : CF⇓(Multiset.replicate n (ʔ(a⫠)) + Δ)` (the "supply" with `n` selected dual question marks),
 produce `CF⇓((Γ : Sequent) + Δ)`. -/
-def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom (!a).rank)
+def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom (sizeOf (!a)))
     {Γ Δ : List (Proposition Atom)} (hΓ : Γ.allQuest) (p : CF⇓(a ::ₘ Γ)) {n : ℕ}
     (q : CF⇓(Multiset.replicate n (ʔ(a⫠)) + Δ)) : CF⇓((Γ : Sequent Atom) + Δ) :=
   let hΓm : Sequent.allQuest (Γ : Sequent Atom) := by simpa using hΓ
-  let haSmall : a.rank < (!a).rank := by simp
+  let haSmall : sizeOf a < sizeOf (!a) := by simp
   let motive : {Θ : Sequent Atom} → {r : Proof Θ} → (hr : r.IsCutFree) → Type u :=
     fun {Θ} {_} _ =>
       ∀ {n : ℕ} {Δ : List (Proposition Atom)},
@@ -939,7 +939,7 @@ def Proof.cutStep [DecidableEq Atom]
 /-- Cut a bang proposition by commuting through its supplying proof to an axiom or promotion.
 At promotion, delegates to `questMulticut` with one selected occurrence. -/
 def Proof.bangCutAdm [DecidableEq Atom]
-    (cutSmaller : CutAdmissibleBelow Atom (!a).rank)
+    (cutSmaller : CutAdmissibleBelow Atom (sizeOf (!a)))
     {Γ Δ : List (Proposition Atom)}
     (p : CF⇓((!a) ::ₘ Γ)) (q : CF⇓(ʔ(a⫠) ::ₘ Δ)) :
     CF⇓((Γ : Sequent Atom) + Δ) := by
@@ -960,13 +960,13 @@ decreasing_by assumption
 /-- Reverse the exponential cut orientation using `bangCutAdm`, duality, and exchange.
 This is a wrapper, not a recursive call that swaps premises at the same measure. -/
 def Proof.questCutAdm [DecidableEq Atom]
-    (cutSmaller : CutAdmissibleBelow Atom (ʔa).rank)
+    (cutSmaller : CutAdmissibleBelow Atom (sizeOf (ʔa)))
     {Γ Δ : List (Proposition Atom)}
     (p : CF⇓(ʔa ::ₘ Γ)) (q : CF⇓((!(a⫠)) ::ₘ Δ)) :
     CF⇓((Γ : Sequent Atom) + Δ) := by
-  have hsize : (!(a⫠)).rank = (ʔa).rank := by
+  have hsize : sizeOf (!(a⫠)) = sizeOf (ʔa) := by
     simp
-  let cutSmaller' : CutAdmissibleBelow Atom (!(a⫠)).rank :=
+  let cutSmaller' : CutAdmissibleBelow Atom (sizeOf (!(a⫠))) :=
     fun {b} hb => cutSmaller (a := b) (by simpa only [hsize] using hb)
   let p' : CF⇓(ʔ((a⫠)⫠) ::ₘ Γ) := p.rwConclusion (by simp [Proposition.dual_involution a])
   exact (Proof.bangCutAdm (a := a⫠) cutSmaller' q p').rwConclusion
@@ -976,7 +976,7 @@ open scoped Proposition
 /-- Reduce a pair of principal rules whose conclusions match the cut proposition.
 Every recursive call is on a proper subproposition of the original cut proposition,
 so termination is guaranteed by proposition size. -/
-def Proof.cutPrincipal {a : Proposition Atom} (cutSmaller : CutAdmissibleBelow Atom a.rank)
+def Proof.cutPrincipal {a : Proposition Atom} (cutSmaller : CutAdmissibleBelow Atom (sizeOf a))
     {Γ Δ : List (Proposition Atom)}
   (vp : Proof.CutPrincipal Γ a) (vq : Proof.CutPrincipal Δ a⫠) :
     CF⇓((Γ : Sequent Atom) + Δ) :=
@@ -986,16 +986,16 @@ def Proof.cutPrincipal {a : Proposition Atom} (cutSmaller : CutAdmissibleBelow A
   | .top, vq => nomatch vq
   | .bang _ _, vq => nomatch vq
   | .tensor (c := c) (d := d) (Λ := Λ) (R := R) hG p1 p2, .parr q0 => by
-      have hc : c.rank < (c ⊗ d).rank := by grind
-      have hd : d.rank < (c ⊗ d).rank := by grind
+      have hc : sizeOf c < sizeOf (c ⊗ d) := by grind
+      have hd : sizeOf d < sizeOf (c ⊗ d) := by grind
       let t := cutSmaller (a := c) hc (Γ := Λ) (Δ := d⫠ :: Δ) p1 q0
       let t' : CF⇓(d⫠ ::ₘ (Λ ++ Δ : List (Proposition Atom))) := t.rwConclusion
       let u := cutSmaller (a := d) hd (Γ := R) (Δ := Λ ++ Δ) p2 t'
       exact u.rwConclusion
   | .parr (c := c) (d := d) p0,
       .tensor (Λ := Λ) (R := R) hD q1 q2 => by
-      have hc : c.rank < (c ⅋ d).rank := by grind
-      have hd : d.rank < (c ⅋ d).rank := by grind
+      have hc : sizeOf c < sizeOf (c ⅋ d) := by grind
+      have hd : sizeOf d < sizeOf (c ⅋ d) := by grind
       let t := cutSmaller (a := c) hc (Γ := d :: Γ) (Δ := Λ) p0 q1
       let t' : CF⇓(d ::ₘ (Γ ++ Λ : List (Proposition Atom))) := t.rwConclusion
       let u := cutSmaller (a := d) hd (Γ := Γ ++ Λ) (Δ := R) t' q2
@@ -1013,7 +1013,7 @@ def Proof.cutPrincipal {a : Proposition Atom} (cutSmaller : CutAdmissibleBelow A
 sum of premise heights, with commuting cases for non-principal rules.
 Only callable when neither `a` nor `a⫠` is a question mark. -/
 def Proof.cutAdmNonExponential [DecidableEq Atom]
-    (cutSmaller : CutAdmissibleBelow Atom a.rank)
+    (cutSmaller : CutAdmissibleBelow Atom (sizeOf a))
     (notQuest : ∀ b, a ≠ ʔb)
     (dualNotQuest : ∀ b, a⫠ ≠ ʔb) : CutAdmissibleAt a := by
   intro Γ Δ p q
@@ -1039,7 +1039,7 @@ decreasing_by all_goals lia
 Dispatches to `bangCutAdm`, `questCutAdm`, or `cutAdmNonExponential` depending on
 the top-level connective. -/
 def Proof.cutAdmOfSmaller [DecidableEq Atom]
-    (cutSmaller : CutAdmissibleBelow Atom a.rank) : CutAdmissibleAt a := by
+    (cutSmaller : CutAdmissibleBelow Atom (sizeOf a)) : CutAdmissibleAt a := by
   cases a <;> first
     | exact Proof.bangCutAdm cutSmaller
     | exact Proof.questCutAdm cutSmaller
@@ -1049,13 +1049,13 @@ def Proof.cutAdmOfSmaller [DecidableEq Atom]
 
 /-- The core cut admissibility implementation: given decidable atom equality and explicit
 list sequents, combine cut-free proofs of dual distinguished propositions into a cut-free
-proof of the sum of their residual sequents. Recurses on proposition rank. -/
+proof of the sum of their residual sequents. Recurses on proposition size. -/
 def Proof.cutAdmImpl {a : Proposition Atom} [DecidableEq Atom]
     {Γ Δ : List (Proposition Atom)}
   (p : CF⇓(a ::ₘ Γ)) (q : CF⇓(a⫠ ::ₘ Δ)) :
     CF⇓((Γ : Sequent Atom) + Δ) :=
   Proof.cutAdmOfSmaller (fun {c} _hc {Γ Δ} p' q' => Proof.cutAdmImpl (a := c) p' q') p q
-termination_by a.rank
+termination_by sizeOf a
 decreasing_by exact _hc
 
 /-- Public entry point for cut admissibility: given cut-free proofs of `a ::ₘ Γ` and

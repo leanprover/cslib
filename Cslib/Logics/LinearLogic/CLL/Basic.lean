@@ -65,18 +65,6 @@ instance : Bot (Proposition Atom) := ⟨.bot⟩
 @[inherit_doc] scoped prefix:95 "!" => Proposition.bang
 @[inherit_doc] scoped prefix:95 "ʔ" => Proposition.quest
 
-/-- Explicit structural rank for propositions, used to drive computable strong recursion.
-Every connective adds 1 plus the ranks of its subpropositions. -/
-def Proposition.rank : Proposition Atom → ℕ
-  | .atom _ | .atomDual _ | .one | .zero | .top | .bot => 1
-  | .tensor a b | .parr a b | .oplus a b | .with a b => a.rank + b.rank + 1
-  | .bang a | .quest a => a.rank + 1
-
-/-- Proposition rank agrees with `sizeOf`. -/
-@[simp, scoped grind =]
-theorem Proposition.rank_eq_sizeOf (a : Proposition Atom) : a.rank = sizeOf a := by
-  induction a <;> simp [Proposition.rank, Nat.add_assoc, Nat.add_comm, *]
-
 /-- Propositional contexts (single-hole contexts for propositions). -/
 inductive Proposition.Context (Atom : Type u) : Type u where
   | hole
