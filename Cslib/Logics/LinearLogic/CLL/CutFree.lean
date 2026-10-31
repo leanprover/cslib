@@ -1049,18 +1049,14 @@ def Proof.cutAdmOfSmaller [DecidableEq Atom]
 
 /-- The core cut admissibility implementation: given decidable atom equality and explicit
 list sequents, combine cut-free proofs of dual distinguished propositions into a cut-free
-proof of the sum of their residual sequents. Uses rank-based strong induction. -/
-def Proof.cutAdmImpl [DecidableEq Atom]
+proof of the sum of their residual sequents. Recurses on proposition rank. -/
+def Proof.cutAdmImpl {a : Proposition Atom} [DecidableEq Atom]
     {Γ Δ : List (Proposition Atom)}
   (p : CF⇓(a ::ₘ Γ)) (q : CF⇓(a⫠ ::ₘ Δ)) :
-    CF⇓((Γ : Sequent Atom) + Δ) := by
-  suffices CutAdmissibleAt a from this p q
-  clear p q Γ Δ
-  induction hn : a.rank using Nat.strongRec generalizing a with | ind n ih =>
-  refine Proof.cutAdmOfSmaller ?_
-  intro c hc
-  have hcrank : c.rank < n := by grind only [Proposition.rank_eq_sizeOf]
-  exact @ih c.rank hcrank c rfl
+    CF⇓((Γ : Sequent Atom) + Δ) :=
+  Proof.cutAdmOfSmaller (fun {c} _hc {Γ Δ} p' q' => Proof.cutAdmImpl (a := c) p' q') p q
+termination_by a.rank
+decreasing_by exact _hc
 
 /-- Public entry point for cut admissibility: given cut-free proofs of `a ::ₘ Γ` and
 `a⫠ ::ₘ Δ`, produce a cut-free proof of `(Γ : Sequent) + Δ`. -/
