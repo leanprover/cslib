@@ -72,8 +72,12 @@ public import Cslib.Computability.Circuit.Signature
 public import Cslib.Computability.Circuit.Simulation
 public import Cslib.Computability.Circuit.Synthesis
 public import Cslib.Computability.Circuit.Wire
+public import Cslib.Computability.Distributed.Consistency.Encodable
+public import Cslib.Computability.Distributed.Consistency.Execution
 public import Cslib.Computability.Distributed.Consistency.Hierarchy
 public import Cslib.Computability.Distributed.Consistency.Specification
+public import Cslib.Computability.Distributed.Consistency.Trajectory
+public import Cslib.Computability.Distributed.Consistency.Transition
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.Consensus
