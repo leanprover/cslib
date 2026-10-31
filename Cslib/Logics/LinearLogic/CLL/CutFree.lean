@@ -368,7 +368,7 @@ def splitReplicateCons [DecidableEq Atom] {Γ Δ : List (Proposition Atom)} {n :
 between `Δ` and `Θ`, returning counts `k` and `l` and residual lists. -/
 def splitReplicateAdd [DecidableEq Atom] {Γ Δ Θ : List (Proposition Atom)} {n : ℕ}
     (h : Multiset.replicate n a + Γ = (Δ : Sequent Atom) + Θ) :
-    Σ k : ℕ, Σ l : ℕ, Σ Δ' : List (Proposition Atom),
+    Σ (k l : ℕ) (Δ' : List (Proposition Atom)),
       {Θ' : List (Proposition Atom) // n = k + l ∧
         (Δ : Sequent Atom) = Multiset.replicate k a + Δ' ∧
         (Θ : Sequent Atom) = Multiset.replicate l a + Θ' ∧
