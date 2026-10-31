@@ -267,11 +267,13 @@ theorem eq_zero_of_zero_eq_add (h : (0 : Sequent Atom) = Γ + Δ) : Δ = 0 := by
 
 /-- Distinguish a principal selected occurrence using decidable equality.
 Given `a ::ₘ Γ = b ::ₘ Δ`, either `a = b` and `Γ = Δ`, or `a ≠ b` and the propositions are swapped:
-`Γ = b ::ₘ Λ` and `Δ = a ::ₘ Λ` for some `Λ`. -/
-def splitCons [DecidableEq Atom] {Γ Δ : List (Proposition Atom)} (h : a ::ₘ Γ = b ::ₘ Δ) :
+`Γ = b ::ₘ Λ` and `Δ = a ::ₘ Λ` for some `Λ`.
+The tail `Δ` can be an arbitrary multiset; the residual list is obtained from `Γ`. -/
+def splitCons [DecidableEq Atom] {Γ : List (Proposition Atom)} {Δ : Sequent Atom}
+    (h : a ::ₘ Γ = b ::ₘ Δ) :
     (a = b ∧ (Γ : Sequent Atom) = Δ) ⊕'
       {Θ : List (Proposition Atom) //
-        a ≠ b ∧ (Γ : Sequent Atom) = b ::ₘ Θ ∧ (Δ : Sequent Atom) = a ::ₘ Θ} := by
+        a ≠ b ∧ (Γ : Sequent Atom) = b ::ₘ Θ ∧ Δ = a ::ₘ Θ} := by
   by_cases hab : a = b
   · subst b
     exact .inl ⟨rfl, (Multiset.cons_inj_right a).mp h⟩
@@ -283,7 +285,7 @@ def splitCons [DecidableEq Atom] {Γ Δ : List (Proposition Atom)} (h : a ::ₘ 
       simpa [hba] using hb
     have hΓ : (Γ : Sequent Atom) = b ::ₘ (Γ.erase b : Sequent Atom) := by
       exact Multiset.coe_eq_coe.mpr (List.perm_cons_erase hbΓ)
-    have hΔ : (Δ : Sequent Atom) = a ::ₘ (Γ.erase b : Sequent Atom) := by
+    have hΔ : Δ = a ::ₘ (Γ.erase b : Sequent Atom) := by
       grind only [multiset]
     exact .inr ⟨Γ.erase b, hab, hΓ, hΔ⟩
 
@@ -311,33 +313,32 @@ def splitConsAdd [DecidableEq Atom] {Γ Δ Θ : List (Proposition Atom)}
 
 /-- Given `Multiset.replicate n a + Γ = b ::ₘ Δ`, either the head `b` is one of the
 `n` copies of `a` (so `b = a` and the tail is `replicate (n-1) a + Γ`), or `b` belongs to
-`Γ` (so `Δ = a ::ₘ Γ'` where `Γ = b ::ₘ Γ'`). -/
-def splitReplicateCons [DecidableEq Atom] {Γ Δ : List (Proposition Atom)} {n : ℕ}
+`Γ` (so `Δ = Multiset.replicate n a + Γ'` where `Γ = b ::ₘ Γ'`).
+The tail `Δ` can be an arbitrary multiset; the residual list is obtained from `Γ`. -/
+def splitReplicateCons [DecidableEq Atom] {Γ : List (Proposition Atom)} {Δ : Sequent Atom} {n : ℕ}
     (h : Multiset.replicate n a + Γ = b ::ₘ Δ) :
-    {m : ℕ // n = m + 1 ∧ b = a ∧ (Δ : Sequent Atom) = Multiset.replicate m a + Γ} ⊕'
+    {m : ℕ // n = m + 1 ∧ b = a ∧ Δ = Multiset.replicate m a + Γ} ⊕'
       {Γ' : List (Proposition Atom) // (Γ : Sequent Atom) = b ::ₘ Γ' ∧
-        (Δ : Sequent Atom) = Multiset.replicate n a + Γ'} := by
-  cases n with
-  | zero => exact .inr ⟨Δ, by simpa using h, by simp⟩
-  | succ n =>
-      by_cases hba : b = a
-      · subst b
-        have ht : Multiset.replicate n a + (Γ : Sequent Atom) = (Δ : Sequent Atom) := by
-          grind only [multiset]
-        exact .inl ⟨n, by lia, rfl, ht.symm⟩
-      · have hbΓ : b ∈ (Γ : Sequent Atom) := by
-          have hb : b ∈ Multiset.replicate (Nat.succ n) a + (Γ : Sequent Atom) := by
-            rw [h]
-            simp
-          rcases Multiset.mem_add.mp hb with hb | hb
-          · exact (hba (Multiset.eq_of_mem_replicate hb)).elim
-          · exact hb
-        have hΓ : (Γ : Sequent Atom) = b ::ₘ (Γ.erase b : Sequent Atom) := by
-          exact Multiset.coe_eq_coe.mpr (List.perm_cons_erase hbΓ)
-        have ht : Multiset.replicate (Nat.succ n) a + (Γ.erase b : Sequent Atom) =
-            (Δ : Sequent Atom) := by
-          grind only [multiset]
-        exact .inr ⟨Γ.erase b, hΓ, ht.symm⟩
+        Δ = Multiset.replicate n a + Γ'} := by
+  by_cases hs : n ≠ 0 ∧ b = a
+  · obtain ⟨hn, rfl⟩ := hs
+    cases n with
+    | zero => exact (hn rfl).elim
+    | succ m =>
+        refine .inl ⟨m, rfl, rfl, ?_⟩
+        grind only [multiset]
+  · have hbΓ : b ∈ (Γ : Sequent Atom) := by
+      have hb : b ∈ Multiset.replicate n a + (Γ : Sequent Atom) := by
+        rw [h]
+        simp
+      rcases Multiset.mem_add.mp hb with hb | hb
+      · exact (hs (Multiset.mem_replicate.mp hb)).elim
+      · exact hb
+    have hΓ : (Γ : Sequent Atom) = b ::ₘ (Γ.erase b : Sequent Atom) :=
+      Multiset.coe_eq_coe.mpr (List.perm_cons_erase hbΓ)
+    have ht : Δ = Multiset.replicate n a + (Γ.erase b : Sequent Atom) := by
+      grind only [multiset]
+    exact .inr ⟨Γ.erase b, hΓ, ht⟩
 
 /-- Given `Multiset.replicate n a + Γ = (Δ : Sequent) + Θ`, split the `n` copies of `a`
 between `Δ` and `Θ`, returning counts `k` and `l` and residual lists. -/
@@ -385,9 +386,7 @@ abbrev CutAdmissibleAt (a : Proposition Atom) := ∀ {Γ Δ : List (Proposition 
 abbrev CutAdmissibleBelow (Atom : Type u) (rank : ℕ) :=
   ∀ {a : Proposition Atom}, a.rank < rank → CutAdmissibleAt a
 
-/-- Generalized version of `splitReplicateCons`: the tail is an arbitrary
-multiset, so first compute a list presentation of it.
-Extracted from `Proof.questMulticut`. -/
+/-- Locate a selected question mark or a residual head using `Sequent.splitReplicateCons`. -/
 def splitHead [DecidableEq Atom] {a b : Proposition Atom} {Θ : Sequent Atom} {n : ℕ}
     {Δ : List (Proposition Atom)}
     (h : b ::ₘ Θ = Multiset.replicate n (ʔ(a⫠)) + Δ) :
@@ -397,23 +396,10 @@ def splitHead [DecidableEq Atom] {a b : Proposition Atom} {Θ : Sequent Atom} {n
       Θ = Multiset.replicate m (ʔ(a⫠)) + Δ} ⊕'
     {Δ' : List (Proposition Atom) //
       (Δ : Sequent Atom) = b ::ₘ Δ' ∧
-      Θ = Multiset.replicate n (ʔ(a⫠)) + Δ'} := by
-  let Λ := List.replicate n (ʔ(a⫠)) ++ Δ
-  have hL : (Λ : Sequent Atom) = Multiset.replicate n (ʔ(a⫠)) + Δ := by
-    grind only [multiset]
-  have hΘle : Θ ≤ (Λ : Sequent Atom) := by
-    rw [hL, ← h]
-    exact Multiset.le_cons_self _ _
-  let sΘ := Multiset.scanToList Λ Θ hΘle
-  have hsΘ : (sΘ.1 : Sequent Atom) = Θ := sΘ.2
-  have hs : Multiset.replicate n (ʔ(a⫠)) + Δ = b ::ₘ sΘ.1 := by
-    rw [hsΘ]; exact h.symm
-  rcases Sequent.splitReplicateCons (a := ʔ(a⫠)) hs with hs | hs
-  · exact .inl ⟨hs.1, hs.2.1, hs.2.2.1, hsΘ.symm.trans hs.2.2.2⟩
-  · exact .inr ⟨hs.1, hs.2.1, hsΘ.symm.trans hs.2.2⟩
+      Θ = Multiset.replicate n (ʔ(a⫠)) + Δ'} :=
+  Sequent.splitReplicateCons h.symm
 
-/-- Likewise for a sum whose two summands are arbitrary multisets.
-Extracted from `Proof.questMulticut`. -/
+/-- Split replicated question marks across two arbitrary multiset summands. -/
 def splitAdd [DecidableEq Atom] {a : Proposition Atom} {Θ₁ Θ₂ : Sequent Atom} {n : ℕ}
     {Δ : List (Proposition Atom)}
     (h : Θ₁ + Θ₂ = Multiset.replicate n (ʔ(a⫠)) + Δ) :
@@ -501,10 +487,6 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
     (q : CF⇓(Multiset.replicate n (ʔ(a⫠)) + Δ)) : CF⇓((Γ : Sequent Atom) + Δ) :=
   let hΓm : Sequent.allQuest (Γ : Sequent Atom) := by simpa using hΓ
   let haSmall : a.rank < (!a).rank := by simp
-  /-
-  Generalized version of `splitReplicateCons`: the tail is an arbitrary
-  multiset, so first compute a list presentation of it.
-  -/
   let motive : {Θ : Sequent Atom} → {r : Proof Θ} → (hr : r.IsCutFree) → Type u :=
     fun {Θ} {_} _ =>
       ∀ {n : ℕ} {Δ : List (Proposition Atom)},
@@ -727,12 +709,9 @@ def Sequent.splitCutHead [DecidableEq Atom]
     (a = b ∧ (Γ : Sequent Atom) = Θ) ⊕'
       {Λ : List (Proposition Atom) //
         (Γ : Sequent Atom) = b ::ₘ Λ ∧ Θ = a ::ₘ Λ} := by
-  let s := Sequent.presentTailForCut (a :: Γ) h.symm
-  have hs : a ::ₘ Γ = b ::ₘ s.val := by grind
-  rcases Sequent.splitCons hs with hp | hn
-  · exact .inl ⟨hp.1, hp.2.trans s.property⟩
-  · exact .inr ⟨hn.val, hn.property.2.1,
-      s.property.symm.trans hn.property.2.2⟩
+  rcases Sequent.splitCons h with hp | hn
+  · exact .inl hp
+  · exact .inr ⟨hn.val, hn.property.2⟩
 
 /-- The shape of a cut-free proof when the cut proposition is in principal position.
 Each constructor corresponds to a rule whose conclusion matches the cut proposition.
