@@ -161,8 +161,8 @@ def Proof.IsCutFree.rec
 
 /-- Transporting a conclusion preserves cut-freeness. -/
 @[simp, scoped grind .]
-theorem Proof.isCutFree_rwConclusion (h : Γ = Δ) (p : Proof Γ) (hp : p.IsCutFree) :
-    (p.rwConclusion h).IsCutFree := by grind
+theorem Proof.isCutFree_rwConclusion (h : Γ = Δ) (p : Proof Γ)
+    (hp : p.IsCutFree) : (p.rwConclusion h).IsCutFree := by grind
 
 /-- Tag for the cut-free fragment of CLL. -/
 opaque CF : Type := Empty
@@ -179,9 +179,10 @@ instance : InferenceSystem CF (Sequent Atom) := ⟨CF.Proof⟩
 instance {Γ : Sequent Atom} : Coe (CF⇓Γ) (⇓Γ) where
   coe p := p.val
 
-/-- Rewrites the conclusion of a cut-free proof. -/
-def Proof.rwConclusion {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : CF⇓Γ) : CF⇓Δ :=
-  ⟨CLL.Proof.rwConclusion h p.val, CLL.Proof.isCutFree_rwConclusion h p.val p.property⟩
+/-- Rewrites the conclusion of a cut-free proof.
+If `h` is omitted, tries to prove the equality using `grind only [multiset]`. -/
+def Proof.rwConclusion {Γ Δ : Sequent Atom} (h : Γ = Δ := by grind only [multiset]) (p : CF⇓Γ) :
+    CF⇓Δ := ⟨CLL.Proof.rwConclusion h p.val, CLL.Proof.isCutFree_rwConclusion h p.val p.property⟩
 
 @[simp, scoped grind =]
 theorem Proof.rwConclusion_val {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : CF⇓Γ) :
@@ -249,7 +250,6 @@ def Proof.weakenContext {Γ : List (Proposition Atom)} {Δ : Sequent Atom} (hΓ 
   | [], _ => p.rwConclusion (Multiset.zero_add Δ).symm
   | .quest a :: Γ, hΓ =>
     (Proof.weaken (a := a) (Proof.weakenContext (Γ := Γ) hΓ p)).rwConclusion
-      (Multiset.cons_add (ʔa) Γ Δ).symm
   | .atom _ :: _, hΓ | .atomDual _ :: _, hΓ
     | .one :: _, hΓ | .zero :: _, hΓ | .top :: _, hΓ | .bot :: _, hΓ
     | .tensor _ _ :: _, hΓ | .parr _ _ :: _, hΓ
@@ -261,13 +261,12 @@ via contraction. -/
 def Proof.contractContext {Γ : List (Proposition Atom)} {Δ : Sequent Atom} (hΓ : Γ.allQuest)
     (p : CF⇓((Γ : Sequent Atom) + Γ + Δ)) : CF⇓(Γ + Δ) :=
   match Γ, hΓ with
-  | [], _ => p.rwConclusion (by simp)
+  | [], _ => p.rwConclusion
   | .quest a :: Γ, hΓ =>
     let p' : CF⇓(ʔa ::ₘ ʔa ::ₘ ((Γ : Sequent Atom) + Γ + Δ)) := p.rwConclusion
-      (by grind only [multiset])
     let p' : CF⇓(ʔa ::ₘ ((Γ : Sequent Atom) + Γ + Δ)) := Proof.contract p'
-    let p' : CF⇓((Γ : Sequent Atom) + Γ + (ʔa ::ₘ Δ)) := p'.rwConclusion (by grind only [multiset])
-    (Proof.contractContext (Γ := Γ) (Δ := ʔa ::ₘ Δ) hΓ p').rwConclusion (by grind only [multiset])
+    let p' : CF⇓((Γ : Sequent Atom) + Γ + (ʔa ::ₘ Δ)) := p'.rwConclusion
+    (Proof.contractContext (Γ := Γ) (Δ := ʔa ::ₘ Δ) hΓ p').rwConclusion
   | .atom _ :: _, hΓ | .atomDual _ :: _, hΓ
     | .one :: _, hΓ | .zero :: _, hΓ | .top :: _, hΓ | .bot :: _, hΓ
     | .tensor _ _ :: _, hΓ | .parr _ _ :: _, hΓ
@@ -570,7 +569,7 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
         · rcases hs with ⟨Δ', hΔ, htail⟩
           let r : CF⇓((⊤ : Proposition Atom) ::ₘ ((Γ : Sequent Atom) + Δ')) :=
             CF.Proof.top
-          exact r.rwConclusion (by grind only [multiset]))
+          exact r.rwConclusion)
       /- bot -/
       (bot := by
         intro Θ r hr ih n Δ h
@@ -579,7 +578,7 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
           cases hbad
         · rcases hs with ⟨Δ', hΔ, htail⟩
           let r' := ih (n := n) (Δ := Δ') htail
-          exact (CF.Proof.bot r').rwConclusion (by grind only [multiset]))
+          exact (CF.Proof.bot r').rwConclusion)
       /- parr -/
       (parr := by
         intro c d Θ r hr ih n Δ h
@@ -588,9 +587,8 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
           cases hbad
         · rcases hs with ⟨Δ', hΔ, htail⟩
           let r' := ih (n := n) (Δ := c :: d :: Δ') (by grind only [multiset])
-          let r'' : CF⇓(c ::ₘ d ::ₘ ((Γ : Sequent Atom) + Δ')) :=
-            r'.rwConclusion (by grind only [multiset])
-          exact (CF.Proof.parr r'').rwConclusion (by grind only [multiset]))
+          let r'' : CF⇓(c ::ₘ d ::ₘ ((Γ : Sequent Atom) + Δ')) := r'.rwConclusion
+          exact (CF.Proof.parr r'').rwConclusion)
       /- tensor -/
       (tensor := by
         intro c d Θ₁ Θ₂ r s hr hs ihr ihs n Δ h
@@ -602,13 +600,11 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
             ⟨k, l, Δ₁, Δ₂, hn, h₁, h₂, hres⟩
           let r' := ihr (n := k) (Δ := c :: Δ₁) (by grind only [multiset])
           let s' := ihs (n := l) (Δ := d :: Δ₂) (by grind only [multiset])
-          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ₁)) :=
-            r'.rwConclusion (Multiset.add_cons _ _ _)
-          let s'' : CF⇓(d ::ₘ ((Γ : Sequent Atom) + Δ₂)) :=
-            s'.rwConclusion (Multiset.add_cons _ _ _)
+          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ₁)) := r'.rwConclusion
+          let s'' : CF⇓(d ::ₘ ((Γ : Sequent Atom) + Δ₂)) := s'.rwConclusion
           let t := CF.Proof.tensor r'' s''
           let t' : CF⇓((Γ : Sequent Atom) + Γ + ((c ⊗ d) ::ₘ ((Δ₁ : Sequent Atom) + Δ₂))) :=
-            t.rwConclusion (by grind only [multiset])
+            t.rwConclusion
           let t'' := CF.Proof.contractContext (Γ := Γ) hΓ t'
           exact t''.rwConclusion (by rw [← hres, ← hΔ]))
       /- oplus₁ -/
@@ -619,9 +615,8 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
           cases hbad
         · rcases hs with ⟨Δ', hΔ, htail⟩
           let r' := ih (n := n) (Δ := c :: Δ') (by grind only [multiset])
-          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ')) :=
-            r'.rwConclusion (Multiset.add_cons _ _ _)
-          exact (CF.Proof.oplus₁ (b := d) r'').rwConclusion (by grind only [multiset]))
+          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ')) := r'.rwConclusion
+          exact (CF.Proof.oplus₁ (b := d) r'').rwConclusion)
       /- oplus₂ -/
       (oplus₂ := by
         intro c d Θ r hr ih n Δ h
@@ -630,9 +625,8 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
           cases hbad
         · rcases hs with ⟨Δ', hΔ, htail⟩
           let r' := ih (n := n) (Δ := d :: Δ') (by grind only [multiset])
-          let r'' : CF⇓(d ::ₘ ((Γ : Sequent Atom) + Δ')) :=
-            r'.rwConclusion (Multiset.add_cons _ _ _)
-          exact (CF.Proof.oplus₂ (a := c) r'').rwConclusion (by grind only [multiset]))
+          let r'' : CF⇓(d ::ₘ ((Γ : Sequent Atom) + Δ')) := r'.rwConclusion
+          exact (CF.Proof.oplus₂ (a := c) r'').rwConclusion)
       /- with -/
       («with» := by
         intro c d Θ r s hr hs ihr ihs n Δ h
@@ -642,11 +636,9 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
         · rcases hp with ⟨Δ', hΔ, htail⟩
           let r' := ihr (n := n) (Δ := c :: Δ') (by grind only [multiset])
           let s' := ihs (n := n) (Δ := d :: Δ') (by grind only [multiset])
-          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ')) :=
-            r'.rwConclusion (Multiset.add_cons _ _ _)
-          let s'' : CF⇓(d ::ₘ ((Γ : Sequent Atom) + Δ')) :=
-            s'.rwConclusion (Multiset.add_cons _ _ _)
-          exact (CF.Proof.with r'' s'').rwConclusion (by grind only [multiset]))
+          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ')) := r'.rwConclusion
+          let s'' : CF⇓(d ::ₘ ((Γ : Sequent Atom) + Δ')) := s'.rwConclusion
+          exact (CF.Proof.with r'' s'').rwConclusion)
       /- quest -/
       (quest := by
         intro c Θ r hr ih n Δ h
@@ -668,15 +660,13 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
           Now cut the exposed `a⫠` against `p`.  This duplicates Γ.
           -/
           let t := cutSmaller haSmall p r''
-          let t' : CF⇓((Γ : Sequent Atom) + Γ + Δ) :=
-            t.rwConclusion (Multiset.add_assoc (Γ : Sequent Atom) Γ Δ).symm
+          let t' : CF⇓((Γ : Sequent Atom) + Γ + Δ) := t.rwConclusion
           exact CF.Proof.contractContext (Γ := Γ) hΓ t'
         /- The displayed `?` belongs to the residual sequent. -/
         · rcases hs with ⟨Δ', hΔ, htail⟩
           let r' := ih (n := n) (Δ := c :: Δ') (by grind only [multiset])
-          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ')) :=
-            r'.rwConclusion (Multiset.add_cons _ _ _)
-          exact (CF.Proof.quest r'').rwConclusion (by grind only [multiset]))
+          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ')) := r'.rwConclusion
+          exact (CF.Proof.quest r'').rwConclusion)
       /- weaken -/
       (weaken := by
         intro c Θ r hr ih n Δ h
@@ -687,7 +677,7 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
         /- It introduced an unselected occurrence. -/
         · rcases hs with ⟨Δ', hΔ, htail⟩
           let r' := ih (n := n) (Δ := Δ') htail
-          exact (CF.Proof.weaken (a := c) r').rwConclusion (by grind only [multiset]))
+          exact (CF.Proof.weaken (a := c) r').rwConclusion)
       /- contract -/
       (contract := by
         intro c Θ r hr ih n Δ h
@@ -704,9 +694,8 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
         -/
         · rcases hs with ⟨Δ', hΔ, htail⟩
           let r' := ih (n := n) (Δ := ʔc :: ʔc :: Δ') (by grind only [multiset])
-          let r'' : CF⇓(ʔc ::ₘ ʔc ::ₘ ((Γ : Sequent Atom) + Δ')) :=
-            r'.rwConclusion (by grind only [multiset])
-          exact (CF.Proof.contract r'').rwConclusion (by grind only [multiset]))
+          let r'' : CF⇓(ʔc ::ₘ ʔc ::ₘ ((Γ : Sequent Atom) + Δ')) := r'.rwConclusion
+          exact (CF.Proof.contract r'').rwConclusion)
       /- bang -/
       (bang := by
         intro c Θ hΘ r hr ih n Δ h
@@ -726,9 +715,8 @@ def Proof.questMulticut [DecidableEq Atom] (cutSmaller : CutAdmissibleBelow Atom
               Sequent.allQuest ((Γ : Sequent Atom) +
                 (Δ' : Sequent Atom)) :=
             Sequent.allQuest_add.mpr ⟨hΓm, hΔ'⟩
-          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ')) :=
-            r'.rwConclusion (Multiset.add_cons _ _ _)
-          exact (CF.Proof.bang hside r'').rwConclusion (by grind only [multiset]))
+          let r'' : CF⇓(c ::ₘ ((Γ : Sequent Atom) + Δ')) := r'.rwConclusion
+          exact (CF.Proof.bang hside r'').rwConclusion)
       q.property)
       rfl
 
@@ -842,7 +830,7 @@ def Proof.cutStep [DecidableEq Atom]
         exact .inl .top
       · rcases hn with ⟨Λ, hG, hS⟩
         let t : CF⇓((⊤ : Proposition Atom) ::ₘ ((Λ : Sequent Atom) + Δ)) := CF.Proof.top
-        exact .inr (t.rwConclusion (by grind only [multiset]))
+        exact .inr (t.rwConclusion)
   | .bot (Γ := Θ) s, hs => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -854,8 +842,7 @@ def Proof.cutStep [DecidableEq Atom]
       · rcases hn with ⟨Λ, hG, hS⟩
         let s' : CF⇓(a ::ₘ Λ) := CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓Θ)) hS
         have hlt : s'.val.height < (Proof.bot s).height := by grind [Proof.height]
-        exact .inr ((CF.Proof.bot (recur s' hlt)).rwConclusion
-          (by grind only [multiset]))
+        exact .inr ((CF.Proof.bot (recur s' hlt)).rwConclusion)
   | .parr (a := c) (b := d) (Γ := Θ) s, hs => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -867,11 +854,9 @@ def Proof.cutStep [DecidableEq Atom]
       · rcases hn with ⟨Λ, hG, hS⟩
         let s' : CF⇓(a ::ₘ (c :: d :: Λ : List (Proposition Atom))) :=
           CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓(c ::ₘ d ::ₘ Θ)))
-            (by grind only [multiset])
         have hlt : s'.val.height < (Proof.parr s).height := by grind [Proof.height]
-        let t : CF⇓(c ::ₘ d ::ₘ ((Λ : Sequent Atom) + Δ)) :=
-          (recur s' hlt).rwConclusion (by grind only [multiset])
-        exact .inr ((CF.Proof.parr t).rwConclusion (by grind only [multiset]))
+        let t : CF⇓(c ::ₘ d ::ₘ ((Λ : Sequent Atom) + Δ)) := (recur s' hlt).rwConclusion
+        exact .inr ((CF.Proof.parr t).rwConclusion)
   | .tensor (a := c) (b := d) (Γ := Θ) (Δ := T) s t, hst => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -891,23 +876,17 @@ def Proof.cutStep [DecidableEq Atom]
         · rcases hl with ⟨Λ', hLL, hK⟩
           let s' : CF⇓(a ::ₘ (c :: Λ' : List (Proposition Atom))) :=
             CF.Proof.rwConclusion (p := (⟨s, hst.1⟩ : CF⇓(c ::ₘ Θ)))
-              (by grind only [multiset])
           have hlt : s'.val.height < (Proof.tensor s t).height := by grind [Proof.height]
-          let s'' : CF⇓(c ::ₘ ((Λ' : Sequent Atom) + Δ)) :=
-            (recur s' hlt).rwConclusion (Multiset.cons_add _ _ _)
+          let s'' : CF⇓(c ::ₘ ((Λ' : Sequent Atom) + Δ)) := (recur s' hlt).rwConclusion
           exact .inr
-            ((CF.Proof.tensor s'' (⟨t, hst.2⟩ : CF⇓(d ::ₘ T))).rwConclusion
-              (by grind only [multiset]))
+            ((CF.Proof.tensor s'' (⟨t, hst.2⟩ : CF⇓(d ::ₘ T))).rwConclusion)
         · rcases hr with ⟨R', hRR, hK⟩
           let t' : CF⇓(a ::ₘ (d :: R' : List (Proposition Atom))) :=
             CF.Proof.rwConclusion (p := (⟨t, hst.2⟩ : CF⇓(d ::ₘ T)))
-              (by grind only [multiset])
           have hlt : t'.val.height < (Proof.tensor s t).height := by grind [Proof.height]
-          let t'' : CF⇓(d ::ₘ ((R' : Sequent Atom) + Δ)) :=
-            (recur t' hlt).rwConclusion (Multiset.cons_add _ _ _)
+          let t'' : CF⇓(d ::ₘ ((R' : Sequent Atom) + Δ)) := (recur t' hlt).rwConclusion
           exact .inr
-            ((CF.Proof.tensor (⟨s, hst.1⟩ : CF⇓(c ::ₘ Θ)) t'').rwConclusion
-              (by grind only [multiset]))
+            ((CF.Proof.tensor (⟨s, hst.1⟩ : CF⇓(c ::ₘ Θ)) t'').rwConclusion)
   | .oplus₁ (a := c) (b := d) (Γ := Θ) s, hs => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -918,12 +897,10 @@ def Proof.cutStep [DecidableEq Atom]
         exact .inl (.oplus1 s')
       · rcases hn with ⟨Λ, hG, hS⟩
         let s' : CF⇓(a ::ₘ (c :: Λ : List (Proposition Atom))) :=
-          CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓(c ::ₘ Θ))) (by grind only [multiset])
+          CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓(c ::ₘ Θ)))
         have hlt : s'.val.height < (Proof.oplus₁ (b := d) s).height := by grind [Proof.height]
-        let t : CF⇓(c ::ₘ ((Λ : Sequent Atom) + Δ)) :=
-          (recur s' hlt).rwConclusion (Multiset.cons_add _ _ _)
-        exact .inr ((CF.Proof.oplus₁ (b := d) t).rwConclusion
-          (by grind only [multiset]))
+        let t : CF⇓(c ::ₘ ((Λ : Sequent Atom) + Δ)) := (recur s' hlt).rwConclusion
+        exact .inr ((CF.Proof.oplus₁ (b := d) t).rwConclusion)
   | .oplus₂ (a := c) (b := d) (Γ := Θ) s, hs => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -934,12 +911,10 @@ def Proof.cutStep [DecidableEq Atom]
         exact .inl (.oplus2 s')
       · rcases hn with ⟨Λ, hG, hS⟩
         let s' : CF⇓(a ::ₘ (d :: Λ : List (Proposition Atom))) :=
-          CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓(d ::ₘ Θ))) (by grind only [multiset])
+          CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓(d ::ₘ Θ)))
         have hlt : s'.val.height < (Proof.oplus₂ (a := c) s).height := by grind [Proof.height]
-        let t : CF⇓(d ::ₘ ((Λ : Sequent Atom) + Δ)) :=
-          (recur s' hlt).rwConclusion (Multiset.cons_add _ _ _)
-        exact .inr ((CF.Proof.oplus₂ (a := c) t).rwConclusion
-          (by grind only [multiset]))
+        let t : CF⇓(d ::ₘ ((Λ : Sequent Atom) + Δ)) := (recur s' hlt).rwConclusion
+        exact .inr ((CF.Proof.oplus₂ (a := c) t).rwConclusion)
   | .with (a := c) (b := d) (Γ := Θ) s t, hst => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -953,28 +928,23 @@ def Proof.cutStep [DecidableEq Atom]
       · rcases hn with ⟨Λ, hG, hS⟩
         let s' : CF⇓(a ::ₘ (c :: Λ : List (Proposition Atom))) :=
           CF.Proof.rwConclusion (p := (⟨s, hst.1⟩ : CF⇓(c ::ₘ Θ)))
-            (by grind only [multiset])
         let t' : CF⇓(a ::ₘ (d :: Λ : List (Proposition Atom))) :=
           CF.Proof.rwConclusion (p := (⟨t, hst.2⟩ : CF⇓(d ::ₘ Θ)))
-            (by grind only [multiset])
         have hslt : s'.val.height < (Proof.with s t).height := by grind [Proof.height]
         have htlt : t'.val.height < (Proof.with s t).height := by grind [Proof.height]
-        let s'' : CF⇓(c ::ₘ ((Λ : Sequent Atom) + Δ)) :=
-          (recur s' hslt).rwConclusion (Multiset.cons_add _ _ _)
-        let t'' : CF⇓(d ::ₘ ((Λ : Sequent Atom) + Δ)) :=
-          (recur t' htlt).rwConclusion (Multiset.cons_add _ _ _)
-        exact .inr ((CF.Proof.with s'' t'').rwConclusion (by grind only [multiset]))
+        let s'' : CF⇓(c ::ₘ ((Λ : Sequent Atom) + Δ)) := (recur s' hslt).rwConclusion
+        let t'' : CF⇓(d ::ₘ ((Λ : Sequent Atom) + Δ)) := (recur t' htlt).rwConclusion
+        exact .inr ((CF.Proof.with s'' t'').rwConclusion)
   | .quest (a := c) (Γ := Θ) s, hs => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
       · exact (notQuest c hp.1).elim
       · rcases hn with ⟨Λ, hG, hS⟩
         let s' : CF⇓(a ::ₘ (c :: Λ : List (Proposition Atom))) :=
-          CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓(c ::ₘ Θ))) (by grind only [multiset])
+          CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓(c ::ₘ Θ)))
         have hlt : s'.val.height < (Proof.quest s).height := by grind [Proof.height]
-        let t : CF⇓(c ::ₘ ((Λ : Sequent Atom) + Δ)) :=
-          (recur s' hlt).rwConclusion (Multiset.cons_add _ _ _)
-        exact .inr ((CF.Proof.quest t).rwConclusion (by grind only [multiset]))
+        let t : CF⇓(c ::ₘ ((Λ : Sequent Atom) + Δ)) := (recur s' hlt).rwConclusion
+        exact .inr ((CF.Proof.quest t).rwConclusion)
   | .weaken (a := c) (Γ := Θ) s, hs => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -983,8 +953,7 @@ def Proof.cutStep [DecidableEq Atom]
         let s' : CF⇓(a ::ₘ Λ) := CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓Θ)) hS
         have hlt : s'.val.height < (Proof.weaken (a := c) s).height := by grind [Proof.height]
         exact .inr
-          ((CF.Proof.weaken (a := c) (recur s' hlt)).rwConclusion
-            (by grind only [multiset]))
+          ((CF.Proof.weaken (a := c) (recur s' hlt)).rwConclusion)
   | .contract (a := c) (Γ := Θ) s, hs => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -992,11 +961,9 @@ def Proof.cutStep [DecidableEq Atom]
       · rcases hn with ⟨Λ, hG, hS⟩
         let s' : CF⇓(a ::ₘ (ʔc :: ʔc :: Λ : List (Proposition Atom))) :=
           CF.Proof.rwConclusion (p := (⟨s, hs⟩ : CF⇓(ʔc ::ₘ ʔc ::ₘ Θ)))
-            (by grind only [multiset])
         have hlt : s'.val.height < (Proof.contract s).height := by grind [Proof.height]
-        let t : CF⇓(ʔc ::ₘ ʔc ::ₘ ((Λ : Sequent Atom) + Δ)) :=
-          (recur s' hlt).rwConclusion (by grind only [multiset])
-        exact .inr ((CF.Proof.contract t).rwConclusion (by grind only [multiset]))
+        let t : CF⇓(ʔc ::ₘ ʔc ::ₘ ((Λ : Sequent Atom) + Δ)) := (recur s' hlt).rwConclusion
+        exact .inr ((CF.Proof.contract t).rwConclusion)
   | .bang (a := c) (Γ := Θ) hS s, hs => by
       intro h q recur
       rcases Sequent.splitCutHead h.symm with hp | hn
@@ -1058,7 +1025,6 @@ def Proof.questCutAdm [DecidableEq Atom]
     fun {b} hb => cutSmaller (a := b) (by simpa only [hsize] using hb)
   let p' : CF⇓(ʔ((a⫠)⫠) ::ₘ Γ) := p.rwConclusion (by simp [Proposition.dual_involution a])
   exact (Proof.bangCutAdm (a := a⫠) cutSmaller' q p').rwConclusion
-    (Multiset.add_comm _ _)
 
 open scoped Proposition
 
@@ -1078,19 +1044,17 @@ def Proof.cutPrincipal {a : Proposition Atom} (cutSmaller : CutAdmissibleBelow A
       have hc : c.rank < (c ⊗ d).rank := by grind
       have hd : d.rank < (c ⊗ d).rank := by grind
       let t := cutSmaller (a := c) hc (Γ := Λ) (Δ := d⫠ :: Δ) p1 q0
-      let t' : CF⇓(d⫠ ::ₘ (Λ ++ Δ : List (Proposition Atom))) :=
-        t.rwConclusion (by grind only [multiset])
+      let t' : CF⇓(d⫠ ::ₘ (Λ ++ Δ : List (Proposition Atom))) := t.rwConclusion
       let u := cutSmaller (a := d) hd (Γ := R) (Δ := Λ ++ Δ) p2 t'
-      exact u.rwConclusion (by grind only [multiset])
+      exact u.rwConclusion
   | .parr (c := c) (d := d) p0,
       .tensor (Λ := Λ) (R := R) hD q1 q2 => by
       have hc : c.rank < (c ⅋ d).rank := by grind
       have hd : d.rank < (c ⅋ d).rank := by grind
       let t := cutSmaller (a := c) hc (Γ := d :: Γ) (Δ := Λ) p0 q1
-      let t' : CF⇓(d ::ₘ (Γ ++ Λ : List (Proposition Atom))) :=
-        t.rwConclusion (by grind only [multiset])
+      let t' : CF⇓(d ::ₘ (Γ ++ Λ : List (Proposition Atom))) := t.rwConclusion
       let u := cutSmaller (a := d) hd (Γ := Γ ++ Λ) (Δ := R) t' q2
-      exact u.rwConclusion (by grind only [multiset])
+      exact u.rwConclusion
   | .oplus1 (c := c) (d := d) p0, .with q1 _ =>
       cutSmaller (a := c) (by grind) p0 q1
   | .oplus2 (c := c) (d := d) p0, .with _ q2 =>
@@ -1124,10 +1088,9 @@ def Proof.cutAdmNonExponential [DecidableEq Atom]
         (q' : CF⇓(a⫠ ::ₘ Δ')) (hlt : q'.val.height < q.val.height) :
           CF⇓((Δ' : Sequent Atom) + Γ) :=
         (ih (p.val.height + q'.val.height) (by lia) p q' rfl).rwConclusion
-          (Multiset.add_comm _ _)
       rcases Proof.cutStep dualNotQuest q.val q.property rfl p' recurRight with vq | r
       · exact Proof.cutPrincipal cutSmaller vp vq
-      · exact r.rwConclusion (Multiset.add_comm _ _)
+      · exact r.rwConclusion
     · exact r
   intro Γ Δ p q
   exact go (p.val.height + q.val.height) p q rfl
@@ -1185,7 +1148,7 @@ def Proof.cutElimAux [DecidableEq Atom] {Θ : Sequent Atom} (r : Proof Θ) :
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Λ, hL⟩
       let s' := Proof.cutElimAux s (c :: d :: Λ) (by grind only [multiset])
-      exact (CF.Proof.parr (a := c) (b := d) (Γ := Λ) s').rwConclusion (by grind only [multiset])
+      exact (CF.Proof.parr (a := c) (b := d) (Γ := Λ) s').rwConclusion
   | .tensor (a := c) (b := d) (Γ := Θ) (Δ := T) s t => by
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Κ, hK⟩
@@ -1193,38 +1156,37 @@ def Proof.cutElimAux [DecidableEq Atom] {Θ : Sequent Atom} (r : Proof Θ) :
       let s' := Proof.cutElimAux s (c :: Λ) (by grind only [multiset])
       let t' := Proof.cutElimAux t (d :: R) (by grind only [multiset])
       exact (CF.Proof.tensor (a := c) (b := d) (Γ := Λ) (Δ := R) s' t').rwConclusion
-        (by grind only [multiset])
   | .oplus₁ (a := c) (b := d) (Γ := Θ) s => by
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Λ, hL⟩
       let s' := Proof.cutElimAux s (c :: Λ) (by grind only [multiset])
-      exact (CF.Proof.oplus₁ (a := c) (b := d) (Γ := Λ) s').rwConclusion (by grind only [multiset])
+      exact (CF.Proof.oplus₁ (a := c) (b := d) (Γ := Λ) s').rwConclusion
   | .oplus₂ (a := c) (b := d) (Γ := Θ) s => by
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Λ, hL⟩
       let s' := Proof.cutElimAux s (d :: Λ) (by grind only [multiset])
-      exact (CF.Proof.oplus₂ (a := c) (b := d) (Γ := Λ) s').rwConclusion (by grind only [multiset])
+      exact (CF.Proof.oplus₂ (a := c) (b := d) (Γ := Λ) s').rwConclusion
   | .with (a := c) (b := d) (Γ := Θ) s t => by
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Λ, hL⟩
       let s' := Proof.cutElimAux s (c :: Λ) (by grind only [multiset])
       let t' := Proof.cutElimAux t (d :: Λ) (by grind only [multiset])
-      exact (CF.Proof.with (a := c) (b := d) (Γ := Λ) s' t').rwConclusion (by grind only [multiset])
+      exact (CF.Proof.with (a := c) (b := d) (Γ := Λ) s' t').rwConclusion
   | .quest (a := c) (Γ := Θ) s => by
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Λ, hL⟩
       let s' := Proof.cutElimAux s (c :: Λ) (by grind only [multiset])
-      exact (CF.Proof.quest (a := c) (Γ := Λ) s').rwConclusion (by grind only [multiset])
+      exact (CF.Proof.quest (a := c) (Γ := Λ) s').rwConclusion
   | .weaken (a := c) (Γ := Θ) s => by
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Λ, hL⟩
       let s' := Proof.cutElimAux s Λ hL.symm
-      exact (CF.Proof.weaken (a := c) s').rwConclusion (by grind only [multiset])
+      exact (CF.Proof.weaken (a := c) s').rwConclusion
   | .contract (a := c) (Γ := Θ) s => by
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Λ, hL⟩
       let s' := Proof.cutElimAux s (ʔc :: ʔc :: Λ) (by grind only [multiset])
-      exact (CF.Proof.contract (a := c) (Γ := Λ) s').rwConclusion (by grind only [multiset])
+      exact (CF.Proof.contract (a := c) (Γ := Λ) s').rwConclusion
   | .bang (a := c) (Γ := Θ) hS s => by
       intro Γ h
       rcases Sequent.presentTailForCut Γ h with ⟨Λ, hL⟩
@@ -1232,14 +1194,13 @@ def Proof.cutElimAux [DecidableEq Atom] {Θ : Sequent Atom} (r : Proof Θ) :
       have hLq : Sequent.allQuest (Λ : Sequent Atom) := by
         rw [hL]
         exact hS
-      exact (CF.Proof.bang (a := c) (Γ := Λ) hLq s').rwConclusion (by grind only [multiset])
+      exact (CF.Proof.bang (a := c) (Γ := Λ) hLq s').rwConclusion
   | .cut (a := c) (Γ := Θ) (Δ := T) s t => by
       intro Γ h
       rcases Sequent.presentSumForCut Γ h.symm with ⟨Λ, R, hL, hR⟩
       let s' := Proof.cutElimAux s (c :: Λ) (by grind only [multiset])
       let t' := Proof.cutElimAux t (c⫠ :: R) (by grind only [multiset])
       exact (Proof.cutAdm (a := c) (Γ := Λ) (Δ := R) s' t').rwConclusion
-        (by grind only [multiset])
 
 /-- List-based cut elimination with the concrete list presentation explicit. -/
 def Proof.cutElimList [DecidableEq Atom] {Γ : List (Proposition Atom)}
