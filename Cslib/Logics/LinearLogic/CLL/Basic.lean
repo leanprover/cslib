@@ -49,7 +49,7 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- The "why not" exponential.
   This is written as ʔ, or \_?, to distinguish itself from the lean syntatical hole ? syntax -/
   | quest (a : Proposition Atom)
-deriving DecidableEq, BEq
+deriving DecidableEq
 
 instance : Zero (Proposition Atom) := ⟨.zero⟩
 instance : One (Proposition Atom) := ⟨.one⟩
@@ -65,6 +65,18 @@ instance : Bot (Proposition Atom) := ⟨.bot⟩
 @[inherit_doc] scoped prefix:95 "!" => Proposition.bang
 @[inherit_doc] scoped prefix:95 "ʔ" => Proposition.quest
 
+/-- Explicit structural rank for propositions, used to drive computable strong recursion.
+Every connective adds 1 plus the ranks of its subpropositions. -/
+def Proposition.rank : Proposition Atom → ℕ
+  | .atom _ | .atomDual _ | .one | .zero | .top | .bot => 1
+  | .tensor a b | .parr a b | .oplus a b | .with a b => a.rank + b.rank + 1
+  | .bang a | .quest a => a.rank + 1
+
+/-- Proposition rank agrees with `sizeOf`. -/
+@[simp, scoped grind =]
+theorem Proposition.rank_eq_sizeOf (a : Proposition Atom) : a.rank = sizeOf a := by
+  induction a <;> simp [Proposition.rank, Nat.add_assoc, Nat.add_comm, *]
+
 /-- Propositional contexts (single-hole contexts for propositions). -/
 inductive Proposition.Context (Atom : Type u) : Type u where
   | hole
@@ -78,7 +90,7 @@ inductive Proposition.Context (Atom : Type u) : Type u where
   | withR (a : Proposition Atom) (c : Context Atom)
   | bang (c : Context Atom)
   | quest (c : Context Atom)
-deriving DecidableEq, BEq
+deriving DecidableEq
 
 /-- Replaces the hole in a propositional context with a propositions. -/
 @[simp]
@@ -171,16 +183,67 @@ def Proposition.linImpl (a b : Proposition Atom) : Proposition Atom := a⫠ ⅋ 
 /-- A sequent in CLL is a multiset of propositions. -/
 abbrev Sequent Atom := Multiset (Proposition Atom)
 
-/-- Checks that all propositions in a sequent `Γ` are question marks. -/
-def Sequent.allQuest (Γ : Sequent Atom) :=
+namespace Sequent
+
+/-- Checks that all propositions in a sequent `Γ` are question marks (`ʔ`). -/
+def allQuest (Γ : Sequent Atom) :=
   Γ.map (· matches ʔ_)
   |> Multiset.fold Bool.and true
 
+/-- Checks that all propositions in a list are question marks (`ʔ`). -/
+def _root_.List.allQuest (as : List (Proposition Atom)) :=
+  as.map (· matches ʔ_) |> List.foldr .and true
+
+/-- Checking a list context agrees with checking its multiset coercion. -/
+@[simp, scoped grind =]
+theorem allQuest_coe (Γ : List (Proposition Atom)) : allQuest (Γ : Sequent Atom) = Γ.allQuest :=
+  Multiset.coe_fold_r Bool.and true _
+
+/-- The empty sequent consists of `ʔ`-propositions. -/
+@[simp, scoped grind =]
+theorem allQuest_zero : (0 : Sequent Atom).allQuest := by simp [allQuest]
+
+/-- A cons sequent consists of `ʔ`-propositions exactly when its head and tail do. -/
+theorem allQuest_cons_iff {Γ : Sequent Atom} : allQuest (a ::ₘ Γ) ↔ (∃ b, a = ʔb) ∧ Γ.allQuest := by
+  cases a <;> simp [allQuest]
+
+/-- Adding a `ʔ`-proposition preserves and reflects `allQuest`. -/
+@[simp]
+theorem allQuest_quest_cons {Γ : Sequent Atom} : allQuest (ʔa ::ₘ Γ) ↔ Γ.allQuest := by
+  simp [allQuest]
+
+/-- A sequent containing a `!`-proposition cannot satisfy `allQuest`. -/
+@[simp]
+theorem not_allQuest_bang_cons {Γ : Sequent Atom} : ¬allQuest ((!a) ::ₘ Γ) := by simp [allQuest]
+
+/-- A sum consists of `ʔ`-propositions exactly when both summands do. -/
+@[simp, scoped grind .]
+theorem allQuest_add {Γ Δ : Sequent Atom} : (Γ + Δ).allQuest ↔ Γ.allQuest ∧ Δ.allQuest := by
+  refine Multiset.induction_on Γ ?_ ?_
+  · simp
+  · intro a
+    cases a <;> simp [allQuest]
+
+theorem allQuest_of_le {Γ Δ : Sequent Atom} (h : Γ ≤ Δ) (hΔ : Δ.allQuest) : Γ.allQuest := by
+  obtain ⟨Θ, rfl⟩ := Multiset.le_iff_exists_add.mp h
+  exact (allQuest_add.mp hΔ).1
+
+theorem exists_quest_of_mem_allQuest {Γ : Sequent Atom} (hΓ : Γ.allQuest) (ha : a ∈ Γ) :
+    ∃ b, a = ʔb := by
+  have ha_le : ({a} : Sequent Atom) ≤ Γ := by
+    simpa using ha
+  have hqa : Sequent.allQuest (a ::ₘ (0 : Sequent Atom)) := by
+    simpa using allQuest_of_le ha_le hΓ
+  exact (allQuest_cons_iff.mp hqa).1
+
+
 /-- Judgemental contexts for CLL. -/
-def Sequent.Context Atom := Sequent Atom
+def Context Atom := Sequent Atom
 
 /-- Filling a judgemental context returns a sequent. -/
-def Sequent.Context.fill (Γc : Sequent.Context Atom) (a : Proposition Atom) := a ::ₘ Γc
+def Context.fill (Γc : Sequent.Context Atom) (a : Proposition Atom) := a ::ₘ Γc
+
+end Sequent
 
 instance : HasHContext (Sequent Atom) (Proposition Atom) := ⟨Sequent.Context.fill⟩
 
@@ -210,6 +273,18 @@ instance : HasInferenceSystem (Sequent Atom) := ⟨Proof⟩
 /-- Convenience definition for rewriting conclusions in proofs. -/
 @[scoped grind =]
 def Proof.rwConclusion {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : ⇓Γ) := InferenceSystem.rwConclusion h p
+
+/-- Height of a proof. -/
+def Proof.height {Γ : Sequent Atom} : ⇓Γ → ℕ
+  | .ax | .one | .top => 1
+  | .bot p | .parr p | .oplus₁ p | .oplus₂ p
+    | .quest p | .weaken p | .contract p | .bang _ p => p.height + 1
+  | .cut p q | .tensor p q | .with p q => max p.height q.height + 1
+
+/-- Transporting a conclusion preserves proof height. -/
+@[simp, scoped grind =]
+theorem Proof.rwConclusion_height {Γ Δ : Sequent Atom} (h : Γ = Δ) (p : ⇓Γ) :
+    (p.rwConclusion h).height = p.height := by grind
 
 /-- The axiom, but where the order of propositions is reversed. -/
 @[scoped grind <=]
@@ -593,13 +668,5 @@ def withIdem {a : Proposition Atom} : a & a ≡⇓ a :=
 end Proposition
 
 end LogicalEquiv
-
-/-- A proof is cut-free if it does not contain any applications of rule cut. -/
-def Proof.cutFree {Γ : Sequent Atom} : ⇓Γ → Bool
-  | ax | one | top => true
-  | bot p | parr p | oplus₁ p | oplus₂ p
-    | quest p | weaken p | contract p | bang _ p => p.cutFree
-  | tensor p q | .with p q => p.cutFree && q.cutFree
-  | cut _ _ => false
 
 end Cslib.Logic.CLL
