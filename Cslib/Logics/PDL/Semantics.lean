@@ -50,45 +50,50 @@ def Formula.toUnary :
   | .or φ ψ => .or (toUnary φ) (toUnary ψ)
   | .triangle s φs => .triangle ⟨s, φs ∘ Sum.inl⟩ (fun _ => toUnary (φs (.inr ())))
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_atom (p : Atom) :
     Formula.toUnary (.atom p : Formula Label Atom) = .atom p := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_bot : (⊥ : Formula Label Atom).toUnary = ⊥ := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_top : (⊤ : Formula Label Atom).toUnary = ⊤ := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_not (φ : Formula Label Atom) : (¬φ).toUnary = ¬φ.toUnary := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_or (φ ψ : Formula Label Atom) :
     (φ ∨ ψ).toUnary = (φ.toUnary ∨ ψ.toUnary) := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_and (φ ψ : Formula Label Atom) :
     (φ ∧ ψ).toUnary = (φ.toUnary ∧ ψ.toUnary) := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_imp (φ ψ : Formula Label Atom) :
     (φ → ψ).toUnary = (φ.toUnary → ψ.toUnary) := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_iff (φ ψ : Formula Label Atom) :
     (φ ↔ ψ).toUnary = (φ.toUnary ↔ ψ.toUnary) := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_dynDiamond (a : Program Label Atom) (φ : Formula Label Atom) :
     (d⟨a⟩φ).toUnary = d⟨a⟩(φ.toUnary) := rfl
 
-@[simp, scoped grind =, modal =]
+@[scoped grind =, modal =]
 theorem Formula.toUnary_dynBox (a : Program Label Atom) (φ : Formula Label Atom) :
     (d[a]φ).toUnary = d[a](φ.toUnary) := rfl
 
-/-- Shortcut for `Modal[PDL.Model.toModal m,s ⊨ Formula.toUnary φ]`. -/
-scoped notation "PDL[" m "," s " ⊨ " φ "]" => Modal[PDL.Model.toModal m,s ⊨ Formula.toUnary φ]
+/-- PDL judgement: `φ` holds at `s` in the PDL model `m`. -/
+abbrev judgement (m : Model State Label Atom) (s : State) (φ : Formula Label Atom) :
+    Modal.Judgement State (.mkUnary (Program Label Atom)) Atom :=
+  Modal[m.toModal, s ⊨ φ.toUnary]
+
+/-- Shortcut for `Modal[PDL.Model.toModal m,s ⊨ Formula.toUnary φ]` via `judgement`. -/
+scoped notation "PDL[" m "," s " ⊨ " φ "]" => judgement m s φ
 
 open scoped InferenceSystem
 
@@ -172,24 +177,24 @@ theorem dual : ⇓PDL[m, s ⊨ d⟨a⟩p ↔ ¬d[a](¬p)] := by grind [modal]
 /-- (iii) Composition: valid on frames regular for `;'`. -/
 theorem seq (h : m.lts.IsRegularPDL) :
     ⇓PDL[m, s ⊨ d⟨a ;' b⟩p ↔ d⟨a⟩(d⟨b⟩p)] := by
-  simp only [Formula.toUnary_iff, Formula.toUnary_dynDiamond]
+  simp only [judgement, Formula.toUnary_iff, Formula.toUnary_dynDiamond]
   rw [@Satisfies.iff_iff_iff]
   grind [modal, h.seq]
 
 /-- (iv) Choice: valid on frames regular for `∪`. -/
 theorem union (h : m.lts.IsRegularPDL) :
     ⇓PDL[m, s ⊨ d⟨a ∪ b⟩p ↔ (d⟨a⟩p ∨ d⟨b⟩p)] := by
-  simp only [Formula.toUnary_iff, Formula.toUnary_dynDiamond]
+  simp only [judgement, Formula.toUnary_iff, Formula.toUnary_dynDiamond]
   rw [@Satisfies.iff_iff_iff]
   grind [modal, h.union]
 
 /-- (v) Mix: valid on frames regular for `*`. -/
 theorem mix (h : m.lts.IsRegularPDL) :
     ⇓PDL[m, s ⊨ d⟨a*⟩p ↔ (p ∨ d⟨a⟩(d⟨a*⟩p))] := by
-  simp only [Formula.toUnary_iff, Formula.toUnary_dynDiamond]
+  simp only [judgement, Formula.toUnary_iff, Formula.toUnary_dynDiamond]
   rw [@Satisfies.iff_iff_iff]
   have := @Satisfies.pdl_dynDiamond_iff_exists State Label Atom m s (a*) p
-  simp only [Formula.toUnary_dynDiamond] at this -- having to do this seems sub-optimal
+  simp only [judgement, Formula.toUnary_dynDiamond] at this -- having to do this seems sub-optimal
   rw [this]
   clear this
   simp_rw [h.star a] -- using regularity here
@@ -202,12 +207,12 @@ theorem mix (h : m.lts.IsRegularPDL) :
     · grind
     · right
       have := @Satisfies.pdl_dynDiamond_iff_exists State Label Atom m s a (d⟨a*⟩p)
-      simp only [Formula.toUnary_dynDiamond] at this -- again, this seems annoying
+      simp only [judgement, Formula.toUnary_dynDiamond] at this -- again, this seems annoying
       rw [this]
       clear this
       refine ⟨u, s_to_u, ?_⟩
       have := @Satisfies.pdl_dynDiamond_iff_exists State Label Atom m u (a*) p
-      simp only [Formula.toUnary_dynDiamond] at this -- once more
+      simp only [judgement, Formula.toUnary_dynDiamond] at this -- once more
       rw [this]
       refine ⟨s', ?_, s'_p⟩
       · convert u_to_s'
