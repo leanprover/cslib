@@ -63,6 +63,8 @@ variable (Atom : Type v)
 
 abbrev Formula := Cslib.Logic.Modal.Proposition (signature Label) Atom
 
+/-- A PDL program, internally represented by a `Shape` and a function
+that maps the `Tests` positions in the shape to actual Formulas. -/
 structure Program where
   shape : Shape Label
   tests : Tests shape → Formula Label Atom
@@ -116,5 +118,10 @@ scoped infixr:70 " ;' " => seq
 instance : Union (Program Label Atom) := ⟨union⟩
 
 scoped postfix:max "*" => star
+
+/-! ## TODO: Induction Principles? -/
+
+-- Can we have a principle with two motives, one for `Formula` and one for `Program` here?
+-- Should be as nicely usable as the mutual inductions in lean4-pdl.
 
 end Cslib.Logic.Modal.PDL
