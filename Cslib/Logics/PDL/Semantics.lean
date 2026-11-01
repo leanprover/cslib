@@ -6,8 +6,11 @@ Authors: Malvin Gattinger
 
 module
 
-public import Cslib.Logics.PDL.Basic
 public import Cslib.Foundations.Semantics.Frame.Basic
+public import Cslib.Foundations.Semantics.Frame.LTS
+public import Cslib.Logics.Modal.Semantics
+public import Cslib.Logics.PDL.Basic
+-- public import Cslib.Foundations.Semantics.LTS.Bisimulation
 
 /-! # Semantics for Propositional Dynamic Logic (PDL) -/
 
@@ -35,6 +38,16 @@ def Model.toModal (m : Model State Label Atom) :
 @[simp, scoped grind =, modal =]
 theorem Model.toModal_toFrame (m : Model State Label Atom) :
     m.toModal.toFrame = m.lts.toFrame := rfl
+
+open Cslib.Logic.Modal in
+/-- View a PDL formula over the unary signature with one modality per program. -/
+def Formula.toUnary :
+    @Formula Label Atom → Proposition (PFunctor.mkUnary (@Program Label Atom)) Atom
+  | .atom p => .atom p
+  | .false => .false
+  | .not φ => .not (toUnary φ)
+  | .or φ ψ => .or (toUnary φ) (toUnary ψ)
+  | .triangle s φs => .triangle ⟨s, φs ∘ Sum.inl⟩ (fun _ => toUnary (φs (.inr ())))
 
 /-- Shortcut for `Modal[PDL.Model.toModal m,s ⊨ φ]`. -/
 scoped notation "PDL[" m "," s " ⊨ " φ "]" => Modal[PDL.Model.toModal m,s ⊨ Formula.toUnary φ]
@@ -69,7 +82,7 @@ theorem test_check_example (m : Model State Label Atom)
 
 /-! ## TODO: make a standard model from an LTS -/
 
-def LTS.regularFromLTS : LTS State Label → LTS State (@Program Label Atom) :=
+def LTS.regularFromLTS (lts : LTS State Label) : LTS State (@Program Label Atom) := by
   sorry -- TODO
 
 def Model.fromLTS (lts : LTS State Label) (val : State → Atom → Prop) : Model State Label Atom :=
