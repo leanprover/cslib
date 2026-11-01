@@ -9,6 +9,7 @@ module
 public import Cslib.Foundations.Semantics.Frame.Basic
 public import Cslib.Foundations.Semantics.Frame.LTS
 public import Cslib.Logics.Modal.Semantics
+public import Cslib.Logics.Modal.Unary.Basic
 public import Cslib.Logics.PDL.Basic
 -- public import Cslib.Foundations.Semantics.LTS.Bisimulation
 
@@ -49,6 +50,14 @@ def Formula.toUnary :
   | .or φ ψ => .or (toUnary φ) (toUnary ψ)
   | .triangle s φs => .triangle ⟨s, φs ∘ Sum.inl⟩ (fun _ => toUnary (φs (.inr ())))
 
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_dynDiamond (a : Program Label Atom) (φ : Formula Label Atom) :
+    (d⟨a⟩φ).toUnary = d⟨a⟩(φ.toUnary) := rfl
+
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_dynBox (a : Program Label Atom) (φ : Formula Label Atom) :
+    (d[a]φ).toUnary = d[a](φ.toUnary) := rfl
+
 /-- Shortcut for `Modal[PDL.Model.toModal m,s ⊨ φ]`. -/
 scoped notation "PDL[" m "," s " ⊨ " φ "]" => Modal[PDL.Model.toModal m,s ⊨ Formula.toUnary φ]
 
@@ -79,7 +88,7 @@ def LTS.regularFromLTS (lts : LTS State Label) : LTS State (Program Label Atom) 
 def Model.fromLTS (lts : LTS State Label) (val : State → Atom → Prop) : Model State Label Atom :=
   sorry -- TODO
 
-/-! ## TODO: Characterizations (inspired by HML file) -/
+/-! ## Characterizations (as for HML) -/
 
 open PDL
 open scoped PDL.Model Modal.Proposition InferenceSystem Satisfies Frame
@@ -91,29 +100,21 @@ theorem Satisfies.pdl_atom_iff {p : Atom} : ⇓PDL[m,s ⊨ p] ↔ m.val s p := b
 
 theorem Satisfies.pdl_dynDiamond_iff_exists :
     ⇓PDL[m,s ⊨ d⟨μ⟩φ] ↔ ∃ s', m.lts.Tr s μ s' ∧ ⇓PDL[m,s' ⊨ φ] := by
-  unfold Formula.toUnary
-  -- need lemmas about diamond of toUnary for this? or is there an easier way?
-  -- rw [Satisfies.dynDiamond_iff_exists]
-  -- simp [HML.Model.toModal]
-  sorry
+  rw [Formula.toUnary_dynDiamond, Satisfies.dynDiamond_iff_exists]
+  simp only [Model.toModal_toFrame, LTS.toFrame_diagonal_iff_tr]
 
-theorem Satisfies.hml_dynBox_iff_forall :
+theorem Satisfies.pdl_dynBox_iff_forall :
     ⇓PDL[m,s ⊨ d[μ]φ] ↔ ∀ s', m.lts.Tr s μ s' → ⇓PDL[m,s' ⊨ φ] := by
-  -- rw [Satisfies.dynBox_iff_forall]
-  -- simp [HML.Model.toModal]
-  sorry
+  rw [Formula.toUnary_dynBox, Satisfies.dynBox_iff_forall]
+  simp only [Model.toModal_toFrame, LTS.toFrame_diagonal_iff_tr]
 
 @[modal ⇒]
-theorem Satisfies.hml_dynDiamond_intro (htr : m.lts.Tr s μ s')
-    (h : ⇓PDL[m,s' ⊨ φ]) : ⇓PDL[m,s ⊨ d⟨μ⟩φ] := by
-  -- grind [modal]
-  sorry
+theorem Satisfies.pdl_dynDiamond_intro (htr : m.lts.Tr s μ s')
+    (h : ⇓PDL[m,s' ⊨ φ]) : ⇓PDL[m,s ⊨ d⟨μ⟩φ] := by grind [modal]
 
 @[modal ⇒]
-theorem Satisfies.hml_dynBox_elim (hbox : ⇓PDL[m,s ⊨ d[μ]φ])
-    (htr : m.lts.Tr s μ s') : ⇓PDL[m,s' ⊨ φ] := by
-  -- grind [modal]
-  sorry
+theorem Satisfies.pdl_dynBox_elim (hbox : ⇓PDL[m,s ⊨ d[μ]φ])
+    (htr : m.lts.Tr s μ s') : ⇓PDL[m,s' ⊨ φ] := by grind [modal]
 
 /-! ## Axioms (BRV Def 4.78) -/
 
