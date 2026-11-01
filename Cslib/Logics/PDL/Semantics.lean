@@ -87,7 +87,7 @@ theorem Formula.toUnary_dynDiamond (a : Program Label Atom) (φ : Formula Label 
 theorem Formula.toUnary_dynBox (a : Program Label Atom) (φ : Formula Label Atom) :
     (d[a]φ).toUnary = d[a](φ.toUnary) := rfl
 
-/-- Shortcut for `Modal[PDL.Model.toModal m,s ⊨ φ]`. -/
+/-- Shortcut for `Modal[PDL.Model.toModal m,s ⊨ Formula.toUnary φ]`. -/
 scoped notation "PDL[" m "," s " ⊨ " φ "]" => Modal[PDL.Model.toModal m,s ⊨ Formula.toUnary φ]
 
 open scoped InferenceSystem
@@ -111,11 +111,22 @@ structure Model.IsStandard (m : Model State Label Atom) : Prop where
 
 /-! ## TODO: make a standard model from an LTS -/
 
-def LTS.regularFromLTS (lts : LTS State Label) : LTS State (Program Label Atom) := by
+def _root_.Cslib.LTS.toRegular (lts : LTS State Label) : LTS State (Program Label Atom) := by
+  -- Wait, why will this work for any `Atom` type?
+  -- PROBLEM: we would have to fix the relation for tests here, but don't have `val` yet?
   sorry -- TODO
 
+theorem LTS.regularFromLTS_IsRegularPDL (lts : LTS State Label) :
+    (lts.toRegular : LTS State (Program Label Atom)).IsRegularPDL := by
+  sorry
+
 def Model.fromLTS (lts : LTS State Label) (val : State → Atom → Prop) : Model State Label Atom :=
-  sorry -- TODO
+  ⟨ lts.toRegular
+  , val ⟩
+
+theorem Model.fromLTS_IsStandard (lts : LTS State Label) (val : State → Atom → Prop) :
+    (Model.fromLTS lts val).IsStandard := by
+  sorry
 
 /-! ## Characterizations (as for HML) -/
 
@@ -127,9 +138,11 @@ variable {m : PDL.Model State Label Atom}
 @[scoped grind =, modal =]
 theorem Satisfies.pdl_atom_iff {p : Atom} : ⇓PDL[m,s ⊨ p] ↔ m.val s p := by rfl
 
+@[scoped grind =, modal =] --?
 theorem Satisfies.pdl_dynDiamond_iff_exists :
     ⇓PDL[m,s ⊨ d⟨μ⟩φ] ↔ ∃ s', m.lts.Tr s μ s' ∧ ⇓PDL[m,s' ⊨ φ] := by grind [modal]
 
+@[scoped grind =, modal =] --?
 theorem Satisfies.pdl_dynBox_iff_forall :
     ⇓PDL[m,s ⊨ d[μ]φ] ↔ ∀ s', m.lts.Tr s μ s' → ⇓PDL[m,s' ⊨ φ] := by grind [modal]
 
@@ -137,6 +150,7 @@ theorem Satisfies.pdl_dynBox_iff_forall :
 theorem Satisfies.pdl_dynDiamond_intro (htr : m.lts.Tr s μ s')
     (h : ⇓PDL[m,s' ⊨ φ]) : ⇓PDL[m,s ⊨ d⟨μ⟩φ] := by grind [modal]
 
+@[modal ⇒] --?
 theorem Satisfies.pdl_dynBox_elim (hbox : ⇓PDL[m,s ⊨ d[μ]φ])
     (htr : m.lts.Tr s μ s') : ⇓PDL[m,s' ⊨ φ] := by grind [modal]
 
@@ -157,15 +171,48 @@ theorem dual : ⇓PDL[m, s ⊨ d⟨a⟩p ↔ ¬d[a](¬p)] := by grind [modal]
 
 /-- (iii) Composition: valid on frames regular for `;'`. -/
 theorem seq (h : m.lts.IsRegularPDL) :
-    ⇓PDL[m, s ⊨ d⟨a ;' b⟩p ↔ d⟨a⟩(d⟨b⟩p)] := sorry
+    ⇓PDL[m, s ⊨ d⟨a ;' b⟩p ↔ d⟨a⟩(d⟨b⟩p)] := by
+  simp only [Formula.toUnary_iff, Formula.toUnary_dynDiamond]
+  rw [@Satisfies.iff_iff_iff]
+  grind [modal, h.seq]
 
 /-- (iv) Choice: valid on frames regular for `∪`. -/
 theorem union (h : m.lts.IsRegularPDL) :
-    ⇓PDL[m, s ⊨ d⟨a ∪ b⟩p ↔ (d⟨a⟩p ∨ d⟨b⟩p)] := sorry
+    ⇓PDL[m, s ⊨ d⟨a ∪ b⟩p ↔ (d⟨a⟩p ∨ d⟨b⟩p)] := by
+  simp only [Formula.toUnary_iff, Formula.toUnary_dynDiamond]
+  rw [@Satisfies.iff_iff_iff]
+  grind [modal, h.union]
 
 /-- (v) Mix: valid on frames regular for `*`. -/
 theorem mix (h : m.lts.IsRegularPDL) :
-    ⇓PDL[m, s ⊨ d⟨a*⟩p ↔ (p ∨ d⟨a⟩(d⟨a*⟩p))] := sorry
+    ⇓PDL[m, s ⊨ d⟨a*⟩p ↔ (p ∨ d⟨a⟩(d⟨a*⟩p))] := by
+  simp only [Formula.toUnary_iff, Formula.toUnary_dynDiamond]
+  rw [@Satisfies.iff_iff_iff]
+  have := @Satisfies.pdl_dynDiamond_iff_exists State Label Atom m s (a*) p
+  simp only [Formula.toUnary_dynDiamond] at this -- having to do this seems sub-optimal
+  rw [this]
+  clear this
+  simp_rw [h.star a] -- using regularity here
+  refine ⟨fun lhs => ?_, fun rhs => ?_⟩
+  · simp only [Formula.toUnary_or, Formula.toUnary_dynDiamond]
+    rw [@Satisfies.or_iff_or]
+    rcases lhs with ⟨s', s_to_s', s'_p⟩
+    rw [Relation.ReflTransGen.cases_head_iff] at s_to_s'
+    rcases s_to_s' with _ | ⟨u, s_to_u, u_to_s'⟩
+    · grind
+    · right
+      have := @Satisfies.pdl_dynDiamond_iff_exists State Label Atom m s a (d⟨a*⟩p)
+      simp only [Formula.toUnary_dynDiamond] at this -- again, this seems annoying
+      rw [this]
+      clear this
+      refine ⟨u, s_to_u, ?_⟩
+      have := @Satisfies.pdl_dynDiamond_iff_exists State Label Atom m u (a*) p
+      simp only [Formula.toUnary_dynDiamond] at this -- once more
+      rw [this]
+      refine ⟨s', ?_, s'_p⟩
+      · convert u_to_s'
+        simp_rw [h.star a] -- using regularity again
+  · sorry
 
 /-- (vi) Induction: valid on frames regular for `*`. -/
 theorem ind (h : m.lts.IsRegularPDL) :
@@ -173,7 +220,9 @@ theorem ind (h : m.lts.IsRegularPDL) :
 
 /-- Test axiom (not in BRV's test-free list): needs a standard model. -/
 theorem test (h : m.IsStandard) :
-    ⇓PDL[m, s ⊨ d⟨?' ψ⟩p ↔ (ψ ∧ p)] := sorry
+    ⇓PDL[m, s ⊨ d⟨?' ψ⟩p ↔ (ψ ∧ p)] := by
+  have := h.test
+  grind [modal]
 
 end Axioms
 
