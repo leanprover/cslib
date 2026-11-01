@@ -112,26 +112,72 @@ structure Model.IsStandard (m : Model State Label Atom) : Prop where
   regular : m.lts.IsRegularPDL
   test    : ∀ ψ w w', m.lts.Tr w (?' ψ) w' ↔ w = w' ∧ ⇓PDL[m, w ⊨ ψ]
 
-/-! ## Examples / checks -/
+/-! ## Standard models from an LTS
 
-/-! ## TODO: make a standard model from an LTS -/
+An `LTS` labelled by atomic programs together with a valuation can be extended to a standard
+model. Because the transitions for tests depend on the truth of formulas, which in turn depends
+on the transitions for programs, we define the transition relation of shapes (`Shape.rel`) and
+the truth of formulas (`Formula.eval`) together. -/
 
-def _root_.Cslib.LTS.toRegular (lts : LTS State Label) : LTS State (Program Label Atom) := by
-  -- Wait, why will this work for any `Atom` type?
-  -- PROBLEM: we would have to fix the relation for tests here, but don't have `val` yet?
-  sorry -- TODO
+-- NOTE: It seems a bit funny to have these defs here, as they are almost
+-- the standard semantics of PDL over `LTS`. Move them up somehow?
 
-theorem LTS.regularFromLTS_IsRegularPDL (lts : LTS State Label) :
-    (lts.toRegular : LTS State (Program Label Atom)).IsRegularPDL := by
-  sorry
+/-- The transition relation of a program shape in the standard model over `lts`,
+given the truth sets of the formulas at its test positions. -/
+def Shape.rel (lts : LTS State Label) :
+    (s : Shape Label) → (Tests s → State → Prop) → State → State → Prop
+  | .action n, _, w, w' => lts.Tr w n w'
+  | .test, sat, w, w' => w = w' ∧ sat () w
+  | .seq a b, sat, w, w' => ∃ u, a.rel lts (sat ∘ .inl) w u ∧ b.rel lts (sat ∘ .inr) u w'
+  | .union a b, sat, w, w' => a.rel lts (sat ∘ .inl) w w' ∨ b.rel lts (sat ∘ .inr) w w'
+  | .star a, sat, w, w' => Relation.ReflTransGen (a.rel lts sat) w w'
 
+/-- Truth of a formula in the standard model over `lts` with valuation `val`. -/
+def Formula.eval (lts : LTS State Label) (val : State → Atom → Prop) :
+    Formula Label Atom → State → Prop
+  | .atom p, w => val w p
+  | .false, _ => False
+  | .not φ, w => ¬ eval lts val φ w
+  | .or φ ψ, w => eval lts val φ w ∨ eval lts val ψ w
+  | .triangle s φs, w => ∃ w', s.rel lts (fun t => eval lts val (φs (.inl t))) w w' ∧
+      eval lts val (φs (.inr ())) w'
+
+/-- Extend an `LTS` over atomic programs to all programs, using the valuation `val`
+to decide which tests succeed. -/
+def _root_.Cslib.LTS.toRegular (lts : LTS State Label) (val : State → Atom → Prop) :
+    LTS State (Program Label Atom) where
+  Tr w a w' := a.shape.rel lts (fun t => Formula.eval lts val (a.tests t)) w w'
+
+theorem _root_.Cslib.LTS.toRegular_isRegularPDL (lts : LTS State Label)
+    (val : State → Atom → Prop) : (lts.toRegular val).IsRegularPDL where
+  seq _ _ _ _ := Iff.rfl
+  union _ _ _ _ := Iff.rfl
+  star _ _ _ := Iff.rfl
+
+/-- The standard model given by an `LTS` over atomic programs and a valuation. -/
 def Model.fromLTS (lts : LTS State Label) (val : State → Atom → Prop) : Model State Label Atom :=
-  ⟨ lts.toRegular
-  , val ⟩
+  ⟨lts.toRegular val, val⟩
+
+/-- Truth lemma: the modal semantics in `Model.fromLTS` agrees with `Formula.eval`. -/
+theorem Model.fromLTS_judgement_iff (lts : LTS State Label) (val : State → Atom → Prop)
+    (w : State) (φ : Formula Label Atom) :
+    ⇓PDL[Model.fromLTS lts val, w ⊨ φ] ↔ φ.eval lts val w := by
+  induction φ using Formula.induction (motive_2 := fun _ => True) generalizing w with
+  | atom p => rfl
+  | false => rfl
+  | not φ ih => exact not_congr (ih w)
+  | or φ ψ ihφ ihψ => exact or_congr (ihφ w) (ihψ w)
+  | diamond a φ _ ih =>
+    rw [judgement, Formula.toUnary_dynDiamond, Satisfies.dynDiamond_iff_exists]
+    exact exists_congr fun w' => and_congr Iff.rfl (ih w')
+  | action | test | seq | union | star => trivial
 
 theorem Model.fromLTS_IsStandard (lts : LTS State Label) (val : State → Atom → Prop) :
-    (Model.fromLTS lts val).IsStandard := by
-  sorry
+    (Model.fromLTS lts val).IsStandard where
+  regular := lts.toRegular_isRegularPDL val
+  test ψ w w' := by
+    rw [Model.fromLTS_judgement_iff]
+    rfl
 
 /-! ## Characterizations (as for HML) -/
 
