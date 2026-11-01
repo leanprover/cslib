@@ -9,7 +9,6 @@ module
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Data.OmegaSequence.Topology
-public import Mathlib.Computability.Language
 public import Mathlib.Order.CompleteBooleanAlgebra
 public import Mathlib.Order.Filter.AtTopBot.Defs
 

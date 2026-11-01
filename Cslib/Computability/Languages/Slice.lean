@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Init
-public import Mathlib.Computability.Language
+public import Cslib.Computability.Languages.Language
 
 /-!
 # Slices of languages
