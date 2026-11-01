@@ -6,15 +6,16 @@ Authors: Malvin Gattinger, Fabrizio Montesi
 
 module
 
-public import Mathlib.Logic.Equiv.Defs
 public import Cslib.Foundations.Data.PFunctor.Basic
 public import Cslib.Foundations.Logic.Operators
-public import Cslib.Foundations.Semantics.Frame.LTS
-public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Logics.Modal.Basic
-public import Cslib.Logics.Modal.Semantics
 
-/-! # Syntax of Propositional Dynamic Logic (PDL) -/
+/-! # Syntax of Propositional Dynamic Logic (PDL)
+
+We define a PDL `Program` as a shape plus a map from its test positions to formulas.
+This avoids a mutual or nested inductive, an allows us to define a `PFunctor` that
+we can use as the `signature` to define `Formula` via `Cslib.Logic.Modal.Proposition`.
+-/
 
 @[expose] public section
 
@@ -34,6 +35,7 @@ inductive Shape where
   | seq (a b : Shape)
   | union (a b : Shape)
   | star (a : Shape)
+  deriving DecidableEq, Repr
 
 def Tests : @Shape Label → Type
   | .action _ => Empty
@@ -79,36 +81,16 @@ def box (a : @Program Label Atom) (φ : @Formula Label Atom) : @Formula Label At
 
 instance : HasDynamicBox (@Formula Label Atom) (@Program Label Atom) := ⟨box⟩
 
-/-! ## Example and Notation -/
+/-! ## Notation -/
 
--- ⟨(?p ; a)*⟩q
-def exampleFormula : @Formula Nat Nat :=
-  diamond (star (seq (test (.atom 0)) (action 0))) (.atom 1)
+scoped notation "?'" ψ:arg => test ψ
 
-notation "?'" ψ:arg => test ψ
-notation a:(arg-1) ";'" b:(arg-1) => seq a b
-notation a:(arg-1) "∪" b:(arg-1) => union a b
-notation a:(arg-1) "*" => star a
+infixr:70 ";'" => seq
 
-instance : OfNat (@Program Nat Atom) k := ⟨action k⟩
-instance : OfNat (@Formula Label Nat) k := ⟨.atom k⟩
--- above not needed with this:
-instance : Coe Nat (@Program Nat Atom) := ⟨fun k => action k⟩
-instance : Coe Nat (@Formula Label Nat) := ⟨fun k => .atom k⟩
+infixl:65 "∪" => union
 
-def sameExampleFormula (p q : Nat) (a : Nat) : @Formula Nat Nat :=
-  d⟨ (?' p ;' a)*⟩ q
+postfix:max "*" => star
 
-/-! ## Formulas as Unary-PFunctor Propositions -/
-
-open Cslib.Logic.Modal in
-/-- View a PDL formula over the unary signature with one modality per program. -/
-def Formula.toUnary :
-    @Formula Label Atom → Proposition (PFunctor.mkUnary (@Program Label Atom)) Atom
-  | .atom p => .atom p
-  | .false => .false
-  | .not φ => .not (toUnary φ)
-  | .or φ ψ => .or (toUnary φ) (toUnary ψ)
-  | .triangle s φs => .triangle ⟨s, φs ∘ Sum.inl⟩ (fun _ => toUnary (φs (.inr ())))
+scoped instance : Coe Nat (@Program Nat Atom) := ⟨fun k => action k⟩
 
 end Cslib.Logic.Modal.PDL
