@@ -23,7 +23,7 @@ language rather than only to decidable ones.
 
 @[expose] public section
 
-namespace Language
+namespace Cslib.Language
 
 variable {α : Type*}
 
@@ -52,4 +52,4 @@ theorem mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {w : List α} :
   ext x
   rw [Bool.eq_iff_iff, slice_eq_true_iff, ofFn_mem_ofSlices]
 
-end Language
+end Cslib.Language

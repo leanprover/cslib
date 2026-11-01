@@ -23,9 +23,9 @@ used to define the syntactic monoid of `l`.
 
 variable {α : Type}
 
-namespace Language
+namespace Cslib.Language
 
-open Cslib Language Automata DA FinAcc Acceptor
+open Automata DA FinAcc Acceptor
 open scoped RightCongruence
 
 /-- The Myhill congruence of a language `l` is the two-sided congruence on finite words
@@ -110,4 +110,4 @@ theorem IsRegular.iff_finite_myhillQuotient (l : Language α) :
     apply IsRegular.iff_dfa.mpr
     use l.MyhillQuotient, h, l.myhillCongruenceDA, myhillCongruenceDA_language_eq l
 
-end Language
+end Cslib.Language

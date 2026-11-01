@@ -42,6 +42,8 @@ universe u
 
 variable {α β γ : Type*}
 
+namespace Cslib
+
 -- Disable generation of unneeded lemmas which the simpNF linter would complain about.
 set_option genSizeOfSpec false in
 set_option genInjectivity false in
@@ -406,3 +408,5 @@ theorem iSup_matches' {I : Type*} [Finite I] {s : Set I} {l : I → Language α}
     simp [hri, hrt]
 
 end RegularExpression
+
+end Cslib

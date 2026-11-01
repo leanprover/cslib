@@ -64,7 +64,7 @@ variable {α β γ : Type*}
 section Mathlib_36934
 
 /-- The set of lists in a language. -/
-def Language.toSet (l : Language α) : Set (List α) := l
+def Cslib.Language.toSet (l : Cslib.Language α) : Set (List α) := l
 
 end Mathlib_36934
 

@@ -26,17 +26,6 @@ public import Cslib.Computability.Languages.KleeneAlgorithm
 
 @[expose] public section
 
-namespace Language
-
-open Cslib.Automata Acceptor
-
-variable {Symbol : Type*}
-
-def IsRegular (l : Language Symbol) : Prop :=
-  ∃ State : Type, ∃ _ : Finite State, ∃ dfa : DA.FinAcc State Symbol, language dfa = l
-
-end Language
-
 namespace Cslib.Language
 
 open Set List Prod Automata Acceptor
@@ -44,8 +33,12 @@ open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
 variable {Symbol Symbol' : Type*}
 
-/-- A characterization of `Language.IsRegular` in terms of `DA`. This is the only theorem in Cslib
-in which Mathlib's definition of `Language.IsRegular` is used. -/
+/-- A language is regular if it is accepted by some deterministic automaton with finitely many
+states. -/
+def IsRegular (l : Language Symbol) : Prop :=
+  ∃ State : Type, ∃ _ : Finite State, ∃ dfa : DA.FinAcc State Symbol, language dfa = l
+
+/-- A characterization of `Language.IsRegular` in terms of `DA`. -/
 theorem IsRegular.iff_dfa {l : Language Symbol} :
     l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
       ∃ dfa : DA.FinAcc State Symbol, language dfa = l :=
@@ -202,7 +195,7 @@ theorem IsRegular.kstar {l : Language Symbol}
   obtain ⟨State, h_fin, a, rfl⟩ := h
   exact ⟨Unit ⊕ State, inferInstance, a.star, εNA.FinAcc.language_star a⟩
 
-open _root_.Language RightCongruence in
+open RightCongruence in
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
 theorem IsRegular.congr_fin_index {Symbol : Type}
@@ -227,7 +220,7 @@ theorem IsRegular.reverse_iff {l : Language Symbol} : l.reverse.IsRegular ↔ l.
     simpa using IsRegular.reverse h
   · exact IsRegular.reverse
 
-open NA _root_.Language in
+open NA in
 /-- The preimage of a regular languge under a language homomorphism is regular. -/
 theorem IsRegular.preimage (f : Hom Symbol' Symbol) {l : Language Symbol} (h : l.IsRegular) :
     (l.preimage f).IsRegular := by

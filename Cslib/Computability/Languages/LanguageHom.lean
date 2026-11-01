@@ -16,7 +16,7 @@ public import Mathlib.Data.List.ReduceOption
 
 @[expose] public section
 
-namespace Language
+namespace Cslib.Language
 
 open scoped Computability
 
@@ -57,7 +57,6 @@ theorem map_nil (f : Hom α β) : f [] = [] := f.map_nil'
 theorem map_append (f : Hom α β) (as as' : List α) : f (as ++ as') = (f as) ++ (f as') :=
   f.map_append' as as'
 
-@[scoped grind =]
 theorem map_cons (f : Hom α β) (a : α) (as : List α) :
     f (a :: as) = f [a] ++ f as := by
   rw [← List.singleton_append, map_append]
@@ -170,4 +169,4 @@ theorem image_kstar (f : Hom α β) (l : Language α) :
 
 end ImagePreimage
 
-end Language
+end Cslib.Language

@@ -32,9 +32,9 @@ many states that accepts exactly its language, by assembling the automata of
 
 @[expose] public section
 
-namespace RegularExpression
+namespace Cslib.RegularExpression
 
-open Cslib.Automata Cslib.Automata.εNA Cslib.Automata.Acceptor
+open Automata Automata.εNA Automata.Acceptor
 
 variable {α : Type*}
 
@@ -85,4 +85,4 @@ theorem language_toEpsilonNA (r : RegularExpression α) :
   | comp P Q ihP ihQ => exact (FinAcc.language_concat _ _).trans (by rw [ihP, ihQ]; rfl)
   | star P ih => exact (FinAcc.language_star _).trans (by rw [ih]; rfl)
 
-end RegularExpression
+end Cslib.RegularExpression

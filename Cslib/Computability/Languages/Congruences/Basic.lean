@@ -18,7 +18,7 @@ on finite sequences.
 
 @[expose] public section
 
-namespace Language
+namespace Cslib.Language
 
 variable {α : Type*}
 
@@ -62,4 +62,4 @@ abbrev eqvCls [c : Congruence α] (a : Quotient c.eq) : Language α :=
 
 end Congruence
 
-end Language
+end Cslib.Language

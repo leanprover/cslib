@@ -67,6 +67,8 @@ universe v
 
 variable {α β γ : Type*}
 
+namespace Cslib
+
 /-- A language is a set of strings over an alphabet. -/
 def Language (α) :=
   Set (List α)
@@ -520,3 +522,5 @@ theorem self_eq_add_mul_iff {l m n : Language α} (hm : [] ∉ m) :
   exact (self_eq_mul_add_iff (by simp [hm]))
 
 end Language
+
+end Cslib

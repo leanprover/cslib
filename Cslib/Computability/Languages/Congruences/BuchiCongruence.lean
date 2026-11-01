@@ -22,7 +22,7 @@ of ω-regular languages under complementation.
 namespace Cslib.Automata.NA.Buchi
 
 open Function Set Filter ωAcceptor ωLanguage ωSequence LTS.Execution
-open _root_.Language RightCongruence
+open Language RightCongruence
 
 variable {Symbol : Type*} {State : Type}
 
