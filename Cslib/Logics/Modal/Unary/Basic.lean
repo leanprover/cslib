@@ -51,7 +51,8 @@ theorem Satisfies.dynBox_dynDiamond_diagonalInverse₁ {m : Model World τ Atom}
 /-- If two operators `op₁` and `op₂` have inverse diagonal relations, then `φ → d[op₂](d⟨op₁⟩φ)`. -/
 theorem Satisfies.dynBox_dynDiamond_diagonalInverse₂ {m : Model World τ Atom}
     {op₁ op₂ : τ.A} [m.toFrame.DiagonalInverse op₁ op₂] {φ : Proposition τ Atom} :
-    ⇓Modal[m,w ⊨ φ → d[op₂](d⟨op₁⟩φ)] := dynBox_dynDiamond_diagonalInverse₁
+    ⇓Modal[m,w ⊨ φ → d[op₂](d⟨op₁⟩φ)] :=
+  dynBox_dynDiamond_diagonalInverse₁
 
 omit [τ.Unary] in
 /-- The dual axiom (reformulated for unary modal logic). -/
