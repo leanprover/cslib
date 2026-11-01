@@ -51,6 +51,35 @@ def Formula.toUnary :
   | .triangle s φs => .triangle ⟨s, φs ∘ Sum.inl⟩ (fun _ => toUnary (φs (.inr ())))
 
 @[simp, scoped grind =, modal =]
+theorem Formula.toUnary_atom (p : Atom) :
+    Formula.toUnary (.atom p : Formula Label Atom) = .atom p := rfl
+
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_bot : (⊥ : Formula Label Atom).toUnary = ⊥ := rfl
+
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_top : (⊤ : Formula Label Atom).toUnary = ⊤ := rfl
+
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_not (φ : Formula Label Atom) : (¬φ).toUnary = ¬φ.toUnary := rfl
+
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_or (φ ψ : Formula Label Atom) :
+    (φ ∨ ψ).toUnary = (φ.toUnary ∨ ψ.toUnary) := rfl
+
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_and (φ ψ : Formula Label Atom) :
+    (φ ∧ ψ).toUnary = (φ.toUnary ∧ ψ.toUnary) := rfl
+
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_imp (φ ψ : Formula Label Atom) :
+    (φ → ψ).toUnary = (φ.toUnary → ψ.toUnary) := rfl
+
+@[simp, scoped grind =, modal =]
+theorem Formula.toUnary_iff (φ ψ : Formula Label Atom) :
+    (φ ↔ ψ).toUnary = (φ.toUnary ↔ ψ.toUnary) := rfl
+
+@[simp, scoped grind =, modal =]
 theorem Formula.toUnary_dynDiamond (a : Program Label Atom) (φ : Formula Label Atom) :
     (d⟨a⟩φ).toUnary = d⟨a⟩(φ.toUnary) := rfl
 
@@ -99,26 +128,21 @@ variable {m : PDL.Model State Label Atom}
 theorem Satisfies.pdl_atom_iff {p : Atom} : ⇓PDL[m,s ⊨ p] ↔ m.val s p := by rfl
 
 theorem Satisfies.pdl_dynDiamond_iff_exists :
-    ⇓PDL[m,s ⊨ d⟨μ⟩φ] ↔ ∃ s', m.lts.Tr s μ s' ∧ ⇓PDL[m,s' ⊨ φ] := by
-  rw [Formula.toUnary_dynDiamond, Satisfies.dynDiamond_iff_exists]
-  simp only [Model.toModal_toFrame, LTS.toFrame_diagonal_iff_tr]
+    ⇓PDL[m,s ⊨ d⟨μ⟩φ] ↔ ∃ s', m.lts.Tr s μ s' ∧ ⇓PDL[m,s' ⊨ φ] := by grind [modal]
 
 theorem Satisfies.pdl_dynBox_iff_forall :
-    ⇓PDL[m,s ⊨ d[μ]φ] ↔ ∀ s', m.lts.Tr s μ s' → ⇓PDL[m,s' ⊨ φ] := by
-  rw [Formula.toUnary_dynBox, Satisfies.dynBox_iff_forall]
-  simp only [Model.toModal_toFrame, LTS.toFrame_diagonal_iff_tr]
+    ⇓PDL[m,s ⊨ d[μ]φ] ↔ ∀ s', m.lts.Tr s μ s' → ⇓PDL[m,s' ⊨ φ] := by grind [modal]
 
 @[modal ⇒]
 theorem Satisfies.pdl_dynDiamond_intro (htr : m.lts.Tr s μ s')
     (h : ⇓PDL[m,s' ⊨ φ]) : ⇓PDL[m,s ⊨ d⟨μ⟩φ] := by grind [modal]
 
-@[modal ⇒]
 theorem Satisfies.pdl_dynBox_elim (hbox : ⇓PDL[m,s ⊨ d[μ]φ])
     (htr : m.lts.Tr s μ s') : ⇓PDL[m,s' ⊨ φ] := by grind [modal]
 
 /-! ## Axioms (BRV Def 4.78) -/
 
--- TODO: how to separate statement of the axioms from their soundness theorem?
+-- TODO: should we separate the statement of the axioms from their soundness theorem?
 
 namespace Axioms
 
@@ -126,11 +150,10 @@ variable {State : Type*} (m : Model State Label Atom) (s : State)
   (a b : Program Label Atom) (p q ψ : Formula Label Atom)
 
 /-- (i) K: valid on all frames. -/
-theorem K : ⇓PDL[m, s ⊨ d[a](p → q) → (d[a]p → d[a]q)] := by
-  sorry
+theorem K : ⇓PDL[m, s ⊨ d[a](p → q) → (d[a]p → d[a]q)] := by grind [modal]
 
 /-- (ii) Duality: valid on all frames. -/
-theorem dual : ⇓PDL[m, s ⊨ d⟨a⟩p ↔ ¬d[a](¬p)] := sorry
+theorem dual : ⇓PDL[m, s ⊨ d⟨a⟩p ↔ ¬d[a](¬p)] := by grind [modal]
 
 /-- (iii) Composition: valid on frames regular for `;'`. -/
 theorem seq (h : m.lts.IsRegularPDL) :
