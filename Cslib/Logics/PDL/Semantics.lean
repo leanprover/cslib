@@ -26,13 +26,13 @@ variable {State Label Atom : Type*}
 The LTS uses all programs as labels, so this type includes irregular frames. -/
 structure Model State Label Atom where
   /-- The labelled transition system. -/
-  lts : LTS State (@Program Label Atom)
+  lts : LTS State (Program Label Atom)
   /-- Valuation of atoms at states. -/
   val : State → Atom → Prop
 
 /-- Converts a PDL model into a unary modal model. -/
 def Model.toModal (m : Model State Label Atom) :
-    Modal.Model State (.mkUnary (@Program Label Atom)) Atom :=
+    Modal.Model State (.mkUnary (Program Label Atom)) Atom :=
   Modal.Model.mk m.lts.toFrame m.val
 
 @[simp, scoped grind =, modal =]
@@ -42,7 +42,7 @@ theorem Model.toModal_toFrame (m : Model State Label Atom) :
 open Cslib.Logic.Modal in
 /-- View a PDL formula over the unary signature with one modality per program. -/
 def Formula.toUnary :
-    @Formula Label Atom → Proposition (PFunctor.mkUnary (@Program Label Atom)) Atom
+    Formula Label Atom → Proposition (PFunctor.mkUnary (Program Label Atom)) Atom
   | .atom p => .atom p
   | .false => .false
   | .not φ => .not (toUnary φ)
@@ -58,7 +58,7 @@ open scoped InferenceSystem
 
 /-- A frame (i.e. an `LTS`) is *regular* for PDL iff
 the transition relations for `∪`, `?'` and `;'` are as expected. -/
-structure _root_.Cslib.LTS.IsRegularPDL (lts : LTS State (@Program Label Atom)) : Prop where
+structure _root_.Cslib.LTS.IsRegularPDL (lts : LTS State (Program Label Atom)) : Prop where
   seq   : ∀ a b w w', lts.Tr w (a ;' b) w' ↔ ∃ u, lts.Tr w a u ∧ lts.Tr u b w'
   union : ∀ a b w w', lts.Tr w (a ∪ b) w' ↔ lts.Tr w a w' ∨ lts.Tr w b w'
   star  : ∀ a w w', lts.Tr w (a*) w' ↔ Relation.ReflTransGen (lts.Tr · a ·) w w'
@@ -71,18 +71,9 @@ structure Model.IsStandard (m : Model State Label Atom) : Prop where
 
 /-! ## Examples / checks -/
 
-theorem test_check_example (m : Model State Label Atom)
-    (h : m.IsStandard) (s : State) :
-    ⇓PDL[ m, s ⊨ diamond (?' ⊥ ∪ ?' ⊤) ⊤ ] := by
-  refine ⟨fun _ => s, ?_, fun _ => fun h => h⟩
-  change m.lts.Tr s (?' ⊥ ∪ ?' ⊤) s
-  rw [h.regular.union]
-  exact .inr ((h.test _ _ _).2 ⟨rfl, fun h => h⟩)
-
-
 /-! ## TODO: make a standard model from an LTS -/
 
-def LTS.regularFromLTS (lts : LTS State Label) : LTS State (@Program Label Atom) := by
+def LTS.regularFromLTS (lts : LTS State Label) : LTS State (Program Label Atom) := by
   sorry -- TODO
 
 def Model.fromLTS (lts : LTS State Label) (val : State → Atom → Prop) : Model State Label Atom :=
@@ -131,7 +122,7 @@ theorem Satisfies.hml_dynBox_elim (hbox : ⇓PDL[m,s ⊨ d[μ]φ])
 namespace Axioms
 
 variable {State : Type*} (m : Model State Label Atom) (s : State)
-  (a b : @Program Label Atom) (p q ψ : @Formula Label Atom)
+  (a b : Program Label Atom) (p q ψ : Formula Label Atom)
 
 /-- (i) K: valid on all frames. -/
 theorem K : ⇓PDL[m, s ⊨ d[a](p → q) → (d[a]p → d[a]q)] := by
@@ -161,3 +152,5 @@ theorem test (h : m.IsStandard) :
     ⇓PDL[m, s ⊨ d⟨?' ψ⟩p ↔ (ψ ∧ p)] := sorry
 
 end Axioms
+
+end Cslib.Logic.Modal.PDL
