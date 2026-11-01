@@ -101,6 +101,12 @@ def box (a : Program Label Atom) (φ : Formula Label Atom) : Formula Label Atom 
 
 instance : HasDynamicBox (Formula Label Atom) (Program Label Atom) := ⟨box⟩
 
+@[scoped grind =]
+theorem diamond_def : diamond a φ = d⟨a⟩φ := rfl
+
+@[scoped grind =]
+theorem box_def : box a φ = d[a]φ := rfl
+
 /-! ## Notation -/
 
 scoped notation "?' " ψ:arg => test ψ
