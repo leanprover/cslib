@@ -87,6 +87,12 @@ def Circuit.mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount
   program := c.program.mapInputs f
   outputs := .mapInputs f ∘ c.outputs
 
+@[simp] theorem Circuit.mapInputs_id :
+    (Circuit.mapInputs id :
+      Circuit σ inputCount outputCount → Circuit σ inputCount outputCount) = id := by
+  funext c
+  exact Circuit.ext rfl (by simp) (funext <| by simp)
+
 @[simp]
 theorem Circuit.mapInputs_mapInputs {inputCount' inputCount'' : ℕ}
     (g : Fin inputCount' → Fin inputCount'') (f : Fin inputCount → Fin inputCount')
@@ -100,6 +106,10 @@ def Circuit.comapOutputs {outputCount' : ℕ} (f : Fin outputCount' → Fin outp
   size := c.size
   program := c.program
   outputs := c.outputs ∘ f
+
+@[simp] theorem Circuit.comapOutputs_id :
+    (Circuit.comapOutputs id :
+      Circuit σ inputCount outputCount → Circuit σ inputCount outputCount) = id := rfl
 
 @[simp]
 theorem Circuit.comapOutputs_comapOutputs {outputCount' outputCount'' : ℕ}
@@ -152,6 +162,20 @@ def Circuit.eval
 @[simp] theorem Circuit.eval_wiring (select : Fin outputCount → Fin inputCount)
     (interpretation : Interpretation σ U) (input : Fin inputCount → U) :
     (Circuit.wiring σ select).eval interpretation input = input ∘ select := rfl
+
+/-- Evaluating a circuit with relabeled inputs precomposes its input valuation. -/
+@[simp] theorem Circuit.eval_mapInputs {inputCount' : ℕ}
+    (c : Circuit σ inputCount outputCount) (f : Fin inputCount → Fin inputCount')
+    (i : Interpretation σ U) (inputs : Fin inputCount' → U) :
+    (c.mapInputs f).eval i inputs = c.eval i (inputs ∘ f) := by
+  funext output
+  simp [Circuit.eval, Program.trace]
+
+/-- Selecting output wires selects the corresponding values after evaluation. -/
+@[simp] theorem Circuit.eval_comapOutputs {outputCount' : ℕ}
+    (c : Circuit σ inputCount outputCount) (f : Fin outputCount' → Fin outputCount)
+    (i : Interpretation σ U) (inputs : Fin inputCount → U) :
+    (c.comapOutputs f).eval i inputs = c.eval i inputs ∘ f := rfl
 
 /-- A circuit computes `f` when its outputs agree with `f` on every input. -/
 def Circuit.Computes (c : Circuit σ inputCount outputCount)

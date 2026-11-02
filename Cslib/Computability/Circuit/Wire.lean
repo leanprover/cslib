@@ -79,11 +79,29 @@ theorem mapInputs_gate {inputCount' : ℕ} (f : Fin inputCount → Fin inputCoun
     (g : Fin gateCount) : (.gate g : Wire inputCount gateCount).mapInputs f = .gate g :=
   rfl
 
+@[simp] theorem mapInputs_id :
+    (mapInputs id : Wire inputCount gateCount → Wire inputCount gateCount) = id := by
+  funext wire
+  cases wire <;> rfl
+
 @[simp]
 theorem mapInputs_mapInputs {inputCount' inputCount'' : ℕ} (f : Fin inputCount → Fin inputCount')
     (g : Fin inputCount' → Fin inputCount'') (w : Wire inputCount gateCount) :
     (w.mapInputs f).mapInputs g = w.mapInputs (g ∘ f) := by
   cases w <;> rfl
+
+/-- Evaluating a relabeled wire precomposes the input valuation with the relabeling. -/
+@[simp] theorem elim_mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (inputs : Fin inputCount' → α) (gates : Fin gateCount → α) (wire : Wire inputCount gateCount) :
+    Wire.elim inputs gates (wire.mapInputs f) = Wire.elim (inputs ∘ f) gates wire := by
+  cases wire <;> rfl
+
+/-- Function form of `elim_mapInputs`. -/
+@[simp] theorem elim_comp_mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (inputs : Fin inputCount' → α) (gates : Fin gateCount → α) :
+    Wire.elim inputs gates ∘ Wire.mapInputs f = Wire.elim (inputs ∘ f) gates := by
+  funext wire
+  exact elim_mapInputs f inputs gates wire
 
 /-- Regard a wire as a wire in a namespace with one additional gate. -/
 def castSucc : Wire inputCount gateCount → Wire inputCount (gateCount + 1)
