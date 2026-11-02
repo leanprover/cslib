@@ -65,22 +65,22 @@ declare_syntax_cat ccsProc
 scoped syntax num : ccsProc
 
 @[inherit_doc Process.pre]
-scoped syntax ident "." ccsProc : ccsProc
+scoped syntax ident "." ccsProc:70 : ccsProc
 
 @[inherit_doc Process.pre]
-scoped syntax "(" term ")" "." ccsProc : ccsProc
+scoped syntax "(" term ")" "." ccsProc:70 : ccsProc
 
 @[inherit_doc Process.choice]
-scoped syntax ccsProc "+" ccsProc : ccsProc
+scoped syntax:50 ccsProc:51 "+" ccsProc:50 : ccsProc
 
 @[inherit_doc Process.par]
-scoped syntax ccsProc "|" ccsProc : ccsProc
+scoped syntax:60 ccsProc:61 "|" ccsProc:60 : ccsProc
 
 @[inherit_doc Process.res]
-scoped syntax "ν" term ccsProc : ccsProc
+scoped syntax "ν" term:max ccsProc:70 : ccsProc
 
 @[inherit_doc Process.const]
-scoped syntax "const" term : ccsProc
+scoped syntax "const" term:max : ccsProc
 
 @[inherit_doc Process]
 scoped syntax "(" ccsProc ")" : ccsProc

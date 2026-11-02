@@ -1,3 +1,4 @@
+import CslibTests.BTL
 import CslibTests.Bisimulation
 import CslibTests.BooleanCircuits
 import CslibTests.CCS
@@ -32,6 +33,7 @@ import CslibTests.PACLearning
 import CslibTests.PFunctor
 import CslibTests.PFunctorFree
 import CslibTests.PRG
+import CslibTests.Query
 import CslibTests.QueryComplexity
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses

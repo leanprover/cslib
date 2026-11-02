@@ -645,4 +645,45 @@ theorem HomWeakBisimilarity.eqv [HasTau Label] {lts : LTS State Label} :
 
 end WeakBisimulation
 
+section Reindex
+
+/-! ## Reindex an LTS by an equivalence between two state types -/
+
+/-- Reindex an LTS by an equivalence between two state types. -/
+def reindex (lts₁ : LTS State₁ Label) (e : State₁ ≃ State₂) : LTS State₂ Label where
+  Tr s₂ a t₂ := lts₁.Tr (e.symm s₂) a (e.symm t₂)
+
+theorem reindex.tr (lts₁ : LTS State₁ Label) (e : State₁ ≃ State₂) (s₁ t₁ : State₁) (μ : Label) :
+    (lts₁.reindex e).Tr (e s₁) μ (e t₁) ↔ lts₁.Tr s₁ μ t₁ := by
+  simp [reindex]
+
+theorem reindex.isBisimulation (lts₁ : LTS State₁ Label) (e : State₁ ≃ State₂) :
+    IsBisimulation lts₁ (lts₁.reindex e) (fun s s' ↦ s' = e s) := by
+  intro s s' hss' μ
+  constructor
+  · intro t htr
+    use e t
+    simp [hss', reindex.tr, htr]
+  · intro t' htr'
+    use e.symm t'
+    simp [← hss', ← reindex.tr lts₁ e, htr']
+
+theorem reindex.bisim_trace (lts₁ : LTS State₁ Label) (e : State₁ ≃ State₂)
+    (s₁ t₁ : State₁) (μs : List Label) :
+    lts₁.MTr s₁ μs t₁ → (lts₁.reindex e).MTr (e s₁) μs (e t₁) := by
+  intro h
+  obtain ⟨_, htr, rfl⟩ := (reindex.isBisimulation lts₁ e).bisim_trace rfl μs t₁ h
+  exact htr
+
+theorem reindex.bisim_trace_iff (lts₁ : LTS State₁ Label) (e : State₁ ≃ State₂)
+    (s₁ t₁ : State₁) (μs : List Label) :
+    lts₁.MTr s₁ μs t₁ ↔ (lts₁.reindex e).MTr (e s₁) μs (e t₁) := by
+  constructor
+  · exact reindex.bisim_trace lts₁ e s₁ t₁ μs
+  · intro h
+    obtain ⟨_, htr, heq⟩ := (reindex.isBisimulation lts₁ e).inv.bisim_trace rfl μs (e t₁) h
+    rwa [e.injective heq]
+
+end Reindex
+
 end Cslib.LTS
