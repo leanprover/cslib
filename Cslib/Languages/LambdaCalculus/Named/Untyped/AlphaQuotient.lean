@@ -13,20 +13,13 @@ public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivProperties
 The type `TermAlpha Var` (written `Λα`) of named λ-terms quotiented by α-equivalence, so that
 terms differing only in the names of bound variables are equal. Variables, application,
 abstraction and capture-avoiding substitution are lifted from raw terms, and β- and η-reduction
-are defined directly on the quotient. Defining substitution on the quotient by recursion instead,
-as in [Norrish2006], gives the same function (`TermAlpha.subst_unique` in
-`AlphaQuotientProperties.lean`).
+are defined directly on the quotient.
 
 ## Main definitions
 
 * `TermAlpha` : the type `Λα`, with `⟦m⟧α` the class of `m` and `TermAlpha.var`, `app`, `abs`,
   `subst` lifted from raw terms.
 * `BetaAlpha`, `EtaAlpha` : β- and η-reduction on `Λα`.
-
-## References
-
-* [Michael Norrish, *Mechanising λ-calculus using a classical first order theory of terms with
-  permutations*][Norrish2006]
 -/
 
 @[expose] public section
