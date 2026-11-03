@@ -16,8 +16,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
         with:
-          build-args: "--wfail --iofail"
-          test-args: "--wfail --iofail"
+          build: false
+          test: false
+          lint: false
+      - name: Set up cvc5
+        run: |
+          lake update cvc5
+          lake build @cvc5
+          cvc5_bin="$(find .lake/packages/cvc5 -maxdepth 5 -type f -name cvc5 -path '*/bin/cvc5' -print -quit)"
+          test -n "$cvc5_bin"
+          echo "$(dirname "$cvc5_bin")" >> "$GITHUB_PATH"
+      - name: Build
+        run: lake build --wfail --iofail
+      - name: Test
+        run: lake test --wfail --iofail
+      - name: Lint
+        run: lake lint
       - name: "lake exe mk_all --check"
         run: |
           set -e

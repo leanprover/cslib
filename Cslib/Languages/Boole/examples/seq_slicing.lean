@@ -144,6 +144,8 @@ Result: ✅ pass-/
 #guard_msgs in
 #eval Strata.Boole.verify "cvc5" seqSlicingSeed (options := .quiet)
 
+-- `smt`/`smt +mono` trigger a kernel application type mismatch here (not just a tactic
+-- failure) on the `Sequence` obligations, so they're deliberately excluded.
 theorem seqSlicingSeed_smtVCsCorrect : Strata.smtVCsCorrectBoole seqSlicingSeed := by
   gen_smt_vcs_boole
   all_goals (first | omega | trivial | grind)
