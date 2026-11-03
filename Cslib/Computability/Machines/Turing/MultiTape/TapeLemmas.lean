@@ -53,24 +53,10 @@ lemma Step.inputPos_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') :
   split at h
   · simp [h]
   · obtain ⟨a, _, rfl⟩ := h
-    have := val_moveInputPos_eq c.inputPos a.inputTape
-    rcases ha : a.inputTape <;> grind [SignType.cast, Action.apply_inputPos]
+    rcases ha : a.inputTape <;>
+      grind [SignType.cast, Action.apply_inputPos, val_moveInputPos_eq c.inputPos a.inputTape]
 
 namespace RunPath
-
-/-- A path that avoids `pos` before its last configuration stays on the side of its head. -/
-lemma inputPos_side (p : ntm.RunPath input) {pos : ℕ}
-    (hne : ∀ i : Fin p.length, (p i.castSucc).inputPos.val ≠ pos)
-    {c : Cfg k Symbol State input} (hc : c ∈ p) :
-    (p.head.inputPos.val ≤ pos → c.inputPos.val ≤ pos) ∧
-      (pos ≤ p.head.inputPos.val → pos ≤ c.inputPos.val) := by
-  obtain ⟨i, rfl⟩ := hc
-  induction i using Fin.induction with
-  | zero => exact ⟨id, id⟩
-  | succ i ih =>
-    have := abs_le.mp (Step.inputPos_le (p.step i))
-    have := hne i
-    omega
 
 /-- Every position between the first and the last position of a head along a path is visited,
 since the head moves by at most one cell per step. -/

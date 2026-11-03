@@ -26,12 +26,12 @@ The proof idea follows [Katz2007], §1.2, Theorem 4.
 
 ## Design
 
-Collapsing the deleted cells onto the first cell maps the steps that stay on one retained side to
-steps on the shortened input, so it maps such run paths with `RelSeries.map`. The image forgets the
-output: the machine never reads it, and the shortened run skips the output written in the deleted
-cells, so paired visits to the two endpoints have equal storages but possibly different outputs.
-Their images are then equal configurations of the machine with its output writes erased, so the
-mapped segments of the path join with `RelSeries.smash`.
+Collapsing the deleted cells onto the first cell maps a step that stays on one retained side to a
+step on the shortened input. The image forgets the output: the machine never reads it, and the
+shortened run skips the output written in the deleted cells, so paired visits to the two endpoints
+have equal storages but possibly different outputs. Their images are equal configurations of the
+machine with its output writes erased, whose run on the shortened input thus reaches the image of
+every configuration outside the cut.
 
 ## Main definitions
 
@@ -147,12 +147,9 @@ def inputPos (p : Fin (input.length + 2)) : Fin (cut.shortened.length + 2) :=
 /-- Collapsing the cut commutes with an input-head move that stays on one retained side. -/
 lemma inputPos_moveInputPos {p : Fin (input.length + 2)} {m : SignType}
     (h : cut.SameSide p (moveInputPos p m)) :
-    cut.inputPos (moveInputPos p m) = moveInputPos (cut.inputPos p) m := by
-  have := val_moveInputPos_eq p m
-  have := val_moveInputPos_eq (cut.inputPos p) m
-  apply Fin.ext
-  cases m <;> grind [SameSide, inputPos, left, right, SignType.cast,
-    Fin.le_def, cut.fst_le_snd, cut.length_shortened_add]
+    cut.inputPos (moveInputPos p m) = moveInputPos (cut.inputPos p) m :=
+  Fin.ext <| by grind [SameSide, inputPos, left, right, SignType.cast, val_moveInputPos_eq,
+    cut.fst_le_snd, cut.length_shortened_add]
 
 /-- A configuration on the original input, seen on the shortened input with its output erased. -/
 private def cfg (c : Cfg k Symbol State input) : Cfg k Symbol State cut.shortened :=
@@ -174,35 +171,31 @@ private lemma inputSymbol_cfg (hsym : input[cut.fst] = input[cut.snd])
 
 variable {tm : MultiTapeTM k Symbol State}
 
-/-- The steps of `tm` that stay on one retained side of the cut. -/
-private abbrev sideStepRel (tm : MultiTapeTM k Symbol State) :
-    SetRel (Cfg k Symbol State input) (Cfg k Symbol State input) :=
-  {(c, c') | tm.Step c c' ∧ cut.SameSide c.inputPos c'.inputPos}
-
-/-- When the endpoints carry the same symbol, collapsing the cut maps the steps on either retained
-side to steps of `tm.eraseOutput` on the shortened input: `cfg` agrees with the adapter erasing the
-output on such steps. -/
-private noncomputable def stepHom (hsym : input[cut.fst] = input[cut.snd]) :
-    (cut.sideStepRel tm).Hom (tm.eraseOutput.stepRel cut.shortened) :=
-  ⟨cut.cfg, fun ⟨hstep, hside⟩ ↦ MultiTapeTM.follows_adapt.step cut.cfg hstep Option.map_id_apply
+/-- When the endpoints carry the same symbol, collapsing the cut maps a step on either retained side
+to a step on the shortened input of the machine with its output erased. -/
+private lemma step_cfg (hsym : input[cut.fst] = input[cut.snd]) {c c' : Cfg k Symbol State input}
+    (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) :
+    tm.eraseOutput.step (cut.cfg c) = cut.cfg c' :=
+  MultiTapeTM.step_iff.mp <| MultiTapeTM.follows_adapt.step cut.cfg hstep Option.map_id_apply
     (HeadSymbols.ext (cut.inputSymbol_cfg hsym (by
       rw [Set.mem_Ioo]; unfold SameSide at hside; omega)) rfl)
-    fun _ ↦ by rintro rfl; exact Cfg.ext rfl (cut.inputPos_moveInputPos hside).symm rfl rfl rfl⟩
+    fun _ ↦ by rintro rfl; exact Cfg.ext rfl (cut.inputPos_moveInputPos hside).symm rfl rfl rfl
 
 /-! ### Simulating a computation path on the shortened input -/
 
 open MultiTapeNTM MultiTapeNTM.RunPath
 
-/-- The image of `c` on the shortened input is the last configuration of a computation path of the
-machine with its output erased. -/
+/-- The image of `c` on the shortened input appears in the run of the machine with its output
+erased. -/
 private abbrev Reached (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) : Prop :=
-  ∃ q : tm.eraseOutput.ComputationPath cut.shortened, q.last = cut.cfg c
+  ∃ t, tm.eraseOutput.runFrom (tm.initCfg cut.shortened) t = cut.cfg c
 
 /-- The image of the initial configuration is reached. -/
 private lemma reached_head {p : tm.ComputationPath input} : cut.Reached tm p.head :=
-  ⟨⟨RelSeries.singleton _ (tm.eraseOutput.initCfg cut.shortened), rfl⟩, by
+  ⟨0, by
     rw [p.head_eq]
-    exact Cfg.ext rfl (Fin.ext (by simp [cfg, inputPos, Cfg.init, left, right])) rfl rfl rfl⟩
+    exact Cfg.ext rfl (Fin.ext (by
+      simp [MultiTapeTM.runFrom, cfg, inputPos, Cfg.init, left, right])) rfl rfl rfl⟩
 
 /-- The running visits to the two endpoints, paired in chronological order, with the same image on
 the shortened input. -/
@@ -226,33 +219,19 @@ private def pairing {p : tm.RunPath input}
       Finset.orderEmbOfFin_apply] using congrArg (·[n.val]?) hseq
   have hl := (mem_visits.mp (l n).property).1
   have hr := (mem_visits.mp (r n).property).1
-  simp only [Cfg.storage, Storage.mk.injEq] at hs
-  simp only [OrderIso.trans_apply, OrderIso.symm_apply_apply]
-  refine Cfg.ext hs.1 (Fin.ext ?_) hs.2.1 hs.2.2 rfl
-  grind [cfg, inputPos, left, right, cut.fst_le_snd, Fin.le_def]
+  simp only [Cfg.storage, Storage.mk.injEq, OrderIso.trans_apply, OrderIso.symm_apply_apply] at hs ⊢
+  exact Cfg.ext hs.1 (Fin.ext (by grind [cfg, inputPos, left, right, cut.fst_le_snd, Fin.le_def]))
+    hs.2.1 hs.2.2 rfl
 
 variable {cut} (hsym : input[cut.fst] = input[cut.snd])
 include hsym
 
-/-- A step on a retained side extends a computation path on the shortened input. -/
+/-- A step on a retained side extends the run on the shortened input by one step. -/
 private lemma Reached.step {c c' : Cfg k Symbol State input} (h : cut.Reached tm c)
-    (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) :
-    cut.Reached tm c' := by
-  obtain ⟨q, hq⟩ := h
-  have hr : (q.last, cut.cfg c') ∈ tm.eraseOutput.stepRel cut.shortened :=
-    hq ▸ (cut.stepHom hsym).map_rel (show (c, c') ∈ cut.sideStepRel tm from ⟨hstep, hside⟩)
-  exact ⟨⟨q.snoc _ hr, (RelSeries.head_snoc ..).trans q.head_eq⟩, q.last_snoc _ hr⟩
-
-/-- A run path on a retained side extends a computation path on the shortened input. -/
-private lemma Reached.path {p : tm.RunPath input} (h : cut.Reached tm p.head)
-    (hp : (∀ c ∈ p, c.inputPos.val ≤ cut.left) ∨ ∀ c ∈ p, cut.right ≤ c.inputPos.val) :
-    cut.Reached tm p.last :=
-  -- `p` is a series of side steps, which `stepHom` maps
-  let s : RelSeries (cut.sideStepRel tm) := ⟨p.length, p, fun i ↦ ⟨p.step i,
-    hp.imp (fun h ↦ ⟨h _ ⟨_, rfl⟩, h _ ⟨_, rfl⟩⟩) fun h ↦ ⟨h _ ⟨_, rfl⟩, h _ ⟨_, rfl⟩⟩⟩⟩
-  let ⟨q, hq⟩ := h
-  ⟨⟨q.smash (s.map (cut.stepHom hsym)) hq,
-    (RelSeries.head_smash _).trans q.head_eq⟩, RelSeries.last_smash hq⟩
+    (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) : cut.Reached tm c' :=
+  let ⟨t, ht⟩ := h
+  ⟨t + 1, by rw [MultiTapeTM.runFrom, Function.iterate_succ_apply', ← MultiTapeTM.runFrom, ht,
+    cut.step_cfg hsym hstep hside]⟩
 
 /-- From `a` up to the next running visit `v` to `pos`, the path stays on the side of `pos` where
 it is at `a`, so the image of `p a` reaches that of `p v`. -/
@@ -262,20 +241,22 @@ private lemma Reached.slice {p : tm.RunPath input} {pos : ℕ} {a : Fin (p.lengt
       (pos ≤ (p a).inputPos.val ∧ cut.right ≤ pos))
     (h : cut.Reached tm (p a)) : cut.Reached tm (p v.val) := by
   obtain ⟨hav, hnext⟩ := hfirst
-  let s := (p.take v.val).drop ⟨a, Nat.lt_succ_of_le hav⟩
-  have hs : s.head = p a := by simp [s, RelSeries.take]
-  have hne (i : Fin s.length) : (s i.castSucc).inputPos.val ≠ pos := by
-    intro hi
-    have hi' : i.val + a.val < v.val.val := by
-      have : i.val < v.val.val - a.val := i.isLt
-      omega
-    exact (hnext (a := ⟨⟨_, hi'.trans v.val.isLt⟩, mem_visits.mpr
-      ⟨hi, mt (p.halted_mono hi'.le) (mem_visits.mp v.property).2⟩⟩)
-      (show a.val ≤ i.val + a.val by omega)).not_gt hi'
-  simpa [s] using Reached.path hsym (p := s) (hs ▸ h) (by
-    rcases hside with hl | hr
-    · exact .inl fun c hc => ((inputPos_side s hne hc).1 (hs.symm ▸ hl.1)).trans hl.2
-    · exact .inr fun c hc => hr.2.trans ((inputPos_side s hne hc).2 (hs.symm ▸ hr.1)))
+  suffices ∀ j, a ≤ j → j ≤ v.val → (((p j).inputPos.val ≤ pos ∧ pos ≤ cut.left) ∨
+      (pos ≤ (p j).inputPos.val ∧ cut.right ≤ pos)) ∧ cut.Reached tm (p j) from
+    (this v.val hav le_rfl).2
+  intro j haj hjv
+  induction j using Fin.induction with
+  | zero => obtain rfl := Fin.le_zero_iff.mp haj; exact ⟨hside, h⟩
+  | succ j ih =>
+    rcases haj.eq_or_lt with rfl | haj
+    · exact ⟨hside, h⟩
+    have hj : j.castSucc < v.val := Fin.castSucc_lt_succ.trans_le hjv
+    obtain ⟨hs, hr⟩ := ih (Fin.le_castSucc_iff.mpr haj) hj.le
+    have hne : (p j.castSucc).inputPos.val ≠ pos := fun hp ↦
+      (hnext (a := ⟨_, mem_visits.mpr ⟨hp, mt (p.halted_mono hj.le) (mem_visits.mp v.2).2⟩⟩)
+        (Fin.le_castSucc_iff.mpr haj)).not_gt hj
+    have hm := abs_le.mp (Step.inputPos_le (p.step j))
+    exact ⟨by omega, hr.step hsym (p.step j) (by unfold SameSide; omega)⟩
 
 /-- Between consecutive running visits `u ⋖ v` to `pos`, the path continues on the side its first
 step enters, so the image of the visit `u` reaches that of `v`. -/
@@ -309,10 +290,7 @@ private lemma Pairing.step_sides {p : tm.RunPath input} (e : cut.Pairing p)
     ← cut.inputSymbol_cfg hsym (Set.notMem_Ioo_of_le hl.1.le), he,
     cut.inputSymbol_cfg hsym (Set.notMem_Ioo_of_ge hr.ge),
     hw]
-  generalize (tm.tr q _ _).inputTape = m
-  have := val_moveInputPos_eq (p u.val).inputPos m
-  have := val_moveInputPos_eq (p (e.orderIso u).val).inputPos m
-  cases m <;> simp -failIfUnchanged [SignType.cast] at * <;> omega
+  grind [val_moveInputPos_eq, SignType.cast]
 
 /-- Every running visit to the left endpoint is reached, by induction over the visits. -/
 private lemma Pairing.reached {p : tm.ComputationPath input} (e : cut.Pairing p.toRunPath)
@@ -344,9 +322,7 @@ private lemma Pairing.reached_of_mem {p : tm.ComputationPath input} (e : cut.Pai
     have hprev : cut.Reached tm (p t.castSucc) := by
       by_cases hb : (p t.castSucc).inputPos.val = cut.left ∨ (p t.castSucc).inputPos.val = cut.right
       · have ht : ¬(p t.castSucc).Halted := fun h ↦ by
-          have : cut.left ≤ cut.right := Nat.succ_le_succ cut.fst_le_snd
-          rw [(step_of_halt h).mp (p.step t)] at hout
-          omega
+          grind [left, right, cut.fst_le_snd, Fin.le_def, (step_of_halt h).mp (p.step t)]
         rcases hb with hb | hb
         · exact e.reached hsym ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩
         · have := e.reached hsym (e.orderIso.symm ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩)
@@ -365,12 +341,9 @@ theorem exists_storage_eq (hsym : input[cut.fst] = input[cut.snd])
     {c : Cfg k Symbol State input} (hc : c ∈ path)
     (hout : c.inputPos.val ∉ Set.Icc cut.left cut.right) :
     ∃ q : tm.ComputationPath cut.shortened, q.last.storage = c.storage := by
-  obtain ⟨q, hq⟩ := (cut.pairing hseq).reached_of_mem hsym hc hout
-  -- the path of the same length of `tm` erases to `q`
-  refine ⟨.ofDeterministic tm cut.shortened q.time, ?_⟩
-  rw [q.eq_ofDeterministic] at hq
-  have hp := RunPath.map_ofDeterministic tm.eraseOutputHom (tm.initCfg cut.shortened) q.time
-  exact (congrArg (·.last.storage) hp).trans (congrArg Cfg.storage hq)
+  obtain ⟨t, ht⟩ := (cut.pairing hseq).reached_of_mem hsym hc hout
+  exact ⟨.ofDeterministic tm cut.shortened t, congrArg Cfg.storage
+    ((MultiTapeTM.runFrom_map tm.eraseOutputHom (tm.initCfg cut.shortened) t).symm.trans ht)⟩
 
 end InputCut
 
