@@ -166,12 +166,18 @@ Notation for bisimilarity.
 Differently from standard pen-and-paper presentations, we require the LTSs to be mentioned
 explicitly.
 -/
+scoped notation "~[" lts₁ "," lts₂ "]" => Bisimilarity lts₁ lts₂
+
+/-- Infix notation for bisimilarity of two states. -/
 scoped notation s:max " ~[" lts₁ "," lts₂ "] " s':max => Bisimilarity lts₁ lts₂ s s'
 
 /-- Homogeneous bisimilarity is bisimilarity where the underlying LTSs are the same. -/
-abbrev HomBisimilarity (lts : LTS State Label) := Bisimilarity lts lts
+abbrev HomBisimilarity (lts : LTS State Label) := ~[lts,lts]
 
 /-- Notation for homogeneous bisimilarity. -/
+scoped notation "~[" lts "]" => HomBisimilarity lts
+
+/-- Infix notation for homogeneous bisimilarity of two states. -/
 scoped notation s:max " ~[" lts "] " s':max => HomBisimilarity lts s s'
 
 /-- Helper for following a transition by the first state in a pair of a `Bisimilarity`. -/
@@ -229,13 +235,13 @@ theorem Bisimilarity.trans
 
 /-- Homogeneous bisimilarity is an equivalence relation. -/
 theorem HomBisimilarity.eqv :
-  Equivalence (HomBisimilarity lts) := {
+  Equivalence ~[lts] := {
     refl := HomBisimilarity.refl
     symm := Bisimilarity.symm
     trans := Bisimilarity.trans
   }
 
-instance : IsEquiv State (HomBisimilarity lts) where
+instance : IsEquiv State ~[lts] where
   refl := HomBisimilarity.refl
   symm _ _ := Bisimilarity.symm
   trans _ _ _ := Bisimilarity.trans
@@ -255,22 +261,22 @@ theorem IsBisimulation.sup (hrb : IsBisimulation lts₁ lts₂ r) (hsb : IsBisim
 /-- Bisimilarity is a bisimulation. -/
 @[scoped grind .]
 theorem Bisimilarity.isBisimulation (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) :
-  IsBisimulation lts₁ lts₂ (Bisimilarity lts₁ lts₂) := by grind [IsBisimulation]
+  IsBisimulation lts₁ lts₂ ~[lts₁,lts₂] := by grind [IsBisimulation]
 
 /-- Bisimilarity is the largest bisimulation. -/
 @[scoped grind →]
 theorem IsBisimulation.le_bisimilarity (h : IsBisimulation lts₁ lts₂ r) :
-    r ≤ (Bisimilarity lts₁ lts₂) := by
+    r ≤ ~[lts₁,lts₂] := by
   intro s₁ s₂ hr
   exists r
 
 /-- The union of bisimilarity with any bisimulation is bisimilarity. -/
 @[scoped grind =, simp]
 theorem Bisimilarity.gfp (r : State₁ → State₂ → Prop) (h : IsBisimulation lts₁ lts₂ r) :
-    (Bisimilarity lts₁ lts₂) ⊔ r = Bisimilarity lts₁ lts₂ := sup_eq_left.mpr h.le_bisimilarity
+    ~[lts₁,lts₂] ⊔ r = ~[lts₁,lts₂] := sup_eq_left.mpr h.le_bisimilarity
 
 /-- `calc` support for bisimilarity. -/
-instance : Trans (Bisimilarity lts₁ lts₂) (Bisimilarity lts₂ lts₃) (Bisimilarity lts₁ lts₃) where
+instance : Trans ~[lts₁,lts₂] ~[lts₂,lts₃] ~[lts₁,lts₃] where
   trans := Bisimilarity.trans
 
 section Order
@@ -300,7 +306,7 @@ instance : Bot {r // IsBisimulation lts₁ lts₂ r} :=
   ⟨Relation.emptyHRelation, IsBisimulation.bot⟩
 
 instance : Top {r // IsBisimulation lts₁ lts₂ r} :=
-  ⟨Bisimilarity lts₁ lts₂, Bisimilarity.isBisimulation ..⟩
+  ⟨~[lts₁,lts₂], Bisimilarity.isBisimulation ..⟩
 
 /-- In the inclusion order on bisimulations:
 
@@ -321,7 +327,7 @@ end Order
 `t₁` and `t₂` with `s₁ ~[lts₁] t₁`, `r t₁ t₂`, and `t₂ ~[lts₂] s₂`. -/
 def UpToHomBisimilarity (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
     (r : State₁ → State₂ → Prop) : State₁ → State₂ → Prop :=
-  Relation.Comp (HomBisimilarity lts₁) (Relation.Comp r (HomBisimilarity lts₂))
+  Relation.Comp ~[lts₁] (Relation.Comp r ~[lts₂])
 
 /-- A relation `r` is a bisimulation up to homogeneous bisimilarity if, whenever it relates two
 states, their transitions can be matched with derivatives related by
@@ -365,7 +371,7 @@ theorem IsBisimulationUpTo.isBisimulation (h : IsBisimulationUpTo lts₁ lts₂ 
 
 /-- A bisimulation up to bisimilarity relates only bisimilar states. -/
 theorem IsBisimulationUpTo.le_bisimilarity (h : IsBisimulationUpTo lts₁ lts₂ r) :
-    r ≤ Bisimilarity lts₁ lts₂ := by
+    r ≤ ~[lts₁, lts₂] := by
   intro s₁ s₂ hr
   exact h.isBisimulation.le_bisimilarity s₁ s₂
     ⟨s₁, HomBisimilarity.refl s₁, s₂, hr, HomBisimilarity.refl s₂⟩
@@ -385,7 +391,7 @@ theorem IsBisimulation.traceEq (hb : IsBisimulation lts₁ lts₂ r) (hr : r s�
 
 /-- Bisimilarity is included in trace equivalence. -/
 @[scoped grind .]
-theorem Bisimilarity.le_traceEq : Bisimilarity lts₁ lts₂ ≤ TraceEq lts₁ lts₂ := by
+theorem Bisimilarity.le_traceEq : ~[lts₁,lts₂] ≤ TraceEq lts₁ lts₂ := by
   intro s₁ s₂ h
   obtain ⟨r, hr, hb⟩ := h
   apply hb.traceEq hr
@@ -457,7 +463,7 @@ theorem IsBisimulation.traceEq_not_bisim :
 /-- In general, bisimilarity and trace equivalence are distinct. -/
 theorem Bisimilarity.bisimilarity_neq_traceEq :
     ∃ (State : Type) (Label : Type) (lts : LTS State Label),
-      HomBisimilarity lts ≠ HomTraceEq lts := by
+      ~[lts] ≠ HomTraceEq lts := by
   obtain ⟨State, Label, lts, h⟩ := IsBisimulation.traceEq_not_bisim
   grind [Bisimilarity.isBisimulation lts lts]
 
@@ -488,18 +494,18 @@ theorem Deterministic.bisim_tfae {lts₁ : LTS State₁ Label} {lts₂ : LTS Sta
 /-- In deterministic LTSs, bisimilarity and trace equivalence coincide. -/
 theorem Bisimilarity.deterministic_bisim_eq_traceEq
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
-    [lts₁.Deterministic] [lts₂.Deterministic] : Bisimilarity lts₁ lts₂ = TraceEq lts₁ lts₂ := by
+    [lts₁.Deterministic] [lts₂.Deterministic] : ~[lts₁,lts₂] = TraceEq lts₁ lts₂ := by
   ext s₁ s₂
   exact (Deterministic.bisim_tfae s₁ s₂).out 1 2
 
 /-- Homogeneous bisimilarity can also be characterized through symmetric simulations. -/
 theorem HomBisimilarity.symm_simulation :
-  HomBisimilarity lts =
+  ~[lts] =
     fun s₁ s₂ => ∃ r, r s₁ s₂ ∧ Std.Symm r ∧ IsHomSimulation lts r := by
   ext s₁ s₂
   constructor
   · intro h
-    use lts.HomBisimilarity, h
+    use ~[lts], h
     exact ⟨⟨fun _ _ => Bisimilarity.symm⟩, (Bisimilarity.isBisimulation lts lts).isSimulation⟩
   · intro ⟨r, hrel, ⟨hsymm⟩, hsim⟩
     use r, hrel
