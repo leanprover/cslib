@@ -30,7 +30,7 @@ namespace Cslib
 
 universe u
 
-variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
+variable {Var : Type u} [DecidableEq Var]
 
 namespace LambdaCalculus.Named.Untyped
 
@@ -42,6 +42,13 @@ inductive Term (Var : Type u) : Type u where
 deriving DecidableEq
 
 namespace Term
+
+omit [DecidableEq Var] in
+/-- Strong induction on the size of a term. -/
+theorem induction_by_sizeOf {C : Term Var → Prop}
+    (step : ∀ m : Term Var, (∀ m1 : Term Var, sizeOf m1 < sizeOf m → C m1) → C m) :
+    ∀ m : Term Var, C m :=
+  WellFounded.fix (r := sizeOfWFRel.rel) sizeOfWFRel.wf step
 
 /-- Free variables. -/
 @[simp, scoped grind =]
@@ -89,7 +96,6 @@ inductive AlphaEquiv : Term Var → Term Var → Prop where
 instance instHasAlphaEquivTerm : HasAlphaEquiv (Term Var) where
   AlphaEquiv := AlphaEquiv
 
-omit [HasFresh Var] in
 /-- Allow grind to recognise the notation of α-equivalence. -/
 @[simp, scoped grind _=_]
 theorem AlphaEquiv_def (m n : Term Var) : m =α n ↔ AlphaEquiv m n := by
@@ -104,7 +110,6 @@ inductive Subst : Term Var → Var → Term Var → Term Var → Prop where
   | app {m n x r m' n'} : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
   | alpha {m m' r r' n n' x} : m =α m' → r =α r' → n =α n' → Subst m x r n → m'.Subst x r' n'
 
-omit [HasFresh Var] in
 /-- Renaming preserves size. -/
 @[simp, scoped grind =]
 theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = sizeOf m := by
@@ -113,7 +118,7 @@ theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = si
 /-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x`
 in `m` with `r`. -/
 @[simp, scoped grind =]
-def subst (m : Term Var) (x : Var) (r : Term Var) :
+def subst [HasFresh Var] (m : Term Var) (x : Var) (r : Term Var) :
     Term Var :=
   match m with
   | var y => if y = x then r else var y
@@ -130,13 +135,13 @@ termination_by m
 decreasing_by all_goals grind
 
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
-instance instHasSubstitutionTerm :
+instance instHasSubstitutionTerm [HasFresh Var] :
     HasSubstitution (Term Var) Var (Term Var) where
   subst := subst
 
 /-- Allow grind to recognise the notation of substitution. -/
 @[simp, scoped grind _=_]
-theorem subst_def (m r : Term Var) (x : Var) : m[x := r] = m.subst x r := by
+theorem subst_def [HasFresh Var] (m r : Term Var) (x : Var) : m[x := r] = m.subst x r := by
   rfl
 
 /-- Contexts. -/
