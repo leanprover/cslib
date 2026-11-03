@@ -2,6 +2,18 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import Cslib.Algorithms.CCS.VendingMachine
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
+public import Cslib.Algorithms.Lean.Query.Arith.Defs
+public import Cslib.Algorithms.Lean.Query.Arith.Lemmas
+public import Cslib.Algorithms.Lean.Query.Bounds
+public import Cslib.Algorithms.Lean.Query.FreeM
+public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
+public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas
+public import Cslib.Algorithms.Lean.Query.Sort.IsSort
+public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
+public import Cslib.Algorithms.Lean.Query.Sort.LowerBound
+public import Cslib.Algorithms.Lean.Query.Sort.Merge.Bounds
+public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
+public import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
 public import Cslib.Algorithms.Lean.Sort.Insertion
 public import Cslib.Algorithms.Lean.Sort.Merge
 public import Cslib.Algorithms.Lean.TimeM
@@ -14,8 +26,10 @@ public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.EpsilonNA.Basic
+public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
+public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
 public import Cslib.Computability.Automata.EpsilonNA.ToNA
-public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
+public import Cslib.Computability.Automata.EpsilonNA.ToSingleStartAccept
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter
@@ -29,6 +43,7 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
+public import Cslib.Computability.Automata.NA.ToEpsilonNA
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Automata.TwoWayNA.Basic
@@ -57,6 +72,8 @@ public import Cslib.Computability.Circuit.Signature
 public import Cslib.Computability.Circuit.Simulation
 public import Cslib.Computability.Circuit.Synthesis
 public import Cslib.Computability.Circuit.Wire
+public import Cslib.Computability.Distributed.Consistency.Hierarchy
+public import Cslib.Computability.Distributed.Consistency.Specification
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.Consensus
@@ -69,11 +86,13 @@ public import Cslib.Computability.Languages.Congruences.Basic
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.MyhillCongruence
 public import Cslib.Computability.Languages.ExampleEventuallyZero
+public import Cslib.Computability.Languages.KleeneAlgorithm
 public import Cslib.Computability.Languages.Language
 public import Cslib.Computability.Languages.LanguageHom
 public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
+public import Cslib.Computability.Languages.RegularExpressions
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Languages.Slice
@@ -101,12 +120,15 @@ public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
 public import Cslib.Computability.Machines.Turing.SingleTape.NonDeterministic
+public import Cslib.Computability.QueryComplexity.Defs
+public import Cslib.Computability.QueryComplexity.Measures
 public import Cslib.Computability.URM.Basic
 public import Cslib.Computability.URM.Computable
 public import Cslib.Computability.URM.Defs
 public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
+public import Cslib.Crypto.Negligible
 public import Cslib.Crypto.Primitives.PRG.Asymptotic
 public import Cslib.Crypto.Primitives.PRG.Basic
 public import Cslib.Crypto.Primitives.PRG.Defs
@@ -192,6 +214,7 @@ public import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 public import Cslib.Foundations.Semantics.LTS.Relation
 public import Cslib.Foundations.Semantics.LTS.Reverse
+public import Cslib.Foundations.Semantics.LTS.SetImage
 public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.Termination
 public import Cslib.Foundations.Semantics.LTS.Total
@@ -248,6 +271,7 @@ public import Cslib.Languages.Mech.Choreography.Basic
 public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
+public import Cslib.Logics.BTL.Basic
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.Kleene.Basic
 public import Cslib.Logics.Kleene.Semantics

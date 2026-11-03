@@ -68,7 +68,7 @@ lemma invert_step_app_fvar (step : app M (fvar x) ⭢βᶠ N) :
   cases step
   case base h => cases h with | beta => exact .inr ⟨_, rfl, rfl⟩
   case appR step_M _ => exact .inl ⟨_, rfl, step_M⟩
-  all_goals grind only [cases Xi]
+  grind only [cases Xi]
 
 variable [HasFresh Var] [DecidableEq Var]
 
@@ -84,7 +84,11 @@ lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (
     s[x := t] ⭢βᶠ s'[x := t] := by
   induction step with
   | base beta => grind [subst_open]
-  | abs  => grind [Xi.abs <| free_union Var]
+  | abs =>
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-10-01 (changes from lean#15420):
+    this goal now needs more E-matching rounds. -/
+    grind (ematch := 7) [Xi.abs <| free_union Var]
   | _ => grind
 
 /-- Substitution respects a single reduction step of a free variable. -/
@@ -149,9 +153,15 @@ lemma steps_open_cong_l_abs
   generalize eq' : s'.abs = s'_abs at steps
   induction steps generalizing s s' with
   | refl => grind
-  | tail _ step ih =>
+  | @tail b c steps' step ih =>
     specialize ih s
-    cases step with grind [invert_steps_abs, step_open_cong_l (L := free_union Var)]
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-10-01 (changes from lean#15420):
+    `invert_steps_abs` is never instantiated as a hint any more, because the pattern derived
+    for it also requires an `Exists` term that the new goal normalization no longer creates.
+    Inverting by hand instead. -/
+    obtain ⟨m, _, rfl⟩ := invert_steps_abs (eq ▸ steps')
+    cases step with grind [step_open_cong_l (L := free_union Var)]
 
 /- `t ↠βᶠ t'` implies `s[x := t] ↠βᶠ s[x := t']`.
    There is no single step lemma in this case because x

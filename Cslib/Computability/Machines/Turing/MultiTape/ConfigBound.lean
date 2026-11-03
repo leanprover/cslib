@@ -30,8 +30,8 @@ The results are layered, from the purely combinatorial to the machine-specific:
 * `MultiTapeTM.encard_fitsIn_le` is a counting statement about the type `Storage` alone and does
   not mention Turing machines: a memory whose non-blank cells and heads stay within per-tape
   windows of total size `s` can hold at most `storageBound Symbol State k s` different values.
-* `MultiTapeTM.storage_fitsIn` is the geometric input: the storage reached after `t` steps stays
-  within the windows given by the space used up to step `t`.
+* `MultiTapeNTM.ComputationPath.storage_fitsIn` is the geometric input: the storage at the end of a
+  computation path stays within the windows given by the per-tape space of the path.
 * `MultiTapeTM.encard_storages_le` combines the two: a machine bounded by space `s` passes through
   at most `storageBound Symbol State k s` storages *during its whole run*, no matter how long it
   runs and how long its input is. This is the form needed for arguments below logarithmic space,
@@ -62,8 +62,9 @@ alphabet exponent.
 We lose a factor of `2 * k` by simplifying the windows to `[-sᵢ, sᵢ]` instead of the actually used
 area, but this is absorbed by the `O(s)` exponent in the final bound.
 
-The windows for a whole run are available because a machine that is space-bounded at every point in
-time attains its per-tape space usage at a single step (`MultiTapeTM.exists_spaceUsedByTape_max`).
+The windows for a whole run are available because the computation paths of a deterministic
+machine are prefixes of one another, so the one visiting the most cells contains the windows of
+every other (`MultiTapeNTM.ComputationPath.spaceUsedByTape_le_of_space_le`).
 -/
 
 @[expose] public section
@@ -247,63 +248,58 @@ def Cfg.core (c : Cfg k Symbol State input) :
     Fin (input.length + 2) × Storage Symbol State k :=
   (c.inputPos, c.storage)
 
-/-- `step` never reads the output tape, so the core of the next configuration is determined by the
-core of the current one. -/
-lemma core_step_eq_of_core_eq {c₁ c₂ : Cfg k Symbol State input} (h : c₁.core = c₂.core) :
-    (tm.step c₁).core = (tm.step c₂).core := by
-  rcases c₁ with ⟨q₁, i₁, w₁, p₁, out₁⟩
-  rcases c₂ with ⟨q₂, i₂, w₂, p₂, out₂⟩
-  simp only [Cfg.core, Cfg.storage, Prod.mk.injEq, Storage.mk.injEq] at h
-  obtain ⟨rfl, rfl, rfl, rfl⟩ := h
-  cases q₁ with
-  | none => rw [MultiTapeTM.step_of_halt rfl, MultiTapeTM.step_of_halt rfl]; rfl
-  | some q => rw [MultiTapeTM.step_of_state rfl, MultiTapeTM.step_of_state rfl]; rfl
-
 /-! ## The storages and cores of a space-bounded run
 
 These are the main results giving upper bounds on the number of storages and configuration cores
 reachable in bounded space.
 -/
 
-namespace MultiTapeTM
+namespace MultiTapeNTM
 
-/-- The storage reached after `t` steps fits in the windows given by the per-tape space usage up
-to step `t`. -/
-lemma storage_fitsIn (t : ℕ) :
-    (tm.runFrom (tm.initCfg input) t).storage.FitsIn (tm.spaceUsedByTape (tm.initCfg input) t) := by
-  constructor
-  · intro j
-    simpa [Cfg.storage] using tm.natAbs_le_spaceUsedByTape_of_mem_visited
-      (tm.mem_visitedByTapeHead_self (tm.initCfg input) t j)
-  · intro j
-    exact content_natAbs_le_spaceUsedByTape t
+/-- The storage at the end of a computation path fits in the windows given by its per-tape space:
+the tapes start blank, with every head at `0`. -/
+lemma ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol State}
+    (p : ntm.ComputationPath input) : p.last.storage.FitsIn p.spaceUsedByTape := by
+  refine ⟨fun j => ?_, fun j z hz => ?_⟩
+  · simpa [Cfg.storage, p.head_eq, Cfg.init, ComputationPath.spaceUsedByTape] using
+      RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
+        ((RunPath.mem_visitedByTapeHead _).mpr ⟨_, RelSeries.last_mem _, rfl⟩)
+  · simpa [p.head_eq, Cfg.init, ComputationPath.spaceUsedByTape] using
+      RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
+        (RunPath.mem_visitedByTapeHead_of_workTapes_ne _
+          (by simpa [p.head_eq, Cfg.init, Cfg.storage] using hz))
+
+end MultiTapeNTM
+
+namespace MultiTapeTM
 
 /-- A machine that uses at most `s` cells of work-tape space at every point in time passes through
 at most `storageBound Symbol State k s` different storages during its whole run — independently of
 the length of the input and of how long it runs. -/
 theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : ∀ t, tm.space (tm.initCfg input) t ≤ s) :
-    (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard
+    (hs : tm.RunsInSpace input s) :
+    (Set.range fun p : tm.ComputationPath input => p.last.storage).encard
       ≤ storageBound Symbol State k s := by
-  obtain ⟨T, hT⟩ := tm.exists_spaceUsedByTape_max (tm.initCfg input) hs
-  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs T))
-  rintro _ ⟨t, rfl⟩
-  exact Storage.FitsIn_mono (fun i => hT t i) (tm.storage_fitsIn t)
+  -- every storage fits in the windows of a computation path visiting the most cells
+  obtain ⟨p, hp⟩ := hs.exists_space_max
+  refine le_trans (Set.encard_le_encard ?_) (encard_fitsIn_le (hs p))
+  rintro _ ⟨q, rfl⟩
+  exact Storage.FitsIn_mono (q.spaceUsedByTape_le_of_space_le (hp q)) q.storage_fitsIn
 
 /-- The number of configuration cores that a machine bounded by space `s` can reach is at most
 `(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input. -/
 theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : ∀ t, tm.space (tm.initCfg input) t ≤ s) :
-    (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+    (hs : tm.RunsInSpace input s) :
+    (Set.range fun p : tm.ComputationPath input => p.last.core).encard
       ≤ (input.length + 2) * storageBound Symbol State k s := by
-  calc (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+  calc (Set.range fun p : tm.ComputationPath input => p.last.core).encard
       ≤ ((Set.univ : Set (Fin (input.length + 2)))
-          ×ˢ (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage)).encard := by
+          ×ˢ (Set.range fun p : tm.ComputationPath input => p.last.storage)).encard := by
         apply Set.encard_le_encard
-        rintro _ ⟨t, rfl⟩
-        exact ⟨Set.mem_univ _, t, rfl⟩
+        rintro _ ⟨p, rfl⟩
+        exact ⟨Set.mem_univ _, p, rfl⟩
     _ = (Set.univ : Set (Fin (input.length + 2))).encard
-          * (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard := Set.encard_prod
+          * (Set.range fun p : tm.ComputationPath input => p.last.storage).encard := Set.encard_prod
     _ ≤ (input.length + 2) * storageBound Symbol State k s := by
         refine mul_le_mul' ?_ (tm.encard_storages_le hs)
         simp [Set.encard_univ, ENat.card_eq_coe_fintype_card]
@@ -312,8 +308,8 @@ theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ}
 passes through is at most `2 ^ (O(s))`, with constants depending only on the machine. -/
 theorem encard_storages_le_pow [Finite Symbol] [Finite State] :
     ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
-      (∀ t, tm.space (tm.initCfg input) t ≤ s) →
-      (Set.range fun t => (tm.runFrom (tm.initCfg input) t).storage).encard ≤ a * 2 ^ (c * s) := by
+      tm.RunsInSpace input s →
+      (Set.range fun p : tm.ComputationPath input => p.last.storage).encard ≤ a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State
   obtain ⟨a, c, hpow⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
@@ -325,8 +321,8 @@ is at most `(n + 2) * 2 ^ (O(s))`, with constants depending only on the machine 
 input. -/
 theorem encard_cores_le_pow [Finite Symbol] [Finite State] :
     ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
-      (∀ t, tm.space (tm.initCfg input) t ≤ s) →
-      (Set.range fun t => (tm.runFrom (tm.initCfg input) t).core).encard
+      tm.RunsInSpace input s →
+      (Set.range fun p : tm.ComputationPath input => p.last.core).encard
         ≤ (input.length + 2) * a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State

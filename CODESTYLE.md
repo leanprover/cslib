@@ -8,7 +8,7 @@ Authors: Fabrizio Montesi
 
 This document provides general guidelines for the design, implementation, and documentation of CSLib. It is intended for both contributors and reviewers.
 
-In the absence of more specific guidelines here, we generally follow the [Mathlib style guidelines](https://leanprover-community.github.io/contribute/style.html). Contributors should familiarise themselves with them as well. Here, we focus on principles and conventions that are particularly important for CSLib.
+In the absence of more specific guidelines here, we generally follow the [Lean Community (Mathlib) style guidelines](https://leanprover-community.github.io/contribute/style.html). Contributors should familiarise themselves with them as well. Here, we focus on principles and conventions that are particularly important for CSLib.
 
 ## Principle 0: Guidelines, Not Absolutes
 
@@ -24,7 +24,7 @@ Contributors and reviewers should keep the long-term direction of CSLib in mind,
 
 A central goal of CSLib is to provide reusable abstractions and encourage their consistent use across the library.
 
-**New developments should reuse existing abstractions whenever appropriate.** For example, a labelled transition system should use CSLib's `LTS` abstraction rather than introduce an independent representation of the same concept.
+**New developments should reuse existing abstractions whenever appropriate.** For example, a labelled transition system should use CSLib's `LTS` abstraction rather than introduce an independent representation of the same concept. This includes existing typeclasses for common concepts, such as `Cslib.Congruence` and `Cslib.HasContext`.
 
 We distinguish two complementary forms of reuse: _vertical_ and _horizontal_ reuse. Another important aspect is automation. These are described next.
 
@@ -40,7 +40,7 @@ An example is the development of modal logic, whereby many specialised logics (l
 
 Horizontal reuse concerns abstractions that can be useful across different domains.
 
-When developing a new concept, consider whether it can be expressed using existing general interfaces, or whether parts of the development could usefully be made available to other domains. 
+When developing a new concept, consider whether it can be expressed using existing general interfaces, or whether parts of the development could usefully be made available to other domains.
 
 Prefer abstractions that capture genuinely shared structure over ones that are unnecessarily tied to a particular application. At the same time, avoid generality for its own sake: generic infrastructure should make concrete developments easier, not more complicated.
 
@@ -50,7 +50,7 @@ An example is the use of `LTS` API across concurrency theory, automata, and Henn
 
 We consider proof automation an important part of API design in CSLib. The goal is not to automate every proof, but to make commonly needed knowledge easy to activate.
 
-When developing definitions and theorems, consider how easily they can be applied in subsequent developments through tactics such as grind and simp. Well-crafted automation, such as curated grind sets, is part of the API: it can make general results immediately useful to specialised developments, without requiring users to repeatedly unfold definitions, translate between representations, or reconstruct routine arguments.
+When developing definitions and theorems, consider how easily they can be applied in subsequent developments through tactics such as `grind` and `simp`. Well-crafted automation, such as curated grind sets, is part of the API: it can make general results immediately useful to specialised developments, without requiring users to repeatedly unfold definitions, translate between representations, or reconstruct routine arguments.
 
 An example is the `modal` grind set, which supports automated reasoning about modal propositions.
 

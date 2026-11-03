@@ -6,9 +6,7 @@ Authors: Kim Morrison, Eric Wieser
 module
 
 public import Cslib.Foundations.Control.Monad.IsMonadHom
-
 import all Init.Data.List.Sort.Basic
-import Cslib.Init
 
 /-!
 # A Monadic version of the builtin `List.mergeSort`

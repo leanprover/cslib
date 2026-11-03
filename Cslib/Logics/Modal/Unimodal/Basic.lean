@@ -88,7 +88,9 @@ open scoped InferenceSystem Satisfies Proposition Proposition.Context Frame
 @[scoped grind =]
 theorem Satisfies.diamond_iff_exists {m : Model World τ Atom} {φ : Proposition τ Atom} :
     ⇓Modal[m,w ⊨ ◇φ] ↔ ∃ w', m.rel w w' ∧ ⇓Modal[m,w' ⊨ φ] := by
-  grind [diamond_eq_dynDiamond (φ := φ)]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-09-29 (changes from lean#15378) -/
+  constructor <;> grind [diamond_eq_dynDiamond (φ := φ)]
 
 @[scoped grind →, modal →]
 theorem Satisfies.diamond_of {m : Model World τ Atom} {φ : Proposition τ Atom}
