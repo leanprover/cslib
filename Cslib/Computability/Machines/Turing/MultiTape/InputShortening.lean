@@ -185,10 +185,9 @@ private lemma step_cfg (hsym : input[cut.fst] = input[cut.snd]) {c c' : Cfg k Sy
 
 open MultiTapeNTM MultiTapeNTM.RunPath
 
-/-- The image of `c` on the shortened input appears in the run of the machine with its output
-erased. -/
+/-- The image of `c` on the shortened input is reachable by the machine with its output erased. -/
 private abbrev Reached (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) : Prop :=
-  ∃ t, tm.eraseOutput.runFrom (tm.initCfg cut.shortened) t = cut.cfg c
+  cut.cfg c ∈ tm.eraseOutput.reachable cut.shortened
 
 /-- The image of the initial configuration is reached. -/
 private lemma reached_head {p : tm.ComputationPath input} : cut.Reached tm p.head :=
@@ -229,9 +228,7 @@ include hsym
 /-- A step on a retained side extends the run on the shortened input by one step. -/
 private lemma Reached.step {c c' : Cfg k Symbol State input} (h : cut.Reached tm c)
     (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) : cut.Reached tm c' :=
-  let ⟨t, ht⟩ := h
-  ⟨t + 1, by rw [MultiTapeTM.runFrom, Function.iterate_succ_apply', ← MultiTapeTM.runFrom, ht,
-    cut.step_cfg hsym hstep hside]⟩
+  by simpa only [cut.step_cfg hsym hstep hside] using MultiTapeTM.step_mem_reachable h
 
 /-- From `a` up to the next running visit `v` to `pos`, the path stays on the side of `pos` where
 it is at `a`, so the image of `p a` reaches that of `p v`. -/
@@ -340,9 +337,9 @@ theorem exists_storage_eq (hsym : input[cut.fst] = input[cut.snd])
     (hseq : visitSequence path.toRunPath cut.left = visitSequence path.toRunPath cut.right)
     {c : Cfg k Symbol State input} (hc : c ∈ path)
     (hout : c.inputPos.val ∉ Set.Icc cut.left cut.right) :
-    ∃ q : tm.ComputationPath cut.shortened, q.last.storage = c.storage := by
+    c.storage ∈ Cfg.storage '' tm.reachable cut.shortened := by
   obtain ⟨t, ht⟩ := (cut.pairing hseq).reached_of_mem hsym hc hout
-  exact ⟨.ofDeterministic tm cut.shortened t, congrArg Cfg.storage
+  exact ⟨_, ⟨t, rfl⟩, congrArg Cfg.storage
     ((MultiTapeTM.runFrom_map tm.eraseOutputHom (tm.initCfg cut.shortened) t).symm.trans ht)⟩
 
 end InputCut
@@ -362,7 +359,7 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
       (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s < input.length)
     {d : Cfg k Symbol State input} (hd : d ∈ path) :
     ∃ input' : List Symbol, input'.length < input.length ∧
-      ∃ q : tm.ComputationPath input', q.last.storage = d.storage := by
+      d.storage ∈ Cfg.storage '' tm.reachable input' := by
   classical
   let P := path.toRunPath
   -- Every prefix fits in the windows given by the space of this path.

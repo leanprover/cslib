@@ -34,6 +34,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `adapt`: the machine run through an adapter
 * `combine`: two machines on the same tapes combined into one
 * `step`, `runFrom`: the successor configuration and iteration of this function
+* `reachable`: the configurations that the machine reaches on an input
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
 * `Computes`: the machine halts with the given output on an input
@@ -323,6 +324,17 @@ variable {tm : MultiTapeTM k Symbol State}
 If the Turing machine halts, it will stay at the halting configuration. -/
 noncomputable def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input :=
   tm.step^[t] cfg
+
+/-- The configurations that `tm` reaches on `input`. -/
+noncomputable def reachable (tm : MultiTapeTM k Symbol State) (input : List Symbol) :
+    Set (Cfg k Symbol State input) :=
+  Set.range (tm.runFrom (tm.initCfg input))
+
+/-- A step from a reachable configuration is reachable. -/
+lemma step_mem_reachable {input : List Symbol} {c : Cfg k Symbol State input}
+    (h : c ∈ tm.reachable input) : tm.step c ∈ tm.reachable input :=
+  let ⟨t, ht⟩ := h
+  ⟨t + 1, by rw [runFrom, Function.iterate_succ_apply', ← runFrom, ht]⟩
 
 /-- Every path of a deterministic machine follows its iterated step function. -/
 lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
