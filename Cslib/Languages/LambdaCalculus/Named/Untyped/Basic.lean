@@ -54,7 +54,7 @@ theorem induction_by_sizeOf {C : Term Var → Prop}
 @[simp, scoped grind =]
 def fv : Term Var → Finset Var
   | var x => {x}
-  | abs x m => m.fv \ {x}
+  | abs x m => m.fv.erase x
   | app m n => m.fv ∪ n.fv
 
 /-- Bound variables. -/

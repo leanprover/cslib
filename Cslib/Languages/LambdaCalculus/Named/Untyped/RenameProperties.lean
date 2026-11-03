@@ -54,12 +54,12 @@ theorem notMem_vars_rename {m : Term Var} {x y : Var} (hxy : x ≠ y) :
 /-- The set of variables after renaming. -/
 @[simp, scoped grind =]
 theorem vars_rename {m : Term Var} {x y : Var} :
-    (m.rename x y).vars = m.vars \ {x} ∪ (if x ∈ m.vars then {y} else ∅) := by
+    (m.rename x y).vars = m.vars.erase x ∪ (if x ∈ m.vars then {y} else ∅) := by
   grind [vars_rename_of_mem]
 
 /-- The set of free variables after renaming. -/
 theorem fv_rename {m : Term Var} {x y : Var} (hy : y ∉ m.vars) :
-    (m.rename x y).fv = m.fv \ {x} ∪ (if x ∈ m.fv then {y} else ∅) := by
+    (m.rename x y).fv = m.fv.erase x ∪ (if x ∈ m.fv then {y} else ∅) := by
   induction m with
   | var z => grind
   | abs z m ih => grind [vars_eq_fv_union_bv]

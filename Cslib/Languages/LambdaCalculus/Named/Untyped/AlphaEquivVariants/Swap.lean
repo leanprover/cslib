@@ -74,7 +74,7 @@ lemma fv_permute (m : Term Var) (π : Equiv.Perm Var) :
   induction m with
   | var x => simp [permute, fv]
   | app m n ihm ihn => simp [permute, fv, ihm, ihn, Finset.image_union]
-  | abs x m ih => simp [permute, fv, ih, Finset.image_sdiff _ _ π.injective]
+  | abs x m ih => simp [permute, fv, ih, Finset.image_erase π.injective]
 
 /-- Permuting a term transports its variables pointwise. -/
 lemma vars_permute (m : Term Var) (π : Equiv.Perm Var) :

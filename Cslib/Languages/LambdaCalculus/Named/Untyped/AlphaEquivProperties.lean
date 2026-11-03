@@ -55,8 +55,8 @@ theorem AlphaEquiv.same_fv {m n : Term Var} : m =α n → m.fv = n.fv := by
   | @abs y x1 x2 m1 m2 hy h ih =>
     grind =>
       instantiate [fv_rename, vars_eq_fv_union_bv]
-      have : m1.fv \ {x1} = (m1.rename x1 y).fv \ {y}
-      have : (m2.rename x2 y).fv \ {y} = m2.fv \ {x2}
+      have : m1.fv.erase x1 = (m1.rename x1 y).fv.erase y
+      have : (m2.rename x2 y).fv.erase y = m2.fv.erase x2
 
 variable [HasFresh Var]
 
