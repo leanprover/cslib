@@ -21,6 +21,7 @@ This script checks that all CSLib modules (transitively) import Cslib.Init.
 def exceptions : List Name := [
   -- Circular dependency (imported by Cslib.Init)
   `Cslib.Foundations.Lint.Basic,
+  `Cslib.Tactic.GrindAttrs,
   `Cslib.Init,
 ]
 
@@ -29,7 +30,7 @@ def main : IO UInt32 := do
   CoreM.withImportModules #[`Cslib] (searchPath := searchPath) (trustLevel := 1024) do
     let env ← getEnv
     let graph := env.importGraph.transitiveClosure
-    let noInitGraph := 
+    let noInitGraph :=
       graph.filter (fun name imports => name.getRoot = `Cslib ∧ !imports.contains `Cslib.Init)
     let diff := noInitGraph.keys.diff exceptions
     if diff.length > 0 then

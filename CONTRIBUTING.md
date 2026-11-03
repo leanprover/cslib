@@ -50,11 +50,15 @@ If you have any questions, a good place to ask them is the [Lean prover Zulip ch
 # Contribution model
 
 To get your code approved, you need to submit a [pull request (PR)](https://github.com/leanprover/cslib/pulls).
-Each PR needs to be approved by at least one relevant maintainer. You can read the [list of current maintainers](/GOVERNANCE.md#maintainers).
+Each PR needs to be approved by at least one maintainer.
+For more details on the decision making process about PRs, please see [pull request inclusion](/DECISION_MAKING.md#pull-request-inclusion).
+You can also read the [list of current maintainers](/GOVERNANCE.md#maintainers).
 
 If you are adding something new to CSLib and are in doubt about it, you are very welcome to contact us on the [Lean prover Zulip chat](https://leanprover.zulipchat.com/).
 
 If you are unfamiliar with CSLib as a whole and want to understand how to get started, please see [Getting started](#getting-started).
+
+For a more detailed explanation of CSLib's decision-making processes, see [decision making](/DECISION_MAKING.md).
 
 # The role of AI
 
@@ -101,7 +105,7 @@ instructions on how to run these locally.
 
 ## Pull Request Titles
 
-It is required that pull request titles begun with one of the following categories followed by a
+It is required that pull request titles begin with one of the following categories followed by a
 colon: `feat`, `fix`, `doc`, `style`, `refactor`, `test`, `chore`, `perf`. These may optionally be followed by a
 parenthetical containing what area of the library the PR is working on.
 
@@ -125,7 +129,7 @@ CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. The
 
 ## Imports
 
-There is a also a test that [Cslib.lean](/Cslib.lean) imports all files. You can ensure this by
+There is also a test that [Cslib.lean](/Cslib.lean) imports all files. You can ensure this by
 running `lake exe mk_all` locally, which will make the required changes.
 
 CSLib tests for minimized imports using `lake shake --add-public --keep-implied --keep-prefix`, which also comes with a `--fix` option.

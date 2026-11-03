@@ -8,7 +8,15 @@ module
 
 public import Cslib.Init
 
-/-! -/
+/-! # Inference systems
+
+This module defines the basic classes and notation for *inference systems* -- systems for deriving
+conclusions from premises.
+
+We intend inference systems broadly, as in theory of programming languages. In applications to
+logic, for example, we use inference systems to capture both the concepts of satisfiability and
+proof systems.
+-/
 
 @[expose] public section
 
@@ -62,6 +70,17 @@ noncomputable instance [InferenceSystem S α] {a : α} : Coe (DerivableIn S a) (
   ⟨DerivableIn.toDerivation⟩
 
 @[inherit_doc] scoped notation "⇓" a:90 => InferenceSystem.derivation Default a
+
+open Lean Elab PrettyPrinter Delaborator SubExpr in
+/-- Delaborator that hides `InferenceSystem.Default` in uses of the `⇓a` notation. -/
+@[app_delab InferenceSystem.derivation]
+meta def delabInferenceSystem : Delab := do
+  let expr ← getExpr
+  if expr.getAppArgs[0]?.any (·.isConstOf `Cslib.Logic.InferenceSystem.Default) then
+    let a ← withAppArg delab
+    `(⇓ $a)
+  else
+    delabApp
 
 end InferenceSystem
 

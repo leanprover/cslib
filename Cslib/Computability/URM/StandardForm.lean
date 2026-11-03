@@ -138,7 +138,7 @@ theorem Steps.toStandardForm_halts {p : Program} {s s' : State}
     rcases Step.toStandardForm hstep with
       hsame | ⟨hhalted_mid, s_mid, hstep_mid, hhalted_mid', hregs_eq⟩
     · obtain ⟨s₂, hsteps₂, hhalted₂, hregs_eq⟩ := ih
-      exact ⟨s₂, .trans (.single hsame) hsteps₂, hhalted₂, hregs_eq⟩
+      exact ⟨s₂, .head hsame hsteps₂, hhalted₂, hregs_eq⟩
     · grind [Steps.eq_of_halts .refl hhalted_mid hrest hhalted]
 
 /-- Forward halting theorem. -/
@@ -179,7 +179,7 @@ theorem Steps.from_toStandardForm_halts {p : Program} {s s' : State}
     rcases Step.from_toStandardForm hstep with
       hsame | ⟨hhalted_mid, s_mid, hstep_mid, hhalted_mid', hregs_eq⟩
     · obtain ⟨s₂, hsteps₂, hhalted₂, hregs_eq⟩ := ih
-      exact ⟨s₂, .trans (.single hsame) hsteps₂, hhalted₂, hregs_eq⟩
+      exact ⟨s₂, .head hsame hsteps₂, hhalted₂, hregs_eq⟩
     · rename_i s_next
       have hrest_trivial : s_next = s' := Steps.eq_of_halts .refl hhalted_mid hrest hhalted
       subst hrest_trivial
@@ -217,8 +217,9 @@ theorem eval_toStandardForm {p : Program} {inputs : List ℕ} :
   · simp only [Part.map_Dom]
     exact Halts.toStandardForm_iff
   · intro hp hq
-    simp only [Part.map_get, Function.comp_apply, Regs.output,
-               evalState_toStandardForm_regs hp hq]
+    have := Part.map_get (fun x : State => x.regs.output) (evalState p inputs) hp
+    have := Part.map_get (fun x : State => x.regs.output) (evalState p.toStandardForm inputs) hq
+    simp_all [Function.comp_def, evalState_toStandardForm_regs hp hq]
 
 /-- A program is equivalent to its standard form. -/
 theorem toStandardForm_equiv (p : Program) : p.toStandardForm ≈ p :=

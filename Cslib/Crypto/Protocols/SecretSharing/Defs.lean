@@ -41,6 +41,8 @@ namespace Cslib.Crypto.Protocols.SecretSharing
 
 namespace Scheme
 
+open Cslib.Probability.PMF
+
 variable {Secret Randomness Party Share : Type*}
 
 /-- The distribution of the full share assignment for one secret. -/
@@ -58,9 +60,8 @@ theorem viewDist_eq_of_not_authorized
     (scheme : Scheme Secret Randomness Party Share)
     {s : Finset Party} (hs : ¬ scheme.authorized s)
     (secret₀ secret₁ : Secret) :
-    scheme.viewDist s secret₀ = scheme.viewDist s secret₁ := by
-  unfold viewDist
-  exact scheme.view_indist s hs secret₀ secret₁
+    scheme.viewDist s secret₀ = scheme.viewDist s secret₁ :=
+  scheme.view_indist s hs secret₀ secret₁
 
 /-- The posterior distribution on secrets after observing the coalition view
 `v`. -/
@@ -68,8 +69,7 @@ noncomputable def posteriorSecretDist
     (scheme : Scheme Secret Randomness Party Share)
     (s : Finset Party) (secretDist : PMF Secret) (v : s → Share)
     (hv : v ∈ (secretDist.bind (scheme.viewDist s)).support) : PMF Secret :=
-  Cslib.Probability.PMF.posteriorDist
-    (p := secretDist) (f := scheme.viewDist s) v hv
+  posteriorDist (p := secretDist) (f := scheme.viewDist s) v hv
 
 @[simp]
 theorem posteriorSecretDist_apply
@@ -80,7 +80,7 @@ theorem posteriorSecretDist_apply
       (secretDist.bind fun secret' =>
         (scheme.viewDist s secret').bind fun v' => PMF.pure (secret', v')) (secret, v) /
         (secretDist.bind (scheme.viewDist s)) v :=
-  rfl
+  posteriorDist_apply secretDist (scheme.viewDist s) v hv secret
 
 /-- Perfect privacy for unauthorized coalitions: conditioning on a view does not
 change the prior on secrets. -/
@@ -93,11 +93,10 @@ def PerfectlyPrivate (scheme : Scheme Secret Randomness Party Share) : Prop :=
 /-- Every scheme has posterior privacy by definition of `Scheme`. -/
 theorem perfectlyPrivate
     (scheme : Scheme Secret Randomness Party Share) :
-    scheme.PerfectlyPrivate := by
-  intro s hs secretDist v hv
-  exact Cslib.Probability.PMF.posteriorDist_eq_prior_of_outputIndist
-    (p := secretDist) (f := scheme.viewDist s)
-    (fun secret₀ secret₁ => scheme.viewDist_eq_of_not_authorized hs secret₀ secret₁) v hv
+    scheme.PerfectlyPrivate :=
+  fun s hs secretDist v hv =>
+    posteriorDist_eq_prior_of_outputIndist secretDist (scheme.viewDist s)
+      (scheme.viewDist_eq_of_not_authorized hs) v hv
 
 end Scheme
 

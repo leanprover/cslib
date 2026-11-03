@@ -13,8 +13,9 @@ namespace Cslib.Lint
 
 open Lean Meta Std Batteries.Tactic.Lint
 
+-- TODO: adapt `topNamespace` to the module system
+
 /-- A linter for checking that new declarations fall under some preexisting namespace. -/
-@[env_linter]
 public meta def topNamespace : Batteries.Tactic.Lint.Linter where
   noErrorsFound := "No declarations are outside a namespace."
   errorsFound := "TOP LEVEL DECLARATIONS:"

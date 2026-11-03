@@ -318,8 +318,7 @@ private theorem map_toCompCfg_right_step :
   cases cfg2 with
   | mk state BiTape =>
     cases state with
-    | none =>
-      simp only [step, toCompCfg_right, Option.map_none, compComputer]
+    | none => rfl
     | some q =>
       generalize hM : tm2.tr q BiTape.head = result
       obtain ⟨⟨wr, dir⟩, nextState⟩ := result
@@ -446,7 +445,7 @@ def TimeComputable.comp {f g : List Symbol → List Symbol}
         (hg.timeBound (f a).length) hg_outputsFun
     -- Therefore, the computer reduces a to g (f a) in the sum of those times.
     have h_a_reducesTo_g_f_a := RelatesWithinSteps.trans h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
-    apply RelatesWithinSteps.of_le h_a_reducesTo_g_f_a
+    refine RelatesWithinSteps.mono ?_ h_a_reducesTo_g_f_a
     refine Nat.add_le_add_left ?_ (hf.timeBound a.length)
     · apply h_mono
       -- Use the lemma about output length being bounded by input length + time

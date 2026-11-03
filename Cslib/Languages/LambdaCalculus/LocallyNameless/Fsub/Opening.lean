@@ -235,9 +235,9 @@ lemma openRecTy_lc {t : Term Var} (lc : t.LC) : t = t⟦X ↝ σ⟧ᵗᵞ := by
 def substTy (X : Var) (δ : Ty Var) : Term Var → Term Var
 | bvar x => bvar x
 | fvar x => fvar x
-| abs σ t₁ => abs (σ [X := δ]) (substTy X δ t₁)
+| abs σ t₁ => abs (σ[X := δ]) (substTy X δ t₁)
 | app t₁ t₂ => app (substTy X δ t₁) (substTy X δ t₂)
-| tabs σ t₁ => tabs (σ [X := δ]) (substTy X δ t₁)
+| tabs σ t₁ => tabs (σ[X := δ]) (substTy X δ t₁)
 | tapp t₁ σ => tapp (substTy X δ t₁) (σ[X := δ])
 | let' t₁ t₂ => let' (substTy X δ t₁) (substTy X δ t₂)
 | inl t₁ => inl (substTy X δ t₁)
@@ -253,7 +253,7 @@ lemma substTy_def : substTy (X : Var) (δ : Ty Var) (t : Term Var) = t[X := δ] 
 
 omit [HasFresh Var] in
 /-- Substitution of a free type variable not present in a term leaves it unchanged. -/
-lemma substTy_fresh (nmem : X ∉ t.fvTy) (δ : Ty Var) : t = t [X := δ] :=
+lemma substTy_fresh (nmem : X ∉ t.fvTy) (δ : Ty Var) : t = t[X := δ] :=
   by induction t <;> grind [Ty.subst_fresh]
 
 /-- Substitution of a locally closed type distributes with term opening to a type . -/

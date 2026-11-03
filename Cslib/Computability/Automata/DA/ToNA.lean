@@ -60,7 +60,7 @@ theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   constructor
-  · simp_all [mem_language a xs, Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
+  · simp [mem_language a xs, Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
   · intro _
     use a.start
     simp_all [Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
@@ -82,7 +82,7 @@ theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :
   ext xs; constructor
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  · simp_all [Accepts, language, toNABuchi]
+  · simp [Accepts, language, toNABuchi]
   · intro h
     use (a.run xs)
     split_ands

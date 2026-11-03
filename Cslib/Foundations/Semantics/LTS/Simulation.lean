@@ -54,7 +54,7 @@ any transition originating from the first state is mimicked by a transition from
 and the reached derivatives are themselves related. -/
 def IsSimulation (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) (r : State₁ → State₂ → Prop) :
     Prop :=
-  ∀ s₁ s2, r s₁ s2 → ∀ μ s₁', lts₁.Tr s₁ μ s₁' → ∃ s2', lts₂.Tr s2 μ s2' ∧ r s₁' s2'
+  ∀ ⦃s₁ s₂⦄, r s₁ s₂ → ∀ μ s₁', lts₁.Tr s₁ μ s₁' → ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂'
 
 /-- A homogeneous simulation is a simulation where the underlying LTSs are the same. -/
 abbrev IsHomSimulation (lts : LTS State Label) := IsSimulation lts lts
@@ -91,8 +91,8 @@ theorem IsSimulation.comp
     IsSimulation lts₁ lts₃ (Relation.Comp r1 r2) := by
   intro s₁ s2 hrc μ s₁' htr
   rcases hrc with ⟨sb, hr1, hr2⟩
-  obtain ⟨s₁'', h1'tr, h1'⟩ := h1 s₁ sb hr1 μ s₁' htr
-  obtain ⟨s2'', h2'tr, h2'⟩ := h2 sb s2 hr2 μ s₁'' h1'tr
+  obtain ⟨s₁'', h1'tr, h1'⟩ := h1 hr1 μ s₁' htr
+  obtain ⟨s2'', h2'tr, h2'⟩ := h2 hr2 μ s₁'' h1'tr
   use s2'', h2'tr, s₁'', h1', h2'
 
 /-- Similarity is transitive. -/
@@ -105,9 +105,9 @@ theorem Similarity.trans (h1 : s₁ ≤[lts₁,lts₂] s2) (h2 : s2 ≤[lts₂,l
 theorem IsSimulation.sup (hr : IsSimulation lts₁ lts₂ r)
     (hs : IsSimulation lts₁ lts₂ s) : IsSimulation lts₁ lts₂ (r ⊔ s) := by
   rintro s₁ s₂ (hrel | hrel) μ s₁' htr
-  · obtain ⟨s₂', htr', hrel'⟩ := hr s₁ s₂ hrel μ s₁' htr
+  · obtain ⟨s₂', htr', hrel'⟩ := hr hrel μ s₁' htr
     use s₂', htr', Or.inl hrel'
-  · obtain ⟨s₂', htr', hrel'⟩ := hs s₁ s₂ hrel μ s₁' htr
+  · obtain ⟨s₂', htr', hrel'⟩ := hs hrel μ s₁' htr
     use s₂', htr', Or.inr hrel'
 
 theorem IsSimulation.sim_trace (hr : IsSimulation lts₁ lts₂ r) (hrel : r s₁ s₂) :
@@ -120,7 +120,7 @@ theorem IsSimulation.sim_trace (hr : IsSimulation lts₁ lts₂ r) (hrel : r s�
   | cons μ μs ih =>
     cases hmtr
     case stepL s₁'' htr hmtr =>
-      obtain ⟨s₂'', htr₂, hrel'⟩: ∃ s2', lts₂.Tr s₂ μ s2' ∧ r s₁'' s2' := hr _ _ hrel μ s₁'' htr
+      obtain ⟨s₂'', htr₂, hrel'⟩: ∃ s2', lts₂.Tr s₂ μ s2' ∧ r s₁'' s2' := hr hrel μ s₁'' htr
       obtain ⟨s₂', hmtr₂, hrel'⟩ := ih hrel' hmtr
       use s₂', hmtr₂.stepL htr₂, hrel'
 
@@ -169,6 +169,11 @@ instance :
     (SimulationEquiv lts₁ lts₃) where
   trans := SimulationEquiv.trans
 
+/-- Helper for following a transition by the first state in a pair of a simulation. -/
+theorem IsSimulation.follow
+    (hb : IsSimulation lts₁ lts₂ r) (hr : r s₁ s₂) (htr : lts₁.Tr s₁ μ s₁') :
+    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂' := hb hr μ _ htr
+
 /-- Utility theorem for following internal transitions along a saturated lts. -/
 lemma IsSimulation.follow_internal [HasTau Label] {lts₁ : LTS State₁ Label}
     {lts₂ : LTS State₂ Label} (h : IsSimulation lts₁ lts₂.saturate r) (hr : r s₁ s₂)
@@ -178,7 +183,7 @@ lemma IsSimulation.follow_internal [HasTau Label] {lts₁ : LTS State₁ Label}
     use s₂, .refl
   case tail sb hrsb htrsb ih1 ih2 =>
     obtain ⟨sb2, htrsb2, hrb⟩ := ih2
-    have ⟨sb2', htrsb2', hrb'⟩ := h _ _ hrb HasTau.τ _ ih1
+    have ⟨sb2', htrsb2', hrb'⟩ := h hrb HasTau.τ _ ih1
     use sb2', htrsb2.trans (lts₂.sTr_τSTr_iff.mp htrsb2')
 
 /-- If the right-hand lts is saturated, a simulation lifts along saturating the left-hand lts. -/
@@ -191,7 +196,7 @@ theorem IsSimulation.isSimulation_saturate_left [HasTau Label] {lts₁ : LTS Sta
     use s₂, .refl, hr
   case tr sb sb' hstr1 htr hstr2 =>
     obtain ⟨sb1, hstr1b, hrb⟩ := IsSimulation.follow_internal h hr hstr1
-    obtain ⟨sb2', hstr1b', hrb'⟩ := h _ _ hrb μ _ htr
+    obtain ⟨sb2', hstr1b', hrb'⟩ := h hrb μ _ htr
     obtain ⟨s₁', hstr1', hrb2⟩ := IsSimulation.follow_internal h hrb' hstr2
     rw [←sTr_τSTr_iff] at hstr1' hstr1b
     use s₁', STr.comp hstr1b hstr1b' hstr1', hrb2
@@ -201,8 +206,24 @@ right. -/
 theorem IsSimulation.mono (h₁ : lts₁'.Tr ≤ lts₁.Tr) (h₂ : lts₂.Tr ≤ lts₂'.Tr)
     (h : IsSimulation lts₁ lts₂ r) : IsSimulation lts₁' lts₂' r := by
   intro s₁ s₂ hr μ s₁' htr
-  obtain ⟨s₂', htr', hr'⟩ := h s₁ s₂ hr μ s₁' (h₁ _ _ _ htr)
+  obtain ⟨s₂', htr', hr'⟩ := h hr μ s₁' (h₁ _ _ _ htr)
   use s₂', h₂ _ _ _ htr', hr'
+
+/-- When a deterministic state matches a transition in a simulation, then the derivatives are still
+in the simulation. -/
+theorem IsSimulation.match_deterministic (hb : IsSimulation lts₁ lts₂ r) (hr : r s₁ s₂)
+    (hdet : lts₂.DeterministicStateLabel s₂ μ) (htr₁ : lts₁.Tr s₁ μ s₁') (htr₂ : lts₂.Tr s₂ μ s₂') :
+    r s₁' s₂' := by
+  grind [follow hb hr]
+
+/-- If a state is deterministic for `μ`, then any transition made by a related state in a
+simulation is matched by a unique transition. -/
+theorem IsSimulation.follow_deterministic (hb : IsSimulation lts₁ lts₂ r) (hr : r s₁ s₂)
+    (hdet : lts₂.DeterministicStateLabel s₂ μ) (htr : lts₁.Tr s₁ μ s₁') :
+    ∃! s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂' := by
+  obtain ⟨s₂', htr₂, hr₂⟩ := follow hb hr htr
+  exists s₂'
+  grind
 
 end Simulation
 

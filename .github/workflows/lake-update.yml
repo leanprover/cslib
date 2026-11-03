@@ -25,6 +25,7 @@ on:
 jobs:
   bump:
     runs-on: ubuntu-latest
+    if: github.repository == 'leanprover/cslib'
     steps:
       - name: Generate app token
         id: app-token
@@ -52,6 +53,7 @@ jobs:
 
   open-issue:
     runs-on: ubuntu-latest
+    if: github.repository == 'leanprover/cslib'
     permissions:
       issues: write
     steps:

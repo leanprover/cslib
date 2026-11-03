@@ -7,6 +7,7 @@ Authors: Sorrachai Yingchareonthawornhcai, Eric Wieser
 module
 
 public import Cslib.Init
+public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Mathlib.Algebra.Group.Defs
 
 /-!
@@ -97,12 +98,23 @@ instance [AddZero T] : Monad (TimeM T) where
 @[simp, grind =] theorem ret_bind {α β} [Add T] (m : TimeM T α) (f : α → TimeM T β) :
     (m >>= f).ret = (f m.ret).ret := rfl
 @[simp, grind =] theorem ret_map {α β} (f : α → β) (x : TimeM T α) : (f <$> x).ret = f x.ret := rfl
+@[simp, grind =] theorem ret_mapConst {α β} (a : α) (x : TimeM T β) :
+    (Functor.mapConst a x).ret = a := rfl
 @[simp] theorem ret_seqRight {α} (x : TimeM T α) (y : Unit → TimeM T β) [Add T] :
     (SeqRight.seqRight x y).ret = (y ()).ret := rfl
 @[simp] theorem ret_seqLeft {α} [Add T] (x : TimeM T α) (y : Unit → TimeM T β) :
     (SeqLeft.seqLeft x y).ret = x.ret := rfl
 @[simp] theorem ret_seq {α β} [Add T] (f : TimeM T (α → β)) (x : Unit → TimeM T α) :
     (Seq.seq f x).ret = f.ret (x ()).ret := rfl
+
+theorem isMonadHom_pure_ret [AddZero T] : Cslib.IsMonadHom (TimeM T) Id (fun x => pure x.ret) where
+  map_map _ _ := Id.ext <| ret_map _ _
+  map_mapConst _ __ := Id.ext <| ret_mapConst _ _
+  map_pure _ := Id.ext <| ret_pure _
+  map_seq _ _ := Id.ext <| ret_seq _ _
+  map_seqLeft _ _ := Id.ext <| ret_seqLeft _ _
+  map_seqRight _ _ := Id.ext <| ret_seqRight _ _
+  map_bind _ _ := Id.ext <| ret_bind _ _
 
 @[simp, grind =] theorem time_bind {α β} [Add T] (m : TimeM T α) (f : α → TimeM T β) :
     (m >>= f).time = m.time + (f m.ret).time := rfl

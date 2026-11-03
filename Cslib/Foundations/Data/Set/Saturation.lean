@@ -38,7 +38,7 @@ theorem saturates_compl (hs : Saturates f s) : Saturates f sᶜ := by
 theorem saturates_eq_biUnion (hs : Saturates f s) (hc : ⋃ i, f i = univ) :
     s = ⋃ i ∈ {i | (f i ∩ s).Nonempty}, f i := by
   ext x
-  simp only [mem_setOf_eq, mem_iUnion, exists_prop]
+  simp only [mem_iUnion]
   constructor
   · intro h_x
     obtain ⟨i, _⟩ := mem_iUnion.mp <| univ_subset_iff.mpr hc <| mem_univ x

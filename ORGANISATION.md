@@ -1,6 +1,8 @@
 # Code organisation
 
-This document gives an overview of how the codebase is structured, in terms of directories.
+This document gives an overview of how the codebase is structured, in terms of directories. 
+
+For more details about the high-level principles that govern these directories, please refer to their internal `README.md` files when present.
 
 **Note** that this organisation is still under active discussion and is subject to change.
 

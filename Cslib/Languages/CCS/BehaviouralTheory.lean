@@ -30,7 +30,7 @@ section CCS.BehaviouralTheory
 
 open LTS
 
-variable {Name : Type u} {Constant : Type v} {defs : Constant → CCS.Process Name Constant → Prop}
+variable {Name : Type u} {Constant : Type v} {defs : Constant → Option (CCS.Process Name Constant)}
 
 namespace CCS
 
@@ -441,10 +441,11 @@ theorem bisimilarity_is_congruence
   | _ => grind [bisimilarity_congr_pre, bisimilarity_congr_par,
                 bisimilarity_congr_choice, bisimilarity_congr_res]
 
+instance : Congruence (HomBisimilarity (lts (defs := defs))) := ⟨⟩
+
 /-- Bisimilarity is a congruence in CCS. -/
-instance bisimilarityCongruence :
-    Congruence (Process Name Constant) (HomBisimilarity (lts (defs := defs))) where
-  covariant := ⟨by grind [Covariant, bisimilarity_is_congruence]⟩
+instance bisimilarityCongruence : LawfulCongruence (HomBisimilarity (lts (defs := defs))) where
+  elim := by grind [Covariant, bisimilarity_is_congruence]
 
 end CCS
 

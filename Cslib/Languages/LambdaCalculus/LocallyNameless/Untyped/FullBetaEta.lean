@@ -41,7 +41,7 @@ theorem redex_app_l_cong (redex : M ↠βηᶠ M') (lc_N : LC N) : app M N ↠β
   induction redex with
   | refl => grind
   | tail _ h ih =>
-    refine .trans ih (.single ?_)
+    refine .tail ih ?_
     rcases h with h | h
     · exact join_inl (h.appR lc_N)
     · exact join_inr (h.appR lc_N)
@@ -50,7 +50,7 @@ theorem redex_app_r_cong (redex : M ↠βηᶠ M') (lc_N : LC N) : app N M ↠β
   induction redex with
   | refl => grind
   | tail _ h ih =>
-    refine .trans ih (.single ?_)
+    refine .tail ih ?_
     rcases h with h | h
     · exact join_inl (h.appL lc_N)
     · exact join_inr (h.appL lc_N)

@@ -41,6 +41,7 @@ inductive Term (Var : Type u)
 | abs  : Term Var → Term Var
 /-- Function application. -/
 | app  : Term Var → Term Var → Term Var
+deriving DecidableEq
 
 namespace Term
 

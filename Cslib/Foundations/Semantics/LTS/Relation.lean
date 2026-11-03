@@ -32,6 +32,61 @@ labels `μs`. -/
 def MTr.toRelation (lts : LTS State Label) (μs : List Label) : State → State → Prop :=
   fun s1 s2 => lts.MTr s1 μs s2
 
+section UnlabelledPaths
+
+variable (lts : LTS State Label)
+
+/-- A multistep transition induces a reflexive-transitive path in the underlying unlabelled
+transition relation. -/
+theorem MTr.toReflTransGen (h : lts.MTr s1 μs s2) :
+    Relation.ReflTransGen lts.UnlabelledTr s1 s2 := by
+  induction h with
+  | refl => exact .refl
+  | stepL htr _ ih => exact ih.head ⟨_, htr⟩
+
+/-- A nonempty multistep transition induces a nonempty path in the underlying unlabelled
+transition relation. -/
+theorem MTr.toTransGen (h : lts.MTr s1 μs s2) (hne : μs ≠ []) :
+    Relation.TransGen lts.UnlabelledTr s1 s2 := by
+  cases h with
+  | refl => contradiction
+  | stepL htr hmtr => exact Relation.TransGen.head' ⟨_, htr⟩ (hmtr.toReflTransGen lts)
+
+/-- The reflexive-transitive closure of the underlying unlabelled transition relation is exactly
+reachability in the LTS. -/
+theorem reflTransGen_unlabelledTr_iff :
+    Relation.ReflTransGen lts.UnlabelledTr s1 s2 ↔ lts.CanReach s1 s2 := by
+  constructor
+  · intro h
+    induction h with
+    | refl => exact ⟨[], .refl⟩
+    | tail _ htr ih =>
+        obtain ⟨μs, hmtr⟩ := ih
+        obtain ⟨μ, htr⟩ := htr
+        exact ⟨μs ++ [μ], hmtr.stepR lts htr⟩
+  · rintro ⟨μs, hmtr⟩
+    exact hmtr.toReflTransGen lts
+
+/-- The transitive closure of the underlying unlabelled transition relation is exactly the
+nonempty multistep transitions of the LTS. -/
+theorem transGen_unlabelledTr_iff :
+    Relation.TransGen lts.UnlabelledTr s1 s2 ↔
+      ∃ μs, μs ≠ [] ∧ lts.MTr s1 μs s2 := by
+  constructor
+  · intro h
+    induction h with
+    | single htr =>
+        obtain ⟨μ, htr⟩ := htr
+        exact ⟨[μ], by simp, MTr.single lts htr⟩
+    | tail _ htr ih =>
+        obtain ⟨μs, hne, hmtr⟩ := ih
+        obtain ⟨μ, htr⟩ := htr
+        exact ⟨μs ++ [μ], by simp, hmtr.stepR lts htr⟩
+  · rintro ⟨μs, hne, hmtr⟩
+    exact hmtr.toTransGen lts hne
+
+end UnlabelledPaths
+
 /-! ### Calc tactic support for MTr -/
 
 /-- Transitions can be chained. -/

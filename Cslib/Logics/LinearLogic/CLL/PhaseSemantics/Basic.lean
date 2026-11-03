@@ -115,7 +115,7 @@ def biorthogonalClosure : ClosureOperator (Set P) where
 /-! # Basic theory of phase spaces -/
 
 /--
-Given a phase space (P, ⊥) and a set of subsets (Gᵢ)_{i ∈ I} of P, we have that
+Given a phase space (P, ⊥) and a family of subsets (Gᵢ) of P indexed by i ∈ I, we have that
 (⋃ᵢ Gᵢ)⫠ = ⋂ᵢ Gᵢ⫠.
 -/
 lemma orth_iUnion {ι : Sort*} (G : ι → Set P) :
@@ -131,7 +131,7 @@ lemma orth_iUnion {ι : Sort*} (G : ι → Set P) :
     grind
 
 /--
-Given a phase space (P, ⊥) and a set of subsets (Gᵢ)_{i ∈ I} of P, we have that
+Given a phase space (P, ⊥) and a family of subsets (Gᵢ) of P indexed by i ∈ I, we have that
 ∩ᵢ Gᵢ⫠⫠ = (∪ᵢ Gᵢ⫠)⫠.
 -/
 lemma iInter_biorth_eq_orth_iUnion_orth {ι : Sort*} (G : ι → Set P) :
@@ -196,14 +196,8 @@ lemma coe_mk {X : Set P} {h : isFact X} : ((⟨X, h⟩ : Fact P) : Set P) = X :=
 @[simp] lemma closed (F : Fact P) : isFact (F : Set P) := F.property
 
 /-- In any phase space, `{1}⫠ = ⊥`. -/
-lemma orth_one_eq_bot :
-    ({(1 : P)} : Set P)⫠ = (PhaseSpace.bot : Set P) := by
-  ext m; constructor
-  · intro hm
-    simpa [orthogonal, mem_setOf, mul_one] using hm 1 (by simp)
-  · intro hm x hx
-    rcases hx with rfl
-    simpa [orthogonal, mem_setOf, mul_one] using hm
+lemma orth_one_eq_bot : ({(1 : P)} : Set P)⫠ = (PhaseSpace.bot : Set P) := by
+  simp_all
 
 /-- The fact given by the dual of G. -/
 @[simps!] def dualFact (G : Set P) : Fact P := Fact.mkDual (G⫠) G rfl
@@ -321,10 +315,7 @@ lemma inter_eq_orth_union_orth (G H : Fact P) :
   constructor
   · simp only [orthogonal_def, mem_union]
     grind
-  · intro _
-    have : m ∈ ((G : Set P)⫠⫠) := by grind
-    have : m ∈ ((H : Set P)⫠⫠) := by grind
-    grind [Fact.eq]
+  · grind [Fact.eq]
 
 instance : Min (Fact P) where
   min G H := Fact.mkDual (G ∩ H) (G⫠ ∪ H⫠) <| by simp
@@ -638,14 +629,9 @@ lemma par_semi_distrib_plus : ((G ⅋ H) ⊕ (G ⅋ K) : Fact P) ≤ G ⅋ (H �
 
 @[simp] lemma top_par : (⊤ ⅋ G : Fact P) = ⊤ := by
   refine SetLike.coe_injective ?_
-  rw [coe_top]
-  rw [Set.eq_univ_iff_forall]
-  intro x
-  simp only [parr, dualFact, mkDual, mkSubset, coe_mk, coe_top]
-  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq]
-  intro w hw
+  rw [coe_top, Set.eq_univ_iff_forall]
+  intro x w hw
   rcases Set.mem_mul.mp hw with ⟨y, hy, z, hz, rfl⟩
-  rw [PhaseSpace.orthogonal_def, Set.mem_setOf_eq] at hy
   rw [mul_left_comm]
   exact hy (x * z) (Set.mem_univ _)
 
@@ -679,7 +665,7 @@ lemma valid_with {G H : Fact P} : (G & H).IsValid ↔ G.IsValid ∧ H.IsValid :=
 
 end Fact
 
-open Fact
+open PhaseSpace.Fact
 
 /-! ## Interpretation of propositions -/
 
