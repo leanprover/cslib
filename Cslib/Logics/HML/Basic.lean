@@ -184,7 +184,7 @@ lemma bisimulation_theoryEq {hrb : m.lts.IsHomBisimulation r}
 theorem theoryEq_eq_bisimilarity
     [image_finite : ∀ s μ, Finite (m.lts.image s μ)]
     (hv : ∀ {s1 s2}, s1 ~[m.lts] s2 → ∀ p, m.v s1 p ↔ m.v s2 p := by grind) :
-    TheoryEq m.toModal = HomBisimilarity m.lts := by
+    TheoryEq m.toModal = ~[m.lts] := by
   ext s1 s2
   apply Iff.intro <;> intro h
   · exact ⟨TheoryEq m.toModal, h, theoryEq_isBisimulation⟩

@@ -9,6 +9,7 @@ import Cslib.Foundations.Semantics.LTS.Bisimulation
 namespace CslibTests
 
 open Cslib LTS
+open scoped Ordinal
 
 /- An LTS with two bisimilar states. -/
 private inductive tr1 : ℕ → Char → ℕ → Prop where
@@ -65,6 +66,29 @@ section Heterogeneous
 variable {State₁ State₂ Label : Type*} {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
 variable {s₁ : State₁} {s₂ : State₂}
 
+-- Relation notation works without states and supports ordinary and partial application.
+example : IsBisimulation lts₁ lts₂ ~[lts₁,lts₂] := Bisimilarity.isBisimulation ..
+
+example : Equivalence ~[lts₁] := HomBisimilarity.eqv
+
+example (h : s₁ ~[lts₁,lts₂] s₂) : (~[lts₁,lts₂]) s₁ s₂ := h
+
+example (h : s₁ ~[lts₁] s₁) : (~[lts₁]) s₁ s₁ := h
+
+example (s : State₁) : ((~[lts₁,lts₂]) s) = Bisimilarity lts₁ lts₂ s := rfl
+
+-- Approximation notation supports the same relation and application forms as bisimilarity.
+example : Equivalence ~[lts₁;o] := HomBisimilarityApprox.eqv o
+
+example (h : s₁ ~[lts₁,lts₂;o] s₂) : (~[lts₁,lts₂;o]) s₁ s₂ := h
+
+example (h : s₁ ~[lts₁;o] s₁) : (~[lts₁;o]) s₁ s₁ := h
+
+example (s : State₁) : ((~[lts₁,lts₂;o + 1]) s) =
+    BisimilarityApprox lts₁ lts₂ (o + 1) s := rfl
+
+example (s : State₁) : ((~[lts₁;0]) s) = HomBisimilarityApprox lts₁ 0 s := rfl
+
 -- Symmetry must support different state types and universes, as the relations do.
 example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ := h.symm
 
@@ -84,7 +108,83 @@ example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ 
 example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ :=
   Bisimilarity.symm (State₁ := State₁) h
 
+example (h : s₁ ~[lts₁,lts₂;o] s₂) : s₂ ~[lts₂,lts₁;o] s₁ := by
+  symm
+  exact h
+
+example (h : s₁ ~[lts₁,lts₂;ω] s₂) : s₂ ~[lts₂,lts₁;ω] s₁ := by
+  symm
+  exact h
+
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₁ ~[lts₁,lts₂;ω] s₂ := h.approx ω
+
+example (m n : ℕ) (hmn : m ≤ n) (h : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂) :
+    s₁ ~[lts₁,lts₂;(m : Ordinal)] s₂ := BisimilarityApprox.antitone_nat hmn _ _ h
+
+-- Finite composition remains available across independent state universes.
+example {State₃ : Type*} {lts₃ : LTS State₃ Label} {s₃ : State₃} (n : ℕ)
+    (h₁ : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂) (h₂ : s₂ ~[lts₂,lts₃;(n : Ordinal)] s₃) :
+    s₁ ~[lts₁,lts₃;(n : Ordinal)] s₃ := h₁.trans_nat h₂
+
+example [lts₁.ImageFinite] [lts₂.ImageFinite] (h : s₁ ~[lts₁,lts₂;ω] s₂) :
+    s₁ ~[lts₁,lts₂] s₂ := h.bisimilarity_of_omega
+
+example [lts₁.ImageFinite] [lts₂.ImageFinite] :
+    s₁ ~[lts₁,lts₂;ω] s₂ ↔ s₁ ~[lts₁,lts₂] s₂ := by simp
+
+-- Ordinal indices use the same notation, including limits and successors of limits.
+example (h : s₁ ~[lts₁,lts₂;ω] s₂) (n : ℕ) : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂ :=
+  BisimilarityApprox.omega_iff.mp h n
+
+example [lts₁.ImageFinite] [lts₂.ImageFinite] : ~[lts₁,lts₂;ω] = ~[lts₁,lts₂] := by
+  simp
+
+example [lts₁.ImageFinite] [lts₂.ImageFinite] : ~[lts₁,lts₂;ω + 1] = ~[lts₁,lts₂] :=
+  BisimilarityApprox.eq_bisimilarity (by exact_mod_cast (lt_add_one ω).le)
+
+-- The added top endpoint is bisimilarity without any image-finiteness assumption.
+example : ~[lts₁,lts₂;⊤] = ~[lts₁,lts₂] := by simp
+
+example : ~[lts₁;⊤] = ~[lts₁] := by simp
+
+example (h : s₁ ~[lts₁,lts₂;⊤] s₂) : s₁ ~[lts₁,lts₂] s₂ := by simpa using h
+
+example (h : s₁ ~[lts₁,lts₂;⊤] s₂) (o : Ordinal) : s₁ ~[lts₁,lts₂;o] s₂ :=
+  BisimilarityApprox.top_iff.mp h o
+
 end Heterogeneous
+
+example (lts : LTS State Label) (n : ℕ) (s : State) : s ~[lts;n] s := by rfl
+
+-- A single transition and an infinite loop agree for one round but differ in the second.
+private def countdownLTS : LTS ℕ Unit := ⟨fun s _ t => s = t + 1⟩
+
+private def loopLTS : LTS Unit Unit := ⟨fun _ _ _ => True⟩
+
+example : 0 ~[countdownLTS,loopLTS;0] () := by simp
+
+example : 1 ~[countdownLTS,loopLTS;0 + 1] () := by
+  rw [BisimilarityApprox.succ_iff]
+  intro μ
+  exact ⟨fun _ _ => ⟨(), trivial, BisimilarityApprox.zero⟩,
+    fun _ _ => ⟨0, rfl, BisimilarityApprox.zero⟩⟩
+
+private theorem countdown_not_approx_two : ¬(1 ~[countdownLTS,loopLTS;2] ()) := by
+  intro h
+  rw [show (2 : WithTop Ordinal) = 1 + 1 from (one_add_one_eq_two).symm] at h
+  obtain ⟨s, hs, hr⟩ := h.follow_snd (o := 1) (show loopLTS.Tr () () () from trivial)
+  rw [show (1 : WithTop Ordinal) = 0 + 1 from (zero_add _).symm] at hr
+  obtain ⟨t, ht, _⟩ := hr.follow_snd (o := 0) (show loopLTS.Tr () () () from trivial)
+  change 1 = s + 1 at hs
+  change s = t + 1 at ht
+  omega
+
+-- Both directions of matching matter, including across different state types.
+example : ¬(() ~[loopLTS,countdownLTS;2] 1) :=
+  fun h => countdown_not_approx_two h.symm
+
+example : ¬ (1 ~[countdownLTS,loopLTS;ω] ()) :=
+  fun h => countdown_not_approx_two (BisimilarityApprox.omega_iff.mp h 2)
 
 -- A relation can be a bisimulation up to bisimilarity without itself being a bisimulation.
 -- Soundness gives a bisimulation on its closure and bisimilarity of its related states.
@@ -106,7 +206,7 @@ private theorem onlyFalse_upTo : IsBisimulationUpTo completeLTS completeLTS only
   exact ⟨fun s _ => ⟨false, trivial, onlyFalse_closure s false⟩,
     fun t _ => ⟨false, trivial, onlyFalse_closure false t⟩⟩
 
-example : onlyFalse ≤ HomBisimilarity completeLTS := onlyFalse_upTo.le_bisimilarity
+example : onlyFalse ≤ ~[completeLTS] := onlyFalse_upTo.le_bisimilarity
 
 example : ¬ IsHomBisimulation completeLTS onlyFalse := by
   intro h
