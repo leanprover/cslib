@@ -93,7 +93,7 @@ public import Cslib.Computability.Languages.LanguageHom
 public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
-public import Cslib.Computability.Languages.RegularExpressions
+public import Cslib.Computability.Languages.RegularExpression
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Languages.Slice
