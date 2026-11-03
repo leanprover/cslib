@@ -189,6 +189,15 @@ structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symb
 
 namespace ComputationPath
 
+/-- A computation path is a function from its indices to configurations, as a run path. -/
+instance : CoeFun (ntm.ComputationPath input)
+    (fun p ↦ Fin (p.length + 1) → Cfg k Symbol State input) :=
+  ⟨fun p ↦ p.toRunPath⟩
+
+/-- The configurations of a computation path are those of its run path. -/
+instance : Membership (Cfg k Symbol State input) (ntm.ComputationPath input) :=
+  ⟨fun p c ↦ c ∈ p.toRunPath⟩
+
 /-- The number of steps taken by a computation path. -/
 def time (p : ntm.ComputationPath input) : ℕ := RunPath.time p.toRunPath
 
