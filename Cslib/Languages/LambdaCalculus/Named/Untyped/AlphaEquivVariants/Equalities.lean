@@ -53,7 +53,7 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquiv
   | var => exact .var
   | @abs z x1 x2 m1 m2 hz _ ih =>
     have h1 : z ∉ ({x1, x2} : Finset Var) ∪ m1.fv ∪ m2.fv := by
-      simp_all [vars_eq_fv_union_bv]
+      grind [vars_eq_fv_union_bv]
     have h2 : AlphaEquivPFresh (m1.swap x1 z) (m2.swap x2 z) := by
       grind [swap_eq_rename_of_notMem_vars]
     apply AlphaEquivPFresh.abs h1 h2
