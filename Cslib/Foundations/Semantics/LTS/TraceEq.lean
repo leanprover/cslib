@@ -55,7 +55,7 @@ Notation for trace equivalence.
 Differently from standard pen-and-paper presentations, we require the LTSs to be mentioned
 explicitly.
 -/
-scoped notation s " ~tr[" lts₁ "," lts₂ "] " s' => TraceEq lts₁ lts₂ s s'
+scoped notation s:max " ~tr[" lts₁ "," lts₂ "] " s':max => TraceEq lts₁ lts₂ s s'
 
 /-- Homogeneous trace equivalence compares states on the same LTS. -/
 abbrev HomTraceEq (lts : LTS State Label) := TraceEq lts lts

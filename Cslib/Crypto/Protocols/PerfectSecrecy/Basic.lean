@@ -60,7 +60,7 @@ theorem perfectlySecret_iff_indep (scheme : EncScheme M K C) :
         msgDist m * scheme.marginalCiphertextDist msgDist c := by
   refine ⟨fun h msgDist m c => ?_, fun h msgDist c hc => ?_⟩
   · by_cases hc : (scheme.marginalCiphertextDist msgDist) c = 0
-    · have := ENNReal.tsum_eq_zero.mp
+    · have := tsum_eq_zero_iff.mp
         ((jointDist_tsum_fst scheme msgDist c).trans hc) m
       rw [this, hc, mul_zero]
     · have hne_top := PMF.apply_ne_top (scheme.marginalCiphertextDist msgDist) c

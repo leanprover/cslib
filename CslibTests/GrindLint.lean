@@ -48,8 +48,6 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.Automata.NA.Buchi.reindex_language_eq
 #grind_lint skip Cslib.Automata.NA.FinAcc.toDAFinAcc_language_eq
 #grind_lint skip Cslib.Automata.εNA.FinAcc.toNAFinAcc_language_eq
-#grind_lint skip Cslib.Automata.εNA.FinAcc.toSingleAccept_tr_tr
-#grind_lint skip Cslib.Automata.εNA.FinAcc.toSingleAccept_not_tr_none
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.arrow
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.sum
 #grind_lint skip Cslib.LambdaCalculus.LocallyNameless.Fsub.Sub.trans_tvar
