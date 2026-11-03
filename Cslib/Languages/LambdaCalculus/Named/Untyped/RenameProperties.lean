@@ -24,10 +24,6 @@ variable {Var : Type u} [DecidableEq Var]
 
 namespace LambdaCalculus.Named.Untyped.Term
 
-/-- A variable in a term is either free or bound. -/
-theorem vars_eq_fv_union_bv {m : Term Var} : m.vars = m.fv ∪ m.bv := by
-  induction m <;> grind
-
 /-- Renaming an unused variable has no effect. -/
 @[simp, scoped grind =]
 theorem rename_of_notMem_vars {m : Term Var} {x y : Var} (hx : x ∉ m.vars) :

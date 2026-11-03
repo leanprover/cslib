@@ -71,6 +71,10 @@ def vars : Term Var → Finset Var
   | abs x m => m.vars ∪ {x}
   | app m n => m.vars ∪ n.vars
 
+/-- A variable in a term is either free or bound. -/
+theorem vars_eq_fv_union_bv {m : Term Var} : m.vars = m.fv ∪ m.bv := by
+  induction m <;> grind
+
 /-- Variable renaming, applying to both free and bound variables.
     `m.rename x y` changes all occurrences of `x` into `y` in `m`. -/
 @[simp, scoped grind =]
