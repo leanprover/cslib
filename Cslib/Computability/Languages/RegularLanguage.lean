@@ -18,7 +18,6 @@ public import Cslib.Computability.Automata.NA.ToEpsilonNA
 public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
 public import Cslib.Computability.Automata.TwoWayNA.OfNA
 public import Cslib.Computability.Languages.KleeneAlgorithm
---public import Mathlib.Computability.DFA
 
 /-!
 # Regular languages

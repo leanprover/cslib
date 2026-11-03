@@ -60,14 +60,6 @@ denote languages (namely, sets of finite sequences of type `List α`).
 
 variable {α β γ : Type*}
 
--- This section is to be removed after mathlib#36934 is merged into mathlib.
-section Mathlib_36934
-
-/-- The set of lists in a language. -/
-def Cslib.Language.toSet (l : Cslib.Language α) : Set (List α) := l
-
-end Mathlib_36934
-
 namespace Cslib
 
 open Set Filter ωSequence

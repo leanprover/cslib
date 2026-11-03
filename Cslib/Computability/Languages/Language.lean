@@ -82,6 +82,9 @@ instance : Insert (List α) (Language α) := ⟨Set.insert⟩
 
 variable {l m : Language α} {a b x : List α}
 
+/-- The set of lists in a language. -/
+def toSet (l : Language α) : Set (List α) := l
+
 /-- Zero language has no elements. -/
 instance : Zero (Language α) :=
   ⟨(∅ : Set _)⟩
