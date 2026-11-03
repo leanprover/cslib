@@ -1,7 +1,7 @@
 # Cslib benchmark suite
 
 This directory contains the cslib benchmark suite.
-It is built around [radar](github.com/leanprover/radar)
+It is built around [radar](https://github.com/leanprover/radar)
 and benchmark results can be viewed
 on the [Lean FRO radar instance](https://radar.lean-lang.org/repos/cslib).
 

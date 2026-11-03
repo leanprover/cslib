@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Semantics.FLTS.Basic
-public import Cslib.Foundations.Semantics.LTS.Basic
+public import Cslib.Foundations.Semantics.LTS.SetImage
 
 /-! Converting from `LTS` to `FLTS` -/
 

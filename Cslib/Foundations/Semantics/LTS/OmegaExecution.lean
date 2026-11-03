@@ -32,7 +32,7 @@ variable {State Label : Type*} {lts : LTS State Label}
 theorem OmegaExecution.extract_execution
     (h : lts.OmegaExecution ss μs) {n m : ℕ} (hnm : n ≤ m) :
     lts.Execution (ss n) (μs.extract n m) (ss m) (ss.extract n (m + 1)) := by
-  grind [Execution.mk]
+  grind only [Execution.mk, OmegaExecution, = length_extract, = get_extract]
 
 /-- Any multistep transition extracted from an infinite execution is valid. -/
 theorem OmegaExecution.extract_mTr

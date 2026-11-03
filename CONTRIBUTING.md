@@ -68,6 +68,11 @@ Please refer to [CODESTYLE](/CODESTYLE.md).
 There are a number of checks that run in continuous integration. Here is a brief guide that includes
 instructions on how to run these locally.
 
+Adaptations for upcoming Lean releases are developed in
+[downstream-lean4](https://github.com/leanprover/downstream-lean4).
+Its export PRs target CSLib's current `bump/v4.X.0` branch and use the corresponding Mathlib bump branch.
+Contribute adaptations in `downstream-lean4` and review the exported PRs in CSLib.
+
 ## Pull Request Titles
 
 It is required that pull request titles begin with one of the following categories followed by a
@@ -86,11 +91,10 @@ You can run these locally with `lake test` and `lake exe checkInitImports` respe
 
 ## Linting
 
-CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. These come in three varieties:
+CSLib uses a number of linters, mostly inherited from Batteries and Mathlib. These come in two varieties:
 
 - *syntax linters*, which appear as you write your code and will give warnings in `lake build`
 - *environment linters*, which can be run using `lake lint` or the `#lint` command
-- *text linters*, which can be run with `lake exe lint-style` and fixed automatically with the `--fix` option
 
 ## Imports
 
@@ -131,7 +135,6 @@ If you are looking for a concrete starting point, please look at:
 
 - The CSLib Zulip channels.
 - Our [GitHub issues](https://github.com/leanprover/cslib/issues).
-
 
 ## Working groups
 

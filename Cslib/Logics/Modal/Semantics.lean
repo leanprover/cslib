@@ -259,7 +259,7 @@ theorem Satisfies.b (f : Frame World τ) [f.DiagonalSymm op] (φ : Proposition �
     Axiom f⇓(φ → ∇[op](PropositionMap.const op (Δ[op](PropositionMap.const op φ)))) := by
   intro _ w
   have := Frame.DiagonalSymm.symm (f := f) (op := op)
-  grind
+  grind only [modal, => axiom_def, = triangle_iff_exists, = nabla_iff_forall]
 
 /-- Any frame that admits B at `op` is diagonally symmetric at `op`. -/
 theorem Satisfies.b_symm (f : Frame World τ) [Nonempty Atom]
