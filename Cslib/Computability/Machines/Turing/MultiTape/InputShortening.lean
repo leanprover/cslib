@@ -18,9 +18,9 @@ public import Mathlib.Order.Interval.Basic
 Consider a deterministic Turing machine and a computation path on an input that ends halted. For
 each input cell, we record the sequence of storages (`Storage`) of the running configurations of
 the path that read that cell. If two distinct cells contain the same symbol and have the same
-sequence, then deleting the symbols after the first cell through the second preserves every
-storage reached by a step on either retained side. This property is the main ingredient in the
-proof of `SPACE(o(log log n)) = SPACE(1)`.
+sequence, then deleting the symbols after the first cell through the second preserves the storage
+of every configuration of the path away from the two cells and the cells between them. This
+property is the main ingredient in the proof of `SPACE(o(log log n)) = SPACE(1)`.
 
 The proof idea follows [Katz2007], §1.2, Theorem 4.
 
@@ -41,6 +41,8 @@ have equal storages but possibly different outputs. Their images are then equal 
 * `InputCut`: an ordered pair of input-symbol indices describing the endpoints of a deletion.
 * `InputCut.shortened`: the input with the symbols after the first endpoint through the second
   deleted.
+* `InputCut.Retains`, `InputCut.Avoids`: an input-head position on a retained side of the cut,
+  and moreover away from its endpoints.
 * `InputCut.SameSide`: two input-head positions on one retained side of the cut.
 * `InputCut.cfg`: a configuration seen on the shortened input, with its output erased.
 * `InputCut.stepHom`: `cfg` as a homomorphism from the steps on one retained side.
@@ -49,10 +51,10 @@ have equal storages but possibly different outputs. Their images are then equal 
 
 * `MultiTapeNTM.RunPath.storage_injOn_visits`: distinct running visits to a position in a path that
   ends halted have distinct storages.
-* `InputCut.exists_storage_eq`: equal boundary symbols and visit sequences preserve the storage
-  reached by a step on a retained side, including a step that halts.
-* `MultiTapeTM.exists_shorter_input_storage`: a sufficiently long input to a machine running in
-  bounded space has a shorter input reaching any storage of a halting computation path.
+* `InputCut.exists_storage_eq`: equal boundary symbols and visit sequences preserve the storage of
+  every configuration of the path that the cut avoids.
+* `MultiTapeTM.exists_shorter_input_storage`: a sufficiently long input has a shorter input reaching
+  any storage of a halting computation path in bounded space.
 
 ## References
 
@@ -131,6 +133,16 @@ def right : ℕ := cut.snd.val + 1
 def shortened : List Symbol :=
   input.take cut.left ++ input.drop cut.right
 
+/-- An input position lies on a retained side of the cut. The right endpoint carries the same
+symbol as the left one, which it is identified with. -/
+def Retains (pos : ℕ) : Prop :=
+  pos ≤ cut.left ∨ cut.right ≤ pos
+
+/-- An input position lies on a retained side of the cut, away from its endpoints. A configuration
+that halts at an endpoint may be entered from the deleted cells. -/
+def Avoids (pos : ℕ) : Prop :=
+  pos < cut.left ∨ cut.right < pos
+
 /-- Two input positions lie on the same retained side of the cut. -/
 def SameSide (p q : ℕ) : Prop :=
   (p ≤ cut.left ∧ q ≤ cut.left) ∨ (cut.right ≤ p ∧ cut.right ≤ q)
@@ -160,17 +172,17 @@ lemma inputPos_moveInputPos {p : Fin (input.length + 2)} {m : SignType}
 def cfg (c : Cfg k Symbol State input) : Cfg k Symbol State cut.shortened :=
   ⟨c.state, cut.inputPos c.inputPos, c.workTapes, c.workTapePos, []⟩
 
-/-- Outside the deleted cells, the collapsed configuration reads the same symbol when the endpoints
-carry the same symbol. -/
+/-- On a retained side, the collapsed configuration reads the same symbol when the endpoints carry
+the same symbol. -/
 lemma inputSymbol_cfg (hsym : input[cut.fst] = input[cut.snd]) {c : Cfg k Symbol State input}
-    (hp : c.inputPos.val ≤ cut.left ∨ cut.right ≤ c.inputPos.val) :
+    (hp : cut.Retains c.inputPos) :
     (cut.cfg c).inputSymbol = c.inputSymbol := by
   have he {l : List Symbol} (c : Cfg k Symbol State l) :
       c.inputSymbol = if c.inputPos.val = 0 then none else l[c.inputPos.val - 1]? := by
     grind [Cfg.inputSymbol]
   have hb : input[cut.left - 1]? = input[cut.right - 1]? := by
     simpa [left, right, Fin.getElem_fin] using congrArg some hsym
-  simp only [he, cfg, inputPos, shortened, List.getElem?_append, List.length_take,
+  simp only [Retains, he, cfg, inputPos, shortened, List.getElem?_append, List.length_take,
     List.getElem?_take, List.getElem?_drop] at *
   grind [left, right, cut.fst_le_snd, Fin.le_def]
 
@@ -187,7 +199,7 @@ output on such steps. -/
 noncomputable def stepHom (hsym : input[cut.fst] = input[cut.snd]) :
     (cut.sideStepRel tm).Hom (tm.eraseOutput.stepRel cut.shortened) :=
   ⟨cut.cfg, fun ⟨hstep, hside⟩ ↦ MultiTapeTM.follows_adapt.step cut.cfg hstep Option.map_id_apply
-    (HeadSymbols.ext (cut.inputSymbol_cfg hsym (by unfold SameSide at hside; omega)) rfl)
+    (HeadSymbols.ext (cut.inputSymbol_cfg hsym (by unfold Retains SameSide at *; omega)) rfl)
     fun _ ↦ by rintro rfl; exact Cfg.ext rfl (cut.inputPos_moveInputPos hside).symm rfl rfl rfl⟩
 
 /-! ### Simulating a computation path on the shortened input -/
@@ -308,7 +320,7 @@ private lemma Pairing.step_sides {p : tm.RunPath input} (e : cut.Pairing p)
   rw [MultiTapeTM.step_inputPos_of_state hq,
     MultiTapeTM.step_inputPos_of_state (show (p (e.orderIso u).val).state = some q from
       (congrArg Cfg.state he).symm.trans hq),
-    ← cut.inputSymbol_cfg hsym (.inl hl.1.le), he, cut.inputSymbol_cfg hsym (.inr hr.ge),
+    ← cut.inputSymbol_cfg hsym (Or.inl hl.1.le), he, cut.inputSymbol_cfg hsym (Or.inr hr.ge),
     hw]
   generalize (tm.tr q _ _).inputTape = m
   have := val_moveInputPos_eq (p u.val).inputPos m
@@ -330,42 +342,42 @@ private lemma Pairing.reached {p : tm.ComputationPath input} (e : cut.Pairing p.
     rw [Reached, e.cfg_eq] at this ⊢
     exact Reached.covBy hsym ((apply_covBy_apply_iff e.orderIso).mpr hvu) this (.inr ⟨hr, le_rfl⟩)
 
-/-- Every running configuration outside the deleted cells is reached, by induction over the
-path. -/
-private lemma Pairing.reached_of_not_halted {p : tm.ComputationPath input}
-    (e : cut.Pairing p.toRunPath) {c : Cfg k Symbol State input} (hc : c ∈ p.toRunPath)
-    (ht : ¬c.Halted) (hout : c.inputPos.val ≤ cut.left ∨ cut.right ≤ c.inputPos.val) :
+/-- Every configuration that the cut avoids is reached, by induction over the path: its predecessor
+is a visit to an endpoint or avoided too. -/
+private lemma Pairing.reached_of_mem {p : tm.ComputationPath input} (e : cut.Pairing p.toRunPath)
+    {c : Cfg k Symbol State input} (hc : c ∈ p.toRunPath) (hout : cut.Avoids c.inputPos) :
     cut.Reached tm c := by
   obtain ⟨t, rfl⟩ := hc
   induction t using Fin.induction with
   | zero => exact reached_head cut
   | succ t ih =>
-    by_cases hb : (p.toRunPath t.succ).inputPos.val = cut.left
-    · exact e.reached hsym ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩
-    by_cases hb' : (p.toRunPath t.succ).inputPos.val = cut.right
-    · have := e.reached hsym (e.orderIso.symm ⟨_, mem_visits.mpr ⟨hb', ht⟩⟩)
-      rwa [Reached, e.cfg_eq, OrderIso.apply_symm_apply] at this
+    unfold Avoids at hout ih
     have hm := abs_le.mp (Step.inputPos_le (p.step t))
-    have hside : cut.SameSide (p.toRunPath t.castSucc).inputPos (p.toRunPath t.succ).inputPos := by
-      unfold SameSide
-      omega
-    refine (ih (mt (halted_mono _ (Fin.castSucc_lt_succ ..).le) ht) ?_).step hsym (p.step t) hside
-    unfold SameSide at hside
-    omega
+    have hprev : cut.Reached tm (p.toRunPath t.castSucc) := by
+      by_cases hb : (p.toRunPath t.castSucc).inputPos.val = cut.left ∨
+          (p.toRunPath t.castSucc).inputPos.val = cut.right
+      · have ht : ¬(p.toRunPath t.castSucc).Halted := fun h ↦ by
+          have : cut.left ≤ cut.right := Nat.succ_le_succ cut.fst_le_snd
+          rw [(step_of_halt h).mp (p.step t)] at hout
+          omega
+        rcases hb with hb | hb
+        · exact e.reached hsym ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩
+        · have := e.reached hsym (e.orderIso.symm ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩)
+          rwa [Reached, e.cfg_eq, OrderIso.apply_symm_apply] at this
+      · exact ih (by omega)
+    exact hprev.step hsym (p.step t) (by unfold SameSide; omega)
 
 omit hsym in
 variable (cut) in
 /-- **Input shortening.** If the endpoints of the cut carry the same symbol and a computation path
-visits them with the same storages, a step on a retained side from a running configuration of the
-path reaches the same storage on the shortened input. -/
+visits them with the same storages, every configuration of the path that the cut avoids has its
+storage reached on the shortened input. -/
 theorem exists_storage_eq (hsym : input[cut.fst] = input[cut.snd])
     {path : tm.ComputationPath input}
     (hseq : visitSequence path.toRunPath cut.left = visitSequence path.toRunPath cut.right)
-    {c : Cfg k Symbol State input} (hc : c ∈ path.toRunPath) (hrun : ¬c.Halted)
-    (hside : cut.SameSide c.inputPos (tm.step c).inputPos) :
-    ∃ q : tm.ComputationPath cut.shortened, q.last.storage = (tm.step c).storage := by
-  obtain ⟨q, hq⟩ := ((cut.pairing hseq).reached_of_not_halted hsym hc hrun
-    (by unfold SameSide at hside; omega)).step hsym (MultiTapeTM.step_iff.mpr rfl) hside
+    {c : Cfg k Symbol State input} (hc : c ∈ path.toRunPath) (hout : cut.Avoids c.inputPos) :
+    ∃ q : tm.ComputationPath cut.shortened, q.last.storage = c.storage := by
+  obtain ⟨q, hq⟩ := (cut.pairing hseq).reached_of_mem hsym hc hout
   -- the path of the same length of `tm` erases to `q`
   refine ⟨.ofDeterministic tm cut.shortened q.time, ?_⟩
   rw [q.eq_ofDeterministic] at hq
@@ -380,17 +392,16 @@ variable {tm : MultiTapeTM k Symbol State}
 
 open MultiTapeNTM MultiTapeNTM.RunPath
 
-/-- On a sufficiently long input, two cells on the same side of `pos` carry the same symbol and
-visit sequence, and deleting between them shortens the input. -/
-private lemma exists_inputCut [Fintype Symbol] [Fintype State] {s : ℕ}
+/-- **Input shortening.** A sufficiently long input has a shorter input on which a computation path
+reaches any storage of a halting computation path in space `s`: two cells on the same side of the
+storage carry the same symbol and visit sequence, and the cut between them avoids it. -/
+theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     {path : tm.ComputationPath input} (hs : path.space ≤ s) (hhalt : path.last.Halted)
-    (hlen : 2 * Fintype.card Symbol *
-      (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s + 1 < input.length)
-    (pos : ℕ) :
-    ∃ cut : InputCut input, cut.shortened.length < input.length ∧
-      input[cut.fst] = input[cut.snd] ∧
-      visitSequence path.toRunPath cut.left = visitSequence path.toRunPath cut.right ∧
-      (cut.left < pos ↔ cut.right < pos) := by
+    (hlen : 3 * Fintype.card Symbol *
+      (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s < input.length)
+    {d : Cfg k Symbol State input} (hd : d ∈ path.toRunPath) :
+    ∃ input' : List Symbol, input'.length < input.length ∧
+      ∃ q : tm.ComputationPath input', q.last.storage = d.storage := by
   classical
   let P := path.toRunPath
   -- Every prefix fits in the windows given by the space of this path.
@@ -410,21 +421,22 @@ private lemma exists_inputCut [Fintype Symbol] [Fintype State] {s : ℕ}
       (fun _ _ ↦ Finset.mem_coe.mpr (Finset.mem_univ _)) fun u hu v hv h ↦
         storage_injOn_visits P hhalt pos hu hv (Storage.toBounded_injOn w (hS u) (hS v) h)).trans
       (by simpa using hcard)
-  -- Record the side of `pos`, the input symbol, and the bounded visit sequence.
-  let f (j : Fin input.length) : Bool × Symbol × (Fin B → Option (BoundedStorage Symbol State w)) :=
-    (decide (j.val + 1 < pos), input[j], fun n ↦ ((visitSequence P (j.val + 1))[n.val]?).map
-      (·.toBounded w))
-  have hsig : Fintype.card (Bool × Symbol × (Fin B → Option (BoundedStorage Symbol State w))) <
+  -- Record the side of `d`, the input symbol, and the bounded visit sequence.
+  let f (j : Fin input.length) :
+      Ordering × Symbol × (Fin B → Option (BoundedStorage Symbol State w)) :=
+    (compare (j.val + 1) d.inputPos.val, input[j],
+      fun n ↦ ((visitSequence P (j.val + 1))[n.val]?).map (·.toBounded w))
+  have hsig : Fintype.card (Ordering × Symbol × (Fin B → Option (BoundedStorage Symbol State w))) <
       input.length := by
-    rw [Fintype.card_prod, Fintype.card_prod, Fintype.card_bool, Fintype.card_fun,
-      Fintype.card_option, Fintype.card_fin, ← mul_assoc]
+    rw [Fintype.card_prod, Fintype.card_prod, show Fintype.card Ordering = 3 by decide,
+      Fintype.card_fun, Fintype.card_option, Fintype.card_fin, ← mul_assoc]
     calc
-      _ ≤ 2 * Fintype.card Symbol * (B + 1) ^ B := by gcongr; omega
-      _ < input.length := by dsimp only [B]; omega
+      _ ≤ 3 * Fintype.card Symbol * (B + 1) ^ B := by gcongr; omega
+      _ < input.length := hlen
   obtain ⟨a, b, hab, hf⟩ : ∃ a b, a < b ∧ f a = f b := by
     obtain ⟨a, b, hne, hf⟩ := Fintype.exists_ne_map_eq_of_card_lt f (by simpa using hsig)
     grind
-  obtain ⟨hside, hsym, hseq⟩ := (by simpa only [f, Prod.mk.injEq, decide_eq_decide] using hf)
+  obtain ⟨hside, hsym, hseq⟩ := (by simpa only [f, Prod.mk.injEq] using hf)
   have hseq' : visitSequence P (a.val + 1) = visitSequence P (b.val + 1) := by
     apply List.ext_getElem?'
     intro r hr
@@ -435,43 +447,15 @@ private lemma exists_inputCut [Fintype Symbol] [Fintype State] {s : ℕ}
         at he ⊢
     exact Storage.toBounded_injOn w (hfits ha) (hfits hb) he
   let cut : InputCut input := ⟨⟨a, b⟩, hab.le⟩
-  refine ⟨cut, ?_, hsym, hseq', hside⟩
+  have hout : cut.Avoids d.inputPos := by
+    cases h : compare (a.val + 1) d.inputPos.val <;> rw [h, eq_comm] at hside
+    · exact Or.inr (compare_lt_iff_lt.mp hside)
+    · rw [compare_eq_iff_eq] at h hside
+      omega
+    · exact Or.inl (compare_gt_iff_gt.mp h)
+  refine ⟨cut.shortened, ?_, cut.exists_storage_eq hsym hseq' hd hout⟩
   have := cut.length_shortened_add
   change cut.shortened.length + (b.val + 1 - (a.val + 1)) = input.length at this
-  omega
-
-/-- **Input shortening.** A sufficiently long input to a machine running in space `s` has a shorter
-input on which a computation path reaches any storage of a halting computation path. -/
-theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : tm.RunsInSpace input s) {path : tm.ComputationPath input} (hhalt : path.last.Halted)
-    (hlen : 2 * Fintype.card Symbol *
-      (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s + 1 < input.length)
-    {d : Cfg k Symbol State input} (hd : d ∈ path.toRunPath) :
-    ∃ input' : List Symbol, input'.length < input.length ∧
-      ∃ q : tm.ComputationPath input', q.last.storage = d.storage := by
-  let P := path.toRunPath
-  obtain ⟨j, rfl⟩ := hd
-  induction j using Fin.induction with
-  | zero =>
-    -- the initial storage does not depend on the input
-    refine ⟨[], by simp; omega, .ofDeterministic tm [] 0, ?_⟩
-    change (tm.initCfg []).storage = P.head.storage
-    rw [path.head_eq]
-    rfl
-  | succ i ih =>
-  by_cases hi : (P i.castSucc).Halted
-  · rw [(MultiTapeNTM.step_of_halt hi).mp (P.step i)]
-    exact ih
-  -- Matching cells on the same side of both head positions retain this step.
-  obtain ⟨cut, hshort, hsym, hseq, hside⟩ :=
-    exists_inputCut (hs path) hhalt hlen (max (P i.castSucc).inputPos.val (P i.succ).inputPos.val)
-  refine ⟨cut.shortened, hshort, ?_⟩
-  have hstep : tm.step (P i.castSucc) = P i.succ := step_iff.mp (P.step i)
-  rw [← hstep]
-  refine cut.exists_storage_eq hsym hseq ⟨_, rfl⟩ hi ?_
-  have := abs_le.mp (Step.inputPos_le (P.step i))
-  rw [hstep]
-  unfold InputCut.SameSide
   omega
 
 end MultiTapeTM
