@@ -50,7 +50,7 @@ omit [HasFresh Var] in
 `rename` when the target variable does not occur in the term. -/
 lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquivPFresh m n := by
   induction h with
-  | var => constructor
+  | var => exact .var
   | @abs z x1 x2 m1 m2 hz _ ih =>
     have h1 : z ∉ ({x1, x2} : Finset Var) ∪ m1.fv ∪ m2.fv := by
       simp_all [vars_eq_fv_union_bv]
