@@ -137,7 +137,7 @@ theorem bubbleSortPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole bubbleSortPgm :=
   case insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_2 =>
     intro A1 n1 i1 A4 j3 A6 _ _ _ _ _ _ _ _ _ _ _ _ H5 _ _ x y hxy
     by_cases hcond : A6.select j3 < A6.select (j3 - 1)
-    · simp only [if_pos hcond]
+    · simp only [ite_eq_left hcond]
       simp (discharger := omega) only [SmtArray.select_store_of_ne]
       by_cases hy1 : y = j3 - 1
       · subst hy1
@@ -149,12 +149,12 @@ theorem bubbleSortPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole bubbleSortPgm :=
           exact H5 x (y - 1) (by omega)
         · simp (discharger := omega) only [SmtArray.select_store_of_ne]
           exact H5 x y hxy
-    · rw [if_neg hcond]
+    · rw [ite_eq_right hcond]
       exact H5 x y hxy
   case insertLoopInvAssert_arbitrary_iter_maintain_invariant_loop_1_1 =>
     intro A1 n1 i1 A4 j3 A6 _ _ _ _ _ _ _ _ _ _ _ H4 _ _ _ bv10 hbv10
     by_cases hcond : A6.select j3 < A6.select (j3 - 1)
-    · simp only [if_pos hcond]
+    · simp only [ite_eq_left hcond]
       simp (discharger := omega) only [SmtArray.select_store_self]
       by_cases hb1 : bv10 = j3 - 1
       · subst hb1
@@ -166,7 +166,7 @@ theorem bubbleSortPgm_smtVCsCorrect : Strata.smtVCsCorrectBoole bubbleSortPgm :=
           omega
         · simp (discharger := omega) only [SmtArray.select_store_of_ne]
           exact H4 bv10 (by omega)
-    · rw [if_neg hcond]
+    · rw [ite_eq_right hcond]
       by_cases hb1 : bv10 = j3 - 1
       · subst hb1; omega
       · have := H4 bv10 (by omega)

@@ -77,10 +77,10 @@ theorem loop_simple_smtVCsCorrect : smtVCsCorrectBoole loop_simple_program := by
         omega)
      | (split
         · rename_i h
-          simp only [if_pos h] at *
+          simp only [ite_eq_left h] at *
           grind
         · rename_i h
-          simp only [if_neg h] at *
+          simp only [ite_eq_right h] at *
           have hzero : ∀ x : Int, 0 ≤ x → x ≤ 0 → x * (x - 1) = 0 := fun x h1 h2 => by
             have hx0 : x = 0 := by omega
             rw [hx0]; decide
