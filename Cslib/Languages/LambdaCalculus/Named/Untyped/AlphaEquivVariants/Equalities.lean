@@ -83,8 +83,8 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
     have h_chain : (m.swap z a) =α (m'.swap z b) := h_agree.symm.trans (h_swap.trans h_agree')
     -- Convert swap to rename (since z ∉ vars) and apply the pi rule.
     -- Since z ∉ vars(m), swap z a = rename a z (by swap_comm + swap_eq_rename).
-    rw [swap_comm, swap_eq_rename_of_notMem_vars hzm] at h_chain
-    rw [swap_comm, swap_eq_rename_of_notMem_vars hzm'] at h_chain
+    rw [swap_comm, swap_eq_rename_of_notMem_vars hzm,
+      swap_comm, swap_eq_rename_of_notMem_vars hzm'] at h_chain
     exact AlphaEquiv.abs (by grind) h_chain
   | app _ _ ih1 ih2 => exact AlphaEquiv.app ih1 ih2
 
