@@ -191,24 +191,8 @@ lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a �
 lemma notMem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ (m.swap u v).vars := by
   grind [vars_swap]
 
-/- The following 5 lemmas are representative of non-trivial cases of the 27 cases occurring
+/- The following 4 lemmas are representative of non-trivial cases of the 27 cases occurring
 in the proof of `AlphaEquiv.swap_preserve`. See Lemma 6.1 [Crole2012]. -/
-
--- First 4 case examinations in representative case z ≠ u, v
-private lemma desired_condition_cases_z_ne_u_or_v {m m' : Term Var} {a b u v z : Var}
-    (hm : z ∉ m.vars ∪ m'.vars ∪ {a, b})
-    (hbody : ((m.rename a z).swap u v) =α ((m'.rename b z).swap u v))
-    (hzu : z ≠ u)
-    (hzv : z ≠ v) :
-    ((m.swap u v).swap (Equiv.swap u v a) z) =α ((m'.swap u v).swap (Equiv.swap u v b) z) := by
-  have hzm : z ∉ (m.swap u v).vars := notMem_vars_swap hzu hzv (by grind)
-  have hzm' : z ∉ (m'.swap u v).vars := notMem_vars_swap hzu hzv (by grind)
-  rw [swap_eq_rename_of_notMem_vars hzm, swap_eq_rename_of_notMem_vars hzm']
-  rw [← swap_rename_comm' (by grind) (by grind), ← swap_rename_comm' (by grind) (by grind)] at hbody
-  have ha : a = u ∨ a = v ∨ (a ≠ u ∧ a ≠ v) := by grind
-  have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
-  rcases ha with h' | h' | ⟨hau, hav⟩
-  all_goals rcases hb with h'' | h'' | ⟨hbu, hbv⟩ <;> simp_all
 
 -- representative case: z ≠ u, v
 -- Use z as witness.
@@ -219,9 +203,8 @@ private lemma alphaEquiv_swap_preserve_abs_fresh {m m' : Term Var} {a b u v z : 
     ((Term.abs a m).swap u v) =α ((Term.abs b m').swap u v) := by
   have hzm : z ∉ (m.swap u v).vars := notMem_vars_swap hzu hzv (by grind)
   have hzm' : z ∉ (m'.swap u v).vars := notMem_vars_swap hzu hzv (by grind)
-  have hren := desired_condition_cases_z_ne_u_or_v hm hbody hzu hzv
-  rw [swap_eq_rename_of_notMem_vars hzm, swap_eq_rename_of_notMem_vars hzm'] at hren
-  exact AlphaEquiv.abs (by grind [swap]) hren
+  rw [← swap_rename_comm' (by grind) (by grind), ← swap_rename_comm' (by grind) (by grind)] at hbody
+  exact AlphaEquiv.abs (by grind [swap]) hbody
 
 -- representative case: a ≠ u, v; b ≠ u, v; z = u
 private lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {m m' : Term Var} {a b u v : Var}
