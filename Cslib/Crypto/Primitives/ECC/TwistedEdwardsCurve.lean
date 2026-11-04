@@ -73,11 +73,13 @@ lemma zero_mem_affinePoints (E : TwistedEdwardsCurve R) : (0, 1) ∈ E.affinePoi
   change E.a * 0 ^ 2 + 1 ^ 2 = 1 + E.d * 0 ^ 2 * 1 ^ 2
   simp
 
-/-- The usual coefficient conditions for a nonsingular twisted Edwards model over a field.
-Keeping this predicate separate from `TwistedEdwardsCurve` permits the equation and its points to
-be used over more general rings and also permits partially specified curves during developments.
--/
-def IsValid (E : TwistedEdwardsCurve R) : Prop := E.a ≠ 0 ∧ E.d ≠ 0 ∧ E.a ≠ E.d
+/-- The coefficient conditions under which a twisted Edwards model is nonsingular: `2`, `a`, `d`
+and `a - d` are units. Over a field this is [Bernstein2008a], Definition 2.1: the characteristic is
+not `2` and `a`, `d` are distinct and nonzero. As in Mathlib's `WeierstrassCurve.IsElliptic`, units
+rather than nonzero elements keep the condition meaningful over rings. Keeping this predicate
+separate from `TwistedEdwardsCurve` permits the equation and its points to be used without it. -/
+def IsValid (E : TwistedEdwardsCurve R) : Prop :=
+  IsUnit (2 : R) ∧ IsUnit E.a ∧ IsUnit E.d ∧ IsUnit (E.a - E.d)
 
 end TwistedEdwardsCurve
 
@@ -91,13 +93,9 @@ lemma edwardsCurve_equation_iff (d x y : R) :
     (edwardsCurve d).Equation x y ↔ x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2 := by
   simp [TwistedEdwardsCurve.Equation, edwardsCurve]
 
-/-- `edwardsCurve d` is a valid (nonsingular) model exactly when `d ≠ 0` and `d ≠ 1`. -/
-lemma edwardsCurve_isValid_iff [Nontrivial R] (d : R) :
-    (edwardsCurve d).IsValid ↔ d ≠ 0 ∧ d ≠ 1 := by
-  constructor
-  · rintro ⟨_, hd, had⟩
-    exact ⟨hd, fun h ↦ had h.symm⟩
-  · rintro ⟨hd, hd1⟩
-    exact ⟨one_ne_zero, hd, fun h ↦ hd1 h.symm⟩
+/-- `edwardsCurve d` is valid exactly when `2`, `d` and `1 - d` are units. -/
+lemma edwardsCurve_isValid_iff (d : R) :
+    (edwardsCurve d).IsValid ↔ IsUnit (2 : R) ∧ IsUnit d ∧ IsUnit (1 - d) := by
+  simp [TwistedEdwardsCurve.IsValid, edwardsCurve]
 
 end Cslib.Crypto.Primitives.ECC
