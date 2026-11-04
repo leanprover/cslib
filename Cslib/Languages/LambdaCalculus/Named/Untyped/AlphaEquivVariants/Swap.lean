@@ -348,11 +348,9 @@ lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
 lemma swap_comp_alphaEquiv_of_notMem_fv {m : Term Var} {a u z : Var}
     (hu : u ∉ m.fv) (hz : z ∉ m.fv) :
     ((m.swap u a).swap z u) =α (m.swap z a) := by
-  let π := (Equiv.swap u a).trans (Equiv.swap z u)
-  let π' := Equiv.swap z a
-  have h : Set.EqOn π π' m.fv := by grind [Set.EqOn]
-  have h' := permute_alphaEquiv_of_eqOn_fv m π π' h
-  rwa [← permute_permute, permute_swap, permute_swap, permute_swap] at h'
+  simp_rw [← permute_swap, permute_permute]
+  apply permute_alphaEquiv_of_eqOn_fv
+  grind [Set.EqOn]
 
 end LambdaCalculus.Named.Untyped.Term
 
