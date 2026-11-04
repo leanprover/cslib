@@ -63,7 +63,7 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquiv
 `z` that does not occur at all, using Lemma 6.1 and Lemma 6.2 part 2 [Crole2012]. -/
 lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n) : m =α n := by
   induction h with
-  | var => constructor
+  | var => exact .var
   | @abs u a b m m' hy _ ih =>
     -- We have: (u a) · m ∼p (u b) · m' (by induction: ih) and u # a, b, m, m' (by hy).
     -- Pick z ≠ u with z ∉ vars(m) ∪ vars(m') ∪ {a, b} (stronger than freshness).
