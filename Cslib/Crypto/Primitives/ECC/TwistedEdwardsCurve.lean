@@ -24,8 +24,8 @@ of a curve or its affine points.
 Mathlib's elliptic-curve API is currently centred on Weierstrass models. A twisted Edwards model
 is not itself a Weierstrass equation, so using `WeierstrassCurve.Affine.Equation` here would require
 a birational coordinate conversion and extra invertibility hypotheses.  The API below follows the
-same useful separation as that API: coefficients, an affine equation, a set of affine points, and
-a bundled point type.
+same useful separation as that API: coefficients, an affine equation and a set of affine
+points.
 
 ## Main definitions
 
@@ -68,27 +68,10 @@ def Equation (E : TwistedEdwardsCurve R) (x y : R) : Prop :=
 /-- The set of affine coordinate pairs on a twisted Edwards curve. -/
 def affinePoints (E : TwistedEdwardsCurve R) : Set (R × R) := {p | E.Equation p.1 p.2}
 
-/-- A bundled affine point on a twisted Edwards curve. -/
-abbrev Point (E : TwistedEdwardsCurve R) := {p : R × R // p ∈ E.affinePoints}
-
-/-- The neutral affine coordinate pair `(0, 1)`.  It lies on every twisted Edwards equation. -/
-def zero : R × R := (0, 1)
-
-lemma zero_mem_affinePoints (E : TwistedEdwardsCurve R) : zero ∈ E.affinePoints := by
+/-- The neutral point `(0, 1)` lies on every twisted Edwards curve. -/
+lemma zero_mem_affinePoints (E : TwistedEdwardsCurve R) : (0, 1) ∈ E.affinePoints := by
   change E.a * 0 ^ 2 + 1 ^ 2 = 1 + E.d * 0 ^ 2 * 1 ^ 2
   simp
-
-/-- The neutral point, bundled as an affine point of `E`. -/
-def zeroPoint (E : TwistedEdwardsCurve R) : E.Point := ⟨zero, E.zero_mem_affinePoints⟩
-
-/-- Negation of affine coordinates on a twisted Edwards curve. -/
-def neg (p : R × R) : R × R := (-p.1, p.2)
-
-lemma neg_mem_affinePoints (E : TwistedEdwardsCurve R) (p : R × R) :
-    neg p ∈ E.affinePoints ↔ p ∈ E.affinePoints := by
-  change E.a * (-p.1) ^ 2 + p.2 ^ 2 = 1 + E.d * (-p.1) ^ 2 * p.2 ^ 2 ↔
-    E.a * p.1 ^ 2 + p.2 ^ 2 = 1 + E.d * p.1 ^ 2 * p.2 ^ 2
-  rw [neg_sq]
 
 /-- The usual coefficient conditions for a nonsingular twisted Edwards model over a field.
 Keeping this predicate separate from `TwistedEdwardsCurve` permits the equation and its points to
