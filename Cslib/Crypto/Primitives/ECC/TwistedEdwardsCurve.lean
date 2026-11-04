@@ -13,7 +13,6 @@ public import Mathlib.Data.Set.Defs
 /-!
 # Twisted Edwards curves
 
-This file contains the curve-level definitions that are independent of any specific Elligator.
 A twisted Edwards curve with coefficients `a` and `d` has affine equation
 `a * x ^ 2 + y ^ 2 = 1 + d * x ^ 2 * y ^ 2`.
 
