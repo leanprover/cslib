@@ -56,7 +56,7 @@ lemma alphaEquivPFresh_of_alphaEquiv {m n : Term Var} (h : m =α n) : AlphaEquiv
       grind [vars_eq_fv_union_bv]
     have h2 : AlphaEquivPFresh (m1.swap x1 z) (m2.swap x2 z) := by
       grind [swap_eq_rename_of_notMem_vars]
-    apply AlphaEquivPFresh.abs h1 h2
+    exact AlphaEquivPFresh.abs h1 h2
   | app h1 h2 ih1 ih2 => exact AlphaEquivPFresh.app ih1 ih2
 
 /-- The converse direction: the freshness witness `u` of the rule `pi#` is exchanged for an atom
