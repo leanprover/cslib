@@ -212,17 +212,13 @@ private lemma alphaEquiv_swap_preserve_abs_fresh_z_eq_u {m m' : Term Var} {a b u
     (hbody : ((m.rename a u).swap u v) =α ((m'.rename b u).swap u v))
     (hau : a ≠ u) (hav : a ≠ v) (hbu : b ≠ u) (hbv : b ≠ v) :
     ((Term.abs a m).swap u v) =α ((Term.abs b m').swap u v) := by
-  have hum : u ∉ m.vars := by grind
-  have hum' : u ∉ m'.vars := by grind
-  have hvm : v ∉ (m.swap u v).vars := notMem_swap_target hum
-  have hvm' : v ∉ (m'.swap u v).vars := notMem_swap_target hum'
-  rw [← swap_eq_rename_of_notMem_vars hum, ← swap_eq_rename_of_notMem_vars hum',
-    swap_comm (m := m) (x := a) (y := u), swap_comm (m := m') (x := b) (y := u),
-    ← swap_comp_eq_of_ne hau hav, ← swap_comp_eq_of_ne hbu hbv,
-    swap_comm (m := m.swap u v) (x := v) (y := a),
-    swap_comm (m := m'.swap u v) (x := v) (y := b),
-    swap_eq_rename_of_notMem_vars hvm, swap_eq_rename_of_notMem_vars hvm'] at hbody
-  apply AlphaEquiv.abs (y := v) <;> grind [swap]
+  have hvm : v ∉ (m.swap u v).vars := notMem_swap_target (by grind)
+  have hvm' : v ∉ (m'.swap u v).vars := notMem_swap_target (by grind)
+  apply AlphaEquiv.abs (y := v) (by grind [swap])
+  convert! hbody using 1
+  all_goals
+    convert! swap_rename_comm
+    simp
 
 -- representative case: a ≠ u, v; b = u; z = v
 private lemma alphaEquiv_swap_preserve_abs_b_eq_u {m m' : Term Var} {a u v : Var}
