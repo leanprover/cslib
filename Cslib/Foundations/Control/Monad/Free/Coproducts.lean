@@ -14,6 +14,10 @@ public import Cslib.Foundations.Control.Monad.Free
 
 The free monad on the pointwise sum of two effect signatures is a coproduct of their
 free monads. Its interpreter handles each operation using the corresponding component.
+
+## References
+
+* [Wouter Swierstra, *Data types à la carte*, §6][Swierstra2008]
 -/
 
 @[expose] public section
