@@ -13,7 +13,8 @@ public import Cslib.Foundations.Control.Monad.Free
 # Coproducts of free monads
 
 The free monad on the pointwise sum of two effect signatures is a coproduct of their
-free monads. Its interpreter handles each operation using the corresponding component.
+free monads, exposed as `FreeM.Coproduct F G`. Its interpreter handles each operation
+using the corresponding component.
 
 ## References
 
@@ -24,26 +25,34 @@ free monads. Its interpreter handles each operation using the corresponding comp
 
 namespace Cslib.FreeM
 
-universe u v
+universe u v w
+
+/-- The coproduct of `FreeM F` and `FreeM G`, constructed as the free monad on the
+pointwise sum of their underlying effect signatures.
+
+The `Monad` and `LawfulMonad` instances are inherited from `FreeM`. The inclusions
+`FreeM.inl` and `FreeM.inr` satisfy the universal property `FreeM.isMonadCoproduct`. -/
+abbrev Coproduct (F G : Type u → Type v) (α : Type w) :=
+  FreeM (fun β => Sum (F β) (G β)) α
 
 variable {F G : Type u → Type v}
 
 /-- Include computations using the left effect signature into the combined free monad. -/
-def inl {α : Type u} : FreeM F α → FreeM (fun β => Sum (F β) (G β)) α :=
+def inl {α : Type u} : FreeM F α → Coproduct F G α :=
   FreeM.liftM (fun op => lift (F := fun β => Sum (F β) (G β)) (Sum.inl op))
 
 /-- Include computations using the right effect signature into the combined free monad. -/
-def inr {α : Type u} : FreeM G α → FreeM (fun β => Sum (F β) (G β)) α :=
+def inr {α : Type u} : FreeM G α → Coproduct F G α :=
   FreeM.liftM (fun op => lift (F := fun β => Sum (F β) (G β)) (Sum.inr op))
 
 /-- The left inclusion preserves monadic structure. -/
 theorem isMonadHom_inl :
-    IsMonadHom (FreeM F) (FreeM (fun β => Sum (F β) (G β))) inl :=
+    IsMonadHom (FreeM F) (Coproduct F G) inl :=
   isMonadHom_liftM _
 
 /-- The right inclusion preserves monadic structure. -/
 theorem isMonadHom_inr :
-    IsMonadHom (FreeM G) (FreeM (fun β => Sum (F β) (G β))) inr :=
+    IsMonadHom (FreeM G) (Coproduct F G) inr :=
   isMonadHom_liftM _
 
 /-- The left inclusion sends a lifted operation to the corresponding left operation. -/
@@ -60,8 +69,7 @@ theorem inr_lift {α : Type u} (op : G α) :
 
 /-- The free monad on a sum of effect signatures is a coproduct of their free monads. -/
 theorem isMonadCoproduct :
-    IsMonadCoproduct (FreeM F) (FreeM G)
-      (FreeM (fun β => Sum (F β) (G β))) inl inr where
+    IsMonadCoproduct (FreeM F) (FreeM G) (Coproduct F G) inl inr where
   inl_hom := isMonadHom_inl
   inr_hom := isMonadHom_inr
   universal t _ _ f g hf hg := by
