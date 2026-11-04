@@ -163,16 +163,17 @@ private lemma step_cfg (hsym : input[cut.fst] = input[cut.snd]) {c c' : Cfg k Sy
       rw [Set.mem_Ioo]; unfold SameSide at hside; omega)) rfl)
     fun _ ↦ by rintro rfl; exact Cfg.ext rfl (cut.inputPos_moveInputPos hside).symm rfl rfl rfl
 
-/-! ### Simulating a computation path on the shortened input
-
-A configuration of the original path is *reached* when its image on the shortened input has the core
-of a configuration that `tm` reaches there. -/
+/-! ### Simulating a computation path on the shortened input -/
 
 open MultiTapeNTM MultiTapeNTM.RunPath
 
+/-- The image of `c` on the shortened input has the core of a configuration that `tm` reaches
+there. -/
+private abbrev Reached (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) : Prop :=
+  (cut.cfg c).core ∈ Cfg.core '' tm.reachable cut.shortened
+
 /-- The image of the initial configuration is reached. -/
-private lemma reached_head {p : tm.ComputationPath input} :
-    (cut.cfg p.head).core ∈ Cfg.core '' tm.reachable cut.shortened :=
+private lemma reached_head {p : tm.ComputationPath input} : cut.Reached tm p.head :=
   ⟨_, ⟨0, rfl⟩, by
     rw [p.head_eq]
     exact Prod.ext (Fin.ext (by simp [MultiTapeTM.runFrom, cfg, inputPos, Cfg.init, left, right]))
@@ -208,10 +209,8 @@ variable {cut} (hsym : input[cut.fst] = input[cut.snd])
 include hsym
 
 /-- A step on a retained side keeps the image reached. -/
-private lemma reached_step {c c' : Cfg k Symbol State input}
-    (h : (cut.cfg c).core ∈ Cfg.core '' tm.reachable cut.shortened)
-    (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) :
-    (cut.cfg c').core ∈ Cfg.core '' tm.reachable cut.shortened :=
+private lemma reached_step {c c' : Cfg k Symbol State input} (h : cut.Reached tm c)
+    (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) : cut.Reached tm c' :=
   let ⟨d, hd, hdc⟩ := h
   ⟨tm.step d, MultiTapeTM.step_mem_reachable hd,
     (MultiTapeTM.core_step hdc).trans (congrArg Cfg.core (cut.step_cfg hsym hstep hside))⟩
@@ -222,12 +221,10 @@ private lemma reached_slice {p : tm.RunPath input} {pos : ℕ} {a : Fin (p.lengt
     {v : p.visits pos} (hfirst : IsLeast {w : p.visits pos | a ≤ w.val} v)
     (hside : ((p a).inputPos.val ≤ pos ∧ pos ≤ cut.left) ∨
       (pos ≤ (p a).inputPos.val ∧ cut.right ≤ pos))
-    (h : (cut.cfg (p a)).core ∈ Cfg.core '' tm.reachable cut.shortened) :
-    (cut.cfg (p v.val)).core ∈ Cfg.core '' tm.reachable cut.shortened := by
+    (h : cut.Reached tm (p a)) : cut.Reached tm (p v.val) := by
   obtain ⟨hav, hnext⟩ := hfirst
   suffices ∀ j, a ≤ j → j ≤ v.val → (((p j).inputPos.val ≤ pos ∧ pos ≤ cut.left) ∨
-      (pos ≤ (p j).inputPos.val ∧ cut.right ≤ pos)) ∧
-      (cut.cfg (p j)).core ∈ Cfg.core '' tm.reachable cut.shortened from
+      (pos ≤ (p j).inputPos.val ∧ cut.right ≤ pos)) ∧ cut.Reached tm (p j) from
     (this v.val hav le_rfl).2
   intro j haj hjv
   induction j using Fin.induction with
@@ -246,10 +243,10 @@ private lemma reached_slice {p : tm.RunPath input} {pos : ℕ} {a : Fin (p.lengt
 /-- Between consecutive running visits `u ⋖ v` to `pos`, the path continues on the side its first
 step enters, so the image of `p v` is reached with that of `p u`. -/
 private lemma reached_covBy {p : tm.RunPath input} {pos : ℕ} {u v : p.visits pos} (huv : u ⋖ v)
-    (h : (cut.cfg (p u.val)).core ∈ Cfg.core '' tm.reachable cut.shortened)
+    (h : cut.Reached tm (p u.val))
     (hside : ((tm.step (p u.val)).inputPos.val ≤ pos ∧ pos ≤ cut.left) ∨
       (pos ≤ (tm.step (p u.val)).inputPos.val ∧ cut.right ≤ pos)) :
-    (cut.cfg (p v.val)).core ∈ Cfg.core '' tm.reachable cut.shortened := by
+    cut.Reached tm (p v.val) := by
   have hlt : u.val.val < p.length := lt_of_lt_of_le huv.lt (Nat.lt_succ_iff.mp v.val.isLt)
   have hu := (mem_visits.mp u.property).1
   have hpi : tm.Step (p u.val) (p (⟨u.val, hlt⟩ : Fin p.length).succ) := p.step ⟨u.val, hlt⟩
@@ -280,8 +277,7 @@ private lemma Pairing.step_sides {p : tm.RunPath input} (e : cut.Pairing p)
 
 /-- Every running visit to the left endpoint is reached, by induction over the visits. -/
 private lemma Pairing.reached {p : tm.ComputationPath input} (e : cut.Pairing p.toRunPath)
-    (u : visits p.toRunPath cut.left) :
-    (cut.cfg (p u.val)).core ∈ Cfg.core '' tm.reachable cut.shortened := by
+    (u : visits p.toRunPath cut.left) : cut.Reached tm (p u.val) := by
   induction u using WellFoundedLT.induction with | ind u ih =>
   by_cases hu : IsMin u
   · exact reached_slice hsym ⟨Fin.zero_le _, fun w _ => (le_total u w).elim id (hu ·)⟩
@@ -291,7 +287,7 @@ private lemma Pairing.reached {p : tm.ComputationPath input} (e : cut.Pairing p.
   rcases e.step_sides hsym v with hl | hr
   · exact reached_covBy hsym hvu (ih v hvu.lt) (.inl ⟨hl, le_rfl⟩)
   · have := ih v hvu.lt
-    rw [e.core_eq] at this ⊢
+    rw [Reached, e.core_eq] at this ⊢
     exact reached_covBy hsym ((apply_covBy_apply_iff e.orderIso).mpr hvu) this (.inr ⟨hr, le_rfl⟩)
 
 /-- Every configuration outside the endpoints and the cells between them is reached, by induction
@@ -299,22 +295,21 @@ over the path: its predecessor is a visit to an endpoint or outside them too. A 
 halts at an endpoint may be entered from the deleted cells. -/
 private lemma Pairing.reached_of_mem {p : tm.ComputationPath input} (e : cut.Pairing p.toRunPath)
     {c : Cfg k Symbol State input} (hc : c ∈ p)
-    (hout : c.inputPos.val ∉ Set.Icc cut.left cut.right) :
-    (cut.cfg c).core ∈ Cfg.core '' tm.reachable cut.shortened := by
+    (hout : c.inputPos.val ∉ Set.Icc cut.left cut.right) : cut.Reached tm c := by
   obtain ⟨t, rfl⟩ := hc
   induction t using Fin.induction with
   | zero => exact reached_head cut
   | succ t ih =>
     rw [Set.mem_Icc] at hout ih
     have hm := abs_le.mp (Step.inputPos_le (p.step t))
-    have hprev : (cut.cfg (p t.castSucc)).core ∈ Cfg.core '' tm.reachable cut.shortened := by
+    have hprev : cut.Reached tm (p t.castSucc) := by
       by_cases hb : (p t.castSucc).inputPos.val = cut.left ∨ (p t.castSucc).inputPos.val = cut.right
       · have ht : ¬(p t.castSucc).Halted := fun h ↦ by
           grind [left, right, cut.fst_le_snd, Fin.le_def, (step_of_halt h).mp (p.step t)]
         rcases hb with hb | hb
         · exact e.reached hsym ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩
         · have := e.reached hsym (e.orderIso.symm ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩)
-          rwa [e.core_eq, OrderIso.apply_symm_apply] at this
+          rwa [Reached, e.core_eq, OrderIso.apply_symm_apply] at this
       · exact ih (by omega)
     exact reached_step hsym hprev (p.step t) (by unfold SameSide; omega)
 
