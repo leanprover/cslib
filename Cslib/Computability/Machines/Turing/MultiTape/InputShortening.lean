@@ -217,14 +217,12 @@ private lemma reached_step {c c' : Cfg k Symbol State input} (h : cut.Reached tm
 
 /-- From `a` up to the next running visit `v` to `pos`, the path stays on the side of `pos` where
 it is at `a`, so the image of `p v` is reached with that of `p a`. -/
-private lemma reached_slice {p : tm.RunPath input} {pos : ℕ} {a : Fin (p.length + 1)}
-    {v : p.visits pos} (hfirst : IsLeast {w : p.visits pos | a ≤ w.val} v)
-    (hside : ((p a).inputPos.val ≤ pos ∧ pos ≤ cut.left) ∨
-      (pos ≤ (p a).inputPos.val ∧ cut.right ≤ pos))
+private lemma reached_slice {p : tm.RunPath input} {pos : ℕ}
+    (hpos : pos = cut.left ∨ pos = cut.right) {a : Fin (p.length + 1)} {v : p.visits pos}
+    (hfirst : IsLeast {w : p.visits pos | a ≤ w.val} v) (hside : cut.SameSide (p a).inputPos pos)
     (h : cut.Reached tm (p a)) : cut.Reached tm (p v.val) := by
   obtain ⟨hav, hnext⟩ := hfirst
-  suffices ∀ j, a ≤ j → j ≤ v.val → (((p j).inputPos.val ≤ pos ∧ pos ≤ cut.left) ∨
-      (pos ≤ (p j).inputPos.val ∧ cut.right ≤ pos)) ∧ cut.Reached tm (p j) from
+  suffices ∀ j, a ≤ j → j ≤ v.val → cut.SameSide (p j).inputPos pos ∧ cut.Reached tm (p j) from
     (this v.val hav le_rfl).2
   intro j haj hjv
   induction j using Fin.induction with
@@ -238,20 +236,20 @@ private lemma reached_slice {p : tm.RunPath input} {pos : ℕ} {a : Fin (p.lengt
       (hnext (a := ⟨_, mem_visits.mpr ⟨hp, mt (p.halted_mono hj.le) (mem_visits.mp v.2).2⟩⟩)
         (Fin.le_castSucc_iff.mpr haj)).not_gt hj
     have hm := abs_le.mp (Step.inputPos_le (p.step j))
+    unfold SameSide at hs ⊢
     exact ⟨by omega, reached_step hsym hr (p.step j) (by unfold SameSide; omega)⟩
 
 /-- Between consecutive running visits `u ⋖ v` to `pos`, the path continues on the side its first
 step enters, so the image of `p v` is reached with that of `p u`. -/
-private lemma reached_covBy {p : tm.RunPath input} {pos : ℕ} {u v : p.visits pos} (huv : u ⋖ v)
-    (h : cut.Reached tm (p u.val))
-    (hside : ((tm.step (p u.val)).inputPos.val ≤ pos ∧ pos ≤ cut.left) ∨
-      (pos ≤ (tm.step (p u.val)).inputPos.val ∧ cut.right ≤ pos)) :
+private lemma reached_covBy {p : tm.RunPath input} {pos : ℕ}
+    (hpos : pos = cut.left ∨ pos = cut.right) {u v : p.visits pos} (huv : u ⋖ v)
+    (h : cut.Reached tm (p u.val)) (hside : cut.SameSide (tm.step (p u.val)).inputPos pos) :
     cut.Reached tm (p v.val) := by
   have hlt : u.val.val < p.length := lt_of_lt_of_le huv.lt (Nat.lt_succ_iff.mp v.val.isLt)
   have hu := (mem_visits.mp u.property).1
   have hpi : tm.Step (p u.val) (p (⟨u.val, hlt⟩ : Fin p.length).succ) := p.step ⟨u.val, hlt⟩
   rw [MultiTapeTM.step_iff.mp hpi] at hside
-  refine reached_slice hsym ?_ hside (reached_step hsym h hpi (by unfold SameSide; omega))
+  refine reached_slice hsym hpos ?_ hside (reached_step hsym h hpi (by unfold SameSide at *; omega))
   exact ⟨Nat.succ_le_of_lt huv.lt, fun _ hw => huv.ge_of_gt hw⟩
 
 /-- At paired visits, the step from the left visit stays left or that from the right visit stays
@@ -280,15 +278,16 @@ private lemma Pairing.reached {p : tm.ComputationPath input} (e : cut.Pairing p.
     (u : visits p.toRunPath cut.left) : cut.Reached tm (p u.val) := by
   induction u using WellFoundedLT.induction with | ind u ih =>
   by_cases hu : IsMin u
-  · exact reached_slice hsym ⟨Fin.zero_le _, fun w _ => (le_total u w).elim id (hu ·)⟩
+  · exact reached_slice hsym (.inl rfl) ⟨Fin.zero_le _, fun w _ => (le_total u w).elim id (hu ·)⟩
       (.inl ⟨by simp [show p 0 = _ from p.head_eq, left], le_rfl⟩) (reached_head cut)
   obtain ⟨w, hwu⟩ := not_isMin_iff.mp hu
   obtain ⟨v, -, hvu⟩ := exists_le_covBy_of_lt hwu
   rcases e.step_sides hsym v with hl | hr
-  · exact reached_covBy hsym hvu (ih v hvu.lt) (.inl ⟨hl, le_rfl⟩)
+  · exact reached_covBy hsym (.inl rfl) hvu (ih v hvu.lt) (.inl ⟨hl, le_rfl⟩)
   · have := ih v hvu.lt
     rw [Reached, e.core_eq] at this ⊢
-    exact reached_covBy hsym ((apply_covBy_apply_iff e.orderIso).mpr hvu) this (.inr ⟨hr, le_rfl⟩)
+    exact reached_covBy hsym (.inr rfl) ((apply_covBy_apply_iff e.orderIso).mpr hvu) this
+      (.inr ⟨hr, le_rfl⟩)
 
 /-- Every configuration outside the endpoints and the cells between them is reached, by induction
 over the path: its predecessor is a visit to an endpoint or outside them too. A configuration that
@@ -345,7 +344,6 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     {d : Cfg k Symbol State input} (hd : d ∈ path) :
     ∃ input' : List Symbol, input'.length < input.length ∧
       d.storage ∈ Cfg.storage '' tm.reachable input' := by
-  classical
   let P := path.toRunPath
   -- Every prefix fits in the windows given by the space of this path.
   let w := spaceUsedByTape P
@@ -360,29 +358,23 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
   have hcard : Fintype.card (BoundedStorage Symbol State w) ≤ B := card_boundedStorage_le hs
   have hlength (pos : ℕ) : (visitSequence P pos).length ≤ B := by
     simp only [visitSequence, List.length_map, Finset.length_sort]
-    exact (Finset.card_le_card_of_injOn (fun t ↦ (P t).storage.toBounded w)
-      (fun _ _ ↦ Finset.mem_coe.mpr (Finset.mem_univ _)) fun u hu v hv h ↦
-        storage_injOn_visits P hhalt pos hu hv (Storage.toBounded_injOn w (hS u) (hS v) h)).trans
+    exact (Finset.card_le_card_of_injOn _ (fun _ _ ↦ Finset.mem_coe.mpr (Finset.mem_univ _))
+      ((Storage.toBounded_injOn w).comp (storage_injOn_visits P hhalt pos) fun t _ ↦ hS t)).trans
       (by simpa using hcard)
   -- Record the side of `d`, the input symbol, and the bounded visit sequence.
-  let f (j : Fin input.length) :
-      Ordering × Symbol × (Fin B → Option (BoundedStorage Symbol State w)) :=
-    (compare (j.val + 1) d.inputPos.val, input[j],
-      fun n ↦ ((visitSequence P (j.val + 1))[n.val]?).map (·.toBounded w))
-  have hsig : Fintype.card (Ordering × Symbol × (Fin B → Option (BoundedStorage Symbol State w))) <
-      input.length := by
-    rw [Fintype.card_prod, Fintype.card_prod, show Fintype.card Ordering = 3 by decide,
-      Fintype.card_fun, Fintype.card_option, Fintype.card_fin, ← mul_assoc]
-    calc
-      _ ≤ 3 * Fintype.card Symbol * (B + 1) ^ B := by gcongr; omega
-      _ < input.length := hlen
+  let f (j : Fin input.length) := (compare (j.val + 1) d.inputPos.val, input[j],
+    fun n : Fin B ↦ ((visitSequence P (j.val + 1))[n.val]?).map (·.toBounded w))
   obtain ⟨a, b, hab, hf⟩ : ∃ a b, a < b ∧ f a = f b := by
-    obtain ⟨a, b, hne, hf⟩ := Fintype.exists_ne_map_eq_of_card_lt f (by simpa using hsig)
+    obtain ⟨a, b, hne, hf⟩ := Fintype.exists_ne_map_eq_of_card_lt f <| by
+      rw [Fintype.card_prod, Fintype.card_prod, show Fintype.card Ordering = 3 by decide,
+        Fintype.card_fun, Fintype.card_option, Fintype.card_fin, Fintype.card_fin, ← mul_assoc]
+      calc
+        _ ≤ 3 * Fintype.card Symbol * (B + 1) ^ B := by gcongr; omega
+        _ < input.length := hlen
     grind
   obtain ⟨hside, hsym, hseq⟩ := (by simpa only [f, Prod.mk.injEq] using hf)
   have hseq' : visitSequence P (a.val + 1) = visitSequence P (b.val + 1) := by
-    apply List.ext_getElem?'
-    intro r hr
+    refine List.ext_getElem?' fun r hr ↦ ?_
     have he := congrFun hseq ⟨r, hr.trans_le (max_le (hlength _) (hlength _))⟩
     rcases ha : (visitSequence P (a.val + 1))[r]? with _ | x <;>
       rcases hb : (visitSequence P (b.val + 1))[r]? with _ | y <;>
@@ -390,12 +382,8 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
         at he ⊢
     exact Storage.toBounded_injOn w (hfits ha) (hfits hb) he
   let cut : InputCut input := ⟨⟨a, b⟩, hab.le⟩
-  have hout : d.inputPos.val ∉ Set.Icc cut.left cut.right := by
-    cases h : compare (a.val + 1) d.inputPos.val <;> rw [h, eq_comm] at hside
-    · exact Set.notMem_Icc_of_gt (compare_lt_iff_lt.mp hside)
-    · rw [compare_eq_iff_eq] at h hside
-      omega
-    · exact Set.notMem_Icc_of_lt (compare_gt_iff_gt.mp h)
+  have hout : ¬(a.val + 1 ≤ d.inputPos.val ∧ d.inputPos.val ≤ b.val + 1) := by
+    grind [compare_lt_iff_lt, compare_eq_iff_eq, compare_gt_iff_gt]
   refine ⟨cut.shortened, ?_, cut.exists_storage_eq hsym hseq' hd hout⟩
   have := cut.length_shortened_add
   change cut.shortened.length + (b.val + 1 - (a.val + 1)) = input.length at this
