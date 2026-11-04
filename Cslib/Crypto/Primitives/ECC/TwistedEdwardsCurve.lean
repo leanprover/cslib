@@ -78,8 +78,15 @@ and `a - d` are units. Over a field this is [Bernstein2008a], Definition 2.1: th
 not `2` and `a`, `d` are distinct and nonzero. As in Mathlib's `WeierstrassCurve.IsElliptic`, units
 rather than nonzero elements keep the condition meaningful over rings. Keeping this predicate
 separate from `TwistedEdwardsCurve` permits the equation and its points to be used without it. -/
-def IsValid (E : TwistedEdwardsCurve R) : Prop :=
-  IsUnit (2 : R) ∧ IsUnit E.a ∧ IsUnit E.d ∧ IsUnit (E.a - E.d)
+class IsValid (E : TwistedEdwardsCurve R) : Prop where
+  /-- `2` is a unit; over a field, the characteristic is not `2`. -/
+  isUnit_two : IsUnit (2 : R)
+  /-- The coefficient `a` is a unit. -/
+  isUnit_a : IsUnit E.a
+  /-- The coefficient `d` is a unit. -/
+  isUnit_d : IsUnit E.d
+  /-- The difference `a - d` is a unit; over a field, `a ≠ d`. -/
+  isUnit_a_sub_d : IsUnit (E.a - E.d)
 
 end TwistedEdwardsCurve
 
@@ -96,6 +103,10 @@ lemma edwardsCurve_equation_iff (d x y : R) :
 /-- `edwardsCurve d` is valid exactly when `2`, `d` and `1 - d` are units. -/
 lemma edwardsCurve_isValid_iff (d : R) :
     (edwardsCurve d).IsValid ↔ IsUnit (2 : R) ∧ IsUnit d ∧ IsUnit (1 - d) := by
-  simp [TwistedEdwardsCurve.IsValid, edwardsCurve]
+  constructor
+  · rintro ⟨h2, -, hd, had⟩
+    exact ⟨h2, hd, had⟩
+  · rintro ⟨h2, hd, had⟩
+    exact ⟨h2, isUnit_one, hd, had⟩
 
 end Cslib.Crypto.Primitives.ECC
