@@ -263,36 +263,36 @@ lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h : m =α m') :
     have hb : b = u ∨ b = v ∨ (b ≠ u ∧ b ≠ v) := by grind
     -- we've got 27 cases to consider
     rcases ha with rfl | rfl | ⟨hau, hav⟩ <;> rcases hb with rfl | rfl | ⟨hbu, hbv⟩
-    · obtain (rfl | hzv) : z = v ∨ z ≠ v := Decidable.eq_or_ne z v
-        -- representative case: a = u; b = u; z = v
+    · obtain rfl | hzv := eq_or_ne z v
+      -- representative case: a = u; b = u; z = v
       · exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by grind) ih
       -- reuse representative case: z ≠ u, v
       · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzb hzv
     · exact alphaEquiv_swap_preserve_abs_fresh hm ih hza hzb
-    · obtain (rfl | hzv) : z = v ∨ z ≠ v := Decidable.eq_or_ne z v
+    · obtain rfl | hzv := eq_or_ne z v
       -- reuse representative case: a ≠ u, v; b = u; z = v
       · exact (alphaEquiv_swap_preserve_abs_b_eq_u (by grind) ih.symm hbu hbv huv).symm
       -- reuse representative case: z ≠ u, v
       · exact alphaEquiv_swap_preserve_abs_fresh hm ih hza hzv
     · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzb hza
-    · obtain (rfl | hzu) : z = u ∨ z ≠ u := Decidable.eq_or_ne z u
+    · obtain rfl | hzu := eq_or_ne z u
       -- reuse representative case: a = u; b = u; z = v
       · rw [swap_comm, swap_comm (x := z)] at ih ⊢
         exact alphaEquiv_swap_preserve_abs_a_eq_b_eq_u (by grind) ih
       -- reuse representative case: z ≠ u, v
       · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hzb
-    · obtain (rfl | hzu) : z = u ∨ z ≠ u := Decidable.eq_or_ne z u
+    · obtain rfl | hzu := eq_or_ne z u
       -- reuse representative case: a ≠ u, v; b = u; z = v
       · rw [swap_comm, swap_comm (x := z)] at ih ⊢
         exact (alphaEquiv_swap_preserve_abs_b_eq_u (by grind) ih.symm hbv hbu huv.symm).symm
       -- reuse representative case: z ≠ u, v
       · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzu hza
-    · obtain (rfl | hzv) : z = v ∨ z ≠ v := Decidable.eq_or_ne z v
+    · obtain rfl | hzv := eq_or_ne z v
       -- representative case: a ≠ u, v; b = u; z = v
       · exact alphaEquiv_swap_preserve_abs_b_eq_u (by grind) ih hau hav huv
       -- reuse representative case: z ≠ u, v
       · exact alphaEquiv_swap_preserve_abs_fresh hm ih hzb hzv
-    · obtain (rfl | hzu) : z = u ∨ z ≠ u := Decidable.eq_or_ne z u
+    · obtain rfl | hzu := eq_or_ne z u
       -- reuse representative case: a ≠ u, v; b = u; z = v
       · rw [swap_comm, swap_comm (x := z)] at ih ⊢
         exact alphaEquiv_swap_preserve_abs_b_eq_u (by grind) ih hav hau huv.symm
