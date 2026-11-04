@@ -129,7 +129,6 @@ public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
 public import Cslib.Crypto.Negligible
-public import Cslib.Crypto.Primitives.ECC.Basic
 public import Cslib.Crypto.Primitives.ECC.TwistedEdwardsCurve
 public import Cslib.Crypto.Primitives.PRG.Asymptotic
 public import Cslib.Crypto.Primitives.PRG.Basic
