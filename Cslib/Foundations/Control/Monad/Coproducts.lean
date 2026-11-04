@@ -22,6 +22,7 @@ interpreting the component effects determines a unique interpretation of the com
 
 * [Jiří Adámek, Nathan Bowler, Paul B. Levy, Stefan Milius,
   *Coproducts of Monads on Set*][Adamek2012]
+* [Christoph Lüth, Neil Ghani, *Composing Monads Using Coproducts*][LuthGhani2002]
 -/
 
 @[expose] public section
