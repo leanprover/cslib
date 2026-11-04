@@ -72,10 +72,8 @@ lemma alphaEquiv_of_alphaEquivPFresh {m n : Term Var} (h : AlphaEquivPFresh m n)
     have hzm' : z ∉ m'.vars := by grind
     -- Using Lemma 6.1 we get
     have h_swap : ((m.swap u a).swap z u) =α ((m'.swap u b).swap z u) := by
-      nth_rw 2 [swap_comm]
-      nth_rw 4 [swap_comm]
-      exact AlphaEquiv.swap_preserve ih
-    -- From Lemma 6.2 part 2 via agreement sets
+      convert AlphaEquiv.swap_preserve ih using 2
+      all_goals rw [swap_comm]
     have h_agree : ((m.swap u a).swap z u) =α (m.swap z a) := by
       apply swap_comp_alphaEquiv_of_notMem_fv <;> grind [vars_eq_fv_union_bv]
     have h_agree' : ((m'.swap u b).swap z u) =α (m'.swap z b) := by
