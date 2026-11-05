@@ -7,8 +7,10 @@ Authors: Maximiliano Onofre Martínez
 module
 
 public import Cslib.Foundations.Relation.Attr
+public import Cslib.Foundations.Relation.Defs
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Size
 
 /-! # η-reduction for the λ-calculus -/
 
@@ -149,6 +151,13 @@ lemma steps_open_cong_r {s t t' : Term Var} (lc_s : LC s.abs) (steps : t ↠η�
   case refl => rfl
   case head _ _ st _ ih => exact .trans (step_open_cong_r lc_s st) ih
 
+lemma step_size (step : M ⭢ηᶠ M') : M'.size < M.size := by
+  induction step with
+  | abs xs _ =>
+    have ⟨x, _⟩ := fresh_exists <| free_union [fv] Var
+    grind
+  | _ => grind
+
 /- Closing a sequence of η-reduction steps over a fresh variable preserves the steps. -/
 open Relation in
 lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N) :
@@ -157,6 +166,16 @@ lemma close_eta_steps (hx_M : x ∉ M.fv) (st_M : ReflGen FullEta (M ^ fvar x) N
   | refl => rw [←open_close_var x M hx_M]
   | single st =>
     exact .single (Xi.abs {x} (by grind [step_subst_cong_l]))
+
+open Relation in
+lemma terminating : Terminating (@FullEta Var) := by
+  apply WellFounded.intro
+  intros t
+  induction h : t.size using Nat.strong_induction_on generalizing t with | h n ih =>
+  apply Acc.intro
+  intros y hy
+  apply FullEta.step_size at hy
+  exact ih y.size (by omega) _ rfl
 
 end LambdaCalculus.LocallyNameless.Untyped.Term.FullEta
 
