@@ -41,9 +41,9 @@ The Myhill-Nerode theorem has three parts [WikipediaMyhillNerode2026]:
 
 variable {α : Type}
 
-namespace Language
+namespace Cslib.Language
 
-open Cslib Language Automata DA FinAcc Acceptor Function
+open Automata DA FinAcc Acceptor Function
 open scoped RightCongruence
 
 /-- The Nerode congruence (henceforth called `c_l`) of a language `l` is a right congruence on
@@ -70,7 +70,7 @@ def NerodeCongruenceDA (l : Language α) : DA.FinAcc (l.NerodeQuotient) α :=
 variable {l : Language α}
 
 /-- The DFA constructed from the Nerode congruence `c_l` on `l` accepts `l`. -/
-@[simp, scoped grind =]
+@[simp]
 theorem nerodeCongruenceDA_language_eq (l : Language α) :
     language (l.NerodeCongruenceDA) = l := by
   ext x
@@ -156,12 +156,12 @@ theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State]
   have h1 := dfa_num_state_ge hws rfl
   rwa [Nat.card_congr (Equiv.ofInjective _ Quotient.out_injective).symm] at h1
 
-end Language
+end Cslib.Language
 
 namespace Cslib.Automata.DA.FinAcc
 
-open Cslib Cslib.Language Automata DA FinAcc Acceptor
-open _root_.Language RightCongruence
+open Language Automata DA FinAcc Acceptor
+open RightCongruence
 
 /-- The minimal DFA accepting `l` has the same number of states as the number of equivalence classes
 of the Nerode congruence on `l`. -/
