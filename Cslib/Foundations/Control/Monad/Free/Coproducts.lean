@@ -67,26 +67,25 @@ theorem inr_lift {α : Type u} (op : G α) :
     inr (F := F) (lift op) = lift (F := fun β => Sum (F β) (G β)) (Sum.inr op) :=
   liftM_lift _ _
 
-/-- The free monad on a sum of effect signatures is a coproduct of their free monads. -/
-theorem isMonadCoproduct :
+/-- The free monad on a sum of effect signatures is a coproduct of their free monads.
+The interpreter `desc` handles each operation using the corresponding component. -/
+def isMonadCoproduct :
     IsMonadCoproduct (FreeM F) (FreeM G) (Coproduct F G) inl inr where
   inl_hom := isMonadHom_inl
   inr_hom := isMonadHom_inr
-  universal t _ _ f g hf hg := by
-    let handler : ∀ {α}, Sum (F α) (G α) → t α :=
-      fun op => Sum.elim (fun x => f (lift x)) (fun x => g (lift x)) op
-    apply ExistsUnique.intro (fun {_} x => FreeM.liftM handler x)
-    · exact ⟨isMonadHom_liftM handler,
-        fun x => by simp [inl, liftM_comp, handler, ← hf.map_freeMLiftM],
-        fun x => by simp [inr, liftM_comp, handler, ← hg.map_freeMLiftM]⟩
-    · intro k hk
-      funext α x
-      induction x with
-      | pure a => exact hk.1.map_pure a
-      | lift_bind op cont ih =>
-        simp only [bind_eq_bind, hk.1.map_bind, liftM_lift_bind, ih]
-        cases op with
-        | inl op => rw [← inl_lift op, hk.2.1]; rfl
-        | inr op => rw [← inr_lift op, hk.2.2]; rfl
+  desc := @fun _ _ _ f g _ _ =>
+    FreeM.liftM fun op => Sum.elim (fun x => f (lift x)) (fun x => g (lift x)) op
+  isMonadHom_desc _ _ := isMonadHom_liftM _
+  desc_inl := @fun _ _ _ _ _ hf _ _ x => by simp [inl, liftM_comp, ← hf.map_freeMLiftM]
+  desc_inr := @fun _ _ _ _ _ _ hg _ x => by simp [inr, liftM_comp, ← hg.map_freeMLiftM]
+  desc_unique := @fun _ _ _ _ _ _ _ _ hk hinl hinr => by
+    funext α x
+    induction x using FreeM.induction with
+    | pure a => exact hk.map_pure a
+    | lift_bind op cont ih =>
+      simp only [bind_eq_bind, hk.map_bind, liftM_lift_bind, ih]
+      cases op with
+      | inl op => rw [← inl_lift op, hinl]; rfl
+      | inr op => rw [← inr_lift op, hinr]; rfl
 
 end Cslib.FreeM
