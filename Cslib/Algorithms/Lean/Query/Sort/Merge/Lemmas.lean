@@ -7,6 +7,7 @@ module
 
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
+public import Cslib.Algorithms.Lean.Query.Sort.IsStableSort
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
 public import Mathlib.Data.Nat.Log
 import all Init.Data.List.Sort.Basic
@@ -65,6 +66,24 @@ theorem mergeSort_sorted
     ((mergeSort xs).eval oracle).Pairwise r := by
   rw [eval_mergeSort]
   refine (List.pairwise_mergeSort ?_ ?_ xs).imp (by simp [horacle])
+  · intro a b c hab hbc
+    simp only [horacle, decide_eq_true_eq] at hab hbc ⊢
+    exact _root_.trans hab hbc
+  · intro a b
+    simp only [horacle, Bool.or_eq_true, decide_eq_true_eq]
+    exact Std.Total.total a b
+
+/-- Merge sort is stable: a sublist of the input that is already sorted stays a sublist of the
+output (`List.sublist_mergeSort`). -/
+theorem sublist_mergeSort
+    (r : α → α → Prop) [DecidableRel r] [Std.Total r] [IsTrans α r]
+    (oracle : {ι : Type} → LEQuery α ι → ι)
+    (horacle : ∀ a b, oracle (.le a b) = decide (r a b))
+    {xs c : List α} (hc : c.Pairwise r) (hsub : c <+ xs) :
+    c <+ (mergeSort xs).eval oracle := by
+  rw [eval_mergeSort]
+  refine List.sublist_mergeSort ?_ ?_
+    (hc.imp fun hab => by simpa only [horacle, decide_eq_true_eq] using hab) hsub
   · intro a b c hab hbc
     simp only [horacle, decide_eq_true_eq] at hab hbc ⊢
     exact _root_.trans hab hbc
@@ -175,5 +194,12 @@ theorem mergeSort_isSort : IsSort (mergeSort (α := α)) where
   sorted := by
     intro xs oracle r _ _ _ horacle
     exact mergeSort_sorted r oracle horacle xs
+
+/-- Merge sort is stable, by `sublist_mergeSort`. -/
+theorem mergeSort_isStableSort : IsStableSort (mergeSort (α := α)) where
+  toIsSort := mergeSort_isSort
+  sublist := by
+    intro xs oracle r _ _ _ horacle c hc hsub
+    exact sublist_mergeSort r oracle horacle hc hsub
 
 end Cslib.Query
