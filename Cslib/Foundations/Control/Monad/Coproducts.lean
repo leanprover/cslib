@@ -106,6 +106,11 @@ theorem desc_inl_inr :
 theorem desc_inl_inr_apply {α} (x : p α) : h.desc h.inl_hom h.inr_hom x = x :=
   congrArg (fun F : ∀ {α}, p α → p α => F x) h.desc_inl_inr
 
+/-- Replace the inclusions of a coproduct by equal maps. -/
+def copy {inl' : ∀ {α}, m α → p α} {inr' : ∀ {α}, n α → p α}
+    (hinl : @inl = @inl') (hinr : @inr = @inr') : IsMonadCoproduct m n p inl' inr' :=
+  hinl ▸ hinr ▸ h
+
 /-- A coproduct of `m` and `n` is also a coproduct of `n` and `m`. -/
 def symm : IsMonadCoproduct n m p inr inl where
   inl_hom := h.inr_hom
