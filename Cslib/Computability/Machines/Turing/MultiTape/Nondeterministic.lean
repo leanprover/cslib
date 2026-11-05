@@ -145,6 +145,10 @@ lemma length_output_mono (p : ntm.RunPath input) :
   have : ntm.Step (p i.castSucc) (p i.succ) := p.step i
   grind [Step, Action.apply_output]
 
+/-- Once halted, a run path stays halted. -/
+lemma halted_mono (p : ntm.RunPath input) : Monotone fun i ↦ (p i).Halted :=
+  Fin.monotone_iff_le_succ.mpr fun i h ↦ (step_of_halt h).mp (p.step i) ▸ h
+
 /-- Once a run path is halted, its configuration stays unchanged. -/
 lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.last = p.head := by
   induction p using RelSeries.inductionOn' with

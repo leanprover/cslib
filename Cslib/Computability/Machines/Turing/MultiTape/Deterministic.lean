@@ -37,6 +37,15 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
 * `Computes`: the machine halts with the given output on an input
+* `ComputesSuchThat`: computation satisfying a predicate on the machine and input
+* `ComputesFunSuchThat`: function computation satisfying such a predicate for each argument
+* `ComputableSuchThat`: such a machine exists with binary alphabet and finitely many states
+* `ComputesInTime` and `ComputesFunInTime`: computation within a time bound
+* `ComputableInTime`: computability by a finite-state binary machine within a time bound
+* `ComputesInSpace`: the machine produces an output within a space bound
+* `ComputesFunInSpace`: function computation within an input-indexed space bound
+* `ComputableInSpace`: computability by a finite-state binary machine within a space bound
+* `DecidableInSpace`: the Boolean indicator of a set is computable within a space bound
 * `ComputesInTimeAndSpace`: the machine produces an output within the shared resource bounds
 * `ComputesFunInTimeAndSpace`: function computation with the shared time and space bounds
 * `ComputableInTimeAndSpace`: such a machine exists with binary alphabet and finitely many states.
@@ -384,15 +393,65 @@ def Computes (tm : MultiTapeTM k Symbol State) (input output : List Symbol) : Pr
   ∃ u, (tm.runFrom (tm.initCfg input) u).Halted ∧
     (tm.runFrom (tm.initCfg input) u).output = output
 
+/-- The machine computes `output` from `input`, and `P` holds for this machine and input. -/
+def ComputesSuchThat (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (P : MultiTapeTM k Symbol State → List Symbol → Prop) : Prop :=
+  tm.Computes input output ∧ P tm input
+
+/-- A condition on a computation can be weakened. -/
+theorem ComputesSuchThat.mono {output : List Symbol}
+    {P Q : MultiTapeTM k Symbol State → List Symbol → Prop}
+    (h : tm.ComputesSuchThat input output P) (hPQ : P tm input → Q tm input) :
+    tm.ComputesSuchThat input output Q :=
+  ⟨h.1, hPQ h.2⟩
+
+/-- The machine computes `output` from `input` within the given time bound. -/
+def ComputesInTime (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (t : ℕ) : Prop :=
+  tm.ComputesSuchThat input output (fun tm input ↦ tm.RunsInTime input t)
+
+/-- The machine computes `output` from `input` within the given space bound. -/
+def ComputesInSpace (tm : MultiTapeTM k Symbol State)
+    (input output : List Symbol) (s : ℕ) : Prop :=
+  tm.ComputesSuchThat input output (fun tm input ↦ tm.RunsInSpace input s)
+
 /-- The machine computes `output` from `input` within the shared time and space bounds. -/
 def ComputesInTimeAndSpace (tm : MultiTapeTM k Symbol State)
     (input output : List Symbol) (t s : ℕ) : Prop :=
-  tm.Computes input output ∧ tm.RunsInTime input t ∧ tm.RunsInSpace input s
+  tm.ComputesSuchThat input output (fun tm input ↦
+    tm.RunsInTime input t ∧ tm.RunsInSpace input s)
+
+/-- The machine computes `f` relative to given encodings. For each argument `a`, the predicate
+`P a` holds for this machine and the encoded input `encIn a`. -/
+def ComputesFunSuchThat {α β : Type*} (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β)
+    (P : α → MultiTapeTM k Symbol State → List Symbol → Prop) : Prop :=
+  ∀ a, tm.ComputesSuchThat (encIn a) (encOut (f a)) (P a)
+
+/-- Conditions on a function computation can be weakened independently on every input. -/
+theorem ComputesFunSuchThat.mono {α β : Type*}
+    {encIn : α ↪ List Symbol} {encOut : β ↪ List Symbol} {f : α → β}
+    {P Q : α → MultiTapeTM k Symbol State → List Symbol → Prop}
+    (h : tm.ComputesFunSuchThat encIn encOut f P)
+    (hPQ : ∀ a, P a tm (encIn a) → Q a tm (encIn a)) :
+    tm.ComputesFunSuchThat encIn encOut f Q :=
+  fun a ↦ (h a).mono (hPQ a)
+
+/-- The machine computes `f` relative to given encodings within the given time bound. -/
+def ComputesFunInTime {α β : Type*} (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t : α → ℕ) : Prop :=
+  tm.ComputesFunSuchThat encIn encOut f (fun a tm input ↦ tm.RunsInTime input (t a))
+
+/-- The machine computes `f` relative to given encodings within the given space bound. -/
+def ComputesFunInSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
+    (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (s : α → ℕ) : Prop :=
+  tm.ComputesFunSuchThat encIn encOut f (fun a tm input ↦ tm.RunsInSpace input (s a))
 
 /-- The machine computes `f` relative to given encodings within the given time and space bounds. -/
 def ComputesFunInTimeAndSpace {α β : Type*} (tm : MultiTapeTM k Symbol State)
     (encIn : α ↪ List Symbol) (encOut : β ↪ List Symbol) (f : α → β) (t s : α → ℕ) : Prop :=
-  ∀ a, tm.ComputesInTimeAndSpace (encIn a) (encOut (f a)) (t a) (s a)
+  tm.ComputesFunSuchThat encIn encOut f
+    (fun a tm input ↦ tm.RunsInTime input (t a) ∧ tm.RunsInSpace input (s a))
 
 /-- Resource bounds can be weakened independently on every input. -/
 theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
@@ -400,15 +459,47 @@ theorem ComputesFunInTimeAndSpace.mono {α β : Type*}
     (h : tm.ComputesFunInTimeAndSpace encIn encOut f t s)
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
     tm.ComputesFunInTimeAndSpace encIn encOut f t' s' :=
-  fun a ↦ ⟨(h a).1, (h a).2.1.mono (ht a), (h a).2.2.mono (hs a)⟩
+  ComputesFunSuchThat.mono h fun a ⟨hₜ, hₛ⟩ ↦ ⟨hₜ.mono (ht a), hₛ.mono (hs a)⟩
+
+/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states.
+For each argument `a`, the predicate `P a` holds for this machine and the encoded input `encIn a`.
+-/
+def ComputableSuchThat {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
+    (P : ∀ {k : ℕ} {State : Type}, α → MultiTapeTM k Bool State → List Bool → Prop) : Prop :=
+  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
+    tm.ComputesFunSuchThat encIn encOut f P
+
+/-- Conditions on computability can be weakened independently on every input. -/
+theorem ComputableSuchThat.mono {α β : Type*}
+    {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool}
+    {P Q : ∀ {k : ℕ} {State : Type}, α → MultiTapeTM k Bool State → List Bool → Prop}
+    (h : ComputableSuchThat f encIn encOut P)
+    (hPQ : ∀ {k : ℕ} {State : Type} (tm : MultiTapeTM k Bool State) a,
+      P a tm (encIn a) → Q a tm (encIn a)) :
+    ComputableSuchThat f encIn encOut Q := by
+  obtain ⟨k, State, hfinite, tm, htm⟩ := h
+  exact ⟨k, State, hfinite, tm, htm.mono (hPQ tm)⟩
+
+/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
+within the supplied input-indexed time bound. -/
+def ComputableInTime {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (t : α → ℕ) : Prop :=
+  ComputableSuchThat f encIn encOut (fun a tm input ↦ tm.RunsInTime input (t a))
+
+/-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
+within the supplied input-indexed space bound. -/
+def ComputableInSpace {α β : Type*}
+    (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool) (s : α → ℕ) : Prop :=
+  ComputableSuchThat f encIn encOut (fun a tm input ↦ tm.RunsInSpace input (s a))
 
 /-- Computability by a deterministic machine with a binary tape alphabet and finitely many states,
 within the supplied input-indexed bounds. -/
 def ComputableInTimeAndSpace {α β : Type*}
     (f : α → β) (encIn : α ↪ List Bool) (encOut : β ↪ List Bool)
     (t s : α → ℕ) : Prop :=
-  ∃ (k : ℕ) (State : Type) (_ : Finite State) (tm : MultiTapeTM k Bool State),
-    tm.ComputesFunInTimeAndSpace encIn encOut f t s
+  ComputableSuchThat f encIn encOut
+    (fun a tm input ↦ tm.RunsInTime input (t a) ∧ tm.RunsInSpace input (s a))
 
 /-- There exists a binary Turing machine with finitely many states that, for every input `a`,
 computes `encOut (f a)` from `encIn a` in at most `t (encIn a).length` steps,
@@ -424,14 +515,18 @@ theorem ComputableInTimeAndSpace.mono {α β : Type*}
     {f : α → β} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {t s t' s' : α → ℕ}
     (h : ComputableInTimeAndSpace f encIn encOut t s)
     (ht : ∀ a, t a ≤ t' a) (hs : ∀ a, s a ≤ s' a) :
-    ComputableInTimeAndSpace f encIn encOut t' s' := by
-  obtain ⟨k, State, hfinite, tm, htm⟩ := h
-  exact ⟨k, State, hfinite, tm, htm.mono ht hs⟩
+    ComputableInTimeAndSpace f encIn encOut t' s' :=
+  ComputableSuchThat.mono h fun _ a ⟨hₜ, hₛ⟩ ↦ ⟨hₜ.mono (ht a), hₛ.mono (hs a)⟩
 
 open scoped Classical in
 /-- The Boolean indicator function of a set. -/
 noncomputable def indicator {α : Type*} (L : Set α) : α → Bool :=
   fun x => if x ∈ L then true else false
+
+/-- A set is decidable within the given input-indexed space bound when its Boolean indicator is
+computable in that bound. -/
+def DecidableInSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool) (s : α → ℕ) : Prop :=
+  ComputableInSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ s
 
 /-- A set is decidable within the given input-indexed bounds when its Boolean indicator is
 computable in those bounds. -/
@@ -439,30 +534,33 @@ def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
 
-/-- If a deterministic machine repeats a non-halting configuration, it never halts,
-because the sequence between the two configurations will loop forever.
-Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `Function.iterate_add_apply`. -/
-lemma not_halts_of_repeat_nonhalt
-    (cfg : Cfg k Symbol State input)
-    (h_not_halt : cfg.state ≠ none)
-    (t : ℕ)
-    (heq : tm.runFrom cfg (t + 1) = cfg) :
-    ∀ t', (tm.runFrom cfg t').state ≠ none := by
-  intro t'
-  -- The configuration will repeat every `t + 1` steps.
-  have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
-    intro n
-    unfold runFrom
-    rw [Nat.mul_comm, Function.iterate_mul]
-    exact Function.iterate_fixed heq n
-  by_contra hnh
-  -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
-  have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
-    have hle : t' ≤ t' * (t + 1) := by grind
-    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
-  simp [hloop t', h_not_halt] at h₁
-
 end MultiTapeTM
+
+namespace MultiTapeNTM.RunPath
+
+variable {tm : MultiTapeTM k Symbol State} {input : List Symbol}
+
+/-- A deterministic path that ends halted never repeats a running configuration: from a repeated
+configuration the machine would cycle forever. -/
+lemma injOn_running (p : tm.RunPath input)
+    (h : p.last.Halted) : Set.InjOn p {i | ¬(p i).Halted} := by
+  -- a repeat `p i = p j` with `i < j` is followed by the repeat `p (i + 1) = p (j + 1)`, so halting
+  -- at the end comes back to `p j`
+  have halted (j : Fin (p.length + 1)) : ∀ i < j, p i = p j → (p j).Halted := by
+    induction j using Fin.reverseInduction with
+    | last => exact fun _ _ _ ↦ h
+    | cast j ih =>
+      intro i hij heq
+      obtain ⟨i, rfl⟩ := Fin.exists_castSucc_eq.mpr (Fin.ne_last_of_lt hij)
+      rw [Fin.castSucc_lt_castSucc_iff] at hij
+      have hsucc : p i.succ = p j.succ := by
+        rw [← MultiTapeTM.step_iff.mp (p.step i), ← MultiTapeTM.step_iff.mp (p.step j), heq]
+      exact p.halted_mono (Fin.succ_le_castSucc_iff.mpr hij)
+        (hsucc ▸ ih _ (Fin.succ_lt_succ_iff.mpr hij) hsucc : (p i.succ).Halted)
+  intro i hi j hj hij
+  rcases lt_trichotomy i j with hlt | rfl | hlt
+  exacts [(hj (halted j i hlt hij)).elim, rfl, (hi (halted i j hlt hij.symm)).elim]
+
+end MultiTapeNTM.RunPath
 
 end Turing
