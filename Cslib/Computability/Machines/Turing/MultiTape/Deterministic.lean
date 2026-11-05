@@ -34,6 +34,7 @@ We define a number of structures and concepts related to multi-tape Turing machi
 * `adapt`: the machine run through an adapter
 * `combine`: two machines on the same tapes combined into one
 * `step`, `runFrom`: the successor configuration and iteration of this function
+* `reachable`: the configurations that the machine reaches on an input
 * `MultiTapeNTM.RunPath.ofDeterministic`, `MultiTapeNTM.ComputationPath.ofDeterministic`:
     paths of a given length from an arbitrary or initial configuration
 * `Computes`: the machine halts with the given output on an input
@@ -324,6 +325,17 @@ If the Turing machine halts, it will stay at the halting configuration. -/
 noncomputable def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input :=
   tm.step^[t] cfg
 
+/-- The configurations that `tm` reaches on `input`. -/
+noncomputable def reachable (tm : MultiTapeTM k Symbol State) (input : List Symbol) :
+    Set (Cfg k Symbol State input) :=
+  Set.range (tm.runFrom (tm.initCfg input))
+
+/-- A step from a reachable configuration is reachable. -/
+lemma step_mem_reachable {input : List Symbol} {c : Cfg k Symbol State input}
+    (h : c ∈ tm.reachable input) : tm.step c ∈ tm.reachable input :=
+  let ⟨t, ht⟩ := h
+  ⟨t + 1, by rw [runFrom, Function.iterate_succ_apply', ← runFrom, ht]⟩
+
 /-- Every path of a deterministic machine follows its iterated step function. -/
 lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
     p i = tm.runFrom p.head i := by
@@ -438,30 +450,6 @@ computable in those bounds. -/
 def DecidableInTimeAndSpace {α : Type*} (L : Set α) (enc : α ↪ List Bool)
     (t s : α → ℕ) : Prop :=
   ComputableInTimeAndSpace (indicator L) enc ⟨fun b ↦ [b], by intro a b h; simpa using h⟩ t s
-
-/-- If a deterministic machine repeats a non-halting configuration, it never halts,
-because the sequence between the two configurations will loop forever.
-Note that this can be applied to two arbitrary and different time steps `t` and `t + Δ`
-using `Function.iterate_add_apply`. -/
-lemma not_halts_of_repeat_nonhalt
-    (cfg : Cfg k Symbol State input)
-    (h_not_halt : cfg.state ≠ none)
-    (t : ℕ)
-    (heq : tm.runFrom cfg (t + 1) = cfg) :
-    ∀ t', (tm.runFrom cfg t').state ≠ none := by
-  intro t'
-  -- The configuration will repeat every `t + 1` steps.
-  have hloop : ∀ n, tm.runFrom cfg (n * (t + 1)) = cfg := by
-    intro n
-    unfold runFrom
-    rw [Nat.mul_comm, Function.iterate_mul]
-    exact Function.iterate_fixed heq n
-  by_contra hnh
-  -- Assuming the machine halts at step `t'`, it is also halted at step `t' * (t + 1)`
-  have h₁ : (tm.runFrom cfg (t' * (t + 1))).state = none := by
-    have hle : t' ≤ t' * (t + 1) := by grind
-    rwa [tm.runFrom_eq_of_halt cfg hle hnh]
-  simp [hloop t', h_not_halt] at h₁
 
 end MultiTapeTM
 
