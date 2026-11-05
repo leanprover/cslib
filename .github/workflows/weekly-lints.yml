@@ -65,7 +65,18 @@ jobs:
         RUN_ID=${{ github.run_id }} \
         INFO=true \
         SUCCESS="${build_success}" \
-          "${CI_SCRIPTS_DIR}/reporting/zulip_build_report.sh" "${lean_outfile}" > "${GITHUB_OUTPUT}"
+          "${CI_SCRIPTS_DIR}/reporting/zulip_build_report.sh" "${lean_outfile}" >> "${GITHUB_OUTPUT}"
+
+    # continue-on-error on the build step can hide a failure in generating the report.
+    - name: Check that the lint report didn't die
+      id: check
+      env:
+        BUILD_OUTCOME: ${{ steps.build.outcome }}
+      run: |
+        if [ "${BUILD_OUTCOME}" != "success" ]; then
+          echo "::error::the 'Build with weekly linters' step failed before producing a report"
+          exit 1
+        fi
 
     - name: Post output to Zulip
       uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5
@@ -77,3 +88,20 @@ jobs:
         type: 'stream'
         topic: 'Weekly linting log'
         content: ${{ steps.build.outputs.zulip-message }}
+
+    - name: Post failure notice to Zulip
+      if: failure()
+      uses: zulip/github-actions-zulip/send-message@e4c8f27c732ba9bd98ac6be0583096dea82feea5
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY }}
+        email: 'github-mathlib4-bot@leanprover.zulipchat.com'
+        organization-url: 'https://leanprover.zulipchat.com'
+        to: 'CSLib'
+        type: 'stream'
+        topic: 'Weekly linting log'
+        content: >-
+          :sos: Weekly linting run on
+          [${{ github.repository }}](https://github.com/${{ github.repository }})
+          (commit [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}))
+          [failed before posting its report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          Build step outcome: `${{ steps.build.outcome }}`; report check outcome: `${{ steps.check.outcome }}`.
