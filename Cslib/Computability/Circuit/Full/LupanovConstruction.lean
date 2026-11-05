@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Full.Blocks
+public import Mathlib.SetTheory.Cardinal.Finite
 
 /-!
 # Finite Lupanov synthesis over the full basis
@@ -18,6 +19,9 @@ once and shared by all `m` outputs. Each output then assembles one table per sec
 `synthesis` assumes the input coordinates, zero, and a nonzero marker are already available.
 `bound` counts the additional gates and retains the input split, block size, and gate arity
 so callers can choose these parameters to obtain a suitable upper bound.
+
+`exists_circuit` supplies the two constants with two more gates and needs only a finite,
+nontrivial carrier. The resulting complexity bounds hold on all inputs or any input promise.
 
 ## References
 
@@ -73,5 +77,61 @@ theorem synthesis [Zero U] [Fintype U] (hk : 2 ≤ k) (ht : 0 < t)
       Fin.append_castAdd_natAdd] using h
   simpa [bound, q, B, Nat.add_assoc] using
     (hleft.union hdictionaries).trans (Synthesis.family _ _ hsection)
+
+/-- The finite Lupanov budget on any finite nontrivial carrier when constants are supplied. -/
+theorem synthesis_with_constants [Finite U] [Nontrivial U]
+    (hk : 2 ≤ k) (ht : 0 < t) (f : (Fin (r + d) → U) → Fin m → U) :
+    Synthesis (fullInterpretation (k := k))
+      (inputs (r + d) ∪ Set.range fun u (_ : Fin (r + d) → U) => u)
+      (Set.range fun j x => f x j) (bound (Nat.card U) k r d t m) := by
+  let := Fintype.ofFinite U
+  let : Zero U := ⟨Classical.ofNonempty⟩
+  obtain ⟨marker, hm⟩ := exists_ne (0 : U)
+  rw [Nat.card_eq_fintype_card]
+  exact synthesis hk ht marker hm f
+    (Set.mem_union_right _ ⟨0, rfl⟩) (Set.mem_union_right _ ⟨marker, rfl⟩) Set.subset_union_left
+
+/-- Supply zero and a nonzero marker with two gates, then apply the finite Lupanov construction. -/
+theorem exists_circuit [Finite U] [Nontrivial U]
+    (hk : 2 ≤ k) (ht : 0 < t) (f : (Fin (r + d) → U) → Fin m → U) :
+    ∃ c : Circuit (fullSignature k U) (r + d) m, c.Computes fullInterpretation f ∧
+      c.size ≤ 2 + bound (Nat.card U) k r d t m := by
+  let := Fintype.ofFinite U
+  let : Zero U := ⟨Classical.ofNonempty⟩
+  obtain ⟨marker, hm⟩ := exists_ne (0 : U)
+  have hconstants := (Synthesis.full_const (k := k) (s := inputs (r + d)) (0 : U)).union
+    (Synthesis.full_const marker)
+  have h := hconstants.trans (synthesis hk ht marker hm f
+    (Set.mem_union_right _ (Set.mem_union_left _ rfl))
+    (Set.mem_union_right _ (Set.mem_union_right _ rfl)) Set.subset_union_left)
+  simpa [Nat.card_eq_fintype_card] using h.exists_circuit_outputs
+
+/-- The finite Lupanov upper bound for gate complexity, including the two constant gates. -/
+theorem ecomplexity_le [Finite U] [Nontrivial U]
+    (hk : 2 ≤ k) (ht : 0 < t) (f : (Fin (r + d) → U) → Fin m → U) :
+    ecomplexity (fullInterpretation (k := k)) f ≤
+      (2 + bound (Nat.card U) k r d t m : ℕ) :=
+  ecomplexity_le_iff.mpr (exists_circuit hk ht f)
+
+/-- The same upper bound holds on any input promise; the budget uses the ambient input size. -/
+theorem ecomplexityOn_le [Finite U] [Nontrivial U] (hk : 2 ≤ k) (ht : 0 < t)
+    (S : Set (Fin (r + d) → U)) (f : (Fin (r + d) → U) → Fin m → U) :
+    ecomplexityOn (fullInterpretation (k := k)) S f ≤
+      (2 + bound (Nat.card U) k r d t m : ℕ) :=
+  ecomplexityOn_le_ecomplexity.trans (ecomplexity_le hk ht f)
+
+/-- The natural-valued Lupanov bound; the `k + 2` arity supplies completeness automatically. -/
+theorem complexity_le [Finite U] [Nontrivial U] (ht : 0 < t)
+    (f : (Fin (r + d) → U) → Fin m → U) :
+    complexity (fullInterpretation (k := k + 2)) f ≤
+      2 + bound (Nat.card U) (k + 2) r d t m :=
+  complexity_le_iff.mpr (exists_circuit (by lia) ht f)
+
+/-- The natural-valued Lupanov bound on any input promise, using the ambient input size. -/
+theorem complexityOn_le [Finite U] [Nontrivial U] (ht : 0 < t)
+    (S : Set (Fin (r + d) → U)) (f : (Fin (r + d) → U) → Fin m → U) :
+    complexityOn (fullInterpretation (k := k + 2)) S f ≤
+      2 + bound (Nat.card U) (k + 2) r d t m :=
+  complexityOn_le_complexity.trans (complexity_le ht f)
 
 end Cslib.Circuits.Full.Lupanov
