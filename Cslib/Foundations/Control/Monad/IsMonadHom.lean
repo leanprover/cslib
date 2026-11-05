@@ -214,6 +214,16 @@ protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n �
   toIsApplicativeHom := hf.toIsApplicativeHom.comp hg.toIsApplicativeHom
   map_bind _ _ := by simp [hf.map_bind, hg.map_bind]
 
+variable (m) in
+/-- `pure` is a morphism of monads out of the identity monad. -/
+protected theorem pure [LawfulMonad m] : IsMonadHom Id m pure :=
+  .mk' (fun _ => rfl) (fun x y => (pure_bind x (fun a => pure (y a))).symm)
+
+/-- The identity monad is initial: every morphism of monads out of it is `pure`. -/
+theorem eq_pure [LawfulMonad m] {f : ∀ {α}, Id α → m α} (hf : IsMonadHom Id m f)
+    {α} (x : Id α) : f x = pure x :=
+  hf.map_pure x
+
 protected theorem monadLift [LawfulMonad m] [LawfulMonad n]
     [MonadLift m n] [LawfulMonadLift m n] :
     IsMonadHom m n MonadLift.monadLift :=
