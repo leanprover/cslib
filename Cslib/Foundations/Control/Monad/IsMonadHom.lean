@@ -220,7 +220,7 @@ protected theorem pure [LawfulMonad m] : IsMonadHom Id m pure :=
   .mk' (fun _ => rfl) (fun x y => (pure_bind x (fun a => pure (y a))).symm)
 
 /-- The identity monad is initial: every morphism of monads out of it is `pure`. -/
-theorem eq_pure [LawfulMonad m] {f : ∀ {α}, Id α → m α} (hf : IsMonadHom Id m f)
+theorem eq_pure {f : ∀ {α}, Id α → m α} (hf : IsMonadHom Id m f)
     {α} (x : Id α) : f x = pure x :=
   hf.map_pure x
 
