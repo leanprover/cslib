@@ -24,3 +24,6 @@ combination with modal axioms for more powerful proof search. -/
 register_grind_attr modal
 
 end Cslib.Logic.Modal
+
+/-- Multiset context reasoning, including list coercions, exchange, and cancellation. -/
+register_grind_attr multiset
