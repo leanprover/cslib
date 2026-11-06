@@ -117,7 +117,8 @@ def Proof.IsCutFree.rec
       @motive (a ::ₘ Γ) p hp →
       @motive ((!a) ::ₘ Γ) (.bang hΓ p) (isCutFree_bang hp))
     {Γ} {p} (h : p.IsCutFree) : @motive Γ p h :=
-  let rec go {Γ : Sequent Atom} {p : Proof Γ} (h : p.IsCutFree) : @motive Γ p h :=
+  let rec @[nolint docBlame] go
+      {Γ : Sequent Atom} {p : Proof Γ} (h : p.IsCutFree) : @motive Γ p h :=
     match p, h with
     | .ax, _ => ax
     | .one, _ => one
