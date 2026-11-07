@@ -61,7 +61,7 @@ instance _root_.WithTop.coheytingAlgebra {α : Type*} [GeneralizedCoheytingAlgeb
   hnot := (⊤ \ ·)
   top_sdiff _ := rfl
 
-@[to_dual (attr := simp) WithTop.hnot_coe]
+@[to_dual (attr := simp) hnot_coe]
 lemma compl_coe {α : Type*} [GeneralizedHeytingAlgebra α] (a : α) : (a : WithBot α)ᶜ = ⊥ := rfl
 
 end WithBot
