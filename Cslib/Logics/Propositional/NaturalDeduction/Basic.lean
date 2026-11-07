@@ -13,8 +13,8 @@ public import Mathlib.Data.Finset.Image
 
 /-! # Natural deduction for propositional logic
 
-We define, for minimal logic, deduction trees (a `Type`) and derivability (a `Prop`) relative to a
-`Theory` (set of propositions).
+We define, for intuitionistic logic, deduction trees (a `Type`) and derivability (a `Prop`)
+relative to a `Theory` (set of propositions).
 
 ## Main definitions
 
@@ -43,18 +43,19 @@ abbreviates a derivation of `A` in the empty context: `T⇓(∅ ⊢ A)`.
 ## Implementation notes
 
 We formalise here a single type of derivations, meaning there is a single collection of inference
-rules (those for minimal logic). The extension to intuitionistic and classical logic are modelled
-by adding *axioms* --- for instance, intuitionistic derivations are allowed to appeal to axioms of
-the form `⊥ → A` for any proposition `A`. This differs from many on-paper presentations, which add
-that principle as a deduction rule: from `Γ ⊢ ⊥` derive `Γ ⊢ A`. Discussion on proper way to
-capture such developments in cslib is ongoing, see the following
+rules (those for intuitionistic logic). The extension to classical logic (indeed any extension of
+intuitionistic logic) is modelled by adding *axioms* --- in this case, classical derivations can
+appeal to axioms of the form `¬¬A → A`, for any proposition `A`. This differs from many on-paper
+presentations, which might, for instance, add instead an inference rule corresponding to proof by
+contraduction. Discussion on the proper way to capture such developments in cslib is ongoing, see
+the following
 [zulip discussion](https://leanprover.zulipchat.com/#narrow/channel/513188-CSLib/topic/Logic/with/585843520).
 
 ## References
 
 - [J. Avigad, *Mathematical Logic and Computation*][Avigad2022]
 - [D. Prawitz, *Natural Deduction: A Proof-Theoretical Study*][Prawitz1965]
-- The sequent-style natural deduction I present here doesn't seem to be common, but it is tersely
+- The sequent-style natural deduction presented here doesn't seem to be common, but it is tersely
 presented in §10.4 of
 [A. S. Troelstra, D. van Dalen, *Constructivism in Mathematics*][TroelstraVanDalen1988], and
 in §2.2 of
