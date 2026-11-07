@@ -21,6 +21,8 @@ We adopt a unified approach to proof systems and semantics, whereby they instant
 
 When defining logical equivalence for a given inference system, instantiate `LogicalEquivalence`. This class also acts as a check that you use the correct APIs.
 
+When defining semantic consequence or validity, instantiate `HasHContext` for your judgements, with models as the judgemental contexts, and use `Entails` and `Valid` from [Foundations/Logic/Consequence](../Foundations/Logic/Consequence.lean). See [Kleene](Kleene) for an example.
+
 ### Proof relevance in proof systems
 
 A recurring choice when defining a proof system (like a sequent calculus) is whether they should go into `Prop` (proof irrelevance) or a `Type` (proof relevance).
