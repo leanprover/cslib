@@ -14,18 +14,23 @@ public import Mathlib.Order.WithBot
 
 @[expose] public section
 
-@[to_dual WithTop.sdiff]
-instance WithBot.himp {α : Type*} [HImp α] [Top α] : HImp (WithBot α) where
+namespace WithBot
+
+@[to_dual sdiff]
+protected instance himp {α : Type*} [HImp α] [Top α] : HImp (WithBot α) where
   himp a b := a.recBotCoe ⊤ fun a ↦ b.recBotCoe ⊥ fun b ↦ (a ⇨ b : α)
 
-@[to_dual (attr := simp)] lemma WithBot.bot_himp {α : Type*} [HImp α] [Top α] (a : WithBot α) :
-  ⊥ ⇨ a = ⊤ := rfl
-@[to_dual (attr := simp)] lemma WithBot.coe_himp_bot {α : Type*} [HImp α] [Top α] (a : α) :
-  (a : WithBot α) ⇨ ⊥ = ⊥ := rfl
-@[to_dual (attr := simp) WithTop.coe_sdiff] lemma WithBot.coe_himp {α : Type*} [HImp α] [Top α]
+@[to_dual (attr := simp) sdiff_top]
+lemma bot_himp {α : Type*} [HImp α] [Top α] (a : WithBot α) : ⊥ ⇨ a = ⊤ := rfl
+
+@[to_dual (attr := simp) top_sdiff]
+lemma coe_himp_bot {α : Type*} [HImp α] [Top α] (a : α) : (a : WithBot α) ⇨ ⊥ = ⊥ := rfl
+
+@[to_dual (attr := simp) coe_sdiff]
+lemma coe_himp {α : Type*} [HImp α] [Top α]
   (a b : α) : ↑(a ⇨ b : α) = (a : WithBot α) ⇨ b := rfl
 
-instance WithBot.heytingAlgebra {α : Type*} [GeneralizedHeytingAlgebra α] :
+protected instance heytingAlgebra {α : Type*} [GeneralizedHeytingAlgebra α] :
     HeytingAlgebra (WithBot α) where
   le_himp_iff {a b c} := by
     cases b with
@@ -40,7 +45,8 @@ instance WithBot.heytingAlgebra {α : Type*} [GeneralizedHeytingAlgebra α] :
   compl := (· ⇨ ⊥)
   himp_bot _ := rfl
 
-instance WithTop.coheytingAlgebra {α : Type*} [GeneralizedCoheytingAlgebra α] :
+@[to_dual existing]
+instance _root_.WithTop.coheytingAlgebra {α : Type*} [GeneralizedCoheytingAlgebra α] :
     CoheytingAlgebra (WithTop α) where
   sdiff_le_iff {a b c} := by
     cases b with
@@ -54,3 +60,8 @@ instance WithTop.coheytingAlgebra {α : Type*} [GeneralizedCoheytingAlgebra α] 
         | coe c => simp [← WithTop.coe_sdiff, ← WithTop.coe_sup]
   hnot := (⊤ \ ·)
   top_sdiff _ := rfl
+
+@[to_dual (attr := simp) WithTop.hnot_coe]
+lemma compl_coe {α : Type*} [GeneralizedHeytingAlgebra α] (a : α) : (a : WithBot α)ᶜ = ⊥ := rfl
+
+end WithBot
