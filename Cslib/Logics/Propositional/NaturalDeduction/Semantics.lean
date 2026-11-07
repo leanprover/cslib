@@ -128,6 +128,13 @@ instance Lindenbaum.heytingAlgebra : HeytingAlgebra T.Lindenbaum where
   compl := Quotient.map (¬·) fun _ _ hA ↦ hA.not
   himp_bot := Quotient.ind fun _ ↦ rfl
 
+instance Lidenbaum.booleanAlgebra [hT : IsClassical Atom T] : BooleanAlgebra T.Lindenbaum where
+  le_top _ := le_top
+  bot_le _ := bot_le
+  inf_compl_le_bot _ := inf_compl_eq_bot.le
+  top_le_sup_compl := Quotient.ind fun A ↦ ⟨(hT.lem A).weakCtx (by simp)⟩
+  himp_eq := Quotient.ind₂ fun A B ↦ Quotient.sound (imp_equiv_or_not' A B)
+
 def val : Valuation Atom T.Lindenbaum := fun x ↦ ⟦atom x⟧
 
 theorem val_spec (A : Proposition Atom) : T.val.interp A = ⟦A⟧ := by
@@ -159,6 +166,10 @@ theorem Lindenbaum.completeness {Γ : Ctx Atom} {A : Proposition Atom}
     apply ih
     simpa [inf_comm] using h
 
+theorem_wanted cpl_completeness_bool {Γ : Ctx Atom} {A : Proposition Atom}
+    (h : ∀ (v : Valuation Atom Bool), Γ.inf v.interp ≤ v.interp A) :
+    DerivableIn (CPL Atom) (Γ ⊢ A)
+
 end Theory
 
 theorem adequacy₁ {A : Proposition Atom} :
@@ -172,8 +183,17 @@ theorem adequacy {Γ : Ctx Atom} {A : Proposition Atom} :
   ⟨fun h _ _ _ hv ↦ h.soundness hv, fun h ↦ Lindenbaum.completeness <| h val_interp_of_mem⟩
 
 theorem ipl_adequacy {Γ : Ctx Atom} {A : Proposition Atom} :
-    DerivableIn (IPL Atom) (Γ ⊢ A) ↔ ∀ {H : Type u} [HeytingAlgebra H] {v : Valuation Atom H},
+    DerivableIn (IPL Atom) (Γ ⊢ A) ↔ ∀ {H : Type u} [HeytingAlgebra H] (v : Valuation Atom H),
       Γ.inf v.interp ≤ v.interp A :=
-  ⟨fun h _ _ _ ↦ h.ipl_soundness, fun h ↦ Lindenbaum.completeness h⟩
+  ⟨fun h _ _ _ ↦ h.ipl_soundness, fun h ↦ Lindenbaum.completeness <| h (IPL Atom).val⟩
+
+theorem cpl_adequacy {Γ : Ctx Atom} {A : Proposition Atom} :
+    DerivableIn (CPL Atom) (Γ ⊢ A) ↔ ∀ {H : Type u} [BooleanAlgebra H] (v : Valuation Atom H),
+      Γ.inf v.interp ≤ v.interp A :=
+  ⟨fun h _ _ _ ↦ h.cpl_soundness, fun h ↦ Lindenbaum.completeness <| h (CPL Atom).val⟩
+
+theorem_wanted cpl_adequacy_bool {Γ : Ctx Atom} {A : Proposition Atom} :
+    DerivableIn (CPL Atom) (Γ ⊢ A) ↔ ∀ (v : Valuation Atom Bool), Γ.inf v.interp ≤ v.interp A :=
+  ⟨fun h v ↦ h.cpl_soundness, ❰cpl_completeness_bool❱⟩
 
 end Cslib.Logic.PL

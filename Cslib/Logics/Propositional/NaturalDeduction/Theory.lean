@@ -68,12 +68,32 @@ def IsClassical.lem [IsClassical Atom T] (A : Proposition Atom) : T⇓(A ∨ ¬ 
   apply implE (A := A ∨ ¬ A) (ass <| by grind)
   exact orI₁ <| ass <| Finset.mem_insert_self ..
 
+def IsClassical.byCases [hT : IsClassical Atom T] {Γ : Ctx Atom} {A B : Proposition Atom}
+    (D : T⇓(insert A Γ ⊢ B)) (D' : T⇓(insert (¬A) Γ ⊢ B)) : T⇓(Γ ⊢ B) :=
+  (hT.lem A).weakCtx (Finset.empty_subset Γ) |>.orE D D'
+
 /-- Pierce's law in a classical theory. -/
 def IsClassical.pierce [IsClassical Atom T] (A B : Proposition Atom) : T⇓(((A → B) → A) → A) := by
   apply implI; apply byContra
   apply implE (ass <| Finset.mem_insert_self ..)
   apply implE (A := A → B) (ass <| by grind); apply implI
   apply contra A B <;> grind
+
+def IsClassical.imp_equiv_or_not [IsClassical Atom T] (A B : Proposition Atom) :
+    T.equiv (A → B) (B ∨ ¬ A) where
+  mp := by
+    apply byCases (A := A)
+    · refine orI₁ <| implE (A := A) ?_ ?_
+      all_goals exact (ass <| by grind)
+    · exact orI₂ <| ass (by grind)
+  mpr := by
+    apply implI
+    apply orE (A := B) (B := ¬ A) (ass <| by grind) (ass <| by grind)
+    apply IsIntuitionistic.contra A B
+    all_goals grind
+
+theorem IsClassical.imp_equiv_or_not' [IsClassical Atom T] (A B : Proposition Atom) :
+    (A → B) ≡[T] B ∨ ¬ A := ⟨imp_equiv_or_not A B⟩
 
 /-- The axiom system consisting of instances of LEM. -/
 def LEM (Atom : Type u) : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
