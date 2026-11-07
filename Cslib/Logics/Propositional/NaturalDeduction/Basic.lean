@@ -302,12 +302,12 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.substAtom {Atom Atom' : T
 /-! ### Properties of equivalence -/
 
 /-- A derivation of the canonical tautology. -/
-def Theory.derivationTop [Inhabited Atom] : T⇓(⊤ : Proposition Atom) :=
+def Theory.derivationTop : T⇓(⊤ : Proposition Atom) :=
   implI ∅ <| ass <| by grind
 
-theorem derivableIn_top [Inhabited Atom] : DerivableIn T (⊤ : Proposition Atom) := ⟨derivationTop⟩
+theorem derivableIn_top : DerivableIn T (⊤ : Proposition Atom) := ⟨derivationTop⟩
 
-theorem derivable_iff_equiv_top [Inhabited Atom] (A : Proposition Atom) :
+theorem derivable_iff_equiv_top (A : Proposition Atom) :
     DerivableIn T A ↔ A ≡[T] ⊤ := by
   constructor <;> intro h
   · refine ⟨derivationTop.weakCtx <| by grind, ?_⟩

@@ -23,7 +23,7 @@ namespace Cslib.Logic.PL
 
 open Proposition Theory InferenceSystem DerivableIn Derivation IsIntuitionistic IsClassical
 
-variable {Atom : Type u} [DecidableEq Atom] [Bot Atom] {T : Theory Atom}
+variable {Atom : Type u} [DecidableEq Atom] {T : Theory Atom}
 
 namespace Theory
 
@@ -68,7 +68,7 @@ def IsClassical.pierce [IsClassical Atom T] (A B : Proposition Atom) : T⇓(((A 
   apply contra A B <;> grind
 
 /-- The axiom system consisting of instances of LEM. -/
-def LEM (Atom : Type u) [Bot Atom] : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
+def LEM (Atom : Type u) : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
 lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
@@ -77,7 +77,7 @@ lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rf
 def Pierce (Atom : Type u) : Theory Atom :=
   {((A → B) → A) → A | (A : Proposition Atom) (B : Proposition Atom)}
 
-omit [DecidableEq Atom] [Bot Atom] in
+omit [DecidableEq Atom] in
 lemma pierce_mem_pierce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Pierce Atom := ⟨A, B, rfl⟩
 
 instance instIsClassicalLEM : IsClassical Atom (LEM Atom : Theory Atom) where
