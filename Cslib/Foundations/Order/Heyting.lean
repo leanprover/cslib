@@ -14,8 +14,8 @@ public import Mathlib.Order.WithBot
 
 @[expose] public section
 
-@[to_dual]
-instance {α : Type*} [HImp α] [Top α] : HImp (WithBot α) where
+@[to_dual WithTop.sdiff]
+instance WithBot.himp {α : Type*} [HImp α] [Top α] : HImp (WithBot α) where
   himp a b := a.recBotCoe ⊤ fun a ↦ b.recBotCoe ⊥ fun b ↦ (a ⇨ b : α)
 
 @[to_dual (attr := simp)] lemma WithBot.bot_himp {α : Type*} [HImp α] [Top α] (a : WithBot α) :
@@ -25,7 +25,8 @@ instance {α : Type*} [HImp α] [Top α] : HImp (WithBot α) where
 @[to_dual (attr := simp) WithTop.coe_sdiff] lemma WithBot.coe_himp {α : Type*} [HImp α] [Top α]
   (a b : α) : ↑(a ⇨ b : α) = (a : WithBot α) ⇨ b := rfl
 
-instance {α : Type*} [GeneralizedHeytingAlgebra α] : HeytingAlgebra (WithBot α) where
+instance WithBot.heytingAlgebra {α : Type*} [GeneralizedHeytingAlgebra α] :
+    HeytingAlgebra (WithBot α) where
   le_himp_iff {a b c} := by
     cases b with
     | bot => simp
@@ -39,7 +40,8 @@ instance {α : Type*} [GeneralizedHeytingAlgebra α] : HeytingAlgebra (WithBot �
   compl := (· ⇨ ⊥)
   himp_bot _ := rfl
 
-instance {α : Type*} [GeneralizedCoheytingAlgebra α] : CoheytingAlgebra (WithTop α) where
+instance WithTop.coheytingAlgebra {α : Type*} [GeneralizedCoheytingAlgebra α] :
+    CoheytingAlgebra (WithTop α) where
   sdiff_le_iff {a b c} := by
     cases b with
     | top => simp
