@@ -234,12 +234,12 @@ def equiv (α : Type u) : p α ≃ q α where
     have hh := h.hom_ext
       ((h'.isMonadHom_desc h.inl_hom h.inr_hom).comp (h.isMonadHom_desc h'.inl_hom h'.inr_hom))
       (IsMonadHom.id p) (by simp) (by simp)
-    exact congr($hh α x)
+    congrm $hh α x
   right_inv x := by
     have hh := h'.hom_ext
       ((h.isMonadHom_desc h'.inl_hom h'.inr_hom).comp (h'.isMonadHom_desc h.inl_hom h.inr_hom))
       (IsMonadHom.id q) (by simp) (by simp)
-    exact congr($hh α x)
+    congrm $hh α x
 
 /-- The canonical equivalence between coproducts preserves monadic structure. -/
 theorem isMonadHom_equiv : IsMonadHom p q (fun {α} => h.equiv h' α) :=
@@ -258,10 +258,8 @@ theorem equiv_unique {e : ∀ α, p α ≃ q α}
     (he : IsMonadHom p q (fun {α} => e α))
     (hinl : ∀ {α} (x : m α), e α (inl x) = inl' x)
     (hinr : ∀ {α} (x : n α), e α (inr x) = inr' x) : e = h.equiv h' := by
-  funext α
-  apply Equiv.ext
-  intro x
-  exact congr($(h.desc_unique h'.inl_hom h'.inr_hom he hinl hinr) x)
+  ext _ x
+  congrm $(h.desc_unique h'.inl_hom h'.inr_hom he hinl hinr) x
 
 end Uniqueness
 
@@ -315,12 +313,13 @@ def unitRight : IsMonadCoproduct m Id m id pure where
   desc := @fun _ _ _ f _ _ _ => f
   isMonadHom_desc hf _ := hf
   desc_inl _ _ _ _ := rfl
-  desc_inr hf hg _ x := (hf.map_pure x).trans (hg.eq_pure x).symm
+  desc_inr hf hg _ x := (hf.map_pure x).trans (hg.eq_pure_apply x).symm
   desc_unique _ _ _ _ hinl _ := by
     funext α x
     exact hinl x
 
 /-- Every monad is a coproduct of the identity monad and itself. -/
+@[simps!]
 def unitLeft : IsMonadCoproduct Id m m pure id :=
   (unitRight m).symm
 
