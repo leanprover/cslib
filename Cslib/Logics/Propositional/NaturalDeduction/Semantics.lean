@@ -1,0 +1,170 @@
+/-
+Copyright (c) 2026 Thomas Waring. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Waring
+-/
+module
+
+public import Cslib.Logics.Propositional.NaturalDeduction.Lemmas
+public import Mathlib.Order.Heyting.Basic
+
+/-!-/
+
+@[expose] public section
+
+namespace Cslib.Logic.PL
+
+open Proposition Theory InferenceSystem DerivableIn Derivation IsIntuitionistic IsClassical
+
+universe u
+
+variable {Atom : Type u} [DecidableEq Atom] {T : Theory Atom}
+
+abbrev Valuation (Atom H : Type*) := Atom → H
+
+variable {H : Type*} [HeytingAlgebra H] {v : Valuation Atom H}
+
+namespace Valuation
+
+omit [DecidableEq Atom]
+
+/-- Extend the valuation `v: Atom → H` to all propositions using the Heyting algebra operations on
+`H`. -/
+def interp (v : Valuation Atom H) : Proposition Atom → H
+  | atom x => v x
+  | bot => ⊥
+  | .and A B => v.interp A ⊓ v.interp B
+  | .or A B => v.interp A ⊔ v.interp B
+  | .imp A B => v.interp A ⇨ v.interp B
+
+@[simp] lemma interp_atom {x} : v.interp (atom x) = v x := rfl
+@[simp] lemma interp_bot : v.interp ⊥ = ⊥ := rfl
+@[simp] lemma interp_and {A B} : v.interp (A ∧ B) = v.interp A ⊓ v.interp B := rfl
+@[simp] lemma interp_or {A B} : v.interp (A ∨ B) = v.interp A ⊔ v.interp B := rfl
+@[simp] lemma interp_imp {A B} : v.interp (A → B) = v.interp A ⇨ v.interp B := rfl
+@[simp] lemma interp_not {A} : v.interp (¬A) = (v.interp A)ᶜ := himp_bot (v.interp A)
+
+end Valuation
+
+/-- The **soundness theorem** for natural deduction: for any derivable sequent `A₁, ..., Aₙ ⊢ B`,
+and any valuation `v` into a Heyting algebra `H`, `v.interp A₁ ⊓ ... ⊓ v.interp Aₙ ≤ v.interp B`. -/
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.soundness (hv : ∀ A ∈ T, v.interp A = ⊤)
+    {Γ : Ctx Atom} {A : Proposition Atom} (h : DerivableIn T (Γ ⊢ A)) :
+    Γ.inf v.interp ≤ v.interp A := by
+  obtain ⟨D : T.Derivation Γ A⟩ := h
+  induction D with
+  | ax hA => simp [hv _ hA]
+  | ass hA => exact Finset.inf_le hA
+  | efq _ _ ih => exact ih.trans bot_le
+  | andI _ _ ihA ihB => exact le_inf ihA ihB
+  | andE₁ _ ih => exact ih.trans inf_le_left
+  | andE₂ _ ih => exact ih.trans inf_le_right
+  | orI₁ _ ih => exact ih.trans le_sup_left
+  | orI₂ _ ih => exact ih.trans le_sup_right
+  | orE _ _ _ ih ihA ihB =>
+    rw [← inf_of_le_right ih]
+    simpa [inf_sup_right] using (⟨ihA, ihB⟩ : _ ∧ _)
+  | implI _ _ ih => simpa [inf_comm] using ih
+  | implE _ _ ih ih' => exact (le_inf ih ih').trans himp_inf_le
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.soundness₁ (hv : ∀ A ∈ T, v.interp A = ⊤)
+    {A : Proposition Atom} (h : DerivableIn T A) : v.interp A = ⊤ :=
+  eq_top_iff.mpr (h.soundness hv)
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ipl_soundness {Γ : Ctx Atom}
+    {A : Proposition Atom} (h : DerivableIn (IPL Atom) (Γ ⊢ A)) : Γ.inf v.interp ≤ v.interp A :=
+  h.soundness (by simp)
+
+theorem isConsistent_ipl : IsConsistent Atom (IPL Atom) := by
+  rw [IsIntuitionistic.isConsistent_iff_not_derivableIn_bot]
+  intro h
+  simpa using h.ipl_soundness (v := fun _ ↦ True)
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.cpl_soundness {H : Type*} [BooleanAlgebra H]
+    {v : Valuation Atom H} {Γ : Ctx Atom} {A : Proposition Atom}
+    (h : DerivableIn (CPL Atom) (Γ ⊢ A)) : Γ.inf v.interp ≤ v.interp A :=
+  h.soundness (by simp)
+
+theorem isConsistent_cpl : IsConsistent Atom (CPL Atom) := by
+  rw [IsIntuitionistic.isConsistent_iff_not_derivableIn_bot]
+  intro h
+  simpa using h.cpl_soundness (v := fun _ ↦ True)
+
+namespace Theory
+
+def Lindenbaum (T : Theory Atom) := Quotient T.propositionSetoid
+
+instance Lindenbaum.partialOrder : PartialOrder T.Lindenbaum where
+  le := Quotient.lift₂ (fun A B ↦ DerivableIn T ({A} ⊢ B)) <| by
+    intro A B A' B' (eA : A ≡[T] A') (eB : B ≡[T] B')
+    ext
+    exact (equiv_iff_equiv_derivableIn.mp eB {A}).trans <|
+      equiv_iff_equiv_derivableIn_hypothesis.mp eA ∅ B'
+  le_refl := Quotient.ind fun A ↦ ⟨refl A⟩
+  le_trans := Quotient.ind₂ fun _ _ ↦ Quotient.ind fun _ ↦ DerivableIn.trans
+  le_antisymm := Quotient.ind₂ fun _ _ h h' ↦ Quotient.sound ⟨h.some, h'.some⟩
+
+instance Lindenbaum.lattice : Lattice T.Lindenbaum where
+  inf := Quotient.map₂ (· ∧ ·) fun _ _ hA _ _ hB ↦ hA.and hB
+  inf_le_left := Quotient.ind₂ fun A B ↦ ⟨leftOfAnd A B⟩
+  inf_le_right := Quotient.ind₂ fun A B ↦ ⟨rightOfAnd A B⟩
+  le_inf := Quotient.ind₂ fun _ _ ↦ Quotient.ind fun _ ⟨D⟩ ⟨D'⟩ ↦ ⟨D.andI D'⟩
+  sup := Quotient.map₂ (· ∨ ·) fun _ _ hA _ _ hB ↦ hA.or hB
+  le_sup_left := Quotient.ind₂ fun A B ↦ ⟨orOfLeft A B⟩
+  le_sup_right := Quotient.ind₂ fun A B ↦ ⟨orOfRight A B⟩
+  sup_le := Quotient.ind₂ fun A B ↦ Quotient.ind fun _ ⟨D⟩ ⟨D'⟩ ↦
+    ⟨(Derivation.refl <| A ∨ B).orE (D.weakCtx (by grind)) (D'.weakCtx (by grind))⟩
+
+instance Lindenbaum.boundedOrder : BoundedOrder T.Lindenbaum where
+  bot := ⟦⊥⟧
+  bot_le := Quotient.ind fun A ↦ ⟨efqRule {⊥} A <| .refl ⊥⟩
+  top := ⟦⊤⟧
+  le_top := Quotient.ind fun _ ↦ ⟨derivationTop.weakCtx <| by simp⟩
+
+instance Lindenbaum.heytingAlgebra : HeytingAlgebra T.Lindenbaum where
+  himp := Quotient.map₂ (· → ·) fun _ _ hA _ _ hB ↦ hA.imp hB
+  le_himp_iff := Quotient.ind₂ fun _ _ ↦ Quotient.ind fun _ ↦
+    DerivableIn.imp_iff_insert_and (Γ := ∅)
+  compl := Quotient.map (¬·) fun _ _ hA ↦ hA.not
+  himp_bot := Quotient.ind fun _ ↦ rfl
+
+def val : Valuation Atom T.Lindenbaum := fun x ↦ ⟦atom x⟧
+
+theorem val_spec (A : Proposition Atom) : T.val.interp A = ⟦A⟧ := by
+  induction A with
+  | atom => rfl
+  | bot => rfl
+  | and A B ihA ihB =>
+    change val.interp (A ∧ B) = ⟦A ∧ B⟧
+    simp [ihA, ihB]
+    rfl
+  | or A B ihA ihB =>
+    change val.interp (A ∨ B) = ⟦A ∨ B⟧
+    simp [ihA, ihB]
+    rfl
+  | imp A B ihA ihB =>
+    change val.interp (A → B) = ⟦A → B⟧
+    simp [ihA, ihB]
+    rfl
+
+theorem val_interp_of_mem (A : Proposition Atom) (hA : A ∈ T) : T.val.interp A = ⊤ := by
+  rw [eq_top_iff, val_spec]
+  exact ⟨ax hA⟩
+
+theorem Lindenbaum.completeness₁ {A : Proposition Atom} (h : T.val.interp A = ⊤) :
+    DerivableIn T A := by
+  rw [val_spec] at h
+  exact (derivable_iff_equiv_top A).mpr <| Quotient.exact h
+
+end Theory
+
+theorem adequacy₁ {A : Proposition Atom} :
+    DerivableIn T A ↔ ∀ {H : Type u} [HeytingAlgebra H] {v : Valuation Atom H},
+      (∀ B ∈ T, v.interp B = ⊤) → v.interp A = ⊤ := by
+  constructor
+  · intro h _ _ _ hv
+    exact h.soundness₁ hv
+  · intro h
+    exact Lindenbaum.completeness₁ <| h val_interp_of_mem
+
+end Cslib.Logic.PL

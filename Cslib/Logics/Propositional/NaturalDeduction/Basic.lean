@@ -131,14 +131,9 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.iff_derivableIn_empty
   {A : Proposition Atom} : DerivableIn T A ↔ DerivableIn T (∅ ⊢ A) := by rfl
 
 /-- An equivalence between A and B is a derivation of B from A and vice-versa. -/
-def Theory.equiv (A B : Proposition Atom) :=
-  T⇓({A} ⊢ B) × T⇓({B} ⊢ A)
-
-/-- Forward direction of an equivalence. -/
-def Theory.equiv.mp {A B : Proposition Atom} (e : T.equiv A B) : T⇓({A} ⊢ B) := e.1
-
-/-- Reverse direction of an equivalence. -/
-def Theory.equiv.mpr {A B : Proposition Atom} (e : T.equiv A B) : T⇓({B} ⊢ A) := e.2
+structure Theory.equiv (A B : Proposition Atom) where
+  mp : T⇓({A} ⊢ B)
+  mpr : T⇓({B} ⊢ A)
 
 /-- `A` and `B` are T-equivalent if `T.equiv A B` is nonempty. -/
 def Theory.Equiv (A B : Proposition Atom) := Nonempty (T.equiv A B)
@@ -299,6 +294,82 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.substAtom {Atom Atom' : T
     DerivableIn T (Γ ⊢ B) → DerivableIn (T.subst f) ((Γ.subst f) ⊢ (B >>= f))
   | ⟨D⟩ => ⟨D.substAtom f⟩
 
+/-- Move the axioms used in a derivation `D` to the context, obtaining a derivation in
+intuitionistic logic. -/
+def Theory.Derivation.collectAxs {Γ : Ctx Atom} {B : Proposition Atom} :
+    (T.Derivation Γ B) →
+      Σ Δ : {Δ : Ctx Atom // (Δ : Theory Atom) ⊆ T}, (IPL Atom).Derivation (Γ ∪ Δ) B
+  | @ax _ _ _ _ B _ => ⟨⟨{B}, by grind⟩, ass <| by grind⟩
+  | ass _ => ⟨⟨∅, by grind⟩, ass <| by grind⟩
+  | efq A D => let ⟨Δ, D'⟩ := D.collectAxs; ⟨Δ, D'.efq A⟩
+  | andI D E =>
+    let ⟨Δ₁, D'⟩ := collectAxs D
+    let ⟨Δ₂, E'⟩ := collectAxs E
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, andI (D'.weakCtx <| by grind) (E'.weakCtx <| by grind)⟩
+  | andE₁ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, andE₁ D'⟩
+  | andE₂ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, andE₂ D'⟩
+  | orI₁ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, orI₁ D'⟩
+  | orI₂ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, orI₂ D'⟩
+  | orE D E₁ E₂ =>
+    let ⟨Δ, D'⟩ := collectAxs D
+    let ⟨Δ₁, E₁'⟩ := collectAxs E₁
+    let ⟨Δ₂, E₂'⟩ := collectAxs E₂
+    ⟨⟨Δ ∪ Δ₁ ∪ Δ₂, by grind⟩,
+      orE (D'.weakCtx <| by grind) (E₁'.weakCtx <| by grind) (E₂'.weakCtx <| by grind)⟩
+  | implI Γ D =>
+    let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, implI (Γ ∪ Δ) (D'.weakCtx <| by grind)⟩
+  | implE D E =>
+    let ⟨Δ₁, D'⟩ := collectAxs D
+    let ⟨Δ₂, E'⟩ := collectAxs E
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, implE (D'.weakCtx <| by grind) (E'.weakCtx <| by grind)⟩
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.collect_axs {Γ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn T (Γ ⊢ B) →
+      ∃ Δ : Ctx Atom, DerivableIn (IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ((Δ : Theory Atom) ⊆ T)
+  | ⟨D⟩ => let ⟨⟨Δ, hΔ⟩, D'⟩ := Theory.Derivation.collectAxs D; ⟨Δ, ⟨⟨D'⟩, hΔ⟩⟩
+
+/-- Remove some assumptions by moving them to the theory. -/
+def Theory.Derivation.assToAxs' {T : Theory Atom} {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    T.Derivation Γ B → (T ∪ Δ).Derivation (Γ \ Δ) B
+  | @ass _ _ _ _ B _ => by
+    by_cases B ∈ Δ
+    case pos =>
+      exact ax <| by grind
+    case neg =>
+      exact ass <| by grind
+  | ax _ => ax <| by grind
+  | efq A D => D.assToAxs'.efq A
+  | andI D E => andI (assToAxs' D) (assToAxs' E)
+  | andE₁ D => andE₁ (assToAxs' D)
+  | andE₂ D => andE₂ (assToAxs' D)
+  | orI₁ D => orI₁ (assToAxs' D)
+  | orI₂ D => orI₂ (assToAxs' D)
+  | @orE _ _ _ _ A' B C D E₁ E₂ =>
+    orE (assToAxs' D)
+      ((assToAxs' (Δ := Δ) (B := C) E₁).weakCtx <| by grind)
+      ((assToAxs' (Δ := Δ) (B := C) E₂).weakCtx <| by grind)
+  | @implI _ _ _ A' B _ D =>
+    implI _ ((assToAxs' (Δ := Δ) (B := B) D).weakCtx <| by grind)
+  | implE D E => implE (assToAxs' D) (assToAxs' E)
+
+/-- Remove dependence on some assumptions by adding them to the theory. -/
+def Theory.Derivation.assToAxs {T : Theory Atom} {Γ Δ : Ctx Atom} {B : Proposition Atom}
+    (D : T.Derivation (Γ ∪ Δ) B) : (T ∪ Δ).Derivation Γ B := (assToAxs' D).weakCtx <| by grind
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ass_to_axs {T : Theory Atom} {Γ Δ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn T ((Γ ∪ Δ) ⊢ B) → DerivableIn (T ∪ Δ : Theory Atom) (Γ ⊢ B)
+  | ⟨D⟩ => ⟨Theory.Derivation.assToAxs D⟩
+
+/-- Move a finset of axioms to the context. -/
+def Theory.Derivation.axsToAss {T : Theory Atom} {Γ Δ : Ctx Atom} {B : Proposition Atom}
+    (D : (T ∪ Δ : Theory Atom)⇓(Γ ⊢ B)) : T⇓((Γ ∪ Δ) ⊢ B) :=
+  let ⟨⟨Δ', hΔ'⟩, D'⟩ := collectAxs D
+  (D'.assToAxs' (Δ := Δ' \ Δ)).weak (by grind) (by grind)
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.axs_to_ass {T : Theory Atom} {Γ Δ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn (T ∪ Δ : Theory Atom) (Γ ⊢ B) → DerivableIn T ((Γ ∪ Δ) ⊢ B)
+  | ⟨D⟩ => ⟨D.axsToAss⟩
+
 /-! ### Properties of equivalence -/
 
 /-- A derivation of the canonical tautology. -/
@@ -322,12 +393,12 @@ alias ⟨_root_.Cslib.Logic.InferenceSystem.DerivableIn.equiv_top, _⟩ := deriv
 namespace Theory
 
 /-- Change the conclusion along an equivalence. -/
-def mapEquivConclusion (Γ : Ctx Atom) {A B : Proposition Atom} (e : T.equiv A B)
+def equiv.mapConclusion {Γ : Ctx Atom} {A B : Proposition Atom} (e : T.equiv A B)
     (D : T⇓(Γ ⊢ A)) : T⇓(Γ ⊢ B) :=
   Γ.union_empty ▸ Derivation.cut (Δ := ∅) D e.1
 
 /-- Replace a hypothesis along an equivalence. -/
-def mapEquivHypothesis (Γ : Ctx Atom) {A B : Proposition Atom} (e : T.equiv A B)
+def equiv.mapHypothesis {Γ : Ctx Atom} {A B : Proposition Atom} (e : T.equiv A B)
     (C : Proposition Atom) (D : T⇓(insert A Γ ⊢ C)) : T⇓(insert B Γ ⊢ C) := by
   have : insert B Γ = {B} ∪ Γ := rfl
   exact this ▸ Derivation.cut e.2 D
@@ -344,14 +415,14 @@ def equiv.symm {A B : Proposition Atom} (e : T.equiv A B) : T.equiv B A :=
 /-- Compose two equivalences. -/
 def equiv.trans {A B C : Proposition Atom} (eAB : T.equiv A B)
     (eBC : T.equiv B C) : T.equiv A C :=
-  ⟨mapEquivConclusion _ eBC eAB.mp, mapEquivConclusion _ eAB.symm eBC.mpr⟩
+  ⟨eBC.mapConclusion eAB.mp, eAB.symm.mapConclusion eBC.mpr⟩
 
 /-- `A` and `B` are equivalent (in `T`) iff they are provable from the same contexts. -/
 theorem equiv_iff_equiv_derivableIn {A B : Proposition Atom} :
     A ≡[T] B ↔ ∀ Γ : Ctx Atom, DerivableIn T (Γ ⊢ A) ↔ DerivableIn T (Γ ⊢ B) := by
   constructor
   · intro ⟨e⟩ Γ
-    exact ⟨fun D => mapEquivConclusion Γ e D.some, fun D => mapEquivConclusion Γ e.symm D.some⟩
+    exact ⟨fun D => e.mapConclusion D.some, fun D => e.symm.mapConclusion D.some⟩
   · intro h
     rw [equiv_iff]
     constructor
@@ -365,7 +436,7 @@ theorem equiv_iff_equiv_derivableIn_hypothesis {A B : Proposition Atom} :
       DerivableIn T ((insert A Γ) ⊢ C) ↔ DerivableIn T ((insert B Γ) ⊢ C) := by
   constructor
   · intro ⟨e⟩ Γ C
-    exact ⟨fun D => mapEquivHypothesis Γ e C D.some, fun E => mapEquivHypothesis Γ e.symm C E.some⟩
+    exact ⟨fun D => e.mapHypothesis C D.some, fun E => e.symm.mapHypothesis C E.some⟩
   · intro h
     rw [equiv_iff]
     constructor

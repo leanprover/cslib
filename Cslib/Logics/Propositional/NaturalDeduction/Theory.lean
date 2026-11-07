@@ -44,6 +44,14 @@ def IsIntuitionistic.contra [IsIntuitionistic Atom T] {Γ : Ctx Atom} (A B : Pro
     (hΓ : A ∈ Γ) (hΓ' : (¬A) ∈ Γ) : T⇓(Γ ⊢ B) :=
   efqRule Γ B <| implE (ass hΓ') (ass hΓ)
 
+theorem IsIntuitionistic.isInconsistent_iff_derivableIn_bot [IsIntuitionistic Atom T] :
+    IsInconsistent Atom T ↔ DerivableIn T (⊥ : Proposition Atom) :=
+  ⟨fun h ↦ h.forall_derivableIn ⊥, fun ⟨D⟩ ↦ ⟨fun A ↦ efqRule ∅ A D⟩⟩
+
+theorem IsIntuitionistic.isConsistent_iff_not_derivableIn_bot [IsIntuitionistic Atom T] :
+    IsConsistent Atom T ↔ ¬ DerivableIn T (⊥ : Proposition Atom) := by
+  simp [← isInconsistent_iff_derivableIn_bot, isInconsistent_iff_not_isConsistent]
+
 instance instIsClassicalCPL : IsClassical Atom (CPL Atom) where
   dne A := ax (dne_mem_cpl A)
 
