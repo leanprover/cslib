@@ -288,6 +288,8 @@ public import Cslib.Logics.Modal.Unimodal.Basic
 public import Cslib.Logics.Modal.Unimodal.Cube
 public import Cslib.Logics.Modal.Unimodal.Lean.Basic
 public import Cslib.Logics.Modal.Unimodal.Lean.SMul
+public import Cslib.Logics.PDL.Basic
+public import Cslib.Logics.PDL.Semantics
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 public import Cslib.Logics.Propositional.NaturalDeduction.Theory
