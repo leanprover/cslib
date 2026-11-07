@@ -73,9 +73,19 @@ instance : HasOr (Proposition Atom) := ⟨.or⟩
 instance : HasImp (Proposition Atom) := ⟨.imp⟩
 instance : HasNot (Proposition Atom) := ⟨.neg⟩
 
-omit [DecidableEq Atom] in
-@[grind =]
-lemma not_eq (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
+section
+
+omit [DecidableEq Atom]
+
+variable {A B : Proposition Atom}
+
+@[simp, grind =] lemma bot_eq : (.bot : Proposition Atom) = ⊥ := rfl
+@[simp, grind =] lemma and_eq : A.and B = (A ∧ B) := rfl
+@[simp, grind =] lemma or_eq : A.or B = (A ∨ B) := rfl
+@[simp, grind =] lemma imp_eq : A.imp B = (A → B) := rfl
+@[simp, grind =] lemma not_eq (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
+
+end
 
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/

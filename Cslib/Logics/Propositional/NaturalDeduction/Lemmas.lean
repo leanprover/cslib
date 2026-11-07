@@ -112,4 +112,22 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.imp_iff_insert_and :
     DerivableIn T (insert A Γ ⊢ B → C) ↔ DerivableIn T (insert (A ∧ B) Γ ⊢ C) :=
   ⟨fun ⟨D⟩ ↦ ⟨D.curry⟩, fun ⟨D⟩ ↦ ⟨D.uncurry⟩⟩
 
+def Derivation.curryList {Γ : List (Proposition Atom)} {Δ : Ctx Atom} {A : Proposition Atom}
+    (D : T⇓((Γ.toFinset ∪ Δ) ⊢ A)) : T⇓(Δ ⊢ Γ.foldl (fun B C ↦ C → B) A) :=
+  match Γ with
+  | [] => D.weakCtx <| by simp
+  | B :: Γ => (D.weakCtx (by simp) |>.implI _).curryList (A := B → A)
+
+def Derivation.uncurryList {Γ : List (Proposition Atom)} {Δ : Ctx Atom} {A : Proposition Atom}
+    (D : T⇓(Δ ⊢ Γ.foldl (fun B C ↦ C → B) A)) : T⇓((Γ.toFinset ∪ Δ) ⊢ A) :=
+  match Γ with
+  | [] => D.weakCtx <| by simp
+  | B :: Γ => (D.uncurryList (A := B → A)).weakCtx (by simp) |>.implE (ass <| by simp)
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.toFinset_union_iff
+    {Γ : List (Proposition Atom)} {Δ : Ctx Atom} {A : Proposition Atom} :
+    DerivableIn T ((Γ.toFinset ∪ Δ) ⊢ A) ↔ DerivableIn T (Δ ⊢ Γ.foldl (fun B C ↦ C → B) A) :=
+  ⟨fun h ↦ h.some.curryList, fun h ↦ h.some.uncurryList⟩
+
+
 end Cslib.Logic.PL.Theory

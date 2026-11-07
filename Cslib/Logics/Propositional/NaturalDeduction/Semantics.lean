@@ -134,18 +134,9 @@ theorem val_spec (A : Proposition Atom) : T.val.interp A = ⟦A⟧ := by
   induction A with
   | atom => rfl
   | bot => rfl
-  | and A B ihA ihB =>
-    change val.interp (A ∧ B) = ⟦A ∧ B⟧
-    simp [ihA, ihB]
-    rfl
-  | or A B ihA ihB =>
-    change val.interp (A ∨ B) = ⟦A ∨ B⟧
-    simp [ihA, ihB]
-    rfl
-  | imp A B ihA ihB =>
-    change val.interp (A → B) = ⟦A → B⟧
-    simp [ihA, ihB]
-    rfl
+  | and A B ihA ihB => simp [ihA, ihB]; rfl
+  | or A B ihA ihB => simp [ihA, ihB]; rfl
+  | imp A B ihA ihB => simp [ihA, ihB]; rfl
 
 theorem val_interp_of_mem (A : Proposition Atom) (hA : A ∈ T) : T.val.interp A = ⊤ := by
   rw [eq_top_iff, val_spec]
@@ -156,15 +147,33 @@ theorem Lindenbaum.completeness₁ {A : Proposition Atom} (h : T.val.interp A = 
   rw [val_spec] at h
   exact (derivable_iff_equiv_top A).mpr <| Quotient.exact h
 
+theorem Lindenbaum.completeness {Γ : Ctx Atom} {A : Proposition Atom}
+    (h : Γ.inf T.val.interp ≤ T.val.interp A) : DerivableIn T (Γ ⊢ A) := by
+  obtain ⟨Γ, -, rfl⟩ := Γ.exists_list_nodup_eq
+  suffices DerivableIn T (Γ.foldl (fun B C ↦ C → B) A : Proposition Atom) by
+    simpa using toFinset_union_iff.mpr this
+  apply Lindenbaum.completeness₁
+  induction Γ generalizing A with
+  | nil => simpa using eq_top_iff.mpr h
+  | cons B Γ ih =>
+    apply ih
+    simpa [inf_comm] using h
+
 end Theory
 
 theorem adequacy₁ {A : Proposition Atom} :
     DerivableIn T A ↔ ∀ {H : Type u} [HeytingAlgebra H] {v : Valuation Atom H},
-      (∀ B ∈ T, v.interp B = ⊤) → v.interp A = ⊤ := by
-  constructor
-  · intro h _ _ _ hv
-    exact h.soundness₁ hv
-  · intro h
-    exact Lindenbaum.completeness₁ <| h val_interp_of_mem
+      (∀ B ∈ T, v.interp B = ⊤) → v.interp A = ⊤ :=
+  ⟨fun h _ _ _ hv ↦ h.soundness₁ hv, fun h ↦ Lindenbaum.completeness₁ <| h val_interp_of_mem⟩
+
+theorem adequacy {Γ : Ctx Atom} {A : Proposition Atom} :
+    DerivableIn T (Γ ⊢ A) ↔ ∀ {H : Type u} [HeytingAlgebra H] {v : Valuation Atom H},
+      (∀ B ∈ T, v.interp B = ⊤) → Γ.inf v.interp ≤ v.interp A :=
+  ⟨fun h _ _ _ hv ↦ h.soundness hv, fun h ↦ Lindenbaum.completeness <| h val_interp_of_mem⟩
+
+theorem ipl_adequacy {Γ : Ctx Atom} {A : Proposition Atom} :
+    DerivableIn (IPL Atom) (Γ ⊢ A) ↔ ∀ {H : Type u} [HeytingAlgebra H] {v : Valuation Atom H},
+      Γ.inf v.interp ≤ v.interp A :=
+  ⟨fun h _ _ _ ↦ h.ipl_soundness, fun h ↦ Lindenbaum.completeness h⟩
 
 end Cslib.Logic.PL
