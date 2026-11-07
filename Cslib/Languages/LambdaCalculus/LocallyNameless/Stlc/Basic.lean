@@ -71,8 +71,8 @@ theorem perm (ht : Γ ⊢ t ∶ τ) (hperm : Γ.Perm Δ) : Δ ⊢ t ∶ τ := by
   induction ht generalizing Δ
   case abs ih =>
     constructor
-    intros x mem
-    exact ih x mem (by simp_all)
+    · intros x mem
+      exact ih x mem (by simp_all)
   all_goals grind
 
 /-- Weakening of a typing derivation with an appended context. -/
