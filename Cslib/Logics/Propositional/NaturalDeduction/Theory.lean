@@ -9,9 +9,10 @@ public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 
 /-! # Results on propositional theories
 
-In this file we prove the expected results that `IPL Atom` is an intuitionistic theory, and
-`CPL Atom` is a classical theory. We provide derived rules for common intuitionistic and classical
-proof patterns.
+In this file we prove the expected results that all theories are intuitionistic, and that various
+axiomatisations of classical logic (`CPL Atom` using double-negation elimination, `LEM Atom` using
+the law of excluded middle, and `Pierce Atom` using Pierce's law) are classical theories. We
+provide derived rules for common intuitionistic and classical proof patterns.
 -/
 
 @[expose] public section
@@ -22,21 +23,21 @@ namespace Cslib.Logic.PL
 
 open Proposition Theory InferenceSystem DerivableIn Derivation IsIntuitionistic IsClassical
 
-variable {Atom : Type u} [DecidableEq Atom] [Bot Atom] {T : Theory Atom}
+variable {Atom : Type u} [DecidableEq Atom] {T : Theory Atom}
 
 namespace Theory
 
-instance instIsIntuitionisticIPL : IsIntuitionistic Atom (IPL Atom) where
-  efq A := ax (efq_mem_ipl A)
+instance instIsIntuitionisticTheory : IsIntuitionistic Atom T where
+  derBotImp A := (ass (Finset.mem_insert_self ⊥ ∅)).efq A |>.implI
 
 /-- Derivation of efq in an arbitrary context. -/
-def IsIntuitionistic.efqCtx [IsIntuitionistic Atom T] (Γ : Ctx Atom) (A : Proposition Atom)
-    : T⇓(Γ ⊢ ⊥ → A) := (efq A : T⇓(⊥ → A)).weakCtx (Finset.empty_subset Γ)
+def IsIntuitionistic.derBotImpCtx [IsIntuitionistic Atom T] (Γ : Ctx Atom) (A : Proposition Atom)
+    : T⇓(Γ ⊢ ⊥ → A) := (derBotImp A : T⇓(⊥ → A)).weakCtx (Finset.empty_subset Γ)
 
 /-- Efq as a derived rule. -/
 def IsIntuitionistic.efqRule [IsIntuitionistic Atom T] (Γ : Ctx Atom) (A : Proposition Atom)
     (D : T⇓(Γ ⊢ ⊥)) : T⇓(Γ ⊢ A) :=
-  implE (A := ⊥) (efqCtx Γ A) D
+  implE (A := ⊥) (derBotImpCtx Γ A) D
 
 /-- Prove any proposition from contradictory hypotheses. -/
 def IsIntuitionistic.contra [IsIntuitionistic Atom T] {Γ : Ctx Atom} (A B : Proposition Atom)
@@ -50,9 +51,6 @@ instance instIsClassicalCPL : IsClassical Atom (CPL Atom) where
 def IsClassical.byContra [IsClassical Atom T] {Γ : Ctx Atom} {A : Proposition Atom}
     (D : T⇓(insert (¬ A) Γ ⊢ ⊥)) : T⇓(Γ ⊢ A) :=
   implE (A := ¬¬A) ((dne A : T⇓(¬¬A → A)) |>.weakCtx <| Finset.empty_subset ..) D.implI
-
-instance instIsIntuitionisticOfIsClassical [IsClassical Atom T] : IsIntuitionistic Atom T where
-  efq A := implI _ <| byContra <| ass (by grind)
 
 /-- Law of excluded middle in a classical theory. -/
 def IsClassical.lem [IsClassical Atom T] (A : Proposition Atom) : T⇓(A ∨ ¬ A) := by
@@ -70,7 +68,7 @@ def IsClassical.pierce [IsClassical Atom T] (A B : Proposition Atom) : T⇓(((A 
   apply contra A B <;> grind
 
 /-- The axiom system consisting of instances of LEM. -/
-def LEM (Atom : Type u) [Bot Atom] : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
+def LEM (Atom : Type u) : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
 lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
@@ -79,23 +77,23 @@ lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rf
 def Pierce (Atom : Type u) : Theory Atom :=
   {((A → B) → A) → A | (A : Proposition Atom) (B : Proposition Atom)}
 
-omit [DecidableEq Atom] [Bot Atom] in
+omit [DecidableEq Atom] in
 lemma pierce_mem_pierce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Pierce Atom := ⟨A, B, rfl⟩
 
-instance instIsClassicalLEM : IsClassical Atom (LEM Atom ∪ IPL Atom : Theory Atom) where
+instance instIsClassicalLEM : IsClassical Atom (LEM Atom : Theory Atom) where
   dne A := by
     apply implI
-    apply orE (ax <| Set.mem_union_left _ <| lem_mem_lem A)
+    apply orE (ax <| lem_mem_lem A)
     · exact ass (Finset.mem_insert_self A _)
-    · apply implE (A := ⊥) (ax <| Set.mem_union_right _ (efq_mem_ipl A))
+    · apply implE (A := ⊥) (derBotImpCtx _ A)
       apply implE (A := ¬ A) <;> exact ass (by grind)
 
-instance instIsClassicalPierce : IsClassical Atom (Pierce Atom ∪ IPL Atom : Theory Atom) where
+instance instIsClassicalPierce : IsClassical Atom (Pierce Atom : Theory Atom) where
   dne A := by
     apply implI
-    apply implE (A := (A → ⊥) → A) (ax <| Set.mem_union_left _ <| pierce_mem_pierce A ⊥)
+    apply implE (A := (A → ⊥) → A) (ax <| pierce_mem_pierce A ⊥)
     apply implI
-    apply implE (A := ⊥) (ax <| Set.mem_union_right _ (efq_mem_ipl A))
+    apply implE (A := ⊥) (derBotImpCtx _ A)
     apply implE (A := ¬ A) <;> exact ass (by grind)
 
 end Cslib.Logic.PL.Theory
