@@ -31,6 +31,7 @@ open FirstOrder.Language.Structure
 structure FormulaBackAndForth
     (L : FirstOrder.Language) (M N : Type*)
     [L.Structure M] [L.Structure N] (α : Type*) where
+  /-- Relates assignments in two structures at each bound-variable arity. -/
   Related : ∀ k : Nat, (α → M) → (Fin k → M) →
     (α → N) → (Fin k → N) → Prop
   preserves_equal :
