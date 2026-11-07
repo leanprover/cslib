@@ -102,7 +102,6 @@ theorem FormulaBackAndForth.preserves_formula
         obtain ⟨y, hxy⟩ := F.forward h x
         exact (ih v (Fin.snoc xs x) w (Fin.snoc ys y) hxy).mpr (hall y)
 
-#print axioms Cslib.ModelTheory.FormulaBackAndForth.preserves_formula
 
 end ModelTheory
 end Cslib
