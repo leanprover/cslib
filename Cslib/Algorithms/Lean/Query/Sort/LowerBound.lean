@@ -53,8 +53,8 @@ private theorem finPrefix_injective (h : ↑n ≤ #α) :
   (finEmbedding h).injective.extend_of_disjoint Sum.inl_injective Sum.inr_injective
     Set.isCompl_range_inl_range_inr.disjoint
 
-/-- A total order on an type `α` with at least `n` elements, that orders `n` embedded elements
-    (via `finEmbedding) according to `σ⁻¹`, with embedded elements
+/-- A total order on a type `α` with at least `n` elements, that orders `n` embedded elements
+    (via `finEmbedding`) according to `σ⁻¹`, with embedded elements
     preceding all others, and a well-ordering among non-embedded elements. -/
 private noncomputable def PrefixPermOrder (h : ↑n ≤ #α)
     (σ : Equiv.Perm (Fin n)) : α → α → Prop :=

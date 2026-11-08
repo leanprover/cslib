@@ -197,7 +197,7 @@ lemma IsChainFromTo.exists_length_lt_of_not_nodup
 lemma IsChainFromTo.exists_nodup (hc : chain.IsChainFromTo r a b) :
     ∃ chain' : List α, chain'.IsChainFromTo r a b ∧ chain'.Nodup := by
   induction hn : chain.length using Nat.strong_induction_on generalizing chain with
-  | h n ih =>
+  | ind n ih =>
     by_cases h_dup : chain.Nodup
     · use chain, hc, h_dup
     · obtain ⟨chain', hc', hlen⟩ := hc.exists_length_lt_of_not_nodup h_dup
