@@ -23,9 +23,11 @@ as the corresponding Kripke structure. Instance checking is modal satisfaction, 
 - `Interpretation`: DL interpretations `(Δ, ·ᴵ)` over a nonempty domain `Δ`, and
   `Interpretation.toModal`, the corresponding Kripke structure.
 - `ALC[I,x ⊨ C]`: the individual `x` is an instance of `C` in `I`.
+- `∃ R . C`, `∀ R . C`: notations for the restrictions `d⟨R⟩C` and `d[R]C`.
 - `TAxiom`, `TBox`: concept inclusions `C ⊑ D` and concept equalities `C ≡ D`. A concept equality
   holds in `I` iff `C` and `D` are logically equivalent (`Proposition.Equiv`) in `I.toModal`.
 - `Entails`: global consequence of a terminological axiom from a TBox.
+- `Consistent`: a TBox is consistent if it has a model.
 - `Assertion`, `ABox`: concept and role assertions about named individuals.
 
 ## References
@@ -33,6 +35,7 @@ as the corresponding Kripke structure. Instance checking is modal satisfaction, 
 * [K. Schild, *A Correspondence Theory for Terminological Logics: Preliminary
   Report*][Schild1991]
 * [F. Baader et al. (eds.), *The Description Logic Handbook*, 2nd ed.][Baader2007]
+* [F. Baader, I. Horrocks, C. Lutz, U. Sattler, *An Introduction to Description Logic*][Baader2017]
 -/
 
 @[expose] public section
@@ -46,7 +49,9 @@ open scoped InferenceSystem Modal.Proposition Satisfies Frame
 concept names. -/
 abbrev Concept (Role ConceptName : Type*) := Modal.Proposition (mkUnary Role) ConceptName
 
-/-- A DL interpretation over the nonempty domain `Δ`. -/
+/-- A DL interpretation. The domain `Δᴵ` is the type `Δ` itself rather than a subset of some
+universe, so `⊤ᴵ = Set.univ` (`Interpretation.interpret_top`); it is required to be nonempty.
+Concept names are interpreted as subsets of `Δ` and role names as binary relations on `Δ`. -/
 structure Interpretation (Δ Role ConceptName : Type*) where
   /-- Extension of concept names. -/
   conc : ConceptName → Set Δ
@@ -63,37 +68,57 @@ def Interpretation.toModal (I : Interpretation Δ Role ConceptName) :
 /-- `ALC[I,x ⊨ C]`: the individual `x` is an instance of the concept `C` in `I`. -/
 scoped notation "ALC[" I "," x " ⊨ " C "]" => Modal[Interpretation.toModal I, x ⊨ C]
 
+/-- Existential restriction `∃R.C`, i.e. `d⟨R⟩C`. A space is needed before the dot, since
+`R.C` would be read as a single dotted identifier. -/
+scoped notation:max "∃" R:max "." C:max => HasDynamicDiamond.dynDiamond R C
+
+/-- Value restriction `∀R.C`, i.e. `d[R]C`. A space is needed before the dot, since `R.C` would
+be read as a single dotted identifier. -/
+scoped notation:max "∀" R:max "." C:max => HasDynamicBox.dynBox R C
+
 variable {I : Interpretation Δ Role ConceptName} {C D : Concept Role ConceptName}
 
 @[simp]
-theorem Interpretation.toModal_v {A : ConceptName} : I.toModal.v x A ↔ x ∈ I.conc A := .rfl
+theorem Interpretation.toModal_v_iff_conc {A : ConceptName} :
+    I.toModal.v x A ↔ x ∈ I.conc A := .rfl
 
 @[scoped grind =, modal =]
-theorem Satisfies.alc_atom_iff {A : ConceptName} :
+theorem Satisfies.alc_atom_iff_conc {A : ConceptName} :
     ⇓ALC[I,x ⊨ (.atom A : Concept Role ConceptName)] ↔ x ∈ I.conc A := by rfl
 
 /-- Existential restriction `∃R.C`. -/
 @[scoped grind =, modal =]
 theorem Satisfies.alc_exists_iff {R : Role} :
-    ⇓ALC[I,x ⊨ d⟨R⟩C] ↔ ∃ y, I.role R x y ∧ ⇓ALC[I,y ⊨ C] := by
+    ⇓ALC[I,x ⊨ ∃ R . C] ↔ ∃ y, I.role R x y ∧ ⇓ALC[I,y ⊨ C] := by
   rw [Satisfies.dynDiamond_iff_exists]
   simp [Interpretation.toModal, Frame.diagonal, Frame.ofRelations]
 
 /-- Value restriction `∀R.C`. -/
 @[scoped grind =, modal =]
 theorem Satisfies.alc_forall_iff {R : Role} :
-    ⇓ALC[I,x ⊨ d[R]C] ↔ ∀ y, I.role R x y → ⇓ALC[I,y ⊨ C] := by
+    ⇓ALC[I,x ⊨ ∀ R . C] ↔ ∀ y, I.role R x y → ⇓ALC[I,y ⊨ C] := by
   rw [Satisfies.dynBox_iff_forall]
   simp [Interpretation.toModal, Frame.diagonal, Frame.ofRelations]
 
-/-- The extension `Cᴵ` of a concept, given by its modal denotation. -/
-abbrev Concept.ext (I : Interpretation Δ Role ConceptName) (C : Concept Role ConceptName) :
-    Set Δ :=
+/-- The interpretation `Cᴵ` of a concept under `I`, given by its modal denotation. In the DL
+literature, `Cᴵ` is also called the *extension* of `C` [Baader2017, Chapter 2]. -/
+abbrev Interpretation.interpret (I : Interpretation Δ Role ConceptName)
+    (C : Concept Role ConceptName) : Set Δ :=
   C.denotation I.toModal
 
 /-- The set-based reading of instance checking. -/
-theorem Concept.mem_ext_iff : x ∈ Concept.ext I C ↔ ⇓ALC[I,x ⊨ C] :=
+theorem Interpretation.mem_interpret_iff : x ∈ I.interpret C ↔ ⇓ALC[I,x ⊨ C] :=
   satisfies_mem_denotation
+
+@[simp]
+theorem Interpretation.interpret_top : I.interpret (⊤ : Concept Role ConceptName) = Set.univ := by
+  ext x
+  simp [Interpretation.mem_interpret_iff, Satisfies.true]
+
+@[simp]
+theorem Interpretation.interpret_bot : I.interpret (⊥ : Concept Role ConceptName) = ∅ := by
+  ext x
+  simp [Interpretation.mem_interpret_iff, Satisfies.false]
 
 /-- Terminological axioms. -/
 inductive TAxiom (Role ConceptName : Type*) where
@@ -104,7 +129,7 @@ inductive TAxiom (Role ConceptName : Type*) where
 
 open scoped Congruence in
 /-- An interpretation satisfies a terminological axiom. -/
-def Interpretation.Sat (I : Interpretation Δ Role ConceptName) :
+def Interpretation.SatisfiesTAxiom (I : Interpretation Δ Role ConceptName) :
     TAxiom Role ConceptName → Prop
   | .incl C D => ∀ x, ⇓ALC[I,x ⊨ C → D]
   | .equiv C D => C ≡[Proposition.Equiv I.toModal] D
@@ -112,20 +137,34 @@ def Interpretation.Sat (I : Interpretation Δ Role ConceptName) :
 /-- A TBox is a set of terminological axioms. -/
 abbrev TBox (Role ConceptName : Type*) := Set (TAxiom Role ConceptName)
 
-/-- An interpretation is a model of a TBox if it satisfies all of its axioms. -/
-def Interpretation.IsModel (I : Interpretation Δ Role ConceptName)
+/-- An interpretation satisfies a TBox if it satisfies all of its axioms; such an interpretation
+is called a *model* of the TBox [Baader2007, Chapter 2, p. 56]. -/
+def Interpretation.SatisfiesTBox (I : Interpretation Δ Role ConceptName)
     (T : TBox Role ConceptName) : Prop :=
-  ∀ ax ∈ T, I.Sat ax
+  ∀ ax ∈ T, I.SatisfiesTAxiom ax
 
 /-- Global consequence: every model of `T` over the domain `Δ` satisfies `ax`. -/
 def Entails (Δ : Type*) (T : TBox Role ConceptName) (ax : TAxiom Role ConceptName) : Prop :=
-  ∀ I : Interpretation Δ Role ConceptName, I.IsModel T → I.Sat ax
+  ∀ I : Interpretation Δ Role ConceptName, I.SatisfiesTBox T → I.SatisfiesTAxiom ax
+
+/-- A TBox is consistent over the domain `Δ` if it has a model over `Δ`. -/
+def Consistent (Δ : Type*) (T : TBox Role ConceptName) : Prop :=
+  ∃ I : Interpretation Δ Role ConceptName, I.SatisfiesTBox T
+
+/-- The TBox `{⊤ ⊑ ⊥}` is inconsistent over every domain. This relies on interpretation domains
+being nonempty: over an empty domain every concept inclusion would hold vacuously. -/
+theorem not_consistent_top_bot : ¬ Consistent Δ ({.incl ⊤ ⊥} : TBox Role ConceptName) := by
+  rintro ⟨I, hI⟩
+  obtain ⟨x⟩ := I.nonempty
+  have h : ⇓ALC[I,x ⊨ ⊤ → ⊥] := hI _ rfl x
+  rw [Satisfies.imp_iff_imp] at h
+  exact Satisfies.false.1 (h Satisfies.true)
 
 /-- Subsumption with respect to the empty TBox is validity of `C → D` in `K_m`. -/
 theorem entails_empty_iff :
     Entails Δ (∅ : TBox Role ConceptName) (.incl C D) ↔
       ∀ I : Interpretation Δ Role ConceptName, ∀ x, ⇓ALC[I,x ⊨ C → D] := by
-  simp [Entails, Interpretation.IsModel, Interpretation.Sat]
+  simp [Entails, Interpretation.SatisfiesTBox, Interpretation.SatisfiesTAxiom]
 
 /-- Assertions about named individuals. -/
 inductive Assertion (Role ConceptName Individual : Type*) where
@@ -139,9 +178,15 @@ abbrev ABox (Role ConceptName Individual : Type*) := Set (Assertion Role Concept
 
 /-- An interpretation, together with an interpretation `ι` of individuals, satisfies an
 assertion. -/
-def Interpretation.SatAssertion (I : Interpretation Δ Role ConceptName) (ι : Individual → Δ) :
-    Assertion Role ConceptName Individual → Prop
+def Interpretation.SatisfiesAssertion (I : Interpretation Δ Role ConceptName)
+    (ι : Individual → Δ) : Assertion Role ConceptName Individual → Prop
   | .concept C a => ⇓ALC[I,ι a ⊨ C]
   | .role R a b => I.role R (ι a) (ι b)
+
+/-- An interpretation, together with an interpretation `ι` of individuals, satisfies an ABox if it
+satisfies all of its assertions. -/
+def Interpretation.SatisfiesABox (I : Interpretation Δ Role ConceptName) (ι : Individual → Δ)
+    (A : ABox Role ConceptName Individual) : Prop :=
+  ∀ α ∈ A, I.SatisfiesAssertion ι α
 
 end Cslib.Logic.DL
