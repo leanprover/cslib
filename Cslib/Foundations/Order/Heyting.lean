@@ -30,7 +30,7 @@ lemma coe_himp_bot {α : Type*} [HImp α] [Top α] (a : α) : (a : WithBot α) �
 lemma coe_himp {α : Type*} [HImp α] [Top α]
   (a b : α) : ↑(a ⇨ b : α) = (a : WithBot α) ⇨ b := rfl
 
-protected instance heytingAlgebra {α : Type*} [GeneralizedHeytingAlgebra α] :
+protected abbrev heytingAlgebra (α : Type*) [GeneralizedHeytingAlgebra α] :
     HeytingAlgebra (WithBot α) where
   le_himp_iff {a b c} := by
     cases b with
@@ -46,7 +46,7 @@ protected instance heytingAlgebra {α : Type*} [GeneralizedHeytingAlgebra α] :
   himp_bot _ := rfl
 
 @[to_dual existing]
-instance _root_.WithTop.coheytingAlgebra {α : Type*} [GeneralizedCoheytingAlgebra α] :
+protected abbrev _root_.WithTop.coheytingAlgebra (α : Type*) [GeneralizedCoheytingAlgebra α] :
     CoheytingAlgebra (WithTop α) where
   sdiff_le_iff {a b c} := by
     cases b with
@@ -62,6 +62,7 @@ instance _root_.WithTop.coheytingAlgebra {α : Type*} [GeneralizedCoheytingAlgeb
   top_sdiff _ := rfl
 
 @[to_dual (attr := simp) hnot_coe]
-lemma compl_coe {α : Type*} [GeneralizedHeytingAlgebra α] (a : α) : (a : WithBot α)ᶜ = ⊥ := rfl
+lemma compl_coe {α : Type*} [GeneralizedHeytingAlgebra α] (a : α) :
+  letI := WithBot.heytingAlgebra α; (a : WithBot α)ᶜ = ⊥ := rfl
 
 end WithBot
