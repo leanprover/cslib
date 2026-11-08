@@ -6,6 +6,7 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Logics.Propositional.NaturalDeduction.Lemmas
+public import Mathlib.Order.Antisymmetrization
 
 /-! # Results on propositional theories
 
@@ -118,52 +119,113 @@ instance instIsClassicalPierce : IsClassical Atom (Pierce Atom : Theory Atom) wh
     apply implE (A := ⊥) (derBotImpCtx _ A)
     apply implE (A := ¬ A) <;> exact ass (by grind)
 
-structure Embedding (T : Theory Atom) (T' : Theory Atom') : Type _ where
+structure Encoding (T : Theory Atom) (T' : Theory Atom') : Type _ where
   f : Atom → Proposition Atom'
   derSubstOfMem {A : Proposition Atom} (hA : A ∈ T) : T'⇓(A.subst f)
 
-def Derivation.mapEmbedding (e : T.Embedding T') {Γ : Ctx Atom} {A : Proposition Atom} :
+def Derivation.mapEncoding (e : T.Encoding T') {Γ : Ctx Atom} {A : Proposition Atom} :
     T.Derivation Γ A → T'.Derivation (Γ.subst e.f) (A.subst e.f)
   | ax hA => (e.derSubstOfMem hA).weakCtx (by simp)
   | ass hA => ass <| Finset.mem_image_of_mem _ hA
-  | efq _ D => (D.mapEmbedding e).efq (A.subst e.f)
-  | andI D D' => (D.mapEmbedding e).andI (D'.mapEmbedding e)
-  | andE₁ D => (D.mapEmbedding e).andE₁
-  | andE₂ D => (D.mapEmbedding e).andE₂
-  | orI₁ D => (D.mapEmbedding e).orI₁
-  | orI₂ D => (D.mapEmbedding e).orI₂
+  | efq _ D => (D.mapEncoding e).efq (A.subst e.f)
+  | andI D D' => (D.mapEncoding e).andI (D'.mapEncoding e)
+  | andE₁ D => (D.mapEncoding e).andE₁
+  | andE₂ D => (D.mapEncoding e).andE₂
+  | orI₁ D => (D.mapEncoding e).orI₁
+  | orI₂ D => (D.mapEncoding e).orI₂
   | @orE _ _ _ Γ A B C D DA DB =>
-    (D.mapEmbedding e).orE
-      ((DA.mapEmbedding e).weakCtx (Finset.image_insert (·.subst e.f) A Γ).subset)
-      ((DB.mapEmbedding e).weakCtx (Finset.image_insert (·.subst e.f) B Γ).subset)
+    (D.mapEncoding e).orE
+      ((DA.mapEncoding e).weakCtx (Finset.image_insert (·.subst e.f) A Γ).subset)
+      ((DB.mapEncoding e).weakCtx (Finset.image_insert (·.subst e.f) B Γ).subset)
   | @implI _ _ _ A B Γ D =>
-      implI (Γ.subst e.f) <| (D.mapEmbedding e).weakCtx <|
+      implI (Γ.subst e.f) <| (D.mapEncoding e).weakCtx <|
         (Finset.image_insert (·.subst e.f) A Γ).subset
-  | implE D D' => (D.mapEmbedding e).implE (D'.mapEmbedding e)
+  | implE D D' => (D.mapEncoding e).implE (D'.mapEncoding e)
 
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.map_embedding (e : T.Embedding T')
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.map_encoding (e : T.Encoding T')
     {Γ : Ctx Atom} {A : Proposition Atom} (h : DerivableIn T (Γ ⊢ A)) :
     DerivableIn T' (Γ.subst e.f ⊢ A.subst e.f) :=
-  ⟨h.some.mapEmbedding e⟩
+  ⟨h.some.mapEncoding e⟩
 
-def Embedding.refl (T : Theory Atom) : T.Embedding T where
+def Encoding.refl (T : Theory Atom) : T.Encoding T where
   f := atom
   derSubstOfMem hA := ax (by simpa)
 
-def Embedding.trans (e : T.Embedding T') (e' : T'.Embedding T'') : T.Embedding T'' where
+def Encoding.trans (e : T.Encoding T') (e' : T'.Encoding T'') : T.Encoding T'' where
   f x := (e.f x).subst e'.f
-  derSubstOfMem hA := subst_assoc ▸ (e.derSubstOfMem hA).mapEmbedding e'
+  derSubstOfMem hA := subst_assoc ▸ (e.derSubstOfMem hA).mapEncoding e'
 
-def Embedding.ofSubset {T₁ T₂ : Theory Atom} (h : T₁ ⊆ T₂) : T₁.Embedding T₂ where
+def Encoding.ofSubset {T₁ T₂ : Theory Atom} (h : T₁ ⊆ T₂) : T₁.Encoding T₂ where
   f := atom
   derSubstOfMem hA := ax <| by simpa using h hA
 
-def WeakerThan (T₁ T₂ : Theory Atom) : Prop := Nonempty (T₁.Embedding T₂)
+variable {T₁ T₂ : Theory Atom} {A : Proposition Atom}
+
+def WeakerThan (T₁ T₂ : Theory Atom) : Prop := ∀ A ∈ T₁, DerivableIn T₂ A
+
+noncomputable def WeakerThan.toEncoding (h : T₁.WeakerThan T₂) : T₁.Encoding T₂ where
+  f := atom
+  derSubstOfMem {A} hA := (subst_atom A).symm ▸ (h _ hA).some
+
+@[simp] lemma WeakerThan.toEncoding_f (h : T₁.WeakerThan T₂) : h.toEncoding.f = atom := rfl
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.of_weakerThan (h : T₁.WeakerThan T₂)
+    (hA : DerivableIn T₁ A) : DerivableIn T₂ A := by
+  convert Nonempty.intro <| hA.some.mapEncoding h.toEncoding
+  simp [Ctx.subst]
+  rfl
+
+alias WeakerThan.map_derivableIn := DerivableIn.of_weakerThan
+
+theorem weakerThan_iff_forall_derivableIn :
+    T₁.WeakerThan T₂ ↔ ∀ A : Proposition Atom, DerivableIn T₁ A → DerivableIn T₂ A :=
+  ⟨fun h _ hA ↦ h.map_derivableIn hA, fun h A hA ↦ h A ⟨ax hA⟩⟩
 
 instance : IsPreorder (Theory Atom) WeakerThan where
-  refl A := ⟨.refl A⟩
-  trans _ _ _ := fun ⟨e⟩ ⟨e'⟩ ↦ ⟨e.trans e'⟩
+  refl _ _ hA := ⟨ax hA⟩
+  trans _ _ _ h h' A hA := (h A hA).of_weakerThan h'
 
-lemma WeakerThan.of_subset {T₁ T₂ : Theory Atom} (h : T₁ ⊆ T₂) : T₁.WeakerThan T₂ := ⟨.ofSubset h⟩
+lemma WeakerThan.of_subset {T₁ T₂ : Theory Atom} (h : T₁ ⊆ T₂) : T₁.WeakerThan T₂ :=
+  fun _ hA ↦ ⟨ax <| h hA⟩
+
+instance : Setoid (Theory Atom) := AntisymmRel.setoid _ WeakerThan
+
+@[simp] lemma equiv_theory_iff :
+    T₁ ≈ T₂ ↔ ∀ A : Proposition Atom, DerivableIn T₁ A ↔ DerivableIn T₂ A := by
+  simp [AntisymmRel, weakerThan_iff_forall_derivableIn]
+  grind
+
+alias ⟨_root_.HasEquiv.Equiv.derivableIn_iff, _⟩ :=
+  equiv_theory_iff
+
+def Saturated (T : Theory Atom) : Prop := ∀ A : Proposition Atom, DerivableIn T A → A ∈ T
+
+lemma Saturated.mem_of_derivableIn (h : T.Saturated) (hA : DerivableIn T A) : A ∈ T := h A hA
+
+lemma saturated_iff_derivableIn_iff : T.Saturated ↔ ∀ A, DerivableIn T A ↔ A ∈ T :=
+  ⟨fun h A ↦ ⟨h A, (⟨ax ·⟩)⟩, fun h A hA ↦ (h A).mp hA⟩
+
+@[simp] alias ⟨Saturated.derivableIn_iff, _⟩ := saturated_iff_derivableIn_iff
+
+def saturation (T : Theory Atom) : Theory Atom := {A : Proposition Atom | DerivableIn T A}
+
+@[simp] lemma mem_saturation_iff : A ∈ T.saturation ↔ DerivableIn T A := .rfl
+
+lemma self_subset_saturation : T ⊆ T.saturation := fun _ hA ↦ ⟨ax hA⟩
+
+lemma saturation_weakerThan_self : T.saturation.WeakerThan T := fun _ hA ↦ hA
+
+lemma self_equiv_saturation (T : Theory Atom) : T ≈ T.saturation :=
+  ⟨.of_subset self_subset_saturation, saturation_weakerThan_self⟩
+
+@[simp] lemma derivableIn_saturation_iff : DerivableIn T.saturation A ↔ DerivableIn T A :=
+    (self_equiv_saturation T).derivableIn_iff A |>.symm
+
+lemma saturated_saturation : T.saturation.Saturated := by simp [Saturated, mem_saturation_iff]
+
+lemma Saturated.saturation_eq (h : T.Saturated) : T.saturation = T := by
+  ext; simp [h.derivableIn_iff]
+
+lemma saturation_idem : T.saturation.saturation = T.saturation := saturated_saturation.saturation_eq
 
 end Cslib.Logic.PL.Theory
