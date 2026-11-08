@@ -5,7 +5,7 @@ Authors: Thomas Waring
 -/
 module
 
-public import Cslib.Logics.Propositional.NaturalDeduction.Theory
+public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 
 /-!-/
 
@@ -108,6 +108,12 @@ def Derivation.uncurry (D : T⇓(insert (A ∧ B) Γ ⊢ C)) : T⇓(insert A Γ 
   obtain rfl : D = (A ∧ B) := Finset.mem_singleton.mp h
   exact (ass <| by grind).andI (ass <| by grind)
 
+def Derivation.imp_of_or_not : T⇓(insert (B ∨ ¬ A) Γ ⊢ A → B) := by
+  apply implI
+  apply orE (A := B) (B := ¬ A) (ass <| by grind) (ass <| by grind)
+  apply efq; apply implE (A := A)
+  all_goals exact ass (by grind)
+
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.imp_iff_insert_and :
     DerivableIn T (insert A Γ ⊢ B → C) ↔ DerivableIn T (insert (A ∧ B) Γ ⊢ C) :=
   ⟨fun ⟨D⟩ ↦ ⟨D.curry⟩, fun ⟨D⟩ ↦ ⟨D.uncurry⟩⟩
@@ -128,6 +134,5 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.toFinset_union_iff
     {Γ : List (Proposition Atom)} {Δ : Ctx Atom} {A : Proposition Atom} :
     DerivableIn T ((Γ.toFinset ∪ Δ) ⊢ A) ↔ DerivableIn T (Δ ⊢ Γ.foldl (fun B C ↦ C → B) A) :=
   ⟨fun h ↦ h.some.curryList, fun h ↦ h.some.uncurryList⟩
-
 
 end Cslib.Logic.PL.Theory

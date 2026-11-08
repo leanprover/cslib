@@ -87,20 +87,48 @@ variable {A B : Proposition Atom}
 
 end
 
+section Monad
+
+omit [DecidableEq Atom]
+
+variable {Atom Atom' Atom'' : Type*} {f : Atom → Proposition Atom'}
+  {f' : Atom' → Proposition Atom''} {A B : Proposition Atom}
+
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/
-def Proposition.subst {Atom Atom' : Type*} (f : Atom → Proposition Atom') :
-    Proposition Atom → Proposition Atom'
+def Proposition.subst (f : Atom → Proposition Atom') : Proposition Atom → Proposition Atom'
   | atom x => f x
   | bot => bot
   | and A B => (A.subst f) ∧ (B.subst f)
   | or A B => (A.subst f) ∨ (B.subst f)
   | imp A B => (A.subst f) → (B.subst f)
 
--- This is probably a lawful monad, but that doesn't seem to be important.
+@[simp] lemma Proposition.atom_subst {x : Atom} : (atom x).subst f = f x := rfl
+@[simp] lemma Proposition.bot_subst : (⊥ : Proposition Atom).subst f = ⊥ := rfl
+@[simp] lemma Proposition.and_subst : (A ∧ B).subst f = (A.subst f ∧ B.subst f) := rfl
+@[simp] lemma Proposition.or_subst : (A ∨ B).subst f = (A.subst f ∨ B.subst f) := rfl
+@[simp] lemma Proposition.imp_subst : (A → B).subst f = (A.subst f → B.subst f) := rfl
+
+@[simp] lemma Proposition.subst_atom (A : Proposition Atom) : A.subst atom = A := by
+  induction A <;> simp_all
+
+@[simp] lemma Proposition.subst_assoc :
+    (A.subst f).subst f' = A.subst (f · |>.subst f') := by
+  induction A <;> simp_all
+
 instance : Monad Proposition where
   pure := .atom
   bind A f := A.subst f
+
+instance : LawfulMonad Proposition := by
+  apply LawfulMonad.mk'
+  case id_map => simp [Functor.map]
+  case bind_assoc => simp [Bind.bind]
+  all_goals
+    intro _ _ _ _
+    rfl
+
+end Monad
 
 /-- Theories are arbitrary sets of propositions. -/
 abbrev Theory (Atom) := Set (Proposition Atom)

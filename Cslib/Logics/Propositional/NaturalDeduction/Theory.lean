@@ -5,7 +5,7 @@ Authors: Thomas Waring
 -/
 module
 
-public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Cslib.Logics.Propositional.NaturalDeduction.Lemmas
 
 /-! # Results on propositional theories
 
@@ -23,7 +23,8 @@ namespace Cslib.Logic.PL
 
 open Proposition Theory InferenceSystem DerivableIn Derivation IsIntuitionistic IsClassical
 
-variable {Atom : Type u} [DecidableEq Atom] {T : Theory Atom}
+variable {Atom Atom' Atom'' : Type*} [DecidableEq Atom] [DecidableEq Atom'] [DecidableEq Atom'']
+  {T : Theory Atom} {T' : Theory Atom'} {T'' : Theory Atom''}
 
 namespace Theory
 
@@ -86,14 +87,7 @@ def IsClassical.imp_equiv_or_not [IsClassical Atom T] (A B : Proposition Atom) :
     · refine orI₁ <| implE (A := A) ?_ ?_
       all_goals exact (ass <| by grind)
     · exact orI₂ <| ass (by grind)
-  mpr := by
-    apply implI
-    apply orE (A := B) (B := ¬ A) (ass <| by grind) (ass <| by grind)
-    apply IsIntuitionistic.contra A B
-    all_goals grind
-
-theorem IsClassical.imp_equiv_or_not' [IsClassical Atom T] (A B : Proposition Atom) :
-    (A → B) ≡[T] B ∨ ¬ A := ⟨imp_equiv_or_not A B⟩
+  mpr := imp_of_or_not (Γ := ∅)
 
 /-- The axiom system consisting of instances of LEM. -/
 def LEM (Atom : Type u) : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
@@ -123,5 +117,41 @@ instance instIsClassicalPierce : IsClassical Atom (Pierce Atom : Theory Atom) wh
     apply implI
     apply implE (A := ⊥) (derBotImpCtx _ A)
     apply implE (A := ¬ A) <;> exact ass (by grind)
+
+structure Embedding (T : Theory Atom) (T' : Theory Atom') : Type _ where
+  f : Atom → Proposition Atom'
+  derSubstOfMem {A : Proposition Atom} (hA : A ∈ T) : T'⇓(A.subst f)
+
+def Derivation.mapEmbedding (e : T.Embedding T') {Γ : Ctx Atom} {A : Proposition Atom} :
+    T.Derivation Γ A → T'.Derivation (Γ.subst e.f) (A.subst e.f)
+  | ax hA => (e.derSubstOfMem hA).weakCtx (by simp)
+  | ass hA => ass <| Finset.mem_image_of_mem _ hA
+  | efq _ D => (D.mapEmbedding e).efq (A.subst e.f)
+  | andI D D' => (D.mapEmbedding e).andI (D'.mapEmbedding e)
+  | andE₁ D => (D.mapEmbedding e).andE₁
+  | andE₂ D => (D.mapEmbedding e).andE₂
+  | orI₁ D => (D.mapEmbedding e).orI₁
+  | orI₂ D => (D.mapEmbedding e).orI₂
+  | @orE _ _ _ Γ A B C D DA DB =>
+    (D.mapEmbedding e).orE
+      ((DA.mapEmbedding e).weakCtx (Finset.image_insert (·.subst e.f) A Γ).subset)
+      ((DB.mapEmbedding e).weakCtx (Finset.image_insert (·.subst e.f) B Γ).subset)
+  | @implI _ _ _ A B Γ D =>
+      implI (Γ.subst e.f) <| (D.mapEmbedding e).weakCtx <|
+        (Finset.image_insert (·.subst e.f) A Γ).subset
+  | implE D D' => (D.mapEmbedding e).implE (D'.mapEmbedding e)
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.map_embedding (e : T.Embedding T')
+    {Γ : Ctx Atom} {A : Proposition Atom} (h : DerivableIn T (Γ ⊢ A)) :
+    DerivableIn T' (Γ.subst e.f ⊢ A.subst e.f) :=
+  ⟨h.some.mapEmbedding e⟩
+
+def Embedding.refl (T : Theory Atom) : T.Embedding T where
+  f := atom
+  derSubstOfMem hA := ax (by simpa)
+
+def Embedding.trans (e : T.Embedding T') (e' : T'.Embedding T'') : T.Embedding T'' where
+  f x := (e.f x).subst e'.f
+  derSubstOfMem hA := subst_assoc ▸ ((e.derSubstOfMem hA).mapEmbedding e')
 
 end Cslib.Logic.PL.Theory

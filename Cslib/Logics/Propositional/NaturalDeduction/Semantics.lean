@@ -5,7 +5,7 @@ Authors: Thomas Waring
 -/
 module
 
-public import Cslib.Logics.Propositional.NaturalDeduction.Lemmas
+public import Cslib.Logics.Propositional.NaturalDeduction.Theory
 public import Mathlib.Order.Heyting.Basic
 
 /-!-/
@@ -94,17 +94,14 @@ namespace Theory
 
 def Lindenbaum (T : Theory Atom) := Quotient T.propositionSetoid
 
-instance Lindenbaum.partialOrder : PartialOrder T.Lindenbaum where
+instance Lindenbaum.heytingAlgebra : HeytingAlgebra T.Lindenbaum where
   le := Quotient.lift₂ (fun A B ↦ DerivableIn T ({A} ⊢ B)) <| by
     intro A B A' B' (eA : A ≡[T] A') (eB : B ≡[T] B')
-    ext
-    exact (equiv_iff_equiv_derivableIn.mp eB {A}).trans <|
-      equiv_iff_equiv_derivableIn_hypothesis.mp eA ∅ B'
+    rw [← Finset.insert_empty, ← Finset.insert_empty, equiv_iff_equiv_derivableIn.mp eB.symm,
+      equiv_iff_equiv_derivableIn_hypothesis.mp eA ∅ B]
   le_refl := Quotient.ind fun A ↦ ⟨refl A⟩
   le_trans := Quotient.ind₂ fun _ _ ↦ Quotient.ind fun _ ↦ DerivableIn.trans
   le_antisymm := Quotient.ind₂ fun _ _ h h' ↦ Quotient.sound ⟨h.some, h'.some⟩
-
-instance Lindenbaum.lattice : Lattice T.Lindenbaum where
   inf := Quotient.map₂ (· ∧ ·) fun _ _ hA _ _ hB ↦ hA.and hB
   inf_le_left := Quotient.ind₂ fun A B ↦ ⟨leftOfAnd A B⟩
   inf_le_right := Quotient.ind₂ fun A B ↦ ⟨rightOfAnd A B⟩
@@ -114,14 +111,10 @@ instance Lindenbaum.lattice : Lattice T.Lindenbaum where
   le_sup_right := Quotient.ind₂ fun A B ↦ ⟨orOfRight A B⟩
   sup_le := Quotient.ind₂ fun A B ↦ Quotient.ind fun _ ⟨D⟩ ⟨D'⟩ ↦
     ⟨(Derivation.refl <| A ∨ B).orE (D.weakCtx (by grind)) (D'.weakCtx (by grind))⟩
-
-instance Lindenbaum.boundedOrder : BoundedOrder T.Lindenbaum where
   bot := ⟦⊥⟧
   bot_le := Quotient.ind fun A ↦ ⟨efqRule {⊥} A <| .refl ⊥⟩
   top := ⟦⊤⟧
   le_top := Quotient.ind fun _ ↦ ⟨derivationTop.weakCtx <| by simp⟩
-
-instance Lindenbaum.heytingAlgebra : HeytingAlgebra T.Lindenbaum where
   himp := Quotient.map₂ (· → ·) fun _ _ hA _ _ hB ↦ hA.imp hB
   le_himp_iff := Quotient.ind₂ fun _ _ ↦ Quotient.ind fun _ ↦
     DerivableIn.imp_iff_insert_and (Γ := ∅)
@@ -133,7 +126,7 @@ instance Lidenbaum.booleanAlgebra [hT : IsClassical Atom T] : BooleanAlgebra T.L
   bot_le _ := bot_le
   inf_compl_le_bot _ := inf_compl_eq_bot.le
   top_le_sup_compl := Quotient.ind fun A ↦ ⟨(hT.lem A).weakCtx (by simp)⟩
-  himp_eq := Quotient.ind₂ fun A B ↦ Quotient.sound (imp_equiv_or_not' A B)
+  himp_eq := Quotient.ind₂ fun A B ↦ Quotient.sound ⟨imp_equiv_or_not A B⟩
 
 def val : Valuation Atom T.Lindenbaum := fun x ↦ ⟦atom x⟧
 
