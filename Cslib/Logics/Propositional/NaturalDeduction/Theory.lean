@@ -152,6 +152,18 @@ def Embedding.refl (T : Theory Atom) : T.Embedding T where
 
 def Embedding.trans (e : T.Embedding T') (e' : T'.Embedding T'') : T.Embedding T'' where
   f x := (e.f x).subst e'.f
-  derSubstOfMem hA := subst_assoc ▸ ((e.derSubstOfMem hA).mapEmbedding e')
+  derSubstOfMem hA := subst_assoc ▸ (e.derSubstOfMem hA).mapEmbedding e'
+
+def Embedding.ofSubset {T₁ T₂ : Theory Atom} (h : T₁ ⊆ T₂) : T₁.Embedding T₂ where
+  f := atom
+  derSubstOfMem hA := ax <| by simpa using h hA
+
+def WeakerThan (T₁ T₂ : Theory Atom) : Prop := Nonempty (T₁.Embedding T₂)
+
+instance : IsPreorder (Theory Atom) WeakerThan where
+  refl A := ⟨.refl A⟩
+  trans _ _ _ := fun ⟨e⟩ ⟨e'⟩ ↦ ⟨e.trans e'⟩
+
+lemma WeakerThan.of_subset {T₁ T₂ : Theory Atom} (h : T₁ ⊆ T₂) : T₁.WeakerThan T₂ := ⟨.ofSubset h⟩
 
 end Cslib.Logic.PL.Theory
