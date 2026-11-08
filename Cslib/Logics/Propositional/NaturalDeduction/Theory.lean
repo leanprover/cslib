@@ -74,13 +74,6 @@ def IsClassical.byCases [hT : IsClassical Atom T] {Γ : Ctx Atom} {A B : Proposi
     (D : T⇓(insert A Γ ⊢ B)) (D' : T⇓(insert (¬A) Γ ⊢ B)) : T⇓(Γ ⊢ B) :=
   (hT.lem A).weakCtx (Finset.empty_subset Γ) |>.orE D D'
 
-/-- Pierce's law in a classical theory. -/
-def IsClassical.pierce [IsClassical Atom T] (A B : Proposition Atom) : T⇓(((A → B) → A) → A) := by
-  apply implI; apply byContra
-  apply implE (ass <| Finset.mem_insert_self ..)
-  apply implE (A := A → B) (ass <| by grind); apply implI
-  apply contra A B <;> grind
-
 def IsClassical.imp_equiv_or_not [IsClassical Atom T] (A B : Proposition Atom) :
     T.equiv (A → B) (B ∨ ¬ A) where
   mp := by
@@ -89,6 +82,23 @@ def IsClassical.imp_equiv_or_not [IsClassical Atom T] (A B : Proposition Atom) :
       all_goals exact (ass <| by grind)
     · exact orI₂ <| ass (by grind)
   mpr := imp_of_or_not (Γ := ∅)
+
+def IsClassical.not_and_equiv_or_not [IsClassical Atom T] (A B : Proposition Atom) :
+    T.equiv (¬ (A ∧ B)) (¬ A ∨ ¬ B) where
+  mp := by
+    apply byContra; apply implE (A := A ∧ B) (ass <| by grind); apply andI
+    · apply byContra (A := A); apply implE (A := ¬ A ∨ ¬ B) (ass <| by grind)
+      exact orI₁ <| ass (by grind)
+    · apply byContra (A := B); apply implE (A := ¬ A ∨ ¬ B) (ass <| by grind)
+      exact orI₂ <| ass (by grind)
+  mpr := not_and_of_or_not
+
+/-- Pierce's law in a classical theory. -/
+def IsClassical.pierce [IsClassical Atom T] (A B : Proposition Atom) : T⇓(((A → B) → A) → A) := by
+  apply implI; apply byContra
+  apply implE (ass <| Finset.mem_insert_self ..)
+  apply implE (A := A → B) (ass <| by grind); apply implI
+  apply contra A B <;> grind
 
 /-- The axiom system consisting of instances of LEM. -/
 def LEM (Atom : Type u) : Theory Atom := {A ∨ ¬ A | A : Proposition Atom}
@@ -188,7 +198,9 @@ instance : IsPreorder (Theory Atom) WeakerThan where
 lemma WeakerThan.of_subset {T₁ T₂ : Theory Atom} (h : T₁ ⊆ T₂) : T₁.WeakerThan T₂ :=
   fun _ hA ↦ ⟨ax <| h hA⟩
 
-instance : Setoid (Theory Atom) := AntisymmRel.setoid _ WeakerThan
+instance weakerThanSetoid : Setoid (Theory Atom) := AntisymmRel.setoid _ WeakerThan
+
+lemma equiv_theory_def : T₁ ≈ T₂ ↔ T₁.WeakerThan T₂ ∧ T₂.WeakerThan T₁ := .rfl
 
 @[simp] lemma equiv_theory_iff :
     T₁ ≈ T₂ ↔ ∀ A : Proposition Atom, DerivableIn T₁ A ↔ DerivableIn T₂ A := by
@@ -207,25 +219,46 @@ lemma saturated_iff_derivableIn_iff : T.Saturated ↔ ∀ A, DerivableIn T A ↔
 
 @[simp] alias ⟨Saturated.derivableIn_iff, _⟩ := saturated_iff_derivableIn_iff
 
+lemma Saturated.weakerThan_iff (h : T₂.Saturated) : T₁.WeakerThan T₂ ↔ T₁ ⊆ T₂ := by
+  simp_rw [WeakerThan, h.derivableIn_iff, Set.subset_def]
+
 def saturation (T : Theory Atom) : Theory Atom := {A : Proposition Atom | DerivableIn T A}
 
 @[simp] lemma mem_saturation_iff : A ∈ T.saturation ↔ DerivableIn T A := .rfl
 
-lemma self_subset_saturation : T ⊆ T.saturation := fun _ hA ↦ ⟨ax hA⟩
+lemma saturated_iff_saturation_subset_self : T.Saturated ↔ T.saturation ⊆ T := .rfl
 
-lemma saturation_weakerThan_self : T.saturation.WeakerThan T := fun _ hA ↦ hA
+lemma subset_saturation_iff : T₁ ⊆ T₂.saturation ↔ T₁.WeakerThan T₂ := .rfl
+
+lemma saturation_weakerThan_iff : T₁.saturation.WeakerThan T₂ ↔ T₁.WeakerThan T₂ := by
+  rw [WeakerThan, weakerThan_iff_forall_derivableIn]; rfl
+
+lemma saturation_subset_saturation_iff : T₁.saturation ⊆ T₂.saturation ↔ T₁.WeakerThan T₂ :=
+  subset_saturation_iff.trans saturation_weakerThan_iff
+
+lemma self_subset_saturation : T ⊆ T.saturation := subset_saturation_iff.mpr (refl T)
+
+lemma saturation_weakerThan_self : T.saturation.WeakerThan T :=
+  saturation_weakerThan_iff.mpr (refl T)
 
 lemma self_equiv_saturation (T : Theory Atom) : T ≈ T.saturation :=
   ⟨.of_subset self_subset_saturation, saturation_weakerThan_self⟩
 
+lemma equiv_iff_saturation_eq : T₁ ≈ T₂ ↔ T₁.saturation = T₂.saturation := by
+  simp_rw [Set.Subset.antisymm_iff, saturation_subset_saturation_iff, equiv_theory_def]
+
+lemma Saturated.equiv_iff (h₁ : T₁.Saturated) (h₂ : T₂.Saturated) : T₁ ≈ T₂ ↔ T₁ = T₂ := by
+  simp_rw [equiv_theory_iff, h₁.derivableIn_iff, h₂.derivableIn_iff, Set.ext_iff]
+
 @[simp] lemma derivableIn_saturation_iff : DerivableIn T.saturation A ↔ DerivableIn T A :=
     (self_equiv_saturation T).derivableIn_iff A |>.symm
 
-lemma saturated_saturation : T.saturation.Saturated := by simp [Saturated, mem_saturation_iff]
+lemma saturated_saturation : T.saturation.Saturated := by simp [Saturated]
 
-lemma Saturated.saturation_eq (h : T.Saturated) : T.saturation = T := by
-  ext; simp [h.derivableIn_iff]
+lemma Saturated.saturation_eq (h : T.Saturated) : T.saturation = T :=
+  (saturated_saturation.equiv_iff h).mp (self_equiv_saturation T).symm
 
-lemma saturation_idem : T.saturation.saturation = T.saturation := saturated_saturation.saturation_eq
+lemma saturation_idem : T.saturation.saturation = T.saturation :=
+  saturated_saturation.saturation_eq
 
 end Cslib.Logic.PL.Theory

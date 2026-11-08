@@ -108,12 +108,6 @@ def Derivation.uncurry (D : T⇓(insert (A ∧ B) Γ ⊢ C)) : T⇓(insert A Γ 
   obtain rfl : D = (A ∧ B) := Finset.mem_singleton.mp h
   exact (ass <| by grind).andI (ass <| by grind)
 
-def Derivation.imp_of_or_not : T⇓(insert (B ∨ ¬ A) Γ ⊢ A → B) := by
-  apply implI
-  apply orE (A := B) (B := ¬ A) (ass <| by grind) (ass <| by grind)
-  apply efq; apply implE (A := A)
-  all_goals exact ass (by grind)
-
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.imp_iff_insert_and :
     DerivableIn T (insert A Γ ⊢ B → C) ↔ DerivableIn T (insert (A ∧ B) Γ ⊢ C) :=
   ⟨fun ⟨D⟩ ↦ ⟨D.curry⟩, fun ⟨D⟩ ↦ ⟨D.uncurry⟩⟩
@@ -134,5 +128,33 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.toFinset_union_iff
     {Γ : List (Proposition Atom)} {Δ : Ctx Atom} {A : Proposition Atom} :
     DerivableIn T ((Γ.toFinset ∪ Δ) ⊢ A) ↔ DerivableIn T (Δ ⊢ Γ.foldl (fun B C ↦ C → B) A) :=
   ⟨fun h ↦ h.some.curryList, fun h ↦ h.some.uncurryList⟩
+
+def Derivation.imp_of_or_not : T⇓(insert (B ∨ ¬ A) Γ ⊢ A → B) := by
+  apply implI
+  apply orE (A := B) (B := ¬ A) (ass <| by grind) (ass <| by grind)
+  apply efq; apply implE (A := A)
+  all_goals exact ass (by grind)
+
+def not_or_equiv_and_not : T.equiv (¬ (A ∨ B)) (¬ A ∧ ¬ B) where
+  mp := by
+    apply andI <;> apply implI <;> apply implE (A := A ∨ B) (ass <| by grind)
+    · exact orI₁ <| ass (by grind)
+    · exact orI₂ <| ass (by grind)
+  mpr := by
+    apply implI; apply orE (ass <| Finset.mem_insert_self ..)
+      <;> refine implE ?_ (ass <| Finset.mem_insert_self ..)
+    · apply andE₁ (B := ¬ B)
+      exact ass <| by grind
+    · apply andE₂ (A := ¬ A)
+      exact ass <| by grind
+
+def not_and_of_or_not : T⇓({¬ A ∨ ¬ B} ⊢ ¬ (A ∧ B)) := by
+  apply orE (ass <| Finset.mem_insert_self _ ∅) <;> apply implI
+  · apply implE (A := A) (ass <| by grind)
+    apply andE₁ (B := B)
+    exact ass (by grind)
+  · apply implE (A := B) (ass <| by grind)
+    apply andE₂ (A := A)
+    exact ass (by grind)
 
 end Cslib.Logic.PL.Theory
