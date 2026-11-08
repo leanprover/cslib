@@ -109,10 +109,10 @@ inductive Theory.Derivation {T : Theory Atom} : Ctx Atom → Proposition Atom �
   | orE {Γ : Ctx Atom} {A B C : Proposition Atom} : Derivation Γ (A ∨ B) →
       Derivation (insert A Γ) C → Derivation (insert B Γ) C → Derivation Γ C
   /-- Implication introduction -/
-  | implI {A B : Proposition Atom} (Γ : Ctx Atom) :
+  | impI {A B : Proposition Atom} (Γ : Ctx Atom) :
       Derivation (insert A Γ) B → Derivation Γ (A → B)
   /-- Implication elimination -/
-  | implE {Γ : Ctx Atom} {A B : Proposition Atom} :
+  | impE {Γ : Ctx Atom} {A B : Proposition Atom} :
       Derivation Γ (A → B) → Derivation Γ A → Derivation Γ B
 
 /-- Inference system for derivations under the theory `T`. -/
@@ -185,8 +185,8 @@ def Theory.Derivation.weak {T T' : Theory Atom} {Γ Δ : Ctx Atom} {A : Proposit
     orE (D.weak hTheory hCtx)
       (D'.weak hTheory <| Finset.insert_subset_insert _ hCtx)
       (D''.weak hTheory <| Finset.insert_subset_insert _ hCtx)
-  | @implI _ _ _ A B Γ D => implI (Δ) <| D.weak hTheory <| Finset.insert_subset_insert _ hCtx
-  | implE D D' => implE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
+  | @impI _ _ _ A B Γ D => impI (Δ) <| D.weak hTheory <| Finset.insert_subset_insert _ hCtx
+  | impE D D' => impE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
 
 /-- Weakening the theory only. -/
 def Theory.Derivation.weakTheory {T T' : Theory Atom} {Γ : Ctx Atom} {A : Proposition Atom}
@@ -220,9 +220,9 @@ substitution, which would replace appeals to `A` in `E` by the whole derivation 
 -/
 def Theory.Derivation.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
     (D : T⇓(Γ ⊢ A)) (E : T⇓(insert A Δ ⊢ B)) : T⇓((Γ ∪ Δ) ⊢ B) := by
-  refine implE (A := A) ?_ (D.weakCtx Finset.subset_union_left)
+  refine impE (A := A) ?_ (D.weakCtx Finset.subset_union_left)
   have : insert A Δ ⊆ insert A (Γ ∪ Δ) := by grind
-  exact implI (Γ ∪ Δ) <| E.weakCtx this
+  exact impI (Γ ∪ Δ) <| E.weakCtx this
 
 /-- Proof irrelevant cut rule. -/
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.cut {Γ Δ : Ctx Atom}
@@ -269,11 +269,11 @@ def Theory.Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
       exact E'.subs Ds |>.weakCtx (by grind)
     · rw [show insert C' (Γ \ Γ' ∪ Δ) = (insert C' Γ \ Γ') ∪ insert C' Δ by grind]
       exact E''.subs Ds |>.weakCtx (by grind)
-  | @implI _ _ _ A' _ _ E .. => by
-    apply implI
+  | @impI _ _ _ A' _ _ E .. => by
+    apply impI
     rw [show insert A' (Γ \ Γ' ∪ Δ) = (insert A' Γ \ Γ') ∪ insert A' Δ by grind]
     exact E.subs Ds |>.weakCtx (by grind)
-  | implE E E' => implE (E.subs Ds) (E'.subs Ds)
+  | impE E E' => impE (E.subs Ds) (E'.subs Ds)
 
 /-- Transport a derivation along a substitution of atoms. -/
 def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [DecidableEq Atom']
@@ -290,8 +290,8 @@ def Theory.Derivation.substAtom {Atom Atom' : Type u} [DecidableEq Atom] [Decida
   | orE D E E' => orE (D.substAtom f)
     ((Finset.image_insert (· >>= f) _ _) ▸ E.substAtom f)
     ((Finset.image_insert (· >>= f) _ _) ▸ E'.substAtom f)
-  | implI _ D => implI _ <| (Finset.image_insert (· >>= f) _ _) ▸ (D.substAtom f)
-  | implE D E => implE (D.substAtom f) (E.substAtom f)
+  | impI _ D => impI _ <| (Finset.image_insert (· >>= f) _ _) ▸ (D.substAtom f)
+  | impE D E => impE (D.substAtom f) (E.substAtom f)
 
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.substAtom {Atom Atom' : Type u}
     [DecidableEq Atom] [DecidableEq Atom'] {T : Theory Atom}
@@ -303,7 +303,7 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.substAtom {Atom Atom' : T
 
 /-- A derivation of the canonical tautology. -/
 def Theory.derivationTop : T⇓(⊤ : Proposition Atom) :=
-  implI ∅ <| ass <| by grind
+  impI ∅ <| ass <| by grind
 
 theorem derivableIn_top : DerivableIn T (⊤ : Proposition Atom) := ⟨derivationTop⟩
 

@@ -28,7 +28,7 @@ variable {Atom : Type u} [DecidableEq Atom] {T : Theory Atom}
 namespace Theory
 
 instance instIsIntuitionisticTheory : IsIntuitionistic Atom T where
-  derBotImp A := (ass (Finset.mem_insert_self ⊥ ∅)).efq A |>.implI
+  derBotImp A := (ass (Finset.mem_insert_self ⊥ ∅)).efq A |>.impI
 
 /-- Derivation of efq in an arbitrary context. -/
 def IsIntuitionistic.derBotImpCtx [IsIntuitionistic Atom T] (Γ : Ctx Atom) (A : Proposition Atom)
@@ -37,12 +37,12 @@ def IsIntuitionistic.derBotImpCtx [IsIntuitionistic Atom T] (Γ : Ctx Atom) (A :
 /-- Efq as a derived rule. -/
 def IsIntuitionistic.efqRule [IsIntuitionistic Atom T] (Γ : Ctx Atom) (A : Proposition Atom)
     (D : T⇓(Γ ⊢ ⊥)) : T⇓(Γ ⊢ A) :=
-  implE (A := ⊥) (derBotImpCtx Γ A) D
+  impE (A := ⊥) (derBotImpCtx Γ A) D
 
 /-- Prove any proposition from contradictory hypotheses. -/
 def IsIntuitionistic.contra [IsIntuitionistic Atom T] {Γ : Ctx Atom} (A B : Proposition Atom)
     (hΓ : A ∈ Γ) (hΓ' : (¬A) ∈ Γ) : T⇓(Γ ⊢ B) :=
-  efqRule Γ B <| implE (ass hΓ') (ass hΓ)
+  efqRule Γ B <| impE (ass hΓ') (ass hΓ)
 
 instance instIsClassicalCPL : IsClassical Atom (CPL Atom) where
   dne A := ax (dne_mem_cpl A)
@@ -50,21 +50,21 @@ instance instIsClassicalCPL : IsClassical Atom (CPL Atom) where
 /-- Proof by contradiction as a derived rule. -/
 def IsClassical.byContra [IsClassical Atom T] {Γ : Ctx Atom} {A : Proposition Atom}
     (D : T⇓(insert (¬ A) Γ ⊢ ⊥)) : T⇓(Γ ⊢ A) :=
-  implE (A := ¬¬A) ((dne A : T⇓(¬¬A → A)) |>.weakCtx <| Finset.empty_subset ..) D.implI
+  impE (A := ¬¬A) ((dne A : T⇓(¬¬A → A)) |>.weakCtx <| Finset.empty_subset ..) D.impI
 
 /-- Law of excluded middle in a classical theory. -/
 def IsClassical.lem [IsClassical Atom T] (A : Proposition Atom) : T⇓(A ∨ ¬ A) := by
   apply byContra
-  apply implE (ass <| Finset.mem_insert_self ..)
-  apply orI₂; apply implI
-  apply implE (A := A ∨ ¬ A) (ass <| by grind)
+  apply impE (ass <| Finset.mem_insert_self ..)
+  apply orI₂; apply impI
+  apply impE (A := A ∨ ¬ A) (ass <| by grind)
   exact orI₁ <| ass <| Finset.mem_insert_self ..
 
 /-- Pierce's law in a classical theory. -/
 def IsClassical.pierce [IsClassical Atom T] (A B : Proposition Atom) : T⇓(((A → B) → A) → A) := by
-  apply implI; apply byContra
-  apply implE (ass <| Finset.mem_insert_self ..)
-  apply implE (A := A → B) (ass <| by grind); apply implI
+  apply impI; apply byContra
+  apply impE (ass <| Finset.mem_insert_self ..)
+  apply impE (A := A → B) (ass <| by grind); apply impI
   apply contra A B <;> grind
 
 /-- The axiom system consisting of instances of LEM. -/
@@ -82,18 +82,18 @@ lemma pierce_mem_pierce (A B : Proposition Atom) : (((A → B) → A) → A) ∈
 
 instance instIsClassicalLEM : IsClassical Atom (LEM Atom : Theory Atom) where
   dne A := by
-    apply implI
+    apply impI
     apply orE (ax <| lem_mem_lem A)
     · exact ass (Finset.mem_insert_self A _)
-    · apply implE (A := ⊥) (derBotImpCtx _ A)
-      apply implE (A := ¬ A) <;> exact ass (by grind)
+    · apply impE (A := ⊥) (derBotImpCtx _ A)
+      apply impE (A := ¬ A) <;> exact ass (by grind)
 
 instance instIsClassicalPierce : IsClassical Atom (Pierce Atom : Theory Atom) where
   dne A := by
-    apply implI
-    apply implE (A := (A → ⊥) → A) (ax <| pierce_mem_pierce A ⊥)
-    apply implI
-    apply implE (A := ⊥) (derBotImpCtx _ A)
-    apply implE (A := ¬ A) <;> exact ass (by grind)
+    apply impI
+    apply impE (A := (A → ⊥) → A) (ax <| pierce_mem_pierce A ⊥)
+    apply impI
+    apply impE (A := ⊥) (derBotImpCtx _ A)
+    apply impE (A := ¬ A) <;> exact ass (by grind)
 
 end Cslib.Logic.PL.Theory
