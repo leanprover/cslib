@@ -142,7 +142,9 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.nd₁_iff_derivableIn_nd_
 
 /-- An equivalence between A and B is a derivation of B from A and vice-versa. -/
 structure equiv (T : Set (Proposition Atom)) (A B : Proposition Atom) where
+  /-- The forward direction of the equivalence. -/
   mp : (ND T)⇓({A} ⊢ B)
+  /-- The reverse direction of the equivalence. -/
   mpr : (ND T)⇓({B} ⊢ A)
 
 /-- `A` and `B` are T-equivalent if `T.equiv A B` is nonempty. -/
