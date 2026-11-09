@@ -7,7 +7,7 @@ module
 
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
 
-/-! # Results on propositional theories
+/-! # Auxilliary results on natural deduction
 
 In this file we prove the expected results that `ND₁ T` is always intuitionistic, and that various
 axiomatisations of classical logic (`CPL Atom` using double-negation elimination, `LEM Atom` using
