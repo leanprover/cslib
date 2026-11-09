@@ -94,6 +94,7 @@ public lemma partialInv_embed (e : Fin k ↪ Fin k') (j : Fin k) : partialInv e 
   (partialInv_isPartialInv e).eq j
 
 /-- Outside the range of `e`, the partial inverse is undefined. -/
+@[simp]
 public lemma partialInv_eq_none (e : Fin k ↪ Fin k') {l : Fin k'} (hl : l ∉ Set.range e) :
     partialInv e l = none :=
   dite_eq_right hl
@@ -236,11 +237,6 @@ variable {k : ℕ}
 
 /-- The embedding of a machine without work tapes into a machine with `k` of them. -/
 @[expose] public def noTapes (k : ℕ) : Fin 0 ↪ Fin k := ⟨Fin.elim0, fun a => a.elim0⟩
-
-/-- No tape is in the range of `noTapes`. -/
-@[simp]
-public lemma partialInv_noTapes (l : Fin k) : partialInv (noTapes k) l = none :=
-  partialInv_eq_none _ (by simp)
 
 /-- The view of a configuration as a configuration of a machine without work tapes. -/
 @[expose] public def noTapesCfg (cfg : Cfg k Symbol State input) : Cfg 0 Symbol State input :=
