@@ -22,9 +22,6 @@ A coproduct combines the effects of two monads: computations from either monad c
 included and sequenced in the coproduct using `do` notation. A pair of monad morphisms
 interpreting the component effects determines a unique interpretation of the combined effects.
 
-The constructions `IsMonadCoproduct.unitLeft` and `IsMonadCoproduct.unitRight` exhibit
-every lawful monad as a coproduct with the identity monad, on either side.
-
 ## References
 
 * [Jiří Adámek, Nathan Bowler, Paul B. Levy, Stefan Milius,
