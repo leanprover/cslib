@@ -17,14 +17,12 @@ public import Mathlib.Order.TypeTags
 ## Main definitions
 
 - `Proposition` : the type of propositions over a given type of atom.
-- `Theory` : set of `Proposition`.
-- `IsIntuitionistic` : a theory is intuitionistic, with respect to some inference system, if it
+- `IsIntuitionistic` : an inference system on `Proposition Atom` is intuitionistic if it
 derives the principle of explosion.
-- `IsClassical` : a theory is classical if it derives double negation elimination.
+- `IsClassical` : an inference is classical if it derives double negation elimination.
 - `Proposition.subst` : replace `atom x` in a `A : Proposition Atom` with `f x`, for a function
   `f : Atom → Proposition Atom'`. This induces a monad structure on `Proposition`, with
-  `pure := Proposition.atom`. `Theory` is a functor, by mapping each proposition `A ∈ T` to
-  `f <$> A`.
+  `pure := Proposition.atom`.
 
 ## Notation
 
@@ -50,7 +48,7 @@ inductive Proposition (Atom : Type u) : Type u where
   /-- Propositional atoms -/
   | atom (x : Atom)
   /-- Falsum. -/
-  | bot
+  | falsum
   /-- Conjunction -/
   | and (a b : Proposition Atom)
   /-- Disjunction -/
@@ -59,14 +57,14 @@ inductive Proposition (Atom : Type u) : Type u where
   | imp (a b : Proposition Atom)
 deriving DecidableEq
 
-instance instBotProposition : Bot (Proposition Atom) := ⟨.bot⟩
+instance instBotProposition : Bot (Proposition Atom) := ⟨.falsum⟩
 /-- We view negation as a defined connective ~A := A → ⊥ -/
 abbrev Proposition.neg : Proposition Atom → Proposition Atom := (Proposition.imp · ⊥)
 
 /-- A fixed choice of a derivable proposition (of course any two are equivalent). -/
-abbrev Proposition.top : Proposition Atom := imp ⊥ ⊥
+abbrev Proposition.verum : Proposition Atom := imp ⊥ ⊥
 
-instance instTopProposition : Top (Proposition Atom) := ⟨.top⟩
+instance instTopProposition : Top (Proposition Atom) := ⟨.verum⟩
 
 instance : HasAnd (Proposition Atom) := ⟨.and⟩
 instance : HasOr (Proposition Atom) := ⟨.or⟩
@@ -82,7 +80,7 @@ language. -/
 def Proposition.subst {Atom Atom' : Type*} (f : Atom → Proposition Atom') :
     Proposition Atom → Proposition Atom'
   | atom x => f x
-  | bot => bot
+  | falsum => falsum
   | and A B => (A.subst f) ∧ (B.subst f)
   | or A B => (A.subst f) ∨ (B.subst f)
   | imp A B => (A.subst f) → (B.subst f)
@@ -92,23 +90,11 @@ instance : Monad Proposition where
   pure := .atom
   bind A f := A.subst f
 
-/-- Theories are arbitrary sets of propositions. -/
-abbrev Theory (Atom) := Set (Proposition Atom)
-
-namespace Theory
-
-/-- Extend a substitution from `Proposition` to `Theory`. -/
-protected def subst {Atom Atom' : Type*} (T : Theory Atom) (f : Atom → Proposition Atom') :
-    Theory Atom' := T.image (·.subst f)
-
-instance : Functor Theory where
-  map f := Set.image (f <$> ·)
-
-/-- The empty theory corresponds to intuitionistic propositional logic. -/
-abbrev IPL (Atom : Type u) : Theory (Atom) := ∅
+/-- The empty collection of axioms corresponds to intuitionistic propositional logic. -/
+abbrev IPL (Atom : Type u) : Set (Proposition Atom) := ∅
 
 /-- Classical logic adds double negation elimination. -/
-abbrev CPL (Atom : Type u) : Theory Atom := {¬¬A → A | A : Proposition Atom}
+abbrev CPL (Atom : Type u) : Set (Proposition Atom) := {¬¬A → A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
 lemma dne_mem_cpl (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
@@ -129,4 +115,4 @@ class IsClassical (Atom : Type u) (S : Type*) [InferenceSystem S (Proposition At
   /-- Double-negation elimination. -/
   dne (A : Proposition Atom) : S⇓(¬¬A → A)
 
-end Cslib.Logic.PL.Theory
+end Cslib.Logic.PL
