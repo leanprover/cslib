@@ -34,6 +34,62 @@ noncomputable def concatenate (tm₁ : MultiTapeTM k₁ Symbol State₁)
     ((rewindInput Symbol).extendTapes (noTapes (k₁ + k₂)))).seq
       (tm₂.extendTapes (Fin.natAddEmb k₁))
 
+namespace Concatenate
+
+/-- Run the first machine on the combined tape set, modifying only on the first tapes. -/
+private theorem first_phase {tm : MultiTapeTM k₁ Symbol State₁} {input : List Symbol}
+    (p : tm.RunPath input) (hh : p.head = tm.initCfg input) (halt : p.last.Halted) :
+    let q := p.map (embedHom tm (Fin.castAddEmb k₂) (fun _ _ => none) (fun _ => 0))
+    q.head = (tm.extendTapes (Fin.castAddEmb k₂)).initCfg input ∧ q.last.Halted ∧
+      q.last.inputPos.val ≤ 1 + p.length ∧ q.space ≤ p.space + k₂ := by
+  refine ⟨?_, halt, ?_, (space_map_embedHom_le ..).trans (by omega)⟩
+  · simp only [RelSeries.head_map, embedHom_apply, hh]
+    refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext i <;>
+      simp only [embed, MultiTapeNTM.initCfg, Cfg.init] <;>
+      cases partialInv (Fin.castAddEmb k₂) i <;> rfl
+  · change (p (Fin.last p.length)).inputPos.val ≤ _
+    rw [runPath_apply_eq_runFrom, hh]
+    exact inputPos_runFrom_le ..
+
+/-- Rewind the input while preserving the work tapes, their head positions, and the output. -/
+private theorem rewind_phase {k : ℕ} {State : Type*} {input : List Symbol}
+    (c : Cfg k Symbol State input) :
+    let r := (rewindInput Symbol).extendTapes (noTapes k)
+    ∃ p : r.RunPath input, p.head = c.withState (some r.q₀) ∧
+      p.last = ⟨none, 1, c.workTapes, c.workTapePos, c.output⟩ ∧
+      p.length = c.inputPos.val - 1 + 2 ∧ p.space ≤ k := by
+  let q := MultiTapeNTM.RunPath.ofDeterministic (rewindInput Symbol)
+    ⟨some (rewindInput Symbol).q₀, c.inputPos, nofun, nofun, c.output⟩ (c.inputPos.val - 1 + 2)
+  refine ⟨q.map (embedHom (rewindInput Symbol) (noTapes k) c.workTapes c.workTapePos),
+    ?_, ?_, rfl, ?_⟩
+  · simp only [RelSeries.head_map, embedHom_apply, embed_noTapes]
+    rfl
+  · simp only [RelSeries.last_map, embedHom_apply]
+    have hq : q.last = ⟨none, 1, nofun, nofun, c.output⟩ :=
+      runFrom_rewindInput c.inputPos nofun nofun c.output
+    rw [hq, embed_noTapes]
+  · simpa [MultiTapeNTM.RunPath.space] using
+      space_map_embedHom_le (rewindInput Symbol) (noTapes k) c.workTapes c.workTapePos q
+
+/-- Run the second machine on the combined tape set, modifying only on the second set of tapes. -/
+private theorem second_phase {tm : MultiTapeTM k₂ Symbol State₂} {input : List Symbol}
+    (c₁ : Cfg k₁ Symbol State₁ input) (p : tm.RunPath input)
+    (hh : p.head = tm.initCfg input) (halt : p.last.Halted) :
+    let c := embed (Fin.castAddEmb k₂) c₁ (fun _ _ => none) (fun _ => 0)
+    let q := (p.map (tm.prependOutputHom c₁.output)).map
+      (embedHom tm (Fin.natAddEmb k₁) c.workTapes c.workTapePos)
+    q.head = ⟨some tm.q₀, 1, c.workTapes, c.workTapePos, c₁.output⟩ ∧ q.last.Halted ∧
+      q.last.output = c₁.output ++ p.last.output ∧ q.space ≤ p.space + k₁ := by
+  refine ⟨?_, halt, rfl, (space_map_embedHom_le ..).trans (by change p.space + _ ≤ _; omega)⟩
+  simp only [RelSeries.head_map, embedHom_apply, hh, MultiTapeNTM.initCfg, Cfg.init,
+    MultiTapeNTM.prependOutputHom_apply, Cfg.prependOutput, List.append_nil, embed,
+    Cfg.mk.injEq, and_true, true_and]
+  constructor <;> funext i <;>
+    grind only [→ partialInv_eq_some, Fin.castAdd_ne_natAdd,
+      Fin.castAddEmb_apply, Fin.natAddEmb_apply]
+
+end Concatenate
+
 /-- Concatenating two computations preserves additive space bounds. Rewinding costs at most the
 first computation's time plus two steps. The space estimate adds the bounds for running the
 first machine, rewinding the input, and running the second machine. This counts some work-tape
@@ -47,53 +103,24 @@ theorem ComputesInTimeAndSpace.concatenate {tm₁ : MultiTapeTM k₁ Symbol Stat
   obtain ⟨p₁, hh₁, hhalt₁, ho₁, ht₁, hs₁⟩ := computesInTimeAndSpace_iff_exists_runPath.mp h₁
   obtain ⟨p₂, hh₂, hhalt₂, ho₂, ht₂, hs₂⟩ := computesInTimeAndSpace_iff_exists_runPath.mp h₂
   let pa := p₁.map (embedHom tm₁ (Fin.castAddEmb k₂) (fun _ _ => none) (fun _ => 0))
-  let c := pa.last
-  let pr₁ := MultiTapeNTM.RunPath.ofDeterministic (rewindInput Symbol)
-    ⟨some (rewindInput Symbol).q₀, c.inputPos, nofun, nofun, c.output⟩ (c.inputPos.val - 1 + 2)
-  let pr := pr₁.map (embedHom (rewindInput Symbol) (noTapes (k₁ + k₂)) c.workTapes c.workTapePos)
-  have hrlast : pr.last = ⟨none, 1, c.workTapes, c.workTapePos, c.output⟩ := by
-    simp only [pr, RelSeries.last_map, embedHom_apply]
-    have hr : pr₁.last = ⟨none, 1, nofun, nofun, c.output⟩ :=
-      runFrom_rewindInput c.inputPos nofun nofun c.output
-    rw [hr, embed_noTapes]
-  let pb := (p₂.map (tm₂.prependOutputHom out₁)).map
-    (embedHom tm₂ (Fin.natAddEmb k₁) c.workTapes c.workTapePos)
-  have hjoin : pb.head = pr.last.withState (some tm₂.q₀) := by
-    simp only [RelSeries.last_map, embedHom_apply, embed, ho₁, RelSeries.head_map, hh₂,
-      MultiTapeNTM.initCfg, Cfg.init, MultiTapeNTM.prependOutputHom_apply, Cfg.prependOutput,
-      List.append_nil, Cfg.withState, hrlast, Cfg.mk.injEq, and_true, true_and, pb, c, pa]
-    constructor <;> funext i <;> cases i using Fin.addCases <;>
-      simp only [← Fin.castAddEmb_apply, ← Fin.natAddEmb_apply, partialInv_embed]
-    all_goals simp [Set.mem_range, Fin.castAdd_ne_natAdd, ne_comm]
-  obtain ⟨par, hhar, hlar, htar, hsar, _⟩ := exists_runPath_seq (p₀ := pa) (p₁ := pr)
-    (by change (embed _ p₁.last _ _).Halted; exact hhalt₁)
-    (by simp only [pr, RelSeries.head_map, embedHom_apply, embed_noTapes]; rfl)
+  obtain ⟨hha, hhalta, hin, hsa⟩ := Concatenate.first_phase (k₂ := k₂) p₁ hh₁ hhalt₁
+  obtain ⟨pr, hhr, hrlast, htr, hsr⟩ := Concatenate.rewind_phase pa.last
+  let pb := (p₂.map (tm₂.prependOutputHom p₁.last.output)).map
+    (embedHom tm₂ (Fin.natAddEmb k₁) pa.last.workTapes pa.last.workTapePos)
+  obtain ⟨hhb, hhaltb, hob, hsb⟩ := Concatenate.second_phase p₁.last p₂ hh₂ hhalt₂
+  obtain ⟨par, hhar, hlar, htar, hsar, _⟩ := exists_runPath_seq (p₀ := pa) (p₁ := pr) hhalta hhr
   obtain ⟨p, hh, hl, ht, hsp, _⟩ := exists_runPath_seq (p₀ := par) (p₁ := pb)
     (by rw [hlar, hrlast]; rfl)
-    (by simpa [hlar, hrlast, Cfg.withState, Cfg.mapState] using hjoin)
+    (by simpa only [hlar, hrlast, Cfg.withState, Cfg.mapState, extendTapes_q₀, pa, pb,
+      RelSeries.last_map, embedHom_apply, embed] using hhb)
   rw [MultiTapeTM.concatenate, computesInTimeAndSpace_iff_exists_runPath]
-  refine ⟨p,
-    (by
-      simp only [hh, hhar, pa, RelSeries.head_map, embedHom_apply, hh₁]
-      refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext i <;>
-        simp only [embed, Cfg.mapState, MultiTapeNTM.initCfg, Cfg.init] <;>
-        cases partialInv (Fin.castAddEmb k₂) i <;> rfl),
-    (by simpa [hl, pb, Cfg.Halted, Cfg.mapState, embed, Cfg.prependOutput] using hhalt₂),
-    (by simp [hl, pb, Cfg.mapState, embed, Cfg.prependOutput, ho₂]), ?_, ?_⟩
-  · have hin : c.inputPos.val ≤ 1 + p₁.length := by
-      change (p₁ (Fin.last p₁.length)).inputPos.val ≤ _
-      rw [runPath_apply_eq_runFrom, hh₁]
-      exact inputPos_runFrom_le ..
-    simp only [pa, pb, pr, pr₁, RelSeries.map_length,
-      MultiTapeNTM.RunPath.ofDeterministic] at htar ht
-    omega
-  · have hsr : pr.space ≤ k₁ + k₂ := by
-      simpa [MultiTapeNTM.RunPath.space] using
-        space_map_embedHom_le (rewindInput Symbol) (noTapes (k₁ + k₂)) c.workTapes c.workTapePos pr₁
-    have hsPa : pa.space ≤ s₁ + k₂ :=
-      (space_map_embedHom_le ..).trans (by omega)
-    have hsPb : pb.space ≤ s₂ + k₁ :=
-      (space_map_embedHom_le ..).trans (by change p₂.space + _ ≤ _; omega)
+  refine ⟨p, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hh, hhar, show pa.head = _ from hha]
+    rfl
+  · simpa [hl, pa, pb, Cfg.Halted, Cfg.mapState] using hhaltb
+  · simpa only [hl, pb, pa, RelSeries.last_map, embedHom_apply, Cfg.mapState, ho₁, ho₂] using hob
+  all_goals
+    simp_all only [pa, pb, RelSeries.map_length, RelSeries.last_map, embedHom_apply, embed]
     omega
 
 /-- Compute a function whose encoded output is the concatenation of two computed outputs.
@@ -109,8 +136,7 @@ theorem ComputesFunInTimeAndSpace.concatenate {tm₁ : MultiTapeTM k₁ Symbol S
     (tm₁.concatenate tm₂).ComputesFunInTimeAndSpace encIn encOut f
       (fun x => 2 * t₁ x + t₂ x + 2) (fun x => s₁ x + s₂ x + 2 * (k₁ + k₂)) := by
   intro x
-  rw [henc]
-  exact (h₁ x).concatenate (h₂ x)
+  simpa only [henc] using (h₁ x).concatenate (h₂ x)
 
 /-- A function whose encoding concatenates two computed outputs is computable in linear time
 and additive space overhead. The result function and encoding are specified by `henc`. -/
