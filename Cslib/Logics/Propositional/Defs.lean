@@ -7,7 +7,6 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Foundations.Logic.Operators
-public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Basic.FunLike.Basic
 public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
@@ -98,21 +97,5 @@ abbrev CPL (Atom : Type u) : Set (Proposition Atom) := {¬¬A → A | A : Propos
 
 omit [DecidableEq Atom] in
 lemma dne_mem_cpl (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
-
-open InferenceSystem
-
-/-- An inference system is intuitionistic if it derives ex falso quodlibet. TODO: this should be
-generalised outside the `PL` scope. -/
-@[scoped grind]
-class IsIntuitionistic (Atom : Type u) (S : Type*) [InferenceSystem S (Proposition Atom)] where
-  /-- The principle of explosion (ex falso quolibet). -/
-  derBotImp (A : Proposition Atom) : S⇓(⊥ → A)
-
-/-- An inference system is classical if it validates double-negation elimination. TODO: this should
-be generalised outside the `PL` scope. -/
-@[scoped grind]
-class IsClassical (Atom : Type u) (S : Type*) [InferenceSystem S (Proposition Atom)] where
-  /-- Double-negation elimination. -/
-  dne (A : Proposition Atom) : S⇓(¬¬A → A)
 
 end Cslib.Logic.PL

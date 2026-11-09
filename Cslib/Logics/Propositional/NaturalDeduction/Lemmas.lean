@@ -6,6 +6,7 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Cslib.Foundations.Logic.InferenceSystem.Basic
 
 /-! # Auxilliary results on natural deduction
 
@@ -19,41 +20,35 @@ We provide derived rules for common intuitionistic and classical proof patterns.
 
 universe u
 
-namespace Cslib.Logic.PL
+namespace Cslib.Logic.PL.NaturalDeduction
 
 open Proposition InferenceSystem DerivableIn NaturalDeduction Derivation
   IsIntuitionistic IsClassical
 
 variable {Atom : Type u} [DecidableEq Atom] {T : Set (Proposition Atom)}
 
-instance instIsIntuitionisticND₁ : IsIntuitionistic Atom (ND₁ T) where
-  derBotImp A := ass (Finset.mem_insert_self ⊥ ∅) |>.efq A |>.impI
+instance instIsIntuitionisticND₁ : IsIntuitionistic (ND₁ T) (Proposition Atom) where
+  derivationBotImp A := ass (Finset.mem_insert_self ⊥ ∅) |>.efq A |>.impI
 
 /-- Derivation of efq in an arbitrary context. -/
-def IsIntuitionistic.derBotImpCtx [IsIntuitionistic Atom (ND₁ T)] (Γ : Ctx Atom)
-    (A : Proposition Atom) : (ND T)⇓(Γ ⊢ ⊥ → A) :=
-  (derBotImp A : (ND₁ T)⇓(⊥ → A)).weakCtx (Finset.empty_subset Γ)
-
-/-- Efq as a derived rule. -/
-def IsIntuitionistic.efqRule [IsIntuitionistic Atom (ND₁ T)] (Γ : Ctx Atom) (A : Proposition Atom)
-    (D : (ND T)⇓(Γ ⊢ ⊥)) : (ND T)⇓(Γ ⊢ A) :=
-  impE (A := ⊥) (derBotImpCtx Γ A) D
+def derBotImpCtx (Γ : Ctx Atom) (A : Proposition Atom) : (ND T)⇓(Γ ⊢ ⊥ → A) :=
+  (derivationBotImp A : (ND₁ T)⇓(⊥ → A)).weakCtx (Finset.empty_subset Γ)
 
 /-- Prove any proposition from contradictory hypotheses. -/
-def IsIntuitionistic.contra [IsIntuitionistic Atom (ND₁ T)] {Γ : Ctx Atom} (A B : Proposition Atom)
-    (hΓ : A ∈ Γ) (hΓ' : (¬A) ∈ Γ) : (ND T)⇓(Γ ⊢ B) :=
-  efqRule Γ B <| impE (ass hΓ') (ass hΓ)
+def contra {Γ : Ctx Atom} (A B : Proposition Atom) (hΓ : A ∈ Γ) (hΓ' : (¬A) ∈ Γ) :
+    (ND T)⇓(Γ ⊢ B) :=
+  efq B <| impE (ass hΓ') (ass hΓ)
 
-instance instIsClassicalCPL : IsClassical Atom (ND₁ <| CPL Atom) where
-  dne A := ax (dne_mem_cpl A)
+instance instIsClassicalCPL : IsClassical (ND₁ <| CPL Atom) (Proposition Atom) where
+  derivationDNE A := ax (dne_mem_cpl A)
 
 /-- Proof by contradiction as a derived rule. -/
-def IsClassical.byContra [IsClassical Atom (ND₁ T)] {Γ : Ctx Atom} {A : Proposition Atom}
-    (D : (ND T)⇓(insert (¬ A) Γ ⊢ ⊥)) : (ND T)⇓(Γ ⊢ A) :=
-  impE (A := ¬¬A) ((dne A : (ND₁ T)⇓(¬¬A → A)) |>.weakCtx <| Finset.empty_subset ..) D.impI
+def byContra [IsClassical (ND₁ T) (Proposition Atom)] {Γ : Ctx Atom}
+    {A : Proposition Atom} (D : (ND T)⇓(insert (¬ A) Γ ⊢ ⊥)) : (ND T)⇓(Γ ⊢ A) :=
+  impE ((derivationDNE A : (ND₁ T)⇓(¬¬A → A)).weakCtx <| Finset.empty_subset ..) D.impI
 
 /-- Law of excluded middle in a classical theory. -/
-def IsClassical.lem [IsClassical Atom (ND₁ T)] (A : Proposition Atom) : (ND₁ T)⇓(A ∨ ¬ A) := by
+def lem [IsClassical (ND₁ T) (Proposition Atom)] (A : Proposition Atom) : (ND₁ T)⇓(A ∨ ¬ A) := by
   apply byContra
   apply impE (ass <| Finset.mem_insert_self ..)
   apply orI₂; apply impI
@@ -61,7 +56,7 @@ def IsClassical.lem [IsClassical Atom (ND₁ T)] (A : Proposition Atom) : (ND₁
   exact orI₁ <| ass <| Finset.mem_insert_self ..
 
 /-- Pierce's law in a classical theory. -/
-def IsClassical.pierce [IsClassical Atom (ND₁ T)] (A B : Proposition Atom) :
+def pierce [IsClassical (ND₁ T) (Proposition Atom)] (A B : Proposition Atom) :
     (ND₁ T)⇓(((A → B) → A) → A) := by
   apply impI; apply byContra
   apply impE (ass <| Finset.mem_insert_self ..)
@@ -81,20 +76,20 @@ def Pierce (Atom : Type u) : Set (Proposition Atom) :=
 omit [DecidableEq Atom] in
 lemma pierce_mem_pierce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Pierce Atom := ⟨A, B, rfl⟩
 
-instance instIsClassicalLEM : IsClassical Atom (ND₁ <| LEM Atom) where
-  dne A := by
+instance instIsClassicalLEM : IsClassical (ND₁ <| LEM Atom) (Proposition Atom) where
+  derivationDNE A := by
     apply impI
     apply orE (ax <| lem_mem_lem A)
     · exact ass (Finset.mem_insert_self A _)
     · apply impE (A := ⊥) (derBotImpCtx _ A)
       apply impE (A := ¬ A) <;> exact ass (by grind)
 
-instance instIsClassicalPierce : IsClassical Atom (ND₁ <| Pierce Atom) where
-  dne A := by
+instance instIsClassicalPierce : IsClassical (ND₁ <| Pierce Atom) (Proposition Atom) where
+  derivationDNE A := by
     apply impI
     apply impE (A := (A → ⊥) → A) (ax <| pierce_mem_pierce A ⊥)
     apply impI
     apply impE (A := ⊥) (derBotImpCtx _ A)
     apply impE (A := ¬ A) <;> exact ass (by grind)
 
-end Cslib.Logic.PL
+end Cslib.Logic.PL.NaturalDeduction
