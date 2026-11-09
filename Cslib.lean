@@ -291,7 +291,7 @@ public import Cslib.Logics.Modal.Unimodal.Lean.Basic
 public import Cslib.Logics.Modal.Unimodal.Lean.SMul
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
-public import Cslib.Logics.Propositional.NaturalDeduction.Theory
+public import Cslib.Logics.Propositional.NaturalDeduction.Lemmas
 public import Cslib.MachineLearning.PACLearning.Defs
 public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
