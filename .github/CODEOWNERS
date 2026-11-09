@@ -1,7 +1,7 @@
 # For an overview of the governance model of cslib, please refer to /GOVERNANCE.md and /DECISION_MAKING.md
 
-* @fmontesi @chenson2018 @arademaker @SamuelSchlesinger @crei @sorrachai
+* @fmontesi @chenson2018 @arademaker @SamuelSchlesinger @crei @sorrachai @ctchou @thomaskwaring
 # Repeat the catch-all owners because only the last matching rule applies.
-/.github/workflows/ @fmontesi @chenson2018 @kim-em @arademaker @SamuelSchlesinger @crei @sorrachai
+/.github/workflows/ @fmontesi @chenson2018 @arademaker @SamuelSchlesinger @crei @sorrachai @ctchou @thomaskwaring @kim-em
 /.github/CODEOWNERS @fmontesi
 /DECISION_MAKING.md @fmontesi
