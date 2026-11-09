@@ -22,6 +22,9 @@ A coproduct combines the effects of two monads: computations from either monad c
 included and sequenced in the coproduct using `do` notation. A pair of monad morphisms
 interpreting the component effects determines a unique interpretation of the combined effects.
 
+The constructions `IsMonadCoproduct.unitLeft` and `IsMonadCoproduct.unitRight` exhibit
+every lawful monad as a coproduct with the identity monad, on either side.
+
 ## References
 
 * [Jiří Adámek, Nathan Bowler, Paul B. Levy, Stefan Milius,
@@ -307,20 +310,20 @@ variable (m : Type u → Type u) [Monad m] [LawfulMonad m]
 
 /-- Every monad is a coproduct of itself and the identity monad. -/
 @[simps]
-def unitRight : IsMonadCoproduct m Id m id pure where
+def unitRight : IsMonadCoproduct m Id m id (fun x => pure x.run) where
   inl_hom := IsMonadHom.id m
   inr_hom := IsMonadHom.pure m
   desc := @fun _ _ _ f _ _ _ => f
   isMonadHom_desc hf _ := hf
   desc_inl _ _ _ _ := rfl
-  desc_inr hf hg _ x := (hf.map_pure x).trans (hg.eq_pure_apply x).symm
+  desc_inr hf hg _ x := (hf.map_pure x.run).trans (hg.eq_pure_apply x).symm
   desc_unique _ _ _ _ hinl _ := by
     funext α x
     exact hinl x
 
 /-- Every monad is a coproduct of the identity monad and itself. -/
 @[simps!]
-def unitLeft : IsMonadCoproduct Id m m pure id :=
+def unitLeft : IsMonadCoproduct Id m m (fun x => pure x.run) id :=
   (unitRight m).symm
 
 end Unit

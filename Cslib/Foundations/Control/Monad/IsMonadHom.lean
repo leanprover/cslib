@@ -216,19 +216,19 @@ protected theorem comp {f : ∀ {α}, n α → p α} {g : ∀ {α}, m α → n �
 
 variable (m) in
 /-- `pure` is a morphism of monads out of the identity monad. -/
-protected theorem pure [LawfulMonad m] : IsMonadHom Id m pure :=
-  .mk' (fun _ => rfl) (fun x y => (pure_bind x (fun a => pure (y a))).symm)
+protected theorem pure [LawfulMonad m] : IsMonadHom Id m (fun x => pure x.run) :=
+  .mk' (fun _ => rfl) (fun x y => (pure_bind x.run (fun a => pure (y a).run)).symm)
 
 /-- The identity monad is initial: every morphism of monads out of it is `pure`. -/
 theorem eq_pure {f : ∀ {α}, Id α → m α} (hf : IsMonadHom Id m f) :
-    @f = (pure : ∀ {α}, Id α → m α) := by
+    @f = (fun {_} x => pure x.run) := by
   funext α x
-  exact hf.map_pure x
+  exact hf.map_pure x.run
 
 /-- Every monad morphism out of the identity monad sends a value to `pure` of that value. -/
 theorem eq_pure_apply {f : ∀ {α}, Id α → m α} (hf : IsMonadHom Id m f)
-    {α} (x : Id α) : f x = pure x :=
-  hf.map_pure x
+    {α} (x : Id α) : f x = pure x.run :=
+  hf.map_pure x.run
 
 protected theorem monadLift [LawfulMonad m] [LawfulMonad n]
     [MonadLift m n] [LawfulMonadLift m n] :
