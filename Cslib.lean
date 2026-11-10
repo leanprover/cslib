@@ -300,3 +300,4 @@ public import Cslib.MachineLearning.PACLearning.VersionSpaceLattice
 public import Cslib.Probability.PMF
 public import Cslib.Probability.StatisticalDistance
 public import Cslib.Tactic.GrindAttrs
+public import Cslib.Tactic.Membership

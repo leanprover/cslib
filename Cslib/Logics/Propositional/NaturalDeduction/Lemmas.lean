@@ -49,18 +49,17 @@ def byContra [IsClassical (ND₁ T) (Proposition Atom)] {Γ : Ctx Atom}
 /-- Law of excluded middle in a classical theory. -/
 def lem [IsClassical (ND₁ T) (Proposition Atom)] (A : Proposition Atom) : (ND₁ T)⇓(A ∨ ¬ A) := by
   apply byContra
-  apply impE (ass <| Finset.mem_insert_self ..)
+  apply impE (A := A ∨ ¬ A) ass
   apply orI₂; apply impI
-  apply impE (A := A ∨ ¬ A) (ass <| by grind)
-  exact orI₁ <| ass <| Finset.mem_insert_self ..
+  exact impE (A := A ∨ ¬ A) ass (orI₁ ass)
 
 /-- Pierce's law in a classical theory. -/
 def pierce [IsClassical (ND₁ T) (Proposition Atom)] (A B : Proposition Atom) :
     (ND₁ T)⇓(((A → B) → A) → A) := by
   apply impI; apply byContra
-  apply impE (ass <| Finset.mem_insert_self ..)
-  apply impE (A := A → B) (ass <| by grind); apply impI
-  apply contra A B <;> grind
+  apply impE (A := A) ass
+  apply impE (A := A → B) ass
+  exact impI _ <| contra A B
 
 /-- The axiom system consisting of instances of LEM. -/
 def LEM (Atom : Type u) : Set (Proposition Atom) := {A ∨ ¬ A | A : Proposition Atom}
@@ -78,17 +77,15 @@ lemma pierce_mem_pierce (A B : Proposition Atom) : (((A → B) → A) → A) ∈
 instance instIsClassicalLEM : IsClassical (ND₁ <| LEM Atom) (Proposition Atom) where
   derivationDNE A := by
     apply impI
-    apply orE (ax <| lem_mem_lem A)
-    · exact ass (Finset.mem_insert_self A _)
-    · apply impE (A := ⊥) (derBotImpCtx _ A)
-      apply impE (A := ¬ A) <;> exact ass (by grind)
+    apply orE (ax <| lem_mem_lem A) ass
+    apply impE (A := ⊥) (derBotImpCtx _ A)
+    apply impE (A := ¬ A) <;> exact ass
 
 instance instIsClassicalPierce : IsClassical (ND₁ <| Pierce Atom) (Proposition Atom) where
   derivationDNE A := by
     apply impI
     apply impE (A := (A → ⊥) → A) (ax <| pierce_mem_pierce A ⊥)
     apply impI
-    apply impE (A := ⊥) (derBotImpCtx _ A)
-    apply impE (A := ¬ A) <;> exact ass (by grind)
+    apply contra (A := ¬A)
 
 end Cslib.Logic.PL.NaturalDeduction
