@@ -7,6 +7,7 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Logics.Propositional.Defs
+public import Cslib.Foundations.Logic.InferenceSystem.Defs
 
 /-! # Natural deduction for propositional logic
 

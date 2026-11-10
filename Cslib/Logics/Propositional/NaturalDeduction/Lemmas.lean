@@ -27,16 +27,16 @@ open Proposition InferenceSystem DerivableIn Derivation IsIntuitionistic IsClass
 variable {Atom : Type u} [DecidableEq Atom] {T : Set (Proposition Atom)}
 
 instance instIsIntuitionisticND₁ : IsIntuitionistic (ND₁ T) (Proposition Atom) where
-  derivationBotImp A := ass (Finset.mem_insert_self ⊥ ∅) |>.efq A |>.impI
+  derivationBotImp A := ass (A := ⊥) |>.efq A |>.impI
 
 /-- Derivation of efq in an arbitrary context. -/
 def derBotImpCtx (Γ : Ctx Atom) (A : Proposition Atom) : (ND T)⇓(Γ ⊢ ⊥ → A) :=
   (derivationBotImp A : (ND₁ T)⇓(⊥ → A)).weakCtx (Finset.empty_subset Γ)
 
 /-- Prove any proposition from contradictory hypotheses. -/
-def contra {Γ : Ctx Atom} (A B : Proposition Atom) (hΓ : A ∈ Γ) (hΓ' : (¬A) ∈ Γ) :
-    (ND T)⇓(Γ ⊢ B) :=
-  efq B <| impE (ass hΓ') (ass hΓ)
+def contra {Γ : Ctx Atom} (A B : Proposition Atom)
+    (hΓ : A ∈ Γ := by membership) (hΓ' : (¬A) ∈ Γ := by membership) : (ND T)⇓(Γ ⊢ B) :=
+  efq B <| impE (A := A) ass ass
 
 instance instIsClassicalCPL : IsClassical (ND₁ <| CPL Atom) (Proposition Atom) where
   derivationDNE A := ax (dne_mem_cpl A)
@@ -44,7 +44,7 @@ instance instIsClassicalCPL : IsClassical (ND₁ <| CPL Atom) (Proposition Atom)
 /-- Proof by contradiction as a derived rule. -/
 def byContra [IsClassical (ND₁ T) (Proposition Atom)] {Γ : Ctx Atom}
     {A : Proposition Atom} (D : (ND T)⇓(insert (¬ A) Γ ⊢ ⊥)) : (ND T)⇓(Γ ⊢ A) :=
-  impE ((derivationDNE A : (ND₁ T)⇓(¬¬A → A)).weakCtx <| Finset.empty_subset ..) D.impI
+  impE (derivationDNE A : (ND₁ T)⇓(¬¬A → A)).weakCtx D.impI
 
 /-- Law of excluded middle in a classical theory. -/
 def lem [IsClassical (ND₁ T) (Proposition Atom)] (A : Proposition Atom) : (ND₁ T)⇓(A ∨ ¬ A) := by
@@ -79,7 +79,7 @@ instance instIsClassicalLEM : IsClassical (ND₁ <| LEM Atom) (Proposition Atom)
     apply impI
     apply orE (ax <| lem_mem_lem A) ass
     apply impE (A := ⊥) (derBotImpCtx _ A)
-    apply impE (A := ¬ A) <;> exact ass
+    apply impE (A := ¬ A) ass ass
 
 instance instIsClassicalPierce : IsClassical (ND₁ <| Pierce Atom) (Proposition Atom) where
   derivationDNE A := by
