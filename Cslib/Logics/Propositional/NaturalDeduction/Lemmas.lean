@@ -22,16 +22,16 @@ universe u
 
 namespace Cslib.Logic.PL.NaturalDeduction
 
-open Proposition InferenceSystem DerivableIn Derivation IsIntuitionistic IsClassical
-
 variable {Atom : Type u} [DecidableEq Atom] {T : Set (Proposition Atom)}
+
+open Proposition InferenceSystem DerivableIn IsIntuitionistic IsClassical Derivation
 
 instance instIsIntuitionisticND₁ : IsIntuitionistic (ND₁ T) (Proposition Atom) where
   derivationBotImp A := ass (A := ⊥) |>.efq A |>.impI
 
 /-- Derivation of efq in an arbitrary context. -/
 def derBotImpCtx (Γ : Ctx Atom) (A : Proposition Atom) : (ND T)⇓(Γ ⊢ ⊥ → A) :=
-  (derivationBotImp A : (ND₁ T)⇓(⊥ → A)).weakCtx (Finset.empty_subset Γ)
+  (derivationBotImp A : (ND₁ T)⇓(⊥ → A)).weakCtx
 
 /-- Prove any proposition from contradictory hypotheses. -/
 def contra {Γ : Ctx Atom} (A B : Proposition Atom)
@@ -39,7 +39,7 @@ def contra {Γ : Ctx Atom} (A B : Proposition Atom)
   efq B <| impE (A := A) ass ass
 
 instance instIsClassicalCPL : IsClassical (ND₁ <| CPL Atom) (Proposition Atom) where
-  derivationDNE A := ax (dne_mem_cpl A)
+  derivationDNE A := ax
 
 /-- Proof by contradiction as a derived rule. -/
 def byContra [IsClassical (ND₁ T) (Proposition Atom)] {Γ : Ctx Atom}
@@ -61,30 +61,17 @@ def pierce [IsClassical (ND₁ T) (Proposition Atom)] (A B : Proposition Atom) :
   apply impE (A := A → B) ass
   exact impI _ <| contra A B
 
-/-- The axiom system consisting of instances of LEM. -/
-def LEM (Atom : Type u) : Set (Proposition Atom) := {A ∨ ¬ A | A : Proposition Atom}
-
-omit [DecidableEq Atom] in
-lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
-
-/-- The axiom system consisting of instances of Pierce's law. -/
-def Pierce (Atom : Type u) : Set (Proposition Atom) :=
-  {((A → B) → A) → A | (A : Proposition Atom) (B : Proposition Atom)}
-
-omit [DecidableEq Atom] in
-lemma pierce_mem_pierce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Pierce Atom := ⟨A, B, rfl⟩
-
 instance instIsClassicalLEM : IsClassical (ND₁ <| LEM Atom) (Proposition Atom) where
   derivationDNE A := by
     apply impI
-    apply orE (ax <| lem_mem_lem A) ass
+    apply orE (A := A) (B := ¬ A) ax ass
     apply impE (A := ⊥) (derBotImpCtx _ A)
     apply impE (A := ¬ A) ass ass
 
 instance instIsClassicalPierce : IsClassical (ND₁ <| Pierce Atom) (Proposition Atom) where
   derivationDNE A := by
     apply impI
-    apply impE (A := (A → ⊥) → A) (ax <| pierce_mem_pierce A ⊥)
+    apply impE (A := (A → ⊥) → A) ax
     apply impI
     apply contra (A := ¬A)
 
