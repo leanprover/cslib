@@ -176,18 +176,15 @@ def Derivation.weak {T T' : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Prop
     Derivation T Γ A → Derivation T' Δ A
   | ax hA => ax
   | ass hA => ass
-  | efq A D => efq A (D.weak hTheory hCtx)
-  | andI D D' => andI (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
-  | andE₁ D => andE₁ <| D.weak hTheory hCtx
-  | andE₂ D => andE₂ <| D.weak hTheory hCtx
-  | orI₁ D => orI₁ <| D.weak hTheory hCtx
-  | orI₂ D => orI₂ <| D.weak hTheory hCtx
-  | orE D D' D'' =>
-    orE (D.weak hTheory hCtx)
-      (D'.weak hTheory <| Finset.insert_subset_insert _ hCtx)
-      (D''.weak hTheory <| Finset.insert_subset_insert _ hCtx)
-  | @impI _ _ _ A B Γ D => impI (Δ) <| D.weak hTheory <| Finset.insert_subset_insert _ hCtx
-  | impE D D' => impE (D.weak hTheory hCtx) (D'.weak hTheory hCtx)
+  | efq A D => efq A D.weak
+  | andI D D' => andI D.weak D'.weak
+  | andE₁ D => andE₁ D.weak
+  | andE₂ D => andE₂ D.weak
+  | orI₁ D => orI₁ D.weak
+  | orI₂ D => orI₂ D.weak
+  | orE D D' D'' => orE D.weak D'.weak D''.weak
+  | @impI _ _ _ A B Γ D => impI _ D.weak
+  | impE D D' => impE D.weak D'.weak
 
 /-- Weakening the axioms only. -/
 def Derivation.weakTheory {T T' : Set (Proposition Atom)} {Γ : Ctx Atom} {A : Proposition Atom}
