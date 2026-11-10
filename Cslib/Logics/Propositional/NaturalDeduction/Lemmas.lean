@@ -20,10 +20,9 @@ We provide derived rules for common intuitionistic and classical proof patterns.
 
 universe u
 
-namespace Cslib.Logic.PL
+namespace Cslib.Logic.PL.NaturalDeduction
 
-open Proposition InferenceSystem DerivableIn NaturalDeduction Derivation
-  IsIntuitionistic IsClassical
+open Proposition InferenceSystem DerivableIn Derivation IsIntuitionistic IsClassical
 
 variable {Atom : Type u} [DecidableEq Atom] {T : Set (Proposition Atom)}
 
@@ -92,4 +91,4 @@ instance instIsClassicalPierce : IsClassical (ND₁ <| Pierce Atom) (Proposition
     apply impE (A := ⊥) (derBotImpCtx _ A)
     apply impE (A := ¬ A) <;> exact ass (by grind)
 
-end Cslib.Logic.PL
+end Cslib.Logic.PL.NaturalDeduction
