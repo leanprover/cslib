@@ -7,7 +7,6 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Logics.Propositional.Defs
-public import Cslib.Tactic.Membership
 
 /-! # Natural deduction for propositional logic
 

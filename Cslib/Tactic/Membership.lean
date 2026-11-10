@@ -6,7 +6,6 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Init
 public import Mathlib.Data.Finset.Insert
 public import Mathlib.Data.Finset.SDiff
 public import Mathlib.Data.Finset.Image
