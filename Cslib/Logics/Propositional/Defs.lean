@@ -105,14 +105,14 @@ def LEM (Atom : Type u) : Set (Proposition Atom) := {A ∨ ¬ A | A : Propositio
 
 omit [DecidableEq Atom] in
 @[scoped membership .]
-lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
+lemma mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
 
-/-- The axiom system consisting of instances of Pierce's law. -/
-def Pierce (Atom : Type u) : Set (Proposition Atom) :=
+/-- The axiom system consisting of instances of Peirce's law. -/
+def Peirce (Atom : Type u) : Set (Proposition Atom) :=
   {((A → B) → A) → A | (A : Proposition Atom) (B : Proposition Atom)}
 
 omit [DecidableEq Atom] in
 @[scoped membership .]
-lemma pierce_mem_pierce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Pierce Atom := ⟨A, B, rfl⟩
+lemma mem_peirce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Peirce Atom := ⟨A, B, rfl⟩
 
 end Cslib.Logic.PL
