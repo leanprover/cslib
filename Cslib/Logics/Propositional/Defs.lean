@@ -58,7 +58,7 @@ inductive Proposition (Atom : Type u) : Type u where
 deriving DecidableEq
 
 instance instBotProposition : Bot (Proposition Atom) := ⟨.falsum⟩
-/-- We view negation as a defined connective ~A := A → ⊥ -/
+/-- We view negation as a defined connective ¬A := A → ⊥ -/
 abbrev Proposition.neg : Proposition Atom → Proposition Atom := (Proposition.imp · ⊥)
 
 /-- A fixed choice of a derivable proposition (of course any two are equivalent). -/
@@ -71,9 +71,10 @@ instance : HasOr (Proposition Atom) := ⟨.or⟩
 instance : HasImp (Proposition Atom) := ⟨.imp⟩
 instance : HasNot (Proposition Atom) := ⟨.neg⟩
 
+-- this is tagged with `membership` for autoParams mixing `A → ⊥` and `¬A`, is there a better way?
 omit [DecidableEq Atom] in
-@[grind =]
-lemma not_eq (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
+@[grind =, scoped membership =]
+lemma Proposition.not_eq (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
 
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/
