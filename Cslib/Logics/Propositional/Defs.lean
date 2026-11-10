@@ -7,7 +7,6 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Foundations.Logic.Operators
-public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Basic.FunLike.Basic
 public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
@@ -98,22 +97,22 @@ abbrev IPL (Atom : Type u) : Set (Proposition Atom) := ∅
 abbrev CPL (Atom : Type u) : Set (Proposition Atom) := {¬¬A → A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
+@[scoped membership .]
 lemma dne_mem_cpl (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
 
-open InferenceSystem
+/-- The axiom system consisting of instances of LEM. -/
+def LEM (Atom : Type u) : Set (Proposition Atom) := {A ∨ ¬ A | A : Proposition Atom}
 
-/-- An inference system is intuitionistic if it derives ex falso quodlibet. TODO: this should be
-generalised outside the `PL` scope. -/
-@[scoped grind]
-class IsIntuitionistic (Atom : Type u) (S : Type*) [InferenceSystem S (Proposition Atom)] where
-  /-- The principle of explosion (ex falso quolibet). -/
-  derBotImp (A : Proposition Atom) : S⇓(⊥ → A)
+omit [DecidableEq Atom] in
+@[scoped membership .]
+lemma mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
 
-/-- An inference system is classical if it validates double-negation elimination. TODO: this should
-be generalised outside the `PL` scope. -/
-@[scoped grind]
-class IsClassical (Atom : Type u) (S : Type*) [InferenceSystem S (Proposition Atom)] where
-  /-- Double-negation elimination. -/
-  dne (A : Proposition Atom) : S⇓(¬¬A → A)
+/-- The axiom system consisting of instances of Peirce's law. -/
+def Peirce (Atom : Type u) : Set (Proposition Atom) :=
+  {((A → B) → A) → A | (A : Proposition Atom) (B : Proposition Atom)}
+
+omit [DecidableEq Atom] in
+@[scoped membership .]
+lemma mem_peirce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Peirce Atom := ⟨A, B, rfl⟩
 
 end Cslib.Logic.PL
