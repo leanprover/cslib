@@ -27,24 +27,24 @@ open Relation
 
 /-- A parallel β-reduction step. -/
 @[reduction_sys "ₚ"]
-inductive Parallel : Term Var → Term Var → Prop
+inductive ParBeta : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
-| fvar (x : Var) : Parallel (fvar x) (fvar x)
+| fvar (x : Var) : ParBeta (fvar x) (fvar x)
 /-- A parallel left and right congruence rule for application. -/
-| app : Parallel L L' → Parallel M M' → Parallel (app L M) (app L' M')
+| app : ParBeta L L' → ParBeta M M' → ParBeta (app L M) (app L' M')
 /-- Congruence rule for lambda terms. -/
 | abs (xs : Finset Var) :
-    (∀ x ∉ xs, Parallel (m ^ fvar x) (m' ^ fvar x)) → Parallel (abs m) (abs m')
+    (∀ x ∉ xs, ParBeta (m ^ fvar x) (m' ^ fvar x)) → ParBeta (abs m) (abs m')
 /-- A parallel β-reduction. -/
 | beta (xs : Finset Var) :
-    (∀ x ∉ xs, Parallel (m ^ fvar x) (m' ^ fvar x) ) →
-    Parallel n n' →
-    Parallel (app (abs m) n) (m' ^ n')
+    (∀ x ∉ xs, ParBeta (m ^ fvar x) (m' ^ fvar x) ) →
+    ParBeta n n' →
+    ParBeta (app (abs m) n) (m' ^ n')
 
-open Parallel
+open ParBeta
 
-attribute [scoped grind .] Parallel.fvar Parallel.app
-attribute [scoped grind cases] Parallel
+attribute [scoped grind .] ParBeta.fvar ParBeta.app
+attribute [scoped grind cases] ParBeta
 
 variable {M M' N N' : Term Var}
 
@@ -58,7 +58,7 @@ lemma para_lc_l (step : M ⭢ₚ N) : LC M  := by
 
 /-- Parallel reduction is reflexive for locally closed terms. -/
 @[scoped grind →]
-lemma Parallel.lc_refl (M : Term Var) (lc : LC M) : M ⭢ₚ M := by
+lemma ParBeta.lc_refl (M : Term Var) (lc : LC M) : M ⭢ₚ M := by
   induction lc
   all_goals constructor <;> assumption
 
@@ -81,13 +81,13 @@ lemma FullBeta.le_parallel :
   | base h =>
     cases h with | beta abs_lc _ =>
     cases abs_lc with | abs xs _ =>
-    apply Parallel.beta xs <;> grind
-  | abs xs _ _ => apply Parallel.abs xs; grind
+    apply ParBeta.beta xs <;> grind
+  | abs xs _ _ => apply ParBeta.abs xs; grind
   | _ => grind
 
 open FullBeta in
 /-- The inclusion `(· ⭢ₚ ·) ≤ (· ↠βᶠ ·)`. -/
-lemma Parallel.le_reflTransGen_fullBeta :
+lemma ParBeta.le_reflTransGen_fullBeta :
     ((· ⭢ₚ ·) : Term Var → Term Var → Prop) ≤ (· ↠βᶠ ·) := by
   intro M N para
   induction para
@@ -113,7 +113,7 @@ lemma Parallel.le_reflTransGen_fullBeta :
 theorem reflTransGen_parallel_fullBeta :
     ((· ↠ₚ ·) : Term Var → Term Var → Prop) = (· ↠βᶠ ·) := by
   apply le_antisymm
-  · exact reflTransGen_le_of_le Parallel.le_reflTransGen_fullBeta
+  · exact reflTransGen_le_of_le ParBeta.le_reflTransGen_fullBeta
   · exact ReflTransGen.mono FullBeta.le_parallel
 
 /-- Parallel reduction respects substitution. -/
@@ -122,9 +122,9 @@ lemma para_subst (x : Var) (pm : M ⭢ₚ M') (pn : N ⭢ₚ N') : M[x := N] ⭢
   induction pm with
   | beta =>
     rw [subst_open _ _ _ _ (by grind)]
-    refine Parallel.beta (free_union Var) ?_ ?_ <;> grind
+    refine ParBeta.beta (free_union Var) ?_ ?_ <;> grind
   | app => constructor <;> assumption
-  | abs => grind [Parallel.abs (free_union Var)]
+  | abs => grind [ParBeta.abs (free_union Var)]
   | _ => grind
 
 /-- Parallel substitution respects closing and opening. -/
@@ -156,7 +156,7 @@ theorem parallel_diamond : Diamond ((· ⭢ₚ ·) : Term Var → Term Var → P
       exists abs (t' ^* x)
       constructor
       <;> [let z := s2' ^ fvar x; let z := t2' ^ fvar x]
-      <;> apply Parallel.abs (free_union [fv] Var) <;> grind
+      <;> apply ParBeta.abs (free_union [fv] Var) <;> grind
   case beta s1 s1' s2 s2' xs mem ps ih1 ih2 =>
     cases tpt2
     case app u2 u2' s1pu2 s2pu2' =>
@@ -173,7 +173,7 @@ theorem parallel_diamond : Diamond ((· ⭢ₚ ·) : Term Var → Term Var → P
           /-- Moving from `nightly-2025-09-15` to `nightly-2025-10-19`, the grind_pattern for
           subst_intro (defined in Properties.lean) stopped working here. -/
           grind [subst_intro]
-        · apply Parallel.beta (free_union [fv] Var) <;> grind
+        · apply ParBeta.beta (free_union [fv] Var) <;> grind
     case beta u1' u2' xs' mem' s2pu2' =>
       have ⟨x, qx⟩ := fresh_exists (xs ∪ xs' ∪ free_union [fv] Var)
       simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
@@ -195,13 +195,13 @@ theorem parallel_diamond : Diamond ((· ⭢ₚ ·) : Term Var → Term Var → P
         simp only [Finset.union_assoc, Finset.mem_union, not_or] at qx
         obtain ⟨q1, q2, _⟩ := qx
         have ⟨t', qt'_l, qt'_r⟩ := ih2 s2pu2'
-        have ⟨t'', qt''_l, qt''_r⟩ := @ih1 (abs u1') (Parallel.abs xs mem)
+        have ⟨t'', qt''_l, qt''_r⟩ := @ih1 (abs u1') (ParBeta.abs xs mem)
         cases qt''_l
         next w1 xs'' mem'' =>
         cases qt''_r
         case abs xs''' mem''' =>
           refine ⟨w1 ^ t', ?_, para_open_out xs''' mem''' qt'_r⟩
-          apply Parallel.beta (free_union Var) <;> grind
+          apply ParBeta.beta (free_union Var) <;> grind
 
 /-- Parallel reduction is confluent. -/
 theorem confluent_parallel : Confluent ((· ⭢ₚ ·) : Term Var → Term Var → Prop) :=
