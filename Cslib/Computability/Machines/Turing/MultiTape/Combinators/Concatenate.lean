@@ -42,7 +42,7 @@ private theorem first_phase {tm : MultiTapeTM k₁ Symbol State₁} {input : Lis
     let q := p.map (embedHom tm (Fin.castAddEmb k₂) (fun _ _ => none) (fun _ => 0))
     q.head = (tm.extendTapes (Fin.castAddEmb k₂)).initCfg input ∧ q.last.Halted ∧
       q.last.inputPos.val ≤ 1 + p.length ∧ q.space ≤ p.space + k₂ := by
-  refine ⟨?_, halt, ?_, (space_map_embedHom_le ..).trans (by omega)⟩
+  refine ⟨?_, halt, ?_, (space_map_embedHom_le ..).trans (by lia)⟩
   · simp only [RelSeries.head_map, embedHom_apply, hh]
     refine Cfg.ext rfl rfl ?_ ?_ rfl <;> funext i <;>
       simp only [embed, MultiTapeNTM.initCfg, Cfg.init] <;>
@@ -80,7 +80,7 @@ private theorem second_phase {tm : MultiTapeTM k₂ Symbol State₂} {input : Li
       (embedHom tm (Fin.natAddEmb k₁) c.workTapes c.workTapePos)
     q.head = ⟨some tm.q₀, 1, c.workTapes, c.workTapePos, c₁.output⟩ ∧ q.last.Halted ∧
       q.last.output = c₁.output ++ p.last.output ∧ q.space ≤ p.space + k₁ := by
-  refine ⟨?_, halt, rfl, (space_map_embedHom_le ..).trans (by change p.space + _ ≤ _; omega)⟩
+  refine ⟨?_, halt, rfl, (space_map_embedHom_le ..).trans (by change p.space + _ ≤ _; lia)⟩
   simp only [RelSeries.head_map, embedHom_apply, hh, MultiTapeNTM.initCfg, Cfg.init,
     MultiTapeNTM.prependOutputHom_apply, Cfg.prependOutput, List.append_nil, embed,
     Cfg.mk.injEq, and_true, true_and]
@@ -121,7 +121,7 @@ theorem ComputesInTimeAndSpace.concatenate {tm₁ : MultiTapeTM k₁ Symbol Stat
   · simpa only [hl, pb, pa, RelSeries.last_map, embedHom_apply, Cfg.mapState, ho₁, ho₂] using hob
   all_goals
     simp_all only [pa, pb, RelSeries.map_length, RelSeries.last_map, embedHom_apply, embed]
-    omega
+    lia
 
 /-- Compute a function whose encoded output is the concatenation of two computed outputs.
 The input encoding is shared; the output types and encodings may differ. -/
@@ -156,6 +156,6 @@ theorem ComputableInTimeAndSpace.concatenate {α β γ δ : Type*} {f₁ : α �
   intro x
   have hk₁ := (hm₁ x).2.2.le
   have hk₂ := (hm₂ x).2.2.le
-  omega
+  lia
 
 end Turing.MultiTapeTM
