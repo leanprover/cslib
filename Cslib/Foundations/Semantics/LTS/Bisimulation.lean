@@ -433,8 +433,7 @@ theorem BisimilarityApprox.natCast_eq_iterate (n : ℕ) :
     ~[lts₁,lts₂;n] = (bisimulationStep lts₁ lts₂)^[n] ⊤ := by
   induction n with
   | zero => exact BisimilarityApprox.zero_eq
-  | succ n ih =>
-    simp only [Nat.cast_succ, BisimilarityApprox.add_one, ih, Function.iterate_succ_apply']
+  | succ n ih => simp [BisimilarityApprox.add_one, ih, Function.iterate_succ_apply']
 
 open scoped Ordinal
 
