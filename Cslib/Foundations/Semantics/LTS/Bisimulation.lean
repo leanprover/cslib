@@ -427,10 +427,7 @@ theorem BisimilarityApprox.succ_le (o : Ordinal) : ~[lts₁,lts₂;o + 1] ≤ ~[
 
 theorem BisimilarityApprox.limit_iff {o : Ordinal} (ho : Order.IsSuccLimit o) :
     s₁ ~[lts₁,lts₂;o] s₂ ↔ ∀ o' < o, s₁ ~[lts₁,lts₂;o'] s₂ := by
-  change OrdinalApprox.gfpApprox (bisimulationStep lts₁ lts₂) ⊤ o s₁ s₂ ↔ _
-  rw [OrdinalApprox.gfpApprox_of_isSuccLimit _ ho]
-  simp only [iInf_apply, iInf_Prop_eq, Subtype.forall, Set.mem_Iio,
-    BisimilarityApprox, WithTop.recTopCoe_coe]
+  simp [OrdinalApprox.gfpApprox_of_isSuccLimit _ ho, BisimilarityApprox]
 
 theorem BisimilarityApprox.natCast_eq_iterate (n : ℕ) :
     ~[lts₁,lts₂;n] = (bisimulationStep lts₁ lts₂)^[n] ⊤ := by
