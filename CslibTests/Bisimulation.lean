@@ -66,16 +66,15 @@ section Heterogeneous
 variable {State₁ State₂ Label : Type*} {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
 variable {s₁ : State₁} {s₂ : State₂}
 
--- Relation notation works without states and supports ordinary and partial application.
-example : IsBisimulation lts₁ lts₂ ~[lts₁,lts₂] := Bisimilarity.isBisimulation ..
+-- Bisimilarity as a relation can be written as a section of the infix notation.
+example : IsBisimulation lts₁ lts₂ (· ~[lts₁,lts₂] ·) := Bisimilarity.isBisimulation ..
 
-example : Equivalence ~[lts₁] := HomBisimilarity.eqv
+example : Equivalence (· ~[lts₁] ·) := HomBisimilarity.eqv
 
-example (h : s₁ ~[lts₁,lts₂] s₂) : (~[lts₁,lts₂]) s₁ s₂ := h
+example : (· ~[lts₁,lts₂] ·) = Bisimilarity lts₁ lts₂ := rfl
 
-example (h : s₁ ~[lts₁] s₁) : (~[lts₁]) s₁ s₁ := h
-
-example (s : State₁) : ((~[lts₁,lts₂]) s) = Bisimilarity lts₁ lts₂ s := rfl
+-- Instances stated with sections are found for the unapplied relation.
+example : IsEquiv State₁ (HomBisimilarity lts₁) := inferInstance
 
 -- Approximation notation supports the same relation and application forms as bisimilarity.
 example : Equivalence ~[lts₁;o] := HomBisimilarityApprox.eqv o
@@ -206,7 +205,7 @@ private theorem onlyFalse_upTo : IsBisimulationUpTo completeLTS completeLTS only
   exact ⟨fun s _ => ⟨false, trivial, onlyFalse_closure s false⟩,
     fun t _ => ⟨false, trivial, onlyFalse_closure false t⟩⟩
 
-example : onlyFalse ≤ ~[completeLTS] := onlyFalse_upTo.le_bisimilarity
+example : onlyFalse ≤ (· ~[completeLTS] ·) := onlyFalse_upTo.le_bisimilarity
 
 example : ¬ IsHomBisimulation completeLTS onlyFalse := by
   intro h
