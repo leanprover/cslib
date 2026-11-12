@@ -21,7 +21,7 @@ family, so a downstream computational model can express a uniform resource restr
 This model has a natural-number security parameter and no sampled public system parameters.
 Efficiency of generation and sampling is not asserted by these semantic definitions.
 Seed and ideal distributions can be supplied explicitly; their defaults are uniform on finite
-types. Security is stated through `Game.Indistinguishable`, so computational definitions over
+types. Security is stated through `Experiment.Indistinguishable`, so computational definitions over
 infinite sample spaces can reuse these experiments.
 
 `SecureWithError` bounds every admissible family's advantage at parameter `n` by `ε n`.
@@ -54,7 +54,7 @@ def Secure (G : Family Seed Output)
       intro n; exact Cslib.Probability.PMF.uniformOfFintype _)
     (ideal : ∀ n, PMF (Output n) := by
       intro n; exact Cslib.Probability.PMF.uniformOfFintype _) : Prop :=
-  Game.Indistinguishable
+  Experiment.Indistinguishable
     (fun adversary n => (G n).realExperiment (adversary n) (seed := seed n))
     (fun adversary n => Generator.idealExperiment (adversary n) (ideal := ideal n)) Admissible
 
@@ -65,7 +65,7 @@ theorem Secure.of_admissible {G : Family Seed Output}
     (h : G.Secure Admissible (seed := seed) (ideal := ideal))
     (hsub : ∀ adversary_family, Restricted adversary_family → Admissible adversary_family) :
     G.Secure Restricted (seed := seed) (ideal := ideal) :=
-  Game.Indistinguishable.of_admissible h hsub
+  Experiment.Indistinguishable.of_admissible h hsub
 
 /-- Every admissible adversary family has advantage at most `ε n` at each parameter `n`. -/
 def SecureWithError (G : Family Seed Output)
@@ -74,7 +74,7 @@ def SecureWithError (G : Family Seed Output)
       intro n; exact Cslib.Probability.PMF.uniformOfFintype _)
     (ideal : ∀ n, PMF (Output n) := by
       intro n; exact Cslib.Probability.PMF.uniformOfFintype _) : Prop :=
-  Game.IndistinguishableWithError
+  Experiment.IndistinguishableWithError
     (fun adversary n => (G n).realExperiment (adversary n) (seed := seed n))
     (fun adversary n => Generator.idealExperiment (adversary n) (ideal := ideal n)) Admissible ε
 
@@ -84,7 +84,7 @@ theorem SecureWithError.secure {G : Family Seed Output}
     {seed : ∀ n, PMF (Seed n)} {ideal : ∀ n, PMF (Output n)}
     (h : G.SecureWithError Admissible ε (seed := seed) (ideal := ideal))
     (hε : Negligible ε) : G.Secure Admissible (seed := seed) (ideal := ideal) :=
-  Game.IndistinguishableWithError.indistinguishable h hε
+  Experiment.IndistinguishableWithError.indistinguishable h hε
 
 section RangeTests
 
