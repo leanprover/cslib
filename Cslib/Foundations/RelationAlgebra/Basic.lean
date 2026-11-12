@@ -145,7 +145,7 @@ theorem inf_star_mul_ne_bot {r s p : α} (hp : p ≠ ⊥) (h : p ≤ r * s) : s 
 
 theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : p ≠ ⊥) (h : p ≤ r * s) :
     s ≤ star r * p :=
-  hs.not_disjoint_iff_le.mp fun hd => inf_star_mul_ne_bot hp h hd.eq_bot
+  hs.not_disjoint_iff_le.mp <| disjoint_iff.not.mpr <| inf_star_mul_ne_bot hp h
 
 /-- For atoms, the cycle law is an equivalence. -/
 theorem atom_cycle_left_iff {r s p : α} (hs : IsAtom s) (hp : IsAtom p) :
