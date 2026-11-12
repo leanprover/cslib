@@ -169,7 +169,7 @@ def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
     AtomStructure {a : α // IsAtom a} where
   conv a := ⟨star a.val, isAtom_star_iff.mpr a.property⟩
   id := {a | a.val ≤ 1}
-  cycles := Set.ofPred fun (r, s, t) => t.val ≤ r.val * s.val
+  cycles := {(r, s, t) | (t : α) ≤ r * s}
   assoc {r q p s t} h₁ h₂ := by
     have hp : (p : α) ≤ r * s * t := by
       rw [mul_assoc]
