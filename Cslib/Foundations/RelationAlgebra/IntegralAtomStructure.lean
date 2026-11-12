@@ -117,9 +117,8 @@ def ofCycles (generators : Finset (Cycle s n))
   id := {one}
   cycles := cycleClosure generators
   assoc := hassoc
-  id_cycle := by rintro _ _ _ rfl; exact cycleClosure_id_cycle _ hg
-  id_exist r := ⟨one, rfl, cycleClosure_id_exist _ r⟩
-  conv_cycles := cycleClosure_conv_cycles _
+  id_cycle_right := by rintro _ _ _ rfl; exact cycleClosure_id_cycle _ hg
+  exists_id_cycle_right r := ⟨one, rfl, cycleClosure_id_exist _ r⟩
   cycle_left := cycleClosure_cycle_left _
 
 /-- The complex algebra constructed from diversity cycles is integral. -/
