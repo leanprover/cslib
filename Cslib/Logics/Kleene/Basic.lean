@@ -22,7 +22,8 @@ to `unknown`, and `AND`, `OR` and `NOT` are the meet, join and complement define
 
 In the information order `⊑`, `unknown` lies below both definite values, which are incomparable.
 Every operation is monotone in it, and `⊓`, `⊔` and `ᶜ` are the greatest monotone extensions of
-`&&`, `||` and `!`.
+`&&`, `||` and `!`. Under `⊑`, `Kleene.Value` is the flat domain on `Bool`, so these results could
+be subsumed under a general development of domain theory.
 
 ## Main definitions
 
