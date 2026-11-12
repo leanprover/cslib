@@ -38,7 +38,7 @@ theorem advantage_nonneg (G : Generator Seed Output) (adversary : Adversary Outp
 theorem advantage_le_one (G : Generator Seed Output) (adversary : Adversary Output) :
     G.advantage adversary (seed := seed) (ideal := ideal) ≤ 1 := by
   rw [advantage]
-  exact_mod_cast Game.advantage_le_one _ _
+  exact_mod_cast Experiment.advantage_le_one _ _
 
 /-- Error one imposes no restriction on a generator. -/
 theorem secure_one (G : Generator Seed Output) (Admissible : Adversary Output → Prop) :
@@ -68,7 +68,7 @@ theorem secure_zero_iff_outputDist_eq (G : Generator Seed Output) :
   ext output
   have hadv := h (fun x => PMF.pure (decide (x = output))) trivial
   rw [advantage, NNReal.coe_zero, ← NNReal.coe_zero, NNReal.coe_le_coe, nonpos_iff_eq_zero,
-    Game.advantage, nndist_eq_zero, Game.succProbability, Game.succProbability,
+    Experiment.advantage, nndist_eq_zero, Experiment.succProbability, Experiment.succProbability,
     ENNReal.toNNReal_eq_toNNReal_iff' (PMF.apply_ne_top _ _) (PMF.apply_ne_top _ _)] at hadv
   simpa [realExperiment, idealExperiment] using hadv
 
@@ -132,8 +132,8 @@ theorem advantage_rangeAdversary (G : Generator Seed Output) :
       (idealExperiment G.rangeAdversary (ideal := uniformOfFintype Output) true).toReal ≤ 1 :=
     (ENNReal.toReal_le_toReal (PMF.apply_ne_top _ _) ENNReal.one_ne_top).mpr
       (PMF.coe_le_one _ _)
-  rw [advantage, realExperiment_rangeAdversary, Game.coe_advantage]
-  simp only [Game.succProbability, ENNReal.coe_toNNReal_eq_toReal, PMF.pure_apply, ↓reduceIte,
+  rw [advantage, realExperiment_rangeAdversary, Experiment.coe_advantage]
+  simp only [Experiment.succProbability, ENNReal.coe_toNNReal_eq_toReal, PMF.pure_apply, ↓reduceIte,
     ENNReal.toReal_one]
   rw [abs_of_nonneg (sub_nonneg.mpr hprob), idealExperiment_rangeAdversary]
 
@@ -239,7 +239,7 @@ theorem advantage_prod_le (G : Generator Seed Output)
     realExperiment_prod,
     idealExperiment_leftReduction,
     ← idealExperiment_rightReduction]
-  exact_mod_cast Game.advantage_triangle _ _ _
+  exact_mod_cast Experiment.advantage_triangle _ _ _
 
 /-- Concrete security of `H(x₁, x₂) = (G(x₁), G(x₂))` via a two-step hybrid argument. -/
 theorem Secure.prod {G : Generator Seed Output}

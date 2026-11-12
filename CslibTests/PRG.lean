@@ -24,7 +24,7 @@ example : (Generator.mk (id : Bool → Bool)).Secure (fun _ => True) 0 := by
 example : (Generator.mk (id : ℕ → ℕ)).advantage (fun n => PMF.pure (decide (n = 0)))
     (seed := PMF.pure 0) (ideal := PMF.pure 1) = 1 := by
   simp [Generator.advantage, Generator.realExperiment, Generator.idealExperiment,
-    Generator.outputDist, Cslib.Crypto.Game.succProbability]
+    Generator.outputDist, Cslib.Crypto.Experiment.succProbability]
 
 -- Zero-error security implies uniform output.
 example {Seed Output : Type*} [Fintype Seed] [Nonempty Seed]

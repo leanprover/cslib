@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Crypto.Game
+public import Cslib.Crypto.Experiment
 -- The default-argument tactics use this import at their call sites.
 public import Cslib.Probability.PMF -- shake: keep
 
@@ -69,12 +69,12 @@ noncomputable def outputDist (G : Generator Seed Output)
 /-- Experiment 0 of Attack Game 3.1: generate from a seed, uniform by default. -/
 noncomputable def realExperiment (G : Generator Seed Output)
     (adversary : Adversary Output)
-    (seed : PMF Seed := by exact Cslib.Probability.PMF.uniformOfFintype _) : Game :=
+    (seed : PMF Seed := by exact Cslib.Probability.PMF.uniformOfFintype _) : Experiment :=
   (G.outputDist (seed := seed)).bind adversary
 
 /-- Experiment 1 of Attack Game 3.1: give the adversary an ideal sample, uniform by default. -/
 noncomputable def idealExperiment (adversary : Adversary Output)
-    (ideal : PMF Output := by exact Cslib.Probability.PMF.uniformOfFintype _) : Game :=
+    (ideal : PMF Output := by exact Cslib.Probability.PMF.uniformOfFintype _) : Experiment :=
   ideal.bind adversary
 
 /-- The absolute difference of the probabilities of outputting `true` in the two
@@ -82,7 +82,7 @@ experiments, as in Attack Game 3.1 of [BonehShoup2023]. -/
 noncomputable def advantage (G : Generator Seed Output) (adversary : Adversary Output)
     (seed : PMF Seed := by exact Cslib.Probability.PMF.uniformOfFintype _)
     (ideal : PMF Output := by exact Cslib.Probability.PMF.uniformOfFintype _) : ℝ :=
-  Game.advantage (G.realExperiment adversary (seed := seed))
+  Experiment.advantage (G.realExperiment adversary (seed := seed))
     (idealExperiment adversary (ideal := ideal))
 
 /-- Concrete security against admissible adversaries. The predicate is supplied by the
