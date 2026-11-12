@@ -56,6 +56,11 @@ theorem conv_cycles {r s t : α} (h : (r, s, t) ∈ A.cycles) :
   obtain ⟨q, hq, hsq⟩ := A.assoc (A.cycle_left hs) (A.cycle_left h)
   grind [A.id_cycle_right he (A.cycle_left hq)]
 
+theorem assoc_symm {r s t p q : α} (h₁ : (q, t, p) ∈ A.cycles) (h₂ : (r, s, q) ∈ A.cycles) :
+    ∃ q', (r, q', p) ∈ A.cycles ∧ (s, t, q') ∈ A.cycles := by
+  obtain ⟨u, hu₁, hu₂⟩ := A.assoc (A.conv_cycles h₁) (A.conv_cycles h₂)
+  exact ⟨A.conv u, by simpa using A.conv_cycles hu₁, by simpa using A.conv_cycles hu₂⟩
+
 theorem conv_eq_self_of_mem_id {r : α} (hr : r ∈ A.id) : A.conv r = r := by
   grind [A.id_cycle_right, => A.cycle_left, A.exists_id_cycle_right r, A.conv_cycles]
 
@@ -110,51 +115,44 @@ instance : Mul (ComplexAlgebra A) where
 instance : Star (ComplexAlgebra A) where
   star x := ⟨A.conv '' x.carrier⟩
 
+section
+
+variable {A} {x y : ComplexAlgebra A} {a : α}
+
+@[simp]
+theorem mem_mk {s : Set α} : a ∈ (⟨s⟩ : ComplexAlgebra A) ↔ a ∈ s := .rfl
+
+theorem mem_carrier : a ∈ x.carrier ↔ a ∈ x := .rfl
+
+theorem le_def : x ≤ y ↔ ∀ a ∈ x, a ∈ y := .rfl
+
+@[simp, grind =]
+theorem mem_sup : a ∈ x ⊔ y ↔ a ∈ x ∨ a ∈ y := .rfl
+
+@[simp, grind =]
+theorem mem_compl : a ∈ xᶜ ↔ a ∉ x := .rfl
+
+@[simp, grind =]
+theorem mem_one : a ∈ (1 : ComplexAlgebra A) ↔ a ∈ A.id := .rfl
+
+@[grind =]
+theorem mem_mul : a ∈ x * y ↔ ∃ r ∈ x, ∃ s ∈ y, (r, s, a) ∈ A.cycles := .rfl
+
+@[simp, grind =]
+theorem mem_star : a ∈ star x ↔ A.conv a ∈ x :=
+  Set.mem_image_iff_of_inverse A.conv_conv A.conv_conv
+
+end
+
 instance : RelationAlgebra (ComplexAlgebra A) where
-  mul_assoc a b c := by
-    ext p
-    constructor
-    · rintro ⟨q, ⟨r, hr, s, hs, hrs⟩, t, ht, hqt⟩
-      obtain ⟨u, _⟩ := A.assoc (A.conv_cycles hqt) (A.conv_cycles hrs)
-      refine ⟨r, hr, A.conv u, ⟨s, hs, t, ht, ?_⟩, ?_⟩ <;> grind [=> A.conv_cycles]
-    · rintro ⟨r, hr, q, ⟨s, hs, t, ht, hst⟩, hrq⟩
-      obtain ⟨u, hut, hrs⟩ := A.assoc hrq hst
-      exact ⟨u, ⟨r, hr, s, hs, hrs⟩, t, ht, hut⟩
-  one_mul x := by
-    ext t
-    constructor
-    · rintro ⟨r, hr, s, hs, h⟩
-      grind [A.id_cycle_left hr]
-    · intro ht
-      obtain ⟨s, hs, h⟩ := A.exists_id_cycle_left t
-      exact ⟨s, hs, t, ht, h⟩
-  mul_one x := by
-    ext t
-    constructor
-    · rintro ⟨r, hr, s, hs, h⟩
-      grind [A.id_cycle_right hs]
-    · intro ht
-      obtain ⟨s, hs, h⟩ := A.exists_id_cycle_right t
-      exact ⟨t, ht, s, hs, h⟩
-  star_involutive x :=
-    (equivSet A).injective (Function.LeftInverse.image_image A.conv_conv x.carrier)
-  star_mul x y := by
-    ext t
-    constructor
-    · rintro ⟨p, ⟨r, hr, s, hs, h⟩, rfl⟩
-      exact ⟨A.conv s, ⟨s, hs, rfl⟩, A.conv r, ⟨r, hr, rfl⟩, A.conv_cycles h⟩
-    · rintro ⟨s, ⟨s', hs, rfl⟩, r, ⟨r', hr, rfl⟩, h⟩
-      refine ⟨A.conv t, ⟨r', hr, s', hs, ?_⟩, A.conv_conv t⟩
-      simpa using A.conv_cycles h
-  sup_mul a b c := by
-    ext t
-    exact (exists_congr fun r => or_and_right).trans exists_or
-  star_sup a b := (equivSet A).injective (Set.image_union A.conv a.carrier b.carrier)
-  tarski x y := by
-    rintro t ⟨r, ⟨a, ha, rfl⟩, s, hs, h⟩ ht
-    apply hs
-    refine ⟨a, ha, t, ht, ?_⟩
-    simpa using A.cycle_left h
+  mul_assoc a b c := by ext p; grind [A.assoc, A.assoc_symm]
+  one_mul x := by ext t; grind [A.id_cycle_left, A.exists_id_cycle_left t]
+  mul_one x := by ext t; grind [A.id_cycle_right, A.exists_id_cycle_right t]
+  star_involutive x := by ext; simp
+  star_mul x y := by ext; grind [=> A.conv_cycles]
+  sup_mul a b c := by ext; grind
+  star_sup a b := by ext; simp
+  tarski x y := by grind [le_def, => A.cycle_left]
 
 instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 
