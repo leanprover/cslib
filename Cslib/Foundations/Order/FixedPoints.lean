@@ -23,7 +23,7 @@ theorem nextFixed_bot_coe : ↑(f.nextFixed ⊥ bot_le) = f.lfp :=
 theorem prevFixed_top_coe : ↑(f.prevFixed ⊤ le_top) = f.gfp :=
   congr(gfp $(top_inf_eq f))
 
-/-- Generalisation of `OrderHom.nextFixed_le` to prefixed point. -/
+/-- Generalisation of `OrderHom.nextFixed_le` to prefixed points. -/
 theorem nextFixed_le_of_map_le {x y : α} (hx : x ≤ f x) (hxy : x ≤ y) (hy : f y ≤ y) :
     ↑(f.nextFixed x hx) ≤ y := by
   apply lfp_le
@@ -37,7 +37,7 @@ theorem le_prevFixed_of_map_ge {x y : α} (hx : f x ≤ x) (hxy : y ≤ x) (hy :
 
 /-- Analogue of `OrderHom.lfp_induction` for `OrderHom.nextFixed`. -/
 theorem nextFixed_induction {x : α} (hx : x ≤ f x) {p : α → Prop} (base : p x)
-    (step : ∀ a, x ≤ a → a ≤ f.nextFixed x hx → p a → p (f a))
+    (step : ∀ a, p a → x ≤ a → a ≤ f.nextFixed x hx → p (f a))
     (hSup : ∀ s, (∀ a ∈ s, p a) → p (sSup s)) : p (f.nextFixed x hx) := by
   suffices f.nextFixed x hx = sSup {a | x ≤ a ∧ a ≤ f.nextFixed x hx ∧ p a} by grind
   have hx_le : x ≤ sSup {a | x ≤ a ∧ a ≤ f.nextFixed x hx ∧ p a} :=
@@ -51,7 +51,7 @@ theorem nextFixed_induction {x : α} (hx : x ≤ f x) {p : α → Prop} (base : 
 
 /-- Analogue of `OrderHom.gfp_induction` for `OrderHom.prevFixed`. -/
 theorem prevFixed_induction {x : α} (hx : f x ≤ x) {p : α → Prop} (base : p x)
-    (step : ∀ a, a ≤ x → f.prevFixed x hx ≤ a → p a → p (f a))
+    (step : ∀ a, p a → a ≤ x → f.prevFixed x hx ≤ a → p (f a))
     (hInf : ∀ s, (∀ a ∈ s, p a) → p (sInf s)) : p (f.prevFixed x hx) :=
   f.dual.nextFixed_induction hx base step hInf
 
