@@ -447,13 +447,7 @@ open scoped Ordinal
 /-- The omega stratum is the intersection of the finite strata. -/
 theorem BisimilarityApprox.omega_iff : s₁ ~[lts₁,lts₂;ω] s₂ ↔
     ∀ n : ℕ, s₁ ~[lts₁,lts₂;n] s₂ := by
-  rw [BisimilarityApprox.limit_iff Ordinal.isSuccLimit_omega0]
-  constructor
-  · intro h n
-    exact h n (Ordinal.natCast_lt_omega0 n)
-  · intro h o' ho'
-    obtain ⟨n, rfl⟩ := Ordinal.lt_omega0.mp ho'
-    exact h n
+  simp [BisimilarityApprox.limit_iff Ordinal.isSuccLimit_omega0, Ordinal.lt_omega0]
 
 /-- Bisimilar states belong to every ordinal stratum. -/
 theorem Bisimilarity.approx (h : s₁ ~[lts₁,lts₂] s₂) (o : WithTop Ordinal) :
