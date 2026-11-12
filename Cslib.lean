@@ -26,8 +26,10 @@ public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
 public import Cslib.Computability.Automata.EpsilonNA.Basic
+public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
+public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
 public import Cslib.Computability.Automata.EpsilonNA.ToNA
-public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
+public import Cslib.Computability.Automata.EpsilonNA.ToSingleStartAccept
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter
@@ -41,6 +43,7 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
+public import Cslib.Computability.Automata.NA.ToEpsilonNA
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Automata.TwoWayNA.Basic
@@ -177,6 +180,7 @@ public import Cslib.Foundations.Logic.InferenceSystem
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.MeasureTheory.FiniteSupport
+public import Cslib.Foundations.Order.Heyting
 public import Cslib.Foundations.Order.Huntington
 public import Cslib.Foundations.Relation.Attr
 public import Cslib.Foundations.Relation.Basic
@@ -268,6 +272,7 @@ public import Cslib.Languages.Mech.Choreography.Basic
 public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
+public import Cslib.Logics.BTL.Basic
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination

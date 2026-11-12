@@ -32,7 +32,8 @@ private inductive Bisim15 : ℕ → ℕ → Prop where
 
 example : 1 ~[lts1] 5 := by
   exists Bisim15
-  apply And.intro; constructor
+  apply And.intro
+  · constructor
   intro s1 s2 hr μ
   constructor
   case left =>
