@@ -458,14 +458,8 @@ theorem BisimilarityApprox.omega_iff : s₁ ~[lts₁,lts₂;ω] s₂ ↔
 /-- Bisimilar states belong to every ordinal stratum. -/
 theorem Bisimilarity.approx (h : s₁ ~[lts₁,lts₂] s₂) (o : WithTop Ordinal) :
     s₁ ~[lts₁,lts₂;o] s₂ := by
-  have hfix : ~[lts₁,lts₂] ∈ Function.fixedPoints (bisimulationStep lts₁ lts₂) := by
-    rw [← bisimulationStep_gfp]
-    exact (bisimulationStep lts₁ lts₂).isFixedPt_gfp
-  cases o using WithTop.recTopCoe with
-  | top =>
-    exact BisimilarityApprox.top_iff.mpr fun o =>
-      OrdinalApprox.le_gfpApprox_of_mem_fixedPoints _ hfix le_top o _ _ h
-  | coe o => exact OrdinalApprox.le_gfpApprox_of_mem_fixedPoints _ hfix le_top o _ _ h
+  apply BisimilarityApprox.antitone le_top
+  rwa [BisimilarityApprox.top_eq_bisimilarity]
 
 /-- For all LTSs, some ordinal stratum coincides with bisimilarity. -/
 theorem BisimilarityApprox.exists_eq_bisimilarity (lts₁ : LTS State₁ Label)
