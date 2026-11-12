@@ -123,25 +123,12 @@ instance : MulRightMono α where
   elim a b c h := by simp [← sup_eq_right, ← sup_mul, sup_of_le_right h]
 
 @[simp]
-theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
-  apply le_antisymm _ bot_le
-  calc
-    a * ⊥ ≤ a * (star a * ⊤)ᶜ := mul_le_mul_right bot_le a
-    _ ≤ ⊥ := by simpa using tarski (star a) ⊤
+theorem mul_bot (a : α) : a * ⊥ = ⊥ :=
+  eq_bot_mono (mul_le_mul_right bot_le a) (by simpa using tarski (star a) ⊤)
 
 @[to_dual (attr := simp)]
 theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
   starOrderIso.isAtom_iff a
-
-theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : p ≠ ⊥) (h : p ≤ r * s) :
-    s ≤ star r * p := by
-  by_contra hsnot
-  have hsc : s ≤ (star r * p)ᶜ := le_compl_iff_disjoint_right.mpr (hs.not_le_iff_disjoint.mp hsnot)
-  have hc : p ≤ pᶜ := calc
-    p ≤ r * s := h
-    _ ≤ r * (star r * p)ᶜ := mul_le_mul_right hsc r
-    _ ≤ pᶜ := by simpa using tarski (star r) p
-  simp_all
 
 theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
   calc
@@ -152,15 +139,31 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
 
+/-- The right factor of a product lying above a nonzero element is nonzero. -/
+theorem ne_bot_of_le_mul {r s p : α} (hp : p ≠ ⊥) (h : p ≤ r * s) : s ≠ ⊥ := by
+  rintro rfl
+  exact hp (le_bot_iff.mp (by simpa using h))
+
+/-- The modular law specialised to an element below a product. -/
+theorem le_mul_inf_star_mul {r s p : α} (h : p ≤ r * s) : p ≤ r * (s ⊓ star r * p) := by
+  simpa [inf_eq_right.mpr h] using left_modular r s p
+
+theorem atom_cycle_left {r s p : α} (hs : IsAtom s) (hp : p ≠ ⊥) (h : p ≤ r * s) :
+    s ≤ star r * p :=
+  inf_eq_left.mp <| (hs.ne_bot_iff_eq inf_le_left).mp <|
+    ne_bot_of_le_mul hp (le_mul_inf_star_mul h)
+
+/-- For atoms, the cycle law is an equivalence. -/
+theorem atom_cycle_left_iff {r s p : α} (hs : IsAtom s) (hp : IsAtom p) :
+    p ≤ r * s ↔ s ≤ star r * p :=
+  ⟨atom_cycle_left hs hp.ne_bot, fun h => by simpa using atom_cycle_left hp hs.ne_bot h⟩
+
 /-- If an atom lies below a product, its right factor can be replaced by an atom below it. -/
 theorem exists_atom_le_mul_right [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
     ∃ s, IsAtom s ∧ s ≤ b ∧ p ≤ a * s := by
-  have hmod : p ≤ a * (b ⊓ star a * p) := by simpa [inf_eq_right.mpr h] using left_modular a b p
-  obtain hb | ⟨s, hs, hsb⟩ := eq_bot_or_exists_atom_le (b ⊓ star a * p)
-  · rw [hb, mul_bot] at hmod
-    exact (hp.ne_bot (le_bot_iff.mp hmod)).elim
-  · use s, hs, hsb.trans inf_le_left
-    simpa using atom_cycle_left hp hs.ne_bot (hsb.trans inf_le_right)
+  obtain ⟨s, hs, hsb⟩ := (eq_bot_or_exists_atom_le _).resolve_left
+    (ne_bot_of_le_mul hp.ne_bot (le_mul_inf_star_mul h))
+  exact ⟨s, hs, hsb.trans inf_le_left, (atom_cycle_left_iff hs hp).mpr (hsb.trans inf_le_right)⟩
 
 /-- If an atom lies below a product, its left factor can be replaced by an atom below it. -/
 theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : p ≤ a * b) :
