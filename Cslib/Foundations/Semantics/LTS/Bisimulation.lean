@@ -374,7 +374,7 @@ theorem BisimilarityApprox.zero_eq : ~[lts₁,lts₂;0] = ⊤ := OrdinalApprox.g
 /-- A successor stratum applies the one-step operator to the preceding stratum. -/
 theorem BisimilarityApprox.succ {o : WithTop Ordinal} :
     ~[lts₁,lts₂;o + 1] = bisimulationStep lts₁ lts₂ ~[lts₁,lts₂;o] := by
-  cases o using WithTop.recTopCoe with
+  cases o with
   | top =>
     rw [WithTop.top_add, BisimilarityApprox.top_eq_bisimilarity, ← bisimulationStep_gfp]
     exact (bisimulationStep lts₁ lts₂).map_gfp.symm
