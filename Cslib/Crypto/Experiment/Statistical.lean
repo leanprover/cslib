@@ -6,7 +6,7 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Crypto.Game
+public import Cslib.Crypto.Experiment
 public import Cslib.Probability.StatisticalDistance
 
 /-!
@@ -26,7 +26,7 @@ open scoped NNReal
 
 /-- The absolute difference of success probabilities is precisely statistical distance
 for Boolean experiments. -/
-theorem Game.advantage_eq_nndist (game1 game2 : Game) :
+theorem Experiment.advantage_eq_nndist (game1 game2 : Experiment) :
     advantage game1 game2 = nndist game1 game2 := by
   have hfalse (p : PMF Bool) : (p false).toReal = 1 - (p true).toReal := by
     rw [← sum_toReal p, Fintype.sum_bool, add_sub_cancel_left]
@@ -37,13 +37,13 @@ theorem Game.advantage_eq_nndist (game1 game2 : Game) :
     add_self_div_two]
 
 /-- No randomized Boolean test distinguishes better than the statistical distance. -/
-theorem Game.advantage_bind_le_nndist {α : Type*} (p q : PMF α) (test : α → Game) :
+theorem Experiment.advantage_bind_le_nndist {α : Type*} (p q : PMF α) (test : α → Experiment) :
     advantage (p.bind test) (q.bind test) ≤ nndist p q :=
   (advantage_eq_nndist _ _).trans_le (nndist_bind_le p q test)
 
 /-- A statistical-closeness bound is an advantage bound for every randomized test. -/
-theorem Game.advantage_le_of_statisticallyClose {α : Type*} {p q : PMF α} {ε : ℝ≥0}
-    (h : StatisticallyClose p q ε) (test : α → Game) :
+theorem Experiment.advantage_le_of_statisticallyClose {α : Type*} {p q : PMF α} {ε : ℝ≥0}
+    (h : StatisticallyClose p q ε) (test : α → Experiment) :
     advantage (p.bind test) (q.bind test) ≤ ε :=
   (advantage_bind_le_nndist p q test).trans (by rw [← NNReal.coe_le_coe, coe_nndist]; exact h)
 
@@ -83,10 +83,10 @@ theorem map (h : StatisticallyIndistinguishable X Y) (f : ∀ n, α n → β n) 
 /-- Statistical indistinguishability implies indistinguishability for any chosen class of
 tests. The test may depend arbitrarily on the security parameter. -/
 theorem indistinguishable (h : StatisticallyIndistinguishable X Y) {Adversary : Type*}
-    (test : Adversary → (n : ℕ) → α n → Game) (Admissible : Adversary → Prop) :
-    Game.Indistinguishable (fun adversary n => (X n).bind (test adversary n))
+    (test : Adversary → (n : ℕ) → α n → Experiment) (Admissible : Adversary → Prop) :
+    Experiment.Indistinguishable (fun adversary n => (X n).bind (test adversary n))
       (fun adversary n => (Y n).bind (test adversary n)) Admissible := fun _ _ =>
-  negligible_of_le h fun _ => Game.advantage_bind_le_nndist _ _ _
+  negligible_of_le h fun _ => Experiment.advantage_bind_le_nndist _ _ _
 
 end StatisticallyIndistinguishable
 end Cslib.Crypto

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Samuel Schlesinger
 -/
 
-import Cslib.Crypto.Game
+import Cslib.Crypto.Experiment
 import Cslib.Languages.Probabilistic.Basic
 import Mathlib.Algebra.FreeMonoid.Basic
 import Mathlib.Control.Monad.Writer
@@ -92,8 +92,8 @@ example {α : Type u} (first second : α) :
       PMF.pure ((first, first), some first) := by
   simp [recallTwice, remember]
 
-example : Game.succProbability (ProbComp.eval (ProbComp.uniform Bool)) = 1 / 2 := by
-  simp [Game.succProbability, Probability.PMF.uniformOfFintype_apply, ENNReal.toNNReal_ofNat]
+example : Experiment.succProbability (ProbComp.eval (ProbComp.uniform Bool)) = 1 / 2 := by
+  simp [Experiment.succProbability, Probability.PMF.uniformOfFintype_apply, ENNReal.toNNReal_ofNat]
 
 private abbrev Word := List Bool
 
@@ -106,8 +106,8 @@ private noncomputable def inversionGame (f : Word → Word)
   return f candidate == f input
 
 -- Inversion accepts any preimage, including one with a different length.
-example (n : ℕ) : Game.succProbability
+example (n : ℕ) : Experiment.succProbability
     (ProbComp.eval (inversionGame (fun _ => [true]) (fun _ _ => pure []) n)) = 1 := by
-  simp [inversionGame, Game.succProbability, PMF.map, Function.comp_def]
+  simp [inversionGame, Experiment.succProbability, PMF.map, Function.comp_def]
 
 end CslibTests.Probabilistic

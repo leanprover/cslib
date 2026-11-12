@@ -7,7 +7,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Primitives.PRG.Asymptotic
-public import Cslib.Crypto.Game.Statistical
+public import Cslib.Crypto.Experiment.Statistical
 
 /-!
 # Statistical bounds for pseudorandom-generator games
@@ -28,7 +28,7 @@ theorem Generator.advantage_le_dist {Seed Output : Type*} (G : Generator Seed Ou
     (adversary : Adversary Output) (seed : PMF Seed) (ideal : PMF Output) :
     G.advantage adversary seed ideal ≤ dist (G.outputDist seed) ideal := by
   rw [Generator.advantage, ← coe_nndist]
-  exact_mod_cast Game.advantage_bind_le_nndist _ _ _
+  exact_mod_cast Experiment.advantage_bind_le_nndist _ _ _
 
 /-- A statistical bound gives concrete security for any chosen class of adversaries. -/
 theorem Generator.secure_of_statisticallyClose {Seed Output : Type*} (G : Generator Seed Output)

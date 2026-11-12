@@ -25,10 +25,11 @@ To this end, we expect to leverage the combination of `Crypto` and [Languages](.
 real-valued bounds at natural security parameters, with zero, addition, multiplication, fixed
 finite sums, eventual comparison, and polynomial-loss bounds. Changing finitely many values
 preserves negligibility.
-[`Game`](Game.lean) gives the success probability and distinguishing advantage of Boolean
-experiments, and indistinguishability of game families under polynomial-loss reductions.
-[`Game/Hybrid`](Game/Hybrid.lean) supplies hybrid arguments with polynomially many hops.
-[`Game/Statistical`](Game/Statistical.lean) identifies Boolean advantage with statistical
+[`Experiment`](Experiment.lean) gives the success probability and distinguishing advantage of Boolean
+experiments, and indistinguishability of experiment families under polynomial-loss reductions.
+[`Experiment/Hybrid`](Experiment/Hybrid.lean) supplies hybrid arguments with polynomially many hops
+and a finite-chain interface whose indices stay within the chain.
+[`Experiment/Statistical`](Experiment/Statistical.lean) identifies Boolean advantage with statistical
 distance, so a statistical approximation can be one hop of a computational argument.
 
 ## Pseudorandom generators
