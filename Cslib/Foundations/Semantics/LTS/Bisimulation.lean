@@ -391,7 +391,7 @@ theorem BisimilarityApprox.succ_iff {o : WithTop Ordinal} : s₁ ~[lts₁,lts₂
         ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;o] s₂') ∧
       (∀ s₂', lts₂.Tr s₂ μ s₂' →
         ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;o] s₂') := by
-  rw [BisimilarityApprox.add_one]
+  rw [BisimilarityApprox.succ]
   rfl
 
 /-- Follow a transition by the first state, consuming one level of approximation. -/
@@ -409,10 +409,10 @@ theorem BisimilarityApprox.follow_snd {o : WithTop Ordinal} (h : s₁ ~[lts₁,l
 /-- The strata decrease with the ordinal index. -/
 theorem BisimilarityApprox.antitone : Antitone (fun o => ~[lts₁,lts₂;o]) := by
   intro o o' hoo'
-  cases o using WithTop.recTopCoe with
+  cases o with
   | top => rw [eq_top_iff.mpr hoo']
   | coe o =>
-    cases o' using WithTop.recTopCoe with
+    cases o' with
     | top => exact iInf_le _ o
     | coe o' => exact OrdinalApprox.gfpApprox_anti_right _ (WithTop.coe_le_coe.mp hoo')
 
@@ -433,7 +433,7 @@ theorem BisimilarityApprox.natCast_eq_iterate (n : ℕ) :
     ~[lts₁,lts₂;n] = (bisimulationStep lts₁ lts₂)^[n] ⊤ := by
   induction n with
   | zero => exact BisimilarityApprox.zero_eq
-  | succ n ih => simp [BisimilarityApprox.add_one, ih, Function.iterate_succ_apply']
+  | succ n ih => simp [BisimilarityApprox.succ, ih, Function.iterate_succ_apply']
 
 open scoped Ordinal
 
@@ -475,7 +475,7 @@ theorem BisimilarityApprox.symm {State₁ State₂ : Type*}
     {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label} {s₁ : State₁} {s₂ : State₂}
     (h : s₁ ~[lts₁,lts₂;o] s₂) :
     s₂ ~[lts₂,lts₁;o] s₁ := by
-  cases o using WithTop.recTopCoe with
+  cases o with
   | top =>
     rw [BisimilarityApprox.top_eq_bisimilarity] at h ⊢
     exact h.symm
@@ -495,7 +495,7 @@ theorem BisimilarityApprox.trans {State₁ State₂ State₃ : Type u}
     (h₁ : s₁ ~[lts₁,lts₂;o] s₂)
     (h₂ : s₂ ~[lts₂,lts₃;o] s₃) :
     s₁ ~[lts₁,lts₃;o] s₃ := by
-  cases o using WithTop.recTopCoe with
+  cases o with
   | top =>
     rw [BisimilarityApprox.top_eq_bisimilarity] at h₁ h₂ ⊢
     exact h₁.trans h₂
