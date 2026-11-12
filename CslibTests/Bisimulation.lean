@@ -66,6 +66,16 @@ section Heterogeneous
 variable {State₁ State₂ Label : Type*} {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
 variable {s₁ : State₁} {s₂ : State₂}
 
+-- Bisimilarity as a relation can be written as a section of the infix notation.
+example : IsBisimulation lts₁ lts₂ (· ~[lts₁,lts₂] ·) := Bisimilarity.isBisimulation ..
+
+example : Equivalence (· ~[lts₁] ·) := HomBisimilarity.eqv
+
+example : (· ~[lts₁,lts₂] ·) = Bisimilarity lts₁ lts₂ := rfl
+
+-- Instances stated with sections are found for the unapplied relation.
+example : IsEquiv State₁ (HomBisimilarity lts₁) := inferInstance
+
 -- Symmetry must support different state types and universes, as the relations do.
 example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ := h.symm
 
@@ -107,7 +117,7 @@ private theorem onlyFalse_upTo : IsBisimulationUpTo completeLTS completeLTS only
   exact ⟨fun s _ => ⟨false, trivial, onlyFalse_closure s false⟩,
     fun t _ => ⟨false, trivial, onlyFalse_closure false t⟩⟩
 
-example : onlyFalse ≤ HomBisimilarity completeLTS := onlyFalse_upTo.le_bisimilarity
+example : onlyFalse ≤ (· ~[completeLTS] ·) := onlyFalse_upTo.le_bisimilarity
 
 example : ¬ IsHomBisimulation completeLTS onlyFalse := by
   intro h
