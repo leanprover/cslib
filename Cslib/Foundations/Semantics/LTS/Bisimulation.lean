@@ -591,8 +591,8 @@ theorem BisimilarityApprox.bisimilarity_of_omega [lts₁.ImageFinite] [lts₂.Im
 @[simp]
 theorem BisimilarityApprox.omega_eq_bisimilarity (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
     [lts₁.ImageFinite] [lts₂.ImageFinite] : ~[lts₁,lts₂;ω] = ~[lts₁,lts₂] := by
-  funext s₁ s₂
-  exact propext ⟨BisimilarityApprox.bisimilarity_of_omega, (fun h => h.approx ω)⟩
+  ext s₁ s₂
+  exact ⟨BisimilarityApprox.bisimilarity_of_omega, (fun h => h.approx ω)⟩
 
 /-- On image-finite LTSs, every stratum at or beyond omega is bisimilarity. -/
 theorem BisimilarityApprox.eq_bisimilarity [lts₁.ImageFinite] [lts₂.ImageFinite]
