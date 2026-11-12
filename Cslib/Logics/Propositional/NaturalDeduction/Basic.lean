@@ -172,8 +172,8 @@ open Derivation DerivableIn
 
 /-- Weakening is a derived rule. -/
 def Derivation.weak {T T' : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T' := by grind only [membership, = Set.subset_def])
-    (hCtx : Γ ⊆ Δ := by grind only [membership, = Finset.subset_iff]) :
+    (hTheory : T ⊆ T' := by intro; membership)
+    (hCtx : Γ ⊆ Δ := by intro; membership) :
     Derivation T Γ A → Derivation T' Δ A
   | ax hA => ax
   | ass hA => ass
@@ -189,33 +189,33 @@ def Derivation.weak {T T' : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Prop
 
 /-- Weakening the axioms only. -/
 def Derivation.weakTheory {T T' : Set (Proposition Atom)} {Γ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T' := by grind only [membership, = Set.subset_def]) :
+    (hTheory : T ⊆ T' := by intro; membership) :
     (ND T)⇓(Γ ⊢ A) → (ND T')⇓(Γ ⊢ A):=
     Derivation.weak
 
 /-- Weakening the context only. -/
 def Derivation.weakCtx {T : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hCtx : Γ ⊆ Δ := by grind only [membership, = Finset.subset_iff]) :
+    (hCtx : Γ ⊆ Δ := by intro; membership) :
     (ND T)⇓(Γ ⊢ A) → (ND T)⇓(Δ ⊢ A) := Derivation.weak
 
 /-- Proof irrelevant weakening. -/
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak {T T' : Set (Proposition Atom)}
     {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T' := by grind only [membership, = Set.subset_def])
-    (hCtx : Γ ⊆ Δ := by grind only [membership, = Finset.subset_iff]) :
+    (hTheory : T ⊆ T' := by intro; membership)
+    (hCtx : Γ ⊆ Δ := by intro; membership) :
     DerivableIn (ND T) (Γ ⊢ A) → DerivableIn (ND T') (Δ ⊢ A)
   | ⟨D⟩ => ⟨D.weak⟩
 
 /-- Proof irrelevant weakening of the axiom set. -/
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weakTheory {T T' : Set (Proposition Atom)}
     {Γ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T' := by grind only [membership, = Set.subset_def])
+    (hTheory : T ⊆ T' := by intro; membership)
     (h : DerivableIn (ND T) (Γ ⊢ A)) : DerivableIn (ND T') (Γ ⊢ A) := h.weak
 
 /-- Proof irrelevant weakening of the context. -/
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weakCtx {T : Set (Proposition Atom)}
     {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hCtx : Γ ⊆ Δ := by grind only [membership, = Finset.subset_iff])
+    (hCtx : Γ ⊆ Δ := by intro; membership)
     (h : DerivableIn (ND T) (Γ ⊢ A)) : DerivableIn (ND T) (Δ ⊢ A) :=
   h.weak
 
