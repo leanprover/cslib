@@ -7,6 +7,7 @@ module
 
 public import Cslib.Computability.Circuit.Program
 public import Mathlib.Data.Set.Function
+public import Mathlib.Logic.Function.DependsOn
 
 /-!
 # Circuits
@@ -157,6 +158,29 @@ def Circuit.eval
     (i : Interpretation σ U)
     (x : Fin inputCount → U) : Fin outputCount → U :=
   c.program.trace i x ∘ c.outputs
+
+/-- The original inputs that can reach a designated output. -/
+def Circuit.inputSupport
+    (c : Circuit σ inputCount outputCount) : Finset (Fin inputCount) :=
+  Finset.univ.biUnion fun output => c.program.wireSupport (c.outputs output)
+
+@[simp] theorem Circuit.mem_inputSupport
+    {c : Circuit σ inputCount outputCount}
+    {input : Fin inputCount} :
+    input ∈ c.inputSupport ↔
+      ∃ output, input ∈ c.program.wireSupport (c.outputs output) := by
+  simp [Circuit.inputSupport]
+
+/-- Circuit evaluation depends only on the inputs that can reach an output. -/
+theorem Circuit.dependsOn_eval
+    (c : Circuit σ inputCount outputCount)
+    (interpretation : Interpretation σ U) :
+    DependsOn (c.eval interpretation) (c.inputSupport : Set (Fin inputCount)) := by
+  intro left right agree
+  funext output
+  apply c.program.trace_congr interpretation left right (c.outputs output)
+  intro input present
+  exact agree input (Circuit.mem_inputSupport.mpr ⟨output, present⟩)
 
 /-- Output `j` of a wiring circuit is input `select j`. -/
 @[simp] theorem Circuit.eval_wiring (select : Fin outputCount → Fin inputCount)
