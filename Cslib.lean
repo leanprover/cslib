@@ -181,6 +181,7 @@ public import Cslib.Foundations.Logic.InferenceSystem.Defs
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.MeasureTheory.FiniteSupport
+public import Cslib.Foundations.Order.FixedPoints
 public import Cslib.Foundations.Order.Heyting
 public import Cslib.Foundations.Order.Huntington
 public import Cslib.Foundations.Relation.Attr
