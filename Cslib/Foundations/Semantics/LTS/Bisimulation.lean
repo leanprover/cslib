@@ -372,7 +372,7 @@ theorem BisimilarityApprox.top_eq_bisimilarity (lts₁ : LTS State₁ Label)
 theorem BisimilarityApprox.zero_eq : ~[lts₁,lts₂;0] = ⊤ := OrdinalApprox.gfpApprox_zero _
 
 /-- A successor stratum applies the one-step operator to the preceding stratum. -/
-theorem BisimilarityApprox.add_one {o : WithTop Ordinal} :
+theorem BisimilarityApprox.succ {o : WithTop Ordinal} :
     ~[lts₁,lts₂;o + 1] = bisimulationStep lts₁ lts₂ ~[lts₁,lts₂;o] := by
   cases o using WithTop.recTopCoe with
   | top =>
