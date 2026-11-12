@@ -144,6 +144,7 @@ theorem ofBool_injective : Function.Injective ofBool := by decide
 @[simp] theorem ofBool_inj {a b : Bool} : ofBool a = ofBool b ↔ a = b := ofBool_injective.eq_iff
 
 @[simp] theorem ofBool_ne_unknown (b : Bool) : ofBool b ≠ .unknown := by decide +revert
+@[simp] theorem unknown_ne_ofBool (b : Bool) : .unknown ≠ ofBool b := (ofBool_ne_unknown b).symm
 
 @[simp, scoped grind =]
 theorem ofBool_not (b : Bool) : ofBool (!b) = (ofBool b)ᶜ := by decide +revert
