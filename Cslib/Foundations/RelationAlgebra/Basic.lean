@@ -101,6 +101,9 @@ theorem star_le_star_iff {a b : α} : star a ≤ star b ↔ a ≤ b := starOrder
 @[simp, to_dual self]
 theorem star_lt_star_iff {a b : α} : star a < star b ↔ a < b := starOrderIso.lt_iff_lt
 
+@[to_dual star_le_iff]
+theorem le_star_iff {a b : α} : a ≤ star b ↔ star a ≤ b := starOrderIso.le_symm_apply
+
 @[to_dual existing (attr := simp)]
 theorem star_inf (a b : α) : star (a ⊓ b) = star a ⊓ star b := starOrderIso.map_inf a b
 
