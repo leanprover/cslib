@@ -40,7 +40,6 @@ structure AtomStructure (α : Type*) where
   assoc : (r, q, p) ∈ cycles → (s, t, q) ∈ cycles → ∃ q', (q', t, p) ∈ cycles ∧ (r, s, q') ∈ cycles
   id_cycle : s ∈ id → (r, s, p) ∈ cycles → p = r
   id_exist (r) : ∃ s ∈ id, (r, s, r) ∈ cycles
-  conv_cycles : (r, s, t) ∈ cycles → (conv s, conv r, conv t) ∈ cycles
   cycle_left : (r, s, t) ∈ cycles → (conv r, t, s) ∈ cycles
 
 namespace AtomStructure
@@ -50,6 +49,12 @@ variable {α : Type*} (A : AtomStructure α)
 @[simp, grind =]
 theorem conv_conv (r : α) : A.conv (A.conv r) = r := by
   grind [A.id_cycle, => A.cycle_left, A.id_exist r]
+
+theorem conv_cycles {r s t : α} (h : (r, s, t) ∈ A.cycles) :
+    (A.conv s, A.conv r, A.conv t) ∈ A.cycles := by
+  obtain ⟨e, he, hs⟩ := A.id_exist s
+  obtain ⟨q, hq, hsq⟩ := A.assoc (A.cycle_left hs) (A.cycle_left h)
+  grind [A.id_cycle he (A.cycle_left hq)]
 
 theorem conv_eq_self_of_mem_id {r : α} (hr : r ∈ A.id) : A.conv r = r := by
   grind [A.id_cycle, => A.cycle_left, A.id_exist r, A.conv_cycles]
@@ -166,17 +171,14 @@ def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
       rw [mul_assoc]
       exact h₁.trans (mul_le_mul_right h₂ _)
     obtain ⟨q', hq', hq'rs, hpq'⟩ := exists_atom_le_mul_left p.property hp
-    aesop
+    exact ⟨⟨q', hq'⟩, hpq', hq'rs⟩
   id_cycle {s r p} hs h := by
     ext
     apply (r.property.le_iff_eq p.property.ne_bot).mp
     simpa using h.trans (mul_le_mul_right hs _)
   id_exist r := by
     obtain ⟨s, hs, hs1, hrs⟩ := exists_atom_le_mul_right r.property (le_of_eq (mul_one r.val).symm)
-    aesop
-  conv_cycles {r s t} h := by
-    change star t.val ≤ star s.val * star r.val
-    simpa using star_mono h
+    exact ⟨⟨s, hs⟩, hs1, hrs⟩
   cycle_left {r s t} h := atom_cycle_left s.property t.property.ne_bot h
 
 /-- The isomorphism from a complete atomic relation algebra to the complex algebra of its
