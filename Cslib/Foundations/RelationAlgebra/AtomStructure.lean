@@ -38,8 +38,8 @@ structure AtomStructure (α : Type*) where
   /-- The set of atom cycles, where `(r, s, t)` represents `t ≤ r * s`. -/
   cycles : Set (α × α × α)
   assoc : (r, q, p) ∈ cycles → (s, t, q) ∈ cycles → ∃ q', (q', t, p) ∈ cycles ∧ (r, s, q') ∈ cycles
-  id_cycle : s ∈ id → (r, s, p) ∈ cycles → p = r
-  id_exist (r) : ∃ s ∈ id, (r, s, r) ∈ cycles
+  id_cycle_right : s ∈ id → (r, s, p) ∈ cycles → p = r
+  exists_id_cycle_right (r) : ∃ s ∈ id, (r, s, r) ∈ cycles
   cycle_left : (r, s, t) ∈ cycles → (conv r, t, s) ∈ cycles
 
 namespace AtomStructure
@@ -48,16 +48,24 @@ variable {α : Type*} (A : AtomStructure α)
 
 @[simp, grind =]
 theorem conv_conv (r : α) : A.conv (A.conv r) = r := by
-  grind [A.id_cycle, => A.cycle_left, A.id_exist r]
+  grind [A.id_cycle_right, => A.cycle_left, A.exists_id_cycle_right r]
 
 theorem conv_cycles {r s t : α} (h : (r, s, t) ∈ A.cycles) :
     (A.conv s, A.conv r, A.conv t) ∈ A.cycles := by
-  obtain ⟨e, he, hs⟩ := A.id_exist s
+  obtain ⟨e, he, hs⟩ := A.exists_id_cycle_right s
   obtain ⟨q, hq, hsq⟩ := A.assoc (A.cycle_left hs) (A.cycle_left h)
-  grind [A.id_cycle he (A.cycle_left hq)]
+  grind [A.id_cycle_right he (A.cycle_left hq)]
 
 theorem conv_eq_self_of_mem_id {r : α} (hr : r ∈ A.id) : A.conv r = r := by
-  grind [A.id_cycle, => A.cycle_left, A.id_exist r, A.conv_cycles]
+  grind [A.id_cycle_right, => A.cycle_left, A.exists_id_cycle_right r, A.conv_cycles]
+
+theorem id_cycle_left {s r p : α} (hs : s ∈ A.id) (h : (s, r, p) ∈ A.cycles) : p = r :=
+  Function.Involutive.injective A.conv_conv <|
+    A.id_cycle_right hs (A.conv_eq_self_of_mem_id hs ▸ A.conv_cycles h)
+
+theorem exists_id_cycle_left (r : α) : ∃ s ∈ A.id, (s, r, r) ∈ A.cycles := by
+  obtain ⟨s, hs, h⟩ := A.exists_id_cycle_right (A.conv r)
+  exact ⟨s, hs, by simpa [A.conv_eq_self_of_mem_id hs] using A.conv_cycles h⟩
 
 end AtomStructure
 
@@ -116,21 +124,17 @@ instance : RelationAlgebra (ComplexAlgebra A) where
     ext t
     constructor
     · rintro ⟨r, hr, s, hs, h⟩
-      have h' := A.conv_cycles h
-      rw [A.conv_eq_self_of_mem_id hr] at h'
-      have heq := Function.Involutive.injective A.conv_conv (A.id_cycle hr h')
-      grind
+      grind [A.id_cycle_left hr]
     · intro ht
-      obtain ⟨s, hs, h⟩ := A.id_exist (A.conv t)
-      refine ⟨s, hs, t, ht, ?_⟩
-      simpa [A.conv_eq_self_of_mem_id hs] using A.conv_cycles h
+      obtain ⟨s, hs, h⟩ := A.exists_id_cycle_left t
+      exact ⟨s, hs, t, ht, h⟩
   mul_one x := by
     ext t
     constructor
     · rintro ⟨r, hr, s, hs, h⟩
-      grind [A.id_cycle hs]
+      grind [A.id_cycle_right hs]
     · intro ht
-      obtain ⟨s, hs, h⟩ := A.id_exist t
+      obtain ⟨s, hs, h⟩ := A.exists_id_cycle_right t
       exact ⟨t, ht, s, hs, h⟩
   star_involutive x :=
     (equivSet A).injective (Function.LeftInverse.image_image A.conv_conv x.carrier)
@@ -172,11 +176,11 @@ def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
       exact h₁.trans (mul_le_mul_right h₂ _)
     obtain ⟨q', hq', hq'rs, hpq'⟩ := exists_atom_le_mul_left p.property hp
     exact ⟨⟨q', hq'⟩, hpq', hq'rs⟩
-  id_cycle {s r p} hs h := by
+  id_cycle_right {s r p} hs h := by
     ext
     apply (r.property.le_iff_eq p.property.ne_bot).mp
     simpa using h.trans (mul_le_mul_right hs _)
-  id_exist r := by
+  exists_id_cycle_right r := by
     obtain ⟨s, hs, hs1, hrs⟩ := exists_atom_le_mul_right r.property (le_of_eq (mul_one r.val).symm)
     exact ⟨⟨s, hs⟩, hs1, hrs⟩
   cycle_left {r s t} h := atom_cycle_left s.property t.property.ne_bot h
