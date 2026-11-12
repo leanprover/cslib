@@ -191,6 +191,7 @@ noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebr
     (ComplexAlgebra.orderIsoSet (atomStructure α)).symm
   map_mul' x y := by
     ext p
+    rw [ComplexAlgebra.mem_mul]
     constructor
     · intro hp
       obtain ⟨r, hr, hrx, hpr⟩ := exists_atom_le_mul_left p.property hp
@@ -200,12 +201,8 @@ noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebr
       exact h.trans (mul_le_mul' hr hs)
   map_star' x := by
     ext p
-    constructor
-    · intro hp
-      refine ⟨(atomStructure α).conv p, ?_, (atomStructure α).conv_conv p⟩
-      exact (star_mono hp).trans (le_of_eq (star_star x))
-    · rintro ⟨a, ha, rfl⟩
-      exact star_mono ha
+    rw [ComplexAlgebra.mem_star]
+    exact le_star_iff
 
 theorem complexAlgebraEquiv_apply {α : Type*} [CompleteAtomicRelationAlgebra α] (x : α) :
     complexAlgebraEquiv x = ⟨{a | a.val ≤ x}⟩ := rfl
