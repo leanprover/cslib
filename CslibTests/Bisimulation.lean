@@ -76,17 +76,10 @@ example : (· ~[lts₁,lts₂] ·) = Bisimilarity lts₁ lts₂ := rfl
 -- Instances stated with sections are found for the unapplied relation.
 example : IsEquiv State₁ (HomBisimilarity lts₁) := inferInstance
 
--- Approximation notation supports the same relation and application forms as bisimilarity.
-example : Equivalence ~[lts₁;o] := HomBisimilarityApprox.eqv o
+-- Approximations as relations are written as sections, like bisimilarity.
+example : Equivalence (· ~[lts₁;o] ·) := HomBisimilarityApprox.eqv o
 
-example (h : s₁ ~[lts₁,lts₂;o] s₂) : (~[lts₁,lts₂;o]) s₁ s₂ := h
-
-example (h : s₁ ~[lts₁;o] s₁) : (~[lts₁;o]) s₁ s₁ := h
-
-example (s : State₁) : ((~[lts₁,lts₂;o + 1]) s) =
-    BisimilarityApprox lts₁ lts₂ (o + 1) s := rfl
-
-example (s : State₁) : ((~[lts₁;0]) s) = HomBisimilarityApprox lts₁ 0 s := rfl
+example : (· ~[lts₁,lts₂;o] ·) = BisimilarityApprox lts₁ lts₂ o := rfl
 
 -- Symmetry must support different state types and universes, as the relations do.
 example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ := h.symm
@@ -135,21 +128,33 @@ example [lts₁.ImageFinite] [lts₂.ImageFinite] :
 example (h : s₁ ~[lts₁,lts₂;ω] s₂) (n : ℕ) : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂ :=
   BisimilarityApprox.omega_iff.mp h n
 
-example [lts₁.ImageFinite] [lts₂.ImageFinite] : ~[lts₁,lts₂;ω] = ~[lts₁,lts₂] := by
+example [lts₁.ImageFinite] [lts₂.ImageFinite] : (· ~[lts₁,lts₂;ω] ·) = (· ~[lts₁,lts₂] ·) := by
   simp
 
-example [lts₁.ImageFinite] [lts₂.ImageFinite] : ~[lts₁,lts₂;ω + 1] = ~[lts₁,lts₂] :=
+example [lts₁.ImageFinite] [lts₂.ImageFinite] : (· ~[lts₁,lts₂;ω + 1] ·) = (· ~[lts₁,lts₂] ·) :=
   BisimilarityApprox.eq_bisimilarity (by exact_mod_cast (lt_add_one ω).le)
 
 -- The added top endpoint is bisimilarity without any image-finiteness assumption.
-example : ~[lts₁,lts₂;⊤] = ~[lts₁,lts₂] := by simp
+example : (· ~[lts₁,lts₂;⊤] ·) = (· ~[lts₁,lts₂] ·) := by simp
 
-example : ~[lts₁;⊤] = ~[lts₁] := by simp
+example : (· ~[lts₁;⊤] ·) = (· ~[lts₁] ·) := by simp
 
 example (h : s₁ ~[lts₁,lts₂;⊤] s₂) : s₁ ~[lts₁,lts₂] s₂ := by simpa using h
 
 example (h : s₁ ~[lts₁,lts₂;⊤] s₂) (o : Ordinal) : s₁ ~[lts₁,lts₂;o] s₂ :=
   BisimilarityApprox.top_iff.mp h o
+
+-- The applied characterisations rewrite goals stated with the infix notation.
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₁ ~[lts₁,lts₂;⊤] s₂ := by
+  rw [BisimilarityApprox.top_iff_bisimilarity]
+  exact h
+
+example [lts₁.ImageFinite] [lts₂.ImageFinite] (h : s₁ ~[lts₁,lts₂;ω + 1] s₂) :
+    s₁ ~[lts₁,lts₂] s₂ := by
+  rwa [BisimilarityApprox.iff_bisimilarity (by exact_mod_cast (lt_add_one ω).le)] at h
+
+open scoped BisimilarityApprox in
+example : s₁ ~[lts₁,lts₂;0] s₂ := by grind
 
 end Heterogeneous
 
