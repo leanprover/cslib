@@ -523,7 +523,15 @@ theorem BisimilarityApprox.trans_nat {n : ℕ}
   induction n generalizing s₁ s₂ s₃ with
   | zero => exact BisimilarityApprox.zero
   | succ n ih =>
-    grind [Nat.cast_succ, WithTop.coe_natCast, BisimilarityApprox.succ_iff]
+    simp_rw [Nat.cast_succ, WithTop.coe_add, WithTop.coe_natCast, WithTop.coe_one,
+      succ_iff] at h₁ h₂ ⊢
+    refine fun μ ↦ ⟨fun s₁' htr₁ ↦ ?_, fun s₃' htr₃ ↦ ?_⟩
+    · have ⟨s₂', htr₂, hsim⟩ := (h₁ μ).1 s₁' htr₁
+      have ⟨s₃', htr₃, hsim'⟩ := (h₂ μ).1 s₂' htr₂
+      exact ⟨s₃', htr₃, ih hsim hsim'⟩
+    · have ⟨s₂, htr₂, hsim⟩ := (h₂ μ).2 s₃' htr₃
+      have ⟨s₁', htr₁, hsim'⟩ := (h₁ μ).2 s₂ htr₂
+      exact ⟨s₁', htr₁, ih hsim' hsim⟩
 
 /-- Homogeneous ordinal strata are reflexive. -/
 @[refl]
