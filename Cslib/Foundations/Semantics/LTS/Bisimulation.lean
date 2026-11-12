@@ -410,10 +410,7 @@ theorem BisimilarityApprox.follow_snd {o : WithTop Ordinal} (h : s₁ ~[lts₁,l
 theorem BisimilarityApprox.antitone : Antitone (fun o => ~[lts₁,lts₂;o]) := by
   intro o o' hoo'
   cases o using WithTop.recTopCoe with
-  | top =>
-    have heq := WithTop.top_le_iff.mp hoo'
-    subst o'
-    exact le_rfl
+  | top => rw [eq_top_iff.mpr hoo']
   | coe o =>
     cases o' using WithTop.recTopCoe with
     | top => exact iInf_le _ o
