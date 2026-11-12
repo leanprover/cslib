@@ -308,8 +308,7 @@ def bisimulationStep (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
     (∀ s₁', lts₁.Tr s₁ μ s₁' → ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ r s₁' s₂') ∧
     (∀ s₂', lts₂.Tr s₂ μ s₂' → ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ r s₁' s₂')
   monotone' := by
-    intro r s hrs s₁ s₂ h μ
-    change ∀ x y, r x y → s x y at hrs
+    intro r s (hrs : ∀ x y, r x y → s x y) s₁ s₂ h μ
     grind only
 
 theorem isBisimulation_iff_le_bisimulationStep :
