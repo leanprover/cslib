@@ -555,19 +555,15 @@ theorem BisimilarityApprox.follow_fst_omega [hfin : lts₂.ImageFinite]
     (h : s₁ ~[lts₁,lts₂;ω] s₂) (htr : lts₁.Tr s₁ μ s₁') :
     ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;ω] s₂' := by
   classical
-  have := hfin s₂ μ
-  by_contra hnone
+  by_contra! hnone
   -- If every derivative fails at some depth, finiteness gives a common depth of failure.
   have hbad : ∀ t : lts₂.image s₂ μ, ∃ n : ℕ, ¬(s₁' ~[lts₁,lts₂;(n : Ordinal)] t) := by
-    intro t
-    by_contra ht
-    push Not at ht
-    exact hnone ⟨t, t.property, BisimilarityApprox.omega_iff.mpr ht⟩
+    simp [omega_iff] at hnone
+    simpa
   choose depth hdepth using hbad
   obtain ⟨N, hN⟩ := Finite.exists_le depth
   have hs : s₁ ~[lts₁,lts₂;(N : Ordinal) + 1] s₂ := by
-    simpa only [Nat.cast_add, Nat.cast_one, WithTop.coe_natCast] using
-      BisimilarityApprox.omega_iff.mp h (N + 1)
+    simpa using BisimilarityApprox.omega_iff.mp h (N + 1)
   obtain ⟨t, ht, hr⟩ := hs.follow_fst htr
   exact hdepth ⟨t, ht⟩ (BisimilarityApprox.antitone_nat (hN ⟨t, ht⟩) _ _ hr)
 
