@@ -7,6 +7,7 @@ module
 
 public import Cslib.Computability.Circuit.Program
 public import Mathlib.Data.Set.Function
+public import Mathlib.Logic.Function.DependsOn
 
 /-!
 # Circuits
@@ -70,23 +71,6 @@ abbrev Circuit.id (σ : Signature) (inputCount : Nat) : Circuit σ inputCount in
 @[simp] theorem Circuit.outputs_wiring (select : Fin outputCount → Fin inputCount) :
     (Circuit.wiring σ select).outputs = fun output => Wire.input (select output) := rfl
 
-/-- The set of inputs that the circuit is connected to. -/
-protected def Circuit.support (c : Circuit σ inputCount outputCount) : Set (Fin inputCount) :=
-  c.program.support ∪ {input | ∃ output, c.outputs output = .input input}
-
-theorem Circuit.support_program_union_iUnion (c : Circuit σ inputCount outputCount) :
-    c.program.support ∪ ⋃ i, (c.outputs i).support = c.support := by
-  ext
-  simp [Circuit.support]
-
-theorem Circuit.support_program_subset_support (c : Circuit σ inputCount outputCount) :
-    c.program.support ⊆ c.support :=
-  Set.subset_union_left
-
-theorem Circuit.support_outputs_subset_support (c : Circuit σ inputCount outputCount)
-    (i : Fin outputCount) : (c.outputs i).support ⊆ c.support :=
-  fun _ h ↦ .inr ⟨i, by simpa using h⟩
-
 /-- Every gate in a circuit has at most `r` arguments. -/
 def Circuit.FanInAtMost (c : Circuit σ inputCount outputCount) (r : Nat) : Prop :=
   c.program.FanInAtMost r
@@ -126,6 +110,29 @@ def Circuit.eval
     (i : Interpretation σ U)
     (x : Fin inputCount → U) : Fin outputCount → U :=
   c.program.trace i x ∘ c.outputs
+
+/-- The original inputs that can reach a designated output. -/
+def Circuit.inputSupport
+    (c : Circuit σ inputCount outputCount) : Finset (Fin inputCount) :=
+  Finset.univ.biUnion fun output => c.program.wireSupport (c.outputs output)
+
+@[simp] theorem Circuit.mem_inputSupport
+    {c : Circuit σ inputCount outputCount}
+    {input : Fin inputCount} :
+    input ∈ c.inputSupport ↔
+      ∃ output, input ∈ c.program.wireSupport (c.outputs output) := by
+  simp [Circuit.inputSupport]
+
+/-- Circuit evaluation depends only on the inputs that can reach an output. -/
+theorem Circuit.dependsOn_eval
+    (c : Circuit σ inputCount outputCount)
+    (interpretation : Interpretation σ U) :
+    DependsOn (c.eval interpretation) (c.inputSupport : Set (Fin inputCount)) := by
+  intro left right agree
+  funext output
+  apply c.program.trace_congr interpretation left right (c.outputs output)
+  intro input present
+  exact agree input (Circuit.mem_inputSupport.mpr ⟨output, present⟩)
 
 /-- Output `j` of a wiring circuit is input `select j`. -/
 @[simp] theorem Circuit.eval_wiring (select : Fin outputCount → Fin inputCount)

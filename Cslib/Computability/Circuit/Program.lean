@@ -7,6 +7,7 @@ module
 
 public import Cslib.Computability.Circuit.Homomorphism
 public import Cslib.Computability.Circuit.Wire
+public import Mathlib.Data.Finset.Union
 
 /-!
 # Straight-line programs
@@ -76,24 +77,6 @@ def Line.mapWires
     (wireMap : Wire sourceInputCount sourceGateCount → Wire targetInputCount targetGateCount)
     (argument : Fin (σ.Arity line.op)) :
     (line.mapWires wireMap).wires argument = wireMap (line.wires argument) := rfl
-
-/-- The set of inputs that the line is connected to. -/
-protected def Line.support (l : Line σ inputCount gateCount) : Set (Fin inputCount) :=
-  {input | ∃ i, l.wires i = .input input}
-
-@[simp]
-theorem Line.mem_support {l : Line σ inputCount gateCount} {input : Fin inputCount} :
-    input ∈ l.support ↔ ∃ i, l.wires i = .input input :=
-  .rfl
-
-theorem Line.iUnion_support_wires (l : Line σ inputCount gateCount) :
-    ⋃ i, (l.wires i).support = l.support := by
-  ext
-  simp
-
-theorem Line.support_wires_subset_support (l : Line σ inputCount gateCount)
-    (i : Fin (σ.Arity l.op)) : (l.wires i).support ⊆ l.support :=
-  fun _ h ↦ ⟨i, by simpa using h⟩
 
 /-- A topologically ordered straight-line program, indexed by its gate count. -/
 inductive Program (σ : Signature.{v}) (inputCount : Nat) : Nat → Type v where
@@ -175,29 +158,6 @@ theorem Program.foldr_rel (p : Program σ inputCount gateCount) (R : α → β �
   induction p generalizing a b with
   | empty => exact hinit
   | gate q line ih => exact ih (hstep line hinit)
-
-/-- The set of inputs that the program is connected to. -/
-protected def Program.support {gateCount : ℕ} :
-    Program σ inputCount gateCount → Set (Fin inputCount)
-  | .empty => ∅
-  | .gate p l => p.support ∪ l.support
-
-@[simp]
-theorem Program.support_empty : (.empty : Program σ inputCount 0).support = ∅ :=
-  rfl
-
-@[simp]
-theorem Program.support_gate (p : Program σ inputCount gateCount)
-    (l : Line σ inputCount gateCount) : (p.gate l).support = p.support ∪ l.support :=
-  rfl
-
-theorem Program.support_subset_support_gate (p : Program σ inputCount gateCount)
-    (l : Line σ inputCount gateCount) : p.support ⊆ (p.gate l).support :=
-  Set.subset_union_left
-
-theorem Program.lineSupport_subset_support_gate (p : Program σ inputCount gateCount)
-    (l : Line σ inputCount gateCount) : l.support ⊆ (p.gate l).support :=
-  Set.subset_union_right
 
 /-- Every gate in a program has at most `r` arguments. -/
 def Program.FanInAtMost {gateCount : Nat} : (program : Program σ inputCount gateCount) → Nat → Prop
@@ -367,6 +327,91 @@ def Program.trace
     (program.gate line).trace interpretation input wire.castSucc =
       program.trace interpretation input wire := by
   cases wire <;> simp [Program.trace]
+
+/-- The interpretation that computes the original inputs supporting a wire. -/
+def supportInterpretation (σ : Signature) (inputCount : ℕ) :
+    Interpretation σ (Finset (Fin inputCount)) :=
+  fun _ supports => Finset.univ.biUnion supports
+
+/-- The original inputs supporting a line, given the support of each wire it may read. -/
+def Line.inputSupport
+    (line : Line σ inputCount gateCount)
+    (wireSupport : Wire inputCount gateCount → Finset (Fin inputCount)) :
+    Finset (Fin inputCount) :=
+  Finset.univ.biUnion fun argument => wireSupport (line.wires argument)
+
+@[simp] theorem Line.mem_inputSupport
+    {line : Line σ inputCount gateCount}
+    {wireSupport : Wire inputCount gateCount → Finset (Fin inputCount)}
+    {input : Fin inputCount} :
+    input ∈ line.inputSupport wireSupport ↔
+      ∃ argument, input ∈ wireSupport (line.wires argument) := by
+  simp [Line.inputSupport]
+
+/-- The original inputs that can reach a wire through the program. -/
+def Program.wireSupport
+    (program : Program σ inputCount gateCount) :
+    Wire inputCount gateCount → Finset (Fin inputCount) :=
+  program.trace (supportInterpretation σ inputCount) (fun input => {input})
+
+@[simp] theorem Program.wireSupport_input
+    (program : Program σ inputCount gateCount)
+    (input : Fin inputCount) :
+    program.wireSupport (.input input) = {input} :=
+  rfl
+
+@[simp] theorem Program.wireSupport_gate_castSucc
+    (program : Program σ inputCount gateCount)
+    (line : Line σ inputCount gateCount)
+    (wire : Wire inputCount gateCount) :
+    (program.gate line).wireSupport wire.castSucc = program.wireSupport wire :=
+  program.trace_gate_castSucc line
+    (supportInterpretation σ inputCount) (fun input => {input}) wire
+
+@[simp] theorem Program.wireSupport_gate_last
+    (program : Program σ inputCount gateCount)
+    (line : Line σ inputCount gateCount) :
+    (program.gate line).wireSupport (.gate (Fin.last gateCount)) =
+      line.inputSupport program.wireSupport := by
+  change
+    (program.gate line).eval
+        (supportInterpretation σ inputCount) (fun input => {input})
+        (Fin.last gateCount) = _
+  rw [Program.eval_gate_last]
+  rfl
+
+/-- Program traces agree on a wire when its supporting inputs agree. -/
+theorem Program.trace_congr
+    (program : Program σ inputCount gateCount)
+    (interpretation : Interpretation σ U)
+    (left right : Fin inputCount → U)
+    (wire : Wire inputCount gateCount)
+    (agree : ∀ input ∈ program.wireSupport wire, left input = right input) :
+    program.trace interpretation left wire =
+      program.trace interpretation right wire := by
+  induction program with
+  | empty =>
+      cases wire with
+      | input input => exact agree input (by simp)
+      | gate gate => exact Fin.elim0 gate
+  | @gate gateCount program line ih =>
+      induction wire using Wire.lastCases with
+      | last =>
+          change
+            (program.gate line).eval interpretation left (Fin.last gateCount) =
+              (program.gate line).eval interpretation right (Fin.last gateCount)
+          rw [Program.eval_gate_last, Program.eval_gate_last]
+          unfold Line.eval
+          congr 1 with argument
+          apply ih (line.wires argument)
+          intro input present
+          apply agree input
+          rw [Program.wireSupport_gate_last]
+          exact Line.mem_inputSupport.mpr ⟨argument, present⟩
+      | castSucc wire =>
+          rw [Program.trace_gate_castSucc, Program.trace_gate_castSucc]
+          apply ih wire
+          simpa using agree
 
 /-- Evaluating every input and gate wire commutes with a homomorphism. -/
 theorem Program.map_trace
