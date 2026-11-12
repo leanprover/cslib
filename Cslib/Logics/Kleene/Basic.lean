@@ -20,17 +20,29 @@ complement `ᶜ` are Kleene's conjunction, disjunction and negation.
 These are also the truth values of SQL [Codd1979], where a comparison involving `NULL` evaluates
 to `unknown`, and `AND`, `OR` and `NOT` are the meet, join and complement defined here.
 
+In the information order `⊑`, `unknown` lies below both definite values, which are incomparable.
+Every operation is monotone in it, and `⊓`, `⊔` and `ᶜ` are the greatest monotone extensions of
+`&&`, `||` and `!`. Under `⊑`, `Kleene.Value` is the flat domain on `Bool`, so these results could
+be subsumed under a general development of domain theory.
+
 ## Main definitions
 
 - `Kleene.Value`: the three truth values.
 - `Compl Kleene.Value`: the complement, which swaps `true` and `false` and fixes `unknown`.
 - `Kleene.Value.ofBool`: the embedding of `Bool`.
+- `Kleene.Value.InfoLE`, written `⊑`: the information order.
+- `Kleene.Value.toOption`: the equivalence with `Option Bool`, `unknown` as `none`.
 
 ## Main results
 
 - `LinearOrder Kleene.Value`, `BoundedOrder Kleene.Value`: the truth order.
 - `Kleene.Value.compl_inf`, `Kleene.Value.compl_sup`: the De Morgan laws.
 - `Kleene.Value.ofBool_and` and friends: `ofBool` commutes with the operations.
+- `IsPartialOrder Kleene.Value Kleene.Value.InfoLE`, `Kleene.Value.InfoLE.inf` and friends: the
+  information order is a partial order in which every operation is monotone.
+- `Kleene.Value.infoLE_inf_of_extends` and friends: `⊓`, `⊔` and `ᶜ` are the greatest monotone
+  extensions of `&&`, `||` and `!`.
+- `Kleene.Value.eq_compl_of_extends`: `ᶜ` is the only monotone extension of `!`.
 
 ## References
 
@@ -154,6 +166,130 @@ theorem ofBool_and (a b : Bool) : ofBool (a && b) = ofBool a ⊓ ofBool b := by 
 
 @[simp, scoped grind =]
 theorem ofBool_or (a b : Bool) : ofBool (a || b) = ofBool a ⊔ ofBool b := by decide +revert
+
+/-! ### The information order -/
+
+/-- The information order: `unknown` lies below every value, and the definite values are
+incomparable. It is distinct from the truth order `≤`. -/
+def InfoLE (a b : Value) : Prop := a = .unknown ∨ a = b
+
+@[inherit_doc] scoped infix:50 " ⊑ " => InfoLE
+
+theorem infoLE_def {a b : Value} : a ⊑ b ↔ a = .unknown ∨ a = b := Iff.rfl
+
+instance : DecidableRel InfoLE := fun _ _ => inferInstanceAs (Decidable (_ ∨ _))
+
+protected theorem InfoLE.refl (a : Value) : a ⊑ a := Or.inr rfl
+
+protected theorem InfoLE.trans {a b c : Value} : a ⊑ b → b ⊑ c → a ⊑ c := by decide +revert
+
+protected theorem InfoLE.antisymm {a b : Value} : a ⊑ b → b ⊑ a → a = b := by decide +revert
+
+instance : IsPartialOrder Value InfoLE where
+  refl := InfoLE.refl
+  trans _ _ _ := InfoLE.trans
+  antisymm _ _ := InfoLE.antisymm
+
+/-- `unknown` is the least informative value. -/
+@[simp] theorem unknown_infoLE (a : Value) : .unknown ⊑ a := Or.inl rfl
+
+@[simp] theorem infoLE_unknown_iff {a : Value} : a ⊑ .unknown ↔ a = .unknown := by
+  decide +revert
+
+/-- Definite values are maximal in the information order. -/
+@[simp] theorem ofBool_infoLE_iff {x : Bool} {b : Value} : ofBool x ⊑ b ↔ b = ofBool x := by
+  decide +revert
+
+@[simp] theorem true_infoLE_iff {b : Value} : .true ⊑ b ↔ b = .true := by decide +revert
+@[simp] theorem false_infoLE_iff {b : Value} : .false ⊑ b ↔ b = .false := by decide +revert
+
+/-! ### Monotonicity in the information order -/
+
+protected theorem InfoLE.compl {a a' : Value} (h : a ⊑ a') : aᶜ ⊑ a'ᶜ := by decide +revert
+
+protected theorem InfoLE.inf {a a' b b' : Value} (ha : a ⊑ a') (hb : b ⊑ b') :
+    a ⊓ b ⊑ a' ⊓ b' := by decide +revert
+
+protected theorem InfoLE.sup {a a' b b' : Value} (ha : a ⊑ a') (hb : b ⊑ b') :
+    a ⊔ b ⊑ a' ⊔ b' := by decide +revert
+
+/-! ### Greatest monotone extensions -/
+
+/-- The complement is the greatest extension of Boolean negation that is monotone in the
+information order. -/
+theorem infoLE_compl_of_extends {f : Value → Value}
+    (mono : ∀ {a a'}, a ⊑ a' → f a ⊑ f a')
+    (ext : ∀ x : Bool, f (ofBool x) = ofBool (!x)) (a : Value) : f a ⊑ aᶜ := by
+  have key (x : Bool) (ha : a ⊑ ofBool x) : f a ⊑ ofBool (!x) := ext x ▸ mono ha
+  cases a <;> simp [infoLE_def, Bool.forall_bool] at key ⊢ <;> grind
+
+/-- The complement is the only extension of Boolean negation that is monotone in the information
+order. -/
+theorem eq_compl_of_extends {f : Value → Value}
+    (mono : ∀ {a a'}, a ⊑ a' → f a ⊑ f a')
+    (ext : ∀ x : Bool, f (ofBool x) = ofBool (!x)) (a : Value) : f a = aᶜ := by
+  have h := infoLE_compl_of_extends mono ext a
+  cases a <;> simp_all
+
+/-- The meet is the greatest extension of Boolean conjunction that is monotone in the information
+order. -/
+theorem infoLE_inf_of_extends {f : Value → Value → Value}
+    (mono : ∀ {a a' b b'}, a ⊑ a' → b ⊑ b' → f a b ⊑ f a' b')
+    (ext : ∀ x y : Bool, f (ofBool x) (ofBool y) = ofBool (x && y))
+    (a b : Value) : f a b ⊑ a ⊓ b := by
+  have key (x y : Bool) (ha : a ⊑ ofBool x) (hb : b ⊑ ofBool y) : f a b ⊑ ofBool (x && y) :=
+    ext x y ▸ mono ha hb
+  cases a <;> cases b <;> simp [infoLE_def, Bool.forall_bool] at key ⊢ <;> grind
+
+/-- The join is the greatest extension of Boolean disjunction that is monotone in the information
+order. -/
+theorem infoLE_sup_of_extends {f : Value → Value → Value}
+    (mono : ∀ {a a' b b'}, a ⊑ a' → b ⊑ b' → f a b ⊑ f a' b')
+    (ext : ∀ x y : Bool, f (ofBool x) (ofBool y) = ofBool (x || y))
+    (a b : Value) : f a b ⊑ a ⊔ b := by
+  have key (x y : Bool) (ha : a ⊑ ofBool x) (hb : b ⊑ ofBool y) : f a b ⊑ ofBool (x || y) :=
+    ext x y ▸ mono ha hb
+  cases a <;> cases b <;> simp [infoLE_def, Bool.forall_bool] at key ⊢ <;> grind
+
+/-! ### The equivalence with `Option Bool` -/
+
+/-- `Kleene.Value` is `Option Bool`: the definite values as `some`, `unknown` as `none`. -/
+def toOption : Value ≃ Option Bool where
+  toFun
+    | .true => some Bool.true
+    | .false => some Bool.false
+    | .unknown => none
+  invFun
+    | some Bool.true => .true
+    | some Bool.false => .false
+    | none => .unknown
+  left_inv a := by cases a <;> rfl
+  right_inv o := by rcases o with _ | _ | _ <;> rfl
+
+@[simp, scoped grind =] theorem toOption_true : toOption .true = some Bool.true := rfl
+@[simp, scoped grind =] theorem toOption_false : toOption .false = some Bool.false := rfl
+@[simp, scoped grind =] theorem toOption_unknown : toOption .unknown = none := rfl
+@[simp, scoped grind =] theorem toOption_ofBool (b : Bool) : toOption (ofBool b) = some b := by
+  cases b <;> rfl
+
+@[simp, scoped grind =] theorem toOption_symm_some (b : Bool) :
+    toOption.symm (some b) = ofBool b := by cases b <;> rfl
+@[simp, scoped grind =] theorem toOption_symm_none : toOption.symm none = .unknown := rfl
+
+@[simp] theorem toOption_eq_none_iff {a : Value} : toOption a = none ↔ a = .unknown := by
+  cases a <;> simp
+
+@[simp] theorem toOption_eq_some_iff {a : Value} {b : Bool} :
+    toOption a = some b ↔ a = ofBool b := by
+  cases a <;> cases b <;> simp
+
+@[simp, scoped grind =] theorem toOption_compl (a : Value) :
+    toOption aᶜ = (toOption a).map Bool.not := by cases a <;> rfl
+
+/-- The information order, read through `toOption`. -/
+@[simp] theorem toOption_symm_infoLE_iff {o o' : Option Bool} :
+    toOption.symm o ⊑ toOption.symm o' ↔ o = none ∨ o = o' := by
+  cases o <;> cases o' <;> simp [infoLE_def]
 
 end Value
 
