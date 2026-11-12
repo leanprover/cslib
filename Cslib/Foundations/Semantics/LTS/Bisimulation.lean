@@ -363,13 +363,9 @@ theorem BisimilarityApprox.top_iff : s₁ ~[lts₁,lts₂;⊤] s₂ ↔
 @[simp]
 theorem BisimilarityApprox.top_eq_bisimilarity (lts₁ : LTS State₁ Label)
     (lts₂ : LTS State₂ Label) : ~[lts₁,lts₂;⊤] = ~[lts₁,lts₂] := by
-  change (⨅ o, OrdinalApprox.gfpApprox (bisimulationStep lts₁ lts₂) ⊤ o) = _
-  apply le_antisymm
-  · obtain ⟨o, ho⟩ := OrdinalApprox.gfp_mem_range_gfpApprox (bisimulationStep lts₁ lts₂)
-    exact (iInf_le _ o).trans (ho.trans bisimulationStep_gfp).le
-  · rw [← bisimulationStep_gfp]
-    exact le_iInf fun o => OrdinalApprox.le_gfpApprox_of_mem_fixedPoints _
-      (bisimulationStep lts₁ lts₂).isFixedPt_gfp le_top o
+  simp_rw [top_eq_iInf, coe_eq, ← OrdinalApprox.prevFixed_eq_iInf_gfpApprox _ le_top,
+    ← bisimulationStep_gfp, OrderHom.prevFixed]
+  congr; ext; simp
 
 /-- The zeroth stratum is the universal relation. -/
 @[scoped grind =, simp]
