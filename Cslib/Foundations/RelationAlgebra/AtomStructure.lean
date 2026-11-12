@@ -90,10 +90,15 @@ def equivSet : ComplexAlgebra A ≃ Set α where
   left_inv _ := rfl
   right_inv _ := rfl
 
-instance : Membership α (ComplexAlgebra A) := ⟨fun s a => a ∈ s.carrier⟩
+instance : SetLike (ComplexAlgebra A) α where
+  coe := carrier
+  coe_injective := (equivSet A).injective
 
 instance : CompleteAtomicBooleanAlgebra (ComplexAlgebra A) :=
   (equivSet A).completeAtomicBooleanAlgebra
+
+instance : IsConcreteLE (ComplexAlgebra A) α where
+  le_iff := .rfl
 
 instance [Finite α] : Finite (ComplexAlgebra A) := Finite.of_equiv (Set α) (equivSet A).symm
 
@@ -101,10 +106,6 @@ instance [Finite α] : Finite (ComplexAlgebra A) := Finite.of_equiv (Set α) (eq
 def orderIsoSet : ComplexAlgebra A ≃o Set α where
   toEquiv := equivSet A
   map_rel_iff' := Iff.rfl
-
-@[ext]
-theorem ext {s t : ComplexAlgebra A} (h : ∀ a, a ∈ s ↔ a ∈ t) : s = t :=
-  (equivSet A).injective (Set.ext h)
 
 instance : One (ComplexAlgebra A) where
   one := ⟨A.id⟩
@@ -119,12 +120,13 @@ section
 
 variable {A} {x y : ComplexAlgebra A} {a : α}
 
+@[ext]
+theorem ext (h : ∀ a, a ∈ x ↔ a ∈ y) : x = y := SetLike.ext h
+
 @[simp]
 theorem mem_mk {s : Set α} : a ∈ (⟨s⟩ : ComplexAlgebra A) ↔ a ∈ s := .rfl
 
 theorem mem_carrier : a ∈ x.carrier ↔ a ∈ x := .rfl
-
-theorem le_def : x ≤ y ↔ ∀ a ∈ x, a ∈ y := .rfl
 
 @[simp, grind =]
 theorem mem_sup : a ∈ x ⊔ y ↔ a ∈ x ∨ a ∈ y := .rfl
@@ -152,7 +154,7 @@ instance : RelationAlgebra (ComplexAlgebra A) where
   star_mul x y := by ext; grind [=> A.conv_cycles]
   sup_mul a b c := by ext; grind
   star_sup a b := by ext; simp
-  tarski x y := by grind [le_def, => A.cycle_left]
+  tarski x y := by grind [IsConcreteLE.le_iff, => A.cycle_left]
 
 instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 
