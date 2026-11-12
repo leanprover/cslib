@@ -8,7 +8,7 @@ module
 
 public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Syntax.Congruence
-public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.InferenceSystem.Defs
 
 /-! Typeclass and notation for logical equivalence. -/
 
