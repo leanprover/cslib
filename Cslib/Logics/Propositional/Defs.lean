@@ -7,7 +7,6 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Foundations.Logic.Operators
-public import Cslib.Foundations.Logic.InferenceSystem
 public import Mathlib.Basic.FunLike.Basic
 public import Mathlib.Data.Set.Image
 public import Mathlib.Order.TypeTags
@@ -16,25 +15,23 @@ public import Mathlib.Order.TypeTags
 
 ## Main definitions
 
-- `Proposition` : the type of propositions over a given type of atom. This type has a `Bot`
-instance whenever `Atom` does, and a `Top` whenever `Atom` is inhabited.
-- `Theory` : set of `Proposition`.
-- `IsIntuitionistic` : a theory is intuitionistic if it contains the principle of explosion.
-- `IsClassical` : an intuitionistic theory is classical if it further contains double negation
-elimination.
+- `Proposition` : the type of propositions over a given type of atom.
+- `IsIntuitionistic` : an inference system on `Proposition Atom` is intuitionistic if it
+derives the principle of explosion.
+- `IsClassical` : an inference is classical if it derives double negation elimination.
 - `Proposition.subst` : replace `atom x` in a `A : Proposition Atom` with `f x`, for a function
   `f : Atom → Proposition Atom'`. This induces a monad structure on `Proposition`, with
-  `pure := Proposition.atom`. `Theory` is a functor, by mapping each proposition `A ∈ T` to
-  `f <$> A`.
-- `Theory.intuitionisticCompletion` : the freely generated intuitionistic theory extending a given
-theory.
+  `pure := Proposition.atom`.
 
 ## Notation
 
-We instantiate the notation classes `HasAnd`, `HasOr`, `HasImpl` and `HasNot` for `Proposition Atom`
-to give access to, respectively, the notations `∧, ∨, →` and `¬` for propositional connectives.
-In the case that `Atom` has a bottom element (respectively, is inhabited) we give instances
-`HasBot (Proposition Atom)` and (respectively, `HasTop (Proposition Atom)`).
+We instantiate the notation classes `HasAnd`, `HasOr`, `HasImpl`, `HasNot`, `Bot` and `Top` for
+`Proposition Atom` to give access to, respectively, the notations `∧, ∨, →`, `¬`, `⊥` and `⊤` for
+propositional connectives.
+
+## References
+
+* [J. Avigad, *Mathematical Logic and Computation*][Avigad2022]
 -/
 
 @[expose] public section
@@ -49,41 +46,41 @@ namespace Cslib.Logic.PL
 inductive Proposition (Atom : Type u) : Type u where
   /-- Propositional atoms -/
   | atom (x : Atom)
+  /-- Falsum. -/
+  | falsum
   /-- Conjunction -/
   | and (a b : Proposition Atom)
   /-- Disjunction -/
   | or (a b : Proposition Atom)
   /-- Implication -/
   | imp (a b : Proposition Atom)
-deriving DecidableEq, BEq
+deriving DecidableEq
 
-instance instBotProposition [Bot Atom] : Bot (Proposition Atom) := ⟨.atom ⊥⟩
-instance instInhabitedOfBot [Bot Atom] : Inhabited Atom := ⟨⊥⟩
-
-/-- We view negation as a defined connective ~A := A → ⊥ -/
-abbrev Proposition.neg [Bot Atom] : Proposition Atom → Proposition Atom := (Proposition.imp · ⊥)
+instance instBotProposition : Bot (Proposition Atom) := ⟨.falsum⟩
+/-- We view negation as a defined connective ¬A := A → ⊥ -/
+abbrev Proposition.neg : Proposition Atom → Proposition Atom := (Proposition.imp · ⊥)
 
 /-- A fixed choice of a derivable proposition (of course any two are equivalent). -/
-abbrev Proposition.top [Inhabited Atom] : Proposition Atom := imp (.atom default) (.atom default)
+abbrev Proposition.verum : Proposition Atom := imp ⊥ ⊥
 
-instance instTopProposition [Inhabited Atom] : Top (Proposition Atom) := ⟨.top⟩
-
-example [Bot Atom] : (⊤ : Proposition Atom) = Proposition.imp ⊥ ⊥ := rfl
+instance instTopProposition : Top (Proposition Atom) := ⟨.verum⟩
 
 instance : HasAnd (Proposition Atom) := ⟨.and⟩
 instance : HasOr (Proposition Atom) := ⟨.or⟩
 instance : HasImp (Proposition Atom) := ⟨.imp⟩
-instance [Bot Atom] : HasNot (Proposition Atom) := ⟨.neg⟩
+instance : HasNot (Proposition Atom) := ⟨.neg⟩
 
+-- this is tagged with `membership` for autoParams mixing `A → ⊥` and `¬A`, is there a better way?
 omit [DecidableEq Atom] in
-@[grind =]
-lemma not_eq [Bot Atom] (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
+@[grind =, scoped membership =]
+lemma Proposition.not_eq (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
 
 /-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
 language. -/
-def Proposition.subst {Atom Atom' : Type u} (f : Atom → Proposition Atom') :
+def Proposition.subst {Atom Atom' : Type*} (f : Atom → Proposition Atom') :
     Proposition Atom → Proposition Atom'
   | atom x => f x
+  | falsum => falsum
   | and A B => (A.subst f) ∧ (B.subst f)
   | or A B => (A.subst f) ∨ (B.subst f)
   | imp A B => (A.subst f) → (B.subst f)
@@ -93,56 +90,29 @@ instance : Monad Proposition where
   pure := .atom
   bind A f := A.subst f
 
-/-- Theories are arbitrary sets of propositions. -/
-abbrev Theory (Atom) := Set (Proposition Atom)
+/-- The empty collection of axioms corresponds to intuitionistic propositional logic. -/
+abbrev IPL (Atom : Type u) : Set (Proposition Atom) := ∅
 
-namespace Theory
-
-/-- Extend a substitution from `Proposition` to `Theory`. -/
-protected def subst {Atom Atom' : Type u} (T : Theory Atom) (f : Atom → Proposition Atom') :
-    Theory Atom' := T.image (· >>= f)
-
-instance : Functor Theory where
-  map f := Set.image (f <$> ·)
-
-/-- The empty theory corresponds to minimal propositional logic. -/
-abbrev MPL (Atom : Type u) : Theory (Atom) := ∅
-
-/-- Intuitionistic propositional logic adds the principle of explosion (ex falso quodlibet). -/
-abbrev IPL (Atom : Type u) [Bot Atom] : Theory Atom := {⊥ → A | A : Proposition Atom}
+/-- Classical logic adds double negation elimination. -/
+abbrev CPL (Atom : Type u) : Set (Proposition Atom) := {¬¬A → A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
-lemma efq_mem_ipl [Bot Atom] (A : Proposition Atom) : (⊥ → A) ∈ IPL Atom := ⟨A, rfl⟩
+@[scoped membership .]
+lemma dne_mem_cpl (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
 
-/-- Attach a bottom element to a theory `T`, and the principle of explosion for that bottom. -/
-@[reducible]
-def intuitionisticCompletion (T : Theory Atom) : Theory (WithBot Atom) :=
-  (WithBot.some <$> T) ∪ IPL (WithBot Atom)
-
-/-- Classical logic further adds double negation elimination. -/
-abbrev CPL (Atom : Type u) [Bot Atom] : Theory Atom := {¬¬A → A | A : Proposition Atom}
+/-- The axiom system consisting of instances of LEM. -/
+def LEM (Atom : Type u) : Set (Proposition Atom) := {A ∨ ¬ A | A : Proposition Atom}
 
 omit [DecidableEq Atom] in
-lemma dne_mem_cpl [Bot Atom] (A : Proposition Atom) : (¬¬A → A) ∈ CPL Atom := ⟨A, rfl⟩
+@[scoped membership .]
+lemma mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
 
-open InferenceSystem
+/-- The axiom system consisting of instances of Peirce's law. -/
+def Peirce (Atom : Type u) : Set (Proposition Atom) :=
+  {((A → B) → A) → A | (A : Proposition Atom) (B : Proposition Atom)}
 
-/-- An inference system is intuitionistic if it derives ex falso quodlibet. TODO: this should be
-generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
-implication connective. -/
-@[scoped grind]
-class IsIntuitionistic (Atom : Type u) [Bot Atom] (S : Type*)
-    [InferenceSystem S (Proposition Atom)] where
-  /-- The principle of explosion (ex falso quolibet). -/
-  efq (A : Proposition Atom) : S⇓(⊥ → A)
+omit [DecidableEq Atom] in
+@[scoped membership .]
+lemma mem_peirce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Peirce Atom := ⟨A, B, rfl⟩
 
-/-- An inference system is classical if it validates double-negation elimination. TODO: this should
-be generalised outside the `PL` scope, once we have typeclasses to express that a type possesses an
-implication connective. -/
-@[scoped grind]
-class IsClassical (Atom : Type u) [Bot Atom] (S : Type*)
-    [InferenceSystem S (Proposition Atom)] where
-  /-- Double-negation elimination. -/
-  dne (A : Proposition Atom) : S⇓(¬¬A → A)
-
-end Cslib.Logic.PL.Theory
+end Cslib.Logic.PL

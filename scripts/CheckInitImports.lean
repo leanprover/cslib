@@ -26,6 +26,7 @@ def exceptions : List Name := [
   -- Circular dependency (imported by Cslib.Init)
   `Cslib.Foundations.Lint.Basic,
   `Cslib.Tactic.GrindAttrs,
+  `Cslib.Tactic.Membership,
   `Cslib.Init,
 ]
 
