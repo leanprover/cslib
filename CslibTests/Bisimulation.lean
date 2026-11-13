@@ -176,13 +176,11 @@ example : 1 ~[countdownLTS,loopLTS;1] () := by
 
 private theorem countdown_not_approx_two : ¬(1 ~[countdownLTS,loopLTS;2] ()) := by
   intro h
-  rw [show (2 : WithTop Ordinal) = 1 + 1 from (one_add_one_eq_two).symm] at h
-  obtain ⟨s, hs, hr⟩ := h.follow_snd (o := 1) (show loopLTS.Tr () () () from trivial)
-  rw [show (1 : WithTop Ordinal) = 0 + 1 from (zero_add _).symm] at hr
-  obtain ⟨t, ht, _⟩ := hr.follow_snd (o := 0) (show loopLTS.Tr () () () from trivial)
-  change 1 = s + 1 at hs
-  change s = t + 1 at ht
-  omega
+  rw [← one_add_one_eq_two] at h
+  obtain ⟨s, (hs : 1 = s + 1), hr⟩ := h.follow_snd (show loopLTS.Tr () () () from trivial)
+  rw [← zero_add (1 : WithTop Ordinal)] at hr
+  obtain ⟨t, (ht : s = t + 1), _⟩ := hr.follow_snd (show loopLTS.Tr () () () from trivial)
+  lia
 
 -- Both directions of matching matter, including across different state types.
 example : ¬(() ~[loopLTS,countdownLTS;2] 1) :=
