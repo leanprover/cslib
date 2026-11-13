@@ -136,7 +136,7 @@ variable {T : Set (Proposition Atom)}
 
 theorem Derivation.emptySequent_eq {A : Proposition Atom} : (ND₁ T)⇓A = (ND T)⇓(∅ ⊢ A) := rfl
 
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.nd₁_iff_derivableIn_nd_empty
+theorem derivableIn_nd₁_iff_derivableIn_nd_empty
   {A : Proposition Atom} : DerivableIn (ND₁ T) A ↔ DerivableIn (ND T) (∅ ⊢ A) := by rfl
 
 /-- An equivalence between A and B is a derivation of B from A and vice-versa. -/
@@ -199,25 +199,22 @@ def Derivation.weakenCtx {T : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Pr
     (ND T)⇓(Γ ⊢ A) → (ND T)⇓(Δ ⊢ A) := Derivation.weaken
 
 /-- Proof irrelevant weakening. -/
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak {T T' : Set (Proposition Atom)}
-    {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hAx : T ⊆ T' := by intro; membership)
-    (hCtx : Γ ⊆ Δ := by intro; membership) :
-    DerivableIn (ND T) (Γ ⊢ A) → DerivableIn (ND T') (Δ ⊢ A)
-  | ⟨D⟩ => ⟨D.weaken⟩
+theorem derivableIn_weaken {T T' : Set (Proposition Atom)}
+    {Γ Δ : Ctx Atom} {A : Proposition Atom} (h : DerivableIn (ND T) (Γ ⊢ A))
+    (hAx : T ⊆ T' := by intro; membership) (hCtx : Γ ⊆ Δ := by intro; membership) :
+    DerivableIn (ND T') (Δ ⊢ A) := ⟨h.some.weaken⟩
 
 /-- Proof irrelevant weakening of the axiom set. -/
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak_ax {T T' : Set (Proposition Atom)}
-    {Γ : Ctx Atom} {A : Proposition Atom}
-    (hAx : T ⊆ T' := by intro; membership)
-    (h : DerivableIn (ND T) (Γ ⊢ A)) : DerivableIn (ND T') (Γ ⊢ A) := h.weak
+theorem derivableIn_weaken_ax {T T' : Set (Proposition Atom)}
+    {Γ : Ctx Atom} {A : Proposition Atom} (h : DerivableIn (ND T) (Γ ⊢ A))
+    (hAx : T ⊆ T' := by intro; membership) : DerivableIn (ND T') (Γ ⊢ A) :=
+  derivableIn_weaken h
 
 /-- Proof irrelevant weakening of the context. -/
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak_ctx {T : Set (Proposition Atom)}
-    {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hCtx : Γ ⊆ Δ := by intro; membership)
-    (h : DerivableIn (ND T) (Γ ⊢ A)) : DerivableIn (ND T) (Δ ⊢ A) :=
-  h.weak
+theorem derivableIn_weaken_ctx {T : Set (Proposition Atom)}
+    {Γ Δ : Ctx Atom} {A : Proposition Atom} (h : DerivableIn (ND T) (Γ ⊢ A))
+    (hCtx : Γ ⊆ Δ := by intro; membership) : DerivableIn (ND T) (Δ ⊢ A) :=
+  derivableIn_weaken h
 
 /--
 Implement the cut rule, removing a hypothesis `A` from `E` using a derivation `D`. This is *not*
@@ -228,7 +225,7 @@ def Derivation.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
   impE (A := A) (impI (Γ ∪ Δ) <| E.weakenCtx) D.weakenCtx
 
 /-- Proof irrelevant cut rule. -/
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.cut {Γ Δ : Ctx Atom}
+theorem derivableIn_cut {Γ Δ : Ctx Atom}
     {A B : Proposition Atom} :
     DerivableIn (ND T) (Γ ⊢ A) → DerivableIn (ND T) ((insert A Δ) ⊢ B) →
       DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B)
@@ -236,16 +233,16 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.cut {Γ Δ : Ctx Atom}
 
 /-- Remove unnecessary hypotheses. This can't be computable because it requires picking an order
 on the finset `Δ`. -/
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.cut_away {Γ Γ' : Ctx Atom}
+theorem derivableIn_cut_away {Γ Γ' : Ctx Atom}
     {B : Proposition Atom} (hΔ : ∀ A ∈ Γ', DerivableIn (ND T) (Γ ⊢ A))
     (hDer : DerivableIn (ND T) ((Γ ∪ Γ') ⊢ B)) : DerivableIn (ND T) (Γ ⊢ B) := by
   induction Γ' using Finset.induction with
-  | empty => exact hDer.weak_ctx
+  | empty => exact derivableIn_weaken_ctx hDer
   | insert A Δ hA ih =>
     apply ih
     · intro A' hA'
       apply hΔ A' <| Finset.mem_insert_of_mem hA'
-    · apply Finset.union_left_idem Γ Δ ▸ DerivableIn.cut (Δ := Γ ∪ Δ) (A := A)
+    · apply Finset.union_left_idem Γ Δ ▸ derivableIn_cut (Δ := Γ ∪ Δ) (A := A)
       all_goals grind
 
 /-- Substitution of a family of derivations `D` for hypotheses in the context `Γ` of `E`. TODO:
@@ -291,7 +288,7 @@ def Derivation.substAtom {Atom Atom' : Type*} [DecidableEq Atom] [DecidableEq At
   | @impI _ _ _ A _ Γ D => impI _ <| (Finset.image_insert (·.subst f) A Γ) ▸ (D.substAtom f)
   | impE D E => impE (D.substAtom f) (E.substAtom f)
 
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.substAtom {Atom Atom' : Type u}
+theorem derivableIn_subst_atom {Atom Atom' : Type u}
     [DecidableEq Atom] [DecidableEq Atom'] {T : Set (Proposition Atom)}
     (f : Atom → Proposition Atom') {Γ : Ctx Atom} {B : Proposition Atom} :
     DerivableIn (ND T) (Γ ⊢ B) → DerivableIn (ND <| (·.subst f) '' T) ((Γ.subst f) ⊢ (B >>= f))
@@ -308,11 +305,11 @@ theorem derivable_iff_equiv_top (A : Proposition Atom) :
     DerivableIn (ND₁ T) A ↔ A ≡[T] ⊤ := by
   constructor <;> intro h
   · exact ⟨derivationTop.weakenCtx, (Classical.choice h).weakenCtx⟩
-  · have := DerivableIn.cut (derivableIn_top (T := T)) (B := A) (Δ := ∅)
+  · have := derivableIn_cut (derivableIn_top (T := T)) (B := A) (Δ := ∅)
     rw [← show (∅ : Ctx Atom) = ∅ ∪ ∅ by rfl] at this
     exact this h.mpr
 
-alias ⟨_root_.Cslib.Logic.InferenceSystem.DerivableIn.equiv_top, _⟩ := derivable_iff_equiv_top
+alias ⟨equiv_top_of_derivableIn, _⟩ := derivable_iff_equiv_top
 
 /-- Change the conclusion along an equivalence. -/
 def mapEquivConclusion (Γ : Ctx Atom) {A B : Proposition Atom} (e : equiv T A B)

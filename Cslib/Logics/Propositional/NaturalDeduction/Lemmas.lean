@@ -105,7 +105,7 @@ def Derivation.collectAx {Γ : Ctx Atom} {B : Proposition Atom} :
     let ⟨Δ₂, E'⟩ := collectAx E
     ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, impE (D'.weakenCtx) (E'.weakenCtx)⟩
 
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.collect_ax {Γ : Ctx Atom}
+theorem derivableIn_collect_ax {Γ : Ctx Atom}
     {B : Proposition Atom} : DerivableIn (ND T) (Γ ⊢ B) →
       ∃ Δ : Ctx Atom, DerivableIn (ND <| IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ↑Δ ⊆ T
   | ⟨D⟩ => let ⟨⟨Δ, hΔ⟩, D'⟩ := D.collectAx; ⟨Δ, ⟨⟨D'⟩, hΔ⟩⟩
@@ -135,7 +135,7 @@ def Derivation.assToAx' {Γ Δ : Ctx Atom} {B : Proposition Atom} :
 def Derivation.assToAx {Γ Δ : Ctx Atom} {B : Proposition Atom}
     (D : Derivation T (Γ ∪ Δ) B) : Derivation (T ∪ Δ) Γ B := (assToAx' D).weakenCtx
 
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ass_to_ax {Γ Δ : Ctx Atom}
+theorem derivableIn_ass_to_ax {Γ Δ : Ctx Atom}
     {B : Proposition Atom} : DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B) → DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B)
   | ⟨D⟩ => ⟨Derivation.assToAx D⟩
 
@@ -145,22 +145,22 @@ def Derivation.axToAss {Γ Δ : Ctx Atom} {B : Proposition Atom}
   let ⟨⟨Δ', hΔ'⟩, D'⟩ := collectAx D
   (D'.assToAx' (Δ := Δ' \ Δ)).weaken (by grind)
 
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ax_to_ass {Γ Δ : Ctx Atom}
+theorem derivableIn_ax_to_ass {Γ Δ : Ctx Atom}
     {B : Proposition Atom} : DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) → DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B)
   | ⟨D⟩ => ⟨D.axToAss⟩
 
 theorem derivableIn_union_ax_iff_ctx {Γ Δ : Ctx Atom} {B : Proposition Atom} :
     DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) ↔ DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B) :=
-  ⟨ax_to_ass, ass_to_ax⟩
+  ⟨derivableIn_ax_to_ass, derivableIn_ass_to_ax⟩
 
 theorem derivableIn_iff_exists {Γ : Ctx Atom} {B : Proposition Atom} :
     DerivableIn (ND T) (Γ ⊢ B) ↔
       ∃ Δ : Ctx Atom, DerivableIn (ND <| IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ↑Δ ⊆ T :=
-  ⟨collect_ax, fun ⟨Δ, h, hsub⟩ ↦ h.ass_to_ax.weak_ax⟩
+  ⟨derivableIn_collect_ax, fun ⟨Δ, h, hsub⟩ ↦ derivableIn_weaken_ax <| derivableIn_ass_to_ax h⟩
 
 theorem derivableIn_nd₁_iff_exists {A : Proposition Atom} :
     DerivableIn (ND₁ T) A ↔ ∃ Γ : Ctx Atom, DerivableIn (ND <| IPL Atom) (Γ ⊢ A) ∧ ↑Γ ⊆ T := by
-  rw [nd₁_iff_derivableIn_nd_empty, derivableIn_iff_exists]
+  rw [derivableIn_nd₁_iff_derivableIn_nd_empty, derivableIn_iff_exists]
   simp
 
 end Cslib.Logic.PL.NaturalDeduction
