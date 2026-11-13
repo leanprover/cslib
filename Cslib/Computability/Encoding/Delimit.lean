@@ -108,8 +108,8 @@ theorem delimit_append_inj_iff {w w' u u' : List Bool} :
   ⟨delimit_append_inj, by rintro ⟨rfl, rfl⟩; rfl⟩
 
 /-- Delimiting is injective. -/
-theorem delimit_injective : Function.Injective delimit := fun _ _ h =>
-  (delimit_append_inj (u := []) (u' := []) (by simpa using h)).1
+theorem delimit_injective : Function.Injective delimit := fun _ _ h => by
+  simpa using congrArg undelimit h
 
 @[simp]
 theorem delimit_inj {w w' : List Bool} : delimit w = delimit w' ↔ w = w' :=
@@ -120,10 +120,9 @@ theorem delimit_inj {w w' : List Bool} : delimit w = delimit w' ↔ w = w' :=
 theorem delimit_prefix_delimit {w v : List Bool} :
     delimit w <+: delimit v ↔ w = v := by
   constructor
-  · rintro ⟨suffix, hs⟩
-    exact (delimit_append_inj (u := suffix) (u' := [])
-      (by simpa only [List.append_nil] using hs)).1
+  · rintro ⟨_, hs⟩
+    simpa using congrArg undelimit hs
   · rintro rfl
-    exact List.prefix_refl _
+    rfl
 
 end Cslib.Encoding

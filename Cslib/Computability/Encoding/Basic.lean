@@ -43,34 +43,29 @@ namespace Cslib.Encoding
 variable {α β : Type*}
 
 /-- A Boolean is encoded by its single bit. -/
+@[simps]
 def encBool : Bool ↪ List Bool :=
-  ⟨fun b => [b], fun _ _ h => (List.cons.inj h).1⟩
+  ⟨([·]), List.singleton_injective⟩
 
 /-- Boolean words already are codes. -/
-def encBits : List Bool ↪ List Bool := Function.Embedding.refl _
+@[simps]
+def encBits : List Bool ↪ List Bool := ⟨id, Function.injective_id⟩
 
 /-- A natural number is encoded in binary, least significant bit first, using Mathlib's
 `Computability.encodeNat`. -/
+@[simps]
 def encNat : ℕ ↪ List Bool :=
   ⟨Computability.encodeNat, Computability.encodingNatBool.encode_injective⟩
 
-@[simp] theorem encBool_apply (b : Bool) : encBool b = [b] := rfl
-
-@[simp] theorem encBits_apply (w : List Bool) : encBits w = w := rfl
-
-@[simp] theorem encNat_apply (n : ℕ) : encNat n = Computability.encodeNat n := rfl
-
 /-- A product is encoded as the delimited first component followed by the second component. -/
+@[simps]
 def encProd (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) : α × β ↪ List Bool :=
-  ⟨fun p => delimit (enc₁ p.1) ++ enc₂ p.2, fun _ _ h =>
-    Prod.ext (enc₁.injective (delimit_append_inj h).1)
-      (enc₂.injective (delimit_append_inj h).2)⟩
+  ⟨fun p => delimit (enc₁ p.1) ++ enc₂ p.2, fun _ _ h => by simpa [Prod.ext_iff] using h⟩
 
 /-- Encoding of `Option`: `none` is encoded as the empty word while `some a` as `true` followed by
 the code of `a`. -/
 def encOption (enc : α ↪ List Bool) : Option α ↪ List Bool :=
-  ⟨fun o => o.elim [] (true :: enc ·), by
-    rintro (_ | a) (_ | b) h <;> simp_all⟩
+  ⟨fun o => o.elim [] (true :: enc ·), by rintro (_ | a) (_ | b) h <;> simp_all⟩
 
 /-- A list is encoded as the concatenation of the delimited codes of its elements. -/
 def encList (enc : α ↪ List Bool) : List α ↪ List Bool :=
@@ -82,9 +77,6 @@ def encList (enc : α ↪ List Bool) : List α ↪ List Bool :=
       | nil => simp at h
       | cons a' l' =>
         rw [enc.injective (delimit_append_inj h).1, ih _ (delimit_append_inj h).2]⟩
-
-@[simp] theorem encProd_apply (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) (p : α × β) :
-    encProd enc₁ enc₂ p = delimit (enc₁ p.1) ++ enc₂ p.2 := rfl
 
 @[simp] theorem encOption_none (enc : α ↪ List Bool) : encOption enc none = [] := rfl
 
@@ -101,8 +93,7 @@ theorem encList_singleton (enc : α ↪ List Bool) (a : α) :
   simp
 
 @[simp] theorem encList_append (enc : α ↪ List Bool) (l l' : List α) :
-    encList enc (l ++ l') = encList enc l ++ encList enc l' := by
-  induction l <;> simp_all
+    encList enc (l ++ l') = encList enc l ++ encList enc l' := List.flatMap_append ..
 
 -- Not a `simp` lemma, since `simp` proves it from `encProd_apply` and `length_delimit`.
 theorem length_encProd (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) (p : α × β) :
