@@ -33,7 +33,7 @@ instance instIsIntuitionisticND₁ : IsIntuitionistic (ND₁ T) (Proposition Ato
 
 /-- Derivation of efq in an arbitrary context. -/
 def derivBotImpCtx (Γ : Ctx Atom) (A : Proposition Atom) : (ND T)⇓(Γ ⊢ ⊥ → A) :=
-  (derivationBotImp A : (ND₁ T)⇓(⊥ → A)).weakCtx
+  (derivationBotImp A : (ND₁ T)⇓(⊥ → A)).weakenCtx
 
 /-- Prove any proposition from contradictory hypotheses. -/
 def contra {Γ : Ctx Atom} (A B : Proposition Atom)
@@ -46,7 +46,7 @@ instance instIsClassicalCPL : IsClassical (ND₁ <| CPL Atom) (Proposition Atom)
 /-- Proof by contradiction as a derived rule. -/
 def byContra [IsClassical (ND₁ T) (Proposition Atom)] {Γ : Ctx Atom}
     {A : Proposition Atom} (D : (ND T)⇓(insert (¬ A) Γ ⊢ ⊥)) : (ND T)⇓(Γ ⊢ A) :=
-  impE (derivationDNE A : (ND₁ T)⇓(¬¬A → A)).weakCtx D.impI
+  impE (derivationDNE A : (ND₁ T)⇓(¬¬A → A)).weakenCtx D.impI
 
 /-- Law of excluded middle in a classical theory. -/
 def lem [IsClassical (ND₁ T) (Proposition Atom)] (A : Proposition Atom) : (ND₁ T)⇓(A ∨ ¬ A) := by
@@ -89,7 +89,7 @@ def Derivation.collectAx {Γ : Ctx Atom} {B : Proposition Atom} :
   | andI D E =>
     let ⟨Δ₁, D'⟩ := collectAx D
     let ⟨Δ₂, E'⟩ := collectAx E
-    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, andI D'.weakCtx E'.weakCtx⟩
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, andI D'.weakenCtx E'.weakenCtx⟩
   | andE₁ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, andE₁ D'⟩
   | andE₂ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, andE₂ D'⟩
   | orI₁ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, orI₁ D'⟩
@@ -98,12 +98,12 @@ def Derivation.collectAx {Γ : Ctx Atom} {B : Proposition Atom} :
     let ⟨Δ, D'⟩ := collectAx D
     let ⟨Δ₁, E₁'⟩ := collectAx E₁
     let ⟨Δ₂, E₂'⟩ := collectAx E₂
-    ⟨⟨Δ ∪ Δ₁ ∪ Δ₂, by grind⟩, orE D'.weakCtx E₁'.weakCtx E₂'.weakCtx⟩
-  | impI Γ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, impI (Γ ∪ Δ) D'.weakCtx⟩
+    ⟨⟨Δ ∪ Δ₁ ∪ Δ₂, by grind⟩, orE D'.weakenCtx E₁'.weakenCtx E₂'.weakenCtx⟩
+  | impI Γ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, impI (Γ ∪ Δ) D'.weakenCtx⟩
   | impE D E =>
     let ⟨Δ₁, D'⟩ := collectAx D
     let ⟨Δ₂, E'⟩ := collectAx E
-    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, impE (D'.weakCtx) (E'.weakCtx)⟩
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, impE (D'.weakenCtx) (E'.weakenCtx)⟩
 
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.collect_ax {Γ : Ctx Atom}
     {B : Proposition Atom} : DerivableIn (ND T) (Γ ⊢ B) →
@@ -126,14 +126,14 @@ def Derivation.assToAx' {Γ Δ : Ctx Atom} {B : Proposition Atom} :
   | orI₂ D => orI₂ (assToAx' D)
   | @orE _ _ _ _ A' B C D E₁ E₂ =>
     orE (assToAx' D)
-      (assToAx' (Δ := Δ) (B := C) E₁).weakCtx
-      (assToAx' (Δ := Δ) (B := C) E₂).weakCtx
-  | @impI _ _ _ A' B _ D => impI _ (assToAx' (Δ := Δ) (B := B) D).weakCtx
+      (assToAx' (Δ := Δ) (B := C) E₁).weakenCtx
+      (assToAx' (Δ := Δ) (B := C) E₂).weakenCtx
+  | @impI _ _ _ A' B _ D => impI _ (assToAx' (Δ := Δ) (B := B) D).weakenCtx
   | impE D E => impE (assToAx' D) (assToAx' E)
 
 /-- Remove dependence on some assumptions by adding them to the theory. -/
 def Derivation.assToAx {Γ Δ : Ctx Atom} {B : Proposition Atom}
-    (D : Derivation T (Γ ∪ Δ) B) : Derivation (T ∪ Δ) Γ B := (assToAx' D).weakCtx
+    (D : Derivation T (Γ ∪ Δ) B) : Derivation (T ∪ Δ) Γ B := (assToAx' D).weakenCtx
 
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ass_to_ax {Γ Δ : Ctx Atom}
     {B : Proposition Atom} : DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B) → DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B)
@@ -143,7 +143,7 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ass_to_ax {Γ Δ : Ctx At
 def Derivation.axToAss {Γ Δ : Ctx Atom} {B : Proposition Atom}
     (D : (ND <| T ∪ Δ)⇓(Γ ⊢ B)) : (ND T)⇓((Γ ∪ Δ) ⊢ B) :=
   let ⟨⟨Δ', hΔ'⟩, D'⟩ := collectAx D
-  (D'.assToAx' (Δ := Δ' \ Δ)).weak (by grind)
+  (D'.assToAx' (Δ := Δ' \ Δ)).weaken (by grind)
 
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ax_to_ass {Γ Δ : Ctx Atom}
     {B : Proposition Atom} : DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) → DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B)

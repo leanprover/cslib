@@ -29,7 +29,7 @@ corresponding to `Derivation T` and `Derivation T ∅`.
 
 ## Main results
 
-- `Derivation.weak` : weakening as a derived rule.
+- `Derivation.weaken` : weakening as a derived rule.
 - `Derivation.cut`, `Derivation.subs` : replace a hypothesis in a derivation — the two versions
 differ in the construction of the relevant derivation.
 - `equiv_equivalence` : equivalence of propositions is an equivalence relation.
@@ -171,32 +171,32 @@ open Derivation DerivableIn
 /-! ### Operations on derivations -/
 
 /-- Weakening is a derived rule. -/
-def Derivation.weak {T T' : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Proposition Atom}
+def Derivation.weaken {T T' : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Proposition Atom}
     (hAx : T ⊆ T' := by intro; membership)
     (hCtx : Γ ⊆ Δ := by intro; membership) :
     Derivation T Γ A → Derivation T' Δ A
   | ax hA => ax
   | ass hA => ass
-  | efq A D => efq A D.weak
-  | andI D D' => andI D.weak D'.weak
-  | andE₁ D => andE₁ D.weak
-  | andE₂ D => andE₂ D.weak
-  | orI₁ D => orI₁ D.weak
-  | orI₂ D => orI₂ D.weak
-  | orE D D' D'' => orE D.weak D'.weak D''.weak
-  | @impI _ _ _ A B Γ D => impI _ D.weak
-  | impE D D' => impE D.weak D'.weak
+  | efq A D => efq A D.weaken
+  | andI D D' => andI D.weaken D'.weaken
+  | andE₁ D => andE₁ D.weaken
+  | andE₂ D => andE₂ D.weaken
+  | orI₁ D => orI₁ D.weaken
+  | orI₂ D => orI₂ D.weaken
+  | orE D D' D'' => orE D.weaken D'.weaken D''.weaken
+  | @impI _ _ _ A B Γ D => impI _ D.weaken
+  | impE D D' => impE D.weaken D'.weaken
 
 /-- Weakening the axioms only. -/
-def Derivation.weakAx {T T' : Set (Proposition Atom)} {Γ : Ctx Atom} {A : Proposition Atom}
+def Derivation.weakenAx {T T' : Set (Proposition Atom)} {Γ : Ctx Atom} {A : Proposition Atom}
     (hAx : T ⊆ T' := by intro; membership) :
     (ND T)⇓(Γ ⊢ A) → (ND T')⇓(Γ ⊢ A):=
-    Derivation.weak
+    Derivation.weaken
 
 /-- Weakening the context only. -/
-def Derivation.weakCtx {T : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Proposition Atom}
+def Derivation.weakenCtx {T : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Proposition Atom}
     (hCtx : Γ ⊆ Δ := by intro; membership) :
-    (ND T)⇓(Γ ⊢ A) → (ND T)⇓(Δ ⊢ A) := Derivation.weak
+    (ND T)⇓(Γ ⊢ A) → (ND T)⇓(Δ ⊢ A) := Derivation.weaken
 
 /-- Proof irrelevant weakening. -/
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak {T T' : Set (Proposition Atom)}
@@ -204,7 +204,7 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak {T T' : Set (Proposi
     (hAx : T ⊆ T' := by intro; membership)
     (hCtx : Γ ⊆ Δ := by intro; membership) :
     DerivableIn (ND T) (Γ ⊢ A) → DerivableIn (ND T') (Δ ⊢ A)
-  | ⟨D⟩ => ⟨D.weak⟩
+  | ⟨D⟩ => ⟨D.weaken⟩
 
 /-- Proof irrelevant weakening of the axiom set. -/
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak_ax {T T' : Set (Proposition Atom)}
@@ -225,7 +225,7 @@ substitution, which would replace appeals to `A` in `E` by the whole derivation 
 -/
 def Derivation.cut {Γ Δ : Ctx Atom} {A B : Proposition Atom}
     (D : (ND T)⇓(Γ ⊢ A)) (E : (ND T)⇓(insert A Δ ⊢ B)) : (ND T)⇓((Γ ∪ Δ) ⊢ B) :=
-  impE (A := A) (impI (Γ ∪ Δ) <| E.weakCtx) D.weakCtx
+  impE (A := A) (impI (Γ ∪ Δ) <| E.weakenCtx) D.weakenCtx
 
 /-- Proof irrelevant cut rule. -/
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.cut {Γ Δ : Ctx Atom}
@@ -257,7 +257,7 @@ def Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
   | @ass _ _ _ _ B hB => by
     by_cases B ∈ Γ'
     case pos h =>
-      exact (Ds B h).weakCtx
+      exact (Ds B h).weakenCtx
     case neg h => exact ass
   | efq A D => efq A (D.subs Ds)
   | andI E E' => andI (E.subs Ds) (E'.subs Ds)
@@ -267,9 +267,9 @@ def Derivation.subs {Γ Γ' Δ : Ctx Atom} {B : Proposition Atom}
   | orI₂ E => orI₂ <| E.subs Ds
   | @orE _ _ _ _ C C' _ E E' E'' .. => by
     apply orE (E.subs Ds)
-    · exact E'.subs Ds |>.weakCtx
-    · exact E''.subs Ds |>.weakCtx
-  | @impI _ _ _ A' _ _ E .. => impI _ <| E.subs Ds |>.weakCtx
+    · exact E'.subs Ds |>.weakenCtx
+    · exact E''.subs Ds |>.weakenCtx
+  | @impI _ _ _ A' _ _ E .. => impI _ <| E.subs Ds |>.weakenCtx
   | impE E E' => impE (E.subs Ds) (E'.subs Ds)
 
 /-- Transport a derivation along a substitution of atoms. -/
@@ -307,7 +307,7 @@ theorem derivableIn_top : DerivableIn (ND₁ T) (⊤ : Proposition Atom) := ⟨d
 theorem derivable_iff_equiv_top (A : Proposition Atom) :
     DerivableIn (ND₁ T) A ↔ A ≡[T] ⊤ := by
   constructor <;> intro h
-  · exact ⟨derivationTop.weakCtx, (Classical.choice h).weakCtx⟩
+  · exact ⟨derivationTop.weakenCtx, (Classical.choice h).weakenCtx⟩
   · have := DerivableIn.cut (derivableIn_top (T := T)) (B := A) (Δ := ∅)
     rw [← show (∅ : Ctx Atom) = ∅ ∪ ∅ by rfl] at this
     exact this h.mpr
