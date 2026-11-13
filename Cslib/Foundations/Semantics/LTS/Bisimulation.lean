@@ -384,9 +384,8 @@ theorem BisimilarityApprox.succ_iff {o : WithTop Ordinal} : s₁ ~[lts₁,lts₂
       (∀ s₁', lts₁.Tr s₁ μ s₁' →
         ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;o] s₂') ∧
       (∀ s₂', lts₂.Tr s₂ μ s₂' →
-        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;o] s₂') := by
-  simp only [BisimilarityApprox.succ]
-  rfl
+        ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;o] s₂') :=
+  congr($BisimilarityApprox.succ s₁ s₂)
 
 /-- Follow a transition by the first state, consuming one level of approximation. -/
 theorem BisimilarityApprox.follow_fst {o : WithTop Ordinal} (h : s₁ ~[lts₁,lts₂;o + 1] s₂)
