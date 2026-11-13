@@ -12,6 +12,7 @@ import CslibTests.Commitment
 import CslibTests.Complexity.Combinators
 import CslibTests.Congruence
 import CslibTests.DFA
+import CslibTests.DescriptionLogic.Family
 import CslibTests.DiffieHellman
 import CslibTests.FreeMonad
 import CslibTests.GrindLint
