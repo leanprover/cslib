@@ -168,8 +168,8 @@ private def loopLTS : LTS Unit Unit := ⟨fun _ _ _ => True⟩
 
 example : 0 ~[countdownLTS,loopLTS;0] () := by simp
 
-example : 1 ~[countdownLTS,loopLTS;0 + 1] () := by
-  rw [BisimilarityApprox.succ_iff]
+example : 1 ~[countdownLTS,loopLTS;1] () := by
+  rw [← zero_add (1 : WithTop Ordinal), BisimilarityApprox.succ_iff]
   intro μ
   exact ⟨fun _ _ => ⟨(), trivial, BisimilarityApprox.zero⟩,
     fun _ _ => ⟨0, rfl, BisimilarityApprox.zero⟩⟩
