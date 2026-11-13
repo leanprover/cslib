@@ -345,7 +345,7 @@ theorem BisimilarityApprox.top_eq_iInf :
 /-- Membership at the top endpoint means membership at every ordinal stage. -/
 theorem BisimilarityApprox.top_iff : s₁ ~[lts₁,lts₂;⊤] s₂ ↔
     ∀ o : Ordinal, s₁ ~[lts₁,lts₂;o] s₂ := by
-  simp [BisimilarityApprox.top_eq_iInf, iInf_apply, iInf_Prop_eq]
+  simp [BisimilarityApprox.top_eq_iInf]
 
 /-- The intersection of all ordinal strata is bisimilarity, for arbitrary LTSs. -/
 theorem BisimilarityApprox.top_eq_bisimilarity (lts₁ : LTS State₁ Label)
