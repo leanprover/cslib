@@ -4,6 +4,7 @@ import CslibTests.BooleanCircuits
 import CslibTests.CCS
 import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
+import CslibTests.Choreography
 import CslibTests.CircuitComplexity
 import CslibTests.CircuitComposition
 import CslibTests.CircuitCounting

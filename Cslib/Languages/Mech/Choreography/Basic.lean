@@ -6,7 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
+public import Cslib.Languages.Mech.LocalComputation
 public import Mathlib.Data.Finset.Basic
 
 /-!
@@ -23,6 +23,16 @@ Some notable features not yet included:
 - Choreographic choice (for barriers, first-come/first-served patterns, etc.).
 - Asynchronous communication.
 
+## Implementation notes
+
+Choreographies are polymorphic in the types of participant, selection label, and procedure name
+types, and in the universes of the signature. As in Stateful
+Processes, the guard of a conditional may have any value type with a designated true value
+(`Cslib.HasTrue`), such as `Bool` or `Prop`.
+
+Local expressions in choreographies can use the notation for the syntactic category `mechExpr`; for
+example, a braced Lean computation, as in `p.{$x + 1} ⮕ q.y`.
+
 ## References
 
 * [F. Montesi, *Introduction to Choreographies*][Montesi2023]
@@ -32,59 +42,49 @@ Some notable features not yet included:
 
 namespace Cslib.Languages.Mech
 
+open Cslib.Mech
+
+universe u v w
+
 section Syntax
 
 /-! ## Syntax of choreographies -/
 
-/-- Expressions for local computation. -/
-inductive Expr (Var Val FunId : Type*) where
-  /-- Read variable `x`. -/
-  | var (x : Var)
-  /-- Value `v`. -/
-  | val (v : Val)
-  /-- Call function `f` with arguments `args`. -/
-  | call (f : FunId) (args : List (Expr Var Val FunId))
-
-/-- Utility instance to write variables directly as expressions. -/
-instance : Coe Var (Expr Var Val FunId) where
-  coe x := .var x
-
-/-- Utility instance to write values directly as expressions. -/
-instance : Coe Val (Expr Var Val FunId) where
-  coe v := .val v
-
 /-- Choreographic prefix. -/
-inductive Prefix (Pid Var Val FunId SelLabel : Type*) where
+inductive Prefix (Pid : Type u) (S : Sig.{u, v, w} Pid) (SelLabel : Type*) where
   /-- `p` assigns `x` the value computed from `e`. -/
-  | assign (p : Pid) (x : Var) (e : Expr Var Val FunId)
+  | assign {α : Type w} (p : Pid) (x : S.Var p α) (e : S.Expr p α)
   /-- `p` communicates the evaluation of `e` to `q`, which stores it in its variable `x`. -/
-  | com (p : Pid) (e : Expr Var Val FunId) (q : Pid) (x : Var)
+  | com {α : Type w} (p : Pid) (e : S.Expr p α) (q : Pid) (x : S.Var q α)
   /-- `p` communicates the selection label (a static tag used to denote a choice) to `q`. -/
   | sel (p : Pid) (q : Pid) (l : SelLabel)
 
 /-- Choreographies. -/
-inductive Choreography (Pid Var Val FunId SelLabel ProcName : Type*) where
+inductive Choreography (Pid : Type u) (S : Sig.{u, v, w} Pid) (SelLabel ProcName : Type*) where
   /-- The terminated choreography. -/
   | nil
   /-- Do `prf` and continue as `c`. -/
-  | pre (prf : Prefix Pid Var Val FunId SelLabel)
-    (c : Choreography Pid Var Val FunId SelLabel ProcName)
-  /-- Conditional: `p` evaluates `e` to choose between `c₁` and `c₂`. -/
-  | cond (p : Pid) (e : Expr Var Val FunId)
-    (c₁ c₂ : Choreography Pid Var Val FunId SelLabel ProcName)
+  | pre (prf : Prefix Pid S SelLabel)
+    (c : Choreography Pid S SelLabel ProcName)
+  /-- Conditional: `p` evaluates the guard `e`, continuing as `c₁` if it evaluates to the true value
+  of its guard type (see `HasTrue`) and as `c₂` otherwise. -/
+  | cond {α : Type w} [inst : HasTrue α] (p : Pid) (e : S.Expr p α)
+    (c₁ c₂ : Choreography Pid S SelLabel ProcName)
   /-- Call the procedure `proc`. -/
   | call (proc : ProcName) (ps : List Pid)
 
-instance : Zero (Choreography Pid Var Val FunId SelLabel ProcName) := ⟨.nil⟩
+variable {Pid : Type u} {S : Sig.{u, v, w} Pid} {SelLabel ProcName : Type*}
+
+instance : Zero (Choreography Pid S SelLabel ProcName) := ⟨.nil⟩
 
 /-- Syntactic category for prefixes. -/
 declare_syntax_cat mechPre
 
 @[inherit_doc Prefix.assign]
-scoped syntax term:max "." term "≔" term : mechPre
+scoped syntax term:max "." term "≔" mechExpr : mechPre
 
 @[inherit_doc Prefix.com]
-scoped syntax term:max "." term "⮕" term:max "." term : mechPre
+scoped syntax term:max "." mechExpr "⮕" term:max "." term : mechPre
 
 @[inherit_doc Prefix.sel]
 scoped syntax term:max "⮕" term:max "[" term "]" : mechPre
@@ -93,8 +93,9 @@ scoped syntax term:max "⮕" term:max "[" term "]" : mechPre
 scoped syntax "`(MechPre|" mechPre ")" : term
 
 scoped macro_rules
-  | `(`(MechPre| $p:term . $x:term ≔ $e:term)) => `(Prefix.assign $p $x $e)
-  | `(`(MechPre| $p:term . $e:term ⮕ $q:term . $x:term)) => `(Prefix.com $p $e $q $x)
+  | `(`(MechPre| $p:term . $x:term ≔ $e:mechExpr)) => `(Prefix.assign $p $x `(MechExpr| $e))
+  | `(`(MechPre| $p:term . $e:mechExpr ⮕ $q:term . $x:term)) =>
+    `(Prefix.com $p `(MechExpr| $e) $q $x)
   | `(`(MechPre| $p:term ⮕ $q:term [ $l:term ])) => `(Prefix.sel $p $q $l)
 
 /-- Syntactic category for choreographies. -/
@@ -107,7 +108,7 @@ scoped syntax num : mechChor
 scoped syntax mechPre "; " mechChor : mechChor
 
 @[inherit_doc Choreography.cond]
-scoped syntax "if" term:max "." term "then" mechChor "else" mechChor : mechChor
+scoped syntax "if" term:max "." mechExpr "then" mechChor "else" mechChor : mechChor
 
 @[inherit_doc Choreography]
 scoped syntax "`(Mech| " mechChor ")" : term
@@ -115,18 +116,18 @@ scoped syntax "`(Mech| " mechChor ")" : term
 scoped macro_rules
   | `(`(Mech| 0)) => `(0)
   | `(`(Mech| $prf:mechPre; $pr:mechChor)) => `(Choreography.pre `(MechPre| $prf) `(Mech| $pr))
-  | `(`(Mech| if $p:term . $e:term then $c₁:mechChor else $c₂:mechChor)) =>
-    `(Choreography.cond $p $e `(Mech| $c₁) `(Mech| $c₂))
+  | `(`(Mech| if $p:term . $e:mechExpr then $c₁:mechChor else $c₂:mechChor)) =>
+    `(Choreography.cond $p `(MechExpr| $e) `(Mech| $c₁) `(Mech| $c₂))
 
 variable [DecidableEq Pid]
 
 /-- Process names in a prefix. -/
-def Prefix.pn : Prefix Pid Var Val FunId SelLabel → Finset Pid
+def Prefix.pn : Prefix Pid S SelLabel → Finset Pid
   | assign p _ _ => {p}
   | com p _ q _ | sel p q _ => {p, q}
 
 /-- Process names in a choreography. -/
-def Choreography.pn : Choreography Pid Var Val FunId SelLabel ProcName → Finset Pid
+def Choreography.pn : Choreography Pid S SelLabel ProcName → Finset Pid
   | 0 => ∅
   | pre prf c => prf.pn ∪ c.pn
   | cond p _ c₁ c₂ => {p} ∪ c₁.pn ∪ c₂.pn
