@@ -7,8 +7,6 @@ Authors: Fabrizio Montesi
 module
 
 public import Mathlib.Data.ZMod.Basic
-public import Mathlib.Data.Nat.Prime.Basic
-public import Mathlib.RingTheory.RootsOfUnity.PrimitiveRoots
 public import Cslib.Languages.StatefulProcesses.Network
 
 /-!
@@ -20,184 +18,126 @@ It is also intended as a simple testbed to measure improvement on how CSLib deal
 like Stateful Processes and reasoning on operational semantics.
 
 Current aspects that stand out and could be more ergonomic are:
-1. The integration of Lean terms within expressions for computation at processes requires
-  significant plumbing. Ideally, it should be seamless.
-2. The protocol has two obvious symbolic traces, yet proving `net_completeTraces` is cumbersome.
+1. The protocol has two obvious symbolic traces, yet proving `net_completeTraces` is cumbersome.
   Perhaps an API for unique transitions could be partially helpful:
 ```
 def _root_.Cslib.LTS.TrUnique (lts : LTS State Label) (s : State) (μ : Label) (s' : State) :=
   lts.Tr s μ s' ∧ ∀ μ' s'', lts.Tr s μ' s'' → μ' = μ ∧ s'' = s'
 ```
-  The terms for `Alice` and `Bob` after one and two steps of their executions are provided as
-  reference for this endeavour.
-3. As a consequence of (2), proving `net_fun_correct` is cumbersome.
+  The terms for `aliceProc` and `bobProc` after one and two steps of their executions are provided
+  as reference for this endeavour.
+2. As a consequence of (1), proving `net_fun_correct` is cumbersome.
 
 ## Implementation notes
 
-The current implementation requires proofs that `p` is prime and that `g` is a primitive root modulo
-`p`, but does not use these facts. They are reserved for future work on security results.
+The public parameters are a generator `g : ZMod p`, with the modulus `p` left implicit. Each role
+takes only what its participant knows: the public parameters, the identity of its peer, and handles
+to its own local variables.
+
+Private exponents are local variables rather than Lean constants, so they live in the
+participants' stores and never occur in the process terms or in their transition labels. As a
+consequence, correctness statements assume that, in each role, the variable receiving the peer's
+public value differs from the exponent, which the reception would otherwise overwrite.
+
+The exponents can also be chosen by the roles themselves with a relational call, such as one
+returning any exponent in `(0, p)`; see the tests for this variant.
+
+The key-agreement computation does not require primality or a primitive root; security properties
+would require additional assumptions.
 -/
 
 @[expose] public section
 
 namespace Cslib.Algorithms.StatefulProcesses.DiffieHellman
 
-open Cslib.StatefulProcesses Cslib.Mech
+open Cslib.Mech Cslib.StatefulProcesses
 
 /-! ## Basics -/
 
-/-- Parameters of the DH protocol. -/
-structure Params (Pid Var : Type*) where
-  /-- Alice. -/
-  alice : Pid
-  /-- Bob. -/
-  bob : Pid
-  /-- Alice and Bob have different names. -/
-  alice_neq_bob : alice ≠ bob
-  /-- Alice's private key (secret). -/
-  a : ℕ
-  /-- Bob's private key (secret). -/
-  b : ℕ
-  /-- Bob's variable to store Alice's message. -/
-  x : Var
-  /-- Alice's variable to store Bob's message. -/
-  y : Var
-  /-- The variable used to store the shared key. -/
-  s : Var
-  /-- The prime modulus `p`. -/
-  p : ℕ
-  /-- `p` is prime. -/
-  p_prime : Nat.Prime p
-  /-- The generator `g`. -/
-  g : ZMod p
-  /-- `g` is a primitive root modulo `p`. -/
-  g_primitive_root_p : IsPrimitiveRoot g (p - 1)
-  /-- SelLabel type for instantiating stateful processes. -/
-  SelLabel : Type*
-  /-- ProcName type for instantiating stateful processes. -/
-  ProcName : Type*
-
-attribute [local grind .] Params.alice_neq_bob
-
-/-- Computes the public DH message from a private exponent. -/
-def computePublicMessage (p : ℕ) (g : ZMod p) (privateExp : ℕ) : ZMod p :=
-  g ^ privateExp
-
-/-- Computes the shared secret key from a private exponent and the other party's public message. -/
-def computeSharedSecret (p : ℕ) (msg : ZMod p) (privateExp : ℕ) : ZMod p :=
-  msg ^ privateExp
-
-/-- Correctness of the DH computations: the encryption keys independently computed by the two
-participants are the same. -/
-theorem computePublicMessage_computeSharedSecret_eq (p : ℕ) (g : ZMod p) (a b : ℕ) :
-    computeSharedSecret p (computePublicMessage p g b) a =
-    computeSharedSecret p (computePublicMessage p g a) b := by
-  simp only [computePublicMessage, computeSharedSecret]
-  rw [← pow_mul, mul_comm, pow_mul]
+/-- The two participants compute the same shared key. -/
+theorem shared_secret_eq (p : ℕ) (g : ZMod p) (a b : ℕ) :
+    (g ^ b) ^ a = (g ^ a) ^ b := by
+  rw [← pow_mul, ← pow_mul, Nat.mul_comm]
 
 /-! ## Behaviour -/
 
-variable {Pid Var : Type*} (params : Params Pid Var)
+variable {L : LocalSig}
 
-/-- Function identifiers used in DH. -/
-inductive FunId | computePublicMessage | computeSharedSecret
-
-/-- Value type for DH. -/
-inductive Params.Val | nat (n : ℕ) | zMod (z : ZMod params.p)
-
-/-- Alice's expression for computing the public message. -/
-abbrev aliceComputeMesg : Expr Var params.Val FunId :=
-  Expr.call .computePublicMessage
-    [.val <| .nat params.p, .val <| .zMod params.g, .val <| .nat params.a]
-
-/-- Alice's expression for computing the shared secret. -/
-abbrev aliceComputeSharedSecret : Expr Var params.Val FunId :=
-  Expr.call .computeSharedSecret [.val <| .nat params.p, params.y, .val <| .nat params.a]
-
-/-- Bob's expression for computing the public message. -/
-abbrev bobComputeMesg : Expr Var params.Val FunId :=
-  Expr.call .computePublicMessage
-    [.val <| .nat params.p, .val <| .zMod params.g, .val <| .nat params.b]
-
-/-- Bob's expression for computing the shared secret. -/
-abbrev bobComputeSharedSecret : Expr Var params.Val FunId :=
-  Expr.call .computeSharedSecret [.val <| .nat params.p, params.x, .val <| .nat params.b]
-
-/-- Alice's program. -/
-def alice : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
-  `(SP| params.bob ! aliceComputeMesg params;
-        params.bob ? params.y;
-        params.s ≔ aliceComputeSharedSecret params;
+/-- Alice's program, the initiator. It sends `g ^ a` to `bob`, receives Bob's public value in
+`peerPub`, and stores the shared key in `key`. The private exponent `a` is a local variable. -/
+def aliceProc (bob : Pid) (g : ZMod p) (a : L.Var ℕ) (peerPub key : L.Var (ZMod p)) :
+    Process Pid L SelLabel ProcName :=
+  `(SP| bob ! {g ^ $a};
+        bob ? peerPub;
+        key ≔ {$peerPub ^ $a};
         0)
 
-/-- Bob's program. -/
-def bob : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
-  `(SP| params.alice ? params.x;
-        params.alice ! bobComputeMesg params;
-        params.s ≔ bobComputeSharedSecret params;
+/-- Bob's program, the responder. It receives Alice's public value in `peerPub`, sends `g ^ b` to
+`alice`, and stores the shared key in `key`. The private exponent `b` is a local variable. -/
+def bobProc (alice : Pid) (g : ZMod p) (b : L.Var ℕ) (peerPub key : L.Var (ZMod p)) :
+    Process Pid L SelLabel ProcName :=
+  `(SP| alice ? peerPub;
+        alice ! {g ^ $b};
+        key ≔ {$peerPub ^ $b};
         0)
 
-/-! ## Semantics -/
+/-- Alice's program after its first communication. -/
+def aliceProc₁ (bob : Pid) (a : L.Var ℕ) (peerPub key : L.Var (ZMod p)) :
+    Process Pid L SelLabel ProcName :=
+  `(SP| bob ? peerPub; key ≔ {$peerPub ^ $a}; 0)
 
-/-- Implementation of local function call evaluation.
-Calls with a mismatched modulus are rejected. -/
-def funEval : FunCallEval FunId params.Val
-  | .computePublicMessage, [.nat p, .zMod g, .nat privateExp], v =>
-    p = params.p ∧ v = .zMod (computePublicMessage params.p g privateExp)
-  | .computeSharedSecret, [.nat p, .zMod msg, .nat privateExp], v =>
-    p = params.p ∧ v = .zMod (computeSharedSecret params.p msg privateExp)
-  | _, _, _ => False
+/-- Alice's program after both communications. -/
+def aliceProc₂ (a : L.Var ℕ) (peerPub key : L.Var (ZMod p)) : Process Pid L SelLabel ProcName :=
+  `(SP| key ≔ {$peerPub ^ $a}; 0)
 
-/-- DH network. -/
-def net [DecidableEq Pid] : Network Pid Var params.Val FunId params.SelLabel params.ProcName :=
-  0[params.alice := alice params][params.bob := bob params]
+/-- Bob's program after its first communication. -/
+def bobProc₁ (alice : Pid) (g : ZMod p) (b : L.Var ℕ) (peerPub key : L.Var (ZMod p)) :
+    Process Pid L SelLabel ProcName :=
+  `(SP| alice ! {g ^ $b}; key ≔ {$peerPub ^ $b}; 0)
 
-variable [DecidableEq Pid] [DecidableEq Var]
+/-- Bob's program after both communications. -/
+def bobProc₂ (b : L.Var ℕ) (peerPub key : L.Var (ZMod p)) : Process Pid L SelLabel ProcName :=
+  `(SP| key ≔ {$peerPub ^ $b}; 0)
 
-/-- Alice's program after one step. -/
-@[local grind =]
-def alice₁ : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
-  `(SP| params.bob ? params.y; params.s ≔ aliceComputeSharedSecret params; 0)
+/-! ## The protocol -/
 
-/-- Alice's program after two steps. -/
-@[local grind =]
-def alice₂ : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
-  `(SP| params.s ≔ aliceComputeSharedSecret params; 0)
+variable [DecidableEq Pid] {S : Sig Pid}
 
-/-- Bob's program after one step. -/
-@[local grind =]
-def bob₁ : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
-  `(SP| params.alice ! bobComputeMesg params; params.s ≔ bobComputeSharedSecret params; 0)
-
-/-- Bob's program after two steps. -/
-@[local grind =]
-def bob₂ : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
-  `(SP| params.s ≔ bobComputeSharedSecret params; 0)
+/-- The protocol between Alice (`alice`) and Bob (`bob`), whose local signatures are `S alice` and
+`S bob`. Alice's private exponent is in `a`, she receives Bob's public value in `y`, and she stores
+the key in `aliceKey`. Bob's private exponent is in `b`, he receives Alice's public value in `x`,
+and he stores the key in `bobKey`. -/
+def net (g : ZMod p) (alice bob : Pid) (a : S.Var alice ℕ) (y aliceKey : S.Var alice (ZMod p))
+    (b : S.Var bob ℕ) (x bobKey : S.Var bob (ZMod p)) : Network Pid S SelLabel ProcName :=
+  Function.update (Function.update 0 alice (aliceProc bob g a y aliceKey)) bob
+    (bobProc alice g b x bobKey)
 
 /- Characterisation of the complete symbolic traces of DH. -/
-proof_wanted net_completeTraces :
-  (Network.lts (SelLabel := params.SelLabel) (ProcName := params.ProcName)).completeTraces
-    (net params) = {μs |
+proof_wanted net_completeTraces (g : ZMod p) (alice bob : Pid) (hne : alice ≠ bob)
+    (a : S.Var alice ℕ) (y aliceKey : S.Var alice (ZMod p))
+    (b : S.Var bob ℕ) (x bobKey : S.Var bob (ZMod p)) :
+  (Network.lts (SelLabel := SelLabel) (ProcName := ProcName)).completeTraces
+    (net g alice bob a y aliceKey b x bobKey) = {μs |
   μs = [
-    Network.TrLabel.com params.alice (aliceComputeMesg params) params.bob params.x,
-    .com params.bob (bobComputeMesg params) params.alice params.y,
-    .local params.alice (.assign params.s <| aliceComputeSharedSecret params),
-    .local params.bob (.assign params.s <| bobComputeSharedSecret params)
+    Network.TrLabel.com alice `(MechExpr| {g ^ $a}) bob x,
+    .com bob `(MechExpr| {g ^ $b}) alice y,
+    .local alice (.assign aliceKey `(MechExpr| {$y ^ $a})),
+    .local bob (.assign bobKey `(MechExpr| {$x ^ $b}))
   ] ∨ μs = [
-    .com params.alice (aliceComputeMesg params) params.bob params.x,
-    .com params.bob (bobComputeMesg params) params.alice params.y,
-    .local params.bob (.assign params.s <| bobComputeSharedSecret params),
-    .local params.alice (.assign params.s <| aliceComputeSharedSecret params),
+    .com alice `(MechExpr| {g ^ $a}) bob x,
+    .com bob `(MechExpr| {g ^ $b}) alice y,
+    .local bob (.assign bobKey `(MechExpr| {$x ^ $b})),
+    .local alice (.assign aliceKey `(MechExpr| {$y ^ $a}))
   ]}
 
-/-- The LTS of network configurations. -/
-abbrev Params.cfgLts {SelLabel ProcName : Type*} :=
-  Cfg.lts (Pid := Pid) (Var := Var) (SelLabel := SelLabel) (ProcName := ProcName)
-    (fun _ => False) (funEval params)
-
-/- Functional correctness of the Diffie-Hellman protocol over complete executions. -/
-proof_wanted net_fun_correct
-    (hmtr : params.cfgLts.MTr ⟨net params, gs⟩ μs ⟨0, gs'⟩) :
-    (gs' params.alice) params.s = (gs' params.bob) params.s
+/- Functional correctness over complete executions, for any initial values of the exponents. -/
+proof_wanted net_fun_correct (g : ZMod p) (alice bob : Pid)
+    (a : S.Var alice ℕ) (y aliceKey : S.Var alice (ZMod p))
+    (b : S.Var bob ℕ) (x bobKey : S.Var bob (ZMod p))
+    (hya : y.name ≠ a.name) (hxb : x.name ≠ b.name)
+    {gs gs' : S.Store} {μs : List (Cfg.TrLabel Pid SelLabel)}
+    (hmtr : (Cfg.lts (SelLabel := SelLabel) (ProcName := ProcName)).MTr
+      ⟨net g alice bob a y aliceKey b x bobKey, gs⟩ μs ⟨0, gs'⟩) :
+    (gs' alice)[aliceKey] = (gs' bob)[bobKey]
 
 end Cslib.Algorithms.StatefulProcesses.DiffieHellman
