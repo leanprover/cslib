@@ -358,7 +358,7 @@ theorem BisimilarityApprox.top_eq_bisimilarity (lts₁ : LTS State₁ Label)
 @[simp]
 theorem BisimilarityApprox.top_iff_bisimilarity :
     s₁ ~[lts₁,lts₂;⊤] s₂ ↔ s₁ ~[lts₁,lts₂] s₂ :=
-  iff_of_eq (congrFun₂ (BisimilarityApprox.top_eq_bisimilarity lts₁ lts₂) s₁ s₂)
+  congr($(BisimilarityApprox.top_eq_bisimilarity lts₁ lts₂) s₁ s₂)
 
 /-- The zeroth stratum is the universal relation. -/
 theorem BisimilarityApprox.zero_eq : (· ~[lts₁,lts₂;0] ·) = ⊤ :=
