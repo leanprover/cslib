@@ -10,6 +10,8 @@ namespace CslibTests.Encoding
 
 open Cslib.Encoding
 
+variable {α : Type*}
+
 /-! ### `delimit` -/
 
 example : delimit [] = [false] := rfl
@@ -74,5 +76,27 @@ example (a b : Bool × List Bool) : encProd encBool encBits a = encProd encBool 
 example (a b : Bool) (l l' : List Bool) :
     encList encBool (a :: l) = encList encBool (b :: l') ↔ a = b ∧ l = l' := by simp
 example (o o' : Option Bool) : encOption encBool o = encOption encBool o' ↔ o = o' := by simp
+
+/-! ### `grind` -/
+
+example (w v : List Bool) (h : delimit w = delimit v) : w = v := by grind
+example (w v u u' : List Bool) (h : w ≠ v) : delimit w ++ u ≠ delimit v ++ u' := by grind
+
+-- Length bounds, as needed for complexity bounds.
+example (b : Bool) : (encBool b).length = 1 := by grind
+example (p : Bool × List Bool) :
+    (encProd encBool encBits p).length = p.2.length + 3 := by grind
+example (enc : α ↪ List Bool) (a : α) (l : List α) :
+    (encList enc (l ++ [a])).length = (encList enc l).length + 2 * (enc a).length + 1 := by
+  grind
+example (enc : α ↪ List Bool) (l : List α) : l.length ≤ (encList enc l).length := by grind
+
+-- Decoding the first element of a list.
+example (enc : α ↪ List Bool) (a : α) (l : List α) :
+    undelimit (encList enc (a :: l)) = enc a := by grind
+
+-- Injectivity of nested encodings.
+example (l l' : List (Bool × List Bool)) (h : encList (encProd encBool encBits) l =
+    encList (encProd encBool encBits) l') : l = l' := by grind
 
 end CslibTests.Encoding

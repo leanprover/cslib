@@ -43,12 +43,12 @@ namespace Cslib.Encoding
 variable {α β : Type*}
 
 /-- A Boolean is encoded by its single bit. -/
-@[simps]
+@[simps (attr := scoped grind =)]
 def encBool : Bool ↪ List Bool :=
   ⟨([·]), List.singleton_injective⟩
 
 /-- Boolean words already are codes. -/
-@[simps]
+@[simps (attr := scoped grind =)]
 def encBits : List Bool ↪ List Bool := ⟨id, Function.injective_id⟩
 
 /-- A natural number is encoded in binary, least significant bit first, using Mathlib's
@@ -58,7 +58,7 @@ def encNat : ℕ ↪ List Bool :=
   ⟨Computability.encodeNat, Computability.encodingNatBool.encode_injective⟩
 
 /-- A product is encoded as the delimited first component followed by the second component. -/
-@[simps]
+@[simps (attr := scoped grind =)]
 def encProd (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) : α × β ↪ List Bool :=
   ⟨fun p => delimit (enc₁ p.1) ++ enc₂ p.2, fun _ _ h => by simpa [Prod.ext_iff] using h⟩
 
@@ -78,14 +78,15 @@ def encList (enc : α ↪ List Bool) : List α ↪ List Bool :=
       | cons a' l' =>
         rw [enc.injective (delimit_append_inj h).1, ih _ (delimit_append_inj h).2]⟩
 
-@[simp] theorem encOption_none (enc : α ↪ List Bool) : encOption enc none = [] := rfl
+@[simp, scoped grind =]
+theorem encOption_none (enc : α ↪ List Bool) : encOption enc none = [] := rfl
 
-@[simp] theorem encOption_some (enc : α ↪ List Bool) (a : α) :
+@[simp, scoped grind =] theorem encOption_some (enc : α ↪ List Bool) (a : α) :
     encOption enc (some a) = true :: enc a := rfl
 
-@[simp] theorem encList_nil (enc : α ↪ List Bool) : encList enc [] = [] := rfl
+@[simp, scoped grind =] theorem encList_nil (enc : α ↪ List Bool) : encList enc [] = [] := rfl
 
-@[simp] theorem encList_cons (enc : α ↪ List Bool) (a : α) (l : List α) :
+@[simp, scoped grind =] theorem encList_cons (enc : α ↪ List Bool) (a : α) (l : List α) :
     encList enc (a :: l) = delimit (enc a) ++ encList enc l := rfl
 
 theorem encList_singleton (enc : α ↪ List Bool) (a : α) :
@@ -110,9 +111,9 @@ theorem length_encOption_some (enc : α ↪ List Bool) (a : α) :
     (encOption enc (some a)).length = (enc a).length + 1 := rfl
 
 /-- Each element contributes twice the length of its code plus one delimiter bit. -/
-@[simp] theorem length_encList (enc : α ↪ List Bool) (l : List α) :
+@[simp, scoped grind =] theorem length_encList (enc : α ↪ List Bool) (l : List α) :
     (encList enc l).length = 2 * (l.map fun a => (enc a).length).sum + l.length := by
-  induction l <;> grind [encList_nil, encList_cons, length_delimit]
+  induction l <;> grind
 
 /-- Delimiters account for at least one bit per list element, even for empty element codes. -/
 theorem length_le_length_encList (enc : α ↪ List Bool) (l : List α) :

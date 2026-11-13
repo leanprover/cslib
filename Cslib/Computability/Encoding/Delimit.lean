@@ -56,7 +56,7 @@ theorem delimit_nil : delimit [] = [false] := rfl
 theorem delimit_cons (b : Bool) (w : List Bool) : delimit (b :: w) =
     true :: b :: delimit w := rfl
 
-@[simp]
+@[simp, scoped grind =]
 theorem length_delimit (w : List Bool) : (delimit w).length = 2 * w.length + 1 := by
   induction w <;> grind [delimit_nil, delimit_cons]
 
@@ -84,7 +84,7 @@ theorem delimit_ne_nil (w : List Bool) : delimit w ≠ [] := by simp [delimit]
 @[simp] theorem dropDelimited_true_cons_cons (b : Bool) (v : List Bool) :
     dropDelimited (true :: b :: v) = dropDelimited v := rfl
 
-@[simp]
+@[simp, scoped grind =]
 theorem undelimit_delimit_append (w u : List Bool) : undelimit (delimit w ++ u) = w := by
   induction w <;> simp [*]
 
@@ -92,12 +92,13 @@ theorem undelimit_delimit_append (w u : List Bool) : undelimit (delimit w ++ u) 
 theorem undelimit_delimit (w : List Bool) : undelimit (delimit w) = w := by
   simpa using undelimit_delimit_append w []
 
-@[simp]
+@[simp, scoped grind =]
 theorem dropDelimited_delimit_append (w u : List Bool) :
     dropDelimited (delimit w ++ u) = u := by
   induction w <;> simp [*]
 
 /-- A delimited word followed by another word determines both. -/
+@[scoped grind →]
 theorem delimit_append_inj {w w' u u' : List Bool} (h : delimit w ++ u = delimit w' ++ u') :
     w = w' ∧ u = u' :=
   ⟨by simpa using congrArg undelimit h, by simpa using congrArg dropDelimited h⟩
@@ -108,6 +109,7 @@ theorem delimit_append_inj_iff {w w' u u' : List Bool} :
   ⟨delimit_append_inj, by rintro ⟨rfl, rfl⟩; rfl⟩
 
 /-- Delimiting is injective. -/
+@[scoped grind inj]
 theorem delimit_injective : Function.Injective delimit := fun _ _ h => by
   simpa using congrArg undelimit h
 
@@ -116,7 +118,7 @@ theorem delimit_inj {w w' : List Bool} : delimit w = delimit w' ↔ w = w' :=
   delimit_injective.eq_iff
 
 /-- The image of `delimit` is prefix-free, independently of the input words. -/
-@[simp]
+@[simp, scoped grind =]
 theorem delimit_prefix_delimit {w v : List Bool} :
     delimit w <+: delimit v ↔ w = v := by
   constructor
