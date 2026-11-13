@@ -28,7 +28,9 @@ preserves negligibility.
 [`Experiment`](Experiment.lean) gives the success probability and distinguishing advantage of Boolean
 experiments, and indistinguishability of experiment families under polynomial-loss reductions.
 [`Experiment/Hybrid`](Experiment/Hybrid.lean) supplies hybrid arguments with polynomially many hops
-and a finite-chain interface whose indices stay within the chain.
+and finite averaging and local-reduction interfaces whose indices stay within the chain.
+The sampling range is independent of the number of hops; unused indices reject in both mixtures,
+so applications can sample a padded power-of-two range exactly with fair coins.
 
 ## Pseudorandom generators
 
