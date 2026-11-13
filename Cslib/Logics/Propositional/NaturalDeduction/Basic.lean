@@ -121,7 +121,7 @@ inductive Derivation (T : Set (Proposition Atom)) : Ctx Atom → Proposition Ato
 /-- Type tag for natural deduction derivations from axioms `T`. -/
 opaque ND (T : Set (Proposition Atom)) : Type := Empty
 
-/-- Inference system for derivations under the theory `T`. -/
+/-- Inference system for derivations under the axiom set `T`. -/
 instance (T : Set (Proposition Atom)) : InferenceSystem (ND T) (Sequent (Atom := Atom)) where
   derivation S := Derivation T S.1 S.2
 
@@ -172,7 +172,7 @@ open Derivation DerivableIn
 
 /-- Weakening is a derived rule. -/
 def Derivation.weak {T T' : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T' := by intro; membership)
+    (hAx : T ⊆ T' := by intro; membership)
     (hCtx : Γ ⊆ Δ := by intro; membership) :
     Derivation T Γ A → Derivation T' Δ A
   | ax hA => ax
@@ -188,8 +188,8 @@ def Derivation.weak {T T' : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Prop
   | impE D D' => impE D.weak D'.weak
 
 /-- Weakening the axioms only. -/
-def Derivation.weakTheory {T T' : Set (Proposition Atom)} {Γ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T' := by intro; membership) :
+def Derivation.weakAx {T T' : Set (Proposition Atom)} {Γ : Ctx Atom} {A : Proposition Atom}
+    (hAx : T ⊆ T' := by intro; membership) :
     (ND T)⇓(Γ ⊢ A) → (ND T')⇓(Γ ⊢ A):=
     Derivation.weak
 
@@ -201,15 +201,15 @@ def Derivation.weakCtx {T : Set (Proposition Atom)} {Γ Δ : Ctx Atom} {A : Prop
 /-- Proof irrelevant weakening. -/
 theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak {T T' : Set (Proposition Atom)}
     {Γ Δ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T' := by intro; membership)
+    (hAx : T ⊆ T' := by intro; membership)
     (hCtx : Γ ⊆ Δ := by intro; membership) :
     DerivableIn (ND T) (Γ ⊢ A) → DerivableIn (ND T') (Δ ⊢ A)
   | ⟨D⟩ => ⟨D.weak⟩
 
 /-- Proof irrelevant weakening of the axiom set. -/
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak_theory {T T' : Set (Proposition Atom)}
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak_ax {T T' : Set (Proposition Atom)}
     {Γ : Ctx Atom} {A : Proposition Atom}
-    (hTheory : T ⊆ T' := by intro; membership)
+    (hAx : T ⊆ T' := by intro; membership)
     (h : DerivableIn (ND T) (Γ ⊢ A)) : DerivableIn (ND T') (Γ ⊢ A) := h.weak
 
 /-- Proof irrelevant weakening of the context. -/

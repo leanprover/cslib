@@ -110,7 +110,7 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.collect_ax {Γ : Ctx Atom
       ∃ Δ : Ctx Atom, DerivableIn (ND <| IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ↑Δ ⊆ T
   | ⟨D⟩ => let ⟨⟨Δ, hΔ⟩, D'⟩ := D.collectAx; ⟨Δ, ⟨⟨D'⟩, hΔ⟩⟩
 
-/-- Remove some assumptions by moving them to the theory. -/
+/-- Remove some assumptions by moving them to the axiom set. -/
 def Derivation.assToAx' {Γ Δ : Ctx Atom} {B : Proposition Atom} :
     Derivation T Γ B → Derivation (T ∪ Δ) (Γ \ Δ) B
   | @ass _ _ _ _ B _ => by
@@ -149,14 +149,14 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ax_to_ass {Γ Δ : Ctx At
     {B : Proposition Atom} : DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) → DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B)
   | ⟨D⟩ => ⟨D.axToAss⟩
 
-theorem derivableIn_union_theory_iff_ctx {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+theorem derivableIn_union_ax_iff_ctx {Γ Δ : Ctx Atom} {B : Proposition Atom} :
     DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) ↔ DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B) :=
   ⟨ax_to_ass, ass_to_ax⟩
 
 theorem derivableIn_iff_exists {Γ : Ctx Atom} {B : Proposition Atom} :
     DerivableIn (ND T) (Γ ⊢ B) ↔
       ∃ Δ : Ctx Atom, DerivableIn (ND <| IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ↑Δ ⊆ T :=
-  ⟨collect_ax, fun ⟨Δ, h, hsub⟩ ↦ h.ass_to_ax.weak_theory⟩
+  ⟨collect_ax, fun ⟨Δ, h, hsub⟩ ↦ h.ass_to_ax.weak_ax⟩
 
 theorem derivableIn_nd₁_iff_exists {A : Proposition Atom} :
     DerivableIn (ND₁ T) A ↔ ∃ Γ : Ctx Atom, DerivableIn (ND <| IPL Atom) (Γ ⊢ A) ∧ ↑Γ ⊆ T := by
