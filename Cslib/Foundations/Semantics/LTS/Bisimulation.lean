@@ -6,6 +6,7 @@ Authors: Fabrizio Montesi, Thomas Waring
 
 module
 
+public import Cslib.Foundations.Order.FixedPoints
 public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 public import Mathlib.SetTheory.Ordinal.FixedPointApproximants
@@ -349,10 +350,9 @@ theorem BisimilarityApprox.top_iff : s₁ ~[lts₁,lts₂;⊤] s₂ ↔
 
 /-- The intersection of all ordinal strata is bisimilarity, for arbitrary LTSs. -/
 theorem BisimilarityApprox.top_eq_bisimilarity (lts₁ : LTS State₁ Label)
-    (lts₂ : LTS State₂ Label) : (· ~[lts₁,lts₂;⊤] ·) = (· ~[lts₁,lts₂] ·) := by
-  simp_rw [top_eq_iInf, coe_eq, ← OrdinalApprox.prevFixed_eq_iInf_gfpApprox _ le_top,
-    ← bisimulationStep_gfp, OrderHom.prevFixed]
-  congr! 3; ext; simp
+    (lts₂ : LTS State₂ Label) : (· ~[lts₁,lts₂;⊤] ·) = (· ~[lts₁,lts₂] ·) :=
+  (OrdinalApprox.prevFixed_eq_iInf_gfpApprox _ le_top).symm.trans
+    ((OrderHom.prevFixed_top_coe _).trans bisimulationStep_gfp)
 
 /-- Membership at the top endpoint is bisimilarity, for arbitrary LTSs. -/
 @[simp]
