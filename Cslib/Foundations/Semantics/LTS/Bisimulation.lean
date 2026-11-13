@@ -414,6 +414,16 @@ theorem BisimilarityApprox.antitone_nat : Antitone (fun n : ℕ => (· ~[lts₁,
   intro m n h
   exact BisimilarityApprox.antitone (by exact_mod_cast h)
 
+/-- Membership in a stratum implies membership in every earlier stratum. -/
+theorem BisimilarityApprox.of_ge {o o' : WithTop Ordinal}
+    (h : s₁ ~[lts₁,lts₂;o'] s₂) (hoo' : o ≤ o') : s₁ ~[lts₁,lts₂;o] s₂ :=
+  BisimilarityApprox.antitone hoo' _ _ h
+
+/-- `BisimilarityApprox.of_ge` for natural number indices. -/
+theorem BisimilarityApprox.of_ge_nat {m n : ℕ}
+    (h : s₁ ~[lts₁,lts₂;n] s₂) (hmn : m ≤ n) : s₁ ~[lts₁,lts₂;m] s₂ :=
+  BisimilarityApprox.antitone_nat hmn _ _ h
+
 /-- Each successor stratum is contained in the preceding stratum. -/
 theorem BisimilarityApprox.succ_le (o : Ordinal) :
     (· ~[lts₁,lts₂;o + 1] ·) ≤ (· ~[lts₁,lts₂;o] ·) :=
@@ -439,7 +449,7 @@ theorem BisimilarityApprox.omega_iff : s₁ ~[lts₁,lts₂;ω] s₂ ↔
 /-- Bisimilar states belong to every ordinal stratum. -/
 theorem Bisimilarity.approx (h : s₁ ~[lts₁,lts₂] s₂) (o : WithTop Ordinal) :
     s₁ ~[lts₁,lts₂;o] s₂ :=
-  BisimilarityApprox.antitone le_top _ _ (BisimilarityApprox.top_iff_bisimilarity.mpr h)
+  (BisimilarityApprox.top_iff_bisimilarity.mpr h).of_ge le_top
 
 /-- For all LTSs, some ordinal stratum coincides with bisimilarity. -/
 theorem BisimilarityApprox.exists_eq_bisimilarity (lts₁ : LTS State₁ Label)
@@ -536,11 +546,10 @@ theorem BisimilarityApprox.trans_omega (h₁ : s₁ ~[lts₁,lts₂;ω] s₂)
   BisimilarityApprox.omega_iff.mpr fun n =>
     (BisimilarityApprox.omega_iff.mp h₁ n).trans_nat (BisimilarityApprox.omega_iff.mp h₂ n)
 
-/-- If the second LTS is image-finite, a transition by the first state has a matching
-derivative related at every finite depth. -/
-theorem BisimilarityApprox.follow_fst_omega [hfin : lts₂.ImageFinite]
-    (h : s₁ ~[lts₁,lts₂;ω] s₂) (htr : lts₁.Tr s₁ μ s₁') :
-    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;ω] s₂' := by
+/-- If the second LTS is image-finite, the omega approximation is a simulation. -/
+theorem BisimilarityApprox.isSimulation_omega [lts₂.ImageFinite] :
+    IsSimulation lts₁ lts₂ (· ~[lts₁,lts₂;ω] ·) := by
+  intro s₁ s₂ h μ s₁' htr
   classical
   by_contra! hnone
   -- If every derivative fails at some depth, finiteness gives a common depth of failure.
@@ -552,22 +561,33 @@ theorem BisimilarityApprox.follow_fst_omega [hfin : lts₂.ImageFinite]
   have hs : s₁ ~[lts₁,lts₂;(N : Ordinal) + 1] s₂ := by
     simpa using BisimilarityApprox.omega_iff.mp h (N + 1)
   obtain ⟨t, ht, hr⟩ := hs.follow_fst htr
-  exact hdepth ⟨t, ht⟩ (BisimilarityApprox.antitone_nat (hN ⟨t, ht⟩) _ _ hr)
+  exact hdepth ⟨t, ht⟩ (hr.of_ge_nat (hN ⟨t, ht⟩))
+
+/-- If the first LTS is image-finite, the inverse of the omega approximation is a simulation. -/
+theorem BisimilarityApprox.flip_isSimulation_omega [lts₁.ImageFinite] :
+    IsSimulation lts₂ lts₁ (flip (· ~[lts₁,lts₂;ω] ·)) := fun _ _ h μ _ htr =>
+  have ⟨s₁', ht, hr⟩ := isSimulation_omega h.symm μ _ htr
+  ⟨s₁', ht, hr.symm⟩
+
+/-- On image-finite LTSs, the omega approximation is a bisimulation.
+This is the image-finite stratification result in [Sangiorgi2011]. -/
+theorem BisimilarityApprox.isBisimulation_omega [lts₁.ImageFinite] [lts₂.ImageFinite] :
+    IsBisimulation lts₁ lts₂ (· ~[lts₁,lts₂;ω] ·) :=
+  IsBisimulation.isSimulation_iff.mpr ⟨isSimulation_omega, flip_isSimulation_omega⟩
+
+/-- If the second LTS is image-finite, a transition by the first state has a matching
+derivative related at every finite depth. -/
+theorem BisimilarityApprox.follow_fst_omega [lts₂.ImageFinite]
+    (h : s₁ ~[lts₁,lts₂;ω] s₂) (htr : lts₁.Tr s₁ μ s₁') :
+    ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂;ω] s₂' :=
+  isSimulation_omega.follow h htr
 
 /-- If the first LTS is image-finite, a transition by the second state has a matching
 derivative related at every finite depth. -/
 theorem BisimilarityApprox.follow_snd_omega [lts₁.ImageFinite]
     (h : s₁ ~[lts₁,lts₂;ω] s₂) (htr : lts₂.Tr s₂ μ s₂') :
-    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;ω] s₂' := by
-  obtain ⟨s₁', ht, hr⟩ := h.symm.follow_fst_omega htr
-  exact ⟨s₁', ht, hr.symm⟩
-
-/-- On image-finite LTSs, the omega approximation is a bisimulation.
-This is the image-finite stratification result in [Sangiorgi2011]. -/
-theorem BisimilarityApprox.isBisimulation_omega [lts₁.ImageFinite] [lts₂.ImageFinite] :
-    IsBisimulation lts₁ lts₂ (· ~[lts₁,lts₂;ω] ·) := by
-  intro s₁ s₂ h μ
-  exact ⟨fun _ ht => h.follow_fst_omega ht, fun _ ht => h.follow_snd_omega ht⟩
+    ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂;ω] s₂' :=
+  flip_isSimulation_omega.follow h htr
 
 /-- On image-finite LTSs, membership in every finite stratum implies bisimilarity. -/
 theorem BisimilarityApprox.bisimilarity_of_omega [lts₁.ImageFinite] [lts₂.ImageFinite]

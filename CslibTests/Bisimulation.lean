@@ -112,7 +112,7 @@ example (h : s₁ ~[lts₁,lts₂;ω] s₂) : s₂ ~[lts₂,lts₁;ω] s₁ := b
 example (h : s₁ ~[lts₁,lts₂] s₂) : s₁ ~[lts₁,lts₂;ω] s₂ := h.approx ω
 
 example (m n : ℕ) (hmn : m ≤ n) (h : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂) :
-    s₁ ~[lts₁,lts₂;(m : Ordinal)] s₂ := BisimilarityApprox.antitone_nat hmn _ _ h
+    s₁ ~[lts₁,lts₂;(m : Ordinal)] s₂ := h.of_ge_nat hmn
 
 -- Finite composition remains available across independent state universes.
 example {State₃ : Type*} {lts₃ : LTS State₃ Label} {s₃ : State₃} (n : ℕ)
