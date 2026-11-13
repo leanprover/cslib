@@ -28,9 +28,11 @@ preserves negligibility.
 [`Experiment`](Experiment.lean) gives the success probability and distinguishing advantage of Boolean
 experiments, and indistinguishability of experiment families under polynomial-loss reductions.
 [`Experiment/Hybrid`](Experiment/Hybrid.lean) supplies hybrid arguments with polynomially many hops
-and finite averaging and local-reduction interfaces whose indices stay within the chain.
-The sampling range is independent of the number of hops; unused indices reject in both mixtures,
-so applications can sample a padded power-of-two range exactly with fair coins.
+for two input shapes: a natural-number-indexed family used on the prefix `0, …, hops`, or a
+finite chain of exactly `hops + 1` experiments. The averaging and local-reduction theorems use
+the natural-prefix names and finite companions ending in `_fin`, with one shared finite-chain
+proof. Both keep the sampling range independent of the number of hops; unused indices reject
+in both mixtures, so applications can sample a padded power-of-two range exactly with fair coins.
 [`Experiment/Statistical`](Experiment/Statistical.lean) identifies Boolean advantage with statistical
 distance, so a statistical approximation can be one hop of a computational argument.
 
