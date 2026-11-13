@@ -331,6 +331,10 @@ lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
   rw [p.eq_ofDeterministic]
   exact fun _ ↦ rfl
 
+/-- Every path of a deterministic machine ends at the iterate given by its length. -/
+lemma runPath_last_eq_runFrom (p : tm.RunPath input) : p.last = tm.runFrom p.head p.length :=
+  runPath_apply_eq_runFrom p (.last _)
+
 /-- A deterministic computation ends at the corresponding iterate. -/
 lemma computationPath_last_eq_runFrom (p : tm.ComputationPath input) :
     p.last = tm.runFrom (tm.initCfg input) p.time := by
@@ -379,6 +383,12 @@ lemma inputPos_runFrom_le (tm : MultiTapeTM k Symbol State)
         exact val_moveInputPos_le _ _
       omega
 
+/-- Along a run path the input head moves at most one position to the right per step. -/
+lemma inputPos_last_runPath_le (p : tm.RunPath input) :
+    (p.last.inputPos : ℕ) ≤ (p.head.inputPos : ℕ) + p.length := by
+  rw [runPath_last_eq_runFrom]
+  exact inputPos_runFrom_le ..
+
 /-- The machine eventually halts on `input` with the given `output`. -/
 def Computes (tm : MultiTapeTM k Symbol State) (input output : List Symbol) : Prop :=
   ∃ u, (tm.runFrom (tm.initCfg input) u).Halted ∧
@@ -407,8 +417,7 @@ theorem computesInTimeAndSpace_iff_exists_runPath {output : List Symbol} {t s : 
     exact ⟨p.toRunPath, rfl, hh, heq ▸ hout, le_rfl, h.2.2 p⟩
   · rintro ⟨p, hhead, hhalt, hout, ht, hs⟩
     have hr : tm.runFrom (tm.initCfg input) p.length = p.last := by
-      rw [← hhead]
-      exact (runPath_apply_eq_runFrom p (.last _)).symm
+      rw [← hhead, runPath_last_eq_runFrom]
     have hh : (tm.runFrom (tm.initCfg input) p.length).Halted := hr ▸ hhalt
     refine ⟨⟨p.length, hh, hr ▸ hout⟩, (runsInTime_of_halted hh).mono ht, fun q => ?_⟩
     apply (MultiTapeNTM.RunPath.space_le_of_subset ?_).trans hs

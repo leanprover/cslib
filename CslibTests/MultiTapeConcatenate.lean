@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Reitwiessner
 -/
 
-module
+import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Concatenate
+import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
 
-public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Concatenate
-public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
+namespace CslibTests.MultiTapeConcatenate
 
 open Turing.MultiTapeTM
 
@@ -19,5 +19,7 @@ example : ComputableInTimeAndSpace (fun w : List Bool => w ++ w)
     (computableInTimeAndSpace_id (enc := Function.Embedding.refl (List Bool)))
     (fun _ => rfl)).mono ?_ (fun _ => le_rfl)
   intro w
-  change 2 * (w.length + 1) + (w.length + 1) + 2 ≤ 3 * w.length + 5
-  omega
+  simp
+  lia
+
+end CslibTests.MultiTapeConcatenate
