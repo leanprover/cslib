@@ -26,6 +26,8 @@ variable {Atom : Type u} [DecidableEq Atom] {T : Set (Proposition Atom)}
 
 open Proposition InferenceSystem DerivableIn IsIntuitionistic IsClassical Derivation
 
+/-! ### Classes of inference systems -/
+
 instance instIsIntuitionisticND₁ : IsIntuitionistic (ND₁ T) (Proposition Atom) where
   derivationBotImp A := ass (A := ⊥) |>.efq A |>.impI
 
@@ -74,5 +76,91 @@ instance instIsClassicalPeirce : IsClassical (ND₁ <| Peirce Atom) (Proposition
     apply impE (A := (A → ⊥) → A) ax
     apply impI
     apply contra (A := ¬A)
+
+/-! ### Further operations on deductions -/
+
+/-- Move the axioms used in a derivation `D` to the context, obtaining a derivation in
+intuitionistic logic. -/
+def Derivation.collectAxs {Γ : Ctx Atom} {B : Proposition Atom} :
+    (Derivation T Γ B) → Σ Δ : {Δ : Ctx Atom // ↑Δ ⊆ T}, Derivation (IPL Atom) (Γ ∪ Δ) B
+  | @ax _ _ _ _ B _ => ⟨⟨{B}, by grind⟩, ass⟩
+  | ass _ => ⟨⟨∅, by grind⟩, ass⟩
+  | efq A D => let ⟨Δ, D'⟩ := D.collectAxs; ⟨Δ, D'.efq A⟩
+  | andI D E =>
+    let ⟨Δ₁, D'⟩ := collectAxs D
+    let ⟨Δ₂, E'⟩ := collectAxs E
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, andI D'.weakCtx E'.weakCtx⟩
+  | andE₁ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, andE₁ D'⟩
+  | andE₂ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, andE₂ D'⟩
+  | orI₁ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, orI₁ D'⟩
+  | orI₂ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, orI₂ D'⟩
+  | orE D E₁ E₂ =>
+    let ⟨Δ, D'⟩ := collectAxs D
+    let ⟨Δ₁, E₁'⟩ := collectAxs E₁
+    let ⟨Δ₂, E₂'⟩ := collectAxs E₂
+    ⟨⟨Δ ∪ Δ₁ ∪ Δ₂, by grind⟩, orE D'.weakCtx E₁'.weakCtx E₂'.weakCtx⟩
+  | impI Γ D => let ⟨Δ, D'⟩ := collectAxs D; ⟨Δ, impI (Γ ∪ Δ) D'.weakCtx⟩
+  | impE D E =>
+    let ⟨Δ₁, D'⟩ := collectAxs D
+    let ⟨Δ₂, E'⟩ := collectAxs E
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, impE (D'.weakCtx) (E'.weakCtx)⟩
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.collect_axs {Γ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn (ND T) (Γ ⊢ B) →
+      ∃ Δ : Ctx Atom, DerivableIn (ND <| IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ↑Δ ⊆ T
+  | ⟨D⟩ => let ⟨⟨Δ, hΔ⟩, D'⟩ := D.collectAxs; ⟨Δ, ⟨⟨D'⟩, hΔ⟩⟩
+
+/-- Remove some assumptions by moving them to the theory. -/
+def Derivation.assToAxs' {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    Derivation T Γ B → Derivation (T ∪ Δ) (Γ \ Δ) B
+  | @ass _ _ _ _ B _ => by
+    by_cases B ∈ Δ
+    case pos => exact ax
+    case neg => exact ass
+  | ax _ => ax
+  | efq A D => D.assToAxs'.efq A
+  | andI D E => andI (assToAxs' D) (assToAxs' E)
+  | andE₁ D => andE₁ (assToAxs' D)
+  | andE₂ D => andE₂ (assToAxs' D)
+  | orI₁ D => orI₁ (assToAxs' D)
+  | orI₂ D => orI₂ (assToAxs' D)
+  | @orE _ _ _ _ A' B C D E₁ E₂ =>
+    orE (assToAxs' D)
+      (assToAxs' (Δ := Δ) (B := C) E₁).weakCtx
+      (assToAxs' (Δ := Δ) (B := C) E₂).weakCtx
+  | @impI _ _ _ A' B _ D => impI _ (assToAxs' (Δ := Δ) (B := B) D).weakCtx
+  | impE D E => impE (assToAxs' D) (assToAxs' E)
+
+/-- Remove dependence on some assumptions by adding them to the theory. -/
+def Derivation.assToAxs {Γ Δ : Ctx Atom} {B : Proposition Atom}
+    (D : Derivation T (Γ ∪ Δ) B) : Derivation (T ∪ Δ) Γ B := (assToAxs' D).weakCtx
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.ass_to_axs {Γ Δ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B) → DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B)
+  | ⟨D⟩ => ⟨Derivation.assToAxs D⟩
+
+/-- Move a finset of axioms to the context. -/
+def Derivation.axsToAss {Γ Δ : Ctx Atom} {B : Proposition Atom}
+    (D : (ND <| T ∪ Δ)⇓(Γ ⊢ B)) : (ND T)⇓((Γ ∪ Δ) ⊢ B) :=
+  let ⟨⟨Δ', hΔ'⟩, D'⟩ := collectAxs D
+  (D'.assToAxs' (Δ := Δ' \ Δ)).weak (by grind)
+
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.axs_to_ass {Γ Δ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) → DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B)
+  | ⟨D⟩ => ⟨D.axsToAss⟩
+
+theorem derivableIn_union_theory_iff_ctx {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) ↔ DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B) :=
+  ⟨axs_to_ass, ass_to_axs⟩
+
+theorem derivableIn_iff_exists {Γ : Ctx Atom} {B : Proposition Atom} :
+    DerivableIn (ND T) (Γ ⊢ B) ↔
+      ∃ Δ : Ctx Atom, DerivableIn (ND <| IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ↑Δ ⊆ T :=
+  ⟨collect_axs, fun ⟨Δ, h, hsub⟩ ↦ h.ass_to_axs.weak_theory⟩
+
+theorem derivableIn_nd₁_iff_exists {A : Proposition Atom} :
+    DerivableIn (ND₁ T) A ↔ ∃ Γ : Ctx Atom, DerivableIn (ND <| IPL Atom) (Γ ⊢ A) ∧ ↑Γ ⊆ T := by
+  rw [nd₁_iff_derivableIn_nd_empty, derivableIn_iff_exists]
+  simp
 
 end Cslib.Logic.PL.NaturalDeduction

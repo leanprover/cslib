@@ -207,13 +207,13 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak {T T' : Set (Proposi
   | ⟨D⟩ => ⟨D.weak⟩
 
 /-- Proof irrelevant weakening of the axiom set. -/
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weakTheory {T T' : Set (Proposition Atom)}
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak_theory {T T' : Set (Proposition Atom)}
     {Γ : Ctx Atom} {A : Proposition Atom}
     (hTheory : T ⊆ T' := by intro; membership)
     (h : DerivableIn (ND T) (Γ ⊢ A)) : DerivableIn (ND T') (Γ ⊢ A) := h.weak
 
 /-- Proof irrelevant weakening of the context. -/
-theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weakCtx {T : Set (Proposition Atom)}
+theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.weak_ctx {T : Set (Proposition Atom)}
     {Γ Δ : Ctx Atom} {A : Proposition Atom}
     (hCtx : Γ ⊆ Δ := by intro; membership)
     (h : DerivableIn (ND T) (Γ ⊢ A)) : DerivableIn (ND T) (Δ ⊢ A) :=
@@ -240,7 +240,7 @@ theorem _root_.Cslib.Logic.InferenceSystem.DerivableIn.cut_away {Γ Γ' : Ctx At
     {B : Proposition Atom} (hΔ : ∀ A ∈ Γ', DerivableIn (ND T) (Γ ⊢ A))
     (hDer : DerivableIn (ND T) ((Γ ∪ Γ') ⊢ B)) : DerivableIn (ND T) (Γ ⊢ B) := by
   induction Γ' using Finset.induction with
-  | empty => exact hDer.weakCtx
+  | empty => exact hDer.weak_ctx
   | insert A Δ hA ih =>
     apply ih
     · intro A' hA'
