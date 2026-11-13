@@ -20,7 +20,7 @@ example (experiment : Experiment) (samplingRange : ℕ) [NeZero samplingRange] :
     Experiment.advantage experiment experiment = samplingRange *
       Experiment.advantage (PMF.pure false) (PMF.pure false) := by
   simpa only [Nat.not_lt_zero, dite_false, PMF.bind_const] using
-    Experiment.advantage_hybrid_average (hops := 0)
+    Experiment.advantage_hybrid_average_fin (hops := 0)
     (fun _ => experiment) samplingRange (Nat.zero_le _)
 
 -- Two hops have exactly three games, with no extension beyond their finite domain.
@@ -48,7 +48,7 @@ example :
         (fun i => if hi : i.val < 3 then games (i.castLT hi).succ else PMF.pure false)) =
       1 / 4 := by
   dsimp only
-  have h := Experiment.advantage_hybrid_average
+  have h := Experiment.advantage_hybrid_average_fin
     (hops := 3) (fun i => PMF.pure (decide (i.val % 2 = 0))) 4 (by decide)
   have hend : Experiment.advantage
       (PMF.pure (decide ((0 : Fin 4).val % 2 = 0)))
@@ -69,11 +69,29 @@ example :
           (fun i => if hi : i.val < 1 then first (i.castLT hi) else PMF.pure false)) -
         Experiment.succProbability ((Cslib.Probability.PMF.uniformOfFintype (Fin 3)).bind
           (fun i => if hi : i.val < 1 then second (i.castLT hi) else PMF.pure false))) := by
-  refine Experiment.succProbability_hybrid_reduction
+  refine Experiment.succProbability_hybrid_reduction_fin
     (fun i => PMF.pure (decide (i.val = 0)))
     (fun _ => PMF.pure false) (fun _ => PMF.pure true) 3 (by decide) (-1) ?_
   intro i
   have hi : i.val = 0 := by lia
   norm_num [hi, Experiment.succProbability, PMF.pure_apply]
+
+-- A staged family uses its natural prefix directly; padded selection still has exact loss four.
+example :
+    let games : ℕ → Experiment := fun stage => PMF.pure (decide (stage = 0))
+    Experiment.advantage
+      ((Cslib.Probability.PMF.uniformOfFintype (Fin 4)).bind
+        (fun i => if i.val < 3 then games i.val else PMF.pure false))
+      ((Cslib.Probability.PMF.uniformOfFintype (Fin 4)).bind
+        (fun i => if i.val < 3 then games (i.val + 1) else PMF.pure false)) = 1 / 4 := by
+  dsimp only
+  have h := Experiment.advantage_hybrid_average
+    (fun stage => PMF.pure (decide (stage = 0))) 3 4 (by decide)
+  have hend : Experiment.advantage (PMF.pure true) (PMF.pure false) = 1 := by
+    norm_num [Experiment.advantage, Experiment.succProbability, NNReal.nndist_eq, PMF.pure_apply]
+  change Experiment.advantage (PMF.pure true) (PMF.pure false) = _ at h
+  rw [hend] at h
+  apply (eq_div_iff (by norm_num : (4 : ℝ≥0) ≠ 0)).mpr
+  exact (mul_comm _ _).trans h.symm
 
 end CslibTests.Experiment

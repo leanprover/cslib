@@ -19,10 +19,13 @@ Negligibility separately for each fixed hop does not suffice when the number of 
 grows with `n`.
 
 The averaging result `Experiment.advantage_hybrid_average` gives an exact identity:
-`advantage (games 0) (games (Fin.last hops)) = samplingRange * advantage left right`.
+`advantage (games 0) (games hops) = samplingRange * advantage left right`.
 Here `left` and `right` are the experiments that uniformly select an adjacent pair,
-run its left or right game respectively, and reject on unused indices. The chain contains
-exactly `hops + 1` experiments; its length and the sampling range are independent.
+run its left or right game respectively, and reject on unused indices. This interface takes
+the prefix `0, …, hops` of a natural-number-indexed family, as used by staged algorithms.
+The companion `Experiment.advantage_hybrid_average_fin` takes a finite chain containing
+exactly `hops + 1` experiments. Both interfaces keep the sampling range independent of
+the number of hops and use the same finite-chain telescoping argument.
 
 ## References
 
@@ -68,9 +71,9 @@ adjacent pairs, while index 3 makes both experiments reject. The reduction has l
 
 In general, the difference between the two mixtures' success probabilities is the endpoint
 difference divided by `samplingRange`: the adjacent differences telescope, and unused indices
-contribute zero. See `advantage_hybrid_average` for the corresponding advantage identity.
+contribute zero. See `advantage_hybrid_average_fin` for the corresponding advantage identity.
 This construction avoids choosing a best hop separately for each security parameter. -/
-theorem succProbability_hybrid_average {hops : ℕ}
+theorem succProbability_hybrid_average_fin {hops : ℕ}
     (games : Fin (hops + 1) → Experiment) (samplingRange : ℕ)
     [NeZero samplingRange] (hle : hops ≤ samplingRange) :
     (succProbability (games 0) : ℝ) - succProbability (games (Fin.last hops)) =
@@ -110,7 +113,7 @@ theorem succProbability_hybrid_average {hops : ℕ}
 
 /-- Averaging adjacent hybrids also preserves distinguishing advantage, with the
 sampling-range loss and no parameter-dependent choice of the best hop. -/
-theorem advantage_hybrid_average {hops : ℕ}
+theorem advantage_hybrid_average_fin {hops : ℕ}
     (games : Fin (hops + 1) → Experiment) (samplingRange : ℕ)
     [NeZero samplingRange] (hle : hops ≤ samplingRange) :
     advantage (games 0) (games (Fin.last hops)) = samplingRange *
@@ -123,13 +126,13 @@ theorem advantage_hybrid_average {hops : ℕ}
             else PMF.pure false)) := by
   apply NNReal.eq
   rw [NNReal.coe_mul, coe_advantage, coe_advantage, NNReal.coe_natCast,
-    succProbability_hybrid_average games samplingRange hle, abs_mul, Nat.abs_cast]
+    succProbability_hybrid_average_fin games samplingRange hle, abs_mul, Nat.abs_cast]
 
 /-- Local reductions with a common signed loss combine into one uniformly selected reduction.
 The chain has exactly `hops + 1` experiments and the local tests have exactly `hops` entries.
 Unused sampling indices reject in both mixtures. The proof needs no choice of a best hop
 depending on the security parameter. -/
-theorem succProbability_hybrid_reduction {hops : ℕ}
+theorem succProbability_hybrid_reduction_fin {hops : ℕ}
     (games : Fin (hops + 1) → Experiment) (game1 game2 : Fin hops → Experiment)
     (samplingRange : ℕ) [NeZero samplingRange] (hle : hops ≤ samplingRange) (loss : ℝ)
     (hstep : ∀ i, (succProbability (games i.castSucc) : ℝ) - succProbability (games i.succ) =
@@ -153,10 +156,55 @@ theorem succProbability_hybrid_reduction {hops : ℕ}
     split_ifs with hi
     · exact hstep (i.castLT hi)
     · simp [succProbability]
-  rw [succProbability_hybrid_average games samplingRange hle]
+  rw [succProbability_hybrid_average_fin games samplingRange hle]
   simp only [succProbability_uniform, NNReal.coe_div, NNReal.coe_sum, NNReal.coe_natCast,
     Fintype.card_fin, ← sub_div, ← Finset.sum_sub_distrib, hterm, ← Finset.mul_sum]
   ring
+
+/-- Uniformly select an adjacent pair in the prefix `0, …, hops` of an indexed family.
+The signed endpoint gap is the mixture gap times `samplingRange`; unused indices reject
+on both sides. This is the finite-chain identity applied to the family's prefix. -/
+theorem succProbability_hybrid_average (games : ℕ → Experiment) (hops samplingRange : ℕ)
+    [NeZero samplingRange] (hle : hops ≤ samplingRange) :
+    (succProbability (games 0) : ℝ) - succProbability (games hops) = (samplingRange : ℝ) *
+      (succProbability
+        ((PMF.uniformOfFintype (Fin samplingRange)).bind
+          (fun i => if i.val < hops then games i.val else PMF.pure false)) - succProbability
+        ((PMF.uniformOfFintype (Fin samplingRange)).bind
+          (fun i => if i.val < hops then games (i.val + 1) else PMF.pure false))) := by
+  simpa only [Fin.val_zero, Fin.val_last, Fin.val_castSucc, Fin.val_castLT, Fin.val_succ,
+    dite_eq_ite] using
+    succProbability_hybrid_average_fin (fun i : Fin (hops + 1) => games i.val) samplingRange hle
+
+/-- Averaging adjacent experiments in the prefix of an indexed family preserves endpoint
+advantage, with the sampling-range loss and no parameter-dependent choice of the best hop. -/
+theorem advantage_hybrid_average (games : ℕ → Experiment) (hops samplingRange : ℕ)
+    [NeZero samplingRange] (hle : hops ≤ samplingRange) :
+    advantage (games 0) (games hops) = samplingRange *
+      advantage
+        ((PMF.uniformOfFintype (Fin samplingRange)).bind
+          (fun i => if i.val < hops then games i.val else PMF.pure false))
+        ((PMF.uniformOfFintype (Fin samplingRange)).bind
+          (fun i => if i.val < hops then games (i.val + 1) else PMF.pure false)) := by
+  simpa only [Fin.val_zero, Fin.val_last, Fin.val_castSucc, Fin.val_castLT, Fin.val_succ,
+    dite_eq_ite] using
+    advantage_hybrid_average_fin (fun i : Fin (hops + 1) => games i.val) samplingRange hle
+
+/-- Local signed reductions along the prefix of an indexed family combine into one uniformly
+selected reduction. Restricting to the prefix applies the finite-chain reduction identity. -/
+theorem succProbability_hybrid_reduction (games game1 game2 : ℕ → Experiment)
+    (hops samplingRange : ℕ) [NeZero samplingRange] (hle : hops ≤ samplingRange) (loss : ℝ)
+    (hstep : ∀ i < hops, (succProbability (games i) : ℝ) - succProbability (games (i + 1)) =
+      loss * (succProbability (game1 i) - succProbability (game2 i))) :
+    (succProbability (games 0) : ℝ) - succProbability (games hops) = (samplingRange : ℝ) * loss *
+      (succProbability ((PMF.uniformOfFintype (Fin samplingRange)).bind
+        (fun i => if i.val < hops then game1 i.val else PMF.pure false)) -
+      succProbability ((PMF.uniformOfFintype (Fin samplingRange)).bind
+        (fun i => if i.val < hops then game2 i.val else PMF.pure false))) := by
+  simpa only [Fin.val_zero, Fin.val_last, Fin.val_castLT, dite_eq_ite] using
+    succProbability_hybrid_reduction_fin (fun i : Fin (hops + 1) => games i.val)
+      (fun i : Fin hops => game1 i.val) (fun i : Fin hops => game2 i.val)
+      samplingRange hle loss (fun i => hstep i.val i.isLt)
 
 /-- The advantage between the endpoints is at most the sum of all adjacent advantages. -/
 theorem advantage_hybrid_le_sum (games : ℕ → Experiment) (hops : ℕ) :
