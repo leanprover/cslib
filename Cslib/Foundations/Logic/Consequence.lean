@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Syntax.Context
 public import Cslib.Foundations.Logic.InferenceSystem.Defs
+public import Cslib.Foundations.Logic.ConsequenceRelation
 
 /-! # Semantic consequence
 
@@ -29,9 +30,10 @@ satisfaction judgements. Proof systems whose derivations are data are not covere
 ## Main results
 
 - `Cslib.Logic.EntailsWithin.mono` and `Cslib.Logic.EntailsWithin.trans`: weakening and cut.
+  Consequence over a class of contexts is a consequence relation (`IsConsequence`).
 - `Cslib.Logic.EntailsWithin.anti`: consequence over a class of contexts is consequence over any
   subclass.
-- `Cslib.Logic.entailsWithin_of_incompatible`: incompatible premises entail everything.
+- `Cslib.Logic.entailsWithin_of_unsatisfiable`: unsatisfiable premises entail everything.
 -/
 
 @[expose] public section
@@ -68,16 +70,26 @@ theorem EntailsWithin.trans {C : Set (HasHContext.Context J α)} {Γ Δ : Set α
     EntailsWithin J S C Γ φ :=
   fun c hc hv => h₂ c hc fun ψ hψ => h₁ ψ hψ c hc hv
 
+instance (C : Set (HasHContext.Context J α)) : IsConsequence (EntailsWithin J S C) where
+  of_mem := entailsWithin_of_mem
+  trans := EntailsWithin.trans
+
 /-- Consequence over a class of contexts is consequence over any subclass. -/
 theorem EntailsWithin.anti {C D : Set (HasHContext.Context J α)} {Γ : Set α} {φ : α}
     (h : EntailsWithin J S D Γ φ) (hCD : C ⊆ D) : EntailsWithin J S C Γ φ :=
   fun c hc => h c (hCD hc)
+
+/-- Unsatisfiable premises entail everything: if no context in `C` derives all the premises, then
+every proposition is a consequence over `C`. -/
+theorem entailsWithin_of_unsatisfiable {C : Set (HasHContext.Context J α)} {Γ : Set α}
+    (h : ∀ c ∈ C, ¬∀ ψ ∈ Γ, S⇓(c<[ψ])) (χ : α) : EntailsWithin J S C Γ χ :=
+  fun c hc hΓ => absurd hΓ (h c hc)
 
 /-- Incompatible premises entail everything: if `φ` and `ψ` are premises and no context in `C`
 derives both, then every proposition is a consequence over `C`. -/
 theorem entailsWithin_of_incompatible {C : Set (HasHContext.Context J α)} {Γ : Set α} {φ ψ : α}
     (h₁ : φ ∈ Γ) (h₂ : ψ ∈ Γ) (h : ∀ c ∈ C, S⇓(c<[φ]) → ¬S⇓(c<[ψ])) (χ : α) :
     EntailsWithin J S C Γ χ :=
-  fun _ hc hΓ => absurd (hΓ _ h₂) (h _ hc (hΓ _ h₁))
+  entailsWithin_of_unsatisfiable (fun c hc hΓ => h c hc (hΓ _ h₁) (hΓ _ h₂)) χ
 
 end Cslib.Logic
