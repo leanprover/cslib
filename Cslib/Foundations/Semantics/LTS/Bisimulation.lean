@@ -598,7 +598,7 @@ theorem BisimilarityApprox.eq_bisimilarity [lts₁.ImageFinite] [lts₂.ImageFin
 theorem BisimilarityApprox.iff_bisimilarity [lts₁.ImageFinite] [lts₂.ImageFinite]
     {o : WithTop Ordinal} (ho : (ω : Ordinal) ≤ o) :
     s₁ ~[lts₁,lts₂;o] s₂ ↔ s₁ ~[lts₁,lts₂] s₂ :=
-  iff_of_eq (congrFun₂ (BisimilarityApprox.eq_bisimilarity ho) s₁ s₂)
+  congr($(BisimilarityApprox.eq_bisimilarity ho) s₁ s₂)
 
 section Order
 
