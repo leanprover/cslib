@@ -21,7 +21,7 @@ representation.
 
 ## References
 
-* [Steven Givant, *Introduction to Relation Algebras*][Givant2017a], Section 3.5
+* [Steven Givant, *Introduction to Relation Algebras*][Givant2017a], Sections 3.5, 7.6
 * [J. D. Monk, *On representable relation algebras*][Monk1964]
 
 -/
@@ -39,14 +39,13 @@ variable {G : Type*} [Group G]
 variable (G) in
 /-- The atom structure of a group. -/
 def ofGroup : AtomStructure G where
-  conv := (·)⁻¹
+  conv g := g⁻¹
   id := {1}
   cycles := {(f, g, h) | f * g = h}
-  assoc {r q p s t} (h₁ : r * q = p) (h₂ : s * t = q) :=
-    ⟨r * s, show r * s * t = p by rw [mul_assoc, h₂, h₁], rfl⟩
-  id_cycle_right {s r p} (hs : s = 1) (h : r * s = p) := by rw [← h, hs, mul_one]
-  exists_id_cycle_right r := ⟨1, rfl, mul_one r⟩
-  cycle_left {r s t} (h : r * s = t) := show r⁻¹ * t = s by rw [← h, inv_mul_cancel_left]
+  assoc := by simp +contextual [mul_assoc]
+  id_cycle_right := by simp
+  exists_id_cycle_right r := by simp
+  cycle_left := by simp
 
 @[simp]
 theorem ofGroup_conv (g : G) : (ofGroup G).conv g = g⁻¹ := rfl
@@ -92,11 +91,8 @@ theorem cayley_injective : Function.Injective (cayley G) := by
   ext g
   simpa using congrArg ((1, g) ∈ ·) hxy
 
-theorem representable_ofGroup (G : Type u) [Group G] :
-    Representable (ComplexAlgebra (ofGroup G)) :=
-  ⟨PUnit, fun _ => G, ⟨{
-    hom := RelationAlgebraHom.pi fun _ => cayley G
-    injective := fun _ _ h => cayley_injective (congrFun h PUnit.unit) }⟩⟩
+theorem representable_ofGroup (G : Type u) [Group G] : Representable (ComplexAlgebra (ofGroup G)) :=
+  ⟨PUnit, fun _ => G, ⟨.pi fun _ => cayley G, Function.const_injective.comp cayley_injective⟩⟩
 
 end ComplexAlgebra
 
@@ -111,20 +107,17 @@ variable {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
 
 /-- A relation algebra that embeds into an algebra representable over a group is itself
 representable over a group. -/
-theorem of_injective (f : RelationAlgebraHom α α') (hf : Function.Injective f)
-    (h : GroupRepresentable α') : GroupRepresentable α :=
-  let ⟨G, _, g, hg⟩ := h
-  ⟨G, inferInstance, g.comp f, hg.comp hf⟩
+theorem of_injective (f : RelationAlgebraHom α α') (hf : Function.Injective f) :
+    GroupRepresentable α' → GroupRepresentable α :=
+  fun ⟨G, _, g, hg⟩ => ⟨G, inferInstance, g.comp f, hg.comp hf⟩
 
 /-- A relation algebra representable over a group is representable. -/
-theorem representable (h : GroupRepresentable α) : Representable α :=
-  let ⟨G, _, f, hf⟩ := h
-  (ComplexAlgebra.representable_ofGroup G).of_injective f hf
+theorem representable : GroupRepresentable α → Representable α :=
+  fun ⟨G, _, f, hf⟩ => (ComplexAlgebra.representable_ofGroup G).of_injective f hf
 
 /-- A relation algebra representable over a group is integral. -/
-theorem isIntegral (h : GroupRepresentable α) : IsIntegral α :=
-  let ⟨_, _, f, hf⟩ := h
-  f.isIntegral_of_injective hf ComplexAlgebra.isIntegral_ofGroup
+theorem isIntegral : GroupRepresentable α → IsIntegral α :=
+  fun ⟨_, _, f, hf⟩ => f.isIntegral_of_injective hf ComplexAlgebra.isIntegral_ofGroup
 
 end GroupRepresentable
 
