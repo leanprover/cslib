@@ -19,8 +19,9 @@ of α-equivalence and capture-avoiding substitution.
 
 * [H. Barendregt, *Introduction to Lambda Calculus*][Barendregt1984]
 * Definition of α-equivalence [M. Gabbay and A. Pitts, *A New Approach to Abstract Syntax with
-Variable Binding*][Gabbay2002]
-
+  Variable Binding*][Gabbay2002]
+* [Roy L. Crole, *Alpha equivalence equalities*][Crole2012] - the `AlphaEquiv` definition
+  corresponds to Definition 3.1 (∼p) in this paper
 -/
 
 @[expose] public section
@@ -29,7 +30,7 @@ namespace Cslib
 
 universe u
 
-variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
+variable {Var : Type u} [DecidableEq Var]
 
 namespace LambdaCalculus.Named.Untyped
 
@@ -42,11 +43,18 @@ deriving DecidableEq
 
 namespace Term
 
+omit [DecidableEq Var] in
+/-- Strong induction on the size of a term. -/
+theorem induction_by_sizeOf {C : Term Var → Prop}
+    (step : ∀ m : Term Var, (∀ m1 : Term Var, sizeOf m1 < sizeOf m → C m1) → C m) :
+    ∀ m : Term Var, C m :=
+  WellFounded.fix (r := sizeOfWFRel.rel) sizeOfWFRel.wf step
+
 /-- Free variables. -/
 @[simp, scoped grind =]
 def fv : Term Var → Finset Var
   | var x => {x}
-  | abs x m => m.fv \ {x}
+  | abs x m => m.fv.erase x
   | app m n => m.fv ∪ n.fv
 
 /-- Bound variables. -/
@@ -63,6 +71,10 @@ def vars : Term Var → Finset Var
   | abs x m => m.vars ∪ {x}
   | app m n => m.vars ∪ n.vars
 
+/-- A variable in a term is either free or bound. -/
+theorem vars_eq_fv_union_bv {m : Term Var} : m.vars = m.fv ∪ m.bv := by
+  induction m <;> grind
+
 /-- Variable renaming, applying to both free and bound variables.
     `m.rename x y` changes all occurrences of `x` into `y` in `m`. -/
 @[simp, scoped grind =]
@@ -72,13 +84,12 @@ def rename (m : Term Var) (x y : Var) : Term Var :=
   | abs z m' => abs (if z = x then y else z) (m'.rename x y)
   | app n1 n2 => app (n1.rename x y) (n2.rename x y)
 
-omit [HasFresh Var] in
-/-- Renaming preserves size. -/
-@[simp, scoped grind =]
-theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = sizeOf m := by
-  induction m <;> aesop (add simp [Term.rename])
+/-- **Definition 3.1** [Crole2012]: `∼p` - α-equivalence via permutation (swapping) with
+non-occurrence side condition.
 
-/-- α-equivalence. -/
+This definition is analogous to the definition of α-equivalence for λ-expressions in
+[Gabbay2002] (Section 2, page 3). The `abs` rule uses the `rename` operation, which
+coincides with `swap` when the witness variable `y` does not occur in the term. -/
 inductive AlphaEquiv : Term Var → Term Var → Prop where
   | var {x} : AlphaEquiv (var x) (var x)
   | abs {y x1 x2 m1 m2} : y ∉ m1.vars ∪ m2.vars ∪ {x1, x2} →
@@ -89,7 +100,6 @@ inductive AlphaEquiv : Term Var → Term Var → Prop where
 instance instHasAlphaEquivTerm : HasAlphaEquiv (Term Var) where
   AlphaEquiv := AlphaEquiv
 
-omit [HasFresh Var] in
 /-- Allow grind to recognise the notation of α-equivalence. -/
 @[simp, scoped grind _=_]
 theorem AlphaEquiv_def (m n : Term Var) : m =α n ↔ AlphaEquiv m n := by
@@ -104,10 +114,15 @@ inductive Subst : Term Var → Var → Term Var → Term Var → Prop where
   | app {m n x r m' n'} : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
   | alpha {m m' r r' n n' x} : m =α m' → r =α r' → n =α n' → Subst m x r n → m'.Subst x r' n'
 
+/-- Renaming preserves size. -/
+@[simp, scoped grind =]
+theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = sizeOf m := by
+  induction m <;> aesop (add simp [Term.rename])
+
 /-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x`
 in `m` with `r`. -/
 @[simp, scoped grind =]
-def subst (m : Term Var) (x : Var) (r : Term Var) :
+def subst [HasFresh Var] (m : Term Var) (x : Var) (r : Term Var) :
     Term Var :=
   match m with
   | var y => if y = x then r else var y
@@ -124,13 +139,13 @@ termination_by m
 decreasing_by all_goals grind
 
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
-instance instHasSubstitutionTerm :
+instance instHasSubstitutionTerm [HasFresh Var] :
     HasSubstitution (Term Var) Var (Term Var) where
   subst := subst
 
 /-- Allow grind to recognise the notation of substitution. -/
 @[simp, scoped grind _=_]
-theorem subst_def (m r : Term Var) (x : Var) : m[x := r] = m.subst x r := by
+theorem subst_def [HasFresh Var] (m r : Term Var) (x : Var) : m[x := r] = m.subst x r := by
   rfl
 
 /-- Contexts. -/
