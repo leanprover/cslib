@@ -78,18 +78,13 @@ variable (G) in
 is sent to the relation `{(g, h) | g⁻¹ * h ∈ X}`. -/
 def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SetRel G G) :=
   RelationAlgebraHom.mk' (fun x => {(g, h) | g⁻¹ * h ∈ x})
-    (fun x y => by ext ⟨g, h⟩; simp)
-    (fun x => by ext ⟨g, h⟩; simp)
+    (fun _ _ => rfl)
+    (fun _ => rfl)
     (fun x y => by
       ext ⟨g, h⟩
       simp only [Set.mem_ofPred_eq, mem_mul, mem_ofGroup_cycles, SetRel.mem_mul]
-      constructor
-      · rintro ⟨r, hr, s, hs, hrs⟩
-        have hgr : (g * r)⁻¹ * h = s := by
-          rw [mul_inv_rev, mul_assoc, ← hrs, inv_mul_cancel_left]
-        exact ⟨g * r, by rwa [inv_mul_cancel_left], by rwa [hgr]⟩
-      · rintro ⟨k, hk, hkh⟩
-        exact ⟨_, hk, _, hkh, by rw [mul_assoc, mul_inv_cancel_left]⟩)
+      refine .trans ?_ (mul_left_surjective g).exists.symm
+      simp [← eq_inv_mul_iff_mul_eq, mul_assoc])
     (by ext ⟨g, h⟩; simp [inv_mul_eq_one])
     (fun x => by ext ⟨g, h⟩; simp)
 
