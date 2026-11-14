@@ -45,8 +45,10 @@ The results are layered, from the purely combinatorial to the machine-specific:
 
 ## Design
 
-The write-only output tape is never read by `step`, so it can be dropped: what a machine can still
-react to is its `Cfg.core`, the pair of the input head position and the `Storage`. The input head
+The write-only output tape is never read by `step` (`MultiTapeTM.core_step`), so it can be dropped:
+what a machine can still react to is its `Cfg.core`, the pair of the input head position and the
+`Storage`. In particular, a halting run never repeats a running core
+(`MultiTapeNTM.RunPath.core_injOn_running`). The input head
 position, in contrast, *is* read, so it cannot be dropped and has to be counted, which is where
 the factor `n + 2` comes from (the input head may move one step off the input in either direction).
 
@@ -248,6 +250,19 @@ def Cfg.core (c : Cfg k Symbol State input) :
     Fin (input.length + 2) × Storage Symbol State k :=
   (c.inputPos, c.storage)
 
+/-- A step does not read the output, so the core of a step depends only on the core. -/
+lemma MultiTapeTM.core_step {c d : Cfg k Symbol State input} (h : c.core = d.core) :
+    (tm.step c).core = (tm.step d).core := by
+  obtain ⟨s, i, w, wp, o⟩ := c
+  obtain ⟨s', i', w', wp', o'⟩ := d
+  simp only [Cfg.core, Cfg.storage, Prod.mk.injEq, Storage.mk.injEq] at h
+  obtain ⟨rfl, rfl, rfl, rfl⟩ := h
+  cases s
+  · rw [step_of_halt rfl, step_of_halt rfl]
+    rfl
+  · rw [step_of_state rfl, step_of_state rfl]
+    rfl
+
 /-! ## The storages and cores of a space-bounded run
 
 These are the main results giving upper bounds on the number of storages and configuration cores
@@ -268,6 +283,28 @@ lemma ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol State}
       RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
         (RunPath.mem_visitedByTapeHead_of_workTapes_ne _
           (by simpa [p.head_eq, Cfg.init, Cfg.storage] using hz))
+
+/-- A deterministic path that ends halted never repeats the core of a running configuration: from a
+repeated core the machine would cycle forever. -/
+lemma RunPath.core_injOn_running (p : tm.RunPath input) (h : p.last.Halted) :
+    Set.InjOn (fun i ↦ (p i).core) {i | ¬(p i).Halted} := by
+  -- a repeat at `i < j` is followed by a repeat at `i + 1, j + 1`, so halting at the end comes back
+  -- to `p j`
+  have halted (j : Fin (p.length + 1)) : ∀ i < j, (p i).core = (p j).core → (p j).Halted := by
+    induction j using Fin.reverseInduction with
+    | last => exact fun _ _ _ ↦ h
+    | cast j ih =>
+      intro i hij heq
+      obtain ⟨i, rfl⟩ := Fin.exists_castSucc_eq.mpr (Fin.ne_last_of_lt hij)
+      rw [Fin.castSucc_lt_castSucc_iff] at hij
+      have hsucc : (p i.succ).core = (p j.succ).core := by
+        rw [← MultiTapeTM.step_iff.mp (p.step i), ← MultiTapeTM.step_iff.mp (p.step j)]
+        exact MultiTapeTM.core_step heq
+      exact p.halted_mono (Fin.succ_le_castSucc_iff.mpr hij)
+        ((congrArg (·.2.state) hsucc).trans (ih _ (Fin.succ_lt_succ_iff.mpr hij) hsucc))
+  intro i hi j hj hij
+  rcases lt_trichotomy i j with hlt | rfl | hlt
+  exacts [(hj (halted j i hlt hij)).elim, rfl, (hi (halted i j hlt hij.symm)).elim]
 
 end MultiTapeNTM
 
