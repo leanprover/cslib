@@ -38,7 +38,7 @@ contain the image of every configuration outside the cut.
 
 * `MultiTapeNTM.RunPath.visits`: the indices of the running configurations reading a position.
 * `MultiTapeNTM.RunPath.crossingSequence`: the storages at those indices, in chronological order.
-* `InputCut`: an ordered pair of input-symbol indices describing the endpoints of a deletion.
+* `InputCut`: an interval of input-symbol indices describing a deletion.
 * `InputCut.shortened`: the input with the symbols after the first endpoint through the second
   deleted.
 * `InputCut.SameSide`: two input-head positions on one retained side of the cut.
@@ -68,7 +68,7 @@ namespace MultiTapeNTM.RunPath
 
 variable {ntm : MultiTapeNTM k Symbol State}
 
-/-- The indices at which a run path reads input position `pos` in a running configuration. -/
+/-- The time steps at which a run path reads input position `pos` in a running configuration. -/
 def visits (p : ntm.RunPath input) (pos : ℕ) : Finset (Fin (p.length + 1)) :=
   {i | (p i).inputPos.val = pos ∧ ¬(p i).Halted}
 
@@ -91,10 +91,8 @@ lemma storage_injOn_visits {tm : MultiTapeTM k Symbol State} (p : tm.RunPath inp
 
 end MultiTapeNTM.RunPath
 
-/-- An ordered pair of input-symbol indices. The cut deletes the symbols after the first
-through the second. Equal endpoints give an empty deletion.
-`fst` and `snd` are zero-based list indices. `left` and `right` are the corresponding
-input-head positions, offset by one because position `0` is the left endmarker. -/
+/-- An interval of input-symbol indices. The cut deletes the symbols after its first index through
+its last, so equal endpoints give an empty deletion. -/
 abbrev InputCut (input : List Symbol) := NonemptyInterval (Fin input.length)
 
 namespace InputCut
