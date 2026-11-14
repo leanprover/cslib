@@ -9,6 +9,7 @@ public import Cslib.Algorithms.Lean.Query.FreeM
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
+public import Cslib.Algorithms.Lean.Query.Sort.IsStableSort
 public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
 public import Cslib.Algorithms.Lean.Query.Sort.LowerBound
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Bounds
@@ -158,6 +159,7 @@ public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.Finset.Involution
 public import Cslib.Foundations.Data.HasFresh
 public import Cslib.Foundations.Data.List.IsChainFromTo
+public import Cslib.Foundations.Data.List.Sort
 public import Cslib.Foundations.Data.Nat.Asymptotics
 public import Cslib.Foundations.Data.Nat.Factorial
 public import Cslib.Foundations.Data.Nat.PolynomialBound
