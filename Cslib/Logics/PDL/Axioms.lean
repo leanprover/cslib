@@ -95,7 +95,10 @@ theorem mix (isReg : m.lts.IsRegularPDL) :
 /-- (vi) Induction: valid on frames regular for `*`. -/
 theorem ind (isReg : m.lts.IsRegularPDL) :
     ⇓PDL[m, s ⊨ d[a*](p → d[a]p) → (p → d[a*]p)] := by
-  sorry
+  simp only [Satisfies.pdl_imp_iff_imp, Satisfies.pdl_dynBox_iff_forall]
+  intro h_star h_p s' s_aS_s'
+  simp_rw [isReg.star] at s_aS_s' h_star
+  induction s_aS_s' <;> grind
 
 /-- Test axiom (not in BRV's test-free list): needs a standard model. -/
 theorem test (h : m.IsStandard) :
