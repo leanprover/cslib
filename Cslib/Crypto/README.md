@@ -33,6 +33,8 @@ finite chain of exactly `hops + 1` experiments. The averaging and local-reductio
 the natural-prefix names and finite companions ending in `_fin`, with one shared finite-chain
 proof. Both keep the sampling range independent of the number of hops; unused indices reject
 in both mixtures, so applications can sample a padded power-of-two range exactly with fair coins.
+[`Experiment/Statistical`](Experiment/Statistical.lean) identifies Boolean advantage with statistical
+distance, so a statistical approximation can be one hop of a computational argument.
 
 ## Pseudorandom generators
 
