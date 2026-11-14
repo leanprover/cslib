@@ -76,17 +76,19 @@ theorem isIntegral_ofGroup : IsIntegral (ComplexAlgebra (ofGroup G)) :=
 variable (G) in
 /-- The Cayley representation of the complex algebra of a group `G` by relations on `G`: a set `X`
 is sent to the relation `{(g, h) | g⁻¹ * h ∈ X}`. -/
-def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SetRel G G) :=
-  RelationAlgebraHom.mk' (fun x => {(g, h) | g⁻¹ * h ∈ x})
-    (fun _ _ => rfl)
-    (fun _ => rfl)
-    (fun x y => by
-      ext ⟨g, h⟩
-      simp only [Set.mem_ofPred_eq, mem_mul, mem_ofGroup_cycles, SetRel.mem_mul]
-      refine .trans ?_ (mul_left_surjective g).exists.symm
-      simp [← eq_inv_mul_iff_mul_eq, mul_assoc])
-    (by ext ⟨g, h⟩; simp [inv_mul_eq_one])
-    (fun x => by ext ⟨g, h⟩; simp)
+def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SetRel G G) where
+  toFun x := {(g, h) | g⁻¹ * h ∈ x}
+  map_sup' _ _ := rfl
+  map_inf' _ _ := rfl
+  map_top' := rfl
+  map_bot' := rfl
+  map_one' := by ext ⟨g, h⟩; simp [inv_mul_eq_one]
+  map_mul' x y := by
+    ext ⟨g, h⟩
+    simp only [Set.mem_ofPred_eq, mem_mul, mem_ofGroup_cycles, SetRel.mem_mul]
+    refine .trans ?_ (mul_left_surjective g).exists.symm
+    simp [← eq_inv_mul_iff_mul_eq, mul_assoc]
+  map_star' x := by ext ⟨g, h⟩; simp
 
 @[simp]
 theorem mem_cayley {x : ComplexAlgebra (ofGroup G)} {g h : G} :
