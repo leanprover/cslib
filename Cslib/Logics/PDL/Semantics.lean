@@ -252,7 +252,10 @@ theorem Satisfies.pdl_imp_iff_imp {m : Model World τ Atom} :
     ⇓PDL[m,w ⊨ φ₁ → φ₂] ↔ (⇓PDL[m,w ⊨ φ₁] → ⇓PDL[m,w ⊨ φ₂]) :=
   Satisfies.imp_iff_imp
 
-@[scoped grind =, modal =]
+-- FIXME
+-- @[scoped grind =, modal =]
+--  #grind_lint check  (min := 20) in Cslib
+--  #grind_lint inspect Cslib.Logic.Modal.PDL.Satisfies.pdl_iff_iff_iff
 theorem Satisfies.pdl_iff_iff_iff {m : Model World τ Atom} :
     ⇓PDL[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓PDL[m,w ⊨ φ₁] ↔ ⇓PDL[m,w ⊨ φ₂]) :=
   Satisfies.iff_iff_iff
