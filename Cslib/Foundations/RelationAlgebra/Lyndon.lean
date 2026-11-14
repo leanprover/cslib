@@ -48,9 +48,9 @@ the punctured line through the origin with the corresponding slope.
 
 In the other direction, a representation of `𝔄(α, e)` on a set `D` that sends the atoms to
 relations covering `D × D` makes `D` into an affine plane whose directions are the points
-`α \ {e}`: the relation representing a point `p` relates the pairs of distinct points lying on a
-common line of direction `p`. Completing this affine plane gives a projective plane in which
-`α \ {e}` is the line at infinity. Every representation of a finite Lyndon algebra has this
+`α \ {e}`: the relation representing `p + 1'` is the equivalence relation of lying on a common
+line of direction `p`. Completing this affine plane gives a projective plane in which `α \ {e}`
+is the line at infinity. Every representation of a finite Lyndon algebra has this
 covering property, because the unit is then a finite join of atoms. Representations of an infinite
 Lyndon algebra need not preserve this join, which is why these statements are restricted to finite
 Lyndon algebras.
@@ -432,11 +432,26 @@ theorem atom_mul_atom_self {p : α} (hp : p ≠ e) :
     Set.mem_singleton_iff]
   grind
 
-theorem atom_le_atom_mul_atom {p q r : α} (hpq : p ≠ q) (hqr : q ≠ r) (hpr : p ≠ r)
-    (hp : p ≠ e) (hq : q ≠ e) (hr : r ≠ e) :
-    atom (lyndon e h) r ≤ atom (lyndon e h) p * atom (lyndon e h) q := by
-  rw [atom_le_iff, mem_atom_mul_atom]
-  exact .inr <| .inr <| .inr <| .inr ⟨hpq, hqr, hpr, hp, hq, hr⟩
+/-- The element `p + 1'` of a Lyndon algebra, representing a line together with the diagonal, is
+idempotent. -/
+theorem atom_sup_one_mul_self {p : α} (hp : p ≠ e) :
+    (atom (lyndon e h) p ⊔ 1) * (atom (lyndon e h) p ⊔ 1) = atom (lyndon e h) p ⊔ 1 := by
+  rw [RelationAlgebra.sup_mul, RelationAlgebra.mul_sup, atom_mul_atom_self hp, mul_one, one_mul]
+  exact le_antisymm (sup_le (sup_le le_rfl le_sup_left) le_rfl) le_sup_right
+
+/-- The elements `p + 1'` and `q + 1'` of a Lyndon algebra compose to the unit when `p ≠ q`. -/
+theorem atom_sup_one_mul_atom_sup_one {p q : α} (hpq : p ≠ q) (hp : p ≠ e) (hq : q ≠ e) :
+    (atom (lyndon e h) p ⊔ 1) * (atom (lyndon e h) q ⊔ 1) = ⊤ := by
+  ext c
+  refine ⟨fun _ => trivial, fun _ => ?_⟩
+  by_cases hce : c = e
+  · exact ⟨e, .inr rfl, e, .inr rfl, .inl ⟨rfl, hce.symm⟩⟩
+  by_cases hcp : c = p
+  · exact ⟨p, .inl rfl, e, .inr rfl, .inr (.inl ⟨rfl, hcp.symm⟩)⟩
+  by_cases hcq : c = q
+  · exact ⟨e, .inr rfl, q, .inl rfl, .inl ⟨rfl, hcq.symm⟩⟩
+  · exact ⟨p, .inl rfl, q, .inl rfl,
+      .inr <| .inr <| .inr <| .inr ⟨hpq, Ne.symm hcq, Ne.symm hcp, hp, hq, hce⟩⟩
 
 variable (e h) in
 include h in
@@ -449,58 +464,77 @@ theorem exists_three_ne : ∃ a b c : {a // a ≠ e}, a ≠ b ∧ b ≠ c ∧ a 
     fun hbc => hcb (congrArg Subtype.val hbc).symm,
     fun hac => hca (congrArg Subtype.val hac).symm⟩
 
-variable {D : Type w} [Finite α] [Nonempty D]
+variable {D : Type w} (g : RelationAlgebraHom (ComplexAlgebra (lyndon e h)) (SquareRelations D))
 
-/-- A representation of a finite Lyndon algebra on a nonempty set makes the set into an affine
-plane whose directions are the points of the Lyndon algebra. -/
-def parallelism (g : RelationAlgebraHom (ComplexAlgebra (lyndon e h)) (SquareRelations D)) :
-    Parallelism D {a // a ≠ e} where
-  rel p x y := (x, y) ∈ g (atom _ p)
-  symm {p x y} hxy := by
-    have hstar := map_star g (atom (lyndon e h) p)
-    rw [star_trivial] at hstar
-    rw [hstar, SquareRelations.mem_star]
-    exact hxy
-  irrefl {p x} hx := by
-    have hmem : (x, x) ∈ g (atom (lyndon e h) p ⊓ atom (lyndon e h) e) := by
-      rw [map_inf, atom_eq_one, map_one]
-      exact ⟨hx, rfl⟩
-    rw [atom_inf_atom_of_ne p.property, map_bot] at hmem
-    exact SquareRelations.notMem_bot hmem
-  exists_rel_of_ne {x y} hxy := by
-    obtain ⟨a, ha⟩ := exists_mem_map_atom g x y
-    refine ⟨⟨a, ?_⟩, ha⟩
+/-- A representation of a Lyndon algebra on a set `D` gives, for each point `p`, the equivalence
+relation on `D` represented by `p + 1'`. For a finite Lyndon algebra these are the parallel
+classes of an affine plane on `D` whose directions are the points of the Lyndon algebra. -/
+def setoid (p : {a // a ≠ e}) : Setoid D where
+  r x y := (x, y) ∈ g (atom _ p ⊔ 1)
+  iseqv :=
+    { refl x := by
+        rw [map_sup, map_one]
+        exact .inr rfl
+      symm {x y} hxy := by
+        have hstar := map_star g (atom (lyndon e h) p ⊔ 1)
+        rw [star_trivial] at hstar
+        rw [hstar, SquareRelations.mem_star]
+        exact hxy
+      trans {x y z} hxy hyz := by
+        rw [← atom_sup_one_mul_self p.property, map_mul]
+        exact ⟨y, hxy, hyz⟩ }
+
+variable {g} in
+theorem setoid_iff {p : {a // a ≠ e}} {x y : D} :
+    setoid g p x y ↔ (x, y) ∈ g (atom _ p) ∨ x = y := by
+  change (x, y) ∈ g (atom _ p ⊔ 1) ↔ _
+  rw [map_sup, map_one]
+  rfl
+
+theorem notMem_map_atom (p : {a // a ≠ e}) (x : D) : (x, x) ∉ g (atom (lyndon e h) p) := by
+  intro hx
+  have hmem : (x, x) ∈ g (atom (lyndon e h) p ⊓ atom (lyndon e h) e) := by
+    rw [map_inf, atom_eq_one, map_one]
+    exact ⟨hx, rfl⟩
+  rw [atom_inf_atom_of_ne p.property, map_bot] at hmem
+  exact SquareRelations.notMem_bot hmem
+
+/-- Two distinct points lie on a common line of exactly one direction. -/
+theorem existsUnique_setoid [Finite α] {x y : D} (hxy : x ≠ y) : ∃! p, setoid g p x y := by
+  obtain ⟨a, ha⟩ := exists_mem_map_atom g x y
+  have hae : a ≠ e := by
     rintro rfl
     rw [atom_eq_one, map_one] at ha
     exact hxy ha
-  eq_of_rel {p q x y} hp hq := by
-    by_contra hne
-    have hmem : (x, y) ∈ g (atom (lyndon e h) p ⊓ atom (lyndon e h) q) := by
-      rw [map_inf]
-      exact ⟨hp, hq⟩
-    rw [atom_inf_atom_of_ne (fun hpq => hne (Subtype.ext hpq)), map_bot] at hmem
-    exact SquareRelations.notMem_bot hmem
-  trans {p x y z} hxy hyz := by
-    have hmem : (x, z) ∈ g (atom (lyndon e h) p * atom (lyndon e h) p) := by
-      rw [map_mul]
-      exact ⟨y, hxy, hyz⟩
-    rw [atom_mul_atom_self p.property, map_sup, map_one] at hmem
-    exact hmem.symm
-  exists_rel p x := by
-    have hmem : (x, x) ∈ g (atom (lyndon e h) p * atom (lyndon e h) p) := by
-      rw [atom_mul_atom_self p.property, map_sup, map_one]
-      exact .inr rfl
-    rw [map_mul] at hmem
-    obtain ⟨y, hxy, -⟩ := hmem
-    exact ⟨y, hxy⟩
-  exists_rel_rel {p q r x z} hpq hqr hpr hr := by
-    have hle := OrderHomClass.mono g (atom_le_atom_mul_atom (h := h)
-      (fun hpq' => hpq (Subtype.ext hpq')) (fun hqr' => hqr (Subtype.ext hqr'))
-      (fun hpr' => hpr (Subtype.ext hpr')) p.property q.property r.property)
-    rw [map_mul] at hle
-    exact SquareRelations.le_def.mp hle x z hr
-  nonempty := inferInstance
-  exists_dir := exists_three_ne e h
+  refine ⟨⟨a, hae⟩, setoid_iff.mpr (.inl ha), fun q hq => ?_⟩
+  by_contra hne
+  have hmem : (x, y) ∈ g (atom (lyndon e h) q ⊓ atom (lyndon e h) a) := by
+    rw [map_inf]
+    exact ⟨(setoid_iff.mp hq).resolve_right hxy, ha⟩
+  rw [atom_inf_atom_of_ne (fun hqa => hne (Subtype.ext hqa)), map_bot] at hmem
+  exact SquareRelations.notMem_bot hmem
+
+/-- Two lines of different directions meet. -/
+theorem exists_setoid_setoid {p q : {a // a ≠ e}} (hpq : p ≠ q) (x z : D) :
+    ∃ y, setoid g p x y ∧ setoid g q y z := by
+  have hmem : (x, z) ∈ g ((atom (lyndon e h) p ⊔ 1) * (atom (lyndon e h) q ⊔ 1)) := by
+    rw [atom_sup_one_mul_atom_sup_one (fun hpq' => hpq (Subtype.ext hpq')) p.property q.property,
+      map_top]
+    exact SquareRelations.mem_top
+  rw [map_mul] at hmem
+  exact SquareRelations.mem_mul.mp hmem
+
+include g in
+/-- A nonempty set carrying a representation of a Lyndon algebra has at least two elements. -/
+theorem nontrivial [Nonempty D] : Nontrivial D := by
+  obtain ⟨x⟩ := ‹Nonempty D›
+  obtain ⟨p, -⟩ := exists_three_ne e h
+  have hmem : (x, x) ∈ g (atom (lyndon e h) p * atom (lyndon e h) p) := by
+    rw [atom_mul_atom_self p.property, map_sup, map_one]
+    exact .inr rfl
+  rw [map_mul] at hmem
+  obtain ⟨y, hxy, -⟩ := hmem
+  exact ⟨x, y, fun hxy' => notMem_map_atom g p x (hxy' ▸ hxy)⟩
 
 end Lyndon
 
@@ -526,8 +560,11 @@ theorem exists_projectivePlane_order_of_representation {ι : Type v} {β : ι �
     ∃ (P L : Type (max u w)) (_ : Membership P L) (_ : ProjectivePlane P L) (_ : Finite P)
       (_ : Finite L), ProjectivePlane.order P L + 2 = Nat.card α := by
   obtain ⟨i, hi⟩ := exists_nonempty_of_representation e h ρ
-  let π := parallelism ((RelationAlgebraHom.eval (fun i => SquareRelations (β i)) i).comp ρ.hom)
-  obtain ⟨P, L, _, _, _, _, hord⟩ := π.exists_projectivePlane_order
+  let g := (RelationAlgebraHom.eval (fun i => SquareRelations (β i)) i).comp ρ.hom
+  have := nontrivial g
+  obtain ⟨P, L, _, _, _, _, hord⟩ := exists_projectivePlane_order_of_setoid (setoid g)
+    (exists_three_ne e h) (fun _ _ => existsUnique_setoid g) fun _ _ hpq =>
+      exists_setoid_setoid g hpq
   refine ⟨P, L, inferInstance, inferInstance, inferInstance, inferInstance, ?_⟩
   classical
   have := Fintype.ofFinite {a // a ≠ e}

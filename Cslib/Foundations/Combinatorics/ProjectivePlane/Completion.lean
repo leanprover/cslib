@@ -10,22 +10,22 @@ public import Cslib.Init
 public import Mathlib.Combinatorics.Configuration
 
 /-!
-# Projective completion of an affine plane with labelled directions
+# Projective completion of an affine plane
 
 An affine plane can be presented by its set `D` of points together with, for each direction
-`p : Dir`, the relation `rel p x y` saying that `x` and `y` are distinct points on a common line
-of direction `p`. We call such a presentation a `Parallelism`. Adjoining one point at infinity for
-each direction, and one line at infinity containing them, gives a projective plane in the sense of
-Mathlib's `Configuration.ProjectivePlane`.
+`p : Dir`, the equivalence relation `E p` of lying on a common line of direction `p`. The
+conditions are that two distinct points lie on a common line of exactly one direction, and that
+lines of different directions meet. Adjoining one point at infinity for each direction, and one
+line at infinity containing them, gives a projective plane in the sense of Mathlib's
+`Configuration.ProjectivePlane`.
 
 This module is a deliberately minimal development of what is needed to pass from a representation
 of a Lyndon algebra to a projective plane, and is intended to be replaced once finite geometry is
-further developed in Mathlib. Only the two declarations listed below are public.
+further developed in Mathlib. Only the statement listed below is public.
 
-## Main definitions and statements
+## Main statements
 
-* `Cslib.Parallelism`: an affine plane presented by its directions.
-* `Cslib.Parallelism.exists_projectivePlane_order`: when there are finitely many directions, the
+* `Cslib.exists_projectivePlane_order_of_setoid`: when there are finitely many directions, the
   projective completion is a finite projective plane whose order is one less than the number of
   directions.
 
@@ -37,48 +37,34 @@ namespace Cslib
 
 open Configuration
 
-/-- An affine plane with points `D`, presented by its directions: `rel p x y` means that `x` and
-`y` are distinct points on a common line of direction `p`. -/
-public structure Parallelism (D : Type*) (Dir : Type*) where
-  /-- Two distinct points on a common line of the given direction. -/
+/-- An affine plane presented by its parallel classes: `rel p x y` means that `x` and `y` lie on a
+common line of direction `p`. -/
+structure ParallelClasses (D : Type u) (Dir : Type v) where
   rel : Dir → D → D → Prop
+  refl {p x} : rel p x x
   symm {p x y} : rel p x y → rel p y x
-  irrefl {p x} : ¬ rel p x x
-  /-- Two distinct points determine a direction. -/
-  exists_rel_of_ne {x y} : x ≠ y → ∃ p, rel p x y
-  /-- Two distinct points determine only one direction. -/
-  eq_of_rel {p q x y} : rel p x y → rel q x y → p = q
-  trans {p x y z} : rel p x y → rel p y z → x = z ∨ rel p x z
-  /-- Every line has at least two points. -/
-  exists_rel (p x) : ∃ y, rel p x y
-  /-- Two lines of different directions meet. -/
-  exists_rel_rel {p q r x z} : p ≠ q → q ≠ r → p ≠ r → rel r x z → ∃ y, rel p x y ∧ rel q y z
-  nonempty : Nonempty D
-  /-- There are at least three directions. -/
+  trans {p x y z} : rel p x y → rel p y z → rel p x z
+  exists_rel {x y} : x ≠ y → ∃ p, rel p x y
+  eq_of_rel {p q x y} : x ≠ y → rel p x y → rel q x y → p = q
+  exists_rel_rel {p q} : p ≠ q → ∀ x z, ∃ y, rel p x y ∧ rel q y z
+  exists_ne : ∃ x y : D, x ≠ y
   exists_dir : ∃ a b c : Dir, a ≠ b ∧ b ≠ c ∧ a ≠ c
 
-namespace Parallelism
+namespace ParallelClasses
 
-variable {D : Type u} {Dir : Type v} (π : Parallelism D Dir)
+variable {D : Type u} {Dir : Type v} (π : ParallelClasses D Dir)
 
 /-- The equivalence relation of lying on a common line of a given direction. -/
-def setoid (p : Dir) : Setoid D where
-  r x y := x = y ∨ π.rel p x y
-  iseqv :=
-    { refl _ := .inl rfl
-      symm h := h.elim (fun h => .inl h.symm) fun h => .inr (π.symm h)
-      trans := by
-        rintro x y z (rfl | hxy) (rfl | hyz)
-        exacts [.inl rfl, .inr hyz, .inr hxy, π.trans hxy hyz] }
+def setoid (p : Dir) : Setoid D := ⟨π.rel p, ⟨fun _ => π.refl, π.symm, π.trans⟩⟩
 
 /-- The affine line of direction `p` through `x`. -/
 def line (p : Dir) (x : D) : Quotient (π.setoid p) := Quotient.mk _ x
 
-theorem line_eq_line {p : Dir} {x y : D} : π.line p x = π.line p y ↔ x = y ∨ π.rel p x y :=
+theorem line_eq_line {p : Dir} {x y : D} : π.line p x = π.line p y ↔ π.rel p x y :=
   Quotient.eq
 
 /-- The points of the projective completion: the affine points and the directions. -/
-def Points (_ : Parallelism D Dir) : Type _ := D ⊕ Dir
+def Points (_ : ParallelClasses D Dir) : Type _ := D ⊕ Dir
 
 /-- The lines of the projective completion: the affine lines, each with its direction, and the
 line at infinity. -/
@@ -121,8 +107,7 @@ theorem lines_induction {motive : π.Lines → Prop} (l : π.Lines)
 variable {π} {p q : Dir} {x y : D}
 
 @[simp]
-theorem point_mem_affineLine : π.point x ∈ π.affineLine p y ↔ x = y ∨ π.rel p x y :=
-  π.line_eq_line
+theorem point_mem_affineLine : π.point x ∈ π.affineLine p y ↔ π.rel p x y := π.line_eq_line
 
 @[simp]
 theorem dir_mem_affineLine : π.dir q ∈ π.affineLine p x ↔ q = p := .rfl
@@ -153,7 +138,7 @@ theorem infinity_ne_affineLine : π.infinity ≠ π.affineLine p x := Sum.inr_ne
 
 @[simp]
 theorem affineLine_eq_affineLine :
-    π.affineLine p x = π.affineLine q y ↔ p = q ∧ (x = y ∨ π.rel p x y) := by
+    π.affineLine p x = π.affineLine q y ↔ p = q ∧ π.rel p x y := by
   refine ⟨fun h => ?_, ?_⟩
   · obtain ⟨rfl, h⟩ := Sigma.mk.inj (Sum.inl_injective h)
     exact ⟨rfl, π.line_eq_line.mp (eq_of_heq h)⟩
@@ -168,12 +153,12 @@ theorem exists_line_mem (pt₁ pt₂ : π.Points) (h : pt₁ ≠ pt₂) :
   | point x =>
     induction pt₂ using points_induction with
     | point y =>
-      obtain ⟨p, hp⟩ := π.exists_rel_of_ne fun hxy => h (congrArg π.point hxy)
-      exact ⟨π.affineLine p y, by simp [hp]⟩
-    | dir q => exact ⟨π.affineLine q x, by simp⟩
+      obtain ⟨p, hp⟩ := π.exists_rel fun hxy => h (congrArg π.point hxy)
+      exact ⟨π.affineLine p y, by simp [hp, π.refl]⟩
+    | dir q => exact ⟨π.affineLine q x, by simp [π.refl]⟩
   | dir p =>
     induction pt₂ using points_induction with
-    | point y => exact ⟨π.affineLine p y, by simp⟩
+    | point y => exact ⟨π.affineLine p y, by simp [π.refl]⟩
     | dir q => exact ⟨π.infinity, by simp⟩
 
 theorem exists_point_mem (l₁ l₂ : π.Lines) : ∃ pt : π.Points, pt ∈ l₁ ∧ pt ∈ l₂ := by
@@ -188,15 +173,8 @@ theorem exists_point_mem (l₁ l₂ : π.Lines) : ∃ pt : π.Points, pt ∈ l�
     | affineLine q z =>
       by_cases hpq : p = q
       · exact ⟨π.dir p, by simp [hpq]⟩
-      by_cases hxz : x = z
-      · exact ⟨π.point x, by simp [hxz]⟩
-      obtain ⟨r, hr⟩ := π.exists_rel_of_ne hxz
-      by_cases hrp : p = r
-      · exact ⟨π.point z, by simp [hrp, π.symm hr]⟩
-      by_cases hrq : q = r
-      · exact ⟨π.point x, by simp [hrq, hr]⟩
-      obtain ⟨y, hxy, hyz⟩ := π.exists_rel_rel hpq hrq hrp hr
-      exact ⟨π.point y, by simp [π.symm hxy, hyz]⟩
+      · obtain ⟨y, hxy, hyz⟩ := π.exists_rel_rel hpq x z
+        exact ⟨π.point y, by simp [π.symm hxy, hyz]⟩
 
 theorem eq_or_eq {pt₁ pt₂ : π.Points} {l₁ l₂ : π.Lines} (h₁₁ : pt₁ ∈ l₁) (h₂₁ : pt₂ ∈ l₁)
     (h₁₂ : pt₁ ∈ l₂) (h₂₂ : pt₂ ∈ l₂) : pt₁ = pt₂ ∨ l₁ = l₂ := by
@@ -205,50 +183,51 @@ theorem eq_or_eq {pt₁ pt₂ : π.Points} {l₁ l₂ : π.Lines} (h₁₁ : pt�
     simp only [point_mem_affineLine, dir_mem_affineLine, point_notMem_infinity, dir_mem_infinity,
       point_inj, dir_inj, point_ne_dir, dir_ne_point, affineLine_ne_infinity,
       infinity_ne_affineLine, affineLine_eq_affineLine, or_false, false_or, or_true] at * <;>
-    grind [Parallelism.symm, Parallelism.trans, Parallelism.eq_of_rel]
+    grind [ParallelClasses.symm, ParallelClasses.trans, ParallelClasses.eq_of_rel]
 
 include π in
-/-- Every direction is avoided by one of any two distinct directions. -/
-theorem exists_dir_ne (p : Dir) : ∃ q, q ≠ p := by
-  obtain ⟨a, b, -, hab, -, -⟩ := π.exists_dir
+/-- Every direction is avoided by two further distinct directions. -/
+theorem exists_dir_ne (p : Dir) : ∃ a c, a ≠ p ∧ c ≠ p ∧ a ≠ c := by
+  obtain ⟨a, b, c, hab, hbc, hac⟩ := π.exists_dir
   by_cases ha : a = p
-  exacts [⟨b, fun hb => hab (ha.trans hb.symm)⟩, ⟨a, ha⟩]
+  · exact ⟨b, c, by grind, by grind, hbc⟩
+  by_cases hb : b = p
+  · exact ⟨a, c, ha, by grind, hac⟩
+  · exact ⟨a, b, ha, hb, hab⟩
 
 instance : Nondegenerate π.Points π.Lines where
   exists_point l := by
     induction l using lines_induction with
     | affineLine p x =>
-      obtain ⟨q, hq⟩ := π.exists_dir_ne p
+      obtain ⟨q, -, hq, -, -⟩ := π.exists_dir_ne p
       exact ⟨π.dir q, by simpa using hq⟩
     | infinity =>
-      obtain ⟨x⟩ := π.nonempty
+      obtain ⟨x, -⟩ := π.exists_ne
       exact ⟨π.point x, point_notMem_infinity⟩
   exists_line pt := by
     induction pt using points_induction with
     | point x => exact ⟨π.infinity, point_notMem_infinity⟩
     | dir p =>
-      obtain ⟨q, hq⟩ := π.exists_dir_ne p
-      obtain ⟨x⟩ := π.nonempty
+      obtain ⟨q, -, hq, -, -⟩ := π.exists_dir_ne p
+      obtain ⟨x, -⟩ := π.exists_ne
       exact ⟨π.affineLine q x, by simpa using hq.symm⟩
   eq_or_eq := π.eq_or_eq
 
-/-- The projective completion of an affine plane presented by its directions. -/
+/-- The projective completion of an affine plane presented by its parallel classes. -/
 noncomputable instance : ProjectivePlane π.Points π.Lines where
   mkPoint {l₁ l₂} _ := (π.exists_point_mem l₁ l₂).choose
   mkPoint_ax {l₁ l₂} _ := (π.exists_point_mem l₁ l₂).choose_spec
   mkLine h := (π.exists_line_mem _ _ h).choose
   mkLine_ax h := (π.exists_line_mem _ _ h).choose_spec
   exists_config := by
-    obtain ⟨a, b, c, hab, hbc, hac⟩ := π.exists_dir
-    obtain ⟨x⟩ := π.nonempty
-    obtain ⟨y, hy⟩ := π.exists_rel b x
+    obtain ⟨x, y, hxy⟩ := π.exists_ne
+    obtain ⟨b, hb⟩ := π.exists_rel hxy
+    obtain ⟨a, c, hab, hcb, hac⟩ := π.exists_dir_ne b
     refine ⟨π.point y, π.dir a, π.dir b, π.affineLine c x, π.infinity, π.affineLine a x,
       point_notMem_infinity, ?_, by simpa using hac, dir_mem_infinity, by simp,
-      by simpa using hbc, dir_mem_infinity, by simpa using hab.symm⟩
+      by simpa using hcb.symm, dir_mem_infinity, by simpa using hab.symm⟩
     rw [point_mem_affineLine]
-    rintro (rfl | hyx)
-    · exact π.irrefl hy
-    · exact hab (π.eq_of_rel (π.symm hyx) hy)
+    exact fun hyx => hab (π.eq_of_rel hxy (π.symm hyx) hb)
 
 /-- The points on the line at infinity are the directions. -/
 def infinityEquiv : {pt : π.Points // pt ∈ π.infinity} ≃ Dir where
@@ -266,30 +245,30 @@ section Finite
 open scoped Classical in
 /-- The direction of the line through two points, or `none` if the points agree. -/
 noncomputable def dirOf (o y : D) : Option Dir :=
-  if h : o = y then none else some (π.exists_rel_of_ne h).choose
+  if h : o = y then none else some (π.exists_rel h).choose
 
 theorem eq_or_rel_of_dirOf_eq {o y y' : D} (h : π.dirOf o y = π.dirOf o y') :
-    y = y' ∨ ∃ p, π.rel p o y ∧ π.rel p o y' := by
+    y = y' ∨ ∃ p, o ≠ y ∧ o ≠ y' ∧ π.rel p o y ∧ π.rel p o y' := by
   unfold dirOf at h
   split_ifs at h with hy hy' hy'
   · exact .inl (hy.symm.trans hy')
-  · exact .inr ⟨_, (π.exists_rel_of_ne hy).choose_spec,
-      Option.some.inj h ▸ (π.exists_rel_of_ne hy').choose_spec⟩
+  · exact .inr ⟨_, hy, hy', (π.exists_rel hy).choose_spec,
+      Option.some.inj h ▸ (π.exists_rel hy').choose_spec⟩
 
 include π in
 /-- An affine plane with finitely many directions has finitely many points: a point is determined
 by the directions in which it is seen from three points that are not collinear. -/
 theorem finite [Finite Dir] : Finite D := by
-  obtain ⟨a, b, -, hab, -, -⟩ := π.exists_dir
-  obtain ⟨o₁⟩ := π.nonempty
-  obtain ⟨o₂, h₂⟩ := π.exists_rel a o₁
-  obtain ⟨o₃, h₃⟩ := π.exists_rel b o₁
+  obtain ⟨o₁, o₂, h₁₂⟩ := π.exists_ne
+  obtain ⟨a, ha⟩ := π.exists_rel h₁₂
+  obtain ⟨b, c, hba, hca, hbc⟩ := π.exists_dir_ne a
+  obtain ⟨o₃, hb, hc⟩ := π.exists_rel_rel hbc o₁ o₂
   refine Finite.of_injective (fun y => (π.dirOf o₁ y, π.dirOf o₂ y, π.dirOf o₃ y)) fun y y' h => ?_
   rw [Prod.mk.injEq, Prod.mk.injEq] at h
-  have h₁' := π.eq_or_rel_of_dirOf_eq h.1
-  have h₂' := π.eq_or_rel_of_dirOf_eq h.2.1
-  have h₃' := π.eq_or_rel_of_dirOf_eq h.2.2
-  grind [Parallelism.symm, Parallelism.trans, Parallelism.eq_of_rel, Parallelism.irrefl]
+  have h₁ := π.eq_or_rel_of_dirOf_eq h.1
+  have h₂ := π.eq_or_rel_of_dirOf_eq h.2.1
+  have h₃ := π.eq_or_rel_of_dirOf_eq h.2.2
+  grind [ParallelClasses.symm, ParallelClasses.trans, ParallelClasses.eq_of_rel]
 
 variable [Finite Dir]
 
@@ -306,16 +285,31 @@ theorem order_add_one : ProjectivePlane.order π.Points π.Lines + 1 = Nat.card 
   rw [← ProjectivePlane.pointCount_eq π.Points π.infinity, pointCount]
   exact Nat.card_congr π.infinityEquiv
 
-include π in
-/-- The projective completion of an affine plane with finitely many directions is a finite
-projective plane whose order is one less than the number of directions. -/
-public theorem exists_projectivePlane_order :
-    ∃ (P L : Type (max u v)) (_ : Membership P L) (_ : ProjectivePlane P L) (_ : Finite P)
-      (_ : Finite L), ProjectivePlane.order P L + 1 = Nat.card Dir :=
-  ⟨π.Points, π.Lines, inferInstance, inferInstance, inferInstance, inferInstance, π.order_add_one⟩
-
 end Finite
 
-end Parallelism
+end ParallelClasses
+
+/-- The projective completion of an affine plane, presented by its parallel classes, is a
+projective plane. Here `E p x y` means that the points `x` and `y` lie on a common line of
+direction `p`: two distinct points lie on a common line of exactly one direction, and two lines of
+different directions meet. When there are finitely many directions, the completion is finite and
+its order is one less than the number of directions. -/
+public theorem exists_projectivePlane_order_of_setoid {D : Type u} {Dir : Type v} [Nontrivial D]
+    [Finite Dir] (E : Dir → Setoid D) (hDir : ∃ a b c : Dir, a ≠ b ∧ b ≠ c ∧ a ≠ c)
+    (h₁ : ∀ x y, x ≠ y → ∃! p, E p x y)
+    (h₂ : ∀ p q, p ≠ q → ∀ x z, ∃ y, E p x y ∧ E q y z) :
+    ∃ (P L : Type (max u v)) (_ : Membership P L) (_ : ProjectivePlane P L) (_ : Finite P)
+      (_ : Finite L), ProjectivePlane.order P L + 1 = Nat.card Dir :=
+  let π : ParallelClasses D Dir :=
+    { rel p := E p
+      refl := (E _).refl _
+      symm := (E _).symm
+      trans := (E _).trans
+      exists_rel hxy := (h₁ _ _ hxy).exists
+      eq_of_rel hxy hp hq := (h₁ _ _ hxy).unique hp hq
+      exists_rel_rel hpq := h₂ _ _ hpq
+      exists_ne := exists_pair_ne D
+      exists_dir := hDir }
+  ⟨π.Points, π.Lines, inferInstance, inferInstance, inferInstance, inferInstance, π.order_add_one⟩
 
 end Cslib
