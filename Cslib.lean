@@ -181,7 +181,7 @@ public import Cslib.Foundations.Lint.Basic
 public import Cslib.Foundations.Logic.InferenceSystem.Basic
 public import Cslib.Foundations.Logic.InferenceSystem.Defs
 public import Cslib.Foundations.Logic.LogicalEquivalence
-public import Cslib.Foundations.Logic.ModelTheory.ElementaryClass
+public import Cslib.Foundations.Logic.ModelTheory.FinitelyAxiomatizable
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.MeasureTheory.FiniteSupport
 public import Cslib.Foundations.Order.FixedPoints

@@ -7,7 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.Combinatorics.ProjectivePlane.BruckRyser
-public import Cslib.Foundations.Logic.ModelTheory.ElementaryClass
+public import Cslib.Foundations.Logic.ModelTheory.FinitelyAxiomatizable
 public import Cslib.Foundations.RelationAlgebra.Lyndon.Plane
 public import Cslib.Foundations.RelationAlgebra.Lyndon.Ultraproduct
 public import Cslib.Foundations.RelationAlgebra.ModelTheory.Theory
@@ -52,9 +52,9 @@ algebras.
 ## Implementation notes
 
 Classes of relation algebras are formalized as sets of bundled structures for the language of
-relation algebras, as in `Cslib.Foundations.Logic.ModelTheory.ElementaryClass`. A structure belongs
-to such a class when it is a model of the theory of relation algebras whose induced relation
-algebra has the property in question (`Cslib.RelationAlgebra.structureClass`).
+relation algebras, as in `Cslib.Foundations.Logic.ModelTheory.FinitelyAxiomatizable`. A structure
+belongs to such a class when it is a model of the theory of relation algebras whose induced
+relation algebra has the property in question (`Cslib.RelationAlgebra.structureClass`).
 
 [Monk1964] takes an ultraproduct over the set of all `m ≥ 3` that are not the order of a
 projective plane, with respect to an arbitrary nonprincipal ultrafilter. We use the explicit

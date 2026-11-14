@@ -11,27 +11,23 @@ public import Mathlib.ModelTheory.Bundled
 public import Mathlib.ModelTheory.Ultraproducts
 
 /-!
-# Elementary classes of structures
+# Finitely axiomatizable classes of structures
 
-A class of first-order structures is *elementary* if it is the class of all models of some theory,
-and *finitely axiomatizable* if this theory can be taken to be finite. As in
-`Mathlib.ModelTheory.Fraisse`, classes of structures are formalized as sets of bundled structures.
+A class of first-order structures is *finitely axiomatizable* if it is the class of all models of
+some finite theory. As in `Mathlib.ModelTheory.Fraisse`, classes of structures are formalized as
+sets of bundled structures.
 
-By Łoś's theorem an elementary class is closed under ultraproducts, and the complement of a
-finitely axiomatizable class is closed under ultraproducts as well. The latter gives the standard
-method for showing that a class is not finitely axiomatizable: exhibit structures outside of the
-class with an ultraproduct inside of it.
+By Łoś's theorem the complement of a finitely axiomatizable class is closed under ultraproducts.
+This gives the standard method for showing that a class is not finitely axiomatizable: exhibit
+structures outside of the class with an ultraproduct inside of it.
 
 ## Main definitions
 
-* `FirstOrder.Language.IsElementary`: the class is the class of models of a theory.
 * `FirstOrder.Language.IsFinitelyAxiomatizable`: the class is the class of models of a finite
   theory.
 
 ## Main statements
 
-* `FirstOrder.Language.IsElementary.product_mem`: elementary classes are closed under
-  ultraproducts.
 * `FirstOrder.Language.not_isFinitelyAxiomatizable_of_product`: a class containing an ultraproduct
   of structures that lie outside of the class is not finitely axiomatizable.
 * `FirstOrder.Language.Ultraproduct.infinite_product`: an ultraproduct of structures whose
@@ -49,37 +45,15 @@ open CategoryTheory (Bundled)
 
 variable {L : Language.{u, v}}
 
-/-- A class of structures is *elementary* if it is the class of all models of a theory. -/
-def IsElementary (K : Set (Bundled.{w} L.Structure)) : Prop :=
-  ∃ T : L.Theory, K = {M : Bundled.{w} L.Structure | (M : Type w) ⊨ T}
-
 /-- A class of structures is *finitely axiomatizable* if it is the class of all models of a
 finite theory. -/
 def IsFinitelyAxiomatizable (K : Set (Bundled.{w} L.Structure)) : Prop :=
   ∃ T : L.Theory, T.Finite ∧ K = {M : Bundled.{w} L.Structure | (M : Type w) ⊨ T}
 
-theorem IsFinitelyAxiomatizable.isElementary {K : Set (Bundled.{w} L.Structure)}
-    (h : IsFinitelyAxiomatizable K) : IsElementary K :=
-  let ⟨T, _, hT⟩ := h
-  ⟨T, hT⟩
-
-/-- The class of models of a theory is elementary. -/
-theorem isElementary_setOf_model (T : L.Theory) :
-    IsElementary {M : Bundled.{w} L.Structure | (M : Type w) ⊨ T} :=
-  ⟨T, rfl⟩
-
 section Ultraproduct
 
 variable {K : Set (Bundled.{max w' w} L.Structure)} {ι : Type w'} (U : Ultrafilter ι)
   (M : ι → Type (max w' w)) [∀ a, L.Structure (M a)] [∀ a, Nonempty (M a)]
-
-/-- An elementary class is closed under ultraproducts. -/
-theorem IsElementary.product_mem (hK : IsElementary K)
-    (h : ∀ᶠ a in (U : Filter ι), (Bundled.of (M a) : Bundled L.Structure) ∈ K) :
-    (Bundled.of ((U : Filter ι).Product M) : Bundled L.Structure) ∈ K := by
-  obtain ⟨T, rfl⟩ := hK
-  refine (Theory.model_iff T).mpr fun φ hφ => (Ultraproduct.sentence_realize φ).mpr ?_
-  exact h.mono fun a ha => (Theory.model_iff T).mp ha φ hφ
 
 /-- If an ultraproduct lies in a finitely axiomatizable class, then so do almost all of its
 factors. -/
