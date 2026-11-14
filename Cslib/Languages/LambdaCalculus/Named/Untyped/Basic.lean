@@ -19,8 +19,9 @@ of α-equivalence and capture-avoiding substitution.
 
 * [H. Barendregt, *Introduction to Lambda Calculus*][Barendregt1984]
 * Definition of α-equivalence [M. Gabbay and A. Pitts, *A New Approach to Abstract Syntax with
-Variable Binding*][Gabbay2002]
-
+  Variable Binding*][Gabbay2002]
+* [Roy L. Crole, *Alpha equivalence equalities*][Crole2012] - the `AlphaEquiv` definition
+  corresponds to Definition 3.1 (∼p) in this paper
 -/
 
 @[expose] public section
@@ -72,13 +73,12 @@ def rename (m : Term Var) (x y : Var) : Term Var :=
   | abs z m' => abs (if z = x then y else z) (m'.rename x y)
   | app n1 n2 => app (n1.rename x y) (n2.rename x y)
 
-omit [HasFresh Var] in
-/-- Renaming preserves size. -/
-@[simp, scoped grind =]
-theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = sizeOf m := by
-  induction m <;> aesop (add simp [Term.rename])
+/-- **Definition 3.1** [Crole2012]: `∼p` - α-equivalence via permutation (swapping) with
+non-occurrence side condition.
 
-/-- α-equivalence. -/
+This definition is analogous to the definition of α-equivalence for λ-expressions in
+[Gabbay2002] (Section 2, page 3). The `abs` rule uses the `rename` operation, which
+coincides with `swap` when the witness variable `y` does not occur in the term. -/
 inductive AlphaEquiv : Term Var → Term Var → Prop where
   | var {x} : AlphaEquiv (var x) (var x)
   | abs {y x1 x2 m1 m2} : y ∉ m1.vars ∪ m2.vars ∪ {x1, x2} →
@@ -103,6 +103,12 @@ inductive Subst : Term Var → Var → Term Var → Term Var → Prop where
   | absIn {x y m r m'} : y ∉ r.fv ∪ {x} → m.Subst x r m' → (abs y m).Subst x r (abs y m')
   | app {m n x r m' n'} : m.Subst x r m' → n.Subst x r n' → (app m n).Subst x r (app m' n')
   | alpha {m m' r r' n n' x} : m =α m' → r =α r' → n =α n' → Subst m x r n → m'.Subst x r' n'
+
+omit [HasFresh Var] in
+/-- Renaming preserves size. -/
+@[simp, scoped grind =]
+theorem rename_eq_sizeOf {m : Term Var} {x y : Var} : sizeOf (m.rename x y) = sizeOf m := by
+  induction m <;> aesop (add simp [Term.rename])
 
 /-- Capture-avoiding substitution. `m.subst x r` replaces the free occurrences of variable `x`
 in `m` with `r`. -/
