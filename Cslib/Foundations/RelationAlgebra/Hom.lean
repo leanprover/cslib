@@ -75,6 +75,34 @@ theorem id_apply (a : α) : RelationAlgebraHom.id α a = a := rfl
 theorem comp_apply (f : RelationAlgebraHom β γ) (g : RelationAlgebraHom α β) (a : α) :
     f.comp g a = f (g a) := rfl
 
+/-- Construct a `RelationAlgebraHom` from a map preserving the operations of Tarski's
+axiomatization. The remaining Boolean operations are definable from these. -/
+def mk' (f : α → β) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_compl : ∀ a, f aᶜ = (f a)ᶜ)
+    (map_mul : ∀ a b, f (a * b) = f a * f b) (map_one : f 1 = 1)
+    (map_star : ∀ a, f (star a) = star (f a)) : RelationAlgebraHom α β where
+  toFun := f
+  map_sup' := map_sup
+  map_inf' a b := by
+    rw [← compl_compl (a ⊓ b), compl_inf, map_compl, map_sup, map_compl, map_compl, compl_sup,
+      compl_compl, compl_compl]
+  map_top' := by
+    rw [← sup_compl_eq_top (x := (1 : α)), map_sup, map_compl, sup_compl_eq_top]
+  map_bot' := by
+    rw [← compl_top, map_compl, ← sup_compl_eq_top (x := (1 : α)), map_sup, map_compl,
+      sup_compl_eq_top, compl_top]
+  map_one' := map_one
+  map_mul' := map_mul
+  map_star' := map_star
+
+/-- Integrality is reflected by injective homomorphisms. -/
+theorem isIntegral_of_injective (f : RelationAlgebraHom α β) (hf : Function.Injective f)
+    (h : RelationAlgebra.IsIntegral β) : RelationAlgebra.IsIntegral α := by
+  refine ⟨fun h1 => IsAtom.ne_bot h ?_, fun b hb => hf ?_⟩
+  · rw [← map_one f, h1, map_bot]
+  · have hlt : f b < 1 := map_one f ▸ (OrderHomClass.mono f).strictMono_of_injective hf hb
+    rw [map_bot]
+    exact h.2 _ hlt
+
 end RelationAlgebraHom
 
 namespace RelationAlgebraEquiv
