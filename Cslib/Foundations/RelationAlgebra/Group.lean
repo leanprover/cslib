@@ -76,13 +76,13 @@ theorem isIntegral_ofGroup : IsIntegral (ComplexAlgebra (ofGroup G)) :=
 variable (G) in
 /-- The Cayley representation of the complex algebra of a group `G` by relations on `G`: a set `X`
 is sent to the relation `{(g, h) | g⁻¹ * h ∈ X}`. -/
-def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SquareRelations G) :=
-  RelationAlgebraHom.mk' (fun x => SquareRelations.ofRel fun g h => g⁻¹ * h ∈ x)
-    (fun x y => by ext; simp)
-    (fun x => by ext; simp)
+def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SetRel G G) :=
+  RelationAlgebraHom.mk' (fun x => {(g, h) | g⁻¹ * h ∈ x})
+    (fun x y => by ext ⟨g, h⟩; simp)
+    (fun x => by ext ⟨g, h⟩; simp)
     (fun x y => by
-      ext g h
-      simp only [SquareRelations.mem_ofRel, mem_mul, mem_ofGroup_cycles, SquareRelations.mem_mul]
+      ext ⟨g, h⟩
+      simp only [Set.mem_ofPred_eq, mem_mul, mem_ofGroup_cycles, SetRel.mem_mul]
       constructor
       · rintro ⟨r, hr, s, hs, hrs⟩
         have hgr : (g * r)⁻¹ * h = s := by
@@ -90,8 +90,8 @@ def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SquareRelations G)
         exact ⟨g * r, by rwa [inv_mul_cancel_left], by rwa [hgr]⟩
       · rintro ⟨k, hk, hkh⟩
         exact ⟨_, hk, _, hkh, by rw [mul_assoc, mul_inv_cancel_left]⟩)
-    (by ext g h; simp [inv_mul_eq_one])
-    (fun x => by ext g h; simp)
+    (by ext ⟨g, h⟩; simp [inv_mul_eq_one])
+    (fun x => by ext ⟨g, h⟩; simp)
 
 @[simp]
 theorem mem_cayley {x : ComplexAlgebra (ofGroup G)} {g h : G} :

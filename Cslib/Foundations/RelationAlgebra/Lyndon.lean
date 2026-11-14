@@ -403,7 +403,7 @@ open AtomStructure ComplexAlgebra Configuration
 /-- A homomorphism from a complex algebra with finitely many atoms into an algebra of relations
 sends the atoms to relations that cover all pairs. -/
 theorem ComplexAlgebra.exists_mem_map_atom {α D : Type*} [Finite α] {A : AtomStructure α}
-    (g : RelationAlgebraHom (ComplexAlgebra A) (SquareRelations D)) (x y : D) :
+    (g : RelationAlgebraHom (ComplexAlgebra A) (SetRel D D)) (x y : D) :
     ∃ a, (x, y) ∈ g (atom A a) := by
   by_contra hcon
   have hall : ∀ s : Set α, s.Finite → (x, y) ∉ g ⟨s⟩ := fun s hs => by
@@ -411,13 +411,13 @@ theorem ComplexAlgebra.exists_mem_map_atom {α D : Type*} [Finite α] {A : AtomS
     | empty =>
       have h : (⟨∅⟩ : ComplexAlgebra A) = ⊥ := rfl
       rw [h, map_bot]
-      exact SquareRelations.notMem_bot
+      exact Set.notMem_empty _
     | @insert a s _ _ ih =>
       have h : (⟨insert a s⟩ : ComplexAlgebra A) = atom A a ⊔ ⟨s⟩ := rfl
-      rw [h, map_sup, SquareRelations.mem_sup]
+      rw [h, map_sup, Set.mem_union]
       exact fun h => h.elim (fun h => hcon ⟨a, h⟩) ih
   have h : (⟨Set.univ⟩ : ComplexAlgebra A) = ⊤ := rfl
-  exact hall Set.univ Set.finite_univ (by rw [h, map_top]; exact SquareRelations.mem_top)
+  exact hall Set.univ Set.finite_univ (by rw [h, map_top]; exact Set.mem_univ _)
 
 namespace Lyndon
 
@@ -464,7 +464,7 @@ theorem exists_three_ne : ∃ a b c : {a // a ≠ e}, a ≠ b ∧ b ≠ c ∧ a 
     fun hbc => hcb (congrArg Subtype.val hbc).symm,
     fun hac => hca (congrArg Subtype.val hac).symm⟩
 
-variable {D : Type w} (g : RelationAlgebraHom (ComplexAlgebra (lyndon e h)) (SquareRelations D))
+variable {D : Type w} (g : RelationAlgebraHom (ComplexAlgebra (lyndon e h)) (SetRel D D))
 
 /-- A representation of a Lyndon algebra on a set `D` gives, for each point `p`, the equivalence
 relation on `D` represented by `p + 1'`. For a finite Lyndon algebra these are the parallel
@@ -478,7 +478,7 @@ def setoid (p : {a // a ≠ e}) : Setoid D where
       symm {x y} hxy := by
         have hstar := map_star g (atom (lyndon e h) p ⊔ 1)
         rw [star_trivial] at hstar
-        rw [hstar, SquareRelations.mem_star]
+        rw [hstar, SetRel.mem_star]
         exact hxy
       trans {x y z} hxy hyz := by
         rw [← atom_sup_one_mul_self p.property, map_mul]
@@ -497,7 +497,7 @@ theorem notMem_map_atom (p : {a // a ≠ e}) (x : D) : (x, x) ∉ g (atom (lyndo
     rw [map_inf, atom_eq_one, map_one]
     exact ⟨hx, rfl⟩
   rw [atom_inf_atom_of_ne p.property, map_bot] at hmem
-  exact SquareRelations.notMem_bot hmem
+  exact Set.notMem_empty _ hmem
 
 /-- Two distinct points lie on a common line of exactly one direction. -/
 theorem existsUnique_setoid [Finite α] {x y : D} (hxy : x ≠ y) : ∃! p, setoid g p x y := by
@@ -512,7 +512,7 @@ theorem existsUnique_setoid [Finite α] {x y : D} (hxy : x ≠ y) : ∃! p, seto
     rw [map_inf]
     exact ⟨(setoid_iff.mp hq).resolve_right hxy, ha⟩
   rw [atom_inf_atom_of_ne (fun hqa => hne (Subtype.ext hqa)), map_bot] at hmem
-  exact SquareRelations.notMem_bot hmem
+  exact Set.notMem_empty _ hmem
 
 /-- Two lines of different directions meet. -/
 theorem exists_setoid_setoid {p q : {a // a ≠ e}} (hpq : p ≠ q) (x z : D) :
@@ -520,9 +520,9 @@ theorem exists_setoid_setoid {p q : {a // a ≠ e}} (hpq : p ≠ q) (x z : D) :
   have hmem : (x, z) ∈ g ((atom (lyndon e h) p ⊔ 1) * (atom (lyndon e h) q ⊔ 1)) := by
     rw [atom_sup_one_mul_atom_sup_one (fun hpq' => hpq (Subtype.ext hpq')) p.property q.property,
       map_top]
-    exact SquareRelations.mem_top
+    exact Set.mem_univ _
   rw [map_mul] at hmem
-  exact SquareRelations.mem_mul.mp hmem
+  exact SetRel.mem_mul.mp hmem
 
 include g in
 /-- A nonempty set carrying a representation of a Lyndon algebra has at least two elements. -/
@@ -550,7 +550,7 @@ theorem exists_nonempty_of_representation {ι : Type v} {β : ι → Type w}
   have hempty : ∀ i, IsEmpty (β i) := fun i => not_nonempty_iff.mp fun hi => hcon ⟨i, hi⟩
   refine (isIntegral_lyndon (e := e) h).top_ne_bot (ρ.injective ?_)
   funext i
-  ext x
+  ext ⟨x, -⟩
   exact (hempty i).elim x
 
 /-- **Theorem D** of [Monk1964] for finite Lyndon algebras: if the Lyndon algebra with `n + 2`
@@ -560,7 +560,7 @@ theorem exists_projectivePlane_order_of_representation {ι : Type v} {β : ι �
     ∃ (P L : Type (max u w)) (_ : Membership P L) (_ : ProjectivePlane P L) (_ : Finite P)
       (_ : Finite L), ProjectivePlane.order P L + 2 = Nat.card α := by
   obtain ⟨i, hi⟩ := exists_nonempty_of_representation e h ρ
-  let g := (RelationAlgebraHom.eval (fun i => SquareRelations (β i)) i).comp ρ.hom
+  let g := (RelationAlgebraHom.eval (fun i => SetRel (β i) (β i)) i).comp ρ.hom
   have := nontrivial g
   obtain ⟨P, L, _, _, _, _, hord⟩ := exists_projectivePlane_order_of_setoid (setoid g)
     (exists_three_ne e h) (fun _ _ => existsUnique_setoid g) fun _ _ hpq =>
