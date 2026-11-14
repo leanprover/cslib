@@ -17,10 +17,11 @@ public import Mathlib.Order.Interval.Basic
 
 Consider a deterministic Turing machine and a computation path on an input that ends halted. For
 each input cell, we record the sequence of storages (`Storage`) of the running configurations of
-the path that read that cell. If two distinct cells contain the same symbol and have the same
-sequence, then deleting the symbols after the first cell through the second preserves the storage
-of every configuration of the path away from the two cells and the cells between them. This
-property is the main ingredient in the proof of `SPACE(o(log log n)) = SPACE(1)`.
+the path that read that cell, its *crossing sequence*. If two distinct cells contain the same symbol
+and have the same crossing sequence, then deleting the symbols after the first cell through the
+second preserves the storage of every configuration of the path away from the two cells and the
+cells between them. This property is the main ingredient in the proof of
+`SPACE(o(log log n)) = SPACE(1)`.
 
 The proof idea follows [Katz2007], §1.2, Theorem 4.
 
@@ -36,7 +37,7 @@ contain the image of every configuration outside the cut.
 ## Main definitions
 
 * `MultiTapeNTM.RunPath.visits`: the indices of the running configurations reading a position.
-* `MultiTapeNTM.RunPath.visitSequence`: the storages at those indices, in chronological order.
+* `MultiTapeNTM.RunPath.crossingSequence`: the storages at those indices, in chronological order.
 * `InputCut`: an ordered pair of input-symbol indices describing the endpoints of a deletion.
 * `InputCut.shortened`: the input with the symbols after the first endpoint through the second
   deleted.
@@ -46,8 +47,8 @@ contain the image of every configuration outside the cut.
 
 * `MultiTapeNTM.RunPath.storage_injOn_visits`: distinct running visits to a position in a path that
   ends halted have distinct storages.
-* `InputCut.exists_storage_eq`: equal boundary symbols and visit sequences preserve the storage of
-  every configuration of the path outside the endpoints and the cells between them.
+* `InputCut.exists_storage_eq`: equal boundary symbols and crossing sequences preserve the storage
+  of every configuration of the path outside the endpoints and the cells between them.
 * `MultiTapeTM.exists_shorter_input_storage`: a sufficiently long input has a shorter input reaching
   any storage of a halting computation path in bounded space.
 
@@ -77,7 +78,7 @@ lemma mem_visits {p : ntm.RunPath input} {pos : ℕ} {i : Fin (p.length + 1)} :
   simp [visits]
 
 /-- The storages at the running visits to `pos`, in chronological order. -/
-def visitSequence (p : ntm.RunPath input) (pos : ℕ) : List (Storage Symbol State k) :=
+def crossingSequence (p : ntm.RunPath input) (pos : ℕ) : List (Storage Symbol State k) :=
   ((p.visits pos).sort (· ≤ ·)).map fun i ↦ (p i).storage
 
 /-- In a deterministic path that ends halted, distinct running visits to a position have distinct
@@ -187,17 +188,17 @@ private structure Pairing (p : tm.RunPath input) where
   /-- Paired visits have images of the same core on the shortened input. -/
   core_eq (u : p.visits cut.left) : (cut.cfg (p u.val)).core = (cut.cfg (p (orderIso u).val)).core
 
-/-- Equal visit sequences pair the visits of the same index, which have equal storages. -/
+/-- Equal crossing sequences pair the visits of the same index, which have equal storages. -/
 private def pairing {p : tm.RunPath input}
-    (hseq : p.visitSequence cut.left = p.visitSequence cut.right) : cut.Pairing p := by
+    (hseq : p.crossingSequence cut.left = p.crossingSequence cut.right) : cut.Pairing p := by
   have hcard : (p.visits cut.right).card = (p.visits cut.left).card := by
-    simpa [visitSequence] using congrArg List.length hseq.symm
+    simpa [crossingSequence] using congrArg List.length hseq.symm
   let l := (p.visits cut.left).orderIsoOfFin rfl
   let r := (p.visits cut.right).orderIsoOfFin hcard
   refine ⟨l.symm.trans r, fun u ↦ ?_⟩
   obtain ⟨n, rfl⟩ := l.surjective u
   have hs : (p (l n)).storage = (p (r n)).storage := by
-    simpa [visitSequence, hcard, l, r, Finset.coe_orderIsoOfFin_apply,
+    simpa [crossingSequence, hcard, l, r, Finset.coe_orderIsoOfFin_apply,
       Finset.orderEmbOfFin_apply] using congrArg (·[n.val]?) hseq
   have hl := (mem_visits.mp (l n).property).1
   have hr := (mem_visits.mp (r n).property).1
@@ -319,7 +320,7 @@ visits them with the same storages, every configuration of the path outside the 
 cells between them has its storage reached on the shortened input. -/
 theorem exists_storage_eq (hsym : input[cut.fst] = input[cut.snd])
     {path : tm.ComputationPath input}
-    (hseq : visitSequence path.toRunPath cut.left = visitSequence path.toRunPath cut.right)
+    (hseq : crossingSequence path.toRunPath cut.left = crossingSequence path.toRunPath cut.right)
     {c : Cfg k Symbol State input} (hc : c ∈ path)
     (hout : c.inputPos.val ∉ Set.Icc cut.left cut.right) :
     c.storage ∈ Cfg.storage '' tm.reachable cut.shortened :=
@@ -336,7 +337,7 @@ open MultiTapeNTM MultiTapeNTM.RunPath
 
 /-- **Input shortening.** A sufficiently long input has a shorter input on which a computation path
 reaches any storage of a halting computation path in space `s`: two cells on the same side of the
-storage carry the same symbol and visit sequence, and the cut between them avoids it. -/
+storage carry the same symbol and crossing sequence, and the cut between them avoids it. -/
 theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     {path : tm.ComputationPath input} (hs : path.space ≤ s) (hhalt : path.last.Halted)
     (hlen : 3 * Fintype.card Symbol *
@@ -352,18 +353,18 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     let q : tm.ComputationPath input := ⟨P.take t, by simp [P, path.head_eq]⟩
     exact Storage.FitsIn_mono
       (fun j => Finset.card_le_card (visitedByTapeHead_take_subset P t j)) q.storage_fitsIn
-  have hfits {pos n : ℕ} {x} (hx : (visitSequence P pos)[n]? = some x) : x.FitsIn w := by
+  have hfits {pos n : ℕ} {x} (hx : (crossingSequence P pos)[n]? = some x) : x.FitsIn w := by
     obtain ⟨t, -, rfl⟩ := List.mem_map.mp (List.mem_of_getElem? hx)
     exact hS t
   have hcard : Fintype.card (BoundedStorage Symbol State w) ≤ B := card_boundedStorage_le hs
-  have hlength (pos : ℕ) : (visitSequence P pos).length ≤ B := by
-    simp only [visitSequence, List.length_map, Finset.length_sort]
+  have hlength (pos : ℕ) : (crossingSequence P pos).length ≤ B := by
+    simp only [crossingSequence, List.length_map, Finset.length_sort]
     exact (Finset.card_le_card_of_injOn _ (fun _ _ ↦ Finset.mem_coe.mpr (Finset.mem_univ _))
       ((Storage.toBounded_injOn w).comp (storage_injOn_visits P hhalt pos) fun t _ ↦ hS t)).trans
       (by simpa using hcard)
-  -- Record the side of `d`, the input symbol, and the bounded visit sequence.
+  -- Record the side of `d`, the input symbol, and the bounded crossing sequence.
   let f (j : Fin input.length) := (compare (j.val + 1) d.inputPos.val, input[j],
-    fun n : Fin B ↦ ((visitSequence P (j.val + 1))[n.val]?).map (·.toBounded w))
+    fun n : Fin B ↦ ((crossingSequence P (j.val + 1))[n.val]?).map (·.toBounded w))
   obtain ⟨a, b, hab, hf⟩ : ∃ a b, a < b ∧ f a = f b := by
     obtain ⟨a, b, hne, hf⟩ := Fintype.exists_ne_map_eq_of_card_lt f <| by
       rw [Fintype.card_prod, Fintype.card_prod, show Fintype.card Ordering = 3 by decide,
@@ -373,11 +374,11 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
         _ < input.length := hlen
     grind
   obtain ⟨hside, hsym, hseq⟩ := (by simpa only [f, Prod.mk.injEq] using hf)
-  have hseq' : visitSequence P (a.val + 1) = visitSequence P (b.val + 1) := by
+  have hseq' : crossingSequence P (a.val + 1) = crossingSequence P (b.val + 1) := by
     refine List.ext_getElem?' fun r hr ↦ ?_
     have he := congrFun hseq ⟨r, hr.trans_le (max_le (hlength _) (hlength _))⟩
-    rcases ha : (visitSequence P (a.val + 1))[r]? with _ | x <;>
-      rcases hb : (visitSequence P (b.val + 1))[r]? with _ | y <;>
+    rcases ha : (crossingSequence P (a.val + 1))[r]? with _ | x <;>
+      rcases hb : (crossingSequence P (b.val + 1))[r]? with _ | y <;>
       simp only [ha, hb, Option.map_none, Option.map_some, reduceCtorEq, Option.some.injEq]
         at he ⊢
     exact Storage.toBounded_injOn w (hfits ha) (hfits hb) he
