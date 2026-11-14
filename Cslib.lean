@@ -210,8 +210,7 @@ public import Cslib.Foundations.RelationAlgebra.Lyndon.Basic
 public import Cslib.Foundations.RelationAlgebra.Lyndon.Plane
 public import Cslib.Foundations.RelationAlgebra.Lyndon.Representation
 public import Cslib.Foundations.RelationAlgebra.Lyndon.Ultraproduct
-public import Cslib.Foundations.RelationAlgebra.ModelTheory.Basic
-public import Cslib.Foundations.RelationAlgebra.ModelTheory.Theory
+public import Cslib.Foundations.RelationAlgebra.ModelTheory
 public import Cslib.Foundations.RelationAlgebra.Monk
 public import Cslib.Foundations.RelationAlgebra.Pi
 public import Cslib.Foundations.RelationAlgebra.Representation

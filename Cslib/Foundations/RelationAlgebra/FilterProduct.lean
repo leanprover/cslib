@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.ModelTheory.Basic
+public import Cslib.Foundations.RelationAlgebra.ModelTheory
 public import Cslib.Foundations.RelationAlgebra.Pi
 public import Mathlib.ModelTheory.Ultraproducts
 

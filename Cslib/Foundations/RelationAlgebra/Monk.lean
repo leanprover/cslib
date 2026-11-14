@@ -9,7 +9,7 @@ module
 public import Cslib.Foundations.Combinatorics.ProjectivePlane.BruckRyser
 public import Cslib.Foundations.RelationAlgebra.Lyndon.Plane
 public import Cslib.Foundations.RelationAlgebra.Lyndon.Ultraproduct
-public import Cslib.Foundations.RelationAlgebra.ModelTheory.Theory
+public import Cslib.Foundations.RelationAlgebra.ModelTheory
 public import Mathlib.Order.Filter.Ultrafilter.Basic
 
 /-!
