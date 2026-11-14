@@ -7,9 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.Combinatorics.ProjectivePlane.BruckRyser
-public import Cslib.Foundations.RelationAlgebra.Lyndon.Plane
-public import Cslib.Foundations.RelationAlgebra.Lyndon.Ultraproduct
-public import Cslib.Foundations.RelationAlgebra.ModelTheory
+public import Cslib.Foundations.RelationAlgebra.Lyndon
 public import Mathlib.Order.Filter.Ultrafilter.Basic
 
 /-!
