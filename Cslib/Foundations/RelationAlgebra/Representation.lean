@@ -61,6 +61,49 @@ instance (α : Type u) : RelationAlgebra (SquareRelations α) where
     rintro ⟨x, z⟩ ⟨y, hxy, hyz⟩ hxz
     exact hyz ⟨x, hxy, hxz⟩
 
+variable {α : Type u} {R S : SquareRelations α} {a b c : α}
+
+instance : Membership (α × α) (SquareRelations α) :=
+  inferInstanceAs (Membership (α × α) (SetRel α α))
+
+/-- The element of `SquareRelations α` given by a binary relation. -/
+def ofRel (r : α → α → Prop) : SquareRelations α :=
+  show SetRel α α from {p | r p.1 p.2}
+
+@[ext]
+theorem ext (h : ∀ a b, (a, b) ∈ R ↔ (a, b) ∈ S) : R = S :=
+  Set.ext fun ⟨a, b⟩ => h a b
+
+@[simp]
+theorem mem_ofRel {r : α → α → Prop} : (a, b) ∈ ofRel r ↔ r a b := .rfl
+
+@[simp]
+theorem mem_sup : (a, b) ∈ R ⊔ S ↔ (a, b) ∈ R ∨ (a, b) ∈ S := .rfl
+
+@[simp]
+theorem mem_inf : (a, b) ∈ R ⊓ S ↔ (a, b) ∈ R ∧ (a, b) ∈ S := .rfl
+
+@[simp]
+theorem mem_compl : (a, b) ∈ Rᶜ ↔ (a, b) ∉ R := .rfl
+
+@[simp]
+theorem mem_top : (a, b) ∈ (⊤ : SquareRelations α) := trivial
+
+@[simp]
+theorem notMem_bot : (a, b) ∉ (⊥ : SquareRelations α) := id
+
+@[simp]
+theorem mem_one : (a, b) ∈ (1 : SquareRelations α) ↔ a = b := .rfl
+
+@[simp]
+theorem mem_mul : (a, c) ∈ R * S ↔ ∃ b, (a, b) ∈ R ∧ (b, c) ∈ S := .rfl
+
+@[simp]
+theorem mem_star : (a, b) ∈ star R ↔ (b, a) ∈ R := .rfl
+
+theorem le_def : R ≤ S ↔ ∀ a b, (a, b) ∈ R → (a, b) ∈ S :=
+  ⟨fun h _ _ hab => h hab, fun h ⟨a, b⟩ hab => h a b hab⟩
+
 end SquareRelations
 
 /-- A representation of a relation algebra is an injective morphism into a product of relations. -/
@@ -72,6 +115,20 @@ structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : 
 /-- A relation algebra is representable if a `Representation` exists. -/
 def Representable (α : Type u) [RelationAlgebra α] : Prop :=
   ∃ (ι : Type u) (β : ι → Type u), Nonempty (Representation α ι β)
+
+/-- Pull a representation back along an injective homomorphism. -/
+def Representation.comap {α : Type*} {α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
+    {ι : Type v} {β : ι → Type w} (r : Representation α' ι β) (f : RelationAlgebraHom α α')
+    (hf : Function.Injective f) : Representation α ι β where
+  hom := r.hom.comp f
+  injective := r.injective.comp hf
+
+/-- A relation algebra that embeds into a representable relation algebra is representable. -/
+theorem Representable.of_injective {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
+    (f : RelationAlgebraHom α α') (hf : Function.Injective f) (h : Representable α') :
+    Representable α :=
+  let ⟨ι, β, ⟨r⟩⟩ := h
+  ⟨ι, β, ⟨r.comap f hf⟩⟩
 
 /-- A `Representation α ι β` in arbitrary universes can be contracted to the universe of `α`. -/
 proof_wanted representable_univ {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w} :

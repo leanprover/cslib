@@ -158,6 +158,26 @@ instance : RelationAlgebra (ComplexAlgebra A) where
 
 instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 
+/-- The atom of a complex algebra given by an atom of the atom structure. -/
+def atom (a : α) : ComplexAlgebra A := ⟨{a}⟩
+
+variable {A} in
+@[simp, grind =]
+theorem mem_atom {a b : α} : b ∈ atom A a ↔ b = a := .rfl
+
+variable {A} in
+theorem atom_le_iff {a : α} {x : ComplexAlgebra A} : atom A a ≤ x ↔ a ∈ x :=
+  ⟨fun h => h rfl, fun h _ hb => hb ▸ h⟩
+
+variable {A} in
+theorem mem_atom_mul_atom {a b c : α} : c ∈ atom A a * atom A b ↔ (a, b, c) ∈ A.cycles :=
+  ⟨fun ⟨_, hr, _, hs, h⟩ => hr ▸ hs ▸ h, fun h => ⟨a, rfl, b, rfl, h⟩⟩
+
+variable {A} in
+theorem atom_inf_atom_of_ne {a b : α} (h : a ≠ b) : atom A a ⊓ atom A b = ⊥ := by
+  ext c
+  exact ⟨fun ⟨ha, hb⟩ => h (ha.symm.trans hb), False.elim⟩
+
 /-- A complex algebra is integral exactly when its identity set is a singleton. -/
 theorem isIntegral_iff : IsIntegral (ComplexAlgebra A) ↔ ∃ a, A.id = {a} :=
   ((orderIsoSet A).isAtom_iff (1 : ComplexAlgebra A)).symm.trans Set.isAtom_iff
