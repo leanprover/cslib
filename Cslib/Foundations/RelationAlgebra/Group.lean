@@ -13,13 +13,11 @@ public import Mathlib.Algebra.Group.Basic
 /-!
 # Group relation algebras
 
-The *complex algebra* `Cm(G)` of a group `G` is the relation algebra of all subsets of `G`, with
-complex multiplication `X * Y = {f * g | f ∈ X, g ∈ Y}`, complex inverse as converse, and `{1}` as
-the identity. We obtain it as the complex algebra of the atom structure `AtomStructure.ofGroup G`.
-
-A relation algebra is *representable over a group* (`GroupRepresentable`) when it embeds into the
-complex algebra of some group. By Cayley's representation such an algebra is representable, and it
-is always integral.
+Every group forms an atom structure (and thus a complex algebra) by defining composition as
+`X * Y = {f * g | f ∈ X, g ∈ Y}` and inheriting the inverse and (set containing) identity. These
+are some of the most common ways of constructing the representation of a relation algebra, so we
+also provide a predicate for being representable by a group and the data of the Cayley
+representation.
 
 ## References
 
@@ -39,9 +37,7 @@ namespace AtomStructure
 variable {G : Type*} [Group G]
 
 variable (G) in
-/-- The atom structure of a group: the atoms are the group elements, the converse of an element is
-its inverse, the only identity atom is the group identity, and `(f, g, h)` is a cycle exactly
-when `f * g = h`. -/
+/-- The atom structure of a group. -/
 def ofGroup : AtomStructure G where
   conv := (·)⁻¹
   id := {1}
@@ -69,26 +65,23 @@ namespace ComplexAlgebra
 
 variable {G : Type*} [Group G]
 
-/-- The complex algebra of a group is integral. -/
 theorem isIntegral_ofGroup : IsIntegral (ComplexAlgebra (ofGroup G)) :=
   (isIntegral_iff _).mpr ⟨1, rfl⟩
 
 variable (G) in
-/-- The Cayley representation of the complex algebra of a group `G` by relations on `G`: a set `X`
-is sent to the relation `{(g, h) | g⁻¹ * h ∈ X}`. -/
+/-- The Cayley representation of the complex algebra of a group. -/
 def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SetRel G G) where
   toFun x := {(g, h) | g⁻¹ * h ∈ x}
   map_sup' _ _ := rfl
   map_inf' _ _ := rfl
   map_top' := rfl
   map_bot' := rfl
-  map_one' := by ext ⟨g, h⟩; simp [inv_mul_eq_one]
+  map_one' := by ext ⟨_, _⟩; simp [inv_mul_eq_one]
   map_mul' x y := by
     ext ⟨g, h⟩
-    simp only [Set.mem_ofPred_eq, mem_mul, mem_ofGroup_cycles, SetRel.mem_mul]
     refine .trans ?_ (mul_left_surjective g).exists.symm
-    simp [← eq_inv_mul_iff_mul_eq, mul_assoc]
-  map_star' x := by ext ⟨g, h⟩; simp
+    simp [mem_mul, ← eq_inv_mul_iff_mul_eq, mul_assoc]
+  map_star' x := by ext ⟨_, _⟩; simp
 
 @[simp]
 theorem mem_cayley {x : ComplexAlgebra (ofGroup G)} {g h : G} :
@@ -97,9 +90,8 @@ theorem mem_cayley {x : ComplexAlgebra (ofGroup G)} {g h : G} :
 theorem cayley_injective : Function.Injective (cayley G) := by
   intro x y hxy
   ext g
-  simpa using congrArg (fun R => ((1 : G), g) ∈ R) hxy
+  simpa using congrArg ((1, g) ∈ ·) hxy
 
-/-- The complex algebra of a group is representable, by Cayley's representation. -/
 theorem representable_ofGroup (G : Type u) [Group G] :
     Representable (ComplexAlgebra (ofGroup G)) :=
   ⟨PUnit, fun _ => G, ⟨{
@@ -108,8 +100,7 @@ theorem representable_ofGroup (G : Type u) [Group G] :
 
 end ComplexAlgebra
 
-/-- A relation algebra is *representable over a group* if it embeds into the complex algebra of
-a group. -/
+/-- A relation algebra is `GroupRepresentable` if it embeds into the complex algebra of a group. -/
 def GroupRepresentable (α : Type u) [RelationAlgebra α] : Prop :=
   ∃ (G : Type u) (_ : Group G) (f : RelationAlgebraHom α (ComplexAlgebra (ofGroup G))),
     Function.Injective f

@@ -75,7 +75,6 @@ theorem id_apply (a : α) : RelationAlgebraHom.id α a = a := rfl
 theorem comp_apply (f : RelationAlgebraHom β γ) (g : RelationAlgebraHom α β) (a : α) :
     f.comp g a = f (g a) := rfl
 
-/-- Integrality is reflected by injective homomorphisms. -/
 theorem isIntegral_of_injective (f : RelationAlgebraHom α β) (hf : Function.Injective f)
     (h : RelationAlgebra.IsIntegral β) : RelationAlgebra.IsIntegral α := by
   refine ⟨fun h1 => IsAtom.ne_bot h ?_, fun b hb => hf ?_⟩
