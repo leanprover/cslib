@@ -21,6 +21,15 @@ This avoids a mutual or nested inductive, and allows us to define a `PFunctor` t
 we can use as the `signature` to define `Formula` via `Cslib.Logic.Modal.Proposition`.
 This is inspired by the "pre" placeholders [Koole2026] uses for dynamic algebras.
 
+NOTES:
+
+- The `Cslib.Logic.Modal.Proposition.nabla` should *not* be used for `Formula` here,
+  because via `PropositionMap.not` it negates the formulas at *all* argument positions.
+  Then `[?p]q` would become `¬⟨?¬p⟩¬q` whereas we want it to be `¬⟨?p⟩¬q`, where the
+  formula in the test position is not negated but stays as it is.
+
+  Instead, we define our own box operator in `Cslib.Logic.Modal.PDL.box`.
+
 ## References
 
 * [Michael J. Fischer and Richard E. Ladner,

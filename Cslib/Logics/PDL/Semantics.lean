@@ -11,9 +11,20 @@ public import Cslib.Foundations.Semantics.Frame.LTS
 public import Cslib.Logics.Modal.Semantics
 public import Cslib.Logics.Modal.Unary.Basic
 public import Cslib.Logics.PDL.Basic
--- public import Cslib.Foundations.Semantics.LTS.Bisimulation
 
-/-! # Semantics for Propositional Dynamic Logic (PDL) -/
+/-! # Semantics for Propositional Dynamic Logic (PDL)
+
+NOTES:
+
+- We can not use `Cslib.Logic.Modal.Satisfies` directly for the PDL `Shape`-formulas
+  because its triangle clause wants a 1:1 matching `(ws i) (φs i)` of worlds to formulas
+  in the modality arguments.
+  But the PDL formula `⟨a ∪ ?⊥⟩p` can be true even though there is no world satisfying `⊥`.
+
+  Hence instead of using `Cslib.Logic.Modal.Satisfies` directly for the PDL functor, we
+  translate both PDL formulas (with `toUnary`) and models (with `toModal`) to the unary
+  framework and then define our semantics via those translations.
+-/
 
 @[expose] public section
 
@@ -40,8 +51,17 @@ def Model.toModal (m : Model State Label Atom) :
 theorem Model.toModal_toFrame (m : Model State Label Atom) :
     m.toModal.toFrame = m.lts.toFrame := rfl
 
+/- ## PDL formulas as unary modal formulas -/
+
 open Cslib.Logic.Modal in
-/-- View a PDL formula over the unary signature with one modality per program. -/
+/-- View a PDL formula over the unary signature with one modality per program.
+
+For example the PDL formula `⟨a ∪ ?⊥⟩p` in our `Formula` type is given by
+applying `⟨a ∪ ?_⟩_` to the two inputs `⊥` and `p`, whereas the result of
+`toUnary` can be seen as applying `⟨a ∪ ?⊥⟩` to `p`.
+
+TODO: Make a `Coe` for this and hide it by default in some way?
+-/
 def Formula.toUnary :
     Formula Label Atom → Proposition (PFunctor.mkUnary (Program Label Atom)) Atom
   | .atom p => .atom p
@@ -117,10 +137,8 @@ structure Model.IsStandard (m : Model State Label Atom) : Prop where
 An `LTS` labelled by atomic programs together with a valuation can be extended to a standard
 model. Because the transitions for tests depend on the truth of formulas, which in turn depends
 on the transitions for programs, we define the transition relation of shapes (`Shape.rel`) and
-the truth of formulas (`Formula.eval`) together. -/
-
--- NOTE: It seems a bit funny to have these defs here, as they are almost
--- the standard semantics of PDL over `LTS`. Move them up somehow?
+the truth of formulas (`Formula.eval`) together.
+-/
 
 /-- The transition relation of a program shape in the standard model over `lts`,
 given the truth sets of the formulas at its test positions. -/
@@ -158,7 +176,7 @@ theorem _root_.Cslib.LTS.toRegular_isRegularPDL (lts : LTS State Label)
 def Model.fromLTS (lts : LTS State Label) (val : State → Atom → Prop) : Model State Label Atom :=
   ⟨lts.toRegular val, val⟩
 
-/-- Truth lemma: the modal semantics in `Model.fromLTS` agrees with `Formula.eval`. -/
+/-- The modal semantics in `Model.fromLTS` agrees with `Formula.eval`. -/
 theorem Model.fromLTS_judgement_iff (lts : LTS State Label) (val : State → Atom → Prop)
     (w : State) (φ : Formula Label Atom) :
     ⇓PDL[Model.fromLTS lts val, w ⊨ φ] ↔ φ.eval lts val w := by
