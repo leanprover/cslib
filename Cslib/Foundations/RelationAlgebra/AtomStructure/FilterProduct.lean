@@ -134,17 +134,6 @@ noncomputable def filterProduct : AtomStructure (l.Product α) where
 theorem filterProduct_conv_mk (f : ∀ i, α i) :
     (filterProduct S l).conv (π f) = π fun i => (S i).conv (f i) := rfl
 
-@[simp]
-theorem mk_mem_filterProduct_id {f : ∀ i, α i} :
-    π f ∈ (filterProduct S l).id ↔ ∀ᶠ i in l, f i ∈ (S i).id :=
-  mk_mem_filterProductId S l
-
-@[simp]
-theorem mk_mem_filterProduct_cycles {f g h : ∀ i, α i} :
-    (π f, π g, π h) ∈ (filterProduct S l).cycles ↔
-      ∀ᶠ i in l, (f i, g i, h i) ∈ (S i).cycles :=
-  mk_mem_filterProductCycles S l
-
 end AtomStructure
 
 namespace ComplexAlgebra
@@ -211,19 +200,19 @@ noncomputable def productHom :
           (h.mono fun i ⟨r, hr, s, hs, hc⟩ => ⟨(r, s), hr, hs, hc⟩)
         exact ⟨π fun i => (rs i).1, (mk_mem_productFun S U).mpr (hrs.mono fun i h => h.1),
           π fun i => (rs i).2, (mk_mem_productFun S U).mpr (hrs.mono fun i h => h.2.1),
-          (mk_mem_filterProduct_cycles S _).mpr (hrs.mono fun i h => h.2.2)⟩
+          (mk_mem_filterProductCycles S _).mpr (hrs.mono fun i h => h.2.2)⟩
       · rintro ⟨r, hr, s, hs, hc⟩
         induction r using Filter.Product.induction_on with | h r
         induction s using Filter.Product.induction_on with | h s
         rw [mk_mem_productFun] at hr hs
-        rw [mk_mem_filterProduct_cycles] at hc
+        replace hc := (mk_mem_filterProductCycles S _).mp hc
         filter_upwards [hr, hs, hc] with i hr hs hc using ⟨r i, hr, s i, hs, hc⟩)
     (by
       rw [← map_one (mkHom (fun i => ComplexAlgebra (S i)) (U : Filter ι))]
       ext a
       induction a using Filter.Product.induction_on with | h f
-      rw [mk_mem_productFun, mem_one, mk_mem_filterProduct_id]
-      rfl)
+      rw [mk_mem_productFun, mem_one]
+      exact (mk_mem_filterProductId S _).symm)
     (fun x => by
       induction x using mkHom_induction_on with | h X
       rw [← map_star]
@@ -231,11 +220,6 @@ noncomputable def productHom :
       induction a using Filter.Product.induction_on with | h f
       rw [mem_star, filterProduct_conv_mk, mk_mem_productFun, mk_mem_productFun]
       exact Filter.eventually_congr (.of_forall fun i => mem_star))
-
-@[simp]
-theorem mk_mem_productHom {X : ∀ i, ComplexAlgebra (S i)} {f : ∀ i, α i} :
-    π f ∈ productHom S U (Filter.Product.mk (U : Filter ι) X) ↔ ∀ᶠ i in U, f i ∈ X i :=
-  mk_mem_productFun S U
 
 /-- An ultraproduct of complex algebras embeds into the complex algebra of the ultraproduct of the
 atom structures. -/

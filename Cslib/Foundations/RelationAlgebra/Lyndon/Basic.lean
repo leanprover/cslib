@@ -26,9 +26,10 @@ and `𝔄(α, e)` is the complex algebra of this one-dimensional geometry in the
 [Givant2017a], Section 3.6.
 
 The terminology varies in the literature. In [Monk1964] the "Lyndon algebras" are the algebras
-satisfying a list of axioms that characterize the integral relation algebras with trivial converse
-(see `Cslib.RelationAlgebra.ofMonk`), and `𝔄(α, e)` is shown to be one of them. We follow the
-modern usage, in which the name refers to the construction.
+satisfying a list of axioms (composition is associative, commutative, additive and has `1'` as an
+identity, converse is trivial, and `1' ≤ x ; y` if and only if `x · y ≠ 0`), which characterize the
+integral relation algebras with trivial converse, and `𝔄(α, e)` is shown to be one of them. We
+follow the modern usage, in which the name refers to the construction.
 
 ## Main definitions
 

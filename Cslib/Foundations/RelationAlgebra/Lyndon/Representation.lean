@@ -167,10 +167,10 @@ is a bounded morphism. -/
 noncomputable def slopeMorphism (h : 5 ≤ ENat.card α) (hK : ∃ c : K, c ≠ 0 ∧ c ≠ 1) :
     BoundedMorphism (ofGroup (Multiplicative (K × K))) (lyndon e h) where
   toFun v := slope φ v.toAdd
-  map_conv' v := slope_neg v.toAdd
-  map_mem_id_iff' := slope_eq_iff
-  map_cycles' {r s t} (hc : r * s = t) := hc ▸ slope_mem_lyndonCycles r.toAdd s.toAdd
-  exists_of_cycles' hc :=
+  map_conv v := slope_neg v.toAdd
+  map_mem_id_iff := slope_eq_iff
+  map_cycles {r s t} (hc : r * s = t) := hc ▸ slope_mem_lyndonCycles r.toAdd s.toAdd
+  exists_of_cycles hc :=
     let ⟨u, w, hu, hw, huw⟩ := exists_add_of_mem_lyndonCycles hK hc
     ⟨.ofAdd u, .ofAdd w, hu, hw, congrArg Multiplicative.ofAdd huw⟩
 
@@ -202,22 +202,17 @@ theorem groupRepresentable_lyndon_of_field {α : Type u} (e : α) (h : 5 ≤ ENa
       let ⟨v, hv⟩ := slope_surjective (φ := φ) a
       ⟨.ofAdd v, hv⟩⟩
 
-/-- The points of a Lyndon algebra on an infinite type `α` are in bijection with the projective
-line over any field structure on `α`. -/
-theorem Lyndon.nonempty_equiv_option {α : Type u} [Infinite α] (e : α) :
-    Nonempty ({a // a ≠ e} ≃ Option α) := by
-  refine Cardinal.eq.mp ?_
-  rw [Cardinal.mk_option, Cardinal.mk_add_one_eq]
-  refine Cardinal.mk_compl_of_infinite {e} ?_
-  rw [Cardinal.mk_singleton]
-  exact Cardinal.one_lt_aleph0.trans_le (Cardinal.aleph0_le_mk α)
-
 /-- **Theorem C** of [Monk1964]: a Lyndon algebra on an infinite type is representable over a
 group. -/
 theorem groupRepresentable_lyndon {α : Type u} [Infinite α] (e : α) (h : 5 ≤ ENat.card α) :
     GroupRepresentable (ComplexAlgebra (lyndon e h)) := by
   obtain ⟨_⟩ := Infinite.nonempty_field (α := α)
-  obtain ⟨φ⟩ := Lyndon.nonempty_equiv_option e
+  have hcard : Cardinal.mk {a // a ≠ e} = Cardinal.mk (Option α) := by
+    rw [Cardinal.mk_option, Cardinal.mk_add_one_eq]
+    refine Cardinal.mk_compl_of_infinite {e} ?_
+    rw [Cardinal.mk_singleton]
+    exact Cardinal.one_lt_aleph0.trans_le (Cardinal.aleph0_le_mk α)
+  obtain ⟨φ⟩ := Cardinal.eq.mp hcard
   exact groupRepresentable_lyndon_of_field e h α φ
 
 end Cslib.RelationAlgebra

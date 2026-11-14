@@ -34,34 +34,11 @@ variable {α β : Type*}
 structure AtomStructure.BoundedMorphism (A : AtomStructure α) (B : AtomStructure β) where
   /-- The underlying function on atoms. -/
   toFun : α → β
-  map_conv' (a : α) : toFun (A.conv a) = B.conv (toFun a)
-  map_mem_id_iff' {a : α} : toFun a ∈ B.id ↔ a ∈ A.id
-  map_cycles' {r s t : α} : (r, s, t) ∈ A.cycles → (toFun r, toFun s, toFun t) ∈ B.cycles
-  exists_of_cycles' {r' s' : β} {t : α} : (r', s', toFun t) ∈ B.cycles →
+  map_conv (a : α) : toFun (A.conv a) = B.conv (toFun a)
+  map_mem_id_iff {a : α} : toFun a ∈ B.id ↔ a ∈ A.id
+  map_cycles {r s t : α} : (r, s, t) ∈ A.cycles → (toFun r, toFun s, toFun t) ∈ B.cycles
+  exists_of_cycles {r' s' : β} {t : α} : (r', s', toFun t) ∈ B.cycles →
     ∃ r s, toFun r = r' ∧ toFun s = s' ∧ (r, s, t) ∈ A.cycles
-
-namespace AtomStructure.BoundedMorphism
-
-variable {A : AtomStructure α} {B : AtomStructure β}
-
-instance : FunLike (BoundedMorphism A B) α β where
-  coe := toFun
-  coe_injective f g h := by cases f; cases g; congr
-
-variable (f : BoundedMorphism A B)
-
-theorem map_conv (a : α) : f (A.conv a) = B.conv (f a) := f.map_conv' a
-
-theorem map_mem_id_iff {a : α} : f a ∈ B.id ↔ a ∈ A.id := f.map_mem_id_iff'
-
-theorem map_cycles {r s t : α} (h : (r, s, t) ∈ A.cycles) : (f r, f s, f t) ∈ B.cycles :=
-  f.map_cycles' h
-
-theorem exists_of_cycles {r' s' : β} {t : α} (h : (r', s', f t) ∈ B.cycles) :
-    ∃ r s, f r = r' ∧ f s = s' ∧ (r, s, t) ∈ A.cycles :=
-  f.exists_of_cycles' h
-
-end AtomStructure.BoundedMorphism
 
 namespace ComplexAlgebra
 
@@ -72,7 +49,7 @@ variable {A : AtomStructure α} {B : AtomStructure β}
 /-- The homomorphism of complex algebras induced by a bounded morphism of atom structures, sending
 a set of atoms to its preimage. -/
 def comap (f : BoundedMorphism A B) : RelationAlgebraHom (ComplexAlgebra B) (ComplexAlgebra A) :=
-  RelationAlgebraHom.mk' (fun x => ⟨f ⁻¹' x.carrier⟩)
+  RelationAlgebraHom.mk' (fun x => ⟨f.toFun ⁻¹' x.carrier⟩)
     (fun _ _ => rfl)
     (fun _ => rfl)
     (fun x y => by
@@ -82,20 +59,20 @@ def comap (f : BoundedMorphism A B) : RelationAlgebraHom (ComplexAlgebra B) (Com
         obtain ⟨r, s, rfl, rfl, hrs⟩ := f.exists_of_cycles h
         exact ⟨r, hr', s, hs', hrs⟩
       · rintro ⟨r, hr, s, hs, h⟩
-        exact ⟨f r, hr, f s, hs, f.map_cycles h⟩)
+        exact ⟨f.toFun r, hr, f.toFun s, hs, f.map_cycles h⟩)
     (by ext a; exact f.map_mem_id_iff)
     (fun x => by
       ext a
       rw [mem_star]
-      change f a ∈ star x ↔ f (A.conv a) ∈ x
+      change f.toFun a ∈ star x ↔ f.toFun (A.conv a) ∈ x
       rw [mem_star, f.map_conv])
 
 @[simp]
 theorem mem_comap {f : BoundedMorphism A B} {x : ComplexAlgebra B} {a : α} :
-    a ∈ comap f x ↔ f a ∈ x := .rfl
+    a ∈ comap f x ↔ f.toFun a ∈ x := .rfl
 
 /-- The homomorphism induced by a surjective bounded morphism is injective. -/
-theorem comap_injective {f : BoundedMorphism A B} (hf : Function.Surjective f) :
+theorem comap_injective {f : BoundedMorphism A B} (hf : Function.Surjective f.toFun) :
     Function.Injective (comap f) := by
   intro x y hxy
   ext b

@@ -94,28 +94,6 @@ def mk' (f : α → β) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_comp
   map_mul' := map_mul
   map_star' := map_star
 
-@[simp]
-theorem mk'_apply (f : α → β) (map_sup map_compl map_mul map_one map_star) (a : α) :
-    mk' f map_sup map_compl map_mul map_one map_star a = f a := rfl
-
-/-- A homomorphism from an integral relation algebra to a nontrivial one has trivial kernel. -/
-theorem eq_bot_of_map_eq_bot [Nontrivial β] (f : RelationAlgebraHom α β)
-    (h : RelationAlgebra.IsIntegral α) {a : α} (ha : f a = ⊥) : a = ⊥ := by
-  by_contra hne
-  have htop : (⊤ : β) = ⊥ := by
-    rw [← map_top f, ← h.top_mul_mul_top hne, map_mul, map_mul, ha, RelationAlgebra.mul_bot,
-      RelationAlgebra.bot_mul]
-  exact top_ne_bot htop
-
-/-- A homomorphism from an integral relation algebra to a nontrivial one is injective, because
-integral relation algebras are simple. -/
-theorem injective_of_isIntegral [Nontrivial β] (f : RelationAlgebraHom α β)
-    (h : RelationAlgebra.IsIntegral α) : Function.Injective f := by
-  intro a b hab
-  rw [← symmDiff_eq_bot]
-  apply f.eq_bot_of_map_eq_bot h
-  rw [map_symmDiff', hab, symmDiff_self]
-
 /-- Integrality is reflected by injective homomorphisms. -/
 theorem isIntegral_of_injective (f : RelationAlgebraHom α β) (hf : Function.Injective f)
     (h : RelationAlgebra.IsIntegral β) : RelationAlgebra.IsIntegral α := by
@@ -124,11 +102,6 @@ theorem isIntegral_of_injective (f : RelationAlgebraHom α β) (hf : Function.In
   · have hlt : f b < 1 := map_one f ▸ (OrderHomClass.mono f).strictMono_of_injective hf hb
     rw [map_bot]
     exact h.2 _ hlt
-
-/-- Triviality of the converse is reflected by injective homomorphisms. -/
-theorem trivialStar_of_injective (f : RelationAlgebraHom α β) (hf : Function.Injective f)
-    [TrivialStar β] : TrivialStar α :=
-  ⟨fun a => hf (by rw [map_star, star_trivial])⟩
 
 end RelationAlgebraHom
 

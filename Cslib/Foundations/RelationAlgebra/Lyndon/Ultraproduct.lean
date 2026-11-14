@@ -46,13 +46,13 @@ theorem AtomStructure.filterProduct_lyndon (h' : 5 ≤ ENat.card ((U : Filter ι
     rfl
   · ext x
     induction x using induction_on with | h f
-    rw [mk_mem_filterProduct_id]
+    refine (mk_mem_filterProductId _ _).trans ?_
     simp only [lyndon_id, Set.mem_singleton_iff, mk_eq_mk]
   · ext ⟨x, y, z⟩
     induction x using induction_on with | h f
     induction y using induction_on with | h g
     induction z using induction_on with | h k
-    rw [mk_mem_filterProduct_cycles]
+    refine (mk_mem_filterProductCycles _ _).trans ?_
     simp only [lyndon_cycles, mem_lyndonCycles, ne_eq, mk_eq_mk, Ultrafilter.eventually_or,
       Filter.eventually_and, Ultrafilter.eventually_not]
 

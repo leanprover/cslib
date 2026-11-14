@@ -159,14 +159,6 @@ theorem mul_bot (a : α) : a * ⊥ = ⊥ := by
     a * ⊥ ≤ a * (star a * ⊤)ᶜ := mul_le_mul_right bot_le a
     _ ≤ ⊥ := by simpa using tarski (star a) ⊤
 
-@[simp]
-theorem bot_mul (a : α) : ⊥ * a = ⊥ :=
-  star_injective (by simp)
-
-/-- A relation algebra whose converse is trivial is commutative. -/
-protected theorem mul_comm [TrivialStar α] (a b : α) : a * b = b * a := by
-  rw [← star_trivial (a * b), star_mul, star_trivial, star_trivial]
-
 @[to_dual (attr := simp)]
 theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
   starOrderIso.isAtom_iff a
@@ -210,43 +202,8 @@ theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : 
 /-- A relation algebra is *integral* when its identity is an atom. -/
 def IsIntegral (α : Type*) [RelationAlgebra α] : Prop := IsAtom (1 : α)
 
-namespace IsIntegral
-
-variable (h : IsIntegral α) {a : α}
-
-include h
-
-theorem top_ne_bot : (⊤ : α) ≠ ⊥ :=
+theorem IsIntegral.top_ne_bot (h : IsIntegral α) : (⊤ : α) ≠ ⊥ :=
   fun ht => IsAtom.ne_bot h (le_bot_iff.mp (ht ▸ le_top))
-
-theorem nontrivial : Nontrivial α :=
-  ⟨⊤, ⊥, h.top_ne_bot⟩
-
-theorem one_le_star_mul_self (ha : a ≠ ⊥) : 1 ≤ star a * a := by
-  by_contra hle
-  have hdisj : 1 ⊓ star a * a = ⊥ := ((IsAtom.not_le_iff_disjoint h).mp hle).eq_bot
-  have hbot : a ≤ ⊥ := calc
-    a = a * 1 ⊓ a := by rw [mul_one, inf_idem]
-    _ ≤ a * (1 ⊓ star a * a) := left_modular a 1 a
-    _ = ⊥ := by rw [hdisj, mul_bot]
-  exact ha (le_bot_iff.mp hbot)
-
-theorem top_mul (ha : a ≠ ⊥) : ⊤ * a = ⊤ :=
-  top_le_iff.mp <| calc
-    ⊤ = ⊤ * 1 := (mul_one ⊤).symm
-    _ ≤ ⊤ * (star a * a) := mul_le_mul_right (h.one_le_star_mul_self ha) ⊤
-    _ = ⊤ * star a * a := (mul_assoc ..).symm
-    _ ≤ ⊤ * a := mul_le_mul_left le_top a
-
-theorem mul_top (ha : a ≠ ⊥) : a * ⊤ = ⊤ := by
-  have hstar : star a ≠ ⊥ := fun hs => ha (star_injective (hs.trans star_bot.symm))
-  simpa using congrArg star (h.top_mul hstar)
-
-/-- An integral relation algebra is simple: every nonzero element generates the unit ideal. -/
-theorem top_mul_mul_top (ha : a ≠ ⊥) : ⊤ * a * ⊤ = ⊤ := by
-  rw [h.top_mul ha, h.mul_top h.top_ne_bot]
-
-end IsIntegral
 
 /-- The set of identity atoms. -/
 def identityAtoms (α : Type*) [RelationAlgebra α] : Set α := {a : α | IsAtom a ∧ a ≤ 1}

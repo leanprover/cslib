@@ -17,8 +17,9 @@ public import Mathlib.NumberTheory.SumTwoSquares
 # The Bruck–Ryser theorem
 
 The Bruck–Ryser theorem states that if a finite projective plane has order `n` congruent to `1` or
-`2` modulo `4`, then `n` is a sum of two squares. In particular there are infinitely many natural
-numbers that are not the order of any projective plane.
+`2` modulo `4`, then `n` is a sum of two squares. In particular no projective plane has order
+`2 * 3 ^ (2 * k + 1)`, so there are infinitely many natural numbers that are not the order of any
+projective plane.
 
 This module is deliberately restricted to projective planes, and does not develop the
 Bruck–Ryser–Chowla theorem for symmetric designs.
@@ -44,6 +45,7 @@ with entries `±1` such that `C - E` is invertible
 
 * [R. H. Bruck and H. J. Ryser, *The nonexistence of certain finite projective planes*]
   [BruckRyser1949]
+* [J. D. Monk, *On representable relation algebras*][Monk1964]
 
 -/
 
@@ -335,7 +337,8 @@ theorem exists_sq_add_sq_of_order (h : order P L % 4 = 1 ∨ order P L % 4 = 2) 
   obtain ⟨q, r, hqr⟩ := Cslib.exists_rat_mul_sq_eq_one_add_sq h
   exact Cslib.exists_sq_add_sq_of_rat hqr
 
-/-- There is no projective plane of order `2 * 3 ^ (2 * k + 1)`, by the Bruck–Ryser theorem. -/
+/-- **Theorem B** of [Monk1964]: there is no projective plane of order `2 * 3 ^ (2 * k + 1)`, by
+the Bruck–Ryser theorem. -/
 theorem order_ne_two_mul_three_pow (k : ℕ) : order P L ≠ 2 * 3 ^ (2 * k + 1) := by
   intro hk
   have hodd : 3 ^ (2 * k + 1) % 2 = 1 := by
@@ -351,18 +354,6 @@ theorem order_ne_two_mul_three_pow (k : ℕ) : order P L ≠ 2 * 3 ^ (2 * k + 1)
   rw [Nat.padicValNat_def, Nat.multiplicity_mul two_ne_zero (by positivity),
     Nat.multiplicity_prime_pow, multiplicity_eq_zero_of_not_dvd (by decide), zero_add] at heven
   obtain ⟨r, hr⟩ := heven
-  omega
-
-/-- **Theorem B** of [Monk1964]: there are infinitely many natural numbers that are not the order
-of a projective plane. -/
-theorem infinite_setOf_forall_order_ne :
-    {n : ℕ | ∀ (P L : Type*) [Membership P L] [ProjectivePlane P L] [Finite P] [Finite L],
-      order P L ≠ n}.Infinite := by
-  refine Set.infinite_of_injective_forall_mem (f := fun k : ℕ => 2 * 3 ^ (2 * k + 1)) ?_
-    fun k P L _ _ _ _ => order_ne_two_mul_three_pow P L k
-  intro a b hab
-  have h := Nat.pow_right_injective (le_refl 2 |>.trans (by decide : 2 ≤ 3))
-    (Nat.eq_of_mul_eq_mul_left two_pos hab)
   omega
 
 end Configuration.ProjectivePlane

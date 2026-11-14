@@ -110,11 +110,6 @@ def mkHom : RelationAlgebraHom (∀ i, A i) (l.Product A) :=
   RelationAlgebraHom.mk' (mk l) (fun _ _ => rfl) (fun _ => rfl)
     (fun _ _ => rfl) rfl (fun _ => rfl)
 
-@[simp]
-theorem mkHom_apply (f : ∀ i, A i) : mkHom A l f = mk l f := rfl
-
-theorem mkHom_surjective : Function.Surjective (mkHom A l) := mk_surjective
-
 /-- Every element of a reduced product of relation algebras is the image of some element of the
 product under the quotient homomorphism. -/
 @[elab_as_elim]
@@ -126,10 +121,6 @@ variable {f g : ∀ i, A i}
 
 theorem mkHom_eq_mkHom : mkHom A l f = mkHom A l g ↔ ∀ᶠ i in l, f i = g i :=
   mk_eq_mk
-
-theorem mkHom_le_mkHom : mkHom A l f ≤ mkHom A l g ↔ ∀ᶠ i in l, f i ≤ g i := by
-  rw [← sup_eq_right, ← SupHomClass.map_sup, mkHom_eq_mkHom]
-  simp only [Pi.sup_apply, sup_eq_right]
 
 instance [∀ i, TrivialStar (A i)] : TrivialStar (l.Product A) where
   star_trivial x := by
@@ -156,10 +147,6 @@ instance instCompatibleRelationAlgebra :
     obtain ⟨f, rfl⟩ := exists_mkHom_eq U x
     exact (Ultraproduct.funMap_cast _ f).trans <| (congrArg (mkHom A (U : Filter ι))
       (funext fun i => CompatibleRelationAlgebra.funMap_sup _)).trans (SupHomClass.map_sup _ _ _)
-  funMap_inf x := by
-    obtain ⟨f, rfl⟩ := exists_mkHom_eq U x
-    exact (Ultraproduct.funMap_cast _ f).trans <| (congrArg (mkHom A (U : Filter ι))
-      (funext fun i => CompatibleRelationAlgebra.funMap_inf _)).trans (InfHomClass.map_inf _ _ _)
   funMap_compl x := by
     obtain ⟨f, rfl⟩ := exists_mkHom_eq U x
     exact (Ultraproduct.funMap_cast _ f).trans <| (congrArg (mkHom A (U : Filter ι))

@@ -37,10 +37,10 @@ algebras.
 * `Cslib.RelationAlgebra.exists_not_representable_model`: every finite theory that holds in all
   integral relation algebras with trivial converse that are representable over a group also holds
   in one that is not representable.
-* `Cslib.RelationAlgebra.not_exists_finite_theory_iff_and_representable` and
-  `Cslib.RelationAlgebra.not_exists_finite_theory_iff_and_groupRepresentable`: Theorem 2 of
-  [Monk1964], for an arbitrary class containing all integral relation algebras with trivial
-  converse (the algebras called "Lyndon algebras" in [Monk1964]).
+* `Cslib.RelationAlgebra.not_exists_finite_theory_iff_and`: Theorem 2 of [Monk1964] in a general
+  form, for an arbitrary class containing all integral relation algebras with trivial converse
+  (the algebras called "Lyndon algebras" in [Monk1964]) and an arbitrary property between
+  representability over a group and representability.
 * `Cslib.RelationAlgebra.not_exists_finite_theory_iff_model_and_representable`: Theorem 2 of
   [Monk1964] as stated there, for an elementary class.
 * `Cslib.RelationAlgebra.not_exists_finite_theory_iff_representable` and
@@ -54,10 +54,10 @@ Following the conventions of `Mathlib.ModelTheory.Algebra.Ring.Basic`, a class o
 is a predicate on types carrying a `RelationAlgebra` instance, and it is *finitely axiomatizable*
 when there is a finite theory `T` in the language of relation algebras such that a relation
 algebra `A` with a compatible structure is a model of `T` exactly when it belongs to the class.
-This is finite axiomatizability relative to the class of all relation algebras. Since the theory
-of relation algebras is itself finite (`FirstOrder.Language.Theory.finite_relationAlgebra`), it is
-equivalent to the existence of a finite theory whose models, among all structures for the
-language, are exactly the members of the class.
+This is finite axiomatizability relative to the class of all relation algebras. Since relation
+algebras are themselves defined by finitely many equations, it is equivalent to the existence of a
+finite theory whose models, among all structures for the language, are exactly the members of the
+class.
 
 [Monk1964] takes an ultraproduct over the set of all `m ≥ 3` that are not the order of a
 projective plane, with respect to an arbitrary nonprincipal ultrafilter. We use the explicit
@@ -160,50 +160,26 @@ theorem exists_not_representable_model (T : Language.relationAlgebra.Theory) (hT
   exact ⟨Monk.Algebra k, inferInstance, c k, Monk.isIntegral k, inferInstance,
     Monk.not_representable k, (Theory.model_iff T).mpr hk⟩
 
-/-- No first-order sentence separates the relation algebras representable over a group from the
-non-representable ones, even among the integral relation algebras with trivial converse. -/
-theorem exists_not_representable_realize (σ : Language.relationAlgebra.Sentence)
-    (hσ : ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A],
-      IsIntegral A → TrivialStar A → GroupRepresentable A → A ⊨ σ) :
-    ∃ (A : Type u) (_ : RelationAlgebra A) (_ : CompatibleRelationAlgebra A),
-      IsIntegral A ∧ TrivialStar A ∧ ¬ Representable A ∧ A ⊨ σ := by
-  obtain ⟨A, _, _, hint, hstar, hrep, hA⟩ := exists_not_representable_model {σ}
-    (Set.finite_singleton σ) fun A _ _ hint hstar hg =>
-      Theory.model_singleton_iff.mpr (hσ A hint hstar hg)
-  exact ⟨A, inferInstance, inferInstance, hint, hstar, hrep, Theory.model_singleton_iff.mp hA⟩
+/-- **Theorem 2** of [Monk1964], in a general form. Let `R` be a property of relation algebras
+that is implied by representability over a group and implies representability, and let `K` be a
+class of relation algebras containing all integral relation algebras with trivial converse. Then
+the class of algebras in `K` satisfying `R` is not finitely axiomatizable.
 
-section
-
-variable (K : ∀ (A : Type u) [RelationAlgebra A], Prop)
-  (hK : ∀ (A : Type u) [RelationAlgebra A], IsIntegral A → TrivialStar A → K A)
-
-include hK
-
-/-- **Theorem 2** of [Monk1964], for an arbitrary class: if a class `K` of relation algebras
-contains all integral relation algebras with trivial converse, then the class of representable
-relation algebras in `K` is not finitely axiomatizable. -/
-theorem not_exists_finite_theory_iff_and_representable :
+The class `K` is allowed to depend on the first-order structure, so that it can be taken to be the
+class of models of a theory. -/
+theorem not_exists_finite_theory_iff_and
+    (R : ∀ (A : Type u) [RelationAlgebra A], Prop)
+    (hGR : ∀ (A : Type u) [RelationAlgebra A], GroupRepresentable A → R A)
+    (hR : ∀ (A : Type u) [RelationAlgebra A], R A → Representable A)
+    (K : ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A], Prop)
+    (hK : ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A],
+      IsIntegral A → TrivialStar A → K A) :
     ¬ ∃ T : Language.relationAlgebra.Theory, T.Finite ∧
-      ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A],
-        A ⊨ T ↔ K A ∧ Representable A := by
+      ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A], A ⊨ T ↔ K A ∧ R A := by
   rintro ⟨T, hfin, hT⟩
   obtain ⟨A, _, _, -, -, hrep, hA⟩ := exists_not_representable_model T hfin
-    fun A _ _ hint hstar hg => (hT A).mpr ⟨hK A hint hstar, hg.representable⟩
-  exact hrep ((hT A).mp hA).2
-
-/-- **Theorem 2** of [Monk1964], for an arbitrary class: if a class `K` of relation algebras
-contains all integral relation algebras with trivial converse, then the class of relation algebras
-in `K` that are representable over a group is not finitely axiomatizable. -/
-theorem not_exists_finite_theory_iff_and_groupRepresentable :
-    ¬ ∃ T : Language.relationAlgebra.Theory, T.Finite ∧
-      ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A],
-        A ⊨ T ↔ K A ∧ GroupRepresentable A := by
-  rintro ⟨T, hfin, hT⟩
-  obtain ⟨A, _, _, -, -, hrep, hA⟩ := exists_not_representable_model T hfin
-    fun A _ _ hint hstar hg => (hT A).mpr ⟨hK A hint hstar, hg⟩
-  exact hrep ((hT A).mp hA).2.representable
-
-end
+    fun A _ _ hint hstar hg => (hT A).mpr ⟨hK A hint hstar, hGR A hg⟩
+  exact hrep (hR A ((hT A).mp hA).2)
 
 /-- **Theorem 2** of [Monk1964]: if `K` is an elementary class containing all integral relation
 algebras with trivial converse, given as the class of models of a theory `T'`, then neither the
@@ -218,24 +194,19 @@ theorem not_exists_finite_theory_iff_model_and_representable
         A ⊨ T ↔ A ⊨ T' ∧ Representable A) ∧
     ¬ ∃ T : Language.relationAlgebra.Theory, T.Finite ∧
       ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A],
-        A ⊨ T ↔ A ⊨ T' ∧ GroupRepresentable A := by
-  constructor
-  · rintro ⟨T, hfin, hT⟩
-    obtain ⟨A, _, _, -, -, hrep, hA⟩ := exists_not_representable_model T hfin
-      fun A _ _ hint hstar hg => (hT A).mpr ⟨hT' A hint hstar, hg.representable⟩
-    exact hrep ((hT A).mp hA).2
-  · rintro ⟨T, hfin, hT⟩
-    obtain ⟨A, _, _, -, -, hrep, hA⟩ := exists_not_representable_model T hfin
-      fun A _ _ hint hstar hg => (hT A).mpr ⟨hT' A hint hstar, hg⟩
-    exact hrep ((hT A).mp hA).2.representable
+        A ⊨ T ↔ A ⊨ T' ∧ GroupRepresentable A :=
+  ⟨not_exists_finite_theory_iff_and (fun A _ => Representable A)
+      (fun _ _ h => h.representable) (fun _ _ h => h) (fun A _ _ => A ⊨ T') hT',
+    not_exists_finite_theory_iff_and (fun A _ => GroupRepresentable A)
+      (fun _ _ h => h) (fun _ _ h => h.representable) (fun A _ _ => A ⊨ T') hT'⟩
 
 /-- The class of representable relation algebras is not finitely axiomatizable. -/
 theorem not_exists_finite_theory_iff_representable :
     ¬ ∃ T : Language.relationAlgebra.Theory, T.Finite ∧
       ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A],
         A ⊨ T ↔ Representable A := by
-  have h := not_exists_finite_theory_iff_and_representable.{u} (fun _ _ => True)
-    fun _ _ _ _ => trivial
+  have h := not_exists_finite_theory_iff_and.{u} (fun A _ => Representable A)
+    (fun _ _ h => h.representable) (fun _ _ h => h) (fun _ _ _ => True) fun _ _ _ _ _ => trivial
   simpa only [true_and] using h
 
 /-- The class of relation algebras representable over a group is not finitely axiomatizable. -/
@@ -243,8 +214,9 @@ theorem not_exists_finite_theory_iff_groupRepresentable :
     ¬ ∃ T : Language.relationAlgebra.Theory, T.Finite ∧
       ∀ (A : Type u) [RelationAlgebra A] [CompatibleRelationAlgebra A],
         A ⊨ T ↔ GroupRepresentable A := by
-  have h := not_exists_finite_theory_iff_and_groupRepresentable.{u} (fun _ _ => True)
-    fun _ _ _ _ => trivial
+  have h := not_exists_finite_theory_iff_and.{u} (fun A _ => GroupRepresentable A)
+    (fun _ _ h => h) (fun _ _ h => h.representable) (fun _ _ _ => True)
+    fun _ _ _ _ _ => trivial
   simpa only [true_and] using h
 
 end Cslib.RelationAlgebra

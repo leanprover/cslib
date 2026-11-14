@@ -20,9 +20,8 @@ direction `p`. Completing this affine plane gives a projective plane in which `�
 line at infinity. This is the argument of [Lyndon1961].
 
 Every representation of a finite Lyndon algebra has this covering property, because the unit is
-then a finite join of atoms. For an infinite Lyndon algebra representations need not preserve this
-join; but then a projective plane with the required line exists outright, by the construction
-over a field in `Cslib.RelationAlgebra.groupRepresentable_lyndon_of_field`.
+then a finite join of atoms. Representations of an infinite Lyndon algebra need not preserve this
+join, which is why the statements below are restricted to finite Lyndon algebras.
 
 ## Main statements
 
@@ -30,7 +29,6 @@ over a field in `Cslib.RelationAlgebra.groupRepresentable_lyndon_of_field`.
   finite Lyndon algebras, for representations in arbitrary universes.
 * `Cslib.RelationAlgebra.exists_projectivePlane_order_of_representation`: the same, phrased in
   terms of the order of the plane.
-* `Cslib.RelationAlgebra.exists_projectivePlane_of_representable`: Theorem D of [Monk1964].
 
 ## References
 
@@ -95,38 +93,6 @@ theorem exists_three_ne : ∃ a b c : {a // a ≠ e}, a ≠ b ∧ b ≠ c ∧ a 
   exact ⟨⟨a, ha⟩, ⟨b, hb⟩, ⟨c, hc⟩, fun hab => hba (congrArg Subtype.val hab).symm,
     fun hbc => hcb (congrArg Subtype.val hbc).symm,
     fun hac => hca (congrArg Subtype.val hac).symm⟩
-
-/-- The affine plane over a field, with its directions labelled by the points of a Lyndon algebra
-that are in bijection with the projective line over the field. -/
-def fieldParallelism {K : Type*} [Field K] (φ : {a // a ≠ e} ≃ Option K)
-    (hK : ∃ c : K, c ≠ 0 ∧ c ≠ 1) (hdir : ∃ a b c : {a // a ≠ e}, a ≠ b ∧ b ≠ c ∧ a ≠ c) :
-    Parallelism (K × K) {a // a ≠ e} where
-  rel p u v := slope φ (v - u) = p
-  symm {p u v} huv := by rw [← neg_sub, slope_neg, huv]
-  irrefl {p u} hu := p.property (by rw [← hu, sub_self, slope_zero])
-  exists_rel_of_ne {u v} huv :=
-    ⟨⟨slope φ (v - u), fun hs => huv (sub_eq_zero.mp (slope_eq_iff.mp hs)).symm⟩, rfl⟩
-  eq_of_rel hp hq := Subtype.ext (hp.symm.trans hq)
-  trans {p u v w} huv hvw := by
-    have hc := slope_mem_lyndonCycles (φ := φ) (v - u) (w - v)
-    rw [sub_add_sub_cancel', huv, hvw, mem_lyndonCycles] at hc
-    have hp := p.property
-    have hw : slope φ (w - u) = e → u = w := fun hs => (sub_eq_zero.mp (slope_eq_iff.mp hs)).symm
-    grind
-  exists_rel p u := by
-    obtain ⟨d, -, hd⟩ := exists_slope_eq (φ := φ) p.property
-    exact ⟨u + d, by rw [add_sub_cancel_left, hd]⟩
-  exists_rel_rel {p q r x z} hpq hqr hpr hr := by
-    have hc : ((p : α), (q : α), slope φ (z - x)) ∈ lyndonCycles e := by
-      rw [hr]
-      exact .inr <| .inr <| .inr <| .inr ⟨fun hpq' => hpq (Subtype.ext hpq'),
-        fun hqr' => hqr (Subtype.ext hqr'), fun hpr' => hpr (Subtype.ext hpr'), p.property,
-        q.property, r.property⟩
-    obtain ⟨u, w, hu, hw, huw⟩ := exists_add_of_mem_lyndonCycles hK hc
-    refine ⟨x + u, by rw [add_sub_cancel_left, hu], ?_⟩
-    rw [← hw, ← sub_sub, ← huw, add_sub_cancel_left]
-  nonempty := ⟨0⟩
-  exists_dir := hdir
 
 variable {D : Type w} [Finite α] [Nonempty D]
 
@@ -223,29 +189,5 @@ theorem exists_projectivePlane_order_of_representation {ι : Type v} {β : ι �
     rw [← Nat.card_congr (Equiv.optionSubtypeNe e), Nat.card_eq_fintype_card,
       Fintype.card_option, Nat.card_eq_fintype_card]
   rw [hcard, ← π.order_add_one]
-
-omit [Finite α] in
-include h in
-/-- If the points of a Lyndon algebra are in bijection with the projective line over a field, then
-they form a line of a projective plane. -/
-theorem exists_projectivePlane_of_field (K : Type u) [Field K] (φ : {a // a ≠ e} ≃ Option K) :
-    ∃ (P L : Type u) (_ : Membership P L) (_ : ProjectivePlane P L) (l : L),
-      Nonempty ({a // a ≠ e} ≃ {p : P // p ∈ l}) :=
-  let π := fieldParallelism φ (exists_ne_zero_ne_one h φ) (exists_three_ne e h)
-  ⟨π.Points, π.Lines, inferInstance, inferInstance, π.infinity, ⟨π.infinityEquiv.symm⟩⟩
-
-omit [Finite α] in
-/-- **Theorem D** of [Monk1964]: if the Lyndon algebra `𝔄(α, e)` is representable, then `α \ {e}`
-is a line of a projective plane. -/
-theorem exists_projectivePlane_of_representable
-    (hr : Representable (ComplexAlgebra (lyndon e h))) :
-    ∃ (P L : Type u) (_ : Membership P L) (_ : ProjectivePlane P L) (l : L),
-      Nonempty ({a // a ≠ e} ≃ {p : P // p ∈ l}) := by
-  cases finite_or_infinite α
-  · obtain ⟨ι, β, ⟨ρ⟩⟩ := hr
-    exact exists_projectivePlane_of_representation e h ρ
-  · obtain ⟨_⟩ := Infinite.nonempty_field (α := α)
-    obtain ⟨φ⟩ := nonempty_equiv_option e
-    exact exists_projectivePlane_of_field e h α φ
 
 end Cslib.RelationAlgebra

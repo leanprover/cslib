@@ -121,10 +121,6 @@ namespace GroupRepresentable
 
 variable {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
 
-/-- The complex algebra of a group is representable over that group. -/
-theorem ofGroup (G : Type u) [Group G] : GroupRepresentable (ComplexAlgebra (ofGroup G)) :=
-  ⟨G, inferInstance, RelationAlgebraHom.id _, Function.injective_id⟩
-
 /-- A relation algebra that embeds into an algebra representable over a group is itself
 representable over a group. -/
 theorem of_injective (f : RelationAlgebraHom α α') (hf : Function.Injective f)

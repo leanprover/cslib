@@ -214,7 +214,6 @@ public import Cslib.Foundations.RelationAlgebra.ModelTheory
 public import Cslib.Foundations.RelationAlgebra.Monk
 public import Cslib.Foundations.RelationAlgebra.Pi
 public import Cslib.Foundations.RelationAlgebra.Representation
-public import Cslib.Foundations.RelationAlgebra.Symmetric
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS

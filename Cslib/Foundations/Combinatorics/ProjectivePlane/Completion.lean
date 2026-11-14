@@ -140,14 +140,6 @@ theorem point_notMem_infinity : π.point x ∉ π.infinity := id
 @[simp]
 theorem dir_mem_infinity : π.dir p ∈ π.infinity := trivial
 
-theorem point_injective : Function.Injective π.point := Sum.inl_injective
-
-theorem dir_injective : Function.Injective π.dir := Sum.inr_injective
-
-theorem point_ne_dir : π.point x ≠ π.dir p := Sum.inl_ne_inr
-
-theorem affineLine_ne_infinity : π.affineLine p x ≠ π.infinity := Sum.inl_ne_inr
-
 theorem affineLine_eq_affineLine :
     π.affineLine p x = π.affineLine q y ↔ p = q ∧ (x = y ∨ π.rel p x y) := by
   constructor
