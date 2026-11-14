@@ -6,7 +6,6 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.ModelTheory.Basic
 public import Mathlib.Data.Set.Finite.Range
 
@@ -204,37 +203,6 @@ instance [Cslib.RelationAlgebra A] [CompatibleRelationAlgebra A] :
       | supMul => exact Cslib.RelationAlgebra.sup_mul
       | starSup => exact Cslib.RelationAlgebra.star_sup
       | tarski => exact fun a b => sup_eq_right.mpr (Cslib.RelationAlgebra.tarski a b) }
-
-section
-
-variable (A : Type*) [inst : Cslib.RelationAlgebra A] [CompatibleRelationAlgebra A]
-
-/-- For a relation algebra with a compatible structure, the identity map is a homomorphism from
-the relation algebra structure given by `relationAlgebraOfModel` to the original one. The two
-structures are equal, but it is more convenient to transport properties along homomorphisms. -/
-def ofModelHom : @Cslib.RelationAlgebraHom A A (relationAlgebraOfModel A) inst :=
-  @Cslib.RelationAlgebraHom.mk' A A (relationAlgebraOfModel A) inst id
-    (fun a b => CompatibleRelationAlgebra.funMap_sup ![a, b])
-    (fun a => CompatibleRelationAlgebra.funMap_compl ![a])
-    (fun a b => CompatibleRelationAlgebra.funMap_mul ![a, b])
-    (CompatibleRelationAlgebra.funMap_one ![])
-    (fun a => CompatibleRelationAlgebra.funMap_star ![a])
-
-/-- For a relation algebra with a compatible structure, the identity map is a homomorphism from
-the original relation algebra structure to the one given by `relationAlgebraOfModel`. -/
-def toModelHom : @Cslib.RelationAlgebraHom A A inst (relationAlgebraOfModel A) :=
-  @Cslib.RelationAlgebraHom.mk' A A inst (relationAlgebraOfModel A) id
-    (fun a b => (CompatibleRelationAlgebra.funMap_sup ![a, b]).symm)
-    (fun a => (CompatibleRelationAlgebra.funMap_compl ![a]).symm)
-    (fun a b => (CompatibleRelationAlgebra.funMap_mul ![a, b]).symm)
-    (CompatibleRelationAlgebra.funMap_one ![]).symm
-    (fun a => (CompatibleRelationAlgebra.funMap_star ![a]).symm)
-
-theorem ofModelHom_injective : Function.Injective (ofModelHom A) := fun _ _ h => h
-
-theorem toModelHom_injective : Function.Injective (toModelHom A) := fun _ _ h => h
-
-end
 
 end RelationAlgebra
 

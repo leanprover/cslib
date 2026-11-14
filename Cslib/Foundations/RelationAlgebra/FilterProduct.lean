@@ -56,6 +56,19 @@ theorem mk_eq_mk {f g : ∀ i, α i} : mk l f = mk l g ↔ ∀ᶠ i in l, f i = 
 
 end
 
+/-- An ultraproduct of types whose cardinalities are eventually above every natural number is
+infinite. -/
+theorem _root_.FirstOrder.Language.Ultraproduct.infinite_product {ι : Type*} (U : Ultrafilter ι)
+    (M : ι → Type*) [∀ a, Nonempty (M a)]
+    (h : ∀ n : ℕ, ∀ᶠ a in (U : Filter ι), (n : Cardinal) ≤ Cardinal.mk (M a)) :
+    Infinite ((U : Filter ι).Product M) := by
+  let _ : ∀ a, Language.empty.Structure (M a) := fun _ => Language.emptyStructure
+  rw [← Language.empty.model_infiniteTheory_iff]
+  refine ⟨fun φ hφ => ?_⟩
+  obtain ⟨n, rfl⟩ := hφ
+  rw [Ultraproduct.sentence_realize]
+  exact (h n).mono fun a ha => (Sentence.realize_cardGe _ n).2 ha
+
 variable {ι : Type*} {A : ι → Type*} [∀ i, RelationAlgebra (A i)] {l : Filter ι}
 
 section
