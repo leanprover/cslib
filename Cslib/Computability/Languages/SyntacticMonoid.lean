@@ -25,9 +25,9 @@ of a finite monoid `M` under a monoid homomorphism from the free monoid on its a
 
 variable {α : Type}
 
-namespace Language
+namespace Cslib.Language
 
-open Cslib.Language FreeMonoid
+open FreeMonoid
 
 /-- Converting a (two-sided) congruence `c` on finite words to a congruence relation
 on the (multiplicative) free monoid. -/
@@ -143,4 +143,4 @@ theorem IsRegular.iff_finite_monoid {l : Language α} :
     rintro ⟨M, _, _, f, s, rfl⟩
     exact IsRegular.of_finite_monoid f s
 
-end Language
+end Cslib.Language

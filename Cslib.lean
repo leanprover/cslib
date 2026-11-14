@@ -85,6 +85,7 @@ public import Cslib.Computability.Distributed.FLP.ZeroConsensus
 public import Cslib.Computability.Languages.Congruences.Basic
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.MyhillCongruence
+public import Cslib.Computability.Languages.ContextFreeGrammar
 public import Cslib.Computability.Languages.ExampleEventuallyZero
 public import Cslib.Computability.Languages.KleeneAlgorithm
 public import Cslib.Computability.Languages.Language
@@ -92,7 +93,7 @@ public import Cslib.Computability.Languages.LanguageHom
 public import Cslib.Computability.Languages.MyhillNerode
 public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
-public import Cslib.Computability.Languages.RegularExpressions
+public import Cslib.Computability.Languages.RegularExpression
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Languages.Slice
