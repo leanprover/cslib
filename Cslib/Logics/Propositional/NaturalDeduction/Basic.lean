@@ -169,6 +169,11 @@ open Derivation DerivableIn
 
 /-! ### Derived inference rules -/
 
+/-- A derivation of the canonical tautology. -/
+def derivationTop : (ND₁ T)⇓(⊤ : Proposition Atom) := impI ∅ ass
+
+theorem derivableIn_top : DerivableIn (ND₁ T) (⊤ : Proposition Atom) := ⟨derivationTop⟩
+
 lemma derivableIn_of_mem_ax (h : A ∈ T := by membership) : DerivableIn (ND T) (Γ ⊢ A) := ⟨.ax⟩
 
 lemma derivableIn_of_mem_ctx (h : A ∈ Γ := by membership) : DerivableIn (ND T) (Γ ⊢ A) := ⟨.ass⟩
@@ -239,11 +244,6 @@ theorem derivableIn_weaken_ax (h : DerivableIn (ND T) (Γ ⊢ A))
 theorem derivableIn_weaken_ctx (h : DerivableIn (ND T) (Γ ⊢ A))
     (hCtx : Γ ⊆ Δ := by intro; membership) : DerivableIn (ND T) (Δ ⊢ A) :=
   derivableIn_weaken h
-
-/-- A derivation of the canonical tautology. -/
-def derivationTop : (ND₁ T)⇓(⊤ : Proposition Atom) := impI ∅ ass
-
-theorem derivableIn_top : DerivableIn (ND₁ T) (⊤ : Proposition Atom) := ⟨derivationTop⟩
 
 /-- Introduction rule for `finiteAnd`. -/
 def Derivation.finiteAndI {n : ℕ} {As : Fin n → Proposition Atom}
