@@ -76,10 +76,9 @@ of Theorem 1 of [Monk1964].
   the projective line over a field is representable over a group.
 * `Cslib.RelationAlgebra.groupRepresentable_lyndon`: Theorem C of [Monk1964], that `𝔄(α, e)` is
   representable over a group when `α` is infinite.
-* `Cslib.RelationAlgebra.exists_projectivePlane_of_representation`: Theorem D of [Monk1964] for
-  finite Lyndon algebras, for representations in arbitrary universes.
-* `Cslib.RelationAlgebra.exists_projectivePlane_order_of_representation`: the same, phrased in
-  terms of the order of the plane.
+* `Cslib.RelationAlgebra.exists_projectivePlane_order_of_representation`: Theorem D of [Monk1964]
+  for finite Lyndon algebras, phrased in terms of the order of the plane, for representations in
+  arbitrary universes.
 * `Cslib.RelationAlgebra.groupRepresentable_product_lyndon`: an ultraproduct of Lyndon algebras is
   representable over a group when the ultraproduct of the types of atoms is infinite.
 
@@ -520,31 +519,22 @@ theorem exists_nonempty_of_representation {ι : Type v} {β : ι → Type w}
   ext x
   exact (hempty i).elim x
 
-/-- **Theorem D** of [Monk1964] for finite Lyndon algebras: if the Lyndon algebra `𝔄(α, e)` has a
-representation, then `α \ {e}` is a line of a projective plane. -/
-theorem exists_projectivePlane_of_representation {ι : Type v} {β : ι → Type w}
-    (ρ : Representation (ComplexAlgebra (lyndon e h)) ι β) :
-    ∃ (P L : Type (max u w)) (_ : Membership P L) (_ : ProjectivePlane P L) (l : L),
-      Nonempty ({a // a ≠ e} ≃ {p : P // p ∈ l}) := by
-  obtain ⟨i, hi⟩ := exists_nonempty_of_representation e h ρ
-  let π := parallelism ((RelationAlgebraHom.eval (fun i => SquareRelations (β i)) i).comp ρ.hom)
-  exact ⟨π.Points, π.Lines, inferInstance, inferInstance, π.infinity, ⟨π.infinityEquiv.symm⟩⟩
-
-/-- **Theorem D** of [Monk1964] for finite Lyndon algebras, in terms of orders: if the Lyndon
-algebra with `n + 2` atoms has a representation, then there is a projective plane of order `n`. -/
+/-- **Theorem D** of [Monk1964] for finite Lyndon algebras: if the Lyndon algebra with `n + 2`
+atoms has a representation, then there is a projective plane of order `n`. -/
 theorem exists_projectivePlane_order_of_representation {ι : Type v} {β : ι → Type w}
     (ρ : Representation (ComplexAlgebra (lyndon e h)) ι β) :
     ∃ (P L : Type (max u w)) (_ : Membership P L) (_ : ProjectivePlane P L) (_ : Finite P)
       (_ : Finite L), ProjectivePlane.order P L + 2 = Nat.card α := by
   obtain ⟨i, hi⟩ := exists_nonempty_of_representation e h ρ
   let π := parallelism ((RelationAlgebraHom.eval (fun i => SquareRelations (β i)) i).comp ρ.hom)
-  refine ⟨π.Points, π.Lines, inferInstance, inferInstance, inferInstance, inferInstance, ?_⟩
+  obtain ⟨P, L, _, _, _, _, hord⟩ := π.exists_projectivePlane_order
+  refine ⟨P, L, inferInstance, inferInstance, inferInstance, inferInstance, ?_⟩
   classical
   have := Fintype.ofFinite {a // a ≠ e}
   have hcard : Nat.card α = Nat.card {a // a ≠ e} + 1 := by
     rw [← Nat.card_congr (Equiv.optionSubtypeNe e), Nat.card_eq_fintype_card,
       Fintype.card_option, Nat.card_eq_fintype_card]
-  rw [hcard, ← π.order_add_one]
+  rw [hcard, ← hord]
 
 end Plane
 

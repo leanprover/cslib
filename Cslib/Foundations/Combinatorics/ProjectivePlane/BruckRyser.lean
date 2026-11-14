@@ -21,8 +21,16 @@ The Bruck–Ryser theorem states that if a finite projective plane has order `n`
 `2 * 3 ^ (2 * k + 1)`, so there are infinitely many natural numbers that are not the order of any
 projective plane.
 
-This module is deliberately restricted to projective planes, and does not develop the
-Bruck–Ryser–Chowla theorem for symmetric designs.
+This module is a deliberately minimal development of what is needed for the theorem of [Monk1964]
+on representable relation algebras, and is intended to be replaced once finite geometry is further
+developed in Mathlib. Only the two statements listed below are public.
+
+## Main statements
+
+* `Configuration.ProjectivePlane.exists_sq_add_sq_of_order`: the Bruck–Ryser theorem, for
+  projective planes in the sense of `Mathlib.Combinatorics.Configuration`.
+* `Configuration.ProjectivePlane.order_ne_two_mul_three_pow`: Theorem B of [Monk1964], that no
+  projective plane has order `2 * 3 ^ (2 * k + 1)`.
 
 ## Proof outline
 
@@ -32,14 +40,13 @@ and `z l = ∑ p ∈ l, x p` indexed by the lines, counting incidences gives
 the number of variables is divisible by four. Writing `n` as a sum of four squares, Euler's
 four-square identity provides a linear change of variables `y ↦ x` with
 `n * ∑ i, x i ^ 2 = ∑ j, y j ^ 2`. The `z l` are then linear forms in the `y j`, and it is possible
-to choose `y` with last coordinate `1` such that `z l ^ 2 = y l ^ 2` for every line `l`
-(`Cslib.exists_sq_eq_sq_of_linearMap`). What remains of the identity is `n * q ^ 2 = 1 + r ^ 2` for
-rational numbers `q` and `r`, which forces `n` to be a sum of two squares.
+to choose `y` with last coordinate `1` such that `z l ^ 2 = y l ^ 2` for every line `l`. What
+remains of the identity is `n * q ^ 2 = 1 + r ^ 2` for rational numbers `q` and `r`, which forces
+`n` to be a sum of two squares.
 
 The classical proof chooses the coordinates of `y` one at a time. We instead use that for every
 square matrix `C` over a field of characteristic different from two there is a diagonal matrix `E`
-with entries `±1` such that `C - E` is invertible
-(`Cslib.exists_det_sub_diagonal_ne_zero`).
+with entries `±1` such that `C - E` is invertible.
 
 ## References
 
@@ -49,8 +56,6 @@ with entries `±1` such that `C - E` is invertible
 
 -/
 
-@[expose] public section
-
 namespace Cslib
 
 open Matrix
@@ -59,7 +64,7 @@ section SignLemma
 
 variable {K : Type*} [Field K] [NeZero (2 : K)]
 
-private theorem exists_det_sub_diagonal_ne_zero_fin :
+theorem exists_det_sub_diagonal_ne_zero_fin :
     ∀ (k : ℕ) (C : Matrix (Fin k) (Fin k) K),
       ∃ ε : Fin k → K, (∀ i, ε i = 1 ∨ ε i = -1) ∧ (C - diagonal ε).det ≠ 0
   | 0, C => ⟨fun _ => 1, fun _ => .inl rfl, by rw [det_fin_zero]; exact one_ne_zero⟩
@@ -68,30 +73,19 @@ private theorem exists_det_sub_diagonal_ne_zero_fin :
     have key (s : K) : (C - diagonal (Fin.cons s ε)).det =
         (C - diagonal (Fin.cons 0 ε)).det -
           s * (C.submatrix Fin.succ Fin.succ - diagonal ε).det := by
-      have hrow : C - diagonal (Fin.cons s ε) = updateRow (C - diagonal (Fin.cons 0 ε)) 0
-          ((C - diagonal (Fin.cons 0 ε)) 0 + (-s) • Pi.single 0 1) := by
-        ext i j
-        refine Fin.cases ?_ (fun i => ?_) i
-        · rw [updateRow_self]
-          refine Fin.cases ?_ (fun j => ?_) j
-          · simp [sub_eq_add_neg]
-          · simp [Fin.succ_ne_zero, (Fin.succ_ne_zero j).symm]
-        · rw [updateRow_ne (Fin.succ_ne_zero i)]
-          simp [diagonal_apply]
-      have hsub : (updateRow (C - diagonal (Fin.cons 0 ε)) 0 (Pi.single 0 1)).det =
-          (C.submatrix Fin.succ Fin.succ - diagonal ε).det := by
-        rw [det_succ_row_zero, Fin.sum_univ_succ]
-        have hzero : ∀ j : Fin k, (-1 : K) ^ (j.succ : ℕ) *
-            updateRow (C - diagonal (Fin.cons 0 ε)) 0 (Pi.single 0 1) 0 j.succ *
-            ((updateRow (C - diagonal (Fin.cons 0 ε)) 0 (Pi.single 0 1)).submatrix Fin.succ
-              j.succ.succAbove).det = 0 := fun j => by
-          rw [updateRow_self, Pi.single_eq_of_ne (Fin.succ_ne_zero j), mul_zero, zero_mul]
-        rw [Finset.sum_eq_zero fun j _ => hzero j, add_zero, updateRow_self, Pi.single_eq_same,
-          Fin.val_zero, pow_zero, one_mul, one_mul]
-        congr 1
-        ext i j
+      have hsub (t : K) (j : Fin (k + 1)) :
+          (C - diagonal (Fin.cons t ε)).submatrix Fin.succ j.succAbove =
+            (C - diagonal (Fin.cons 0 ε)).submatrix Fin.succ j.succAbove := by
+        ext i l
         simp [diagonal_apply]
-      rw [hrow, det_updateRow_add, det_updateRow_smul, updateRow_eq_self, hsub]
+      have hD : (C - diagonal (Fin.cons 0 ε)).submatrix Fin.succ (Fin.succAbove 0) =
+          C.submatrix Fin.succ Fin.succ - diagonal ε := by
+        ext i l
+        simp [diagonal_apply]
+      rw [det_succ_row_zero, det_succ_row_zero (C - diagonal (Fin.cons 0 ε)), Fin.sum_univ_succ,
+        Fin.sum_univ_succ]
+      simp only [hsub s, hD, Matrix.sub_apply, diagonal_apply, Fin.cons_zero,
+        (Fin.succ_ne_zero _).symm, ↓reduceIte, Fin.val_zero, pow_zero, one_mul, sub_zero]
       ring
     by_cases h1 : (C - diagonal (Fin.cons 1 ε)).det = 0
     · refine ⟨Fin.cons (-1) ε, fun i => Fin.cases (.inr rfl) hε i, fun h2 => ?_⟩
@@ -147,7 +141,7 @@ section FourSquares
 
 /-- A linear map on `ℚ ^ 4` that scales the sum of squares by `1 / n`, obtained from a
 representation of `n` as a sum of four squares by Euler's four-square identity. -/
-private theorem exists_linearMap_sum_sq_fin_four {n : ℕ} (hn : n ≠ 0) :
+theorem exists_linearMap_sum_sq_fin_four {n : ℕ} (hn : n ≠ 0) :
     ∃ T : (Fin 4 → ℚ) →ₗ[ℚ] (Fin 4 → ℚ), ∀ v, (n : ℚ) * ∑ r, T v r ^ 2 = ∑ r, v r ^ 2 := by
   obtain ⟨a, b, c, d, habcd⟩ := Nat.sum_four_squares n
   have hn' : (n : ℚ) ≠ 0 := Nat.cast_ne_zero.mpr hn
@@ -217,9 +211,7 @@ theorem exists_sq_add_sq_of_rat {n : ℕ} {q r : ℚ} (h : (n : ℚ) * q ^ 2 = 1
     ∃ x y : ℕ, n = x ^ 2 + y ^ 2 := by
   have hq : q ≠ 0 := by
     rintro rfl
-    have : (0 : ℚ) < 1 + r ^ 2 := by positivity
-    rw [← h] at this
-    simp at this
+    nlinarith [sq_nonneg r]
   have hqd : (q.den : ℚ) ≠ 0 := Nat.cast_ne_zero.mpr q.den_ne_zero
   have hrd : (r.den : ℚ) ≠ 0 := Nat.cast_ne_zero.mpr r.den_ne_zero
   refine Nat.eq_sq_add_sq_of_mul_sq_eq (c := q.num.natAbs * r.den) (a := q.den * r.den)
@@ -271,8 +263,7 @@ theorem sum_sq_sum_incidence [Fintype P] [Fintype L] (x : P → ℚ) :
     · subst hpq
       push_cast
       ring
-    · push_cast
-      ring
+    · simp
   calc ∑ l : L, (∑ p : P, if p ∈ l then x p else 0) ^ 2
     _ = ∑ l : L, ∑ p : P, ∑ q : P,
           (if p ∈ l then x p else 0) * (if q ∈ l then x q else 0) := by
@@ -301,11 +292,7 @@ theorem exists_rat_mul_sq_eq_one_add_sq [Finite P] [Finite L]
     rw [Fintype.card_option, Fintype.card_option, card_points_eq_card_lines P L]
   have h4 : 4 ∣ Fintype.card (Option P) := by
     rw [Fintype.card_option, card_points P L]
-    rcases h with h | h
-    · obtain ⟨t, ht⟩ : ∃ t, order P L = 4 * t + 1 := ⟨order P L / 4, by omega⟩
-      exact ⟨4 * t ^ 2 + 3 * t + 1, by rw [ht]; ring⟩
-    · obtain ⟨t, ht⟩ : ∃ t, order P L = 4 * t + 2 := ⟨order P L / 4, by omega⟩
-      exact ⟨4 * t ^ 2 + 5 * t + 2, by rw [ht]; ring⟩
+    exact Nat.dvd_of_mod_eq_zero (by rcases h with h | h <;> simp [Nat.add_mod, Nat.pow_mod, h])
   obtain ⟨T, hT⟩ := exists_linearMap_sum_sq hcard h4 hn
   let f : L → ((Option L → ℚ) →ₗ[ℚ] ℚ) := fun l =>
     ∑ p : P, if p ∈ l then (LinearMap.proj (some p)).comp T else 0
@@ -332,18 +319,16 @@ variable (P L : Type*) [Membership P L] [ProjectivePlane P L] [Finite P] [Finite
 
 /-- The **Bruck–Ryser theorem**: if the order of a finite projective plane is congruent to `1` or
 `2` modulo `4`, then it is a sum of two squares. -/
-theorem exists_sq_add_sq_of_order (h : order P L % 4 = 1 ∨ order P L % 4 = 2) :
+public theorem exists_sq_add_sq_of_order (h : order P L % 4 = 1 ∨ order P L % 4 = 2) :
     ∃ a b : ℕ, order P L = a ^ 2 + b ^ 2 := by
   obtain ⟨q, r, hqr⟩ := Cslib.exists_rat_mul_sq_eq_one_add_sq h
   exact Cslib.exists_sq_add_sq_of_rat hqr
 
 /-- **Theorem B** of [Monk1964]: there is no projective plane of order `2 * 3 ^ (2 * k + 1)`, by
 the Bruck–Ryser theorem. -/
-theorem order_ne_two_mul_three_pow (k : ℕ) : order P L ≠ 2 * 3 ^ (2 * k + 1) := by
+public theorem order_ne_two_mul_three_pow (k : ℕ) : order P L ≠ 2 * 3 ^ (2 * k + 1) := by
   intro hk
-  have hodd : 3 ^ (2 * k + 1) % 2 = 1 := by
-    rw [Nat.pow_mod]
-    simp
+  have hodd : 3 ^ (2 * k + 1) % 2 = 1 := by simp [Nat.pow_mod]
   obtain ⟨a, b, hab⟩ := exists_sq_add_sq_of_order P L (.inr (by omega))
   rw [hk] at hab
   have : Fact (Nat.Prime 3) := ⟨Nat.prime_three⟩
