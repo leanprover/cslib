@@ -197,7 +197,6 @@ public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
-public import Cslib.Foundations.RelationAlgebra.AtomStructure.BoundedMorphism
 public import Cslib.Foundations.RelationAlgebra.AtomStructure.FilterProduct
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Cslib.Foundations.RelationAlgebra.FilterProduct

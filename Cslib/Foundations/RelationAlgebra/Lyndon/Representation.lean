@@ -6,7 +6,6 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.AtomStructure.BoundedMorphism
 public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Lyndon.Basic
 public import Mathlib.Algebra.Group.TypeTags.Basic
@@ -16,8 +15,8 @@ public import Mathlib.Tactic.LinearCombination
 /-!
 # Representations of Lyndon algebras
 
-This module relates representations of the Lyndon algebra `𝔄(α, e)` to projective planes having
-`α \ {e}` as a line, following [Lyndon1961].
+This module shows that the Lyndon algebra `𝔄(α, e)` is representable over a group when its points
+`α \ {e}` form the projective line over a field, following [Lyndon1961].
 
 ## Main statements
 
@@ -162,17 +161,35 @@ theorem exists_add_of_mem_lyndonCycles (hK : ∃ c : K, c ≠ 0 ∧ c ≠ 1) {r 
       ring
 
 variable (φ) in
-/-- The direction map from the additive group of the plane `K × K` onto Lyndon's atom structure
-is a bounded morphism. -/
-noncomputable def slopeMorphism (h : 5 ≤ ENat.card α) (hK : ∃ c : K, c ≠ 0 ∧ c ≠ 1) :
-    BoundedMorphism (ofGroup (Multiplicative (K × K))) (lyndon e h) where
-  toFun v := slope φ v.toAdd
-  map_conv v := slope_neg v.toAdd
-  map_mem_id_iff := slope_eq_iff
-  map_cycles {r s t} (hc : r * s = t) := hc ▸ slope_mem_lyndonCycles r.toAdd s.toAdd
-  exists_of_cycles hc :=
-    let ⟨u, w, hu, hw, huw⟩ := exists_add_of_mem_lyndonCycles hK hc
-    ⟨.ofAdd u, .ofAdd w, hu, hw, congrArg Multiplicative.ofAdd huw⟩
+/-- The embedding of a Lyndon algebra into the complex algebra of the additive group of the plane
+`K × K`: a set of atoms is sent to the set of vectors whose direction lies in it. -/
+noncomputable def slopeHom (h : 5 ≤ ENat.card α) (hK : ∃ c : K, c ≠ 0 ∧ c ≠ 1) :
+    RelationAlgebraHom (ComplexAlgebra (lyndon e h))
+      (ComplexAlgebra (ofGroup (Multiplicative (K × K)))) :=
+  RelationAlgebraHom.mk' (fun x => ⟨{v | slope φ v.toAdd ∈ x}⟩)
+    (fun _ _ => rfl)
+    (fun _ => rfl)
+    (fun x y => by
+      ext t
+      constructor
+      · rintro ⟨r, hr, s, hs, hc⟩
+        obtain ⟨u, w, rfl, rfl, huw⟩ := exists_add_of_mem_lyndonCycles hK hc
+        exact ⟨.ofAdd u, hr, .ofAdd w, hs, congrArg Multiplicative.ofAdd huw⟩
+      · rintro ⟨u, hu, w, hw, rfl⟩
+        exact ⟨_, hu, _, hw, slope_mem_lyndonCycles u.toAdd w.toAdd⟩)
+    (by ext v; exact slope_eq_iff)
+    (fun x => by
+      ext v
+      rw [ComplexAlgebra.mem_star]
+      change slope φ v.toAdd ∈ star x ↔ slope φ (-v.toAdd) ∈ x
+      rw [ComplexAlgebra.mem_star, slope_neg, lyndon_conv])
+
+theorem slopeHom_injective (h : 5 ≤ ENat.card α) (hK : ∃ c : K, c ≠ 0 ∧ c ≠ 1) :
+    Function.Injective (slopeHom φ h hK) := by
+  intro x y hxy
+  ext a
+  obtain ⟨v, rfl⟩ := slope_surjective (φ := φ) a
+  exact iff_of_eq (congrArg (fun z => Multiplicative.ofAdd v ∈ z) hxy)
 
 /-- A field whose projective line is in bijection with the points of a Lyndon algebra has a scalar
 other than `0` and `1`. -/
@@ -196,11 +213,8 @@ representable over a group. -/
 theorem groupRepresentable_lyndon_of_field {α : Type u} (e : α) (h : 5 ≤ ENat.card α)
     (K : Type u) [Field K] (φ : {a // a ≠ e} ≃ Option K) :
     GroupRepresentable (ComplexAlgebra (lyndon e h)) :=
-  ⟨Multiplicative (K × K), inferInstance,
-    ComplexAlgebra.comap (slopeMorphism φ h (exists_ne_zero_ne_one h φ)),
-    ComplexAlgebra.comap_injective fun a =>
-      let ⟨v, hv⟩ := slope_surjective (φ := φ) a
-      ⟨.ofAdd v, hv⟩⟩
+  ⟨Multiplicative (K × K), inferInstance, slopeHom φ h (exists_ne_zero_ne_one h φ),
+    slopeHom_injective h (exists_ne_zero_ne_one h φ)⟩
 
 /-- **Theorem C** of [Monk1964]: a Lyndon algebra on an infinite type is representable over a
 group. -/
