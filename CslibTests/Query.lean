@@ -5,6 +5,7 @@ Authors: Kim Morrison
 -/
 import Cslib.Algorithms.Lean.Query.Sort.Merge.Bounds
 import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas
+import Cslib.Algorithms.Lean.Query.Sort.Bubble.Lemmas
 import Cslib.Algorithms.Lean.Query.Arith.Lemmas
 
 /-! # Tests for the query complexity framework
@@ -24,16 +25,22 @@ def leOracle : {ι : Type} → LEQuery ℕ ι → ι :=
 -- The query sorts compute, and agree with the reference sorts.
 #guard (mergeSort [3, 1, 2]).eval leOracle == [1, 2, 3]
 #guard (insertionSort [3, 1, 2]).eval leOracle == [1, 2, 3]
+#guard (bubbleSort [3, 1, 2]).eval leOracle == [1, 2, 3]
 
 -- Query counts along the honest path.
 #guard (mergeSort [3, 1, 2]).countQueries leOracle == 3
 #guard (insertionSort [3, 1, 2]).countQueries leOracle == 3
+#guard (bubbleSort [3, 1, 2]).countQueries leOracle == 3
 
 -- The sharp insertion bound `n * (n - 1) / 2` is attained by the all-`false` oracle.
 #guard (insertionSort [1, 2, 3]).countQueries (LEQuery.oracleOf fun _ _ => false) == 3
 
 -- `mergeSort` is stable: with equal keys, payloads keep their input order.
 #guard (mergeSort [(1, "b"), (0, "x"), (1, "a")]).eval
+    (LEQuery.oracleOf fun p q => decide (p.1 ≤ q.1)) == [(0, "x"), (1, "b"), (1, "a")]
+
+-- So is `bubbleSort`.
+#guard (bubbleSort [(1, "b"), (0, "x"), (1, "a")]).eval
     (LEQuery.oracleOf fun p q => decide (p.1 ≤ q.1)) == [(0, "x"), (1, "b"), (1, "a")]
 
 -- The complex multiplication examples compute.
