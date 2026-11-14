@@ -10,6 +10,7 @@ public import Cslib.Computability.Circuit.Simulation
 import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Data.Fin.VecNotation
 import Mathlib.Data.Fintype.Pi
+import Mathlib.SetTheory.Cardinal.Arithmetic
 
 /-!
 # Circuits over the full basis
@@ -25,12 +26,14 @@ Consequently, the full basis of arity `k` simulates any interpretation whose ope
 arity at most `k`, replacing each operation by one gate. This includes nullary operations and
 the case `k = 0`, and needs no assumption on the carrier.
 
-On a finite carrier, every full basis of arity at least two is functionally complete. The idea
+Every full basis of arity at least two is functionally complete. On a finite carrier, the idea
 is disjunctive normal form: a function on a finite carrier is a finite table, so a circuit can
 find the row that matches its input and return that row's value. For each row, binary gates
 compare the input with the row one coordinate at a time, giving the row's value on a match and a
 fixed default otherwise. Further binary gates merge these answers by keeping the one that differs
 from the default. Over `Bool` with default `false`, this is exactly disjunctive normal form.
+On an infinite carrier, a bijection `U × U ≃ U` lets binary gates pair up the inputs into a
+single element that determines them, and one more gate decodes it and applies the function.
 Larger arities follow by simulation.
 -/
 
@@ -126,7 +129,7 @@ private theorem exists_full_synthesis_finset [DecidableEq U]
     have hstep := ha.full_binary hb (fun v acc => if v = default then acc else v)
     grind
 
-private theorem fullInterpretation_isComplete_two [Finite U] :
+private theorem fullInterpretation_isComplete_two_of_finite [Finite U] :
     (fullInterpretation (k := 2) (Carrier := U)).IsComplete where
   exists_computes_single {n} f := by
     classical
@@ -140,15 +143,50 @@ private theorem fullInterpretation_isComplete_two [Finite U] :
       obtain ⟨cost, hcost⟩ := exists_full_synthesis_finset f (Classical.choice h) Finset.univ
       simpa using hcost.exists_circuit.imp fun _ hc => hc.1
 
-/-- Every full basis of arity at least two is complete on a finite carrier. -/
-theorem fullInterpretation_isComplete [Finite U] (hk : 2 ≤ k) :
+private theorem fullInterpretation_isComplete_two_of_infinite [Infinite U] :
+    (fullInterpretation (k := 2) (Carrier := U)).IsComplete where
+  exists_computes_single {n} f := by
+    obtain ⟨e⟩ : Nonempty (U × U ≃ U) := by
+      rw [← Cardinal.eq, Cardinal.mk_prod, Cardinal.lift_id,
+        Cardinal.mul_eq_self (Cardinal.aleph0_le_mk U)]
+    let encode (x : Fin n → U) : U :=
+      (List.finRange n).foldr (fun i acc => e (x i, acc)) (Classical.arbitrary U)
+    have hpair (p q : (Fin n → U) → U) :
+        Synthesis (fullInterpretation (k := 2)) {p, q} {fun x => e (p x, q x)} 1 := by
+      simpa using (Synthesis.of_mem (Set.mem_insert p {q})).full_binary
+        (Synthesis.of_mem (Set.mem_insert_of_mem p rfl)) (fun a b => e (a, b))
+    have hencode := Synthesis.foldr (fun a b => e (a, b)) 1 hpair (List.finRange n)
+      (Synthesis.full_const (s := inputs n) (Classical.arbitrary U))
+      (fun i _ => Synthesis.of_mem ⟨i, rfl⟩)
+    have hinj : encode.Injective := by
+      intro x y h
+      suffices ∀ l : List (Fin n), l.foldr (fun i acc => e (x i, acc)) (Classical.arbitrary U) =
+          l.foldr (fun i acc => e (y i, acc)) (Classical.arbitrary U) → ∀ i ∈ l, x i = y i from
+        funext fun i => this _ h i (List.mem_finRange i)
+      intro l hl
+      induction l with
+      | nil => simp
+      | cons j l ih =>
+        simp only [List.foldr_cons, e.apply_eq_iff_eq, Prod.mk.injEq] at hl
+        simpa [hl.1] using ih hl.2
+    have hf := hencode.trans (Synthesis.full_gate (k := 2) (r := 1) (by lia)
+      (fun v => f (Function.invFun encode (v 0))) (fun _ => encode)
+      (fun _ => Set.mem_union_right _ rfl))
+    simp only [Function.leftInverse_invFun hinj _] at hf
+    exact hf.exists_circuit.imp fun _ hc => hc.1
+
+/-- Every full basis of arity at least two is complete. -/
+theorem fullInterpretation_isComplete (hk : 2 ≤ k) :
     (fullInterpretation (k := k) (Carrier := U)).IsComplete := by
-  let := fullInterpretation_isComplete_two (U := U)
+  have : (fullInterpretation (k := 2) (Carrier := U)).IsComplete := by
+    cases finite_or_infinite U
+    · exact fullInterpretation_isComplete_two_of_finite
+    · exact fullInterpretation_isComplete_two_of_infinite
   apply (fullInterpretation_simulates (fullInterpretation (k := 2) (Carrier := U)) ?_).isComplete
   rintro (_ | _) <;> simp [fullSignature, hk]
 
-/-- Full bases with at least two arguments are complete on finite carriers. -/
-instance [Finite U] : (fullInterpretation (k := k + 2) (Carrier := U)).IsComplete :=
+/-- Full bases with at least two arguments are complete. -/
+instance : (fullInterpretation (k := k + 2) (Carrier := U)).IsComplete :=
   fullInterpretation_isComplete (by lia)
 
 end Cslib.Circuits
