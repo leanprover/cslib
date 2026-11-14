@@ -50,6 +50,7 @@ variable (Label : Type u)
 
 /-! ## Syntax -/
 
+/-- The shape of a PDL program, where test formulas are not yet provided. -/
 inductive Shape where
   | action (name : Label)
   | test
@@ -58,6 +59,7 @@ inductive Shape where
   | star (a : Shape)
   deriving DecidableEq, Repr
 
+/-- As many copies of `Unit` as there are test in the given `Shape`. -/
 def Tests {Label} : Shape Label → Type
   | .action _ => Empty
   | .test => Unit
@@ -65,17 +67,22 @@ def Tests {Label} : Shape Label → Type
   | .union a b => Tests a ⊕ Tests b
   | .star a => Tests a
 
+/-- The modal signature for PDL. -/
 abbrev signature : PFunctor :=
   ⟨Shape Label, fun a => Tests a ⊕ Unit⟩
 
 variable (Atom : Type v)
 
+/-- Formulas of Propositional Dynamic Logic. Note that this is defined via `Shape` and `Tests`.
+If you want mutual recursion, use `Formula.induction` and `Program.induction`. -/
 abbrev Formula := Cslib.Logic.Modal.Proposition (signature Label) Atom
 
 /-- A PDL program, internally represented by a `Shape` and a function
 that maps the `Tests` positions in the shape to actual Formulas. -/
 structure Program where
+  /-- The shape of the program, including `Shape.test`-placeholders -/
   shape : Shape Label
+  /-- The actual test formulas, one for each placeholder. -/
   tests : Tests shape → Formula Label Atom
 
 variable {Label Atom}
@@ -120,12 +127,16 @@ theorem box_def : box a φ = d[a]φ := rfl
 
 /-! ## Notation -/
 
+/-- Notation for the test operator `Program.test`. -/
 scoped notation "?' " ψ:arg => test ψ
 
+/-- Notation for sequential composition `Program.seq`. -/
 scoped infixr:70 " ;' " => seq
 
+/-- Notation for non-deterministic choice `Program.seq`. -/
 instance : Union (Program Label Atom) := ⟨union⟩
 
+/-- Notation for the iteration operator `Program.star`. -/
 scoped postfix:max "*" => star
 
 /-! ## Induction Principles

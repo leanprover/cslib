@@ -227,13 +227,6 @@ model `m` and the formula `φ`, we need to "copy" also the lemmas about proposit
 TODO: should we remove the `pdl_` prefix in the names here and in the next section?
 -/
 
-@[simp, scoped grind ., modal .]
-theorem Satisfies.true : ⇓Modal[m,w ⊨ ⊤] := by
-  grind [=_ Proposition.true_def, Proposition.true]
-
-@[simp, scoped grind =, modal =]
-theorem Satisfies.false : ⇓Modal[m,w ⊨ ⊥] ↔ False := by rfl
-
 @[scoped grind =, modal =]
 theorem Satisfies.pdl_not_iff_not : ⇓PDL[m,w ⊨ ¬φ] ↔ ¬⇓PDL[m,w ⊨ φ] :=
   Satisfies.not_iff_not
@@ -252,10 +245,7 @@ theorem Satisfies.pdl_imp_iff_imp {m : Model World τ Atom} :
     ⇓PDL[m,w ⊨ φ₁ → φ₂] ↔ (⇓PDL[m,w ⊨ φ₁] → ⇓PDL[m,w ⊨ φ₂]) :=
   Satisfies.imp_iff_imp
 
--- FIXME
--- @[scoped grind =, modal =]
---  #grind_lint check  (min := 20) in Cslib
---  #grind_lint inspect Cslib.Logic.Modal.PDL.Satisfies.pdl_iff_iff_iff
+@[scoped grind =, modal =]
 theorem Satisfies.pdl_iff_iff_iff {m : Model World τ Atom} :
     ⇓PDL[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓PDL[m,w ⊨ φ₁] ↔ ⇓PDL[m,w ⊨ φ₂]) :=
   Satisfies.iff_iff_iff
