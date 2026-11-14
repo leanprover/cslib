@@ -44,7 +44,7 @@ NOTES:
 
 namespace Cslib.Logic.Modal.PDL
 
-universe u v
+universe u v w
 
 variable (Label : Type u)
 
@@ -151,34 +151,40 @@ The other motive must be given explicitly, because `induction` only infers the m
 -/
 
 /-- Helper for `Formula.induction` and `Program.induction`: induction on the shape of a program,
-given that the motive for formulas holds for all its tests. -/
-theorem Program.induction_shape
-    {motive_1 : Formula Label Atom → Prop} {motive_2 : Program Label Atom → Prop}
+given that we already have the formula motive for all test formulas. -/
+def Program.inductionOnShape
+    {motive_1 : Formula Label Atom → Sort w} {motive_2 : Program Label Atom → Sort w}
     (action : ∀ n, motive_2 (PDL.action n))
     (test : ∀ ψ, motive_1 ψ → motive_2 (PDL.test ψ))
     (seq : ∀ a b, motive_2 a → motive_2 b → motive_2 (PDL.seq a b))
     (union : ∀ a b, motive_2 a → motive_2 b → motive_2 (PDL.union a b))
     (star : ∀ a, motive_2 a → motive_2 (PDL.star a))
     (s : Shape Label) (ts : Tests s → Formula Label Atom) (ih : ∀ t, motive_1 (ts t)) :
-    motive_2 ⟨s, ts⟩ := by
-  induction s with
-  | action n =>
+    motive_2 ⟨s, ts⟩ :=
+  match s with
+  | .action n => by
     have : ts = Empty.elim := funext (fun t => t.elim)
     subst this
     exact action n
-  | test => exact test (ts ()) (ih ())
-  | seq a b iha ihb =>
+  | .test => test (ts ()) (ih ())
+  | .seq a b  => by
+    let iha := Program.inductionOnShape action test seq union star a
+    let ihb := Program.inductionOnShape action test seq union star b
     have h := seq _ _ (iha (ts ∘ .inl) (fun t => ih _)) (ihb (ts ∘ .inr) (fun t => ih _))
     rwa [show ts = Sum.elim (ts ∘ .inl) (ts ∘ .inr) from funext fun x => by rcases x <;> rfl]
-  | union a b iha ihb =>
+  | .union a b => by
+    let iha := Program.inductionOnShape action test seq union star a
+    let ihb := Program.inductionOnShape action test seq union star b
     have h := union _ _ (iha (ts ∘ .inl) (fun t => ih _)) (ihb (ts ∘ .inr) (fun t => ih _))
     rwa [show ts = Sum.elim (ts ∘ .inl) (ts ∘ .inr) from funext fun x => by rcases x <;> rfl]
-  | star a iha => exact star _ (iha ts ih)
+  | .star a =>
+    let iha := Program.inductionOnShape action test seq union star a
+    star _ (iha ts ih)
 
 /-- Induction principle for PDL formulas, with a second motive for programs. -/
 @[elab_as_elim]
-theorem Formula.induction
-    {motive_1 : Formula Label Atom → Prop} {motive_2 : Program Label Atom → Prop}
+def Formula.induction
+    {motive_1 : Formula Label Atom → Sort w} {motive_2 : Program Label Atom → Sort w}
     (atom : ∀ p : Atom, motive_1 (.atom p))
     (false : motive_1 ⊥)
     (not : ∀ φ, motive_1 φ → motive_1 (¬φ))
@@ -189,25 +195,32 @@ theorem Formula.induction
     (seq : ∀ a b, motive_2 a → motive_2 b → motive_2 (PDL.seq a b))
     (union : ∀ a b, motive_2 a → motive_2 b → motive_2 (PDL.union a b))
     (star : ∀ a, motive_2 a → motive_2 (PDL.star a))
-    (φ : Formula Label Atom) : motive_1 φ := by
-  induction φ with
-  | atom p => exact atom p
-  | false => exact false
-  | not φ ih => exact not φ ih
-  | or φ ψ ihφ ihψ => exact or φ ψ ihφ ihψ
-  | triangle op φs ih =>
-    have h : φs = Sum.elim (φs ∘ .inl) (fun _ => φs (.inr ())) := by
-      funext x
-      rcases x with _ | ⟨⟩ <;> rfl
-    rw [h]
-    exact diamond ⟨op, φs ∘ .inl⟩ _
-      (Program.induction_shape action test seq union star op _ (fun t => ih (.inl t)))
-      (ih (.inr ()))
+    (φ : Formula Label Atom) : motive_1 φ :=
+  match φ with
+  | .atom p => atom p
+  | .false => false
+  | .not φ =>
+      let ih := Formula.induction atom false not or diamond action test seq union star φ
+      not φ ih
+  | .or φ ψ =>
+      let ihφ := Formula.induction atom false not or diamond action test seq union star φ
+      let ihψ := Formula.induction atom false not or diamond action test seq union star ψ
+      or φ ψ ihφ ihψ
+  | .triangle op φs => by
+      let ih := fun i =>
+        Formula.induction atom false not or diamond action test seq union star (φs i)
+      have h : φs = Sum.elim (φs ∘ .inl) (fun _ => φs (.inr ())) := by
+        funext x
+        rcases x with _ | ⟨⟩ <;> rfl
+      rw [h]
+      exact diamond ⟨op, φs ∘ .inl⟩ _
+        (Program.inductionOnShape action test seq union star op _ (fun t => ih (.inl t)))
+        (ih (.inr ()))
 
 /-- Induction principle for PDL programs, with a second motive for formulas. -/
 @[elab_as_elim]
-theorem Program.induction
-    {motive_1 : Formula Label Atom → Prop} {motive_2 : Program Label Atom → Prop}
+def Program.induction
+    {motive_1 : Formula Label Atom → Sort w} {motive_2 : Program Label Atom → Sort w}
     (atom : ∀ p : Atom, motive_1 (.atom p))
     (false : motive_1 ⊥)
     (not : ∀ φ, motive_1 φ → motive_1 (¬φ))
@@ -219,7 +232,7 @@ theorem Program.induction
     (union : ∀ a b, motive_2 a → motive_2 b → motive_2 (PDL.union a b))
     (star : ∀ a, motive_2 a → motive_2 (PDL.star a))
     (a : Program Label Atom) : motive_2 a :=
-  Program.induction_shape action test seq union star a.shape a.tests fun t =>
+  Program.inductionOnShape action test seq union star a.shape a.tests fun t =>
     Formula.induction atom false not or diamond action test seq union star (a.tests t)
 
 end Cslib.Logic.Modal.PDL
