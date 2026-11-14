@@ -107,6 +107,26 @@ theorem Formula.toUnary_dynDiamond (a : Program Label Atom) (φ : Formula Label 
 theorem Formula.toUnary_dynBox (a : Program Label Atom) (φ : Formula Label Atom) :
     (d[a]φ).toUnary = d[a](φ.toUnary) := rfl
 
+@[scoped grind =, modal =]
+theorem toUnary_finiteAnd {φs : List (Formula τ Atom)} :
+    (⋀φs).toUnary = ⋀(φs.map Formula.toUnary) := by
+  induction φs
+  case nil => rfl
+  case cons IH =>
+    simp only [finiteAnd_cons, List.map_cons]
+    rw [Formula.toUnary_and, IH]
+
+@[scoped grind =, modal =]
+theorem toUnary_finiteOr {φs : List (Formula τ Atom)} :
+    (⋁φs).toUnary = ⋁(φs.map Formula.toUnary) := by
+  induction φs
+  case nil => rfl
+  case cons IH =>
+    simp only [finiteOr_cons, List.map_cons]
+    rw [Formula.toUnary_or, IH]
+
+/- ## PDL judgements and ⊨ notation -/
+
 /-- PDL judgement: `φ` holds at `s` in the PDL model `m`. -/
 abbrev judgement (m : Model State Label Atom) (s : State) (φ : Formula Label Atom) :
     Modal.Judgement State (.mkUnary (Program Label Atom)) Atom :=
@@ -197,10 +217,64 @@ theorem Model.fromLTS_IsStandard (lts : LTS State Label) (val : State → Atom �
     rw [Model.fromLTS_judgement_iff]
     rfl
 
-/-! ## Characterizations (as for HML) -/
-
-open PDL
 open scoped PDL.Model Modal.Proposition InferenceSystem Satisfies Frame
+
+/-! ## Propositional Characterizations
+
+Because `⇓PDL[m,s' ⊨ φ]` is defined as `Modal[m.toModal, s ⊨ φ.toUnary]`, converting both the
+model `m` and the formula `φ`, we need to "copy" also the lemmas about propositional connectives.
+
+TODO: should we remove the `pdl_` prefix in the names here and in the next section?
+-/
+
+@[simp, scoped grind ., modal .]
+theorem Satisfies.true : ⇓Modal[m,w ⊨ ⊤] := by
+  grind [=_ Proposition.true_def, Proposition.true]
+
+@[simp, scoped grind =, modal =]
+theorem Satisfies.false : ⇓Modal[m,w ⊨ ⊥] ↔ False := by rfl
+
+@[scoped grind =, modal =]
+theorem Satisfies.pdl_not_iff_not : ⇓PDL[m,w ⊨ ¬φ] ↔ ¬⇓PDL[m,w ⊨ φ] :=
+  Satisfies.not_iff_not
+
+@[scoped grind =, modal =]
+theorem Satisfies.pdl_or_iff_or {m : Model World τ Atom} :
+    ⇓PDL[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓PDL[m,w ⊨ φ₁] ∨ ⇓PDL[m,w ⊨ φ₂] := by rfl
+
+@[scoped grind =, modal =]
+theorem Satisfies.pdl_and_iff_and {m : Model World τ Atom} :
+    ⇓PDL[m,w ⊨ φ₁ ∧ φ₂] ↔ ⇓PDL[m,w ⊨ φ₁] ∧ ⇓PDL[m,w ⊨ φ₂] :=
+  Satisfies.and_iff_and
+
+@[scoped grind =, modal =]
+theorem Satisfies.pdl_imp_iff_imp {m : Model World τ Atom} :
+    ⇓PDL[m,w ⊨ φ₁ → φ₂] ↔ (⇓PDL[m,w ⊨ φ₁] → ⇓PDL[m,w ⊨ φ₂]) :=
+  Satisfies.imp_iff_imp
+
+@[scoped grind =, modal =]
+theorem Satisfies.pdl_iff_iff_iff {m : Model World τ Atom} :
+    ⇓PDL[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓PDL[m,w ⊨ φ₁] ↔ ⇓PDL[m,w ⊨ φ₂]) :=
+  Satisfies.iff_iff_iff
+
+@[scoped grind =, modal =]
+theorem Satisfies.pdl_finiteAnd_iff_forall :
+    ⇓PDL[m,s ⊨ ⋀φs] ↔ ∀ φ ∈ φs, ⇓PDL[m,s ⊨ φ] := by
+  convert Satisfies.finiteAnd_iff_forall
+  · exact toUnary_finiteAnd
+  · grind
+
+@[scoped grind =, modal =]
+theorem Satisfies.pdl_finiteOr_iff_exists :
+    ⇓PDL[m,s ⊨ ⋁φs] ↔ ∃ φ ∈ φs, ⇓PDL[m,s ⊨ φ] := by
+  convert Satisfies.finiteOr_iff_exists
+  · exact toUnary_finiteOr
+  · grind
+
+/-! ## Modal Characterizations
+
+This is inspired by the HML files.
+-/
 
 variable {m : PDL.Model State Label Atom}
 
