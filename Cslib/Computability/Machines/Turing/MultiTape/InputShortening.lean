@@ -180,32 +180,6 @@ private lemma reached_head {p : tm.ComputationPath input} : cut.Reached tm p.hea
     exact Prod.ext (Fin.ext (by simp [MultiTapeTM.runFrom, cfg, inputPos, Cfg.init, left, right]))
       rfl⟩
 
-/-- The running visits to the two endpoints, paired in chronological order, with images of the same
-core on the shortened input. -/
-private structure Pairing (p : tm.RunPath input) where
-  /-- The `n`-th visit to the left endpoint is paired with the `n`-th visit to the right one. -/
-  orderIso : p.visits cut.left ≃o p.visits cut.right
-  /-- Paired visits have images of the same core on the shortened input. -/
-  core_eq (u : p.visits cut.left) : (cut.cfg (p u.val)).core = (cut.cfg (p (orderIso u).val)).core
-
-/-- Equal crossing sequences pair the visits of the same index, which have equal storages. -/
-private def pairing {p : tm.RunPath input}
-    (hseq : p.crossingSequence cut.left = p.crossingSequence cut.right) : cut.Pairing p := by
-  have hcard : (p.visits cut.right).card = (p.visits cut.left).card := by
-    simpa [crossingSequence] using congrArg List.length hseq.symm
-  let l := (p.visits cut.left).orderIsoOfFin rfl
-  let r := (p.visits cut.right).orderIsoOfFin hcard
-  refine ⟨l.symm.trans r, fun u ↦ ?_⟩
-  obtain ⟨n, rfl⟩ := l.surjective u
-  have hs : (p (l n)).storage = (p (r n)).storage := by
-    simpa [crossingSequence, hcard, l, r, Finset.coe_orderIsoOfFin_apply,
-      Finset.orderEmbOfFin_apply] using congrArg (·[n.val]?) hseq
-  have hl := (mem_visits.mp (l n).property).1
-  have hr := (mem_visits.mp (r n).property).1
-  simp only [OrderIso.trans_apply, OrderIso.symm_apply_apply]
-  exact Prod.ext (Fin.ext (by grind [Cfg.core, cfg, inputPos, left, right, cut.fst_le_snd]))
-    hs
-
 variable {cut} (hsym : input[cut.fst] = input[cut.snd])
 include hsym
 
@@ -253,47 +227,71 @@ private lemma reached_covBy {p : tm.RunPath input} {pos : ℕ}
   refine reached_slice hsym hpos ?_ hside (reached_step hsym h hpi (by unfold SameSide at *; omega))
   exact ⟨Nat.succ_le_of_lt huv.lt, fun _ hw => huv.ge_of_gt hw⟩
 
-/-- At paired visits, the step from the left visit stays left or that from the right visit stays
-right: both read the same symbol with the same storage, so they move the input head alike. -/
-private lemma Pairing.step_sides {p : tm.RunPath input} (e : cut.Pairing p)
-    (u : p.visits cut.left) :
-    (tm.step (p u.val)).inputPos.val ≤ cut.left ∨
-      cut.right ≤ (tm.step (p (e.orderIso u).val)).inputPos.val := by
+/-- At visits to the two endpoints with the same storage, the step from the left visit stays left
+or that from the right visit stays right: both read the same symbol with the same storage, so they
+move the input head alike. -/
+private lemma step_sides {p : tm.RunPath input} (u : p.visits cut.left) (v : p.visits cut.right)
+    (hs : (p u.val).storage = (p v.val).storage) :
+    (tm.step (p u.val)).inputPos.val ≤ cut.left ∨ cut.right ≤ (tm.step (p v.val)).inputPos.val := by
   have hl := mem_visits.mp u.property
-  have hr := (mem_visits.mp (e.orderIso u).property).1
-  have hs : (p u.val).storage = (p (e.orderIso u).val).storage := congrArg Prod.snd (e.core_eq u)
-  have hi : (p u.val).inputSymbol = (p (e.orderIso u).val).inputSymbol := by
+  have hr := (mem_visits.mp v.property).1
+  have hi : (p u.val).inputSymbol = (p v.val).inputSymbol := by
     rw [inputSymbolInner cut.fst (by grind [left]) cut.fst.isLt,
       inputSymbolInner cut.snd (by grind [right]) cut.snd.isLt]
     exact congrArg some hsym
   simp only [Cfg.storage, Storage.mk.injEq] at hs
-  have hw : (p u.val).workTapeSymbols = (p (e.orderIso u).val).workTapeSymbols := by
+  have hw : (p u.val).workTapeSymbols = (p v.val).workTapeSymbols := by
     unfold Cfg.workTapeSymbols
     rw [hs.2.1, hs.2.2]
   obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp hl.2
   rw [MultiTapeTM.step_inputPos_of_state hq, MultiTapeTM.step_inputPos_of_state (hs.1 ▸ hq), hi, hw]
   grind [val_moveInputPos_eq, SignType.cast]
 
-/-- Every running visit to the left endpoint is reached, by induction over the visits. -/
-private lemma Pairing.reached {p : tm.ComputationPath input} (e : cut.Pairing p.toRunPath)
-    (u : visits p.toRunPath cut.left) : cut.Reached tm (p u.val) := by
-  induction u using WellFoundedLT.induction with | ind u ih =>
-  by_cases hu : IsMin u
-  · exact reached_slice hsym (.inl rfl) ⟨Fin.zero_le _, fun w _ => (le_total u w).elim id (hu ·)⟩
-      (.inl ⟨by simp [show p 0 = _ from p.head_eq, left], le_rfl⟩) (reached_head cut)
-  obtain ⟨w, hwu⟩ := not_isMin_iff.mp hu
-  obtain ⟨v, -, hvu⟩ := exists_le_covBy_of_lt hwu
-  rcases e.step_sides hsym v with hl | hr
-  · exact reached_covBy hsym (.inl rfl) hvu (ih v hvu.lt) (.inl ⟨hl, le_rfl⟩)
-  · have := ih v hvu.lt
-    rw [Reached, e.core_eq] at this ⊢
-    exact reached_covBy hsym (.inr rfl) ((apply_covBy_apply_iff e.orderIso).mpr hvu) this
-      (.inr ⟨hr, le_rfl⟩)
+/-- With equal crossing sequences, every running visit to an endpoint is reached, by induction on
+its index `n` in the crossing sequence: the `n`-th visits to the two endpoints have the same storage
+and so images of the same core, and the step from one of them stays on its side up to the next
+visit there. -/
+private lemma reached_visit {p : tm.ComputationPath input}
+    (hseq : crossingSequence p.toRunPath cut.left = crossingSequence p.toRunPath cut.right)
+    {pos : ℕ} (hpos : pos = cut.left ∨ pos = cut.right) (u : visits p.toRunPath pos) :
+    cut.Reached tm (p u.val) := by
+  have hcard : (visits p.toRunPath cut.right).card = (visits p.toRunPath cut.left).card := by
+    simpa [crossingSequence] using congrArg List.length hseq.symm
+  let l := (visits p.toRunPath cut.left).orderIsoOfFin rfl
+  let r := (visits p.toRunPath cut.right).orderIsoOfFin hcard
+  have hs (n) : (p (l n)).storage = (p (r n)).storage := by
+    simpa [crossingSequence, hcard, l, r, Finset.coe_orderIsoOfFin_apply,
+      Finset.orderEmbOfFin_apply] using congrArg (·[n.val]?) hseq
+  have hcore (n) : cut.Reached tm (p (l n)) ↔ cut.Reached tm (p (r n)) := by
+    have hl := (mem_visits.mp (l n).property).1
+    have hr := (mem_visits.mp (r n).property).1
+    rw [Reached, Reached, show (cut.cfg (p (l n))).core = (cut.cfg (p (r n))).core from
+      Prod.ext (Fin.ext (by grind [Cfg.core, cfg, inputPos, left, right, cut.fst_le_snd])) (hs n)]
+  have hl (n : ℕ) (hn : n < (visits p.toRunPath cut.left).card) :
+      cut.Reached tm (p (l ⟨n, hn⟩)) := by
+    induction n with
+    | zero =>
+      exact reached_slice hsym (.inl rfl)
+        ⟨Fin.zero_le _, fun w _ ↦ l.le_symm_apply.mp (Nat.zero_le _)⟩
+        (.inl ⟨by simp [show p 0 = _ from p.head_eq, left], le_rfl⟩) (reached_head cut)
+    | succ n ih =>
+      have hcov : (⟨n, by omega⟩ : Fin _) ⋖ ⟨n + 1, hn⟩ := Fin.covBy_iff.mpr (Order.covBy_add_one n)
+      rcases step_sides hsym (l _) (r _) (hs ⟨n, by omega⟩) with h | h
+      · exact reached_covBy hsym (.inl rfl) ((apply_covBy_apply_iff l).mpr hcov) (ih _)
+          (.inl ⟨h, le_rfl⟩)
+      · exact (hcore _).mpr (reached_covBy hsym (.inr rfl) ((apply_covBy_apply_iff r).mpr hcov)
+          ((hcore _).mp (ih _)) (.inr ⟨h, le_rfl⟩))
+  rcases hpos with rfl | rfl
+  · obtain ⟨n, rfl⟩ := l.surjective u
+    exact hl n n.isLt
+  · obtain ⟨n, rfl⟩ := r.surjective u
+    exact (hcore n).mp (hl n n.isLt)
 
 /-- Every configuration outside the endpoints and the cells between them is reached, by induction
 over the path: its predecessor is a visit to an endpoint or outside them too. A configuration that
 halts at an endpoint may be entered from the deleted cells. -/
-private lemma Pairing.reached_of_mem {p : tm.ComputationPath input} (e : cut.Pairing p.toRunPath)
+private lemma reached_of_mem {p : tm.ComputationPath input}
+    (hseq : crossingSequence p.toRunPath cut.left = crossingSequence p.toRunPath cut.right)
     {c : Cfg k Symbol State input} (hc : c ∈ p)
     (hout : c.inputPos.val ∉ Set.Icc cut.left cut.right) : cut.Reached tm c := by
   obtain ⟨t, rfl⟩ := hc
@@ -306,10 +304,7 @@ private lemma Pairing.reached_of_mem {p : tm.ComputationPath input} (e : cut.Pai
       by_cases hb : (p t.castSucc).inputPos.val = cut.left ∨ (p t.castSucc).inputPos.val = cut.right
       · have ht : ¬(p t.castSucc).Halted := fun h ↦ by
           grind [left, right, cut.fst_le_snd, Fin.le_def, (step_of_halt h).mp (p.step t)]
-        rcases hb with hb | hb
-        · exact e.reached hsym ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩
-        · have := e.reached hsym (e.orderIso.symm ⟨_, mem_visits.mpr ⟨hb, ht⟩⟩)
-          rwa [Reached, e.core_eq, OrderIso.apply_symm_apply] at this
+        exact reached_visit hsym hseq hb ⟨t.castSucc, mem_visits.mpr ⟨rfl, ht⟩⟩
       · exact ih (by omega)
     exact reached_step hsym hprev (p.step t) (by unfold SameSide; omega)
 
@@ -324,7 +319,7 @@ theorem exists_storage_eq (hsym : input[cut.fst] = input[cut.snd])
     {c : Cfg k Symbol State input} (hc : c ∈ path)
     (hout : c.inputPos.val ∉ Set.Icc cut.left cut.right) :
     c.storage ∈ Cfg.storage '' tm.reachable cut.shortened :=
-  let ⟨d, hd, hdc⟩ := (cut.pairing hseq).reached_of_mem hsym hc hout
+  let ⟨d, hd, hdc⟩ := reached_of_mem hsym hseq hc hout
   ⟨d, hd, congrArg Prod.snd hdc⟩
 
 end InputCut
