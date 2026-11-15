@@ -89,7 +89,7 @@ theorem mem_cayley {x : ComplexAlgebra (ofGroup G)} {g h : G} :
 theorem cayley_injective : Function.Injective (cayley G) := by
   intro x y hxy
   ext g
-  simpa using congrArg ((1, g) ∈ ·) hxy
+  simpa using congr((1, g) ∈ $hxy)
 
 theorem representable_ofGroup (G : Type u) [Group G] : Representable (ComplexAlgebra (ofGroup G)) :=
   ⟨PUnit, fun _ => G, ⟨.pi fun _ => cayley G, Function.const_injective.comp cayley_injective⟩⟩
