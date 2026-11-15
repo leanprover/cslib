@@ -22,10 +22,8 @@ theorem countdown_mtr (s₁ : ℕ) (μs : List Unit) :
   induction μs using List.reverseRecOn with
   | nil => simp
   | append_singleton μs μ ih =>
-    rw [mtr_concat_eq]
-    change countdown.mtr s₁ μs - 1 = _
-    rw [ih, List.length_append, List.length_singleton]
-    lia
+    nth_rw 1 [mtr_concat_eq, countdown]
+    lia [List.length_append, List.length_singleton]
 
 theorem countdown_pairwise (s₁ s₂ : ℕ) :
     ∃ μs, countdown.mtr s₁ μs = countdown.mtr s₂ μs := by
