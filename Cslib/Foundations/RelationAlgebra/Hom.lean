@@ -94,7 +94,6 @@ def mk' (f : α → β) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_comp
   map_mul' := map_mul
   map_star' := map_star
 
-/-- Integrality is reflected by injective homomorphisms. -/
 theorem isIntegral_of_injective (f : RelationAlgebraHom α β) (hf : Function.Injective f)
     (h : RelationAlgebra.IsIntegral β) : RelationAlgebra.IsIntegral α := by
   refine ⟨fun h1 => IsAtom.ne_bot h ?_, fun b hb => hf ?_⟩
