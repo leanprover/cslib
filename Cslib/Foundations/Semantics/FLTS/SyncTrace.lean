@@ -56,19 +56,13 @@ by some trace. This is the pairwise synchronisation criterion of Liu and Černý
 see [Volkov2022], Proposition 2.1. -/
 theorem hasSyncTrace_iff_pairwise [Finite State] (flts : FLTS State Label) :
     flts.HasSyncTrace ↔ ∀ s₁ s₂, ∃ μs, flts.mtr s₁ μs = flts.mtr s₂ μs := by
-  classical
   constructor
   · rintro ⟨μs, hμs⟩ s₁ s₂
     exact ⟨μs, hμs s₁ s₂⟩
   · intro h
-    cases isEmpty_or_nonempty State with
-    | inl he => exact ⟨[], fun s₁ => isEmptyElim s₁⟩
-    | inr he =>
-      let := Fintype.ofFinite State
-      obtain ⟨s₁⟩ := he
-      obtain ⟨μs, hμs⟩ := exists_mtr_eq_on_finset flts h s₁ Finset.univ
-      exact ⟨μs, fun s₂ s₃ => (hμs s₂ (Finset.mem_univ s₂)).trans
-        (hμs s₃ (Finset.mem_univ s₃)).symm⟩
+    obtain ⟨μs, hμs⟩ := flts.exists_mtr_eq_on_finset h Set.finite_univ.toFinset
+    use μs
+    simpa [IsSyncTrace] using hμs
 
 /-- Černý conjecture: for any synchronising `FLTS` with `n` states, there exists a synchronising
 trace of length at most `(n-1)^2`. -/
