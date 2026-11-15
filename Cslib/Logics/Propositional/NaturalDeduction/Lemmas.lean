@@ -6,12 +6,13 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Cslib.Foundations.Logic.InferenceSystem.Basic
 
 /-! # Auxilliary results on natural deduction
 
 In this file we prove the expected results that `ND₁ T` is always intuitionistic, and that various
 axiomatisations of classical logic (`CPL Atom` using double-negation elimination, `LEM Atom` using
-the law of excluded middle, and `Pierce Atom` using Pierce's law) are classical inference systems.
+the law of excluded middle, and `Peirce Atom` using Peirce's law) are classical inference systems.
 We provide derived rules for common intuitionistic and classical proof patterns.
 -/
 
@@ -19,82 +20,147 @@ We provide derived rules for common intuitionistic and classical proof patterns.
 
 universe u
 
-namespace Cslib.Logic.PL
-
-open Proposition InferenceSystem DerivableIn NaturalDeduction Derivation
-  IsIntuitionistic IsClassical
+namespace Cslib.Logic.PL.NaturalDeduction
 
 variable {Atom : Type u} [DecidableEq Atom] {T : Set (Proposition Atom)}
 
-instance instIsIntuitionisticND₁ : IsIntuitionistic Atom (ND₁ T) where
-  derBotImp A := ass (Finset.mem_insert_self ⊥ ∅) |>.efq A |>.impI
+open Proposition InferenceSystem DerivableIn IsIntuitionistic IsClassical Derivation
+
+/-! ### Classes of inference systems -/
+
+instance instIsIntuitionisticND₁ : IsIntuitionistic (ND₁ T) (Proposition Atom) where
+  derivationBotImp A := ass (A := ⊥) |>.efq A |>.impI
 
 /-- Derivation of efq in an arbitrary context. -/
-def IsIntuitionistic.derBotImpCtx [IsIntuitionistic Atom (ND₁ T)] (Γ : Ctx Atom)
-    (A : Proposition Atom) : (ND T)⇓(Γ ⊢ ⊥ → A) :=
-  (derBotImp A : (ND₁ T)⇓(⊥ → A)).weakCtx (Finset.empty_subset Γ)
-
-/-- Efq as a derived rule. -/
-def IsIntuitionistic.efqRule [IsIntuitionistic Atom (ND₁ T)] (Γ : Ctx Atom) (A : Proposition Atom)
-    (D : (ND T)⇓(Γ ⊢ ⊥)) : (ND T)⇓(Γ ⊢ A) :=
-  impE (A := ⊥) (derBotImpCtx Γ A) D
+def derivBotImpCtx (Γ : Ctx Atom) (A : Proposition Atom) : (ND T)⇓(Γ ⊢ ⊥ → A) :=
+  (derivationBotImp A : (ND₁ T)⇓(⊥ → A)).weakenCtx
 
 /-- Prove any proposition from contradictory hypotheses. -/
-def IsIntuitionistic.contra [IsIntuitionistic Atom (ND₁ T)] {Γ : Ctx Atom} (A B : Proposition Atom)
-    (hΓ : A ∈ Γ) (hΓ' : (¬A) ∈ Γ) : (ND T)⇓(Γ ⊢ B) :=
-  efqRule Γ B <| impE (ass hΓ') (ass hΓ)
+def contra {Γ : Ctx Atom} (A B : Proposition Atom)
+    (hΓ : A ∈ Γ := by membership) (hΓ' : (¬A) ∈ Γ := by membership) : (ND T)⇓(Γ ⊢ B) :=
+  efq B <| impE (A := A) ass ass
 
-instance instIsClassicalCPL : IsClassical Atom (ND₁ <| CPL Atom) where
-  dne A := ax (dne_mem_cpl A)
+instance instIsClassicalCPL : IsClassical (ND₁ <| CPL Atom) (Proposition Atom) where
+  derivationDNE A := ax
 
 /-- Proof by contradiction as a derived rule. -/
-def IsClassical.byContra [IsClassical Atom (ND₁ T)] {Γ : Ctx Atom} {A : Proposition Atom}
-    (D : (ND T)⇓(insert (¬ A) Γ ⊢ ⊥)) : (ND T)⇓(Γ ⊢ A) :=
-  impE (A := ¬¬A) ((dne A : (ND₁ T)⇓(¬¬A → A)) |>.weakCtx <| Finset.empty_subset ..) D.impI
+def byContra [IsClassical (ND₁ T) (Proposition Atom)] {Γ : Ctx Atom}
+    {A : Proposition Atom} (D : (ND T)⇓(insert (¬ A) Γ ⊢ ⊥)) : (ND T)⇓(Γ ⊢ A) :=
+  impE (derivationDNE A : (ND₁ T)⇓(¬¬A → A)).weakenCtx D.impI
 
 /-- Law of excluded middle in a classical theory. -/
-def IsClassical.lem [IsClassical Atom (ND₁ T)] (A : Proposition Atom) : (ND₁ T)⇓(A ∨ ¬ A) := by
+def lem [IsClassical (ND₁ T) (Proposition Atom)] (A : Proposition Atom) : (ND₁ T)⇓(A ∨ ¬ A) := by
   apply byContra
-  apply impE (ass <| Finset.mem_insert_self ..)
+  apply impE (A := A ∨ ¬ A) ass
   apply orI₂; apply impI
-  apply impE (A := A ∨ ¬ A) (ass <| by grind)
-  exact orI₁ <| ass <| Finset.mem_insert_self ..
+  exact impE (A := A ∨ ¬ A) ass (orI₁ ass)
 
-/-- Pierce's law in a classical theory. -/
-def IsClassical.pierce [IsClassical Atom (ND₁ T)] (A B : Proposition Atom) :
+/-- Peirce's law in a classical theory. -/
+def peirce [IsClassical (ND₁ T) (Proposition Atom)] (A B : Proposition Atom) :
     (ND₁ T)⇓(((A → B) → A) → A) := by
   apply impI; apply byContra
-  apply impE (ass <| Finset.mem_insert_self ..)
-  apply impE (A := A → B) (ass <| by grind); apply impI
-  apply contra A B <;> grind
+  apply impE (A := A) ass
+  apply impE (A := A → B) ass
+  exact impI _ <| contra A B
 
-/-- The axiom system consisting of instances of LEM. -/
-def LEM (Atom : Type u) : Set (Proposition Atom) := {A ∨ ¬ A | A : Proposition Atom}
-
-omit [DecidableEq Atom] in
-lemma lem_mem_lem (A : Proposition Atom) : (A ∨ ¬ A) ∈ LEM Atom := ⟨A, rfl⟩
-
-/-- The axiom system consisting of instances of Pierce's law. -/
-def Pierce (Atom : Type u) : Set (Proposition Atom) :=
-  {((A → B) → A) → A | (A : Proposition Atom) (B : Proposition Atom)}
-
-omit [DecidableEq Atom] in
-lemma pierce_mem_pierce (A B : Proposition Atom) : (((A → B) → A) → A) ∈ Pierce Atom := ⟨A, B, rfl⟩
-
-instance instIsClassicalLEM : IsClassical Atom (ND₁ <| LEM Atom) where
-  dne A := by
+instance instIsClassicalLEM : IsClassical (ND₁ <| LEM Atom) (Proposition Atom) where
+  derivationDNE A := by
     apply impI
-    apply orE (ax <| lem_mem_lem A)
-    · exact ass (Finset.mem_insert_self A _)
-    · apply impE (A := ⊥) (derBotImpCtx _ A)
-      apply impE (A := ¬ A) <;> exact ass (by grind)
+    apply orE (A := A) (B := ¬ A) ax ass
+    apply impE (A := ⊥) (derivBotImpCtx _ A)
+    apply impE (A := ¬ A) ass ass
 
-instance instIsClassicalPierce : IsClassical Atom (ND₁ <| Pierce Atom) where
-  dne A := by
+instance instIsClassicalPeirce : IsClassical (ND₁ <| Peirce Atom) (Proposition Atom) where
+  derivationDNE A := by
     apply impI
-    apply impE (A := (A → ⊥) → A) (ax <| pierce_mem_pierce A ⊥)
+    apply impE (A := (A → ⊥) → A) ax
     apply impI
-    apply impE (A := ⊥) (derBotImpCtx _ A)
-    apply impE (A := ¬ A) <;> exact ass (by grind)
+    apply contra (A := ¬A)
 
-end Cslib.Logic.PL
+/-! ### Further operations on deductions -/
+
+/-- Move the axioms used in a derivation `D` to the context, obtaining a derivation in
+intuitionistic logic. -/
+def Derivation.collectAx {Γ : Ctx Atom} {B : Proposition Atom} :
+    (Derivation T Γ B) → Σ Δ : {Δ : Ctx Atom // ↑Δ ⊆ T}, Derivation (IPL Atom) (Γ ∪ Δ) B
+  | @ax _ _ _ _ B _ => ⟨⟨{B}, by grind⟩, ass⟩
+  | ass _ => ⟨⟨∅, by grind⟩, ass⟩
+  | efq A D => let ⟨Δ, D'⟩ := D.collectAx; ⟨Δ, D'.efq A⟩
+  | andI D E =>
+    let ⟨Δ₁, D'⟩ := collectAx D
+    let ⟨Δ₂, E'⟩ := collectAx E
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, andI D'.weakenCtx E'.weakenCtx⟩
+  | andE₁ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, andE₁ D'⟩
+  | andE₂ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, andE₂ D'⟩
+  | orI₁ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, orI₁ D'⟩
+  | orI₂ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, orI₂ D'⟩
+  | orE D E₁ E₂ =>
+    let ⟨Δ, D'⟩ := collectAx D
+    let ⟨Δ₁, E₁'⟩ := collectAx E₁
+    let ⟨Δ₂, E₂'⟩ := collectAx E₂
+    ⟨⟨Δ ∪ Δ₁ ∪ Δ₂, by grind⟩, orE D'.weakenCtx E₁'.weakenCtx E₂'.weakenCtx⟩
+  | impI Γ D => let ⟨Δ, D'⟩ := collectAx D; ⟨Δ, impI (Γ ∪ Δ) D'.weakenCtx⟩
+  | impE D E =>
+    let ⟨Δ₁, D'⟩ := collectAx D
+    let ⟨Δ₂, E'⟩ := collectAx E
+    ⟨⟨Δ₁ ∪ Δ₂, by grind⟩, impE (D'.weakenCtx) (E'.weakenCtx)⟩
+
+theorem derivableIn_collect_ax {Γ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn (ND T) (Γ ⊢ B) →
+      ∃ Δ : Ctx Atom, DerivableIn (ND <| IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ↑Δ ⊆ T
+  | ⟨D⟩ => let ⟨⟨Δ, hΔ⟩, D'⟩ := D.collectAx; ⟨Δ, ⟨⟨D'⟩, hΔ⟩⟩
+
+/-- Remove some assumptions by moving them to the axiom set. -/
+def Derivation.assToAx' {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    Derivation T Γ B → Derivation (T ∪ Δ) (Γ \ Δ) B
+  | @ass _ _ _ _ B _ => by
+    by_cases B ∈ Δ
+    case pos => exact ax
+    case neg => exact ass
+  | ax _ => ax
+  | efq A D => D.assToAx'.efq A
+  | andI D E => andI (assToAx' D) (assToAx' E)
+  | andE₁ D => andE₁ (assToAx' D)
+  | andE₂ D => andE₂ (assToAx' D)
+  | orI₁ D => orI₁ (assToAx' D)
+  | orI₂ D => orI₂ (assToAx' D)
+  | @orE _ _ _ _ A' B C D E₁ E₂ =>
+    orE (assToAx' D)
+      (assToAx' (Δ := Δ) (B := C) E₁).weakenCtx
+      (assToAx' (Δ := Δ) (B := C) E₂).weakenCtx
+  | @impI _ _ _ A' B _ D => impI _ (assToAx' (Δ := Δ) (B := B) D).weakenCtx
+  | impE D E => impE (assToAx' D) (assToAx' E)
+
+/-- Remove dependence on some assumptions by adding them to the theory. -/
+def Derivation.assToAx {Γ Δ : Ctx Atom} {B : Proposition Atom}
+    (D : Derivation T (Γ ∪ Δ) B) : Derivation (T ∪ Δ) Γ B := (assToAx' D).weakenCtx
+
+theorem derivableIn_ass_to_ax {Γ Δ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B) → DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B)
+  | ⟨D⟩ => ⟨Derivation.assToAx D⟩
+
+/-- Move a finset of axioms to the context. -/
+def Derivation.axToAss {Γ Δ : Ctx Atom} {B : Proposition Atom}
+    (D : (ND <| T ∪ Δ)⇓(Γ ⊢ B)) : (ND T)⇓((Γ ∪ Δ) ⊢ B) :=
+  let ⟨⟨Δ', hΔ'⟩, D'⟩ := collectAx D
+  (D'.assToAx' (Δ := Δ' \ Δ)).weaken (by grind)
+
+theorem derivableIn_ax_to_ass {Γ Δ : Ctx Atom}
+    {B : Proposition Atom} : DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) → DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B)
+  | ⟨D⟩ => ⟨D.axToAss⟩
+
+theorem derivableIn_union_ax_iff_ctx {Γ Δ : Ctx Atom} {B : Proposition Atom} :
+    DerivableIn (ND <| T ∪ Δ) (Γ ⊢ B) ↔ DerivableIn (ND T) ((Γ ∪ Δ) ⊢ B) :=
+  ⟨derivableIn_ax_to_ass, derivableIn_ass_to_ax⟩
+
+theorem derivableIn_iff_exists {Γ : Ctx Atom} {B : Proposition Atom} :
+    DerivableIn (ND T) (Γ ⊢ B) ↔
+      ∃ Δ : Ctx Atom, DerivableIn (ND <| IPL Atom) ((Γ ∪ Δ) ⊢ B) ∧ ↑Δ ⊆ T :=
+  ⟨derivableIn_collect_ax, fun ⟨Δ, h, hsub⟩ ↦ derivableIn_weaken_ax <| derivableIn_ass_to_ax h⟩
+
+theorem derivableIn_nd₁_iff_exists {A : Proposition Atom} :
+    DerivableIn (ND₁ T) A ↔ ∃ Γ : Ctx Atom, DerivableIn (ND <| IPL Atom) (Γ ⊢ A) ∧ ↑Γ ⊆ T := by
+  rw [derivableIn_nd₁_iff_derivableIn_nd_empty, derivableIn_iff_exists]
+  simp
+
+end Cslib.Logic.PL.NaturalDeduction

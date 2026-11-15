@@ -11,7 +11,7 @@ public import Mathlib.Data.Set.Basic
 public import Mathlib.Order.BooleanAlgebra.Set
 public import Mathlib.Order.Defs.Unbundled
 public import Cslib.Foundations.Relation.Euclidean
-public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.InferenceSystem.Defs
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.Syntax.HasSubstitution
