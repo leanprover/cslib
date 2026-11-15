@@ -204,8 +204,19 @@ abbrev one : One (l.Product A) where
 attribute [local instance] sup compl mul star one in
 /-- The reduced product of a family of relation algebras is a relation algebra. -/
 instance instRelationAlgebra : RelationAlgebra (l.Product A) :=
-  Function.Surjective.relationAlgebra (mk l) mk_surjective
-    (fun _ _ => rfl) (fun _ => rfl) (fun _ _ => rfl) rfl (fun _ => rfl)
+  .ofTarski
+    (mk_surjective.forall₂.mpr fun a b => congrArg (mk l) (sup_comm a b))
+    (mk_surjective.forall₃.mpr fun a b c => congrArg (mk l) (sup_assoc a b c))
+    (mk_surjective.forall₂.mpr fun a b =>
+      congrArg (mk l) (show (aᶜ ⊔ b)ᶜ ⊔ (aᶜ ⊔ bᶜ)ᶜ = a by simp [← inf_sup_left]))
+    (mk_surjective.forall₃.mpr fun a b c => congrArg (mk l) (mul_assoc a b c))
+    (mk_surjective.forall.mpr fun a => congrArg (mk l) (mul_one a))
+    (mk_surjective.forall.mpr fun a => congrArg (mk l) (star_star a))
+    (mk_surjective.forall₂.mpr fun a b => congrArg (mk l) (star_mul a b))
+    (mk_surjective.forall₃.mpr fun a b c => congrArg (mk l) (RelationAlgebra.sup_mul a b c))
+    (mk_surjective.forall₂.mpr fun a b => congrArg (mk l) (RelationAlgebra.star_sup a b))
+    (mk_surjective.forall₂.mpr fun a b =>
+      congrArg (mk l) (sup_eq_right.mpr (RelationAlgebra.tarski a b)))
 
 end
 
