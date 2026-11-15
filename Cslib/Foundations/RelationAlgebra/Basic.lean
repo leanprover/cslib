@@ -79,6 +79,33 @@ def ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
   star_sup := star_sup
   tarski := tarski
 
+end RelationAlgebra
+
+/-- Transfer a `RelationAlgebra` structure along a surjective map preserving the operations of
+Tarski's axiomatization. -/
+protected abbrev _root_.Function.Surjective.relationAlgebra {α β : Type*} [RelationAlgebra α]
+    [Max β] [Compl β] [Mul β] [One β] [Star β] (f : α → β) (hf : Function.Surjective f)
+    (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_compl : ∀ a, f aᶜ = (f a)ᶜ)
+    (map_mul : ∀ a b, f (a * b) = f a * f b) (map_one : f 1 = 1)
+    (map_star : ∀ a, f (star a) = star (f a)) : RelationAlgebra β :=
+  RelationAlgebra.ofTarski
+    (hf.forall₂.mpr fun a b => by rw [← map_sup, ← map_sup, sup_comm])
+    (hf.forall₃.mpr fun a b c => by simp only [← map_sup, sup_assoc])
+    (hf.forall₂.mpr fun a b => by
+      simp only [← map_sup, ← map_compl]
+      exact congrArg f (by simp [← inf_sup_left]))
+    (hf.forall₃.mpr fun a b c => by simp only [← map_mul, mul_assoc])
+    (hf.forall.mpr fun a => by rw [← map_one, ← map_mul, mul_one])
+    (hf.forall.mpr fun a => by rw [← map_star, ← map_star, star_star])
+    (hf.forall₂.mpr fun a b => by simp only [← map_star, ← map_mul, star_mul])
+    (hf.forall₃.mpr fun a b c => by simp only [← map_sup, ← map_mul, RelationAlgebra.sup_mul])
+    (hf.forall₂.mpr fun a b => by simp only [← map_sup, ← map_star, RelationAlgebra.star_sup])
+    (hf.forall₂.mpr fun a b => by
+      simp only [← map_sup, ← map_star, ← map_mul, ← map_compl]
+      exact congrArg f (sup_eq_right.mpr (RelationAlgebra.tarski a b)))
+
+namespace RelationAlgebra
+
 variable {α : Type*} [RelationAlgebra α]
 
 @[gcongr]
