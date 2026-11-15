@@ -73,6 +73,7 @@ public import Cslib.Computability.Circuit.Simulation
 public import Cslib.Computability.Circuit.Synthesis
 public import Cslib.Computability.Circuit.Wire
 public import Cslib.Computability.Distributed.Consistency.Encodable
+public import Cslib.Computability.Distributed.Consistency.Enumeration
 public import Cslib.Computability.Distributed.Consistency.Execution
 public import Cslib.Computability.Distributed.Consistency.Hierarchy
 public import Cslib.Computability.Distributed.Consistency.Specification
