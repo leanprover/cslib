@@ -34,9 +34,7 @@ theorem countdown_pairwise (s₁ s₂ : ℕ) :
   lia
 
 theorem countdown_not_hasSyncTrace : ¬countdown.HasSyncTrace := by
-  rintro ⟨μs, hμs⟩
-  have h := hμs 0 (μs.length + 1)
-  simp only [countdown_mtr] at h
-  lia
+  intro ⟨μs, hμs⟩
+  simpa [countdown_mtr] using hμs 0 (μs.length + 1)
 
 end CslibTests.SyncTrace
