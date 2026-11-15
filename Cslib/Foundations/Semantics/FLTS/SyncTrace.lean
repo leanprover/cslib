@@ -36,18 +36,20 @@ def IsSyncTrace (flts : FLTS State Label) (μs : List Label) : Prop :=
 def HasSyncTrace (flts : FLTS State Label) : Prop :=
   ∃ μs : List Label, flts.IsSyncTrace μs
 
-/-- Pairwise merging suffices to merge any finite set of states with a reference state. -/
+/-- Pairwise merging suffices to merge any finite set of states with one another. -/
 private theorem exists_mtr_eq_on_finset (flts : FLTS State Label)
-    (h : ∀ s₁ s₂, ∃ μs, flts.mtr s₁ μs = flts.mtr s₂ μs) (s₁ : State) (S : Finset State) :
-    ∃ μs, ∀ s₂ ∈ S, flts.mtr s₂ μs = flts.mtr s₁ μs := by
+    (h : ∀ s₁ s₂, ∃ μs, flts.mtr s₁ μs = flts.mtr s₂ μs) (S : Finset State) :
+    ∃ μs, ∀ s₁ ∈ S, ∀ s₂ ∈ S, flts.mtr s₁ μs = flts.mtr s₂ μs := by
   classical
   induction S using Finset.induction_on with
   | empty => exact ⟨[], by simp⟩
   | insert s₂ S hs₂ ih =>
     obtain ⟨μs, hμs⟩ := ih
-    obtain ⟨νs, hνs⟩ := h (flts.mtr s₂ μs) (flts.mtr s₁ μs)
-    refine ⟨μs ++ νs, ?_⟩
-    grind
+    rcases S.eq_empty_or_nonempty with (rfl | ⟨s₁, h₁⟩)
+    · simp
+    · obtain ⟨νs, hνs⟩ := h (flts.mtr s₁ μs) (flts.mtr s₂ μs)
+      refine ⟨μs ++ νs, ?_⟩
+      simp; grind
 
 /-- A finite-state `FLTS` has a synchronising trace iff every pair of states can be merged
 by some trace. This is the pairwise synchronisation criterion of Liu and Černý;
