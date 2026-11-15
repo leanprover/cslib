@@ -8,7 +8,10 @@ module
 
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Representation
+public import Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
+public import Mathlib.Algebra.Group.Action.Prod
 public import Mathlib.Algebra.Group.Basic
+public import Mathlib.GroupTheory.GroupAction.Defs
 
 /-!
 # Group relation algebras
@@ -90,6 +93,29 @@ theorem cayley_injective : Function.Injective (cayley G) := by
   intro x y hxy
   ext g
   simpa using congr((1, g) ∈ $hxy)
+
+theorem mem_range_cayley {r : SetRel G G} :
+    r ∈ Set.range (cayley G) ↔ ∀ g h k : G, (g, h) ∈ r → (k * g, k * h) ∈ r := by
+  constructor
+  · rintro ⟨x, rfl⟩
+    simp
+  · intro hinv
+    use ⟨{k | (1, k) ∈ r}⟩
+    ext ⟨g, h⟩
+    constructor
+    · simpa using hinv 1 (g⁻¹ * h) g
+    · simpa using hinv g h g⁻¹
+
+open scoped Pointwise in
+theorem _root_.MulAction.set_mem_fixedPoints_iff {G α : Type*} [Group G] [MulAction G α]
+    {s : Set α} : s ∈ MulAction.fixedPoints G (Set α) ↔ ∀ g : G, g • s ⊆ s :=
+  ⟨fun h g => (h g).subset, fun h g => (h g).antisymm (Set.subset_smul_set_iff.mpr (h g⁻¹))⟩
+
+open scoped Pointwise in
+theorem range_cayley : Set.range (cayley G) = MulAction.fixedPoints G (SetRel G G) := by
+  ext
+  simp [↓mem_range_cayley, ↓MulAction.set_mem_fixedPoints_iff, Set.smul_set_subset_iff]
+  grind
 
 theorem representable_ofGroup (G : Type u) [Group G] : Representable (ComplexAlgebra (ofGroup G)) :=
   ⟨PUnit, fun _ => G, ⟨.pi fun _ => cayley G, Function.const_injective.comp cayley_injective⟩⟩
