@@ -30,8 +30,7 @@ theorem countdown_mtr (s₁ : ℕ) (μs : List Unit) :
 theorem countdown_pairwise (s₁ s₂ : ℕ) :
     ∃ μs, countdown.mtr s₁ μs = countdown.mtr s₂ μs := by
   refine ⟨List.replicate (max s₁ s₂) (), ?_⟩
-  simp only [countdown_mtr, List.length_replicate]
-  lia
+  simp [countdown_mtr]
 
 theorem countdown_not_hasSyncTrace : ¬countdown.HasSyncTrace := by
   intro ⟨μs, hμs⟩
