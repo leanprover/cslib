@@ -105,10 +105,6 @@ class CompatibleRelationAlgebra (A : Type*) [Max A] [Compl A] [Mul A] [Star A] [
   /-- The identity of the structure is the one given by the `One` instance. -/
   funMap_one : ∀ x, funMap (oneFunc : Language.relationAlgebra.Constants) x = 1
 
-open CompatibleRelationAlgebra
-
-attribute [simp] funMap_sup funMap_compl funMap_mul funMap_star funMap_one
-
 /-- Given a type `A` with instances for each of the relation algebra operations, make a
 `Language.relationAlgebra.Structure A` instance, along with a proof that the operations given by
 the structure are the same as those given by the instances.
@@ -247,11 +243,6 @@ product under the quotient homomorphism. -/
 theorem mkHom_induction_on {p : l.Product A → Prop} (x : l.Product A)
     (h : ∀ f : ∀ i, A i, p (mkHom A l f)) : p x :=
   induction_on x h
-
-variable {f g : ∀ i, A i}
-
-theorem mkHom_eq_mkHom : mkHom A l f = mkHom A l g ↔ ∀ᶠ i in l, f i = g i :=
-  mk_eq_mk
 
 instance [∀ i, TrivialStar (A i)] : TrivialStar (l.Product A) where
   star_trivial x := by
