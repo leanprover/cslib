@@ -328,24 +328,26 @@ variable (φ) in
 `K × K`: a set of atoms is sent to the set of vectors whose direction lies in it. -/
 noncomputable def slopeHom (h : 5 ≤ ENat.card α) (hK : ∃ c : K, c ≠ 0 ∧ c ≠ 1) :
     RelationAlgebraHom (ComplexAlgebra (lyndon e h))
-      (ComplexAlgebra (ofGroup (Multiplicative (K × K)))) :=
-  RelationAlgebraHom.mk' (fun x => ⟨{v | slope φ v.toAdd ∈ x}⟩)
-    (fun _ _ => rfl)
-    (fun _ => rfl)
-    (fun x y => by
-      ext t
-      constructor
-      · rintro ⟨r, hr, s, hs, hc⟩
-        obtain ⟨u, w, rfl, rfl, huw⟩ := exists_add_of_mem_lyndonCycles hK hc
-        exact ⟨.ofAdd u, hr, .ofAdd w, hs, congrArg Multiplicative.ofAdd huw⟩
-      · rintro ⟨u, hu, w, hw, rfl⟩
-        exact ⟨_, hu, _, hw, slope_mem_lyndonCycles u.toAdd w.toAdd⟩)
-    (by ext v; exact slope_eq_iff)
-    (fun x => by
-      ext v
-      rw [ComplexAlgebra.mem_star]
-      change slope φ v.toAdd ∈ star x ↔ slope φ (-v.toAdd) ∈ x
-      rw [ComplexAlgebra.mem_star, slope_neg, lyndon_conv])
+      (ComplexAlgebra (ofGroup (Multiplicative (K × K)))) where
+  toFun x := ⟨{v | slope φ v.toAdd ∈ x}⟩
+  map_sup' _ _ := rfl
+  map_inf' _ _ := rfl
+  map_top' := rfl
+  map_bot' := rfl
+  map_mul' x y := by
+    ext t
+    constructor
+    · rintro ⟨r, hr, s, hs, hc⟩
+      obtain ⟨u, w, rfl, rfl, huw⟩ := exists_add_of_mem_lyndonCycles hK hc
+      exact ⟨.ofAdd u, hr, .ofAdd w, hs, congrArg Multiplicative.ofAdd huw⟩
+    · rintro ⟨u, hu, w, hw, rfl⟩
+      exact ⟨_, hu, _, hw, slope_mem_lyndonCycles u.toAdd w.toAdd⟩
+  map_one' := by ext v; exact slope_eq_iff
+  map_star' x := by
+    ext v
+    rw [ComplexAlgebra.mem_star]
+    change slope φ v.toAdd ∈ star x ↔ slope φ (-v.toAdd) ∈ x
+    rw [ComplexAlgebra.mem_star, slope_neg, lyndon_conv]
 
 theorem slopeHom_injective (h : 5 ≤ ENat.card α) (hK : ∃ c : K, c ≠ 0 ∧ c ≠ 1) :
     Function.Injective (slopeHom φ h hK) := by

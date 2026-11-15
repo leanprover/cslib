@@ -211,9 +211,24 @@ end
 
 variable (A l) in
 /-- The quotient map from the product of a family of relation algebras to its reduced product. -/
-def mkHom : RelationAlgebraHom (∀ i, A i) (l.Product A) :=
-  RelationAlgebraHom.mk' (mk l) (fun _ _ => rfl) (fun _ => rfl)
-    (fun _ _ => rfl) rfl (fun _ => rfl)
+def mkHom : RelationAlgebraHom (∀ i, A i) (l.Product A) where
+  toFun := mk l
+  map_sup' _ _ := rfl
+  map_inf' a b := by
+    rw [← compl_compl (mk l a ⊓ mk l b), compl_inf]
+    change mk l (a ⊓ b) = mk l (aᶜ ⊔ bᶜ)ᶜ
+    rw [← compl_inf, compl_compl]
+  map_top' := by
+    rw [← sup_compl_eq_top (x := mk l 1)]
+    change mk l ⊤ = mk l (1 ⊔ 1ᶜ)
+    rw [sup_compl_eq_top]
+  map_bot' := by
+    rw [← compl_top (α := l.Product A), ← sup_compl_eq_top (x := mk l 1)]
+    change mk l ⊥ = mk l (1 ⊔ 1ᶜ)ᶜ
+    rw [sup_compl_eq_top, compl_top]
+  map_one' := rfl
+  map_mul' _ _ := rfl
+  map_star' _ := rfl
 
 /-- Every element of a reduced product of relation algebras is the image of some element of the
 product under the quotient homomorphism. -/

@@ -376,59 +376,73 @@ ultraproduct of the atom structures: the class of a family of sets `X i` is sent
 classes of families of atoms that lie in `X i` for almost all `i`. -/
 noncomputable def productHom :
     RelationAlgebraHom ((U : Filter ι).Product fun i => ComplexAlgebra (S i))
-      (ComplexAlgebra (filterProduct S (U : Filter ι))) :=
-  RelationAlgebraHom.mk' (productFun S U)
-    (fun x y => by
-      induction x using mkHom_induction_on with | h X
-      induction y using mkHom_induction_on with | h Y
-      rw [← SupHomClass.map_sup]
-      ext a
-      induction a using Filter.Product.induction_on with | h f
-      rw [mem_sup, mk_mem_productFun, mk_mem_productFun, mk_mem_productFun,
-        ← Ultrafilter.eventually_or]
-      rfl)
-    (fun x => by
-      induction x using mkHom_induction_on with | h X
-      rw [← map_compl']
-      ext a
-      induction a using Filter.Product.induction_on with | h f
-      rw [mem_compl, mk_mem_productFun, mk_mem_productFun, ← Ultrafilter.eventually_not]
-      rfl)
-    (fun x y => by
-      induction x using mkHom_induction_on with | h X
-      induction y using mkHom_induction_on with | h Y
-      rw [← map_mul]
-      ext a
-      induction a using Filter.Product.induction_on with | h f
-      rw [mk_mem_productFun, mem_mul]
-      constructor
-      · intro h
-        have : ∀ i, Nonempty (α i × α i) := fun i => ⟨(f i, f i)⟩
-        obtain ⟨rs, hrs⟩ := (Filter.skolem (P := fun i (rs : α i × α i) =>
-          rs.1 ∈ X i ∧ rs.2 ∈ Y i ∧ (rs.1, rs.2, f i) ∈ (S i).cycles)).mp
-          (h.mono fun i ⟨r, hr, s, hs, hc⟩ => ⟨(r, s), hr, hs, hc⟩)
-        exact ⟨π fun i => (rs i).1, (mk_mem_productFun S U).mpr (hrs.mono fun i h => h.1),
-          π fun i => (rs i).2, (mk_mem_productFun S U).mpr (hrs.mono fun i h => h.2.1),
-          (mk_mem_filterProductCycles S _).mpr (hrs.mono fun i h => h.2.2)⟩
-      · rintro ⟨r, hr, s, hs, hc⟩
-        induction r using Filter.Product.induction_on with | h r
-        induction s using Filter.Product.induction_on with | h s
-        rw [mk_mem_productFun] at hr hs
-        replace hc := (mk_mem_filterProductCycles S _).mp hc
-        filter_upwards [hr, hs, hc] with i hr hs hc using ⟨r i, hr, s i, hs, hc⟩)
-    (by
-      rw [← map_one (mkHom (fun i => ComplexAlgebra (S i)) (U : Filter ι))]
-      ext a
-      induction a using Filter.Product.induction_on with | h f
-      rw [mk_mem_productFun, mem_one]
-      exact (mk_mem_filterProductId S _).symm)
-    (fun x => by
-      induction x using mkHom_induction_on with | h X
-      rw [← map_star]
-      ext a
-      induction a using Filter.Product.induction_on with | h f
-      rw [mem_star, filterProduct_conv_mk, mk_mem_productFun, mk_mem_productFun]
-      exact Filter.eventually_congr (.of_forall fun i => mem_star))
+      (ComplexAlgebra (filterProduct S (U : Filter ι))) where
+  toFun := productFun S U
+  map_sup' x y := by
+    induction x using mkHom_induction_on with | h X
+    induction y using mkHom_induction_on with | h Y
+    rw [← SupHomClass.map_sup]
+    ext a
+    induction a using Filter.Product.induction_on with | h f
+    rw [mem_sup, mk_mem_productFun, mk_mem_productFun, mk_mem_productFun,
+      ← Ultrafilter.eventually_or]
+    rfl
+  map_inf' x y := by
+    induction x using mkHom_induction_on with | h X
+    induction y using mkHom_induction_on with | h Y
+    rw [← InfHomClass.map_inf]
+    ext a
+    induction a using Filter.Product.induction_on with | h f
+    rw [mk_mem_productFun]
+    exact Filter.eventually_and.trans
+      (and_congr (mk_mem_productFun S U).symm (mk_mem_productFun S U).symm)
+  map_top' := by
+    rw [← TopHomClass.map_top (mkHom (fun i => ComplexAlgebra (S i)) (U : Filter ι))]
+    ext a
+    induction a using Filter.Product.induction_on with | h f
+    rw [mk_mem_productFun]
+    exact iff_of_true (.of_forall fun _ => trivial) trivial
+  map_bot' := by
+    rw [← BotHomClass.map_bot (mkHom (fun i => ComplexAlgebra (S i)) (U : Filter ι))]
+    ext a
+    induction a using Filter.Product.induction_on with | h f
+    rw [mk_mem_productFun]
+    exact iff_of_false (fun h => h.exists.elim fun _ => id) id
+  map_mul' x y := by
+    induction x using mkHom_induction_on with | h X
+    induction y using mkHom_induction_on with | h Y
+    rw [← map_mul]
+    ext a
+    induction a using Filter.Product.induction_on with | h f
+    rw [mk_mem_productFun, mem_mul]
+    constructor
+    · intro h
+      have : ∀ i, Nonempty (α i × α i) := fun i => ⟨(f i, f i)⟩
+      obtain ⟨rs, hrs⟩ := (Filter.skolem (P := fun i (rs : α i × α i) =>
+        rs.1 ∈ X i ∧ rs.2 ∈ Y i ∧ (rs.1, rs.2, f i) ∈ (S i).cycles)).mp
+        (h.mono fun i ⟨r, hr, s, hs, hc⟩ => ⟨(r, s), hr, hs, hc⟩)
+      exact ⟨π fun i => (rs i).1, (mk_mem_productFun S U).mpr (hrs.mono fun i h => h.1),
+        π fun i => (rs i).2, (mk_mem_productFun S U).mpr (hrs.mono fun i h => h.2.1),
+        (mk_mem_filterProductCycles S _).mpr (hrs.mono fun i h => h.2.2)⟩
+    · rintro ⟨r, hr, s, hs, hc⟩
+      induction r using Filter.Product.induction_on with | h r
+      induction s using Filter.Product.induction_on with | h s
+      rw [mk_mem_productFun] at hr hs
+      replace hc := (mk_mem_filterProductCycles S _).mp hc
+      filter_upwards [hr, hs, hc] with i hr hs hc using ⟨r i, hr, s i, hs, hc⟩
+  map_one' := by
+    rw [← map_one (mkHom (fun i => ComplexAlgebra (S i)) (U : Filter ι))]
+    ext a
+    induction a using Filter.Product.induction_on with | h f
+    rw [mk_mem_productFun, mem_one]
+    exact (mk_mem_filterProductId S _).symm
+  map_star' x := by
+    induction x using mkHom_induction_on with | h X
+    rw [← map_star]
+    ext a
+    induction a using Filter.Product.induction_on with | h f
+    rw [mem_star, filterProduct_conv_mk, mk_mem_productFun, mk_mem_productFun]
+    exact Filter.eventually_congr (.of_forall fun i => mem_star)
 
 /-- An ultraproduct of complex algebras embeds into the complex algebra of the ultraproduct of the
 atom structures. -/
