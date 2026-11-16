@@ -24,6 +24,7 @@ a finite number of predecessors.
 @[expose] public section
 
 open Function Relation Set
+
 /-- We define an enumeration as a `LinearOrder` in which every element has only a finite number
 of predecessors, i.e., a `LocallyFiniteOrderBot`. -/
 class Enumeration (α : Type*) extends LinearOrder α, LocallyFiniteOrderBot α

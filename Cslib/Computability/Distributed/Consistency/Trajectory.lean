@@ -6,7 +6,7 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Distributed.Consistency.Encodable
+public import Cslib.Computability.Distributed.Consistency.Enumeration
 public import Cslib.Computability.Distributed.Consistency.Specification
 public import Cslib.Computability.Distributed.Consistency.Transition
 
@@ -26,14 +26,14 @@ This file formalizes section 7.2 of [Burckhardt2014].
 
 namespace Cslib.DistributedConsistency
 
-open Encodable
+open Enumeration
 
 variable {Event State Operation Value Message Process Role : Type*}
 
 /-- Trajectory structure. -/
 structure Trajectory (Event State Operation Value Message Process : Type*) where
   /-- `eo` is the execution order over events. -/
-  [eo : Encodable Event]
+  [eo : Enumeration Event]
   /-- `tr` assigns each event its transition. -/
   tr : Event → Transition State Operation Value Message Process
 
@@ -111,7 +111,7 @@ open Classical in
 /-- The return event of an event is the least return event succeeding it, if it exists. -/
 noncomputable def returnOf (x : Event) : Option Event :=
   if h : (traj.returnsAfter x).Nonempty then
-    some (WellFounded.min (lt_wellFounded (en := traj.eo)) (traj.returnsAfter x) h)
+    some (WellFounded.min (@lt_wellFounded _ traj.eo) (traj.returnsAfter x) h)
   else none
 
 theorem self_le_returnOf {x y : Event} (h : traj.returnOf x = some y) : traj.le x y := by
@@ -127,7 +127,7 @@ theorem isReturn_returnOf {x y : Event} (h : traj.returnOf x = some y) : traj.is
   exact (WellFounded.min_mem _ _ hne).2
 
 theorem returnOf_isReturn {x : Event} (h : traj.isReturn x) : traj.returnOf x = some x := by
-  let := @Encodable.linearOrder _ traj.eo
+  let := @Enumeration.toLinearOrder _ traj.eo
   have hx : x ∈ traj.returnsAfter x := ⟨le_refl x, h⟩
   have hne : (traj.returnsAfter x).Nonempty := ⟨x, hx⟩
   rw [returnOf, dite_eq_left_of_eq_true (eq_true hne), Option.some_inj]
@@ -136,7 +136,7 @@ theorem returnOf_isReturn {x : Event} (h : traj.isReturn x) : traj.returnOf x = 
 /-- Every event preceding a return event has its return event. -/
 theorem returnOf_le {x z : Event} (hz : traj.isReturn z) (hxz : traj.le x z) :
     ∃ y, traj.returnOf x = some y ∧ traj.le y z := by
-  let := @Encodable.linearOrder _ traj.eo
+  let := @Enumeration.toLinearOrder _ traj.eo
   have hmem : z ∈ traj.returnsAfter x := ⟨hxz, hz⟩
   have hne : (traj.returnsAfter x).Nonempty := ⟨z, hmem⟩
   rw [returnOf, dite_eq_left_of_eq_true (eq_true hne)]
@@ -146,27 +146,27 @@ theorem returnOf_le {x z : Event} (hz : traj.isReturn z) (hxz : traj.le x z) :
 def callsBefore (x : Event) : Set Event := {y | traj.le y x ∧ traj.isCall y}
 
 theorem callsBefore_finite (x : Event) : (traj.callsBefore x).Finite := by
-  let := @Encodable.linearOrder _ traj.eo
-  refine ((lt_finite_predecessors (en := traj.eo) x).insert x).subset fun y hy ↦ ?_
+  let := @Enumeration.toLinearOrder _ traj.eo
+  refine ((@lt_finite_predecessors _ traj.eo x).insert x).subset fun y hy ↦ ?_
   exact hy.1.eq_or_lt.imp id id
 
 open Classical in
 /-- The call event of an event is the greatest call event preceding it, if it exists. -/
 noncomputable def callOf (x : Event) : Option Event :=
-  letI := @Encodable.linearOrder _ traj.eo
+  letI := @Enumeration.toLinearOrder _ traj.eo
   if h : (traj.callsBefore x).Nonempty then
     some (Classical.choose ((traj.callsBefore_finite x).exists_maximal h))
   else none
 
 theorem callOf_le_self {x y : Event} (h : traj.callOf x = some y) : traj.le y x := by
-  let := @Encodable.linearOrder _ traj.eo
+  let := @Enumeration.toLinearOrder _ traj.eo
   rw [callOf] at h
   split_ifs at h with hne
   rw [← Option.some_inj.mp h]
   exact (Classical.choose_spec ((traj.callsBefore_finite x).exists_maximal hne)).1.1
 
 theorem callOf_isCall {x : Event} (h : traj.isCall x) : traj.callOf x = some x := by
-  let := @Encodable.linearOrder _ traj.eo
+  let := @Enumeration.toLinearOrder _ traj.eo
   have hx : x ∈ traj.callsBefore x := ⟨le_refl x, h⟩
   have hne : (traj.callsBefore x).Nonempty := ⟨x, hx⟩
   rw [callOf, dite_eq_left_of_eq_true (eq_true hne), Option.some_inj]
