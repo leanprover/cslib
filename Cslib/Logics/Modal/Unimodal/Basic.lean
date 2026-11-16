@@ -222,7 +222,8 @@ theorem Satisfies.l (f : Frame World τ) [IsTrans World f.rel]
   apply ih _ hw'w''
   exact IsTrans.trans _ _ _ hww' hw'w''
 
-/-- Löb induction: well-founded induction along the converse of the accessibility relation. -/
+/-- Löb induction: well-founded induction along the converse of the accessibility relation,
+using the modal L axiom. -/
 theorem Satisfies.l_induction (m : Model World τ Atom)
     (hwf : Relation.Terminating m.rel) (hstep : ∀ w, ⇓Modal[m,w ⊨ □φ → φ]) (w : World) :
     ⇓Modal[m, w ⊨ φ] :=
