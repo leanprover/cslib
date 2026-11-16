@@ -77,7 +77,9 @@ lemma weaken_head (sub : Sub Δ σ σ') (wf : (Γ ++ Δ).Wf) : Sub (Γ ++ Δ) σ
   have eq : Γ ++ Δ = [] ++ Γ ++ Δ := by grind
   grind [weaken]
 
-lemma narrow_aux
+/-- Narrowing, assuming transitivity through `δ`; used to prove `Sub.trans`. The general case is
+`Sub.narrow`. -/
+private lemma narrow_of_trans
     (trans : ∀ Γ σ τ, Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ)
     (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) σ τ) (sub₂ : Sub Δ δ' δ) :
       Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ := by
@@ -130,7 +132,7 @@ lemma trans : Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ := by
         · grind
         · intro X nmem
           have eq : ∀ σ, ⟨X, Binding.sub σ⟩ :: Γ = [] ++ ⟨X, Binding.sub σ⟩ :: Γ := by grind
-          grind [Sub.narrow_aux]
+          grind [narrow_of_trans]
     all_goals grind
 
 instance (Γ : Env Var) : Trans (Sub Γ) (Sub Γ) (Sub Γ) :=
@@ -139,7 +141,9 @@ instance (Γ : Env Var) : Trans (Sub Γ) (Sub Γ) (Sub Γ) :=
 /-- Narrowing of subtypes. -/
 lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) :
     Sub (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) σ τ := by
-  grind [narrow_aux (δ := δ')]
+  grind [narrow_of_trans (δ := δ')]
+
+@[deprecated (since := "2026-11-16")] alias narrow_aux := narrow
 
 variable [HasFresh Var] in
 /-- Subtyping of substitutions. -/
