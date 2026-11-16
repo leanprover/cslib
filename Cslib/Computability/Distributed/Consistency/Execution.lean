@@ -43,11 +43,6 @@ structure ConcreteExecution (Event State Operation Value Message Process Role : 
 
 namespace ConcreteExecution
 
-open Classical in
-/-- The restriction of an enumeration to a subtype is an enumeration. -/
-noncomputable instance instEnumerationSubtype (p : Event → Prop) : Enumeration {x // p x} :=
-  { (inferInstance : LinearOrder _), (inferInstance : LocallyFiniteOrderBot _) with }
-
 variable (exec : ConcreteExecution Event State Operation Value Message Process Role)
 
 /-- The operation of an event. -/

@@ -62,4 +62,9 @@ theorem lt_finite_predecessors (a : α) : (predecessors LT.lt a).Finite :=
 theorem lt_wellFounded : WellFounded (α := α) LT.lt :=
   wellFounded_lt
 
+open Classical in
+/-- The restriction of an enumeration to a subtype is still an enumeration. -/
+noncomputable instance instEnumerationSubtype (p : α → Prop) : Enumeration {x // p x} :=
+  { (inferInstance : LinearOrder _), (inferInstance : LocallyFiniteOrderBot _) with }
+
 end Enumeration
