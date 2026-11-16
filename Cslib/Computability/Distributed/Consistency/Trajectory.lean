@@ -28,27 +28,17 @@ namespace Cslib.DistributedConsistency
 
 open Enumeration
 
-variable {Event State Operation Value Message Process Role : Type*}
+variable {Event State Operation Value Message Process Role : Type*} [Enumeration Event]
 
 /-- Trajectory structure. -/
-structure Trajectory (Event State Operation Value Message Process : Type*) where
-  /-- `eo` is the execution order over events. -/
-  [eo : Enumeration Event]
+structure Trajectory (Event State Operation Value Message Process : Type*)
+    [Enumeration Event] where
   /-- `tr` assigns each event its transition. -/
   tr : Event → Transition State Operation Value Message Process
 
 namespace Trajectory
 
 variable (traj : Trajectory Event State Operation Value Message Process)
-
-/-- The strict execution order. -/
-abbrev lt := traj.eo.lt
-
-/-- The non-strict execution order. -/
-abbrev le := traj.eo.le
-
-/-- The predecessor event according to the execution order. -/
-noncomputable abbrev pred := traj.eo.pred
 
 /-- The operation of an event. -/
 abbrev op (x : Event) := (traj.tr x).op
@@ -83,19 +73,19 @@ structure WellFormed : Prop where
   /-- The first event has no previous state.  Every subsequent event has its previous state
   matching the next state of its predecessor event. -/
   state_sequence (x : Event) :
-    (traj.pred x = x ∧ traj.pre x = none) ∨
-    (traj.lt (traj.pred x) x ∧ traj.pre x = traj.post (traj.pred x))
+    (pred x = x ∧ traj.pre x = none) ∨
+    (pred x < x ∧ traj.pre x = traj.post (pred x))
   /-- Between any two calls there must be a return, which may be the same event as
   the first call. -/
   call_return_call (x y : Event) :
-    traj.lt x y → traj.isCall x → traj.isCall y →
-    ∃ z, traj.isReturn z ∧ traj.le x z ∧ traj.lt z y
+    x < y → traj.isCall x → traj.isCall y →
+    ∃ z, traj.isReturn z ∧ x ≤ z ∧ z < y
 
 /-- The return well-formedness condition on a trajectory, which says that
 each event is preceded by no more returns than calls.
 NOTE: In [Burckhardt2014], this is called the well-formedness condition of a trajectory. -/
 def ReturnWellFormed : Prop :=
-  ∀ x, {y | traj.le y x ∧ traj.isReturn y}.ncard ≤ {y | traj.le y x ∧ traj.isCall y}.ncard
+  ∀ x, {y | y ≤ x ∧ traj.isReturn y}.ncard ≤ {y | y ≤ x ∧ traj.isCall y}.ncard
 
 /-- Lemma 7.1 of [Burckhardt2014]: if all calls return immediately,
 then the trajectory is return well-formed. -/
@@ -105,16 +95,16 @@ theorem isCall_eq_isReturn_returnWellFormed
   rw [h]
 
 /-- The set of returns succeeding an event (according to the non-strict execution order). -/
-def returnsAfter (x : Event) : Set Event := {y | traj.le x y ∧ traj.isReturn y}
+def returnsAfter (x : Event) : Set Event := {y | x ≤ y ∧ traj.isReturn y}
 
 open Classical in
 /-- The return event of an event is the least return event succeeding it, if it exists. -/
 noncomputable def returnOf (x : Event) : Option Event :=
   if h : (traj.returnsAfter x).Nonempty then
-    some (WellFounded.min (@lt_wellFounded _ traj.eo) (traj.returnsAfter x) h)
+    some (WellFounded.min lt_wellFounded (traj.returnsAfter x) h)
   else none
 
-theorem self_le_returnOf {x y : Event} (h : traj.returnOf x = some y) : traj.le x y := by
+theorem self_le_returnOf {x y : Event} (h : traj.returnOf x = some y) : x ≤ y := by
   rw [returnOf] at h
   split_ifs at h with hne
   rw [← Option.some_inj.mp h]
@@ -127,46 +117,40 @@ theorem isReturn_returnOf {x y : Event} (h : traj.returnOf x = some y) : traj.is
   exact (WellFounded.min_mem _ _ hne).2
 
 theorem returnOf_isReturn {x : Event} (h : traj.isReturn x) : traj.returnOf x = some x := by
-  let := @Enumeration.toLinearOrder _ traj.eo
   have hx : x ∈ traj.returnsAfter x := ⟨le_refl x, h⟩
   have hne : (traj.returnsAfter x).Nonempty := ⟨x, hx⟩
   rw [returnOf, dite_eq_left_of_eq_true (eq_true hne), Option.some_inj]
   exact le_antisymm (not_lt.mp (WellFounded.not_lt_min _ _ hx)) (WellFounded.min_mem _ _ hne).1
 
 /-- Every event preceding a return event has its return event. -/
-theorem returnOf_le {x z : Event} (hz : traj.isReturn z) (hxz : traj.le x z) :
-    ∃ y, traj.returnOf x = some y ∧ traj.le y z := by
-  let := @Enumeration.toLinearOrder _ traj.eo
+theorem returnOf_le {x z : Event} (hz : traj.isReturn z) (hxz : x ≤ z) :
+    ∃ y, traj.returnOf x = some y ∧ y ≤ z := by
   have hmem : z ∈ traj.returnsAfter x := ⟨hxz, hz⟩
   have hne : (traj.returnsAfter x).Nonempty := ⟨z, hmem⟩
   rw [returnOf, dite_eq_left_of_eq_true (eq_true hne)]
   exact ⟨_, rfl, not_lt.mp (WellFounded.not_lt_min _ _ hmem)⟩
 
 /-- The set of calls preceding an event (according to the non-strict execution order). -/
-def callsBefore (x : Event) : Set Event := {y | traj.le y x ∧ traj.isCall y}
+def callsBefore (x : Event) : Set Event := {y | y ≤ x ∧ traj.isCall y}
 
 theorem callsBefore_finite (x : Event) : (traj.callsBefore x).Finite := by
-  let := @Enumeration.toLinearOrder _ traj.eo
-  refine ((@lt_finite_predecessors _ traj.eo x).insert x).subset fun y hy ↦ ?_
+  refine ((lt_finite_predecessors x).insert x).subset fun y hy ↦ ?_
   exact hy.1.eq_or_lt.imp id id
 
 open Classical in
 /-- The call event of an event is the greatest call event preceding it, if it exists. -/
 noncomputable def callOf (x : Event) : Option Event :=
-  letI := @Enumeration.toLinearOrder _ traj.eo
   if h : (traj.callsBefore x).Nonempty then
     some (Classical.choose ((traj.callsBefore_finite x).exists_maximal h))
   else none
 
-theorem callOf_le_self {x y : Event} (h : traj.callOf x = some y) : traj.le y x := by
-  let := @Enumeration.toLinearOrder _ traj.eo
+theorem callOf_le_self {x y : Event} (h : traj.callOf x = some y) : y ≤ x := by
   rw [callOf] at h
   split_ifs at h with hne
   rw [← Option.some_inj.mp h]
   exact (Classical.choose_spec ((traj.callsBefore_finite x).exists_maximal hne)).1.1
 
 theorem callOf_isCall {x : Event} (h : traj.isCall x) : traj.callOf x = some x := by
-  let := @Enumeration.toLinearOrder _ traj.eo
   have hx : x ∈ traj.callsBefore x := ⟨le_refl x, h⟩
   have hne : (traj.callsBefore x).Nonempty := ⟨x, hx⟩
   rw [callOf, dite_eq_left_of_eq_true (eq_true hne), Option.some_inj]

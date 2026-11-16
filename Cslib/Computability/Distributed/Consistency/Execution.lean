@@ -29,12 +29,11 @@ namespace Cslib.DistributedConsistency
 
 open Enumeration Relation
 
-variable {Event State Operation Value Message Process Role : Type*}
+variable {Event State Operation Value Message Process Role : Type*} [Enumeration Event]
 
 /-- Concrete execution structure. -/
-structure ConcreteExecution (Event State Operation Value Message Process Role : Type*) where
-  /-- `eo` is the execution order over events. -/
-  [eo : Enumeration Event]
+structure ConcreteExecution (Event State Operation Value Message Process Role : Type*)
+    [Enumeration Event] where
   /-- `tr` assigns each event its transition. -/
   tr : Event → Transition State Operation Value Message Process
   /-- `tr` assigns each event its role id. -/
@@ -44,13 +43,12 @@ structure ConcreteExecution (Event State Operation Value Message Process Role : 
 
 namespace ConcreteExecution
 
+open Classical in
+/-- The restriction of an enumeration to a subtype is an enumeration. -/
+noncomputable instance instEnumerationSubtype (p : Event → Prop) : Enumeration {x // p x} :=
+  { (inferInstance : LinearOrder _), (inferInstance : LocallyFiniteOrderBot _) with }
+
 variable (exec : ConcreteExecution Event State Operation Value Message Process Role)
-
-/-- The strict execution order. -/
-abbrev lt := exec.eo.lt
-
-/-- The non-strict execution order. -/
-abbrev le := exec.eo.le
 
 /-- The operation of an event. -/
 abbrev op (x : Event) := (exec.tr x).op
@@ -83,8 +81,6 @@ open Classical in
 /-- Projecting a concrete execution on a role to obtain a trajectory. -/
 noncomputable def trajectory (r : Role) :
     Trajectory {x : Event // exec.role x = r} State Operation Value Message Process where
-  eo := letI := exec.eo
-    { (inferInstance : LinearOrder _), (inferInstance : LocallyFiniteOrderBot _) with }
   tr := Subtype.restrict (fun x ↦ exec.role x = r) exec.tr
 
 /-- The return event of an event according to its role's trajectory. -/
@@ -101,7 +97,7 @@ structure WellFormed : Prop where
   trajectory_WellFormed (r : Role) : (exec.trajectory r).WellFormed
   /-- If a message from event `x` is delivered to event `y`, then `x` strictly precedes `y`
   and the message received by `y` is sent by `x`. -/
-  del_snd_lt_rcv (x y : Event) : exec.del x y → exec.lt x y ∧
+  del_snd_lt_rcv (x y : Event) : exec.del x y → x < y ∧
     ∃ m, exec.rcv y = some m ∧ m ∈ exec.snd x
   /-- An event can be delivered a message from at most one other event. -/
   del_sender_unique (x1 x2 y : Event) : exec.del x1 y → exec.del x2 y → x1 = x2
@@ -120,9 +116,9 @@ noncomputable def baseHistory : BaseHistory exec.HistoryEvent Operation Value Ro
   op (x : exec.HistoryEvent) := (exec.op x.val).get x.prop
   se (x : exec.HistoryEvent) := exec.role x.val
   rval (x : exec.HistoryEvent) := (exec.returnOf x.val).bind exec.rval
-  rb (x y : exec.HistoryEvent) := ∃ z, exec.returnOf x.val = some z ∧ exec.lt z y.val
+  rb (x y : exec.HistoryEvent) := ∃ z, exec.returnOf x.val = some z ∧ z < y.val
 
-theorem self_le_returnOf {x z : Event} (h : exec.returnOf x = some z) : exec.le x z := by
+theorem self_le_returnOf {x z : Event} (h : exec.returnOf x = some z) : x ≤ z := by
   unfold returnOf at h
   cases hr : (exec.trajectory (exec.role x)).returnOf ⟨x, rfl⟩ with
   | none => simp [hr] at h
@@ -141,7 +137,6 @@ theorem isReturn_returnOf {x z : Event} (h : exec.returnOf x = some z) : exec.is
     exact (exec.trajectory _).isReturn_returnOf hr
 
 theorem rb_strict_order : IsStrictOrder exec.HistoryEvent exec.baseHistory.rb := by
-  let := @Enumeration.toLinearOrder _ exec.eo
   refine { irrefl := ?_, trans := ?_ }
   · rintro x ⟨z, hz, hlt⟩
     exact absurd hlt (not_lt.mpr (exec.self_le_returnOf hz))
@@ -149,15 +144,13 @@ theorem rb_strict_order : IsStrictOrder exec.HistoryEvent exec.baseHistory.rb :=
     exact ⟨z1, hz1, h1.trans (lt_of_le_of_lt (exec.self_le_returnOf hz2) h2)⟩
 
 theorem rb_pred_finite (x : exec.HistoryEvent) : (predecessors exec.baseHistory.rb x).Finite := by
-  let := @Enumeration.toLinearOrder _ exec.eo
-  refine ((@lt_finite_predecessors _ exec.eo x.val).preimage
+  refine ((lt_finite_predecessors x.val).preimage
     Subtype.val_injective.injOn).subset ?_
   rintro y ⟨z, hz, hlt⟩
   exact lt_of_le_of_lt (exec.self_le_returnOf hz) hlt
 
 theorem not_rb {x y : exec.HistoryEvent} {z : Event}
-    (hxy : ¬ exec.baseHistory.rb x y) (hx : exec.returnOf x.val = some z) : exec.le y z := by
-  let := @Enumeration.toLinearOrder _ exec.eo
+    (hxy : ¬ exec.baseHistory.rb x y) (hx : exec.returnOf x.val = some z) : y ≤ z := by
   exact not_lt.mp fun h ↦ hxy ⟨z, hx, h⟩
 
 theorem rb_interval_order : IsIntervalOrder exec.baseHistory.rb := by
@@ -165,9 +158,8 @@ theorem rb_interval_order : IsIntervalOrder exec.baseHistory.rb := by
   · exact exec.rb_strict_order
   · rintro x1 y1 x2 y2 ⟨⟨z1, hz1, h1⟩, ⟨z2, hz2, h2⟩⟩
     by_contra! hn
-    let := @Enumeration.toLinearOrder _ exec.eo
-    have h3 : exec.le y2.val z1 := exec.not_rb hn.1 hz1
-    have h4 : exec.le y1.val z2 := exec.not_rb hn.2 hz2
+    have h3 : y2.val ≤ z1 := exec.not_rb hn.1 hz1
+    have h4 : y1.val ≤ z2 := exec.not_rb hn.2 hz2
     exact lt_irrefl z1 (h1.trans (h4.trans_lt (h2.trans_le h3)))
 
 theorem rb_rval_ne_none {x y : exec.HistoryEvent}
@@ -177,8 +169,7 @@ theorem rb_rval_ne_none {x y : exec.HistoryEvent}
   simp_all [baseHistory, Option.isSome_iff_ne_none]
 
 theorem rb_of_lt (hwf : exec.WellFormed) {x y : exec.HistoryEvent}
-    (hr : exec.role x.val = exec.role y.val) (hlt : exec.lt x y) : exec.baseHistory.rb x y := by
-  let := @Enumeration.toLinearOrder _ exec.eo
+    (hr : exec.role x.val = exec.role y.val) (hlt : x.val < y.val) : exec.baseHistory.rb x y := by
   obtain ⟨z, hz, hxz, hzy⟩ := (hwf.trajectory_WellFormed (exec.role x.val)).call_return_call
     ⟨x.val, rfl⟩ ⟨y.val, hr.symm⟩ hlt x.prop y.prop
   obtain ⟨w, hw, hwz⟩ := (exec.trajectory _).returnOf_le hz hxz
@@ -191,7 +182,6 @@ theorem so_strict_total_order (hwf : exec.WellFormed) (r : Role) :
   have hso := exec.rb_strict_order
   refine { trichotomous := ?_, irrefl := ?_, trans := ?_ }
   · rintro ⟨a, ha⟩ ⟨b, hb⟩ hab hba
-    let := @Enumeration.toLinearOrder _ exec.eo
     rcases lt_trichotomy a.val b.val with h | h | h
     · exact absurd ⟨ha, hb, exec.rb_of_lt hwf (ha.trans hb.symm) h⟩ hab
     · exact Subtype.ext (Subtype.ext h)
