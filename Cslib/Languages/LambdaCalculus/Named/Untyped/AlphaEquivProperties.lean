@@ -202,12 +202,9 @@ theorem AlphaEquiv.trans {m n p : Term Var} : m =α n → n =α p → m =α p :=
 theorem AlphaEquiv.rename_non_fv {m : Term Var} {x y : Var} : x ∉ m.fv → y ∉ m.vars →
     m =α (m.rename x y) := by
   intro hx hy
-  induction m with
-  | var z => grind [AlphaEquiv.var]
-  | app m1 m2 ih1 ih2 => grind [AlphaEquiv.app]
-  | abs z m ih =>
-    obtain ⟨w, hw⟩ := fresh_exists <| free_union [vars] Var
-    apply AlphaEquiv.abs (y := w) <;> grind [AlphaEquiv.refl, AlphaEquiv.rename_preserve]
+  rw [← swap_eq_rename_of_notMem_vars hy]
+  simpa [permute_swap] using permute_alphaEquiv_of_eqOn_fv m (.refl Var) (.swap x y)
+    (by grind [Set.EqOn, vars_eq_fv_union_bv])
 
 /-- Abstracting over an arbitrary non-free variable results in the same term,
     modulo α-equivalence. -/
