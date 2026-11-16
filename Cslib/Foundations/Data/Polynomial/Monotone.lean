@@ -12,6 +12,8 @@ public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Algebra.Order.Monoid.Canonical.Defs
 public import Mathlib.Algebra.Order.Ring.Defs
 
+import Mathlib.Algebra.Order.Ring.Canonical
+
 /-!
 # Monotonicity of polynomial evaluation
 
@@ -24,8 +26,7 @@ reasoning about polynomial time bounds.
 
 namespace Polynomial
 
-variable {R : Type*} [Semiring R] [PartialOrder R] [IsOrderedRing R]
-  [CanonicallyOrderedAdd R] (p : R[X])
+variable {R : Type*} [Semiring R] [PartialOrder R] [CanonicallyOrderedAdd R] (p : R[X])
 
 /-- Over a canonically ordered semiring, evaluation of a polynomial is monotone. -/
 theorem monotone_eval : Monotone (fun x : R => p.eval x) := by
