@@ -57,7 +57,7 @@ theorem coe_mk (f : Seed → Output) : ⇑(Generator.mk f) = f := rfl
 def IsExpanding [Fintype Seed] [Fintype Output] (_G : Generator Seed Output) : Prop :=
   Fintype.card Seed < Fintype.card Output
 
-variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
+variable [Fintype Seed] [Nonempty Seed] [Fintype Output]
 
 /-- The distribution obtained by applying the generator to a uniform seed. -/
 noncomputable def outputDist (G : Generator Seed Output) : PMF Output :=
@@ -69,13 +69,15 @@ noncomputable def realExperiment (G : Generator Seed Output)
   G.outputDist.bind adversary
 
 /-- Experiment 1 of Attack Game 3.1: give the adversary a uniform output. -/
-noncomputable def idealExperiment (adversary : Adversary Output) : PMF Bool :=
+noncomputable def idealExperiment [Nonempty Output] (adversary : Adversary Output) : PMF Bool :=
   (uniformOfFintype Output).bind adversary
 
 /-- The absolute difference of the probabilities of outputting `true` in the two
-experiments, as in Attack Game 3.1 of [BonehShoup2023]. -/
+experiments, as in Attack Game 3.1 of [BonehShoup2023]. The output space is nonempty since
+`G` maps the nonempty seed space into it. -/
 noncomputable def advantage (G : Generator Seed Output) (adversary : Adversary Output) : ℝ :=
-  |(G.realExperiment adversary true).toReal - (idealExperiment adversary true).toReal|
+  |(G.realExperiment adversary true).toReal -
+    (@idealExperiment _ _ (Nonempty.map G ‹_›) adversary true).toReal|
 
 /-- Concrete security against admissible adversaries. The predicate is supplied by the
 caller, for example to restrict tests to a chosen computational resource bound.
