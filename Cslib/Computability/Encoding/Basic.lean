@@ -254,4 +254,14 @@ theorem length_le_length_encList (enc : α ↪ List Bool) (l : List α) :
     l.length ≤ (encList enc l).length := by
   simp
 
+/-! ### Realizers -/
+
+/-- A function `g` on Boolean words realizes `f` with respect to the given encodings if it maps
+the code of every `a` to the code of `f a`. The complexity of `f` relative to these encodings is
+then the complexity of `g`. This is the notion of a realizer from computable analysis
+[Weihrauch2000], for the special case that every value has exactly one name. -/
+def Realizes (g : List Bool → List Bool) (f : α → β) (encIn : α ↪ List Bool)
+    (encOut : β ↪ List Bool) : Prop :=
+  ∀ a, g (encIn a) = encOut (f a)
+
 end Cslib.Encoding
