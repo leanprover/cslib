@@ -55,7 +55,7 @@ theorem exists_runPath_seq {p₀ : tm₀.RunPath input} (h₀ : p₀.last.Halted
       p.space ≤ p₀.space + p₁.space ∧
       ∀ i, p.visitedByTapeHead i ⊆ p₀.visitedByTapeHead i ∪ p₁.visitedByTapeHead i := by
   -- `seq` takes the running steps of `tm₀`, then the steps of `tm₁`
-  obtain ⟨q₀, hh₀, hl₀, hlen₀, hmem₀⟩ := p₀.exists_running h₀
+  obtain ⟨q₀, hh₀, hl₀, hlen₀, hmem₀⟩ := p₀.exists_running
   let p : (tm₀.seq tm₁).RunPath input :=
     (q₀.map (combineLeftHom (handOver_some _))).smash (p₁.map combineRightHom)
     (by simp [hl₀, h₁, Cfg.mapState, Cfg.withState, show p₀.last.state = none from h₀])

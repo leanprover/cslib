@@ -33,14 +33,13 @@ abbrev Algorithm.ReachableNonUniform [Fintype P]
 
 /-- Choose an arbitrary non-uniform input. -/
 noncomputable def Algorithm.nonUniformInp [Fintype P] (a : Algorithm P M S)
-    (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) : P → Bool :=
-  Classical.choose (OnePseudoConsensus.nonUniform_inp hpc1 hc)
+    (hpc1 : a.PseudoConsensus 1) : P → Bool :=
+  Classical.choose (OnePseudoConsensus.nonUniform_inp hpc1)
 
-/-- Assuming `a.PseudoConsensus 1` and there are at least 2 processes, the input chosen by
-`a.nonUniformInp` does indeed give rise to a non-uniform initial state. -/
-theorem OnePseudoConsensus.nonUniform_init [Fintype P]
-    (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) :
-    let inp := a.nonUniformInp hpc1 hc
+/-- Assuming `a.PseudoConsensus 1`, the input chosen by `a.nonUniformInp` does indeed give rise
+to a non-uniform initial state. -/
+theorem OnePseudoConsensus.nonUniform_init [Fintype P] (hpc1 : a.PseudoConsensus 1) :
+    let inp := a.nonUniformInp hpc1
     a.ReachableNonUniform inp (a.start inp) := by
   grind [Algorithm.nonUniformInp, Algorithm.reachable_start]
 
@@ -119,15 +118,14 @@ theorem OnePseudoConsensus.fair_nonUniform [Fintype P] (inp : P → Bool)
     use xls.cumLen
     grind [cumLen_strictMono]
 
-/-- Assuming `a.PseudoConsensus 1` and there are at least 2 processes, there must exist an
-infinite admissible execution in which no process is faulty but no process terminates, either.
+/-- Assuming `a.PseudoConsensus 1`, there must exist an infinite admissible execution in which
+no process is faulty but no process terminates, either.
 This theorem formalizes Theorem 1 of [Volzer2004]. -/
-theorem OnePseudoConsensus.not_terminating [Fintype P]
-    (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) :
+theorem OnePseudoConsensus.not_terminating [Fintype P] (hpc1 : a.PseudoConsensus 1) :
     ∃ inp ss xs, a.AdmissibleRun inp 0 ss xs ∧ ∀ p, ¬ ProcTermination p ss xs := by
-  let inp := a.nonUniformInp hpc1 hc
+  let inp := a.nonUniformInp hpc1
   let s0 := a.start inp
-  obtain ⟨ss, xs, _, _, _, h_freq⟩ := fair_nonUniform inp hpc1 s0 (nonUniform_init hpc1 hc)
+  obtain ⟨ss, xs, _, _, _, h_freq⟩ := fair_nonUniform inp hpc1 s0 (nonUniform_init hpc1)
   use inp, ss, xs
   split_ands
   · assumption
@@ -155,7 +153,7 @@ theorem Consensus.one_not_exists [Fintype P] (hc : 2 ≤ card P) :
     ¬ ∃ a : Algorithm P M S, a.Consensus 1 := by
   rintro ⟨a, h_cons⟩
   have hpc1 := PseudoConsensus.of_consensus 1 (show 1 < card P by grind) h_cons
-  obtain ⟨inp, ss, xs, h_run, _⟩ := OnePseudoConsensus.not_terminating hpc1 hc
+  obtain ⟨inp, ss, xs, h_run, _⟩ := OnePseudoConsensus.not_terminating hpc1
   have h_run' := AdmissibleRun.fault_mono (show 0 ≤ 1 by grind) h_run
   have := Classical.inhabited_of_nonempty <|
     Fintype.card_pos_iff.mp (show 0 < Fintype.card P by grind)

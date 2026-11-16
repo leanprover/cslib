@@ -201,11 +201,11 @@ theorem Halts.toStandardForm_iff {p : Program} {inputs : List ℕ} :
 
 /-- Registers preservation: both reach states with the same registers. -/
 theorem evalState_toStandardForm_regs {p : Program} {inputs : List ℕ}
-    (hp : (evalState p inputs).Dom) (hq : (evalState p.toStandardForm inputs).Dom) :
+    (hp : (evalState p inputs).Dom) :
     ((evalState p inputs).get hp).regs =
-      ((evalState p.toStandardForm inputs).get hq).regs := by
+      ((evalState p.toStandardForm inputs).get (Halts.toStandardForm hp)).regs := by
   have ⟨hsteps, hhalted⟩ := evalState_spec p hp
-  have ⟨hsteps', hhalted'⟩ := evalState_spec p.toStandardForm hq
+  have ⟨hsteps', hhalted'⟩ := evalState_spec p.toStandardForm (Halts.toStandardForm hp)
   obtain ⟨s₂, hsteps₂, hhalted₂, hregs_eq⟩ := Steps.toStandardForm_halts hsteps hhalted
   rw [Steps.eq_of_halts hsteps' hhalted' hsteps₂ hhalted₂, hregs_eq]
 
@@ -219,7 +219,7 @@ theorem eval_toStandardForm {p : Program} {inputs : List ℕ} :
   · intro hp hq
     have := Part.map_get (fun x : State => x.regs.output) (evalState p inputs) hp
     have := Part.map_get (fun x : State => x.regs.output) (evalState p.toStandardForm inputs) hq
-    simp_all [Function.comp_def, evalState_toStandardForm_regs hp hq]
+    simp_all [Function.comp_def, evalState_toStandardForm_regs hp]
 
 /-- A program is equivalent to its standard form. -/
 theorem toStandardForm_equiv (p : Program) : p.toStandardForm ≈ p :=
