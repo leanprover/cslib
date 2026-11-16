@@ -25,7 +25,7 @@ variable {U : Type*} {n k b : ℕ} {s : Set ((Fin n → U) → U)}
 /-- Fold at most `b * (k - 1)` available values into an available accumulator
 using at most `b` gates. No algebraic laws are required of `op`. -/
 theorem full_foldl_of_length_le (hk : 1 < k) (op : U → U → U)
-    (fs : List ((Fin n → U) → U)) (seed : (Fin n → U) → U)
+    (fs : List ((Fin n → U) → U)) (init : (Fin n → U) → U)
     (hseed : seed ∈ s) (hfs : ∀ f ∈ fs, f ∈ s) (hb : fs.length ≤ b * (k - 1)) :
     Synthesis (fullInterpretation (k := k)) s
       {fun x => fs.foldl (fun acc f => op acc (f x)) (seed x)} b := by
