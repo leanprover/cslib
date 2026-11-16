@@ -32,8 +32,9 @@ find the row that matches its input and return that row's value. For each row, b
 compare the input with the row one coordinate at a time, giving the row's value on a match and a
 fixed default otherwise. Further binary gates merge these answers by keeping the one that differs
 from the default. Over `Bool` with default `false`, this is exactly disjunctive normal form.
-On an infinite carrier, a bijection `U × U ≃ U` encodes all inputs injectively into one value,
-which one more gate decodes. Larger arities follow by simulation.
+On an infinite carrier, a bijection `U × U ≃ U` lets binary gates pair up the inputs into a
+single element that determines them, and one more gate decodes it and applies the function.
+Larger arities follow by simulation.
 -/
 
 @[expose] public section
@@ -128,70 +129,59 @@ private theorem exists_full_synthesis_finset [DecidableEq U]
     have hstep := ha.full_binary hb (fun v acc => if v = default then acc else v)
     grind
 
-/-- Encodes the first `m` inputs into one value by iterating the pairing function `e`. -/
-private def pairEncode (e : U × U → U) (u : U) : ℕ → (Fin n → U) → U
-  | 0 => fun _ ↦ u
-  | m + 1 => fun x ↦ if h : m < n then e (pairEncode e u m x, x ⟨m, h⟩) else pairEncode e u m x
-
-private theorem exists_full_synthesis_pairEncode (e : U × U → U) (u : U) (m : ℕ) :
-    ∃ cost, Synthesis (fullInterpretation (k := 2)) (inputs n) {pairEncode e u m} cost := by
-  induction m with
-  | zero => exact ⟨1, Synthesis.full_const u⟩
-  | succ m ih =>
-    obtain ⟨c, hc⟩ := ih
-    by_cases h : m < n
-    · have hx : Synthesis (fullInterpretation (k := 2)) (inputs n)
-          {fun x : Fin n → U ↦ x ⟨m, h⟩} 0 :=
-        Synthesis.of_mem ⟨⟨m, h⟩, rfl⟩
-      exact ⟨_, by simpa [pairEncode, h] using hc.full_binary hx fun a b ↦ e (a, b)⟩
-    · exact ⟨c, by simpa [pairEncode, h] using hc⟩
-
-private theorem pairEncode_injective {e : U × U → U} (he : e.Injective) (u : U) :
-    (pairEncode (n := n) e u n).Injective := by
-  suffices ∀ m x y, pairEncode (n := n) e u m x = pairEncode e u m y →
-      ∀ i : Fin n, i < m → x i = y i from
-    fun x y h ↦ funext fun i ↦ this n x y h i i.isLt
-  intro m
-  induction m with
-  | zero => intro _ _ _ _ hi; omega
-  | succ m ih =>
-    intro x y hxy i hi
-    by_cases h : m < n
-    · obtain ⟨h1, h2⟩ := Prod.mk.inj (he (by simpa [pairEncode, h] using hxy))
-      obtain hi | hi := Nat.lt_succ_iff_lt_or_eq.mp hi
-      · exact ih x y h1 i hi
-      · obtain rfl : i = ⟨m, h⟩ := Fin.ext hi
-        exact h2
-    · exact ih x y (by simpa [pairEncode, h] using hxy) i (by have := i.isLt; omega)
-
-private theorem fullInterpretation_isComplete_two :
+private theorem fullInterpretation_isComplete_two_of_finite [Finite U] :
     (fullInterpretation (k := 2) (Carrier := U)).IsComplete where
   exists_computes_single {n} f := by
     classical
-    cases finite_or_infinite U with
-    | inl _ =>
-      cases isEmpty_or_nonempty U with
-      | inl h =>
-        cases n with
-        | zero => exact isEmptyElim (f Fin.elim0)
-        | succ n => exact ⟨Circuit.wiring _ (fun _ ↦ 0), fun x ↦ isEmptyElim (x 0)⟩
-      | inr h =>
-        let := Fintype.ofFinite U
-        obtain ⟨cost, hcost⟩ := exists_full_synthesis_finset f (Classical.choice h) Finset.univ
-        simpa using hcost.exists_circuit.imp fun _ hc ↦ hc.1
-    | inr _ =>
-      -- Encode all inputs injectively by pairing, then decode with one more gate.
-      obtain ⟨e⟩ : Nonempty (U × U ≃ U) := Cardinal.eq.mp (by simp)
-      obtain ⟨u⟩ := (inferInstance : Nonempty U)
-      obtain ⟨c, hc⟩ := exists_full_synthesis_pairEncode (n := n) e u n
-      have hinv := Function.leftInverse_invFun (pairEncode_injective (n := n) e.injective u)
-      simpa [hinv _] using (hc.full_binary hc fun a _ ↦
-        f (Function.invFun (pairEncode e u n) a)).exists_circuit.imp fun _ hc ↦ hc.1
+    cases isEmpty_or_nonempty U with
+    | inl h =>
+      cases n with
+      | zero => exact isEmptyElim (f Fin.elim0)
+      | succ n => exact ⟨Circuit.wiring _ (fun _ => 0), fun x => isEmptyElim (x 0)⟩
+    | inr h =>
+      let := Fintype.ofFinite U
+      obtain ⟨cost, hcost⟩ := exists_full_synthesis_finset f (Classical.choice h) Finset.univ
+      simpa using hcost.exists_circuit.imp fun _ hc => hc.1
+
+private theorem fullInterpretation_isComplete_two_of_infinite [Infinite U] :
+    (fullInterpretation (k := 2) (Carrier := U)).IsComplete where
+  exists_computes_single {n} f := by
+    obtain ⟨e⟩ : Nonempty (U × U ≃ U) := by
+      rw [← Cardinal.eq, Cardinal.mk_prod, Cardinal.lift_id,
+        Cardinal.mul_eq_self (Cardinal.aleph0_le_mk U)]
+    let encode (x : Fin n → U) : U :=
+      (List.finRange n).foldr (fun i acc => e (x i, acc)) (Classical.arbitrary U)
+    have hpair (p q : (Fin n → U) → U) :
+        Synthesis (fullInterpretation (k := 2)) {p, q} {fun x => e (p x, q x)} 1 := by
+      simpa using (Synthesis.of_mem (Set.mem_insert p {q})).full_binary
+        (Synthesis.of_mem (Set.mem_insert_of_mem p rfl)) (fun a b => e (a, b))
+    have hencode := Synthesis.foldr (fun a b => e (a, b)) 1 hpair (List.finRange n)
+      (Synthesis.full_const (s := inputs n) (Classical.arbitrary U))
+      (fun i _ => Synthesis.of_mem ⟨i, rfl⟩)
+    have hinj : encode.Injective := by
+      intro x y h
+      suffices ∀ l : List (Fin n), l.foldr (fun i acc => e (x i, acc)) (Classical.arbitrary U) =
+          l.foldr (fun i acc => e (y i, acc)) (Classical.arbitrary U) → ∀ i ∈ l, x i = y i from
+        funext fun i => this _ h i (List.mem_finRange i)
+      intro l hl
+      induction l with
+      | nil => simp
+      | cons j l ih =>
+        simp only [List.foldr_cons, e.apply_eq_iff_eq, Prod.mk.injEq] at hl
+        simpa [hl.1] using ih hl.2
+    have hf := hencode.trans (Synthesis.full_gate (k := 2) (r := 1) (by lia)
+      (fun v => f (Function.invFun encode (v 0))) (fun _ => encode)
+      (fun _ => Set.mem_union_right _ rfl))
+    simp only [Function.leftInverse_invFun hinj _] at hf
+    exact hf.exists_circuit.imp fun _ hc => hc.1
 
 /-- Every full basis of arity at least two is complete. -/
 theorem fullInterpretation_isComplete (hk : 2 ≤ k) :
     (fullInterpretation (k := k) (Carrier := U)).IsComplete := by
-  let := fullInterpretation_isComplete_two (U := U)
+  have : (fullInterpretation (k := 2) (Carrier := U)).IsComplete := by
+    cases finite_or_infinite U
+    · exact fullInterpretation_isComplete_two_of_finite
+    · exact fullInterpretation_isComplete_two_of_infinite
   apply (fullInterpretation_simulates (fullInterpretation (k := 2) (Carrier := U)) ?_).isComplete
   rintro (_ | _) <;> simp [fullSignature, hk]
 

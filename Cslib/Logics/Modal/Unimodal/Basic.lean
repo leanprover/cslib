@@ -199,12 +199,10 @@ theorem Satisfies.d (f : Frame World τ) [Relation.Serial f.rel]
   grind
 
 /-- Any model that admits D is serial. -/
-theorem Satisfies.d_serial (f : Frame World τ) [Nonempty Atom]
+theorem Satisfies.d_serial (f : Frame World τ)
     (h : ∀ φ : Proposition τ Atom, Axiom f⇓(□φ → ◇φ)) : Relation.Serial f.rel where
   serial w₁ := by
-    have a := Classical.arbitrary Atom
-    let v := fun (w' : World) (a : Atom) => w' = w₁
-    let h' := h (v := v) (w := w₁) (φ := a)
+    let h' := h (v := fun _ _ ↦ False) (w := w₁) (φ := .true)
     grind
 
 /-- The L axiom, or Löb's theorem, valid for all transitive and converse well-founded models. -/
@@ -224,14 +222,13 @@ theorem Satisfies.l (f : Frame World τ) [IsTrans World f.rel]
   apply ih _ hw'w''
   exact IsTrans.trans _ _ _ hww' hw'w''
 
-/-- Löb induction, via the L axiom. -/
-theorem Satisfies.l_induction (m : Model World τ Atom) [IsTrans World m.rel]
+/-- Löb induction: well-founded induction along the converse of the accessibility relation,
+using the modal L axiom. -/
+theorem Satisfies.l_induction (m : Model World τ Atom)
     (hwf : Relation.Terminating m.rel) (hstep : ∀ w, ⇓Modal[m,w ⊨ □φ → φ]) (w : World) :
-    ⇓Modal[m, w ⊨ φ] := by
-  have hl := Satisfies.of_axiom m _ (Satisfies.l m.toFrame hwf φ) w
-  /- We use `grind only` here as a memo and test that the `modal` grind set should be able to derive
-    (the modal part of) this proof. -/
-  grind only [modal, = box_iff_forall]
+    ⇓Modal[m, w ⊨ φ] :=
+  hwf.induction (C := fun w ↦ ⇓Modal[m, w ⊨ φ]) w fun w ih ↦
+    Satisfies.imp_iff_imp.mp (hstep w) (Satisfies.box_iff_forall.mpr ih)
 
 open Relation in
 /-- Axiom .2, valid for all frames with the diamond property. -/
