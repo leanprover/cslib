@@ -274,21 +274,12 @@ theorem subst.non_free {m r : Term Var} {x : Var} : x ∉ m.fv → (m[x := r]) =
     | abs y m =>
       by_cases hyx : y = x
       · grind [AlphaEquiv.refl]
-      · by_cases hyr : y ∈ r.fv
-        · simp only [subst_def, eq_2, hyx, ↓reduceIte, hyr, not_true_eq_false, Finset.union_insert,
-            Finset.union_singleton, AlphaEquiv_def]
-          let s := (insert x (insert y (m.vars ∪ r.vars)))
-          have hz := fresh_notMem s
-          set z := fresh s
-          obtain ⟨w, hw⟩ := fresh_exists (m.vars ∪ r.vars ∪ ((m.rename y z).subst x r).vars
-            ∪ {x, y, z})
-          apply AlphaEquiv.abs (y := w)
-          · grind
-          apply AlphaEquiv.trans (n := ((m.rename y z).rename z w))
-          · grind [AlphaEquiv.rename_preserve, fv_rename]
-          · grind [AlphaEquiv.refl]
-        · simp only [subst_def, eq_2, hyx, ↓reduceIte, hyr, not_false_eq_true, AlphaEquiv_def]
-          apply AlphaEquiv.context (c := Context.abs y Context.hole)
+      · by_cases hyr : y ∉ r.fv
+        · grind [AlphaEquiv.abs_congr]
+        · let z := fresh (m.vars ∪ r.vars ∪ {x, y})
+          have hz : z ∉ m.vars ∪ r.vars ∪ {x, y} := by grind
+          have hm := ih (m.rename y z) (by grind) (by grind [fv_rename])
+          have := hm.abs_congr.trans (AlphaEquiv.abs_rename (by grind)).symm
           grind
 
 private lemma subst.abs_fresh_helper {m r : Term Var} {x y z : Var} :
