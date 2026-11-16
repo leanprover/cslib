@@ -24,11 +24,9 @@ a finite number of predecessors.
 @[expose] public section
 
 open Function Relation Set
-
-/-- We define an enumeration as an `Encodable` `LinearOrder` whose `encode` function is
-strictly monotonic. -/
-class Enumeration (α : Type*) extends LinearOrder α, Encodable α where
-  encode_strictMono : StrictMono encode
+/-- We define an enumeration as a `LinearOrder` in which every element has only a finite number
+of predecessors, i.e., a `LocallyFiniteOrderBot`. -/
+class Enumeration (α : Type*) extends LinearOrder α, LocallyFiniteOrderBot α
 
 namespace Enumeration
 
@@ -36,10 +34,8 @@ variable {α : Type*} [Enumeration α]
 
 /-- An enumeration is a `LocallyFiniteOrder`. -/
 noncomputable instance : LocallyFiniteOrder α :=
-  LocallyFiniteOrder.ofFiniteIcc fun a b =>
-    ((Set.finite_Icc (Encodable.encode a) (Encodable.encode b)).preimage
-      Encodable.encode_injective.injOn).subset
-      fun _ hx => ⟨encode_strictMono.monotone hx.1, encode_strictMono.monotone hx.2⟩
+  LocallyFiniteOrder.ofFiniteIcc fun _ b =>
+    (Finset.Iic b).finite_toSet.subset fun _ hx => Finset.mem_Iic.mpr hx.2
 
 /-- An enumeration is a `PredOrder`. -/
 noncomputable instance : PredOrder α := LinearLocallyFiniteOrder.predOrder α
@@ -59,11 +55,10 @@ theorem lt_isStrictTotalOrder : IsStrictTotalOrder α LT.lt :=
 
 /-- Every element has only a finite number of predecessors under `lt`. -/
 theorem lt_finite_predecessors (a : α) : (predecessors LT.lt a).Finite :=
-  ((Set.finite_Iio (Encodable.encode a)).preimage Encodable.encode_injective.injOn).subset
-    fun _ hx => encode_strictMono hx
+  (Finset.Iio a).finite_toSet.subset fun _ hx => Finset.mem_Iio.mpr hx
 
 /-- `lt` is a well-founded order. -/
 theorem lt_wellFounded : WellFounded (α := α) LT.lt :=
-  (InvImage.wf Encodable.encode wellFounded_lt).mono fun _ _ h => encode_strictMono h
+  wellFounded_lt
 
 end Enumeration
