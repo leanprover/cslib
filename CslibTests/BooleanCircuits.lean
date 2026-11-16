@@ -79,7 +79,7 @@ example : 1 ≤ complexity interpretation (single fun x : Fin 1 → Bool => !x 0
   exact Bool.noConfusion ((hread (outputs 0)).symm.trans (congrFun (hc fun _ => true) 0))
 
 example : computableFunctions 0 0 = ∅ := by
-  apply Finset.card_eq_zero.mp
+  rw [← Set.ncard_eq_zero]
   simpa using card_computableFunctions_mul_factorial_le 0 0
 
 example : (fun x : Fin 1 → Bool => x 0) ∈ computableFunctions 1 0 :=
