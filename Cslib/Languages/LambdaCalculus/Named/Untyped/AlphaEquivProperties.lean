@@ -108,14 +108,7 @@ lemma swap_comp_alphaEquiv_of_notMem_fv {m : Term Var} {a u z : Var}
 
 /-- Reflexivity of α-equivalence. -/
 theorem AlphaEquiv.refl (m : Term Var) : m =α m := by
-  induction m using induction_by_sizeOf with
-  | step m ih =>
-    cases m with
-    | var x => grind [AlphaEquiv.var]
-    | abs x m =>
-      obtain ⟨z, hz⟩ := fresh_exists <| free_union [vars] Var
-      apply AlphaEquiv.abs (y := z) <;> grind
-    | app m n => grind [AlphaEquiv.app]
+  simpa using permute_alphaEquiv_of_eqOn_fv m (.refl Var) (.refl Var) fun _ _ => rfl
 
 omit [HasFresh Var] in
 /-- Symmetry of α-equivalence. -/
