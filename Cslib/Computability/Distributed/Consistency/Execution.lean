@@ -27,14 +27,14 @@ This file formalizes sections 7.3 and 7.4 of [Burckhardt2014].
 
 namespace Cslib.DistributedConsistency
 
-open Encodable Relation
+open Enumeration Relation
 
 variable {Event State Operation Value Message Process Role : Type*}
 
 /-- Concrete execution structure. -/
 structure ConcreteExecution (Event State Operation Value Message Process Role : Type*) where
   /-- `eo` is the execution order over events. -/
-  [eo : Encodable Event]
+  [eo : Enumeration Event]
   /-- `tr` assigns each event its transition. -/
   tr : Event → Transition State Operation Value Message Process
   /-- `tr` assigns each event its role id. -/
@@ -83,7 +83,8 @@ open Classical in
 /-- Projecting a concrete execution on a role to obtain a trajectory. -/
 noncomputable def trajectory (r : Role) :
     Trajectory {x : Event // exec.role x = r} State Operation Value Message Process where
-  eo := Subtype.encodable (encA := exec.eo)
+  eo := letI := exec.eo
+    { (inferInstance : LinearOrder _), (inferInstance : LocallyFiniteOrderBot _) with }
   tr := Subtype.restrict (fun x ↦ exec.role x = r) exec.tr
 
 /-- The return event of an event according to its role's trajectory. -/
@@ -140,7 +141,7 @@ theorem isReturn_returnOf {x z : Event} (h : exec.returnOf x = some z) : exec.is
     exact (exec.trajectory _).isReturn_returnOf hr
 
 theorem rb_strict_order : IsStrictOrder exec.HistoryEvent exec.baseHistory.rb := by
-  let := @Encodable.linearOrder _ exec.eo
+  let := @Enumeration.toLinearOrder _ exec.eo
   refine { irrefl := ?_, trans := ?_ }
   · rintro x ⟨z, hz, hlt⟩
     exact absurd hlt (not_lt.mpr (exec.self_le_returnOf hz))
@@ -148,15 +149,15 @@ theorem rb_strict_order : IsStrictOrder exec.HistoryEvent exec.baseHistory.rb :=
     exact ⟨z1, hz1, h1.trans (lt_of_le_of_lt (exec.self_le_returnOf hz2) h2)⟩
 
 theorem rb_pred_finite (x : exec.HistoryEvent) : (predecessors exec.baseHistory.rb x).Finite := by
-  let := @Encodable.linearOrder _ exec.eo
-  refine ((lt_finite_predecessors (en := exec.eo) x.val).preimage
+  let := @Enumeration.toLinearOrder _ exec.eo
+  refine ((@lt_finite_predecessors _ exec.eo x.val).preimage
     Subtype.val_injective.injOn).subset ?_
   rintro y ⟨z, hz, hlt⟩
   exact lt_of_le_of_lt (exec.self_le_returnOf hz) hlt
 
 theorem not_rb {x y : exec.HistoryEvent} {z : Event}
     (hxy : ¬ exec.baseHistory.rb x y) (hx : exec.returnOf x.val = some z) : exec.le y z := by
-  let := @Encodable.linearOrder _ exec.eo
+  let := @Enumeration.toLinearOrder _ exec.eo
   exact not_lt.mp fun h ↦ hxy ⟨z, hx, h⟩
 
 theorem rb_interval_order : IsIntervalOrder exec.baseHistory.rb := by
@@ -164,7 +165,7 @@ theorem rb_interval_order : IsIntervalOrder exec.baseHistory.rb := by
   · exact exec.rb_strict_order
   · rintro x1 y1 x2 y2 ⟨⟨z1, hz1, h1⟩, ⟨z2, hz2, h2⟩⟩
     by_contra! hn
-    let := @Encodable.linearOrder _ exec.eo
+    let := @Enumeration.toLinearOrder _ exec.eo
     have h3 : exec.le y2.val z1 := exec.not_rb hn.1 hz1
     have h4 : exec.le y1.val z2 := exec.not_rb hn.2 hz2
     exact lt_irrefl z1 (h1.trans (h4.trans_lt (h2.trans_le h3)))
@@ -177,7 +178,7 @@ theorem rb_rval_ne_none {x y : exec.HistoryEvent}
 
 theorem rb_of_lt (hwf : exec.WellFormed) {x y : exec.HistoryEvent}
     (hr : exec.role x.val = exec.role y.val) (hlt : exec.lt x y) : exec.baseHistory.rb x y := by
-  let := @Encodable.linearOrder _ exec.eo
+  let := @Enumeration.toLinearOrder _ exec.eo
   obtain ⟨z, hz, hxz, hzy⟩ := (hwf.trajectory_WellFormed (exec.role x.val)).call_return_call
     ⟨x.val, rfl⟩ ⟨y.val, hr.symm⟩ hlt x.prop y.prop
   obtain ⟨w, hw, hwz⟩ := (exec.trajectory _).returnOf_le hz hxz
@@ -190,7 +191,7 @@ theorem so_strict_total_order (hwf : exec.WellFormed) (r : Role) :
   have hso := exec.rb_strict_order
   refine { trichotomous := ?_, irrefl := ?_, trans := ?_ }
   · rintro ⟨a, ha⟩ ⟨b, hb⟩ hab hba
-    let := @Encodable.linearOrder _ exec.eo
+    let := @Enumeration.toLinearOrder _ exec.eo
     rcases lt_trichotomy a.val b.val with h | h | h
     · exact absurd ⟨ha, hb, exec.rb_of_lt hwf (ha.trans hb.symm) h⟩ hab
     · exact Subtype.ext (Subtype.ext h)
