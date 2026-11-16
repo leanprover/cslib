@@ -99,21 +99,19 @@ lemma Leftmost.steps_lc_r (h : M ↠ℓ M') (lc : LC M) : LC M' := by
   | tail _ step ih => exact step.lc_r ih
 
 /-- Leftmost reduction is preserved by closing a variable and abstracting. -/
-lemma Leftmost.steps_abs_close {x : Var} (h : M ↠ℓ M') (lc : LC M) :
+lemma Leftmost.steps_abs_close {x : Var} (h : M ↠ℓ M') :
     (M⟦0 ↜ x⟧.abs) ↠ℓ (M'⟦0 ↜ x⟧.abs) := by
   induction h with
   | refl => rfl
-  | tail hs step ih => exact ih.tail (step.abs_close (steps_lc_r hs lc))
+  | tail _ step ih => exact ih.tail step.abs_close
 
 /-- Cofinite congruence rule for leftmost reduction under an abstraction. -/
 lemma Leftmost.steps_abs_cong (xs : Finset Var)
-    (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠ℓ (M' ^ fvar x)) (lc : LC (abs M)) :
+    (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠ℓ (M' ^ fvar x)) :
     abs M ↠ℓ abs M' := by
   have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
   rw [open_close w M 0 (by grind), open_close w M' 0 (by grind)]
-  have hstep := cofin w (by grind)
-  have hlc := beta_lc lc (.fvar w)
-  exact steps_abs_close hstep hlc
+  exact steps_abs_close (cofin w (by grind))
 
 /-- A standard reduction to a normal form is a leftmost reduction. -/
 theorem Leftmost.of_standard (h : M ⭢ₛ N) (hn : BetaNormal N) : M ↠ℓ N := by
@@ -122,11 +120,7 @@ theorem Leftmost.of_standard (h : M ⭢ₛ N) (hn : BetaNormal N) : M ↠ℓ N :
   case app _ _ ihL ihM =>
     have ⟨hna, hL', hM'⟩ := hn.app_inv
     exact steps_app_cong (ihL hL') (ihM hM') hL' hna
-  case abs xs h_body ih =>
-    have lc := (Standard.abs xs h_body).lc_l
-    apply steps_abs_cong xs _ lc
-    intro x hx
-    exact ih x hx hn.abs_open
+  case abs xs h_body ih => exact steps_abs_cong xs fun x hx ↦ ih x hx hn.abs_open
   case rdx M N M' _ lc_M lc_N cbn std_P ih =>
     have s1 : M.app N ↠ℓ M'.abs.app N := of_cbn (CBN.steps_app_l_cong cbn lc_N)
     have s2 : M'.abs.app N ⭢ℓ M' ^ N := .outer (CBN.steps_lc_r lc_M cbn) lc_N
@@ -134,8 +128,13 @@ theorem Leftmost.of_standard (h : M ⭢ₛ N) (hn : BetaNormal N) : M ↠ℓ N :
 
 /-- The leftmost reduction theorem: if a term β-reduces to a normal form, then leftmost
     reduction reaches it. -/
-theorem Leftmost.normalization (lc : LC M) (h : M ↠βᶠ N) (hn : BetaNormal N) : M ↠ℓ N :=
-  of_standard (.standardization lc h) hn
+theorem Leftmost.normalization (h : M ↠βᶠ N) (hn : BetaNormal N) : M ↠ℓ N := by
+  by_cases lc : LC M
+  · exact of_standard (.standardization lc h) hn
+  -- a term that is not locally closed has no full β-step
+  obtain rfl | ⟨_, step, _⟩ := h.cases_head
+  · rfl
+  · exact absurd (FullBeta.step_lc_l step) lc
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 

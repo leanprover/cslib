@@ -85,12 +85,12 @@ theorem flipBlock_singleton (i : Fin n) (x : BitString n) :
     flipBlock {i} x = Function.update x i (!x i) := by
   funext j; by_cases h : j = i <;> simp [flipBlock, h]
 
-/-- Flipping `B \ {i}` is flipping `B` and then restoring bit `i ∈ B`. -/
-theorem flipBlock_erase {B : Finset (Fin n)} {i : Fin n} (hi : i ∈ B) (x : BitString n) :
+/-- Flipping `B \ {i}` is flipping `B` and then restoring bit `i`. -/
+theorem flipBlock_erase {B : Finset (Fin n)} {i : Fin n} (x : BitString n) :
     flipBlock (B.erase i) x = Function.update (flipBlock B x) i (x i) := by
   funext j
   by_cases hij : j = i
-  · subst hij; simp [flipBlock, hi]
+  · subst hij; simp [flipBlock]
   · simp [flipBlock, hij]
 
 end BitString

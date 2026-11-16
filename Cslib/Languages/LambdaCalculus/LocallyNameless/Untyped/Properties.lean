@@ -98,11 +98,32 @@ lemma swap_open (k n : ℕ) (t₁ t₂ m : Term Var) (neq : k ≠ n) (h1 : t₁.
     m⟦n ↝ t₂⟧⟦k ↝ t₁⟧ = m⟦k ↝ t₁⟧⟦n ↝ t₂⟧ := by
   induction m generalizing k n with grind
 
+omit [HasFresh Var] in
+/-- Opening with a variable that does not occur in the result leaves a term unchanged. -/
+private lemma openRec_fvar_eq_self {x : Var} {t : Term Var} {k : ℕ}
+    (h : x ∉ (t⟦k ↝ fvar x⟧).fv) : t⟦k ↝ fvar x⟧ = t := by
+  induction t generalizing k with
+  | bvar => simp only [openRec_bvar] at h ⊢; split_ifs at h ⊢ <;> simp_all
+  | fvar => rfl
+  | app _ _ ih₁ ih₂ =>
+    simp only [openRec_app, fv, Finset.mem_union, not_or] at h ⊢
+    rw [ih₁ h.1, ih₂ h.2]
+  | abs _ ih =>
+    simp only [openRec_abs, fv] at h ⊢
+    rw [ih h]
+
+omit [HasFresh Var] in
 /- If opening yields `app m x`, the original term was `app m (bvar 0)`. -/
-lemma open_eq_app {x : Var} {m n : Term Var} (hw_n : x ∉ n.fv) (hw_m : x ∉ m.fv) (lc_m : LC m)
+lemma open_eq_app {x : Var} {m n : Term Var} (hw_n : x ∉ n.fv) (hw_m : x ∉ m.fv)
     (h : n ^ fvar x = app m (fvar x)) : n = app m (bvar 0) := by
-  apply open_injective x n _ hw_n (by grind)
-  grind [open_lc 0 (fvar x) m lc_m]
+  cases n with
+  | app n₁ n₂ =>
+    simp only [open', openRec_app, app.injEq] at h
+    obtain ⟨rfl, h₂⟩ := h
+    rw [openRec_fvar_eq_self hw_m]
+    cases n₂ <;> simp_all [openRec_bvar, openRec_fvar, openRec_app, openRec_abs, eq_comm]
+  | bvar => simp only [open', openRec_bvar] at h; split_ifs at h
+  | _ => simp_all [open', openRec_fvar, openRec_abs]
 
 /-- Substitution of a locally closed term distributes with opening. -/
 @[scoped grind =]
@@ -134,21 +155,23 @@ theorem beta_lc {M N : Term Var} (m_lc : M.abs.LC) (n_lc : LC N) : LC (M ^ N) :=
 
 /-- Closing then opening is equivalent to substitution. -/
 @[scoped grind =]
-lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) (n_lc : LC n) :
+lemma close_openRec_to_subst (m n : Term Var) (x : Var) (k : ℕ) (m_lc : LC m) :
     m ⟦k ↜ x⟧⟦k ↝ n⟧ = m[x := n] := by
-  induction m_lc generalizing k with
-  | abs xs t =>
-    have ⟨x', _⟩ := fresh_exists <| free_union [fv] Var
-    simp only [closeRec_abs, openRec_abs, subst_abs]
-    rw [open_close x' (t⟦k+1 ↜ x⟧⟦k+1 ↝ n⟧) 0, open_close x' (t[x := n]) 0]
-    · grind [swap_open, =_ swap_open_fvar_close]
-    · grind [subst_preserve_not_fvar]
-    · grind [open_preserve_not_fvar]
-  | _ => grind
+  -- `m` has no bound variables from level `k` on, so `n` is inserted exactly where `x` was
+  suffices ∀ k, LcAt k m → m ⟦k ↜ x⟧⟦k ↝ n⟧ = m[x := n] from
+    this k (lcAt_le m 0 k k.zero_le ((lcAt_iff_LC m).mpr m_lc))
+  clear m_lc
+  induction m with
+  | bvar => intro k h; simp_all [LcAt, closeRec_bvar, openRec_bvar, subst_bvar]; lia
+  | fvar y =>
+    intro k _
+    by_cases x = y <;> simp_all [closeRec_fvar, openRec_fvar, openRec_bvar, subst_fvar]
+  | app => intro k h; simp_all [LcAt, closeRec_app, openRec_app, subst_app]
+  | abs => intro k h; simp_all [LcAt, closeRec_abs, openRec_abs, subst_abs]
 
 @[scoped grind =]
-lemma close_open_to_subst (m n : Term Var) (x : Var) (m_lc : LC m) (n_lc : LC n) :
-    (m ^* x) ^ n = m[x := n] := close_openRec_to_subst m n x 0 m_lc n_lc
+lemma close_open_to_subst (m n : Term Var) (x : Var) (m_lc : LC m) :
+    (m ^* x) ^ n = m[x := n] := close_openRec_to_subst m n x 0 m_lc
 
 /-- Closing and opening are inverses. -/
 lemma close_open (x : Var) (t : Term Var) (k : ℕ) (t_lc : LC t) : t⟦k ↜ x⟧⟦k ↝ fvar x⟧ = t := by

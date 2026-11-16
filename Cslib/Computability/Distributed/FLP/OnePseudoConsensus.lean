@@ -50,6 +50,22 @@ theorem pseudoTermination [Fintype P] (hpc1 : a.PseudoConsensus 1)
   apply hpc1.right inp s hr {p}ᶜ
   simp [Set.ncard_compl {p}]
 
+/-- A `1`-pseudo-consensus algorithm has at least two processes: otherwise its initial state
+would have to be decided without receiving any message. -/
+theorem two_le_card [Fintype P] (hpc1 : a.PseudoConsensus 1) : 2 ≤ card P := by
+  by_contra hc
+  obtain ⟨s', b, hcrv, p, hp⟩ :=
+    hpc1.right (fun _ ↦ true) _ Algorithm.reachable_start ∅ (by simp; omega)
+  obtain rfl : s' = a.start fun _ ↦ true := by
+    clear hp
+    induction hcrv with
+    | refl => rfl
+    | tail _ hst ih =>
+      obtain ⟨_ | _, hx, ht⟩ := hst
+      · exact ht.trans ih
+      · simp [DestIn] at hx
+  simp [Algorithm.start, State.ProcDecided] at hp
+
 /-- Assuming `a.PseudoConsensus 1`, for any reachable state of `a` and for any process `p`,
 there is a boolean value `b` such that `a.CanDecideWithout s p b`. This theorem formalizes
 Proposition 2(a) of [Volzer2004]. -/
@@ -128,14 +144,17 @@ theorem canDecideWithout_nondest {s s' : State P M S} {m : Message P M} {b : Boo
   have hx : DestIn {p}ᶜ (some m) := by grind [DestIn]
   exact CanReachVia.stepL hx ht h_s'
 
-/-- Assuming `a.PseudoConsensus 1`, if any reachable state `s` of `a` is uniform for `b` and
-state `s'` is reached from `s` by receiving a message `m`, then `a.CanDecideWithout s' p b`.
-This theorem formalizes Proposition 3(c) of [Volzer2004]. -/
+/-- Assuming `a.PseudoConsensus 1`, if `a` cannot decide `!b` without `p` from a reachable state
+`s` (so `s` is uniform for `b`) and state `s'` is reached from `s` by receiving a message `m`,
+then `a.CanDecideWithout s' p b`. This theorem formalizes Proposition 3(c) of [Volzer2004]. -/
 theorem canDecideWithout_uniform [Fintype P] (hpc1 : a.PseudoConsensus 1)
     {s s' : State P M S} {m : Message P M} {b : Bool}
     (hr : a.Reachable inp s) (ht : a.lts.Tr s (some m) s') {p : P}
-    (hd : a.CanDecideWithout s p b) (hdn : ¬ a.CanDecideWithout s p !b) :
+    (hdn : ¬ a.CanDecideWithout s p !b) :
     a.CanDecideWithout s' p b := by
+  have hd : a.CanDecideWithout s p b := by
+    obtain ⟨b', hb'⟩ := canDecideWithout_exists hpc1 hr p
+    cases b <;> cases b' <;> simp_all
   by_cases h_card : p = m.dest
   · obtain ⟨rfl⟩ := h_card
     exact canDecideWithout_dest ht hd
@@ -173,7 +192,7 @@ theorem nonUniform_step [Fintype P] (hpc1 : a.PseudoConsensus 1)
       have hb' : a.CanDecideWithout u p b := by
         cases x with
         | none => simpa only [Algorithm.tr_none htr] using hb
-        | some m => exact canDecideWithout_uniform hpc1 hr htr hb hnb
+        | some m => exact canDecideWithout_uniform hpc1 hr htr hnb
       obtain ⟨v, ⟨ys, hys⟩, hv⟩ := ih hr' hb' hend
       exact ⟨v, ⟨x :: ys, hys.stepL htr⟩, hv⟩
 
@@ -236,10 +255,11 @@ theorem inpN_card_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1)
   have hn := inpN_card_not_false pn hpc1 p
   cases b <;> grind
 
-/-- Assuming `a.PseudoConsensus 1` and there are at least 2 processes, there must exist an input
-that gives rise to a non-uniform initial state. This theorem formalizes Lemma 1 of [Volzer2004]. -/
-theorem nonUniform_inp (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) :
+/-- Assuming `a.PseudoConsensus 1`, there must exist an input that gives rise to a non-uniform
+initial state. This theorem formalizes Lemma 1 of [Volzer2004]. -/
+theorem nonUniform_inp (hpc1 : a.PseudoConsensus 1) :
     ∃ inp : P → Bool, a.NonUniform (a.start inp) := by
+  have hc := two_le_card hpc1
   let pn := Fintype.equivFin P
   let uniF (n : ℕ) := ¬ a.Uniform (a.start (inpN pn n)) false
   have h_card : uniF (card P) := by

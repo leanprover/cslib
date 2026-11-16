@@ -69,7 +69,7 @@ lemma exists_round {P : (input : List Symbol) → (Fin k → List Symbol) → Pr
       p.last = wordsCfg input (if w' i = [] then none else some (.inl tm.q₀)) w' (out ++ e) ∧
       p.length ≤ t + 1 ∧ p.InWindow s := by
   obtain ⟨w', e, hQ, p, hhead, hlast, htime, hspace⟩ := h input w out hP
-  obtain ⟨q, hqhead, hqlast, hqlen, hqmem⟩ := p.exists_running (by rw [hlast]; rfl)
+  obtain ⟨q, hqhead, hqlast, hqlen, hqmem⟩ := p.exists_running
   let f : (tm.runningStepRel input).Hom ((repeatUntilBlank i tm).stepRel input) :=
     combineLeftHom (handOver_some _)
   refine ⟨w', e, hQ, (q.map f).snoc
