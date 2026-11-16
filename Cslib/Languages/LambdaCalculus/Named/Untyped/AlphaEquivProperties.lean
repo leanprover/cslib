@@ -120,30 +120,14 @@ theorem AlphaEquiv.symm {m n : Term Var} : m =α n → n =α m := by
     apply AlphaEquiv.abs (y := y) <;> grind
   | @app m1 n1 m2 n2 hwm1 hwn1 hwm2 hwn2 => grind [AlphaEquiv.app]
 
+omit [HasFresh Var] in
 /-- Renaming α-equivalent terms produces α-equivalent terms. -/
 theorem AlphaEquiv.rename_preserve (m n : Term Var) (x y : Var) :
     y ∉ m.vars ∪ n.vars → m =α n → (m.rename x y) =α (n.rename x y) := by
-  induction m using induction_by_sizeOf generalizing n x y with
-  | step m ih =>
-    intro hy h
-    by_cases hyx : y = x
-    · grind
-    cases h with
-    | @var z => grind [AlphaEquiv.refl]
-    | @app m1 n1 m2 n2 hm hn => grind [AlphaEquiv.app]
-    | @abs z x1 x2 m1 m2 hz hbody =>
-      obtain ⟨w, hw⟩ := fresh_exists <| free_union [vars] Var
-      simp at hw hy
-      apply AlphaEquiv.abs (y := w)
-      · grind
-      rw [rename_comm, rename_comm]
-      case neg.abs.a =>
-        apply ih
-        · grind
-        · grind
-        · have hxzw : ((m1.rename x1 z).rename z w) =α ((m2.rename x2 z).rename z w) := by grind
-          grind
-      all_goals grind
+  intro hy h
+  rw [← swap_eq_rename_of_notMem_vars (by grind),
+    ← swap_eq_rename_of_notMem_vars (by grind)]
+  exact h.swap_preserve
 
 lemma AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} (h : m =α m') :
     (Term.abs x m) =α (Term.abs x m') := by
@@ -152,6 +136,7 @@ lemma AlphaEquiv.abs_congr {m m' : Term Var} {x : Var} (h : m =α m') :
   · grind
   · apply AlphaEquiv.rename_preserve <;> grind
 
+omit [HasFresh Var] in
 /-- Elimination rule for α-equivalence of abstractions.
     It states that if two abstractions are α-equivalent,
     then their bodies can be renamed to ``any'' fresh variable y and remain α-equivalent.
