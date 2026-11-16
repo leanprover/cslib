@@ -35,7 +35,8 @@ variable {State Label Atom : Type*}
 /-! ## Models -/
 
 /-- A PDL model consists of an `LTS` and a valuation for its states.
-The LTS uses all programs as labels, so this type includes irregular frames. -/
+The LTS uses all programs as labels, so this type includes irregular frames.
+To define a standard model based on a regular frame, use `Model.fromLTS`. -/
 structure Model State Label Atom where
   /-- The labelled transition system. -/
   lts : LTS State (Program Label Atom)
@@ -152,6 +153,8 @@ structure Model.IsStandard (m : Model State Label Atom) : Prop where
   regular : m.lts.IsRegularPDL
   test    : ∀ ψ w w', m.lts.Tr w (?' ψ) w' ↔ w = w' ∧ ⇓PDL[m, w ⊨ ψ]
 
+attribute [modal →] Model.IsStandard.regular
+
 /-! ## Standard models from an LTS
 
 An `LTS` labelled by atomic programs together with a valuation can be extended to a standard
@@ -264,7 +267,7 @@ theorem Satisfies.pdl_finiteOr_iff_exists :
   · exact toUnary_finiteOr
   · grind
 
-/-! ## Modal Characterizations
+/-! ## Box and Diamond Characterizations
 
 This is inspired by the HML files.
 -/
@@ -286,8 +289,59 @@ theorem Satisfies.pdl_dynBox_iff_forall :
 theorem Satisfies.pdl_dynDiamond_intro (htr : m.lts.Tr s μ s')
     (h : ⇓PDL[m,s' ⊨ φ]) : ⇓PDL[m,s ⊨ d⟨μ⟩φ] := by grind [modal]
 
-@[modal ⇒] --?
+@[modal ⇒]
 theorem Satisfies.pdl_dynBox_elim (hbox : ⇓PDL[m,s ⊨ d[μ]φ])
     (htr : m.lts.Tr s μ s') : ⇓PDL[m,s' ⊨ φ] := by grind [modal]
+
+/-! ## Program Characterizations / PDL axioms
+
+These are the axioms from  Def 4.78 in [Blackburn2001], plus an axiom for tests.
+-/
+
+/-- (i) K: valid on all frames. -/
+@[modal ⇒]
+theorem Satisfies.pdl_k :
+    ⇓PDL[m, s ⊨ d[a](p → q)] → ⇓PDL[m, s ⊨ (d[a]p → d[a]q)] := by grind [modal]
+
+/-- (ii) Duality: valid on all frames. -/
+theorem Satisfies.pdl_dual :
+    ⇓PDL[m, s ⊨ d⟨a⟩p] ↔ ⇓PDL[m, s ⊨ ¬d[a](¬p)] := by grind [modal]
+
+/-- (iii) Composition: valid on frames regular for `;'`. -/
+@[modal =]
+theorem Satisfies.seq (isReg : m.lts.IsRegularPDL) :
+    ⇓PDL[m, s ⊨ d⟨a ;' b⟩p] ↔ ⇓PDL[m, s ⊨ d⟨a⟩(d⟨b⟩p)] := by
+  grind [modal, isReg.seq]
+
+/-- (iv) Choice: valid on frames regular for `∪`. -/
+@[modal =]
+theorem Satisfies.union (isReg : m.lts.IsRegularPDL) :
+    ⇓PDL[m, s ⊨ d⟨a ∪ b⟩p] ↔ ⇓PDL[m, s ⊨ (d⟨a⟩p ∨ d⟨b⟩p)] := by
+  grind [modal, isReg.union]
+
+/-- (v) Mix axiom about Kleene star: valid on frames regular for `*`.
+This is not grind annotated on purpose, because it applies infinitely often.
+Use carefully with `rw`, not with `simp`. -/
+theorem Satisfies.star (isReg : m.lts.IsRegularPDL) :
+    ⇓PDL[m, s ⊨ d⟨a*⟩p] ↔ ⇓PDL[m, s ⊨ (p ∨ d⟨a⟩(d⟨a*⟩p))] := by
+  -- grind [modal, isReg.star] fails: needs Relation.ReflTransGen.cases_head_iff
+  grind only [Satisfies.pdl_iff_iff_iff, Satisfies.pdl_or_iff_or,
+    Satisfies.pdl_dynDiamond_iff_exists, isReg.star, Relation.ReflTransGen.cases_head_iff]
+
+/-- (vi) Induction: valid on frames regular for `*`. -/
+@[modal ⇒]
+theorem Satisfies.ind (isReg : m.lts.IsRegularPDL) :
+    ⇓PDL[m, s ⊨ d[a*](p → d[a]p)] →  ⇓PDL[m, s ⊨ (p → d[a*]p)] := by
+  -- not provable by grind: needs induction on ReflTransGen
+  simp only [Satisfies.pdl_imp_iff_imp, Satisfies.pdl_dynBox_iff_forall]
+  intro h_star h_p s' s_aS_s'
+  simp_rw [isReg.star] at s_aS_s' h_star
+  induction s_aS_s' <;> grind
+
+/-- Test axiom (not in BRV's test-free list): needs a standard model. -/
+@[modal =]
+theorem Satisfies.test (isStd : m.IsStandard) :
+    ⇓PDL[m, s ⊨ d⟨?' ψ⟩p] ↔ ⇓PDL[m, s ⊨ (ψ ∧ p)] := by
+  grind [modal, isStd.test]
 
 end Cslib.Logic.Modal.PDL
