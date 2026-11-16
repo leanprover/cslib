@@ -97,9 +97,12 @@ example : encSigma encNat (fun n => encFin n) ⟨1, 0⟩ = [true, true, false] :
 example : encSum encBool encBits (.inl true) = [false, true] := rfl
 example : encSum encBool encBits (.inr [true]) = [true, true] := rfl
 
-example : encOption encBool none = [] := rfl
+example : encOption encBool none = [false] := rfl
 example : encOption encBool (some false) = [true, false] := rfl
-example : encOption (encOption encBool) (some none) = [true] := rfl
+example : encOption (encOption encBool) (some none) = [true, false] := rfl
+example (o : Option Bool) :
+    encOption encBool o = encSum (encSubsingleton Unit) encBool (o.elim (.inl ()) .inr) := by
+  cases o <;> rfl
 example : encOption (encOption encBool) (some (some true)) = [true, true, true] := rfl
 
 example : encList encBits [[], [true]] = [false, true, true, false] := rfl
@@ -110,7 +113,7 @@ example : encList (encProd encBool encBits) [(true, [false])] =
     [true, true, true, true, true, false, true, false, false] := rfl
 
 -- The same word encodes different values under different encodings.
-example : encOption encBool none = encList encBool [] := rfl
+example : encOption encBool none = encBool false := rfl
 
 -- The product is the dependent pair with a constant second type.
 example (p : Bool × List Bool) :

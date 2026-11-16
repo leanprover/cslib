@@ -24,19 +24,19 @@ merely as a convenience.
 The `delimit` function is used as the basic building block here: It creates a self-delimiting,
 prefix-free code by replacing each bit `b` of a word with `[true, b]` and appending `[false]`.
 
-The product encoding delimits the first component and appends the second and lists are encoded by
+The product encoding delimits the first component and appends the second, and lists are encoded by
 delimiting each element. Dependent pairs are encoded like products, with the second component
 encoded under the encoding selected by the first one. Sums prefix the code of the component with a
-tag bit. Options use the empty word for `none` and prefix `some` with `true`. Booleans are their
-single bit, natural numbers use Mathlib's little-endian binary encoding `Computability.encodeNat`,
-and `Fin n` uses a fixed-width binary code of `Nat.clog 2 n` bits, which `encFintype` transfers to
-any finite type via `Fintype.equivFin`. Subsingletons, including propositions, are encoded as the
-empty word by `encSubsingleton`.
+tag bit, and options are encoded as the sum `Unit ⊕ α`. Booleans are their single bit, natural
+numbers use Mathlib's little-endian binary encoding `Computability.encodeNat`, and `Fin n` uses a
+fixed-width binary code of `Nat.clog 2 n` bits, which `encFintype` transfers to any finite type via
+`Fintype.equivFin`. Subsingletons, including propositions, are encoded as the empty word by
+`encSubsingleton`.
 
 Products delimit only their first component because the second one extends to the end of the code
 word, so a delimiter would add nothing for parsing; this keeps the second component undoubled and
-the size of nested products linear. Lists delimit every element since their number is not known in
-advance, and sums use a tag bit rather than a delimiter since it has a fixed length.
+the size of right-nested products linear. Lists delimit every element since their number is not
+known in advance, and sums use a tag bit rather than a delimiter since it has a fixed length.
 
 In general, a code word followed by further data cannot be split again; for example,
 `encList enc [a]` is a prefix of `encList enc [a, b]`. Wrap an encoding with `encDelimited` (as
@@ -70,15 +70,18 @@ def encBool : Bool ↪ List Bool :=
 def encBits : List Bool ↪ List Bool := ⟨id, Function.injective_id⟩
 
 /-- A natural number is encoded in binary, least significant bit first, using Mathlib's
-`Computability.encodeNat`. Unfolding to `encodeNat` is rarely useful, so this is not a `grind`
-lemma. -/
-@[simps]
+`Computability.encodeNat`. -/
 def encNat : ℕ ↪ List Bool :=
   ⟨Computability.encodeNat, Computability.encodingNatBool.encode_injective⟩
 
+/-- Not a `simp` or `grind` lemma: Mathlib proves little about `encodeNat`, so `encNat n` is the
+more useful normal form. -/
+theorem encNat_apply (n : ℕ) : encNat n = Computability.encodeNat n := rfl
+
 /-! ### Finite types -/
 
-/-- `Fin n` is encoded in binary as a fixed-width code. -/
+/-- `Fin n` is encoded in binary as a fixed-width code of `Nat.clog 2 n` bits, least significant
+bit first. -/
 def encFin (n : ℕ) : Fin n ↪ List Bool :=
   ⟨fun a => (List.range (Nat.clog 2 n)).map (a.val.testBit ·), fun a b h => by
     refine Fin.ext (Nat.eq_of_testBit_eq fun i => ?_)
@@ -91,6 +94,12 @@ theorem encFin_apply (n : ℕ) (a : Fin n) :
 
 @[simp, scoped grind =]
 theorem length_encFin (n : ℕ) (a : Fin n) : (encFin n a).length = Nat.clog 2 n := by
+  simp [encFin_apply]
+
+/-- The `i`-th bit of the code is the `i`-th bit of the number. -/
+@[simp, scoped grind =]
+theorem getElem_encFin (n : ℕ) (a : Fin n) (i : ℕ) (h : i < (encFin n a).length) :
+    (encFin n a)[i] = a.val.testBit i := by
   simp [encFin_apply]
 
 /-- Types with at most one element are encoded as the empty word. -/
@@ -133,7 +142,7 @@ theorem encFintype_eq_encSubsingleton [Fintype α] [Subsingleton α] :
 
 /-- A product is encoded as the delimited first component followed by the second component.
 Only the first component is delimited since the second one extends to the end of the code word;
-this keeps the second component undoubled and nested products linear in size. -/
+this keeps the second component undoubled and right-nested products linear in size. -/
 @[simps (attr := scoped grind =)]
 def encProd (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) : α × β ↪ List Bool :=
   ⟨fun p => delimit (enc₁ p.1) ++ enc₂ p.2, fun _ _ h => by simpa [Prod.ext_iff] using h⟩
@@ -161,10 +170,11 @@ double the component. -/
 def encSum (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) : α ⊕ β ↪ List Bool :=
   ⟨fun x => x.elim (false :: enc₁ ·) (true :: enc₂ ·), by rintro (a | a) (b | b) h <;> simp_all⟩
 
-/-- Encoding of `Option`: `none` is encoded as the empty word while `some a` as `true` followed by
-the code of `a`. -/
+/-- An option is encoded as the sum `Unit ⊕ α`: `none` is encoded as `[false]` and `some a` as
+`true` followed by the code of `a`. -/
 def encOption (enc : α ↪ List Bool) : Option α ↪ List Bool :=
-  ⟨fun o => o.elim [] (true :: enc ·), by rintro (_ | a) (_ | b) h <;> simp_all⟩
+  ((Equiv.optionEquivSumPUnit.{0} α).trans (Equiv.sumComm α Unit)).toEmbedding.trans
+    (encSum (encSubsingleton Unit) enc)
 
 /-- A list is encoded as the concatenation of the delimited codes of its elements. -/
 def encList (enc : α ↪ List Bool) : List α ↪ List Bool :=
@@ -184,7 +194,7 @@ def encList (enc : α ↪ List Bool) : List α ↪ List Bool :=
     encSum enc₁ enc₂ (.inr b) = true :: enc₂ b := rfl
 
 @[simp, scoped grind =]
-theorem encOption_none (enc : α ↪ List Bool) : encOption enc none = [] := rfl
+theorem encOption_none (enc : α ↪ List Bool) : encOption enc none = [false] := rfl
 
 @[simp, scoped grind =] theorem encOption_some (enc : α ↪ List Bool) (a : α) :
     encOption enc (some a) = true :: enc a := rfl
@@ -219,10 +229,10 @@ theorem length_encSum (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) (x
   cases x <;> simp
 
 theorem length_encOption (enc : α ↪ List Bool) (o : Option α) :
-    (encOption enc o).length = o.elim 0 (fun a => (enc a).length + 1) := by
+    (encOption enc o).length = o.elim 1 (fun a => (enc a).length + 1) := by
   cases o <;> simp
 
-theorem length_encOption_none (enc : α ↪ List Bool) : (encOption enc none).length = 0 := rfl
+theorem length_encOption_none (enc : α ↪ List Bool) : (encOption enc none).length = 1 := rfl
 
 theorem length_encOption_some (enc : α ↪ List Bool) (a : α) :
     (encOption enc (some a)).length = (enc a).length + 1 := rfl
