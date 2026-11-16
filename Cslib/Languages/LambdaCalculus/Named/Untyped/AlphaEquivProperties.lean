@@ -106,6 +106,13 @@ lemma swap_comp_alphaEquiv_of_notMem_fv {m : Term Var} {a u z : Var}
   apply permute_alphaEquiv_of_eqOn_fv
   grind [Set.EqOn]
 
+/-- Renaming the bound variable of an abstraction to a fresh one, by swapping, gives an
+α-equivalent term. -/
+lemma AlphaEquiv.abs_swap {m : Term Var} {x y : Var} (hy : y ∉ m.fv) :
+    (m.abs x) =α ((m.swap x y).abs y) := by
+  have h := permute_alphaEquiv_of_eqOn_fv (.abs x m) (.refl Var) (.swap x y) (by grind [Set.EqOn])
+  simpa [permute, swap] using h
+
 /-- Reflexivity of α-equivalence. -/
 theorem AlphaEquiv.refl (m : Term Var) : m =α m := by
   simpa using permute_alphaEquiv_of_eqOn_fv m (.refl Var) (.refl Var) fun _ _ => rfl
@@ -182,6 +189,9 @@ theorem AlphaEquiv.trans {m n p : Term Var} : m =α n → n =α p → m =α p :=
           apply AlphaEquiv.app
           · apply ih (n := n1) <;> grind
           · apply ih (n := n2) <;> grind
+
+/-- Chains of α-equivalences can be written with `calc` and `trans`. -/
+instance : Trans (α := Term Var) (· =α ·) (· =α ·) (· =α ·) := ⟨AlphaEquiv.trans⟩
 
 /-- Renaming a non-free variable results in an α-equivalent term -/
 theorem AlphaEquiv.rename_non_fv {m : Term Var} {x y : Var} : x ∉ m.fv → y ∉ m.vars →
