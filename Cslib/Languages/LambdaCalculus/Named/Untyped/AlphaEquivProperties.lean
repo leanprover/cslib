@@ -388,18 +388,10 @@ theorem subst.preserve_AlphaEquiv {m m' r r' : Term Var} {x : Var} :
     | @app m m' n n' hm hn => grind [AlphaEquiv.app]
     | @abs z y y' m m' hz h1 =>
       obtain ⟨w, hw⟩ := fresh_exists <| free_union [vars] Var
-      have h2 : ((Term.abs y m)[x := r]) =α (Term.abs w ((m.rename y w)[x := r])) := by
-        grind [subst.abs_fresh]
-      have h2' : ((Term.abs y' m')[x := r']) =α
-          (Term.abs w ((m'.rename y' w)[x := r'])) := by
-        grind [subst.abs_fresh]
-      have hbody : (m.rename y w) =α (m'.rename y' w) := by
-        apply AlphaEquiv.abs_elim <;> grind
-      have h3 :
-          (Term.abs w ((m.rename y w)[x := r])) =α (Term.abs w ((m'.rename y' w)[x := r'])) := by
-        apply AlphaEquiv.context (c := Context.abs w Context.hole)
-        apply ih <;> grind [rename_eq_sizeOf]
-      grind [AlphaEquiv.trans, AlphaEquiv.symm]
+      refine (subst.abs_fresh (z := w) (by grind)).trans ?_
+      refine AlphaEquiv.trans ?_ (subst.abs_fresh (z := w) (by grind)).symm
+      apply AlphaEquiv.abs_congr
+      apply ih <;> grind [AlphaEquiv.abs_elim]
 
 /-- The relational definition of substitution coincides with the functional definition of
     substitution, modulo α-equivalence. -/
