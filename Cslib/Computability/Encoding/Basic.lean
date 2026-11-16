@@ -9,6 +9,8 @@ module
 public import Mathlib.Computability.Encoding
 public import Mathlib.Data.Fintype.EquivFin
 public import Mathlib.Data.Nat.Log
+public import Mathlib.Data.Nat.Size
+public import Mathlib.Data.Num.Lemmas
 public import Cslib.Computability.Encoding.Delimit
 
 /-!
@@ -36,14 +38,22 @@ fixed-width binary code of `Nat.clog 2 n` bits, which `encFintype` transfers to 
 Products delimit only their first component because the second one extends to the end of the code
 word, so a delimiter would add nothing for parsing; this keeps the second component undoubled and
 the size of right-nested products linear. Lists delimit every element since their number is not
-known in advance, and sums use a tag bit rather than a delimiter since it has a fixed length.
+known in advance, and sums use a tag bit rather than a delimiter since the tag has a fixed length.
 
 In general, a code word followed by further data cannot be split again; for example,
 `encList enc [a]` is a prefix of `encList enc [a, b]`. Wrap an encoding with `encDelimited` (as
 `encList` does for its elements) when its end has to be recognizable, see `delimit_append_inj`.
 
+`Realizes g f encIn encOut` states that the function `g` on Boolean words acts on code words as `f`
+acts on values. This is how machines, which see only words, are related to functions on encoded
+values.
+
 We do not use Mathlib's `Computability.Encoding` combinators since they change the alphabet
 (e.g. `encodingProd` encodes into `Γ₁ ⊕ Γ₂`), while here every encoding targets `List Bool`.
+
+## References
+
+* [K. Weihrauch, *Computable Analysis: An Introduction*][Weihrauch2000]
 -/
 
 @[expose] public section
@@ -74,9 +84,77 @@ def encBits : List Bool ↪ List Bool := ⟨id, Function.injective_id⟩
 def encNat : ℕ ↪ List Bool :=
   ⟨Computability.encodeNat, Computability.encodingNatBool.encode_injective⟩
 
-/-- Not a `simp` or `grind` lemma: Mathlib proves little about `encodeNat`, so `encNat n` is the
-more useful normal form. -/
 theorem encNat_apply (n : ℕ) : encNat n = Computability.encodeNat n := rfl
+
+@[simp, scoped grind =]
+theorem encNat_zero : encNat 0 = [] := rfl
+
+private theorem encodeNum_bit1 (x : Num) :
+    Computability.encodeNum x.bit1 = true :: Computability.encodeNum x := by
+  cases x <;> rfl
+
+private theorem encodeNum_bit0 {x : Num} (hx : x ≠ 0) :
+    Computability.encodeNum x.bit0 = false :: Computability.encodeNum x := by
+  cases x
+  · exact absurd rfl hx
+  · rfl
+
+/-- The code of a natural number is its binary representation `Nat.bits`. This connects `encNat`
+to Mathlib's lemmas about the bits of a natural number. -/
+theorem encNat_eq_bits (n : ℕ) : encNat n = n.bits := by
+  induction n using Nat.binaryRec' with
+  | zero => rfl
+  | bit b n hn ih =>
+    rw [Nat.bits_append_bit n b hn, ← ih, encNat_apply, encNat_apply, Computability.encodeNat,
+      Computability.encodeNat, ← Num.ofNat'_eq, ← Num.ofNat'_eq n, Num.ofNat'_bit]
+    cases b
+    · have hn0 : n ≠ 0 := fun h => by simpa using hn h
+      exact encodeNum_bit0 fun h => hn0 (by
+        have := congrArg (fun x : Num => (x : ℕ)) h
+        simpa [Num.ofNat'_eq] using this)
+    · exact encodeNum_bit1 _
+
+@[simp]
+theorem encNat_eq_nil {n : ℕ} : encNat n = [] ↔ n = 0 :=
+  encNat.apply_eq_iff_eq n 0
+
+/-- The code of a natural number has as many bits as its binary representation. -/
+theorem length_encNat (n : ℕ) : (encNat n).length = n.size := by
+  rw [encNat_eq_bits, Nat.size_eq_bits_len]
+
+theorem encNat_two_mul {n : ℕ} (hn : n ≠ 0) : encNat (2 * n) = false :: encNat n := by
+  rw [encNat_eq_bits, encNat_eq_bits, Nat.bit0_bits n hn]
+
+theorem encNat_two_mul_add_one (n : ℕ) : encNat (2 * n + 1) = true :: encNat n := by
+  rw [encNat_eq_bits, encNat_eq_bits, Nat.bit1_bits]
+
+/-- The successor on binary numbers, least significant bit first: the leading `true` bits become
+`false`, and the first `false` bit, or the end of the word, becomes `true`. -/
+def bitsSucc : List Bool → List Bool
+  | [] => [true]
+  | false :: w => true :: w
+  | true :: w => false :: bitsSucc w
+
+@[simp] theorem bitsSucc_nil : bitsSucc [] = [true] := rfl
+
+@[simp] theorem bitsSucc_false_cons (w : List Bool) : bitsSucc (false :: w) = true :: w := rfl
+
+@[simp] theorem bitsSucc_true_cons (w : List Bool) :
+    bitsSucc (true :: w) = false :: bitsSucc w := rfl
+
+theorem length_bitsSucc_le (w : List Bool) : (bitsSucc w).length ≤ w.length + 1 := by
+  fun_induction bitsSucc w <;> grind
+
+/-- `bitsSucc` is the successor on codes of natural numbers. -/
+theorem bitsSucc_encNat (n : ℕ) : bitsSucc (encNat n) = encNat (n + 1) := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+    rcases Nat.even_or_odd' n with ⟨k, rfl | rfl⟩
+    · rcases Nat.eq_zero_or_pos k with rfl | hk
+      · rfl
+      · rw [encNat_two_mul (by lia), encNat_two_mul_add_one, bitsSucc_false_cons]
+    · rw [encNat_two_mul_add_one, show 2 * k + 1 + 1 = 2 * (k + 1) by lia,
+        encNat_two_mul (by lia), bitsSucc_true_cons, ih k (by lia)]
 
 /-! ### Finite types -/
 
@@ -102,7 +180,8 @@ theorem getElem_encFin (n : ℕ) (a : Fin n) (i : ℕ) (h : i < (encFin n a).len
     (encFin n a)[i] = a.val.testBit i := by
   simp [encFin_apply]
 
-/-- Types with at most one element are encoded as the empty word. -/
+/-- `Fin n` with `n ≤ 1` is encoded as the empty word. As a `simp` lemma this applies when `n` is
+a literal or `h` is among the hypotheses. -/
 @[simp]
 theorem encFin_eq_nil {n : ℕ} (h : n ≤ 1) (a : Fin n) : encFin n a = [] := by
   rw [← List.length_eq_zero_iff, length_encFin, Nat.clog_of_right_le_one h]
@@ -155,7 +234,7 @@ def encSigma {β : α → Type*} (enc₁ : α ↪ List Bool) (enc₂ : ∀ a, β
     (a : α) × β a ↪ List Bool :=
   ⟨fun x => delimit (enc₁ x.1) ++ enc₂ x.1 x.2, by
     rintro ⟨a, b⟩ ⟨a', b'⟩ h
-    obtain ⟨h₁, h₂⟩ := delimit_append_inj h
+    obtain ⟨h₁, h₂⟩ := eq_of_delimit_append_eq h
     dsimp only at h₁ h₂
     obtain rfl := enc₁.injective h₁
     rw [(enc₂ a).injective h₂]⟩
@@ -165,8 +244,8 @@ theorem encProd_eq_encSigma (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bo
     encProd enc₁ enc₂ p = encSigma enc₁ (fun _ => enc₂) ⟨p.1, p.2⟩ := rfl
 
 /-- A sum is encoded by a tag bit, `false` for `inl` and `true` for `inr`, followed by the code of
-the component. A tag bit is used instead of a delimiter since it has a fixed length and does not
-double the component. -/
+the component. A tag bit is used instead of a delimiter since the tag has a fixed length and
+does not double the component. -/
 def encSum (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) : α ⊕ β ↪ List Bool :=
   ⟨fun x => x.elim (false :: enc₁ ·) (true :: enc₂ ·), by rintro (a | a) (b | b) h <;> simp_all⟩
 
@@ -185,7 +264,7 @@ def encList (enc : α ↪ List Bool) : List α ↪ List Bool :=
       cases l' with
       | nil => simp at h
       | cons a' l' =>
-        rw [enc.injective (delimit_append_inj h).1, ih _ (delimit_append_inj h).2]⟩
+        rw [enc.injective (eq_of_delimit_append_eq h).1, ih _ (eq_of_delimit_append_eq h).2]⟩
 
 @[simp, scoped grind =] theorem encSum_inl (enc₁ : α ↪ List Bool) (enc₂ : β ↪ List Bool) (a : α) :
     encSum enc₁ enc₂ (.inl a) = false :: enc₁ a := rfl
@@ -232,11 +311,6 @@ theorem length_encOption (enc : α ↪ List Bool) (o : Option α) :
     (encOption enc o).length = o.elim 1 (fun a => (enc a).length + 1) := by
   cases o <;> simp
 
-theorem length_encOption_none (enc : α ↪ List Bool) : (encOption enc none).length = 1 := rfl
-
-theorem length_encOption_some (enc : α ↪ List Bool) (a : α) :
-    (encOption enc (some a)).length = (enc a).length + 1 := rfl
-
 /-- Each element contributes twice the length of its code plus one delimiter bit. -/
 @[simp, scoped grind =] theorem length_encList (enc : α ↪ List Bool) (l : List α) :
     (encList enc l).length = 2 * (l.map fun a => (enc a).length).sum + l.length := by
@@ -246,5 +320,15 @@ theorem length_encOption_some (enc : α ↪ List Bool) (a : α) :
 theorem length_le_length_encList (enc : α ↪ List Bool) (l : List α) :
     l.length ≤ (encList enc l).length := by
   simp
+
+/-! ### Realizers -/
+
+/-- A function `g` on Boolean words realizes `f` with respect to the given encodings if it maps
+the code of every `a` to the code of `f a`. The complexity of `f` relative to these encodings is
+then the complexity of `g`. This is the notion of a realizer from computable analysis
+[Weihrauch2000], for the special case that every value has exactly one name. -/
+def Realizes (g : List Bool → List Bool) (f : α → β) (encIn : α ↪ List Bool)
+    (encOut : β ↪ List Bool) : Prop :=
+  ∀ a, g (encIn a) = encOut (f a)
 
 end Cslib.Encoding

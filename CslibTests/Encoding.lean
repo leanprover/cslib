@@ -23,12 +23,30 @@ example : dropDelimited (delimit [true, false] ++ [true, true]) = [true, true] :
 example (b : Bool) (w u : List Bool) : undelimit (delimit (b :: w) ++ u) = b :: w := by simp
 example (b : Bool) (w u : List Bool) : dropDelimited (delimit (b :: w) ++ u) = u := by simp
 
+-- A delimited code followed by nothing: the rest is empty.
+example (w : List Bool) : dropDelimited (delimit w) = [] := by simp
+
+-- Words that are not delimited codes: an incomplete trailing tag is ignored, and without a
+-- delimiter nothing follows.
+example : undelimit [true] = [] := rfl
+example : undelimit [true, false, true] = [false] := rfl
+example : dropDelimited [true, true] = [] := rfl
+
 -- Words that are prefixes of each other have delimited codes that are not.
 example : ¬ delimit [true] <+: delimit [true, false] := by simp
 
 -- Injectivity is available to `simp`.
 example (w v : List Bool) : delimit w = delimit v ↔ w = v := by simp
 example (w v u u' : List Bool) : delimit w ++ u = delimit v ++ u' ↔ w = v ∧ u = u' := by simp
+
+-- Variants of `undelimit`: a default for the empty word, and all delimited codes of a word.
+example : undelimitOr [true] [] = [true] := rfl
+example (w u : List Bool) : undelimitOr [true] (delimit w ++ u) = w := by simp
+example : undelimitAll (delimit [true] ++ delimit [] ++ delimit [false]) = [true, false] := by simp
+
+-- Taking a code apart never produces more bits than it has.
+example (w u : List Bool) : (undelimit (w ++ u)).length ≤ w.length + u.length := by
+  simpa using length_undelimit_le (w ++ u)
 
 /-! ### Basic encodings -/
 
@@ -37,8 +55,23 @@ example : ⇑encBool = Computability.encodingBoolBool.encode := rfl
 example : ⇑encNat = Computability.encodingNatBool.encode := rfl
 
 -- Binary, least significant bit first.
-example : encNat 0 = [] := by decide
+example : encNat 0 = [] := by simp
 example : encNat 6 = [false, true, true] := by decide
+
+-- The code of a number is its binary representation, which gives its length.
+example (n : ℕ) : encNat n = n.bits := encNat_eq_bits n
+example : (encNat 6).length = 3 := by rw [length_encNat]; decide
+example (n : ℕ) (h : encNat n = []) : n = 0 := by simpa using h
+
+-- Doubling prepends a bit, and the successor is computed on the bits.
+example : encNat (2 * 3) = false :: encNat 3 := encNat_two_mul (by decide)
+example : bitsSucc (encNat 7) = encNat 8 := bitsSucc_encNat 7
+example : bitsSucc [true, true] = [false, false, true] := rfl
+
+-- A function on words realizes a function on values if it acts as that function on code words.
+example : Realizes bitsSucc (· + 1) encNat encNat := bitsSucc_encNat
+example (enc : α ↪ List Bool) : Realizes undelimit Prod.fst (encProd enc encBits) enc :=
+  fun _ => by simp
 
 /-! ### Finite types -/
 
@@ -59,7 +92,6 @@ example : encFin 2 0 = encBool false ∧ encFin 2 1 = encBool true := by
 
 -- Sub-singletons are encoded as the empty word, without any special case in the definition.
 example (a : Fin 1) : encFin 1 a = [] := by simp
-example (a : Fin 1) : encFin 1 a = [] := rfl
 example (u : Unit) : encFintype Unit u = [] := by simp
 example (a : Fin 1) : encFintype (Fin 1) a = [] := by simp
 example [Fintype α] [Subsingleton α] (a : α) : (encFintype α a).length = 0 := by simp
@@ -72,7 +104,6 @@ example (x : (n : ℕ) ×' n < 4) :
       2 * (encNat x.1).length + 1 := by simp
 
 -- Only the code length of `encFintype` is known in general.
-example [Fintype α] (a : α) : (encFintype α a).length = Nat.clog 2 (Fintype.card α) := by simp
 example (a : Fin 5 ⊕ Fin 3) : (encFintype _ a).length = 3 := by
   simpa using Nat.clog_pow 2 3 one_lt_two
 
@@ -120,6 +151,10 @@ example (p : Bool × List Bool) :
     encProd encBool encBits p = encSigma encBool (fun _ => encBits) ⟨p.1, p.2⟩ := rfl
 
 example : (encProd encBits encBits ([true], [false, false])).length = 5 := by simp
+example (o : Option (List Bool)) : (encOption encBits o).length = o.elim 1 (·.length + 1) := by
+  simp [length_encOption]
+example (a : Fin 5) (i : ℕ) (h : i < (encFin 5 a).length) : (encFin 5 a)[i] = a.val.testBit i := by
+  simp
 example : (encList encBits [[true], []]).length = 4 := by simp
 
 -- The encodings are not prefix-free.

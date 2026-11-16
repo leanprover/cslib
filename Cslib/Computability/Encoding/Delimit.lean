@@ -21,7 +21,9 @@ has a delimited code of length `2 * n + 1`.
 
 `delimit_prefix_delimit` states prefix-freeness: one delimited codeword is a prefix of another
 exactly when their original words are equal. `undelimit_delimit_append` and
-`dropDelimited_delimit_append` recover a word and the suffix following its codeword.
+`dropDelimited_delimit_append` recover a word and the suffix following its codeword. `undelimitOr`
+is `undelimit` with a default for the empty word, and `undelimitAll` recovers the concatenation of
+all words whose codewords make up a word.
 
 The guarantee concerns individual delimited words. A variable-length list of concatenated
 codewords needs its own delimiter if the entire list encoding is to be prefix-free.
@@ -33,7 +35,8 @@ namespace Cslib.Encoding
 
 /-! ### Delimited words -/
 
-/-- Each symbol `b` of `w` as `[true, b]`, followed by `[false]`. -/
+/-- The delimited code of `w`: each bit `b` is written as `[true, b]`, and `[false]` ends the
+code. -/
 def delimit (w : List Bool) : List Bool :=
   w.flatMap (fun b => [true, b]) ++ [false]
 
@@ -97,16 +100,20 @@ theorem dropDelimited_delimit_append (w u : List Bool) :
     dropDelimited (delimit w ++ u) = u := by
   induction w <;> simp [*]
 
+@[simp]
+theorem dropDelimited_delimit (w : List Bool) : dropDelimited (delimit w) = [] := by
+  simpa using dropDelimited_delimit_append w []
+
 /-- A delimited word followed by another word determines both. -/
 @[scoped grind →]
-theorem delimit_append_inj {w w' u u' : List Bool} (h : delimit w ++ u = delimit w' ++ u') :
+theorem eq_of_delimit_append_eq {w w' u u' : List Bool} (h : delimit w ++ u = delimit w' ++ u') :
     w = w' ∧ u = u' :=
   ⟨by simpa using congrArg undelimit h, by simpa using congrArg dropDelimited h⟩
 
 @[simp]
-theorem delimit_append_inj_iff {w w' u u' : List Bool} :
+theorem delimit_append_inj {w w' u u' : List Bool} :
     delimit w ++ u = delimit w' ++ u' ↔ w = w' ∧ u = u' :=
-  ⟨delimit_append_inj, by rintro ⟨rfl, rfl⟩; rfl⟩
+  ⟨eq_of_delimit_append_eq, by rintro ⟨rfl, rfl⟩; rfl⟩
 
 /-- Delimiting is injective. -/
 @[scoped grind inj]
@@ -126,5 +133,69 @@ theorem delimit_prefix_delimit {w v : List Bool} :
     simpa using congrArg undelimit hs
   · rintro rfl
     rfl
+
+/-! ### Variants of `undelimit` -/
+
+/-- The word whose delimited code starts `w`, as computed by `undelimit`, or `e` if `w` is
+empty. -/
+def undelimitOr (e : List Bool) : List Bool → List Bool
+  | [] => e
+  | w => undelimit w
+
+@[simp]
+theorem undelimitOr_nil (e : List Bool) : undelimitOr e [] = e := rfl
+
+@[simp]
+theorem undelimitOr_cons (e : List Bool) (b : Bool) (w : List Bool) :
+    undelimitOr e (b :: w) = undelimit (b :: w) := rfl
+
+@[simp]
+theorem undelimitOr_nil_left : undelimitOr [] = undelimit := by
+  funext w
+  cases w <;> rfl
+
+@[simp]
+theorem undelimitOr_delimit_append (e w u : List Bool) :
+    undelimitOr e (delimit w ++ u) = w := by
+  cases w <;> simp
+
+/-- The concatenation of the words whose delimited codes make up `w`: removes all tags and
+delimiters. An incomplete trailing code is ignored. -/
+def undelimitAll : List Bool → List Bool
+  | true :: b :: v => b :: undelimitAll v
+  | false :: v => undelimitAll v
+  | _ => []
+
+@[simp] theorem undelimitAll_nil : undelimitAll [] = [] := rfl
+
+@[simp] theorem undelimitAll_false_cons (v : List Bool) :
+    undelimitAll (false :: v) = undelimitAll v := rfl
+
+@[simp] theorem undelimitAll_true_nil : undelimitAll [true] = [] := rfl
+
+@[simp] theorem undelimitAll_true_cons_cons (b : Bool) (v : List Bool) :
+    undelimitAll (true :: b :: v) = b :: undelimitAll v := rfl
+
+@[simp]
+theorem undelimitAll_delimit_append (w u : List Bool) :
+    undelimitAll (delimit w ++ u) = w ++ undelimitAll u := by
+  induction w <;> simp [*]
+
+/-! ### Lengths -/
+
+theorem length_undelimit_le (w : List Bool) : (undelimit w).length ≤ w.length := by
+  fun_induction undelimit w <;> grind
+
+theorem length_dropDelimited_le (w : List Bool) : (dropDelimited w).length ≤ w.length := by
+  fun_induction dropDelimited w <;> grind
+
+theorem length_undelimitOr_le (e w : List Bool) :
+    (undelimitOr e w).length ≤ w.length + e.length := by
+  cases w with
+  | nil => simp
+  | cons b w => have := length_undelimit_le (b :: w); simp only [undelimitOr_cons]; lia
+
+theorem length_undelimitAll_le (w : List Bool) : (undelimitAll w).length ≤ w.length := by
+  fun_induction undelimitAll w <;> grind
 
 end Cslib.Encoding
