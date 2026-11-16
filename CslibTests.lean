@@ -38,4 +38,5 @@ import CslibTests.Query
 import CslibTests.QueryComplexity
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
+import CslibTests.SyncTrace
 import CslibTests.Synthesis
