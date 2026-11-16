@@ -233,14 +233,10 @@ theorem AlphaEquiv.context {m n : Term Var} {c : Context Var} :
     m =α n → (c.fill m) =α (c.fill n) := by
   intro h
   induction c with
-  | hole => assumption
-  | abs x c ih =>
-    obtain ⟨y, hy⟩ := fresh_exists (m.vars ∪ n.vars ∪ c.vars ∪ {x})
-    apply AlphaEquiv.abs (y := y) <;> grind [Context.fill_vars, rename_preserve]
-  | appL c m ih =>
-    apply AlphaEquiv.app <;> grind [AlphaEquiv.app, AlphaEquiv.refl]
-  | appR m c ih =>
-    apply AlphaEquiv.app <;> grind [AlphaEquiv.app, AlphaEquiv.refl]
+  | hole => exact h
+  | abs x c ih => exact ih.abs_congr
+  | appL c m ih => exact .app ih (.refl m)
+  | appR m c ih => exact .app (.refl m) ih
 
 /-- The functional definition of substitution satisfies the relational definition of substitution.
 -/
