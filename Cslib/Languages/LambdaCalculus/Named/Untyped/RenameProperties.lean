@@ -209,12 +209,6 @@ lemma swap_rename_comm {m : Term Var} {u v x y : Var} :
     (m.swap u v).rename (Equiv.swap u v x) (Equiv.swap u v y) = (m.rename x y).swap u v :=
   (permute_rename ..).symm
 
-/-- A version of `swap_rename_comm` where the target `z` of the renaming is not swapped. -/
-lemma swap_rename_comm' {m : Term Var} {u v x z : Var} (hzu : z ≠ u) (hzv : z ≠ v) :
-    (m.swap u v).rename (Equiv.swap u v x) z = (m.rename x z).swap u v := by
-  rw [← swap_rename_comm (m := m) (u := u) (v := v) (x := x) (y := z),
-    Equiv.swap_apply_of_ne_of_ne hzu hzv]
-
 /-- Lemma 6.2 part 1 [Crole2012] (specialized to transpositions). -/
 lemma swap_comp_eq_of_notMem_vars {m : Term Var} {a u z : Var}
     (hu : u ∉ m.vars) (hz : z ∉ m.vars) :
@@ -232,11 +226,6 @@ lemma swap_comp_eq_of_ne {m : Term Var} {a u v : Var} (hau : a ≠ u) (hav : a �
   simp only [swap, permute_permute]
   congr 1
   grind
-
-/-- If `u` is not among `m`'s variables, then `v` cannot appear in `m.swap u v`
-(the only way `v` could show up is as the image of `u`). -/
-lemma notMem_swap_target {m : Term Var} {u v : Var} (hu : u ∉ m.vars) : v ∉ (m.swap u v).vars := by
-  grind [vars_swap]
 
 end LambdaCalculus.Named.Untyped.Term
 
