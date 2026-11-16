@@ -19,6 +19,10 @@ The untyped λ-calculus, with a named representation of variables. This file con
 - `AlphaEquiv.refl`: reflexivity of α-equivalence
 - `AlphaEquiv.symm`: symmetry of α-equivalence
 - `AlphaEquiv.trans`: transitivity of α-equivalence
+- `AlphaEquiv.permute_preserve`: permutations preserve α-equivalence
+- `AlphaEquiv.swap_preserve`: Lemma 6.1 of [Crole2012], swapping preserves α-equivalence
+- `permute_alphaEquiv_of_eqOn_fv`: Lemma 6.2 part 2 of [Crole2012], permutations that agree on the
+  free variables of a term act on it in the same way up to α-equivalence
 - `Subst.relation_iff_function`: the relational and functional definition of capture-avoiding
   substitution are equivalent, modulo alpha-equivalence
 - `subst.commutativity`: commutativity of substitution, more commonly known as the
@@ -58,7 +62,49 @@ theorem AlphaEquiv.same_fv {m n : Term Var} : m =α n → m.fv = n.fv := by
       have : m1.fv.erase x1 = (m1.rename x1 y).fv.erase y
       have : (m2.rename x2 y).fv.erase y = m2.fv.erase x2
 
+/-- Permutations preserve α-equivalence. -/
+lemma AlphaEquiv.permute_preserve {m m' : Term Var} (h : m =α m') (π : Equiv.Perm Var) :
+    (m.permute π) =α (m'.permute π) := by
+  induction h with
+  | var => exact .var
+  | app _ _ ih1 ih2 => exact .app ih1 ih2
+  | @abs z a b m m' hz _ ih =>
+    apply AlphaEquiv.abs (y := π z)
+    · grind [vars_permute, π.injective]
+    · simpa only [permute_rename, AlphaEquiv_def] using ih
+
+/-- Lemma 6.1 [Crole2012]: Swap (transposition) preserves α-equivalence. -/
+lemma AlphaEquiv.swap_preserve {m m' : Term Var} {u v : Var} (h : m =α m') :
+    (m.swap u v) =α (m'.swap u v) :=
+  h.permute_preserve (Equiv.swap u v)
+
 variable [HasFresh Var]
+
+/-- Lemma 6.2 part 2 [Crole2012]: permutations that agree on the free variables of a term act on
+it in the same way up to α-equivalence. The paper's hypothesis `free(E) ⊆ AS(π, π')` is
+`Set.EqOn π π' m.fv`. -/
+lemma permute_alphaEquiv_of_eqOn_fv (m : Term Var) (π π' : Equiv.Perm Var)
+    (h : Set.EqOn π π' m.fv) : (m.permute π) =α (m.permute π') := by
+  induction m generalizing π π' with
+  | var x =>
+    have hx : π x = π' x := by simpa using h
+    simpa [permute, hx] using AlphaEquiv.var
+  | app m n ihm ihn =>
+    simp only [fv, Finset.coe_union, Set.eqOn_union] at h
+    exact AlphaEquiv.app (ihm π π' h.1) (ihn π π' h.2)
+  | abs a m ih =>
+    obtain ⟨z, hz⟩ := fresh_exists ((m.permute π).vars ∪ (m.permute π').vars ∪ {π a, π' a})
+    apply AlphaEquiv.abs (y := z) (by grind)
+    rw [← swap_eq_rename_of_notMem_vars, ← swap_eq_rename_of_notMem_vars] <;>
+    grind [swap, permute_permute, Set.EqOn, vars_eq_fv_union_bv, vars_permute, Equiv.injective]
+
+/-- Lemma 6.2 part 2 [Crole2012] (specialized). -/
+lemma swap_comp_alphaEquiv_of_notMem_fv {m : Term Var} {a u z : Var}
+    (hu : u ∉ m.fv) (hz : z ∉ m.fv) :
+    ((m.swap u a).swap z u) =α (m.swap z a) := by
+  simp_rw [← permute_swap, permute_permute]
+  apply permute_alphaEquiv_of_eqOn_fv
+  grind [Set.EqOn]
 
 /-- Reflexivity of α-equivalence. -/
 theorem AlphaEquiv.refl (m : Term Var) : m =α m := by
