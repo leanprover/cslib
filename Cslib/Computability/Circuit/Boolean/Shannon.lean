@@ -11,14 +11,25 @@ public import Cslib.Computability.Circuit.Shannon
 /-!
 # Shannon's lower bound for De Morgan circuits
 
-This is the De Morgan specialization of `Cslib.Circuits.Shannon.exists_hard_function`,
-stated for circuits and for circuit complexity. Together with Lupanov's construction, it
-gives the asymptotically sharp gate count `2ⁿ/n`.
+This is the De Morgan specialization of `Cslib.Circuits.Shannon`: almost all Boolean functions
+on `n` inputs require more than `2ⁿ/n` gates, so for large `n` some function does, stated for
+circuits and for circuit complexity. Together with Lupanov's construction, it gives the
+asymptotically sharp gate count `2ⁿ/n`.
 -/
 
 public section
 
 namespace Cslib.Circuits.Boolean.Shannon
+
+open Filter Topology
+
+/-- Almost all Boolean functions on `n` inputs require more than `2ⁿ/n` De Morgan gates: the
+fraction computable within that budget tends to zero. -/
+theorem tendsto_card_computableFunctions_div :
+    Tendsto (fun n : ℕ => ((computableFunctions interpretation n (2 ^ n / n)).card : ℝ) /
+      2 ^ 2 ^ n) atTop (𝓝 0) := by
+  simpa [Nat.card_eq_fintype_card] using Circuits.Shannon.tendsto_card_computableFunctions_div
+    interpretation (fun op => by cases op <;> simp)
 
 /-- For all sufficiently large `n`, some Boolean function on `n` inputs requires
 more than `2ⁿ/n` De Morgan gates, counting constants and negations. -/
