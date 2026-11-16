@@ -250,11 +250,11 @@ theorem ae_mem_versionSpace_of_realizable
       c ∈ VersionSpace C S := by
   -- the samples off the graph lie in a finite union of null cylinders
   refine measure_mono_null (t := ⋃ i, Function.eval i ⁻¹' {p : α × β | p.2 = c p.1}ᶜ)
-    (fun S hS => ?_) (measure_iUnion_null fun i => Measure.pi_eval_preimage_null' _ ?_)
+    (fun S hS ↦ ?_) (measure_iUnion_null fun i ↦ Measure.pi_eval_preimage_null' _ ?_)
   · obtain ⟨i, hi⟩ : ∃ i, c (S i).1 ≠ (S i).2 := by
       by_contra! h
       exact hS ⟨hc, h⟩
-    exact Set.mem_iUnion.mpr ⟨i, fun h => hi h.symm⟩
+    exact Set.mem_iUnion.mpr ⟨i, fun h ↦ hi h.symm⟩
   · rw [Measure.map_apply (by fun_prop) hG.compl]
     convert measure_empty (μ := P)
     ext x

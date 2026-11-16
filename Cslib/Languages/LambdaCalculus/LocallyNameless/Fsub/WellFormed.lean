@@ -80,7 +80,7 @@ private theorem of_dlookup_sub (wf : σ.Wf Γ)
   | arrow _ _ ih₁ ih₂ => exact .arrow (ih₁ h) (ih₂ h)
   | sum _ _ ih₁ ih₂ => exact .sum (ih₁ h) (ih₂ h)
   | @all _ σ _ L _ _ ih₁ ih₂ =>
-    refine .all L (ih₁ h) fun X hX => ih₂ X hX fun Y ρ hY => ?_
+    refine .all L (ih₁ h) fun X hX ↦ ih₂ X hX fun Y ρ hY ↦ ?_
     by_cases hYX : Y = X
     · subst hYX
       exact ⟨σ, by simp⟩
@@ -89,8 +89,8 @@ private theorem of_dlookup_sub (wf : σ.Wf Γ)
 
 /-- Removing duplicate keys from a context preserves well-formedness. -/
 private theorem iff_dedupKeys : σ.Wf Γ ↔ σ.Wf Γ.dedupKeys :=
-  ⟨fun h => of_dlookup_sub h fun _ ρ h => ⟨ρ, by rwa [dlookup_dedupKeys]⟩,
-    fun h => of_dlookup_sub h fun _ ρ h => ⟨ρ, by rwa [dlookup_dedupKeys] at h⟩⟩
+  ⟨fun h ↦ of_dlookup_sub h fun _ ρ h ↦ ⟨ρ, by rwa [dlookup_dedupKeys]⟩,
+    fun h ↦ of_dlookup_sub h fun _ ρ h ↦ ⟨ρ, by rwa [dlookup_dedupKeys] at h⟩⟩
 
 /-- A type remains well-formed under context permutation. -/
 theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) : σ.Wf Δ := by
@@ -117,7 +117,7 @@ theorem weaken_cons (wf : σ.Wf Δ) (ok : (⟨X, b⟩ :: Δ)✓) : σ.Wf (⟨X, 
 /-- A type remains well-formed under context narrowing. -/
 lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) :
     σ.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
-  refine of_dlookup_sub wf fun Y ρ h => ?_
+  refine of_dlookup_sub wf fun Y ρ h ↦ ?_
   clear wf
   induction Γ with
   | nil =>

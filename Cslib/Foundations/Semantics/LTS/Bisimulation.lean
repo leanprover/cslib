@@ -588,7 +588,7 @@ theorem BisimilarityApprox.follow_snd_omega_of_imageFinite_right [lts₂.ImageFi
   obtain ⟨t, hinf⟩ := Finite.exists_infinite_fiber g
   have hinf : (g ⁻¹' {t}).Infinite := Set.infinite_coe_iff.mp hinf
   obtain ⟨n₀, hn₀⟩ := hinf.nonempty
-  refine ⟨f n₀, hf n₀, omega_iff.mpr fun N => ?_⟩
+  refine ⟨f n₀, hf n₀, omega_iff.mpr fun N ↦ ?_⟩
   obtain ⟨n, hn, hNn⟩ := (hinf.sdiff (Set.finite_le_nat N)).nonempty
   rw [Set.mem_ofPred_eq, not_le] at hNn
   have h₀ := hg n₀
@@ -603,17 +603,17 @@ theorem BisimilarityApprox.follow_snd_omega_of_imageFinite_right [lts₂.ImageFi
 This strengthens the image-finite stratification result in [Sangiorgi2011], which assumes both
 LTSs to be image-finite. -/
 theorem BisimilarityApprox.isBisimulation_omega [lts₂.ImageFinite] :
-    IsBisimulation lts₁ lts₂ (· ~[lts₁,lts₂;ω] ·) := fun _ _ h μ =>
-  ⟨fun _ htr => isSimulation_omega h μ _ htr,
-    fun _ htr => follow_snd_omega_of_imageFinite_right h htr⟩
+    IsBisimulation lts₁ lts₂ (· ~[lts₁,lts₂;ω] ·) := fun _ _ h μ ↦
+  ⟨fun _ htr ↦ isSimulation_omega h μ _ htr,
+    fun _ htr ↦ follow_snd_omega_of_imageFinite_right h htr⟩
 
 /-- If the first LTS is image-finite, the omega approximation is a bisimulation. -/
 theorem BisimilarityApprox.isBisimulation_omega_of_imageFinite_left [lts₁.ImageFinite] :
-    IsBisimulation lts₁ lts₂ (· ~[lts₁,lts₂;ω] ·) := fun _ _ h μ =>
-  ⟨fun _ htr =>
+    IsBisimulation lts₁ lts₂ (· ~[lts₁,lts₂;ω] ·) := fun _ _ h μ ↦
+  ⟨fun _ htr ↦
     have ⟨s₂', ht, hr⟩ := follow_snd_omega_of_imageFinite_right h.symm htr
     ⟨s₂', ht, hr.symm⟩,
-    fun _ htr => flip_isSimulation_omega h μ _ htr⟩
+    fun _ htr ↦ flip_isSimulation_omega h μ _ htr⟩
 
 /-- If the second LTS is image-finite, a transition by the first state has a matching
 derivative related at every finite depth. -/
@@ -652,7 +652,7 @@ theorem BisimilarityApprox.omega_iff_bisimilarity [lts₂.ImageFinite] :
 bisimilarity. -/
 theorem BisimilarityApprox.omega_iff_bisimilarity_of_imageFinite_left [lts₁.ImageFinite] :
     s₁ ~[lts₁,lts₂;ω] s₂ ↔ s₁ ~[lts₁,lts₂] s₂ :=
-  ⟨BisimilarityApprox.bisimilarity_of_omega_of_imageFinite_left, (fun h => h.approx ω)⟩
+  ⟨BisimilarityApprox.bisimilarity_of_omega_of_imageFinite_left, (fun h ↦ h.approx ω)⟩
 
 /-- If the second LTS is image-finite, the omega approximation coincides with bisimilarity. -/
 theorem BisimilarityApprox.omega_eq_bisimilarity (lts₁ : LTS State₁ Label)

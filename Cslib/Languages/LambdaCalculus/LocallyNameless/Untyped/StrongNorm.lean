@@ -162,7 +162,7 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
     cases h with | app hM lc_N =>
     exact sn_abs_app_multiApp_of_lc sn_N sn_MNPs lc_N (multiApp_lc.mpr ⟨beta_lc hM lc_N, hPs⟩)
   -- a term that is not locally closed has no step
-  · exact Acc.intro _ fun _ h => absurd (FullBeta.step_lc_l h) hlc
+  · exact Acc.intro _ fun _ h ↦ absurd (FullBeta.step_lc_l h) hlc
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 

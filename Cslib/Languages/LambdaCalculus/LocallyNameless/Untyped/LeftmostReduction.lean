@@ -120,7 +120,7 @@ theorem Leftmost.of_standard (h : M ⭢ₛ N) (hn : BetaNormal N) : M ↠ℓ N :
   case app _ _ ihL ihM =>
     have ⟨hna, hL', hM'⟩ := hn.app_inv
     exact steps_app_cong (ihL hL') (ihM hM') hL' hna
-  case abs xs h_body ih => exact steps_abs_cong xs fun x hx => ih x hx hn.abs_open
+  case abs xs h_body ih => exact steps_abs_cong xs fun x hx ↦ ih x hx hn.abs_open
   case rdx M N M' _ lc_M lc_N cbn std_P ih =>
     have s1 : M.app N ↠ℓ M'.abs.app N := of_cbn (CBN.steps_app_l_cong cbn lc_N)
     have s2 : M'.abs.app N ⭢ℓ M' ^ N := .outer (CBN.steps_lc_r lc_M cbn) lc_N

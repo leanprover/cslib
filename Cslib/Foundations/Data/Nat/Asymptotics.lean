@@ -48,7 +48,7 @@ theorem eventually_add_one_le_pow_div {b : ℕ} (hb : 1 < b) :
 theorem eventually_mul_log_le (c : ℕ) {b : ℕ} :
     ∀ᶠ n : ℕ in atTop, c * log b n ≤ n := by
   obtain hb | hb := le_or_gt b 1
-  · exact .of_forall fun n => by simp [log_of_left_le_one hb]
+  · exact .of_forall fun n ↦ by simp [log_of_left_le_one hb]
   obtain ⟨N, hN⟩ := eventually_atTop.mp (eventually_mul_pow_le_pow c 1 hb)
   filter_upwards [eventually_ge_atTop (b ^ N)] with n hn
   have hn0 : n ≠ 0 := ne_of_gt ((pow_pos (by omega) N).trans_le hn)

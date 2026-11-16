@@ -238,7 +238,7 @@ theorem omega_forall_actions {d : DeliverMsg P M S} {ps : Set P} {r : Action P M
     cases h : l[i]? with
     | none => exact hn
     | some x => exact List.forall_iff_forall_mem.mp hl x (List.mem_of_getElem? h)
-  exact fun k => key _ _ (fairSeg_forallActions ps s0 _ ha hn)
+  exact fun k ↦ key _ _ (fairSeg_forallActions ps s0 _ ha hn)
 
 end FairScheduler
 

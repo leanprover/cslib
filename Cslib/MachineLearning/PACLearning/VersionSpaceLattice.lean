@@ -108,12 +108,12 @@ theorem versionSpaces_infinite {C : ConceptClass α β} (hC : C.Infinite) :
     (VersionSpaces C).Infinite := by
   intro hfin
   have := hfin.to_subtype
-  refine hC (Finite.of_injOn (f := fun h => {V : VersionSpaces C | h ∈ V.1}) (t := univ)
-    (fun _ _ => trivial) (fun h hh h' hh' heq => ?_) finite_univ)
+  refine hC (Finite.of_injOn (f := fun h ↦ {V : VersionSpaces C | h ∈ V.1}) (t := univ)
+    (fun _ _ ↦ trivial) (fun h hh h' hh' heq ↦ ?_) finite_univ)
   by_contra hne
   obtain ⟨x, hx⟩ := Function.ne_iff.mp hne
-  let V : VersionSpaces C := ⟨VersionSpace C fun _ : Fin 1 => (x, h x), 1, _, rfl⟩
-  have hV : V ∈ {V : VersionSpaces C | h' ∈ V.1} := cast (congrArg (V ∈ ·) heq) ⟨hh, fun _ => rfl⟩
+  let V : VersionSpaces C := ⟨VersionSpace C fun _ : Fin 1 ↦ (x, h x), 1, _, rfl⟩
+  have hV : V ∈ {V : VersionSpaces C | h' ∈ V.1} := cast (congrArg (V ∈ ·) heq) ⟨hh, fun _ ↦ rfl⟩
   exact hx (hV.2 0).symm
 
 /-- A concept class has at most `2 ^ C.ncard` version spaces: for a finite class, the lattice

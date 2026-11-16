@@ -55,8 +55,8 @@ would have to be decided without receiving any message. -/
 theorem two_le_card [Fintype P] (hpc1 : a.PseudoConsensus 1) : 2 ≤ card P := by
   by_contra hc
   obtain ⟨s', b, hcrv, p, hp⟩ :=
-    hpc1.right (fun _ => true) _ Algorithm.reachable_start ∅ (by simp; omega)
-  obtain rfl : s' = a.start fun _ => true := by
+    hpc1.right (fun _ ↦ true) _ Algorithm.reachable_start ∅ (by simp; omega)
+  obtain rfl : s' = a.start fun _ ↦ true := by
     clear hp
     induction hcrv with
     | refl => rfl

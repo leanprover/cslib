@@ -171,11 +171,11 @@ lemma exists_running (p : ntm.RunPath input) :
   by_cases hex : ∃ n, ∃ hn : n < p.length + 1, (p ⟨n, hn⟩).Halted
   · -- cut the path at its first halted configuration
     obtain ⟨hn, hhalt⟩ := Nat.find_spec hex
-    refine ⟨⟨Nat.find hex, fun i => p ⟨i, by lia⟩, fun i =>
-      ⟨fun hi => Nat.find_min hex i.isLt ⟨_, hi⟩, p.step ⟨i, by lia⟩⟩⟩, rfl,
-      (p.last_eq_of_halted _ hhalt).symm, Nat.lt_succ_iff.mp hn, fun _ ⟨i, hi⟩ => ⟨_, hi⟩⟩
-  · exact ⟨⟨p.length, p, fun i => ⟨fun hi => hex ⟨i, by lia, hi⟩, p.step i⟩⟩, rfl, rfl, le_rfl,
-      fun _ ⟨i, hi⟩ => ⟨i, hi⟩⟩
+    refine ⟨⟨Nat.find hex, fun i ↦ p ⟨i, by lia⟩, fun i ↦
+      ⟨fun hi ↦ Nat.find_min hex i.isLt ⟨_, hi⟩, p.step ⟨i, by lia⟩⟩⟩, rfl,
+      (p.last_eq_of_halted _ hhalt).symm, Nat.lt_succ_iff.mp hn, fun _ ⟨i, hi⟩ ↦ ⟨_, hi⟩⟩
+  · exact ⟨⟨p.length, p, fun i ↦ ⟨fun hi ↦ hex ⟨i, by lia, hi⟩, p.step i⟩⟩, rfl, rfl, le_rfl,
+      fun _ ⟨i, hi⟩ ↦ ⟨i, hi⟩⟩
 
 end RunPath
 

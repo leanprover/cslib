@@ -67,7 +67,7 @@ theorem secure_zero_of_outputDist_eq (G : Generator Seed Output)
 
 /-- Zero-error security against arbitrary tests is equivalent to exactly uniform output. -/
 theorem secure_zero_iff_outputDist_eq_uniform (G : Generator Seed Output) :
-    G.Secure (fun _ => True) 0 ↔ G.outputDist = @uniformOfFintype Output _ (.map G ‹_›) := by
+    G.Secure (fun _ ↦ True) 0 ↔ G.outputDist = @uniformOfFintype Output _ (.map G ‹_›) := by
   classical
   refine ⟨fun h => ?_, fun h => G.secure_zero_of_outputDist_eq h _⟩
   ext output
@@ -215,7 +215,7 @@ theorem idealExperiment_leftReduction (G : Generator Seed Output)
     @idealExperiment _ _ (.map G ‹_›) (G.leftReduction A) =
       G.realExperiment (@rightReduction _ _ (.map G ‹_›) A) := by
   dsimp only [idealExperiment, realExperiment, leftReduction, rightReduction]
-  exact PMF.bind_comm _ G.outputDist (fun u₁ y₂ => A (u₁, y₂))
+  exact PMF.bind_comm _ G.outputDist (fun u₁ y₂ ↦ A (u₁, y₂))
 
 /-- Ideal experiment against `rightReduction` equals the ideal experiment for `G.prod`. -/
 theorem idealExperiment_rightReduction [Nonempty Output] (A : Adversary (Output × Output)) :

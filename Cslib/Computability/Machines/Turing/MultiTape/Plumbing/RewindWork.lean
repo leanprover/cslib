@@ -175,13 +175,13 @@ public theorem workTapePos_runFrom_rewindWork (write : Option (Option Symbol))
       rw [hw, show (p : ℤ) - 1 = ((p - 1 : ℕ) : ℤ) by omega, tapeOfList_ofNat]
       exact List.getElem?_eq_none (by omega)
     have h1 : (rewindWork Symbol write).runFrom
-        ⟨some (rewindWork Symbol write).q₀, ip, fun _ => t, fun _ => (p : ℤ), out⟩ 1 =
-        ⟨some .scan, ip, fun _ => t, fun _ => (p : ℤ) - 1, out⟩ := step_start
+        ⟨some (rewindWork Symbol write).q₀, ip, fun _ ↦ t, fun _ ↦ (p : ℤ), out⟩ 1 =
+        ⟨some .scan, ip, fun _ ↦ t, fun _ ↦ (p : ℤ) - 1, out⟩ := step_start
     rcases m with _ | m
     · simp [h1]
     have h2 : (rewindWork Symbol write).runFrom
-        ⟨some (rewindWork Symbol write).q₀, ip, fun _ => t, fun _ => (p : ℤ), out⟩ 2 =
-        ⟨none, ip, fun _ => t, fun _ => (p : ℤ) - 1 + 1, out⟩ := by
+        ⟨some (rewindWork Symbol write).q₀, ip, fun _ ↦ t, fun _ ↦ (p : ℤ), out⟩ 2 =
+        ⟨none, ip, fun _ ↦ t, fun _ ↦ (p : ℤ) - 1 + 1, out⟩ := by
       rw [runFrom, Function.iterate_succ_apply', ← runFrom, h1, step_scan_none hb]
     rw [runFrom_eq_of_halt _ _ (by omega : 2 ≤ m + 2) (by rw [h2]), h2]
     simp

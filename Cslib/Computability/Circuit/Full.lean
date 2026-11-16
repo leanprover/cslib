@@ -130,8 +130,8 @@ private theorem exists_full_synthesis_finset [DecidableEq U]
 
 /-- Encodes the first `m` inputs into one value by iterating the pairing function `e`. -/
 private def pairEncode (e : U × U → U) (u : U) : ℕ → (Fin n → U) → U
-  | 0 => fun _ => u
-  | m + 1 => fun x => if h : m < n then e (pairEncode e u m x, x ⟨m, h⟩) else pairEncode e u m x
+  | 0 => fun _ ↦ u
+  | m + 1 => fun x ↦ if h : m < n then e (pairEncode e u m x, x ⟨m, h⟩) else pairEncode e u m x
 
 private theorem exists_full_synthesis_pairEncode (e : U × U → U) (u : U) (m : ℕ) :
     ∃ cost, Synthesis (fullInterpretation (k := 2)) (inputs n) {pairEncode e u m} cost := by
@@ -141,16 +141,16 @@ private theorem exists_full_synthesis_pairEncode (e : U × U → U) (u : U) (m :
     obtain ⟨c, hc⟩ := ih
     by_cases h : m < n
     · have hx : Synthesis (fullInterpretation (k := 2)) (inputs n)
-          {fun x : Fin n → U => x ⟨m, h⟩} 0 :=
+          {fun x : Fin n → U ↦ x ⟨m, h⟩} 0 :=
         Synthesis.of_mem ⟨⟨m, h⟩, rfl⟩
-      exact ⟨_, by simpa [pairEncode, h] using hc.full_binary hx fun a b => e (a, b)⟩
+      exact ⟨_, by simpa [pairEncode, h] using hc.full_binary hx fun a b ↦ e (a, b)⟩
     · exact ⟨c, by simpa [pairEncode, h] using hc⟩
 
 private theorem pairEncode_injective {e : U × U → U} (he : e.Injective) (u : U) :
     (pairEncode (n := n) e u n).Injective := by
   suffices ∀ m x y, pairEncode (n := n) e u m x = pairEncode e u m y →
       ∀ i : Fin n, i < m → x i = y i from
-    fun x y h => funext fun i => this n x y h i i.isLt
+    fun x y h ↦ funext fun i ↦ this n x y h i i.isLt
   intro m
   induction m with
   | zero => intro _ _ _ _ hi; omega
@@ -174,19 +174,19 @@ private theorem fullInterpretation_isComplete_two :
       | inl h =>
         cases n with
         | zero => exact isEmptyElim (f Fin.elim0)
-        | succ n => exact ⟨Circuit.wiring _ (fun _ => 0), fun x => isEmptyElim (x 0)⟩
+        | succ n => exact ⟨Circuit.wiring _ (fun _ ↦ 0), fun x ↦ isEmptyElim (x 0)⟩
       | inr h =>
         let := Fintype.ofFinite U
         obtain ⟨cost, hcost⟩ := exists_full_synthesis_finset f (Classical.choice h) Finset.univ
-        simpa using hcost.exists_circuit.imp fun _ hc => hc.1
+        simpa using hcost.exists_circuit.imp fun _ hc ↦ hc.1
     | inr _ =>
       -- Encode all inputs injectively by pairing, then decode with one more gate.
       obtain ⟨e⟩ : Nonempty (U × U ≃ U) := Cardinal.eq.mp (by simp)
       obtain ⟨u⟩ := (inferInstance : Nonempty U)
       obtain ⟨c, hc⟩ := exists_full_synthesis_pairEncode (n := n) e u n
       have hinv := Function.leftInverse_invFun (pairEncode_injective (n := n) e.injective u)
-      simpa [hinv _] using (hc.full_binary hc fun a _ =>
-        f (Function.invFun (pairEncode e u n) a)).exists_circuit.imp fun _ hc => hc.1
+      simpa [hinv _] using (hc.full_binary hc fun a _ ↦
+        f (Function.invFun (pairEncode e u n) a)).exists_circuit.imp fun _ hc ↦ hc.1
 
 /-- Every full basis of arity at least two is complete. -/
 theorem fullInterpretation_isComplete (hk : 2 ≤ k) :

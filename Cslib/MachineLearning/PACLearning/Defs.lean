@@ -530,7 +530,7 @@ theorem error_map_eq_hypothesisError (P : Measure α) (h c : Set α) (hc : Measu
     have hU : MeasurableSet (U ×ˢ Set.univ ∪ cᶜ ×ˢ {true} ∪ c ×ˢ {false}) :=
       (((measurableSet_toMeasurable _ _).prod .univ).union
         (hc.compl.prod (measurableSet_singleton _))).union (hc.prod (measurableSet_singleton _))
-    refine (measure_mono (μ := P.map fun x => (x, decide (x ∈ c)))
+    refine (measure_mono (μ := P.map fun x ↦ (x, decide (x ∈ c)))
       (hpre U (subset_toMeasurable _ _))).trans_eq ?_
     rw [Measure.map_apply hf hU, ← measure_toMeasurable (symmDiff h c)]
     congr 1; ext x; by_cases x ∈ c <;> simp_all [U]

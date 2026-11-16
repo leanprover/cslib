@@ -156,20 +156,20 @@ theorem exists_hard_function [Nontrivial U]
     -- Simulate gate by gate in the finite binary full basis.
     obtain ⟨N, hN⟩ := exists_hard_function_of_finite (fullInterpretation (k := 2) (Carrier := U))
       (by rintro (_ | _) <;> simp [fullSignature])
-    refine ⟨N, fun n hn => (hN n hn).imp fun f hf c hc => ?_⟩
+    refine ⟨N, fun n hn ↦ (hN n hn).imp fun f hf c hc ↦ ?_⟩
     obtain ⟨d, hd, hsize⟩ :=
       c.exists_simulation_le (fullInterpretation_simulatesWithCost I arity_le)
-    exact (hf d fun x => (congrFun hd x).trans (hc x)).trans_le
+    exact (hf d fun x ↦ (congrFun hd x).trans (hc x)).trans_le
       (by exact_mod_cast by simpa using hsize)
   | inr _ =>
     obtain ⟨a, b, hab⟩ := exists_pair_ne U
-    refine ⟨1, fun n hn => ⟨fun _ => a, fun ⟨p, out⟩ hc => ?_⟩⟩
+    refine ⟨1, fun n hn ↦ ⟨fun _ ↦ a, fun ⟨p, out⟩ hc ↦ ?_⟩⟩
     rw [Nat.card_eq_zero_of_infinite, Nat.cast_zero, zero_pow (by omega), zero_div]
     cases p with
     | empty =>
       cases h : out 0 with
       | input i =>
-        exact absurd (by simpa [Circuit.eval, h] using congrFun (hc fun _ => b) 0) hab.symm
+        exact absurd (by simpa [Circuit.eval, h] using congrFun (hc fun _ ↦ b) 0) hab.symm
       | gate g => exact g.elim0
     | gate => positivity
 

@@ -43,19 +43,19 @@ instance Program.instFinite (n : ℕ) : (g : ℕ) → Finite (Program σ n g)
 cardinalities. If infinitely many fibers are nonempty, both sides are `0`. -/
 private theorem natCard_sigma {α : Type*} (β : α → Type*) [∀ a, Finite (β a)] :
     Nat.card (Σ a, β a) = ∑ᶠ a, Nat.card (β a) := by
-  by_cases hs : (Function.support fun a => Nat.card (β a)).Finite
+  by_cases hs : (Function.support fun a ↦ Nat.card (β a)).Finite
   · let e : (Σ a, β a) ≃ Σ a : hs.toFinset, β a :=
       { toFun x := ⟨⟨x.1, hs.mem_toFinset.mpr (Nat.card_ne_zero.mpr ⟨⟨x.2⟩, inferInstance⟩)⟩, x.2⟩
         invFun x := ⟨x.1, x.2⟩
         left_inv _ := rfl
         right_inv _ := rfl }
     rw [Nat.card_congr e, Nat.card_sigma, finsum_eq_sum _ hs]
-    exact Finset.sum_coe_sort hs.toFinset fun a => Nat.card (β a)
+    exact Finset.sum_coe_sort hs.toFinset fun a ↦ Nat.card (β a)
   · have := Set.Infinite.to_subtype hs
     have : Infinite (Σ a, β a) := Infinite.of_injective
-      (fun a : Function.support fun a => Nat.card (β a) =>
+      (fun a : Function.support fun a ↦ Nat.card (β a) ↦
         ⟨a.1, Classical.choice (Nat.card_ne_zero.mp a.2).1⟩)
-      fun _ _ h => Subtype.ext (congrArg Sigma.fst h)
+      fun _ _ h ↦ Subtype.ext (congrArg Sigma.fst h)
     rw [Nat.card_eq_zero_of_infinite, finsum_of_infinite_support hs]
 
 omit [Finite σ.Op] in
