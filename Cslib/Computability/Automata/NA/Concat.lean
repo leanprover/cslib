@@ -51,8 +51,10 @@ lemma concat_run_left {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ Stat
     grind [LTS.MTr.stepR na1.toLTS h_mtr h_tr]
 
 lemma concat_run_left_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
-    (hc : (concat na1 na2).Run xs ss) (n : ℕ) (hn : 0 < n)
+    (hc : (concat na1 na2).Run xs ss) (n : ℕ)
     (hl : ∀ k < n, (ss k).isLeft) (hr : (ss n).isRight) : (xs.take n) ∈ language na1 := by
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · simpa using concat_start_right hc hr
   obtain ⟨s1, t1, h_mtr, _⟩ := concat_run_left hc (n - 1) (by grind)
   obtain ⟨t1', h_tr, _⟩ : ∃ t1', na1.Tr t1 (xs (n - 1)) t1' ∧ t1' ∈ na1.accept := by
     grind [concat, hc.trans (n - 1)]
@@ -84,9 +86,7 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
   let n := Nat.find hr'
   have hl (k) (h_k : k < n) := not_isRight.mp <| Nat.find_min hr' h_k
   refine ⟨n, by grind, ?_, ?_⟩
-  · by_cases h_n : n = 0
-    · grind [concat_start_right]
-    · grind [concat_run_left_right]
+  · exact concat_run_left_right hc n hl (Nat.find_spec hr')
   · exact concat_run_right hc n hl (Nat.find_spec hr')
 
 -- some theory of functional simulations between `LTS` might be useful for results like this.

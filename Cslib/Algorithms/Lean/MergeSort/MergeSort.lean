@@ -116,15 +116,18 @@ def timeMergeSortRec : ℕ → ℕ
 
 open Nat (clog)
 
-/-- Key Lemma: ⌈log2 ⌈n/2⌉⌉ ≤ ⌈log2 n⌉ - 1 for n > 1 -/
-@[grind →]
-lemma clog2_half_le (n : ℕ) (h : 1 < n) : clog 2 ((n + 1) / 2) ≤ clog 2 n - 1 := by
-  grind [Nat.clog_of_one_lt one_lt_two h]
+/-- Key Lemma: ⌈log2 ⌈n/2⌉⌉ ≤ ⌈log2 n⌉ - 1 -/
+@[grind .]
+lemma clog2_half_le (n : ℕ) : clog 2 ((n + 1) / 2) ≤ clog 2 n - 1 := by
+  rcases n with _ | _ | n
+  · simp
+  · simp
+  · grind [Nat.clog_of_one_lt one_lt_two (by omega : 1 < n + 2)]
 
 /-- Same logic for the floor half: ⌈log2 ⌊n/2⌋⌉ ≤ ⌈log2 n⌉ - 1 -/
-@[grind →]
-lemma clog2_floor_half_le (n : ℕ) (h : 1 < n) : clog 2 (n / 2) ≤ clog 2 n - 1 := by
-  apply Nat.le_trans _ (clog2_half_le n h)
+@[grind .]
+lemma clog2_floor_half_le (n : ℕ) : clog 2 (n / 2) ≤ clog 2 n - 1 := by
+  apply Nat.le_trans _ (clog2_half_le n)
   apply Nat.clog_monotone
   grind
 
@@ -139,8 +142,8 @@ private lemma some_algebra (n : ℕ) :
   have t2 : (n + 1) / 2 + 1 = (N + 1) / 2 := by omega
   have t3 : n + 1 + 1 = N := by omega
   let k := clog 2 N
-  have h_bound_l : clog 2 (N / 2) ≤ k - 1 := clog2_floor_half_le N hN
-  have h_bound_r : clog 2 ((N + 1) / 2) ≤ k - 1 := clog2_half_le N hN
+  have h_bound_l : clog 2 (N / 2) ≤ k - 1 := clog2_floor_half_le N
+  have h_bound_r : clog 2 ((N + 1) / 2) ≤ k - 1 := clog2_half_le N
   have h_split : N / 2 + (N + 1) / 2 = N := by omega
   grw [t1, t2, t3, h_bound_l, h_bound_r, ←Nat.add_mul, h_split]
   exact Nat.le_refl (N * (k - 1) + N)

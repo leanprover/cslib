@@ -290,7 +290,7 @@ theorem schemeWith_authorized_iff (params : Params F Party)
 
 @[simp]
 theorem scheme_authorized_iff (params : Params F Party)
-    [Fintype F] [Nonempty F] (s : Finset Party) :
+    [Fintype F] (s : Finset Party) :
     (scheme params).authorized s ↔ params.threshold + 1 ≤ s.card :=
   Iff.rfl
 

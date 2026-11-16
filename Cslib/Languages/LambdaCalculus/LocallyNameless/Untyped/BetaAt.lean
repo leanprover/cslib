@@ -208,14 +208,46 @@ lemma BetaAt.lc_r (h : BetaAt i M M') (lc : LC M) : LC M' := by
       intro z hz
       exact ih z (by grind) (h_body z (by grind))
 
+omit [HasFresh Var] in
+/-- Closing `x` and then opening with `z` is opening with `z` and then renaming `x` to `z`. -/
+private lemma openRec_closeRec (x z : Var) (M : Term Var) (k : ℕ) :
+    M⟦k ↜ x⟧⟦k ↝ fvar z⟧ = M⟦k ↝ fvar z⟧[x := fvar z] := by
+  induction M generalizing k with
+  | bvar => simp only [closeRec_bvar, openRec_bvar]; split <;> simp [subst_fvar, subst_bvar]
+  | fvar y =>
+    by_cases h : x = y <;> simp [closeRec_fvar, openRec_fvar, openRec_bvar, subst_fvar, h]
+  | app => simp_all [closeRec_app, openRec_app, subst_app]
+  | abs => simp_all [closeRec_abs, openRec_abs, subst_abs]
+
+omit [HasFresh Var] [DecidableEq Var] in
+private lemma isAbs_openRec_fvar {x : Var} {k : ℕ} : IsAbs (M⟦k ↝ fvar x⟧) ↔ IsAbs M := by
+  cases M with
+  | bvar => simp only [openRec_bvar]; split <;> exact ⟨nofun, nofun⟩
+  | abs => exact ⟨fun _ => .abs _, fun _ => .abs _⟩
+  | _ => exact ⟨nofun, nofun⟩
+
+/-- Opening with a free variable preserves the position of the contracted redex. -/
+private lemma BetaAt.openRec_fvar (h : BetaAt i M M') (z : Var) (k : ℕ) :
+    BetaAt i (M⟦k ↝ fvar z⟧) (M'⟦k ↝ fvar z⟧) := by
+  induction h generalizing k with
+  | outer lc_M lc_N =>
+    rw [open_lc k _ _ (.app lc_M lc_N), open_lc k _ _ (beta_lc lc_M lc_N)]
+    exact .outer lc_M lc_N
+  | appL _ ih => simpa [isAbs_openRec_fvar, openRec_app] using (ih k).appL (N := _⟦k ↝ fvar z⟧)
+  | appR _ ih => simpa [isAbs_openRec_fvar, countRedexes_openRec_fvar, openRec_app] using
+      (ih k).appR (N := _⟦k ↝ fvar z⟧)
+  | abs xs _ ih =>
+    refine .abs xs fun y hy => ?_
+    rw [open', open', swap_open 0 (k + 1) _ _ _ (by lia) (.fvar y) (.fvar z),
+      swap_open 0 (k + 1) _ _ _ (by lia) (.fvar y) (.fvar z)]
+    exact ih y hy (k + 1)
+
 /-- Closing a variable and abstracting preserves the position of the contracted redex. -/
-lemma BetaAt.abs_close {x : Var} (h : BetaAt i M M') (lc : LC M) :
+lemma BetaAt.abs_close {x : Var} (h : BetaAt i M M') :
     BetaAt i (M⟦0 ↜ x⟧.abs) (M'⟦0 ↜ x⟧.abs) := by
-  apply BetaAt.abs ∅
-  intro z _
-  have lc' := h.lc_r lc
-  have hr : BetaAt i (M[x := fvar z]) (M'[x := fvar z]) := h.rename x z
-  grind
+  refine BetaAt.abs ∅ fun z _ => ?_
+  rw [open', open', openRec_closeRec, openRec_closeRec]
+  exact (h.openRec_fvar z 0).rename x z
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 

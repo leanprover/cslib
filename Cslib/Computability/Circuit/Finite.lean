@@ -39,11 +39,30 @@ instance Program.instFinite (n : ℕ) : (g : ℕ) → Finite (Program σ n g)
       letI := Program.instFinite n g
       Finite.of_equiv _ (Program.gateEquiv σ n g).symm
 
+/-- The cardinality of a sigma type with finite fibers is the finite sum of the fiber
+cardinalities. If infinitely many fibers are nonempty, both sides are `0`. -/
+private theorem natCard_sigma {α : Type*} (β : α → Type*) [∀ a, Finite (β a)] :
+    Nat.card (Σ a, β a) = ∑ᶠ a, Nat.card (β a) := by
+  by_cases hs : (Function.support fun a => Nat.card (β a)).Finite
+  · let e : (Σ a, β a) ≃ Σ a : hs.toFinset, β a :=
+      { toFun x := ⟨⟨x.1, hs.mem_toFinset.mpr (Nat.card_ne_zero.mpr ⟨⟨x.2⟩, inferInstance⟩)⟩, x.2⟩
+        invFun x := ⟨x.1, x.2⟩
+        left_inv _ := rfl
+        right_inv _ := rfl }
+    rw [Nat.card_congr e, Nat.card_sigma, finsum_eq_sum _ hs]
+    exact Finset.sum_coe_sort hs.toFinset fun a => Nat.card (β a)
+  · have := Set.Infinite.to_subtype hs
+    have : Infinite (Σ a, β a) := Infinite.of_injective
+      (fun a : Function.support fun a => Nat.card (β a) =>
+        ⟨a.1, Classical.choice (Nat.card_ne_zero.mp a.2).1⟩)
+      fun _ _ h => Subtype.ext (congrArg Sigma.fst h)
+    rw [Nat.card_eq_zero_of_infinite, finsum_of_infinite_support hs]
+
+omit [Finite σ.Op] in
 /-- For each operation, choose one wire for each of its arguments. -/
 theorem Line.card (n g : ℕ) :
     Nat.card (Line σ n g) = ∑ᶠ op : σ.Op, (n + g) ^ σ.Arity op := by
-  let := Fintype.ofFinite σ.Op
-  rw [Nat.card_congr (Line.equiv σ n g), Nat.card_sigma, finsum_eq_sum_of_fintype]
+  rw [Nat.card_congr (Line.equiv σ n g), natCard_sigma]
   simp [Nat.card_eq_fintype_card]
 
 /-- A uniform arity bound gives a uniform bound on the number of lines, including when
@@ -73,6 +92,7 @@ theorem Program.card_succ (n g : ℕ) :
       Nat.card (Program σ n g) * Nat.card (Line σ n g) := by
   rw [Nat.card_congr (Program.gateEquiv σ n g), Nat.card_prod]
 
+omit [Finite σ.Op] in
 /-- The line at each position may refer to the inputs and all preceding gates. -/
 theorem Program.card (n g : ℕ) :
     Nat.card (Program σ n g) =

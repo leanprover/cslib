@@ -26,9 +26,9 @@ class is a ∩-closed family with top `C`, the *version space lattice* of Mitche
   the version spaces.
 - `self_mem_versionSpaces`, `inter_mem_versionSpaces`: the family contains `C` (top) and
   is closed under intersection.
-- `versionSpaces_subset_powerset`, `versionSpaces_finite`, `versionSpaces_ncard_le`: every
-  member is a subset of `C` and for a finite class the family is finite of size at most
-  `2 ^ C.ncard`.
+- `versionSpaces_subset_powerset`, `versionSpaces_finite`, `versionSpaces_infinite`,
+  `versionSpaces_ncard_le`: every member is a subset of `C`, the family is finite iff the class
+  is, and it has at most `2 ^ C.ncard` members.
 
 ## References
 
@@ -102,11 +102,27 @@ theorem versionSpaces_finite {C : ConceptClass α β} (hC : C.Finite) :
     (VersionSpaces C).Finite :=
   hC.finite_subsets.subset (versionSpaces_subset_powerset C)
 
-/-- A finite concept class has at most `2 ^ C.ncard` version spaces: the lattice embeds
-in the powerset. -/
-theorem versionSpaces_ncard_le {C : ConceptClass α β} (hC : C.Finite) :
-    (VersionSpaces C).ncard ≤ 2 ^ C.ncard :=
-  (ncard_le_ncard (versionSpaces_subset_powerset C) hC.finite_subsets).trans_eq
-    (ncard_powerset C hC)
+/-- An infinite concept class has infinitely many version spaces: distinct concepts are
+separated by a one-point version space. -/
+theorem versionSpaces_infinite {C : ConceptClass α β} (hC : C.Infinite) :
+    (VersionSpaces C).Infinite := by
+  intro hfin
+  have := hfin.to_subtype
+  refine hC (Finite.of_injOn (f := fun h => {V : VersionSpaces C | h ∈ V.1}) (t := univ)
+    (fun _ _ => trivial) (fun h hh h' hh' heq => ?_) finite_univ)
+  by_contra hne
+  obtain ⟨x, hx⟩ := Function.ne_iff.mp hne
+  let V : VersionSpaces C := ⟨VersionSpace C fun _ : Fin 1 => (x, h x), 1, _, rfl⟩
+  have hV : V ∈ {V : VersionSpaces C | h' ∈ V.1} := cast (congrArg (V ∈ ·) heq) ⟨hh, fun _ => rfl⟩
+  exact hx (hV.2 0).symm
+
+/-- A concept class has at most `2 ^ C.ncard` version spaces: for a finite class, the lattice
+embeds in the powerset; for an infinite class, both sides are `0`. -/
+theorem versionSpaces_ncard_le (C : ConceptClass α β) :
+    (VersionSpaces C).ncard ≤ 2 ^ C.ncard := by
+  by_cases hC : C.Finite
+  · exact (ncard_le_ncard (versionSpaces_subset_powerset C) hC.finite_subsets).trans_eq
+      (ncard_powerset C hC)
+  · simp [(versionSpaces_infinite hC).ncard]
 
 end Cslib.MachineLearning.PACLearning

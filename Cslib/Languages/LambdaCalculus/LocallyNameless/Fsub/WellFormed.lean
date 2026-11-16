@@ -71,8 +71,30 @@ theorem lc (wf : σ.Wf Γ) : σ.LC := by
   | all => grind [LC.all (free_union Var)]
   | _ => grind
 
+/-- Well-formedness of a type depends only on which variables are bound to subtypes. -/
+private theorem of_dlookup_sub (wf : σ.Wf Γ)
+    (h : ∀ Y ρ, Binding.sub ρ ∈ Γ.dlookup Y → ∃ ρ', Binding.sub ρ' ∈ Δ.dlookup Y) : σ.Wf Δ := by
+  induction wf generalizing Δ with
+  | top => exact .top
+  | var hX => obtain ⟨_, h'⟩ := h _ _ hX; exact .var h'
+  | arrow _ _ ih₁ ih₂ => exact .arrow (ih₁ h) (ih₂ h)
+  | sum _ _ ih₁ ih₂ => exact .sum (ih₁ h) (ih₂ h)
+  | @all _ σ _ L _ _ ih₁ ih₂ =>
+    refine .all L (ih₁ h) fun X hX => ih₂ X hX fun Y ρ hY => ?_
+    by_cases hYX : Y = X
+    · subst hYX
+      exact ⟨σ, by simp⟩
+    · rw [dlookup_cons_ne _ _ hYX] at hY ⊢
+      exact h Y ρ hY
+
+/-- Removing duplicate keys from a context preserves well-formedness. -/
+private theorem iff_dedupKeys : σ.Wf Γ ↔ σ.Wf Γ.dedupKeys :=
+  ⟨fun h => of_dlookup_sub h fun _ ρ h => ⟨ρ, by rwa [dlookup_dedupKeys]⟩,
+    fun h => of_dlookup_sub h fun _ ρ h => ⟨ρ, by rwa [dlookup_dedupKeys] at h⟩⟩
+
 /-- A type remains well-formed under context permutation. -/
-theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓) : σ.Wf Δ := by
+theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) : σ.Wf Δ := by
+  have ok_Δ : Δ✓ := (perm_nodupKeys perm).mp ok_Γ
   induction wf generalizing Δ with
   | all => grind [all <| free_union [dom] Var, Perm.cons, nodupKeys_cons]
   | _ => grind [perm_dlookup]
@@ -93,23 +115,27 @@ theorem weaken_cons (wf : σ.Wf Δ) (ok : (⟨X, b⟩ :: Δ)✓) : σ.Wf (⟨X, 
   grind [weaken_head]
 
 /-- A type remains well-formed under context narrowing. -/
-lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (ok : (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ)✓) :
+lemma narrow (wf : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) :
     σ.Wf (Γ ++ ⟨X, Binding.sub τ'⟩ :: Δ) := by
-  generalize eq : (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ) = Θ at wf
-  induction wf generalizing Γ with
-  | all => apply all (free_union [dom] Var) <;> grind [nodupKeys_cons]
-  | _ =>
-    #adaptation_note
-    /--
-    Moving from `nightly-2025-09-15` to `nightly-2025-10-19`,
-    I've had to remove the `append_assoc` lemma from grind;
-    without this `grind` is exploding. This requires further investigation.
-    -/
-    grind [sublist_dlookup, -append_assoc]
+  refine of_dlookup_sub wf fun Y ρ h => ?_
+  clear wf
+  induction Γ with
+  | nil =>
+    by_cases hYX : Y = X
+    · subst hYX
+      exact ⟨τ', by simp⟩
+    · rw [nil_append, dlookup_cons_ne _ _ hYX] at h ⊢
+      exact ⟨ρ, h⟩
+  | cons b Γ ih =>
+    obtain ⟨Z, c⟩ := b
+    by_cases hYZ : Y = Z
+    · subst hYZ
+      exact ⟨ρ, by simpa using h⟩
+    · rw [cons_append, dlookup_cons_ne _ _ hYZ] at h ⊢
+      exact ih h
 
-lemma narrow_cons (wf : σ.Wf (⟨X, Binding.sub τ⟩ :: Δ)) (ok : (⟨X, Binding.sub τ'⟩ :: Δ)✓) :
-    σ.Wf (⟨X, Binding.sub τ'⟩ :: Δ) := by
-  grind [List.nil_append (⟨X, sub τ'⟩ :: Δ), narrow]
+lemma narrow_cons (wf : σ.Wf (⟨X, Binding.sub τ⟩ :: Δ)) : σ.Wf (⟨X, Binding.sub τ'⟩ :: Δ) :=
+  narrow (Γ := []) wf
 
 /-- A type remains well-formed under context strengthening. -/
 lemma strengthen (wf : σ.Wf (Γ ++ ⟨X, Binding.ty τ⟩ :: Δ)) : σ.Wf (Γ ++ Δ) := by
@@ -130,7 +156,11 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : 
 
 variable [HasFresh Var] in
 /-- A type remains well-formed under opening (to a well-formed type). -/
-lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
+lemma open_lc (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
+  -- pass to `Γ.dedupKeys`, which has the same lookups and no duplicate keys
+  rw [iff_dedupKeys] at wf_all wf_δ ⊢
+  have ok_Γ : Γ.dedupKeys✓ := nodupKeys_dedupKeys Γ
+  generalize Γ.dedupKeys = Γ at *
   cases wf_all with | all =>
     let ⟨X, _⟩ := fresh_exists <| free_union [fv, Context.dom] Var
     have : Γ = Context.mapVal (·[X := δ]) [] ++ Γ := by grind

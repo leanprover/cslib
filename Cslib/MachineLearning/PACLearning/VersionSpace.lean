@@ -10,6 +10,8 @@ public import Cslib.MachineLearning.PACLearning.Defs
 public import Mathlib.MeasureTheory.Measure.Dirac.Basic
 public import Mathlib.MeasureTheory.Measure.Map
 
+import Cslib.Foundations.MeasureTheory.FiniteSupport
+
 /-! # Version Space
 
 The *version space* of a concept class `C` given a labeled sample `S` is the
@@ -161,8 +163,10 @@ sample size. -/
 theorem empiricalError_eq_div [DecidableEq β]
     [MeasurableSpace α] [MeasurableSpace β]
     [MeasurableSingletonClass α] [MeasurableSingletonClass β]
-    {m : ℕ} (hm : 0 < m) (h : α → β) (S : LabeledSample α β m) :
+    {m : ℕ} (h : α → β) (S : LabeledSample α β m) :
     empiricalError h S = (empiricalMiscount h S : ℝ≥0∞) / m := by
+  rcases Nat.eq_zero_or_pos m with rfl | hm
+  · simp [empiricalError, empiricalMeasure, error, empiricalMiscount]
   have hm_ne : m ≠ 0 := hm.ne'
   unfold empiricalError empiricalMeasure error empiricalMiscount
   rw [dite_eq_right hm_ne, smul_apply, sum_apply]
@@ -233,49 +237,27 @@ theorem Realizable.versionSpace_nonempty {m : ℕ} {C : ConceptClass α β}
 
 /-! ### Probabilistic Realizable -/
 
-/-- Under the pushforward of a probability measure `P` along the graph map
-`x ↦ (x, c x)`, the graph of `c` has measure `1`. -/
-private lemma map_graph_eq_one
-    [MeasurableSpace α] [MeasurableSpace β]
-    {c : α → β} (hcm : Measurable c) (P : Measure α) [IsProbabilityMeasure P]
-    (hG : MeasurableSet {p : α × β | p.2 = c p.1}) :
-    (P.map (fun x => (x, c x))) {p : α × β | p.2 = c p.1} = 1 := by
-  have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
-  rw [Measure.map_apply hφ hG]
-  have hpre : (fun x : α => (x, c x)) ⁻¹' {p : α × β | p.2 = c p.1} = Set.univ := by
-    ext x; simp
-  rw [hpre, measure_univ]
-
-/-- The iid product of the realizable joint distribution assigns measure `1`
-to the set of samples where every coordinate lies on the graph of `c`. -/
-private lemma pi_map_graph_eq_one
-    [MeasurableSpace α] [MeasurableSpace β]
-    {c : α → β} (hcm : Measurable c) (P : Measure α) [IsProbabilityMeasure P]
-    (hG : MeasurableSet {p : α × β | p.2 = c p.1}) {m : ℕ} :
-    (Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x))))
-      (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1})) = 1 := by
-  have hφ : Measurable (fun x : α => (x, c x)) := by fun_prop
-  simp [map_graph_eq_one hcm P hG]
-
 /-- Under iid sampling from the realizable joint distribution induced by
-`c ∈ C` and a probability measure `P` on `α`, the target concept `c` lies in
-the version space almost surely. -/
+`c ∈ C` and a measure `P` on `α`, the target concept `c` lies in the version space
+almost surely. -/
 theorem ae_mem_versionSpace_of_realizable
     [MeasurableSpace α] [MeasurableSpace β]
     {C : ConceptClass α β} {c : α → β} (hc : c ∈ C) (hcm : Measurable c)
     (hG : MeasurableSet {p : α × β | p.2 = c p.1})
-    (P : Measure α) [IsProbabilityMeasure P] (m : ℕ) :
+    (P : Measure α) (m : ℕ) :
     ∀ᵐ S : LabeledSample α β m
       ∂(Measure.pi (fun _ : Fin m => P.map (fun x => (x, c x)))),
       c ∈ VersionSpace C S := by
-  have hsub : {S : Fin m → α × β | ¬ c ∈ VersionSpace C S} ⊆
-      (Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1}))ᶜ := by
-    intro S hS hcontra
-    exact hS ⟨hc, by simp_all⟩
-  have hcompl : (Measure.pi (fun _ : Fin m => P.map (fun x : α => (x, c x))))
-      ((Set.univ.pi (fun _ : Fin m => {p : α × β | p.2 = c p.1}))ᶜ) = 0 := by
-    rw [prob_compl_eq_one_sub (MeasurableSet.univ_pi fun _ => hG),
-        pi_map_graph_eq_one hcm P hG, tsub_self]
-  exact measure_mono_null hsub hcompl
+  -- the samples off the graph lie in a finite union of null cylinders
+  refine measure_mono_null (t := ⋃ i, Function.eval i ⁻¹' {p : α × β | p.2 = c p.1}ᶜ)
+    (fun S hS => ?_) (measure_iUnion_null fun i => Measure.pi_eval_preimage_null' _ ?_)
+  · obtain ⟨i, hi⟩ : ∃ i, c (S i).1 ≠ (S i).2 := by
+      by_contra! h
+      exact hS ⟨hc, h⟩
+    exact Set.mem_iUnion.mpr ⟨i, fun h => hi h.symm⟩
+  · rw [Measure.map_apply (by fun_prop) hG.compl]
+    convert measure_empty (μ := P)
+    ext x
+    simp
 
 end Cslib.MachineLearning.PACLearning

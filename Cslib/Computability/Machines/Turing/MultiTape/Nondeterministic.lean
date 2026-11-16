@@ -162,18 +162,20 @@ lemma last_eq_of_halted (p : ntm.RunPath input) (i : Fin (p.length + 1))
 /-- The number of steps taken by a run path. -/
 def time (p : ntm.RunPath input) : ℕ := p.length
 
-/-- A path that ends halted runs from its head to its last configuration in running steps, up to
-its first halted configuration. -/
-lemma exists_running (p : ntm.RunPath input) (h : p.last.Halted) :
+/-- A path runs from its head to its last configuration in running steps, up to its first halted
+configuration. -/
+lemma exists_running (p : ntm.RunPath input) :
     ∃ q : RelSeries (ntm.runningStepRel input), q.head = p.head ∧ q.last = p.last ∧
       q.length ≤ p.length ∧ ∀ c ∈ q, c ∈ p := by
   classical
-  -- cut the path at its first halted configuration
-  have hex : ∃ n, ∃ hn : n < p.length + 1, (p ⟨n, hn⟩).Halted := ⟨p.length, by lia, h⟩
-  obtain ⟨hn, hhalt⟩ := Nat.find_spec hex
-  refine ⟨⟨Nat.find hex, fun i => p ⟨i, by lia⟩, fun i =>
-    ⟨fun hi => Nat.find_min hex i.isLt ⟨_, hi⟩, p.step ⟨i, by lia⟩⟩⟩, rfl,
-    (p.last_eq_of_halted _ hhalt).symm, Nat.lt_succ_iff.mp hn, fun _ ⟨i, hi⟩ => ⟨_, hi⟩⟩
+  by_cases hex : ∃ n, ∃ hn : n < p.length + 1, (p ⟨n, hn⟩).Halted
+  · -- cut the path at its first halted configuration
+    obtain ⟨hn, hhalt⟩ := Nat.find_spec hex
+    refine ⟨⟨Nat.find hex, fun i => p ⟨i, by lia⟩, fun i =>
+      ⟨fun hi => Nat.find_min hex i.isLt ⟨_, hi⟩, p.step ⟨i, by lia⟩⟩⟩, rfl,
+      (p.last_eq_of_halted _ hhalt).symm, Nat.lt_succ_iff.mp hn, fun _ ⟨i, hi⟩ => ⟨_, hi⟩⟩
+  · exact ⟨⟨p.length, p, fun i => ⟨fun hi => hex ⟨i, by lia, hi⟩, p.step i⟩⟩, rfl, rfl, le_rfl,
+      fun _ ⟨i, hi⟩ => ⟨i, hi⟩⟩
 
 end RunPath
 

@@ -101,6 +101,7 @@ lemma weaken_head (der : Typing Δ t τ) (wf : (Γ ++ Δ).Wf) :
   rw [eq] at der
   grind [Typing.weaken der wf]
 
+omit [HasFresh Var] in
 /-- Narrowing of typings. -/
 lemma narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) t τ) :
     Typing (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) t τ := by
@@ -183,7 +184,6 @@ lemma abs_inv (der : Typing Γ (.abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) 
     · exists δ', L
   all_goals grind
 
-variable [HasFresh Var] in
 /-- Invert the typing of a type abstraction. -/
 lemma tabs_inv (der : Typing Γ (.tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) :
      Sub Γ γ γ'

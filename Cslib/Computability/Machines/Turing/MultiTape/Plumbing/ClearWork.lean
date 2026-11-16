@@ -75,8 +75,7 @@ public theorem transformsTapes_clearWork (w : List Symbol) :
     refine Finset.image_subset_iff.mpr fun m _ => Finset.mem_Icc.2 ?_
   · exact Set.Icc_subset_Icc_left (by lia)
       (workTapePos_runFrom_forwardWork (input := input) 1 w out (Nat.zero_le w.length) m)
-  · exact workTapePos_runFrom_rewindWork (some none) (input := input) 1 (tapeOfList w) out rfl
-      le_rfl m
+  · exact workTapePos_runFrom_rewindWork (some none) (input := input) 1 (tapeOfList w) out rfl m
 
 /-! ### Clearing one of several work tapes -/
 

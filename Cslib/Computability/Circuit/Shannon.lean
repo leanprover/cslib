@@ -9,6 +9,7 @@ public import Cslib.Computability.Circuit.Counting
 public import Mathlib.Basic.Real.Basic
 public import Mathlib.SetTheory.Cardinal.Finite
 
+import Cslib.Computability.Circuit.Full
 import Cslib.Foundations.Data.Nat.Asymptotics
 import Cslib.Foundations.Data.Nat.Factorial
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
@@ -123,9 +124,7 @@ private theorem eventually_card_lt [Finite σ.Op] [Fintype U] [Nontrivial U]
           Real.exp_nat_mul, Real.exp_log (zero_lt_one.trans hqR)]
   exact_mod_cast hcount
 
-/-- For all sufficiently large `n`, some function on `n` inputs over `U` requires more than
-`|U|ⁿ/n` gates over the fixed finite signature, whose operations have arity at most two. -/
-theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
+private theorem exists_hard_function_of_finite [Finite σ.Op] [Finite U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
       ∀ c : Circuit σ n 1,
@@ -143,5 +142,35 @@ theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
     hf (mem_computableFunctions.mpr ⟨c, hc, hg⟩)
   apply (div_lt_iff₀ (by exact_mod_cast (by omega : 0 < n) : (0 : ℝ) < n)).mpr
   exact_mod_cast (Nat.div_lt_iff_lt_mul (by omega : 0 < n)).mp hg
+
+/-- For all sufficiently large `n`, some function on `n` inputs over `U` requires more than
+`|U|ⁿ/n` gates over a signature whose operations have arity at most two. For infinite `U`,
+`|U| = 0` and the constant functions need a gate. -/
+theorem exists_hard_function [Nontrivial U]
+    (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
+    ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
+      ∀ c : Circuit σ n 1,
+        c.Computes I (single f) → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
+  cases finite_or_infinite U with
+  | inl _ =>
+    -- Simulate gate by gate in the finite binary full basis.
+    obtain ⟨N, hN⟩ := exists_hard_function_of_finite (fullInterpretation (k := 2) (Carrier := U))
+      (by rintro (_ | _) <;> simp [fullSignature])
+    refine ⟨N, fun n hn => (hN n hn).imp fun f hf c hc => ?_⟩
+    obtain ⟨d, hd, hsize⟩ :=
+      c.exists_simulation_le (fullInterpretation_simulatesWithCost I arity_le)
+    exact (hf d fun x => (congrFun hd x).trans (hc x)).trans_le
+      (by exact_mod_cast by simpa using hsize)
+  | inr _ =>
+    obtain ⟨a, b, hab⟩ := exists_pair_ne U
+    refine ⟨1, fun n hn => ⟨fun _ => a, fun ⟨p, out⟩ hc => ?_⟩⟩
+    rw [Nat.card_eq_zero_of_infinite, Nat.cast_zero, zero_pow (by omega), zero_div]
+    cases p with
+    | empty =>
+      cases h : out 0 with
+      | input i =>
+        exact absurd (by simpa [Circuit.eval, h] using congrFun (hc fun _ => b) 0) hab.symm
+      | gate g => exact g.elim0
+    | gate => positivity
 
 end Cslib.Circuits.Shannon

@@ -28,7 +28,7 @@ open scoped NNReal
 
 variable {Seed Output : Type*}
 
-variable [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output]
+variable [Fintype Seed] [Nonempty Seed] [Fintype Output]
 
 /-- Advantage is nonnegative. -/
 theorem advantage_nonneg (G : Generator Seed Output) (adversary : Adversary Output) :
@@ -37,6 +37,7 @@ theorem advantage_nonneg (G : Generator Seed Output) (adversary : Adversary Outp
 /-- Advantage is at most one, with the normalization of Attack Game 3.1. -/
 theorem advantage_le_one (G : Generator Seed Output) (adversary : Adversary Output) :
     G.advantage adversary ≤ 1 := by
+  have : Nonempty Output := .map G ‹_›
   have hreal := ENNReal.toReal_mono ENNReal.one_ne_top
     (PMF.coe_le_one (G.realExperiment adversary) true)
   have hideal := ENNReal.toReal_mono ENNReal.one_ne_top
@@ -59,14 +60,14 @@ theorem advantage_const (G : Generator Seed Output) (p : PMF Bool) :
 
 /-- A generator with exactly uniform output is secure with zero error against any tests. -/
 theorem secure_zero_of_outputDist_eq (G : Generator Seed Output)
-    (hG : G.outputDist = uniformOfFintype Output)
+    (hG : G.outputDist = @uniformOfFintype Output _ (.map G ‹_›))
     (Admissible : Adversary Output → Prop) : G.Secure Admissible 0 := by
   intro adversary _
   simp [advantage, realExperiment, idealExperiment, hG]
 
 /-- Zero-error security against arbitrary tests is equivalent to exactly uniform output. -/
 theorem secure_zero_iff_outputDist_eq_uniform (G : Generator Seed Output) :
-    G.Secure (fun _ => True) 0 ↔ G.outputDist = uniformOfFintype Output := by
+    G.Secure (fun _ => True) 0 ↔ G.outputDist = @uniformOfFintype Output _ (.map G ‹_›) := by
   classical
   refine ⟨fun h => ?_, fun h => G.secure_zero_of_outputDist_eq h _⟩
   ext output
@@ -89,17 +90,17 @@ section RangeTests
 
 variable [DecidableEq Output]
 
-omit [Nonempty Seed] [Fintype Output] [Nonempty Output] in
+omit [Nonempty Seed] [Fintype Output] in
 /-- Decide range membership by finite seed enumeration and output comparison. -/
 def rangeTest (G : Generator Seed Output) (output : Output) : Bool :=
   decide (∃ seed, G seed = output)
 
-omit [Nonempty Seed] [Fintype Output] [Nonempty Output] in
+omit [Nonempty Seed] [Fintype Output] in
 /-- The deterministic adversary that tests membership in the generator's range. -/
 noncomputable def rangeAdversary (G : Generator Seed Output) : Adversary Output :=
   fun output => PMF.pure (G.rangeTest output)
 
-omit [Fintype Output] [Nonempty Output] in
+omit [Fintype Output] in
 /-- The range test always accepts a generated output. -/
 @[simp]
 theorem realExperiment_rangeAdversary (G : Generator Seed Output) :
@@ -110,7 +111,7 @@ theorem realExperiment_rangeAdversary (G : Generator Seed Output) :
 omit [Nonempty Seed] in
 /-- The range test's acceptance probability under uniform sampling is the fraction
 of outputs in the range. -/
-theorem idealExperiment_rangeAdversary (G : Generator Seed Output) :
+theorem idealExperiment_rangeAdversary [Nonempty Output] (G : Generator Seed Output) :
     (idealExperiment G.rangeAdversary true).toReal =
       Nat.card (Set.range G) / (Fintype.card Output : ℝ) := by
   simp only [idealExperiment, rangeAdversary, rangeTest, PMF.bind_apply, PMF.pure_apply,
@@ -123,6 +124,7 @@ theorem idealExperiment_rangeAdversary (G : Generator Seed Output) :
 theorem advantage_rangeAdversary (G : Generator Seed Output) :
     G.advantage G.rangeAdversary =
       1 - Nat.card (Set.range G) / (Fintype.card Output : ℝ) := by
+  have : Nonempty Output := .map G ‹_›
   have hprob : (idealExperiment G.rangeAdversary true).toReal ≤ 1 :=
     (ENNReal.toReal_le_toReal (PMF.apply_ne_top _ _) ENNReal.one_ne_top).mpr
       (PMF.coe_le_one _ _)
@@ -155,6 +157,7 @@ end RangeTests
 theorem not_secure_zero_of_isExpanding (G : Generator Seed Output) (hG : G.IsExpanding) :
     ¬ G.Secure (fun _ => True) 0 := by
   classical
+  have : Nonempty Output := .map G ‹_›
   apply G.not_secure_of_rangeAdversary trivial
   have hpos : (0 : ℝ) < Fintype.card Output := by exact_mod_cast Fintype.card_pos
   have hlt : (Fintype.card Seed : ℝ) < Fintype.card Output := by exact_mod_cast hG
@@ -168,12 +171,12 @@ theorem not_exists_isExpanding_secure_zero :
 
 section ParallelComposition
 
-omit [Fintype Seed] [Nonempty Seed] [Fintype Output] [Nonempty Output] in
+omit [Fintype Seed] [Nonempty Seed] [Fintype Output] in
 /-- Apply `G` separately to each component of a pair of seeds. -/
 def prod (G : Generator Seed Output) : Generator (Seed × Seed) (Output × Output) :=
   ⟨fun x => (G x.1, G x.2)⟩
 
-omit [Fintype Output] [Nonempty Output] in
+omit [Fintype Output] in
 /-- The output distribution of `G.prod` is two independent draws from `G.outputDist`. -/
 theorem outputDist_prod (G : Generator Seed Output) :
     G.prod.outputDist =
@@ -182,18 +185,18 @@ theorem outputDist_prod (G : Generator Seed Output) :
     ← Probability.PMF.uniformOfFintype_prod Seed Seed,
     PMF.map_bind, PMF.bind_map, PMF.map_comp, Function.comp_def]
 
-omit [Fintype Output] [Nonempty Output] in
+omit [Fintype Output] in
 /-- First hybrid distinguisher: given `y₁`, sample `y₂ ← G.outputDist` and run `A (y₁, y₂)`. -/
 noncomputable def leftReduction (G : Generator Seed Output)
     (A : Adversary (Output × Output)) : Adversary Output :=
   fun y₁ => G.outputDist.bind fun y₂ => A (y₁, y₂)
 
 /-- Second hybrid distinguisher: given `y₂`, sample `u₁ ←$ Output` and run `A (u₁, y₂)`. -/
-noncomputable def rightReduction
+noncomputable def rightReduction [Nonempty Output]
     (A : Adversary (Output × Output)) : Adversary Output :=
   fun y₂ => (uniformOfFintype Output).bind fun u₁ => A (u₁, y₂)
 
-omit [Fintype Output] [Nonempty Output] in
+omit [Fintype Output] in
 /-- Real experiment for `G.prod` equals the real experiment for `G` against
 `leftReduction`. -/
 theorem realExperiment_prod (G : Generator Seed Output)
@@ -209,12 +212,13 @@ theorem realExperiment_prod (G : Generator Seed Output)
 `rightReduction` (both equal the hybrid distribution `(u₁, G(x₂))`). -/
 theorem idealExperiment_leftReduction (G : Generator Seed Output)
     (A : Adversary (Output × Output)) :
-    idealExperiment (G.leftReduction A) = G.realExperiment (rightReduction A) := by
+    @idealExperiment _ _ (.map G ‹_›) (G.leftReduction A) =
+      G.realExperiment (@rightReduction _ _ (.map G ‹_›) A) := by
   dsimp only [idealExperiment, realExperiment, leftReduction, rightReduction]
-  exact PMF.bind_comm (uniformOfFintype Output) G.outputDist (fun u₁ y₂ => A (u₁, y₂))
+  exact PMF.bind_comm _ G.outputDist (fun u₁ y₂ => A (u₁, y₂))
 
 /-- Ideal experiment against `rightReduction` equals the ideal experiment for `G.prod`. -/
-theorem idealExperiment_rightReduction (A : Adversary (Output × Output)) :
+theorem idealExperiment_rightReduction [Nonempty Output] (A : Adversary (Output × Output)) :
     idealExperiment (rightReduction A) = idealExperiment A := by
   simp only [idealExperiment, ← Probability.PMF.uniformOfFintype_prod Output Output,
     PMF.bind_bind, PMF.bind_map, Function.comp_def]
@@ -225,7 +229,8 @@ theorem idealExperiment_rightReduction (A : Adversary (Output × Output)) :
 theorem advantage_prod_le (G : Generator Seed Output)
     (A : Adversary (Output × Output)) :
     G.prod.advantage A ≤
-      G.advantage (G.leftReduction A) + G.advantage (rightReduction A) := by
+      G.advantage (G.leftReduction A) + G.advantage (@rightReduction _ _ (.map G ‹_›) A) := by
+  have : Nonempty Output := .map G ‹_›
   rw [advantage, advantage, advantage,
     realExperiment_prod,
     idealExperiment_leftReduction,
@@ -239,12 +244,12 @@ theorem Secure.prod {G : Generator Seed Output}
     {ε : ℝ≥0}
     (hG : G.Secure Admissible₁ ε)
     (hLeft : ∀ A, Admissible₂ A → Admissible₁ (G.leftReduction A))
-    (hRight : ∀ A, Admissible₂ A → Admissible₁ (rightReduction A)) :
+    (hRight : ∀ A, Admissible₂ A → Admissible₁ (@rightReduction _ _ (.map G ‹_›) A)) :
     G.prod.Secure Admissible₂ (2 * ε) := by
   intro A hA
   have hle := G.advantage_prod_le A
   have h₁ := hG (G.leftReduction A) (hLeft A hA)
-  have h₂ := hG (rightReduction A) (hRight A hA)
+  have h₂ := hG _ (hRight A hA)
   push_cast
   linarith
 

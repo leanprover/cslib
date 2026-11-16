@@ -65,9 +65,11 @@ theorem inv_start (inp : Fin n → Bool) :
 
 /-- What happens when an `inl` message is received. -/
 theorem inv_tr_left (inp : Fin n → Bool) {s t : State (Fin n) M S} {m : Message (Fin n) M}
-    (hs : Inv npos inp s) (htr : (alg npos).lts.Tr s (some m) t) (hm : m.msg.isLeft) :
+    (hs : Inv m.dest.pos inp s) (htr : (alg m.dest.pos).lts.Tr s (some m) t)
+    (hm : m.msg.isLeft) :
     t.msgs = s.msgs.erase m +
-      ( if m.dest = ⟨0, npos⟩ then Multiset.map (fun p ↦ ⟨p, inr (inp ⟨0, npos⟩)⟩) Finset.univ.val
+      ( if m.dest = ⟨0, m.dest.pos⟩ then
+          Multiset.map (fun p ↦ ⟨p, inr (inp ⟨0, m.dest.pos⟩)⟩) Finset.univ.val
         else 0 ) ∧
     ∀ p, (t.proc p).out = (s.proc p).out := by
   simp only [alg] at htr
@@ -75,8 +77,9 @@ theorem inv_tr_left (inp : Fin n → Bool) {s t : State (Fin n) M S} {m : Messag
 
 /-- What happens when an `inr` message is received. -/
 theorem inv_tr_right (inp : Fin n → Bool) {s t : State (Fin n) M S} {m : Message (Fin n) M}
-    (hs : Inv npos inp s) (htr : (alg npos).lts.Tr s (some m) t) (hm : m.msg.isRight) :
-    t.msgs = s.msgs.erase m ∧ (t.proc m.dest).out = some (inp ⟨0, npos⟩) ∧
+    (hs : Inv m.dest.pos inp s) (htr : (alg m.dest.pos).lts.Tr s (some m) t)
+    (hm : m.msg.isRight) :
+    t.msgs = s.msgs.erase m ∧ (t.proc m.dest).out = some (inp ⟨0, m.dest.pos⟩) ∧
     ∀ p, p ≠ m.dest → (t.proc p).out = (s.proc p).out := by
   simp only [alg] at htr
   obtain ⟨hs1, hs2⟩ := hs
@@ -91,9 +94,9 @@ theorem trInv_inv (inp : Fin n → Bool) : (alg npos).lts.TrInv (Inv npos inp) :
   · have h1 : m.msg = inl (inp m.dest) ∨ m.msg = inr (inp ⟨0, npos⟩) := by
       grind [Inv, Algorithm.lts]
     rcases h1
-    · have := inv_tr_left npos inp hs htr
+    · have := inv_tr_left inp hs htr
       grind [Inv, erase_le, mem_of_le, Multiset.mem_map]
-    · have := inv_tr_right npos inp hs htr
+    · have := inv_tr_right inp hs htr
       grind [Inv, erase_le, mem_of_le]
 
 /-- `Inv` is true in all reachable state of `alg`. -/
@@ -127,46 +130,46 @@ theorem init_left (inp : Fin n → Bool)
 
 /-- Whenever the message carrying the input value for process 0 is enabled in a state,
 a message carrying that value is eventually sent to every process `p` by process 0. -/
-theorem left_leadsTo_right (inp : Fin n → Bool)
+theorem left_leadsTo_right (inp : Fin n → Bool) (p : Fin n)
     {ss : ωSequence (State (Fin n) M S)} {xs : ωSequence (Action (Fin n) M)}
-    (ha : (alg npos).AdmissibleRun inp 0 ss xs) (p : Fin n) :
-    ss.LeadsTo {s | ⟨⟨0, npos⟩, inl (inp ⟨0, npos⟩)⟩ ∈ s.msgs}
-      {s | ⟨p, inr (inp ⟨0, npos⟩)⟩ ∈ s.msgs} := by
-  let m : Message (Fin n) M := ⟨⟨0, npos⟩, inl (inp ⟨0, npos⟩)⟩
+    (ha : (alg p.pos).AdmissibleRun inp 0 ss xs) :
+    ss.LeadsTo {s | ⟨⟨0, p.pos⟩, inl (inp ⟨0, p.pos⟩)⟩ ∈ s.msgs}
+      {s | ⟨p, inr (inp ⟨0, p.pos⟩)⟩ ∈ s.msgs} := by
+  let m : Message (Fin n) M := ⟨⟨0, p.pos⟩, inl (inp ⟨0, p.pos⟩)⟩
   intro k _
   have : m ∈ (ss k).msgs := by grind
   obtain ⟨_, _, hf⟩ := AdmissibleRun.fault_zero.mp ha
-  obtain ⟨j, _, _⟩ : ∃ j, k ≤ j ∧ xs j = some m := by grind [hf ⟨0, npos⟩, ProcFair]
+  obtain ⟨j, _, _⟩ : ∃ j, k ≤ j ∧ xs j = some m := by grind [hf ⟨0, p.pos⟩, ProcFair]
   use j + 1
-  have hj := always_inv npos inp ha j
-  have htr : (alg npos).lts.Tr (ss j) (some m) (ss (j + 1)) := by grind [LTS.OmegaExecution]
+  have hj := always_inv p.pos inp ha j
+  have htr : (alg p.pos).lts.Tr (ss j) (some m) (ss (j + 1)) := by grind [LTS.OmegaExecution]
   have h1 : k ≤ j + 1 := by grind
-  simp [h1, m, inv_tr_left npos inp hj htr rfl]
+  simp [h1, m, inv_tr_left inp hj htr rfl]
 
 /-- Whenever a message carrying a value sent by process 0 is enabled at a process `p`,
 `p` eventually decides on that value. -/
-theorem right_leadsTo_out (inp : Fin n → Bool)
+theorem right_leadsTo_out (inp : Fin n → Bool) (p : Fin n)
     {ss : ωSequence (State (Fin n) M S)} {xs : ωSequence (Action (Fin n) M)}
-    (ha : (alg npos).AdmissibleRun inp 0 ss xs) (p : Fin n) :
-    ss.LeadsTo {s | ⟨p, inr (inp ⟨0, npos⟩)⟩ ∈ s.msgs}
-      {s | (s.proc p).out = some (inp ⟨0, npos⟩)} := by
-  let m : Message (Fin n) M := ⟨p, inr (inp ⟨0, npos⟩)⟩
+    (ha : (alg p.pos).AdmissibleRun inp 0 ss xs) :
+    ss.LeadsTo {s | ⟨p, inr (inp ⟨0, p.pos⟩)⟩ ∈ s.msgs}
+      {s | (s.proc p).out = some (inp ⟨0, p.pos⟩)} := by
+  let m : Message (Fin n) M := ⟨p, inr (inp ⟨0, p.pos⟩)⟩
   intro k _
   have : m ∈ (ss k).msgs := by grind
   obtain ⟨_, _, hf⟩ := AdmissibleRun.fault_zero.mp ha
   obtain ⟨j, _, _⟩ : ∃ j, k ≤ j ∧ xs j = some m := by grind [hf p, ProcFair]
   use j + 1
-  have hj := always_inv npos inp ha j
-  have htr : (alg npos).lts.Tr (ss j) (some m) (ss (j + 1)) := by grind [LTS.OmegaExecution]
-  grind [inv_tr_right npos inp hj htr]
+  have hj := always_inv p.pos inp ha j
+  have htr : (alg p.pos).lts.Tr (ss j) (some m) (ss (j + 1)) := by grind [LTS.OmegaExecution]
+  grind [inv_tr_right inp hj htr]
 
 /-- `alg` is a correct asynchronous distributed consensus algorithm when there is no fault. -/
 theorem consensus_zero : (alg npos).Consensus 0 := by
   use safeConsensus npos
   intro inp ss xs ha p
   right
-  have hlt1 := left_leadsTo_right npos inp ha p
-  have hlt2 := right_leadsTo_out npos inp ha p
+  have hlt1 := left_leadsTo_right inp p ha
+  have hlt2 := right_leadsTo_out inp p ha
   have := leadsTo_trans hlt1 hlt2 0 <| init_left npos inp ha
   grind
 
