@@ -27,9 +27,7 @@ from its atom structure.
 
 namespace Cslib.RelationAlgebra
 
-/--
-An axiomatic atom structure, used to construct a `RelationAlgebra` from its cycles.
--/
+/-- The data of an atom structure. -/
 structure AtomStructure (α : Type*) where
   /-- The converse operation, presented as a function for stating the cycle rules. -/
   conv : α → α
@@ -37,14 +35,32 @@ structure AtomStructure (α : Type*) where
   id : Set α
   /-- The set of atom cycles, where `(r, s, t)` represents `t ≤ r * s`. -/
   cycles : Set (α × α × α)
-  assoc : (r, q, p) ∈ cycles → (s, t, q) ∈ cycles → ∃ q', (q', t, p) ∈ cycles ∧ (r, s, q') ∈ cycles
-  id_cycle_right : s ∈ id → (r, s, p) ∈ cycles → p = r
-  exists_id_cycle_right (r) : ∃ s ∈ id, (r, s, r) ∈ cycles
-  cycle_left : (r, s, t) ∈ cycles → (conv r, t, s) ∈ cycles
+
+/-- `LawfulAtomStructure` asserts the cycles of an atom structure follow associativity, converse,
+and identity conditions, so that its complex algebra is a relation algebra. -/
+class LawfulAtomStructure {α : Type*} (A : AtomStructure α) : Prop where
+  assoc : (r, q, p) ∈ A.cycles → (s, t, q) ∈ A.cycles →
+    ∃ q', (q', t, p) ∈ A.cycles ∧ (r, s, q') ∈ A.cycles
+  id_cycle_right : s ∈ A.id → (r, s, p) ∈ A.cycles → p = r
+  exists_id_cycle_right (r) : ∃ s ∈ A.id, (r, s, r) ∈ A.cycles
+  cycle_left : (r, s, t) ∈ A.cycles → (A.conv r, t, s) ∈ A.cycles
 
 namespace AtomStructure
 
-variable {α : Type*} (A : AtomStructure α)
+variable {α : Type*} (A : AtomStructure α) [LawfulAtomStructure A]
+
+theorem assoc {r q p s t : α} (h₁ : (r, q, p) ∈ A.cycles) (h₂ : (s, t, q) ∈ A.cycles) :
+    ∃ q', (q', t, p) ∈ A.cycles ∧ (r, s, q') ∈ A.cycles :=
+  LawfulAtomStructure.assoc h₁ h₂
+
+theorem id_cycle_right {s r p : α} (hs : s ∈ A.id) (h : (r, s, p) ∈ A.cycles) : p = r :=
+  LawfulAtomStructure.id_cycle_right hs h
+
+theorem exists_id_cycle_right (r : α) : ∃ s ∈ A.id, (r, s, r) ∈ A.cycles :=
+  LawfulAtomStructure.exists_id_cycle_right r
+
+theorem cycle_left {r s t : α} (h : (r, s, t) ∈ A.cycles) : (A.conv r, t, s) ∈ A.cycles :=
+  LawfulAtomStructure.cycle_left h
 
 @[simp, grind =]
 theorem conv_conv (r : α) : A.conv (A.conv r) = r := by
@@ -141,10 +157,12 @@ theorem mem_one : a ∈ (1 : ComplexAlgebra A) ↔ a ∈ A.id := .rfl
 theorem mem_mul : a ∈ x * y ↔ ∃ r ∈ x, ∃ s ∈ y, (r, s, a) ∈ A.cycles := .rfl
 
 @[simp, grind =]
-theorem mem_star : a ∈ star x ↔ A.conv a ∈ x :=
+theorem mem_star [LawfulAtomStructure A] : a ∈ star x ↔ A.conv a ∈ x :=
   Set.mem_image_iff_of_inverse A.conv_conv A.conv_conv
 
 end
+
+variable [LawfulAtomStructure A]
 
 instance : RelationAlgebra (ComplexAlgebra A) where
   mul_assoc a b c := by ext p; grind [A.assoc, A.assoc_symm]
@@ -165,11 +183,12 @@ theorem isIntegral_iff : IsIntegral (ComplexAlgebra A) ↔ ∃ a, A.id = {a} :=
 end ComplexAlgebra
 
 /-- The atom structure formed by the atoms of an atomic relation algebra. -/
-def atomStructure (α : Type*) [RelationAlgebra α] [IsAtomic α] :
-    AtomStructure {a : α // IsAtom a} where
+def atomStructure (α : Type*) [RelationAlgebra α] : AtomStructure {a : α // IsAtom a} where
   conv a := ⟨star a.val, isAtom_star_iff.mpr a.property⟩
   id := {a | a.val ≤ 1}
   cycles := {(r, s, t) | (t : α) ≤ r * s}
+
+instance {α : Type*} [RelationAlgebra α] [IsAtomic α] : LawfulAtomStructure (atomStructure α) where
   assoc {r q p s t} h₁ h₂ := by
     have hp : (p : α) ≤ r * s * t := by
       rw [mul_assoc]

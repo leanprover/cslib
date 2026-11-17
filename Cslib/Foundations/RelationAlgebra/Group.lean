@@ -45,10 +45,6 @@ def ofGroup : AtomStructure G where
   conv g := g⁻¹
   id := {1}
   cycles := {(f, g, h) | f * g = h}
-  assoc := by simp +contextual [mul_assoc]
-  id_cycle_right := by simp
-  exists_id_cycle_right r := by simp
-  cycle_left := by simp
 
 @[simp]
 theorem ofGroup_conv (g : G) : (ofGroup G).conv g = g⁻¹ := rfl
@@ -58,6 +54,12 @@ theorem mem_ofGroup_id {g : G} : g ∈ (ofGroup G).id ↔ g = 1 := .rfl
 
 @[simp]
 theorem mem_ofGroup_cycles {f g h : G} : (f, g, h) ∈ (ofGroup G).cycles ↔ f * g = h := .rfl
+
+instance : LawfulAtomStructure (ofGroup G) where
+  assoc := by simp +contextual [mul_assoc]
+  id_cycle_right := by simp
+  exists_id_cycle_right r := by simp
+  cycle_left := by simp
 
 end AtomStructure
 
