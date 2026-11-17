@@ -6,7 +6,7 @@ Authors: Sebastian Graf, Kim Morrison, Shreyas Srinivas, Eric Wieser
 module
 
 public import Cslib.Foundations.Control.Monad.Free
-public import Cslib.Algorithms.Lean.TimeM
+public import Cslib.Foundations.Control.Monad.AddWriter
 public import Mathlib.Combinatorics.Pigeonhole
 public import Mathlib.Data.Fintype.Card
 public import Mathlib.Data.Nat.Log
