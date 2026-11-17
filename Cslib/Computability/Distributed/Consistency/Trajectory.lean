@@ -26,7 +26,7 @@ This file formalizes section 7.2 of [Burckhardt2014].
 
 namespace Cslib.DistributedConsistency
 
-open Enumeration
+open Enumeration Order
 
 variable {Event State Operation Value Message Process Role : Type*} [Enumeration Event]
 

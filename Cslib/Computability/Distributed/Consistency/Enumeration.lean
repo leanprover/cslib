@@ -41,14 +41,8 @@ instance : LocallyFiniteOrder α :=
 /-- An enumeration is a `PredOrder`. -/
 noncomputable instance : PredOrder α := LinearLocallyFiniteOrder.predOrder α
 
-/-- The predecessor function. -/
-noncomputable abbrev pred : α → α := Order.pred
-
 /-- An enumeration is a `SuccOrder`. -/
 noncomputable instance : SuccOrder α := LinearLocallyFiniteOrder.succOrder α
-
-/-- The successor function. -/
-noncomputable abbrev succ : α → α := Order.succ
 
 /-- `lt` is a strict total order. -/
 theorem lt_isStrictTotalOrder : IsStrictTotalOrder α LT.lt :=
