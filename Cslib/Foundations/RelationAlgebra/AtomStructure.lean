@@ -450,7 +450,7 @@ theorem productHom_injective [∀ i, Nonempty (α i)] : Function.Injective (prod
   intro x y hxy
   induction x using mkHom_induction_on with | h X
   induction y using mkHom_induction_on with | h Y
-  rw [mkHom_eq_mkHom]
+  refine mk_eq_mk.mpr ?_
   by_contra hne
   rw [← Ultrafilter.eventually_not] at hne
   obtain ⟨f, hf⟩ := (Filter.skolem (P := fun i (a : α i) => ¬(a ∈ X i ↔ a ∈ Y i))).mp
