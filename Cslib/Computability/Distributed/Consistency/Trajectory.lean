@@ -9,6 +9,7 @@ module
 public import Cslib.Computability.Distributed.Consistency.Enumeration
 public import Cslib.Computability.Distributed.Consistency.Specification
 public import Cslib.Computability.Distributed.Consistency.Transition
+public import Mathlib.Data.Finset.Max
 
 /-! # Trajectories
 
@@ -26,7 +27,7 @@ This file formalizes section 7.2 of [Burckhardt2014].
 
 namespace Cslib.DistributedConsistency
 
-open Enumeration Order
+open Enumeration Order Finset
 
 variable {Event State Operation Value Message Process Role : Type*} [Enumeration Event]
 
@@ -78,24 +79,28 @@ structure WellFormed : Prop where
   /-- Between any two calls there must be a return, which may be the same event as
   the first call. -/
   call_return_call (x y : Event) :
-    x < y → traj.isCall x → traj.isCall y →
-    ∃ z, traj.isReturn z ∧ x ≤ z ∧ z < y
+    x < y → traj.isCall x → traj.isCall y → ∃ z, traj.isReturn z ∧ x ≤ z ∧ z < y
+
+/-- The finite set of calls preceding an event (in the non-strict execution order). -/
+def callsBefore (x : Event) : Finset Event := (Finset.Iic x).filter (traj.isCall ·)
+
+/-- The finite set of returns preceding an event (in the non-strict execution order). -/
+def returnsBefore (x : Event) : Finset Event := (Finset.Iic x).filter (traj.isReturn ·)
 
 /-- The return well-formedness condition on a trajectory, which says that
 each event is preceded by no more returns than calls.
 NOTE: In [Burckhardt2014], this is called the well-formedness condition of a trajectory. -/
-def ReturnWellFormed : Prop :=
-  ∀ x, {y | y ≤ x ∧ traj.isReturn y}.ncard ≤ {y | y ≤ x ∧ traj.isCall y}.ncard
+def ReturnWellFormed : Prop := ∀ x, #(traj.returnsBefore x) ≤ #(traj.callsBefore x)
 
 /-- Lemma 7.1 of [Burckhardt2014]: if all calls return immediately,
 then the trajectory is return well-formed. -/
 theorem isCall_eq_isReturn_returnWellFormed
     (h : traj.isCall = traj.isReturn) : traj.ReturnWellFormed := by
   intro x
-  rw [h]
+  rw [returnsBefore, callsBefore, h]
 
-/-- The set of returns succeeding an event (according to the non-strict execution order). -/
-def returnsAfter (x : Event) : Set Event := {y | x ≤ y ∧ traj.isReturn y}
+/-- The set of returns succeeding an event (in the non-strict execution order). -/
+def returnsAfter (x : Event) : Set Event := {y ∈ Set.Ici x | traj.isReturn y}
 
 open Classical in
 /-- The return event of an event is the least return event succeeding it, if it exists. -/
@@ -130,32 +135,23 @@ theorem returnOf_le {x z : Event} (hz : traj.isReturn z) (hxz : x ≤ z) :
   rw [returnOf, dite_eq_left_of_eq_true (eq_true hne)]
   exact ⟨_, rfl, not_lt.mp (WellFounded.not_lt_min _ _ hmem)⟩
 
-/-- The set of calls preceding an event (according to the non-strict execution order). -/
-def callsBefore (x : Event) : Set Event := {y | y ≤ x ∧ traj.isCall y}
-
-theorem callsBefore_finite (x : Event) : (traj.callsBefore x).Finite := by
-  refine ((lt_finite_predecessors x).insert x).subset fun y hy ↦ ?_
-  exact hy.1.eq_or_lt.imp id id
-
-open Classical in
 /-- The call event of an event is the greatest call event preceding it, if it exists. -/
-noncomputable def callOf (x : Event) : Option Event :=
+def callOf (x : Event) : Option Event :=
   if h : (traj.callsBefore x).Nonempty then
-    some (Classical.choose ((traj.callsBefore_finite x).exists_maximal h))
+    some ((traj.callsBefore x).max' h)
   else none
 
 theorem callOf_le_self {x y : Event} (h : traj.callOf x = some y) : y ≤ x := by
   rw [callOf] at h
   split_ifs at h with hne
   rw [← Option.some_inj.mp h]
-  exact (Classical.choose_spec ((traj.callsBefore_finite x).exists_maximal hne)).1.1
+  exact Finset.mem_Iic.mp (Finset.mem_filter.mp (Finset.max'_mem _ hne)).1
 
 theorem callOf_isCall {x : Event} (h : traj.isCall x) : traj.callOf x = some x := by
-  have hx : x ∈ traj.callsBefore x := ⟨le_refl x, h⟩
-  have hne : (traj.callsBefore x).Nonempty := ⟨x, hx⟩
-  rw [callOf, dite_eq_left_of_eq_true (eq_true hne), Option.some_inj]
-  have hm := Classical.choose_spec ((traj.callsBefore_finite x).exists_maximal hne)
-  exact le_antisymm hm.1.1 (hm.2 hx hm.1.1)
+  have hx : x ∈ (Finset.Iic x).filter (traj.isCall ·) := Finset.mem_filter.mpr ⟨by simp, h⟩
+  rw [callOf, dite_eq_left_of_eq_true (eq_true ⟨x, hx⟩), Option.some_inj]
+  exact le_antisymm (Finset.mem_Iic.mp (Finset.mem_filter.mp (Finset.max'_mem _ _)).1)
+    (Finset.le_max' _ x hx)
 
 end Trajectory
 
