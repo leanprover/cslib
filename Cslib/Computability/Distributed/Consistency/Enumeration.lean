@@ -14,7 +14,8 @@ public import Mathlib.Order.SuccPred.LinearLocallyFinite
 /-! # Enumeration
 
 In [Burckhardt2014], an "enumeration" is a strict total order in which every element has only
-a finite number of predecessors.
+a finite number of predecessors.  Thus we define an enumeration as a `LinearOrder` in which
+every element has only a finite number of predecessors, i.e., a `LocallyFiniteOrderBot`.
 
 ## References
 
@@ -25,8 +26,8 @@ a finite number of predecessors.
 
 open Function Relation Set
 
-/-- We define an enumeration as a `LinearOrder` in which every element has only a finite number
-of predecessors, i.e., a `LocallyFiniteOrderBot`. -/
+/-- An enumeration as a `LinearOrder` in which every element has only a finite number of
+predecessors, i.e., a `LocallyFiniteOrderBot`. -/
 class Enumeration (α : Type*) extends LinearOrder α, LocallyFiniteOrderBot α
 
 namespace Enumeration
@@ -34,9 +35,8 @@ namespace Enumeration
 variable {α : Type*} [Enumeration α]
 
 /-- An enumeration is a `LocallyFiniteOrder`. -/
-noncomputable instance : LocallyFiniteOrder α :=
-  LocallyFiniteOrder.ofFiniteIcc fun _ b =>
-    (Finset.Iic b).finite_toSet.subset fun _ hx => Finset.mem_Iic.mpr hx.2
+instance : LocallyFiniteOrder α :=
+  LocallyFiniteOrder.ofIcc α (fun a b ↦ (Finset.Iic b).filter (a ≤ ·)) <| by grind
 
 /-- An enumeration is a `PredOrder`. -/
 noncomputable instance : PredOrder α := LinearLocallyFiniteOrder.predOrder α
