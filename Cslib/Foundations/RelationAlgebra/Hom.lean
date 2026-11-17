@@ -136,6 +136,13 @@ theorem symm_apply_apply (f : RelationAlgebraEquiv α β) (a : α) : f.symm (f a
 theorem apply_symm_apply (f : RelationAlgebraEquiv α β) (b : β) : f (f.symm b) = b :=
   f.right_inv b
 
+noncomputable def ofBijective (f : RelationAlgebraHom α β) (hf : Function.Bijective f) :
+    RelationAlgebraEquiv α β where
+  __ := StarMulEquiv.ofBijective f.toStarMonoidHom hf
+  map_rel_iff' {_ _} := by
+    refine ⟨fun h ↦ ?_, (OrderHomClass.mono f ·)⟩
+    rwa [← sup_eq_right, ← hf.injective.eq_iff, map_sup f, sup_eq_right]
+
 end RelationAlgebraEquiv
 
 end Cslib

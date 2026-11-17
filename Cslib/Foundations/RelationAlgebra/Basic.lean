@@ -133,6 +133,9 @@ theorem mul_bot (a : α) : a * ⊥ = ⊥ :=
 theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
   starOrderIso.isAtom_iff a
 
+theorem inf_mul_le {a b c : α} : a * (b ⊓ c) ≤ a * b ⊓ a * c :=
+  le_inf (mul_le_mul_right inf_le_left a) (mul_le_mul_right inf_le_right a)
+
 theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
   calc
     a * b ⊓ c = (a * (b ⊓ star a * c) ⊔ a * (b ⊓ (star a * c)ᶜ)) ⊓ c := by
@@ -141,6 +144,36 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ ≤ (a * (b ⊓ star a * c) ⊔ cᶜ) ⊓ c := by grw [← tarski (star a) c, star_star]
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
+
+theorem mul_le_compl_right {a b c : α} : a * b ≤ cᶜ ↔ star a * c ≤ bᶜ := by
+  have h (x y z : α) (h : x * y ≤ zᶜ) : star x * z ≤ yᶜ := by
+    grw [← tarski x y, h, compl_compl]
+  refine ⟨h a b c, ?_⟩
+  simpa using h (star a) c b
+
+theorem mul_le_compl_left {a b c : α} : a * b ≤ cᶜ ↔ c * star b ≤ aᶜ := by
+  rw [← star_le_star_iff, star_mul, star_compl, mul_le_compl_right, ← star_compl, ← star_mul,
+    star_le_star_iff]
+
+def over (a b : α) : α := (aᶜ * star b)ᶜ
+
+theorem le_over_iff {a b c : α} : a ≤ over b c ↔ a * c ≤ b := by
+  rw [over, le_compl_comm, ← mul_le_compl_left, compl_compl]
+
+def under (a b : α) : α := (star a * bᶜ)ᶜ
+
+theorem le_under_iff {a b c : α} : a ≤ under b c ↔ b * a ≤ c := by
+  rw [under, le_compl_comm, ← mul_le_compl_right, compl_compl]
+
+theorem mul_sSup {α : Type*} [CompleteRelationAlgebra α] {a : α} {s : Set α} :
+    a * sSup s = ⨆ b ∈ s, a * b := by
+  apply eq_of_forall_ge_iff
+  simp [← le_under_iff]
+
+theorem sSup_mul {α : Type*} [CompleteRelationAlgebra α] {s : Set α} {b : α} :
+    sSup s * b = ⨆ a ∈ s, a * b := by
+  apply eq_of_forall_ge_iff
+  simp [← le_over_iff]
 
 /-- If a nonzero element lies below a product, the right factor meets its converse image. -/
 theorem inf_star_mul_ne_bot {r s p : α} (hp : p ≠ ⊥) (h : p ≤ r * s) : s ⊓ star r * p ≠ ⊥ :=
