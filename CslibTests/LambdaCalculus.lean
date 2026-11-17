@@ -5,8 +5,8 @@ Authors: Fabrizio Montesi, Haoxuan Yin
 -/
 
 import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
-import Cslib.Languages.LambdaCalculus.Named.Untyped.RenameProperties
-import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivProperties
+import Cslib.Languages.LambdaCalculus.Named.Untyped.Rename
+import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquiv
 
 /-! # λ-calculus
 

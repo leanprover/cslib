@@ -7,7 +7,7 @@ Authors: Haoxuan Yin, Fabrizio Montesi, Chris Anto Fröschl
 module
 
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
-public import Cslib.Languages.LambdaCalculus.Named.Untyped.RenameProperties
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.Rename
 
 /-! # Properties of α-equivalence
 

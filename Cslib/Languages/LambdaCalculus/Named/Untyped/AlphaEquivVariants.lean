@@ -6,7 +6,7 @@ Authors: Chris Anto Fröschl
 
 module
 
-public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivProperties
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquiv
 
 /-! # Variants of α-equivalence
 
