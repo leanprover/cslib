@@ -75,8 +75,8 @@ noncomputable def uniformOfFintype (α : Type*) [Fintype α] [Nonempty α] : PMF
   uniformOfFinset Finset.univ Finset.univ_nonempty
 
 @[simp]
-theorem uniformOfFintype_apply [Fintype α] [Nonempty α] (a : α) :
-    uniformOfFintype α a = (Fintype.card α : ℝ≥0∞)⁻¹ := by
+theorem uniformOfFintype_apply [Fintype α] (a : α) :
+    @uniformOfFintype α _ ⟨a⟩ a = (Fintype.card α : ℝ≥0∞)⁻¹ := by
   simp [uniformOfFintype]
 
 /-- Evaluating the "pairing" bind `(do let a ← p; return (a, ← f a))` at `(a, b)`
@@ -96,9 +96,9 @@ theorem bind_pair_tsum_fst (p : PMF α) (f : α → PMF β) (b : β) :
   simp_rw [bind_pair_apply, PMF.bind_apply]
 
 /-- A uniform distribution on a finite type is invariant under any equivalence. -/
-theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [Nonempty α] [Nonempty γ]
+theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [Nonempty α]
     (e : α ≃ γ) :
-    (uniformOfFintype α).map e = uniformOfFintype γ := by
+    (uniformOfFintype α).map e = @uniformOfFintype γ _ e.symm.nonempty := by
   ext c
   rw [PMF.map_apply, tsum_eq_single (e.symm c)]
   · simp [Fintype.card_congr e]
