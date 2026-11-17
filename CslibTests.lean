@@ -18,7 +18,6 @@ import CslibTests.GrindLint
 import CslibTests.HML
 import CslibTests.HasFresh
 import CslibTests.HasSubstitution
-import CslibTests.HasWellFormed
 import CslibTests.ImportWithMathlib
 import CslibTests.InferenceSystem
 import CslibTests.LTS
