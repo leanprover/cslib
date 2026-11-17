@@ -28,10 +28,6 @@ in `p` is uncharged, so `countQueries` and `cost` measure query complexity rathe
 runtime. However, pure code cannot inspect oracle responses: those enter only through
 `FreeM.lift`.
 
-This provides an alternative to the `TimeM`-based cost analysis in
-`Cslib.Algorithms.Lean.MergeSort.MergeSort`: here query counting is structural (derived from
-the `FreeM` tree) rather than annotation-based.
-
 The combinatorial lower-bound lemma `FreeM.exists_countQueries_ge_clog` says: if `n` distinct
 oracles produce `n` distinct evaluation results from a program whose every response type has
 cardinality at most `r`, then some oracle makes at least `⌈log_r n⌉` queries. The proof uses
@@ -51,7 +47,7 @@ and the largest fiber still produces distinct results in the corresponding subtr
 
 public section
 
-open Cslib.Algorithms.Lean (TimeM)
+open Cslib
 open scoped Cardinal
 
 namespace Cslib.FreeM
@@ -60,12 +56,12 @@ universe u v t w
 
 variable {F : Type u → Type v} {α β : Type u}
 
-/-- `TimeM.ret` distributes across `FreeM.liftM`. -/
+/-- `AddWriter.ret` distributes across `FreeM.liftM`. -/
 @[simp]
-theorem timeMRet_liftM {T : Type t} [AddMonoid T] (interp : {ι : Type u} → F ι → TimeM T ι)
+theorem AddWriterRet_liftM {T : Type t} [AddMonoid T] (interp : {ι : Type u} → F ι → AddWriter T ι)
     (p : FreeM F α) :
     (p.liftM interp).ret = Id.run (p.liftM fun i => pure (interp i).ret) :=
-  Algorithms.Lean.TimeM.isMonadHom_pure_ret.map_freeMLiftM _ _
+  AddWriter.isMonadHom_pure_ret.map_freeMLiftM _ _
 
 /-! ## Interpreters
 
@@ -74,7 +70,7 @@ into target monads, routing them through the universal property of the free mona
 than direct pattern-match on `FreeM`'s constructors:
 
 - `eval` interprets into `Id`.
-- `cost` interprets into a `TimeM` accumulator monad (a value paired with a running cost in
+- `cost` interprets into a `AddWriter` accumulator monad (a value paired with a running cost in
   an arbitrary additive monoid).
 - `countQueries` is `cost` with unit weight.
 
@@ -89,10 +85,10 @@ Defined as `liftM` to `Id`, the canonical interpreter into pure values. -/
   Id.run <| p.liftM fun i => pure (oracle i)
 
 /-- Weighted query cost in an additive monoid: each query has a cost given by `weight`,
-accumulated along the oracle-determined path. Defined as `liftM` into `TimeM`. -/
+accumulated along the oracle-determined path. Defined as `liftM` into `AddWriter`. -/
 @[expose] def cost {T : Type t} [AddMonoid T] (oracle : {ι : Type u} → F ι → ι)
     (weight : {ι : Type u} → F ι → T) (p : FreeM F α) : T :=
-  TimeM.time <| p.liftM fun op => ⟨oracle op, weight op⟩
+  AddWriter.tell <| p.liftM fun op => ⟨oracle op, weight op⟩
 
 /-- Count the number of queries along the path determined by `oracle`.
 

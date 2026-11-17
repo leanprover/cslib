@@ -6,87 +6,80 @@ Authors: Sorrachai Yingchareonthawornhcai, Eric Wieser
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Mathlib.Algebra.Group.Defs
 
 /-!
 
-# TimeM: Time Complexity Monad
-`TimeM T α` represents a computation that produces a value of type `α` and tracks its time cost.
+# AddWriter: Additive Writer Monad
+`AddWriter T α` represents a computation that produces a value of type `α` and tracks its cost.
 
-`T` is usually instantiated as `ℕ` to count operations, but can be instantiated as `ℝ` to count
-actual wall time, or as more complex types in order to model more general costs.
-
-## Design Principles
-1. **Pure inputs, timed outputs**: Functions take plain values and return `TimeM` results
-2. **Time annotations are trusted**: The `time` field is NOT verified against actual cost.
-   You must manually ensure annotations match the algorithm's complexity in your cost model.
-3. **Separation of concerns**: Prove correctness properties on `.ret`, prove complexity on `.time`
-
-## Cost Model
-**Document your cost model explicitly** Decide and be consistent about:
-- **What costs 1 unit?** (comparison, arithmetic operation, etc.)
-- **What is free?** (variable lookup, pattern matching, etc.)
-- **Recursive calls:** Do you charge for the call itself?
+`T` can be instantiated with AddCommMonoid types to count costs in types of varying complexity.
 
 ## Notation
-- **`✓`** : A tick of time, see `tick`.
-- **`⟪tm⟫`** : Extract the pure value from a `TimeM` computation (notation for `tm.ret`)
+- **`✓`** : A call to tell, see `tell`.
+- **`⟪tm⟫`** : Extract the pure value from an `AddWriter` computation (notation for `tm.ret`).
+
+## Notes on Authorship and Terminology
+This file was authored by Sorrachai Yingchareonthawornchai in the CSLib repository.
+It was named the Time monad `TimeM`. The standard name for this concept is the Writer Monad.
+Since Lean/Mathlib makes a distinction between additive and multiplicative algebraic structures,
+and Mathlib already contains a Writer monad, we call this structure `AddWriter`.
 
 ## References
-
-See [Danielsson2008] for the discussion.
+1. [Elementary explanation of writer monads](https://williamyaoh.com/posts/2020-07-26-deriving-writer-monad.html)
+2. [Danielsson2008] on lightweight monadic verification of time complexity.
 -/
+
 
 @[expose] public section
 
-namespace Cslib.Algorithms.Lean
+namespace Cslib
 
-/-- A monad for tracking time complexity of computations.
-`TimeM T α` represents a computation that returns a value of type `α`
-and accumulates a time cost (represented as a type `T`, typically `ℕ`). -/
+/-- A monad for tracking log complexity of computations.
+`AddWriter T α` represents a computation that returns a value of type `α`
+and accumulates a log cost (represented as a type `T`, typically `ℕ`). -/
 @[ext]
-structure TimeM (T : Type*) (α : Type*) where
+structure AddWriter (w : Type*) (α : Type*) where
   /-- The return value of the computation -/
   ret : α
-  /-- The accumulated time cost of the computation -/
-  time : T
+  /-- The accumulated tell cost of the computation -/
+  tell : w
 
-namespace TimeM
+namespace AddWriter
 
-/-- Lifts a pure value into a `TimeM` computation with zero time cost.
+/-- Lifts a pure value into a `AddWriter` computation with zero tell cost.
 
-Prefer to use `pure` instead of `TimeM.pure`. -/
-protected def pure [Zero T] {α} (a : α) : TimeM T α :=
+Prefer to use `pure` instead of `AddWriter.pure`. -/
+protected def pure [Zero T] {α} (a : α) : AddWriter T α :=
   ⟨a, 0⟩
 
-instance [Zero T] : Pure (TimeM T) where
-  pure := TimeM.pure
+instance [Zero T] : Pure (AddWriter T) where
+  pure := AddWriter.pure
 
-/-- Sequentially composes two `TimeM` computations, summing their time costs.
+/-- Sequentially composes two `AddWriter` computations, summing their log costs.
 
 Prefer to use the `>>=` notation. -/
-protected def bind {α β} [Add T] (m : TimeM T α) (f : α → TimeM T β) : TimeM T β :=
+protected def bind {α β} [Add T] (m : AddWriter T α) (f : α → AddWriter T β) : AddWriter T β :=
   let r := f m.ret
-  ⟨r.ret, m.time + r.time⟩
+  ⟨r.ret, m.tell + r.tell⟩
 
-instance [Add T] : Bind (TimeM T) where
-  bind := TimeM.bind
+instance [Add T] : Bind (AddWriter T) where
+  bind := AddWriter.bind
 
-instance : Functor (TimeM T) where
-  map f x := ⟨f x.ret, x.time⟩
+instance : Functor (AddWriter T) where
+  map f x := ⟨f x.ret, x.tell⟩
 
-instance [Add T] : Seq (TimeM T) where
-  seq f x := ⟨f.ret (x ()).ret, f.time + (x ()).time⟩
+instance [Add T] : Seq (AddWriter T) where
+  seq f x := ⟨f.ret (x ()).ret, f.tell + (x ()).tell⟩
 
-instance [Add T] : SeqLeft (TimeM T) where
-  seqLeft x y := ⟨x.ret, x.time + (y ()).time⟩
+instance [Add T] : SeqLeft (AddWriter T) where
+  seqLeft x y := ⟨x.ret, x.tell + (y ()).tell⟩
 
-instance [Add T] : SeqRight (TimeM T) where
-  seqRight x y := ⟨(y ()).ret, x.time + (y ()).time⟩
+instance [Add T] : SeqRight (AddWriter T) where
+  seqRight x y := ⟨(y ()).ret, x.tell + (y ()).tell⟩
 
-instance [AddZero T] : Monad (TimeM T) where
+instance [AddZero T] : Monad (AddWriter T) where
   pure := Pure.pure
   bind := Bind.bind
   map := Functor.map
@@ -94,61 +87,56 @@ instance [AddZero T] : Monad (TimeM T) where
   seqLeft := SeqLeft.seqLeft
   seqRight := SeqRight.seqRight
 
-@[simp, grind =] theorem ret_pure {α} [Zero T] (a : α) : (pure a : TimeM T α).ret = a := rfl
-@[simp, grind =] theorem ret_bind {α β} [Add T] (m : TimeM T α) (f : α → TimeM T β) :
+@[simp, grind =] theorem ret_pure {α} [Zero T] (a : α) : (pure a : AddWriter T α).ret = a := rfl
+
+@[simp, grind =] theorem ret_bind {α β} [Add T] (m : AddWriter T α) (f : α → AddWriter T β) :
     (m >>= f).ret = (f m.ret).ret := rfl
-@[simp, grind =] theorem ret_map {α β} (f : α → β) (x : TimeM T α) : (f <$> x).ret = f x.ret := rfl
-@[simp, grind =] theorem ret_mapConst {α β} (a : α) (x : TimeM T β) :
-    (Functor.mapConst a x).ret = a := rfl
-@[simp] theorem ret_seqRight {α} (x : TimeM T α) (y : Unit → TimeM T β) [Add T] :
+
+@[simp, grind =] theorem ret_map {α β} (f : α → β) (x : AddWriter T α) : (f <$> x).ret = f x.ret :=
+  rfl
+
+@[simp] theorem ret_seqRight {α} (x : AddWriter T α) (y : Unit → AddWriter T β) [Add T] :
     (SeqRight.seqRight x y).ret = (y ()).ret := rfl
-@[simp] theorem ret_seqLeft {α} [Add T] (x : TimeM T α) (y : Unit → TimeM T β) :
+
+@[simp] theorem ret_seqLeft {α} [Add T] (x : AddWriter T α) (y : Unit → AddWriter T β) :
     (SeqLeft.seqLeft x y).ret = x.ret := rfl
-@[simp] theorem ret_seq {α β} [Add T] (f : TimeM T (α → β)) (x : Unit → TimeM T α) :
+
+@[simp] theorem ret_seq {α β} [Add T] (f : AddWriter T (α → β)) (x : Unit → AddWriter T α) :
     (Seq.seq f x).ret = f.ret (x ()).ret := rfl
 
-theorem isMonadHom_pure_ret [AddZero T] : Cslib.IsMonadHom (TimeM T) Id (fun x => pure x.ret) where
-  map_map _ _ := Id.ext <| ret_map _ _
-  map_mapConst _ __ := Id.ext <| ret_mapConst _ _
-  map_pure _ := Id.ext <| ret_pure _
-  map_seq _ _ := Id.ext <| ret_seq _ _
-  map_seqLeft _ _ := Id.ext <| ret_seqLeft _ _
-  map_seqRight _ _ := Id.ext <| ret_seqRight _ _
-  map_bind _ _ := Id.ext <| ret_bind _ _
+/-- Extracting the return value preserves monadic operations. -/
+theorem isMonadHom_pure_ret [AddZero T] : IsMonadHom (AddWriter T) Id (fun x => pure x.ret) where
+  map_map _ _ := rfl
+  map_mapConst _ _ := rfl
+  map_pure _ := rfl
+  map_seq _ _ := rfl
+  map_seqLeft _ _ := rfl
+  map_seqRight _ _ := rfl
+  map_bind _ _ := rfl
 
-@[simp, grind =] theorem time_bind {α β} [Add T] (m : TimeM T α) (f : α → TimeM T β) :
-    (m >>= f).time = m.time + (f m.ret).time := rfl
-@[simp, grind =] theorem time_pure {α} [Zero T] (a : α) : (pure a : TimeM T α).time = 0 := rfl
-@[simp, grind =] theorem time_map {α β} (f : α → β) (x : TimeM T α) : (f <$> x).time = x.time := rfl
-@[simp] theorem time_seqRight {α} [Add T] (x : TimeM T α) (y : Unit → TimeM T β) :
-    (SeqRight.seqRight x y).time = x.time + (y ()).time := rfl
-@[simp] theorem time_seqLeft {α} [Add T] (x : TimeM T α) (y : Unit → TimeM T β) :
-    (SeqLeft.seqLeft x y).time = x.time + (y ()).time := rfl
-@[simp] theorem time_seq {α β} [Add T] (f : TimeM T (α → β)) (x : Unit → TimeM T α) :
-    (Seq.seq f x).time = f.time + (x ()).time := rfl
+@[simp, grind =] theorem tell_bind {α β} [Add T] (m : AddWriter T α) (f : α → AddWriter T β) :
+    (m >>= f).tell = m.tell + (f m.ret).tell := rfl
 
-/-- `TimeM` is lawful so long as addition in the cost is associative and absorbs zero. -/
-instance [AddMonoid T] : LawfulMonad (TimeM T) := .mk'
+@[simp, grind =] theorem tell_pure {α} [Zero T] (a : α) : (pure a : AddWriter T α).tell = 0 := rfl
+
+@[simp, grind =] theorem tell_map {α β} (f : α → β) (x : AddWriter T α) : (f <$> x).tell = x.tell :=
+  rfl
+@[simp] theorem tell_seqRight {α} [Add T] (x : AddWriter T α) (y : Unit → AddWriter T β) :
+    (SeqRight.seqRight x y).tell = x.tell + (y ()).tell := rfl
+
+@[simp] theorem tell_seqLeft {α} [Add T] (x : AddWriter T α) (y : Unit → AddWriter T β) :
+    (SeqLeft.seqLeft x y).tell = x.tell + (y ()).tell := rfl
+
+@[simp] theorem tell_seq {α β} [Add T] (f : AddWriter T (α → β)) (x : Unit → AddWriter T α) :
+    (Seq.seq f x).tell = f.tell + (x ()).tell := rfl
+
+/-- `AddWriter` is lawful so long as addition in the cost is associative and absorbs zero. -/
+instance [AddMonoid T] : LawfulMonad (AddWriter T) := .mk'
   (id_map := fun x => rfl)
   (pure_bind := fun _ _ => by ext <;> simp)
   (bind_assoc := fun _ _ _ => by ext <;> simp [add_assoc])
   (seqLeft_eq := fun _ _ => by ext <;> simp)
   (bind_pure_comp := fun _ _ => by ext <;> simp)
 
-/-- Creates a `TimeM` computation with a time cost. -/
-def tick (c : T) : TimeM T PUnit := ⟨.unit, c⟩
-
-@[simp, grind =] theorem ret_tick (c : T) : (tick c).ret = () := rfl
-@[simp, grind =] theorem time_tick (c : T) : (tick c).time = c := rfl
-
-/-- `✓[c] x` adds `c` ticks, then executes `x`. -/
-macro "✓[" c:term "]" body:doElem : doElem => `(doElem| do TimeM.tick $c; $body:doElem)
-
-/-- `✓ x` is a shorthand for `✓[1] x`, which adds one tick and executes `x`. -/
-macro "✓" body:doElem : doElem => `(doElem| ✓[1] $body)
-
-/-- Notation for extracting the return value from a `TimeM` computation: `⟪tm⟫` -/
-scoped notation:max "⟪" tm "⟫" => (TimeM.ret tm)
-
-end TimeM
-end Cslib.Algorithms.Lean
+end AddWriter
+end Cslib
