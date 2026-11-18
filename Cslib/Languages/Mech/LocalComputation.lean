@@ -203,30 +203,30 @@ instance {L : LocalSig} : Seq (L.Expr) where
   seq f a := Expr.map₂ (fun g x => g x) f (a ())
 
 /-- The names of the variables read by an expression. -/
-def Expr.vars {L : LocalSig} {α} : L.Expr α → Finset L.VarName
+def Expr.varNames {L : LocalSig} {α} : L.Expr α → Finset L.VarName
   | .val _ => ∅
   | .var x => {x.name}
-  | .pair left right => left.vars ∪ right.vars
-  | .call _ arg => arg.vars
+  | .pair left right => left.varNames ∪ right.varNames
+  | .call _ arg => arg.varNames
 
 @[simp, grind =]
-theorem Expr.vars_val {L : LocalSig} {α} (v : α) : (Expr.val (L := L) v).vars = ∅ := rfl
+theorem Expr.varNames_val {L : LocalSig} {α} (v : α) : (Expr.val (L := L) v).varNames = ∅ := rfl
 
 @[simp, grind =]
-theorem Expr.vars_var {L : LocalSig} {α} (x : L.Var α) : (Expr.var x).vars = {x.name} :=
+theorem Expr.varNames_var {L : LocalSig} {α} (x : L.Var α) : (Expr.var x).varNames = {x.name} :=
   rfl
 
 @[simp, grind =]
-theorem Expr.vars_pair {L : LocalSig} {α β} (left : L.Expr α) (right : L.Expr β) :
-    (Expr.pair left right).vars = left.vars ∪ right.vars := rfl
+theorem Expr.varNames_pair {L : LocalSig} {α β} (left : L.Expr α) (right : L.Expr β) :
+    (Expr.pair left right).varNames = left.varNames ∪ right.varNames := rfl
 
 @[simp, grind =]
-theorem Expr.vars_call {L : LocalSig} {α β} (r : α → β → Prop) (arg : L.Expr α) :
-    (Expr.call r arg).vars = arg.vars := rfl
+theorem Expr.varNames_call {L : LocalSig} {α β} (r : α → β → Prop) (arg : L.Expr α) :
+    (Expr.call r arg).varNames = arg.varNames := rfl
 
 @[simp, grind =]
-theorem Expr.vars_map {L : LocalSig} {α β} (f : α → β) (e : L.Expr α) :
-    (e.map f).vars = e.vars := rfl
+theorem Expr.varNames_map {L : LocalSig} {α β} (f : α → β) (e : L.Expr α) :
+    (e.map f).varNames = e.varNames := rfl
 
 /-- Evaluation of expressions relative to a local store: `e.Eval σ v` states that `e` may evaluate
 to `v`. -/
@@ -293,7 +293,7 @@ theorem Store.agreeOn_subst {L : LocalSig} {α} (σ : L.Store) (x : L.Var α) (v
 
 /-- The values of an expression depend only on the variables it reads. -/
 theorem Expr.Eval.of_agreeOn {L : LocalSig} {σ₁ σ₂ : L.Store} {α} {e : L.Expr α} {v : α}
-    (h : σ₁.AgreeOn σ₂ e.vars) (he : e.Eval σ₁ v) : e.Eval σ₂ v := by
+    (h : σ₁.AgreeOn σ₂ e.varNames) (he : e.Eval σ₁ v) : e.Eval σ₂ v := by
   induction he with
   | val v => exact .val v
   | var x => rw [h x (by simp)]; exact .var x
@@ -303,7 +303,7 @@ theorem Expr.Eval.of_agreeOn {L : LocalSig} {σ₁ σ₂ : L.Store} {α} {e : L.
 
 /-- Stores that agree on the variables read by an expression give it the same values. -/
 theorem Expr.Eval.congr {L : LocalSig} {σ₁ σ₂ : L.Store} {α} {e : L.Expr α} {v : α}
-    (h : σ₁.AgreeOn σ₂ e.vars) : e.Eval σ₁ v ↔ e.Eval σ₂ v :=
+    (h : σ₁.AgreeOn σ₂ e.varNames) : e.Eval σ₁ v ↔ e.Eval σ₂ v :=
   ⟨of_agreeOn h, of_agreeOn h.symm⟩
 
 end LocalSig

@@ -363,18 +363,18 @@ example : (Cfg.lts (S := sig) (SelLabel := PEmpty) (ProcName := PEmpty)).Tr
 
 /-! Read sets: the variables read by an expression are computable. -/
 
-example : choice.vars = {Name.number} := rfl
+example : choice.varNames = {Name.number} := rfl
 
-example : describeExpr.vars = {Name.number, Name.flag, Name.message} := by decide
+example : describeExpr.varNames = {Name.number, Name.flag, Name.message} := by decide
 
-example : (`(MechExpr| {if $flag then $number else 0}) : signature.Expr Nat).vars =
+example : (`(MechExpr| {if $flag then $number else 0}) : signature.Expr Nat).varNames =
     {Name.flag, Name.number} := by decide
 
 -- An expression has the same values in stores that agree on the variables it reads.
 example : ((LocalSig.Expr.var number).map (· + 1)).Eval initial[flag := false] 5 := by
   have h : ((LocalSig.Expr.var number).map (· + 1)).Eval initial 5 := .call (.var number) rfl
   refine (LocalSig.Expr.Eval.congr fun x hx => ?_).mp h
-  simp only [LocalSig.Expr.vars_map, LocalSig.Expr.vars_var, Finset.mem_singleton] at hx
+  simp only [LocalSig.Expr.varNames_map, LocalSig.Expr.varNames_var, Finset.mem_singleton] at hx
   exact (LocalSig.Store.getElem_subst_of_ne _ _ _ _ (by rw [hx]; decide)).symm
 
 -- Boolean guards continue to use the symbolic and concrete transition layers.
