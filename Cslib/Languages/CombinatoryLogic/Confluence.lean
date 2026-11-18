@@ -6,7 +6,7 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Languages.CombinatoryLogic.Defs
+public import Cslib.Languages.CombinatoryLogic.Basic
 public import Cslib.Foundations.Relation.Confluence
 
 /-!
@@ -36,6 +36,11 @@ confluent in a single step.
 - `join_mRed_equivalence` : by a general result, the diamond property for `⭢ₚ` implies the same
 for its reflexive-transitive closure. This closure is exactly `↠`, which implies the
 **Church-Rosser** theorem as sketched above.
+- `I_mRed_eq`, `K_mRed_eq`, `Ka_mRed_iff`, `S_mRed_eq`, `Sa_mRed_iff`, `Sab_mRed_iff` :
+multi-step head-normal decomposition and irreducibility of (partially applied) primitive
+combinators.
+- `not_join_S_K`, `not_join_TT_FF`, `isBool_unique` : consistency and non-degeneracy of SKI
+reduction and Church booleans.
 -/
 
 @[expose] public section
@@ -98,9 +103,7 @@ theorem reflTransGen_parallelReduction_mRed :
   · exact ReflTransGen.mono Red.le_parallelReduction
 
 /-!
-Irreducibility for the (partially applied) primitive combinators.
-
-TODO: possibly these should be proven more generally (in another file) for `↠`.
+### Irreducibility for the (partially applied) primitive combinators
 -/
 
 lemma I_irreducible (a : SKI) (h : I ⭢ₚ a) : a = I := by
@@ -134,6 +137,91 @@ lemma Sab_irreducible (a b c : SKI) (h : (S ⬝ a ⬝ b) ⭢ₚ c) :
     let ⟨d, hd⟩ := Sa_irreducible a c hc
     rw [hd.2]
     use d, b', hd.1
+
+/-- Multi-step irreducibility of `I`. -/
+theorem I_mRed_eq (a : SKI) (h : I ↠ a) : a = I := by
+  rw [← reflTransGen_parallelReduction_mRed] at h
+  induction h with
+  | refl => rfl
+  | tail _ hbc ih =>
+    rw [ih] at hbc
+    exact I_irreducible _ hbc
+
+/-- `I` reduces in zero or more steps to `a` if and only if `a = I`. -/
+@[simp]
+theorem I_mRed_iff (a : SKI) : (I ↠ a) ↔ a = I :=
+  ⟨I_mRed_eq a, fun h => h ▸ .refl⟩
+
+/-- Multi-step irreducibility of `K`. -/
+theorem K_mRed_eq (a : SKI) (h : K ↠ a) : a = K := by
+  rw [← reflTransGen_parallelReduction_mRed] at h
+  induction h with
+  | refl => rfl
+  | tail _ hbc ih =>
+    rw [ih] at hbc
+    exact K_irreducible _ hbc
+
+/-- `K` reduces in zero or more steps to `a` if and only if `a = K`. -/
+@[simp]
+theorem K_mRed_iff (a : SKI) : (K ↠ a) ↔ a = K :=
+  ⟨K_mRed_eq a, fun h => h ▸ .refl⟩
+
+/-- Multi-step head-normal decomposition of `K ⬝ a`. -/
+theorem Ka_mRed_iff (a c : SKI) : (K ⬝ a) ↠ c ↔ ∃ a', a ↠ a' ∧ c = K ⬝ a' := by
+  constructor
+  · intro h
+    rw [← reflTransGen_parallelReduction_mRed] at h
+    induction h with
+    | refl => exact ⟨a, .refl, rfl⟩
+    | tail _ hbc ih =>
+      obtain ⟨a₁, ha₁, rfl⟩ := ih
+      obtain ⟨a₂, ha₂, rfl⟩ := Ka_irreducible a₁ _ hbc
+      exact ⟨a₂, ha₁.trans ha₂.le_reflTransGen_red, rfl⟩
+  · rintro ⟨a', ha', rfl⟩
+    exact MRed.tail K ha'
+
+/-- Multi-step irreducibility of `S`. -/
+theorem S_mRed_eq (a : SKI) (h : S ↠ a) : a = S := by
+  rw [← reflTransGen_parallelReduction_mRed] at h
+  induction h with
+  | refl => rfl
+  | tail _ hbc ih =>
+    rw [ih] at hbc
+    exact S_irreducible _ hbc
+
+/-- `S` reduces in zero or more steps to `a` if and only if `a = S`. -/
+@[simp]
+theorem S_mRed_iff (a : SKI) : (S ↠ a) ↔ a = S :=
+  ⟨S_mRed_eq a, fun h => h ▸ .refl⟩
+
+/-- Multi-step head-normal decomposition of `S ⬝ a`. -/
+theorem Sa_mRed_iff (a c : SKI) : (S ⬝ a) ↠ c ↔ ∃ a', a ↠ a' ∧ c = S ⬝ a' := by
+  constructor
+  · intro h
+    rw [← reflTransGen_parallelReduction_mRed] at h
+    induction h with
+    | refl => exact ⟨a, .refl, rfl⟩
+    | tail _ hbc ih =>
+      obtain ⟨a₁, ha₁, rfl⟩ := ih
+      obtain ⟨a₂, ha₂, rfl⟩ := Sa_irreducible a₁ _ hbc
+      exact ⟨a₂, ha₁.trans ha₂.le_reflTransGen_red, rfl⟩
+  · rintro ⟨a', ha', rfl⟩
+    exact MRed.tail S ha'
+
+/-- Multi-step head-normal decomposition of `S ⬝ a ⬝ b`. -/
+theorem Sab_mRed_iff (a b c : SKI) :
+    (S ⬝ a ⬝ b) ↠ c ↔ ∃ a' b', a ↠ a' ∧ b ↠ b' ∧ c = S ⬝ a' ⬝ b' := by
+  constructor
+  · intro h
+    rw [← reflTransGen_parallelReduction_mRed] at h
+    induction h with
+    | refl => exact ⟨a, b, .refl, .refl, rfl⟩
+    | tail _ hbc ih =>
+      obtain ⟨a₁, b₁, ha₁, hb₁, rfl⟩ := ih
+      obtain ⟨a₂, b₂, ha₂, hb₂, rfl⟩ := Sab_irreducible a₁ b₁ _ hbc
+      exact ⟨a₂, b₂, ha₁.trans ha₂.le_reflTransGen_red, hb₁.trans hb₂.le_reflTransGen_red, rfl⟩
+  · rintro ⟨a', b', ha', hb', rfl⟩
+    exact parallel_mRed (MRed.tail S ha') hb'
 
 /--
 The key result: the Church-Rosser property holds for `⭢ₚ`. The proof is a lengthy case analysis
@@ -219,6 +307,58 @@ theorem MRed.diamond : Confluent Red := by
   apply join_mRed_equivalence.trans (y := a)
   · exact join_mRed_equivalence.symm (Join.single hab)
   · exact Join.single hac
+
+/-! ### Consistency and non-degeneracy -/
+
+/-- `S` and `K` have no common reduct. -/
+theorem not_join_S_K : ¬ Join (ReflTransGen Red) S K := by
+  rintro ⟨c, hSc, hKc⟩
+  have h := (S_mRed_eq c hSc).symm.trans (K_mRed_eq c hKc)
+  cases h
+
+/-- Multi-step irreducibility of `TT`. -/
+theorem TT_mRed_eq (a : SKI) (h : TT ↠ a) : a = TT := by
+  rw [TT] at h ⊢
+  exact K_mRed_eq a h
+
+/-- `TT` reduces in zero or more steps to `a` if and only if `a = TT`. -/
+theorem TT_mRed_iff (a : SKI) : (TT ↠ a) ↔ a = TT :=
+  ⟨TT_mRed_eq a, fun h => h ▸ .refl⟩
+
+/-- Multi-step irreducibility of `FF`. -/
+theorem FF_mRed_eq (a : SKI) (h : FF ↠ a) : a = FF := by
+  rw [FF] at h ⊢
+  obtain ⟨a', ha', rfl⟩ := (Ka_mRed_iff I a).mp h
+  rw [I_mRed_eq a' ha']
+
+/-- `FF` reduces in zero or more steps to `a` if and only if `a = FF`. -/
+theorem FF_mRed_iff (a : SKI) : (FF ↠ a) ↔ a = FF :=
+  ⟨FF_mRed_eq a, fun h => h ▸ .refl⟩
+
+/-- `TT` and `FF` have no common reduct. -/
+theorem not_join_TT_FF : ¬ Join (ReflTransGen Red) TT FF := by
+  rintro ⟨c, hTc, hFc⟩
+  have h := (TT_mRed_eq c hTc).symm.trans (FF_mRed_eq c hFc)
+  rw [TT, FF] at h
+  cases h
+
+/-- `TT` does not multi-step reduce to `FF`. -/
+theorem not_TT_mRed_FF : ¬ (TT ↠ FF) :=
+  fun h => not_join_TT_FF (Join.single h)
+
+/-- `FF` does not multi-step reduce to `TT`. -/
+theorem not_FF_mRed_TT : ¬ (FF ↠ TT) :=
+  fun h => not_join_TT_FF ⟨TT, .refl, h⟩
+
+/-- No SKI term simultaneously represents `true` and `false`. -/
+theorem isBool_unique {a : SKI} {b₁ b₂ : Bool} (h₁ : IsBool b₁ a) (h₂ : IsBool b₂ a) :
+    b₁ = b₂ := by
+  have hj := MRed.diamond (h₁ S K) (h₂ S K)
+  cases b₁ <;> cases b₂
+  · rfl
+  · exact False.elim (not_join_S_K (join_mRed_equivalence.symm hj))
+  · exact False.elim (not_join_S_K hj)
+  · rfl
 
 end SKI
 
