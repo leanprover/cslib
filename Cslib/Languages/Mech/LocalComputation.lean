@@ -134,16 +134,17 @@ their types are equal and the written value is returned. -/
 theorem Store.getElem_subst {L : LocalSig} {α β} (σ : L.Store) (x : L.Var α) (v : α) (y : L.Var β) :
     σ[x := v][y] =
       if h : y.name = x.name then cast (by rw [← x.has_type, ← y.has_type, h]) v else σ[y] := by
-  change y.has_type.mp (σ[x := v] y.name) = _
+  obtain ⟨yn, rfl⟩ := y
+  obtain ⟨xn, rfl⟩ := x
   split <;> rename_i h
-  · rw [subst_apply, dite_eq_left h]
-    obtain ⟨yn, rfl⟩ := y
-    obtain ⟨xn, rfl⟩ := x
-    simp only at h
+  · simp only at h
     subst h
-    rfl
-  · rw [subst_apply_of_ne _ _ _ h]
-    rfl
+    have hgoal := subst_apply σ ⟨ yn , rfl ⟩ v yn
+    simp only [↓reduceDIte] at hgoal
+    exact hgoal
+  · have hgoal := subst_apply_of_ne σ ⟨ xn , rfl ⟩ v h
+    simp only at hgoal
+    exact hgoal
 
 /-- Reading a variable after writing it returns the written value. -/
 @[simp, grind =]
