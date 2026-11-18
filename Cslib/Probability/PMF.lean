@@ -56,7 +56,7 @@ noncomputable def uniformOfFinset (s : Finset α) (hs : s.Nonempty) : PMF α := 
   · simp only [Finset.sum_ite_mem, Finset.inter_self, Finset.sum_const, nsmul_eq_mul]
     have : (s.card : ℝ≥0∞) ≠ 0 := by
       simpa only [Ne, Nat.cast_eq_zero, Finset.card_eq_zero] using
-        Finset.nonempty_iff_ne_empty.1 hs
+        Finset.ne_empty_iff_nonempty.2 hs
     exact ENNReal.mul_inv_cancel this <| ENNReal.natCast_ne_top s.card
   · exact fun x hx => by simp only [hx, ite_false]
 
