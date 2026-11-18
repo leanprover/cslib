@@ -116,8 +116,9 @@ lemma TwoWayNA.toCfgNA_input_eq {State Symbol : Type*} (a : TwoWayNA State Symbo
 
 /-- A configuration running on `input` is the one determined by its state and head position. -/
 theorem TwoWayNACfg.eta {input : List Symbol} {c : TwoWayNACfg State Symbol}
-    (h : c.input = input) (h' : (c.pos : ℕ) < input.length + 1) :
-    ({ input := input, pos := ⟨c.pos, h'⟩, state := c.state } : TwoWayNACfg State Symbol) = c := by
+    (h : c.input = input) :
+    ({ input := input, pos := ⟨c.pos, h ▸ c.pos.isLt⟩, state := c.state } :
+      TwoWayNACfg State Symbol) = c := by
   cases c
   subst h
   rfl

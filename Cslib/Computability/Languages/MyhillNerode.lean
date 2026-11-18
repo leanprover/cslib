@@ -123,10 +123,13 @@ theorem IsRegular.iff_finite_nerodeQuotient {l : Language α} :
 congruence on `l`), the number of states in the DFA accepting `l` is at least the number of strings
 in the set. -/
 theorem dfa_num_state_ge
-    {l : Language α} {ws : Set (List α)} [Finite ws]
+    {l : Language α} {ws : Set (List α)}
     (hws : ws.Pairwise (¬ (l.NerodeCongruence).r · ·))
     {State : Type*} [Finite State] {M : DA.FinAcc State α} (hm : language M = l) :
     Nat.card ws ≤ Nat.card State := by
+  obtain _ | _ := finite_or_infinite ws
+  swap
+  · simp
   -- In this proof it is easier to work with `Fintype` rather than `Finite` because of the use of
   -- the theorem `Fintype.exists_ne_map_eq_of_card_lt` below.
   have : Fintype State := Fintype.ofFinite _
@@ -190,10 +193,11 @@ theorem stateCongruence_le_nerodeCongruence {x y : List α}
 
 /-- The minimal DFA `M` accepting the language `l` is unique up to unique isomorphism. -/
 theorem unique_minimal [Finite State]
-    (l : Language α) (hr : l.IsRegular) (hm : M.IsMinimalAutomaton l) :
+    (l : Language α) (hm : M.IsMinimalAutomaton l) :
     ∃! φ : State ≃ l.NerodeQuotient, ∀ x, φ (M.mtr M.start x) = ⟦ x ⟧ := by
   obtain ⟨rfl, hc⟩ := hm
-  have := Language.IsRegular.iff_finite_nerodeQuotient.mp hr
+  have : Finite (language M).NerodeQuotient :=
+    Nat.finite_of_card_ne_zero (hc ▸ (Nat.card_pos_iff.mpr ⟨⟨M.start⟩, inferInstance⟩).ne')
   let φ : State → Quotient ((language M).NerodeCongruence).eq :=
     fun s ↦ ⟦ Classical.epsilon (fun x : List α ↦ M.mtr M.start x = s) ⟧
   have hφ (x : List α) : φ (M.mtr M.start x) = ⟦ x ⟧ := by

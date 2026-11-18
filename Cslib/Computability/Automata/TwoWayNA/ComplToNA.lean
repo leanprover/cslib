@@ -123,9 +123,9 @@ theorem isRejectionCert_reachable (h : ¬ Accepts a input) :
     ⟨{ input := input, pos := ⟨0, Nat.succ_pos _⟩, state := s },
       ⟨hs, Fin.ext (by simp), rfl⟩, Nat.succ_pos _, LTS.CanReach.refl _ _⟩
   step_closed c μ c' htr := by
-    rintro ⟨hc_input, c₀, hstart, hlt, hreach⟩
+    rintro ⟨hc_input, c₀, hstart, _, hreach⟩
     have hc'_input : c'.input = input := a.toCfgNA_input_eq input c μ c' htr hc_input
-    rw [TwoWayNACfg.eta hc_input hlt] at hreach
+    rw [TwoWayNACfg.eta hc_input] at hreach
     refine ⟨hc'_input, c₀, hstart, hc'_input ▸ c'.pos.isLt, ?_⟩
     rw [TwoWayNACfg.eta hc'_input]
     exact (LTS.reflTransGen_unlabelledTr_iff _).mp
