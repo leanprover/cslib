@@ -36,7 +36,7 @@ structure ConcreteExecution (Event State Operation Value Message Process Role : 
     [Enumeration Event] where
   /-- `tr` assigns each event its transition. -/
   tr : Event → Transition State Operation Value Message Process
-  /-- `tr` assigns each event its role id. -/
+  /-- `role` assigns each event its role id. -/
   role : Event → Role
   /-- `del` is the message delivery relation. -/
   del : Event → Event → Prop
@@ -89,7 +89,7 @@ noncomputable def callOf (x : Event) : Option Event :=
 /-- The well-formedness conditions on a concrete execution. -/
 structure WellFormed : Prop where
   /-- Projecting the concrete execution on each role produces a well-formed trajectory. -/
-  trajectory_WellFormed (r : Role) : (exec.trajectory r).WellFormed
+  trajectory_wellFormed (r : Role) : (exec.trajectory r).WellFormed
   /-- If a message from event `x` is delivered to event `y`, then `x` strictly precedes `y`
   and the message received by `y` is sent by `x`. -/
   del_snd_lt_rcv (x y : Event) : exec.del x y → x < y ∧
@@ -165,7 +165,7 @@ theorem rb_rval_ne_none {x y : exec.HistoryEvent}
 
 theorem rb_of_lt (hwf : exec.WellFormed) {x y : exec.HistoryEvent}
     (hr : exec.role x.val = exec.role y.val) (hlt : x.val < y.val) : exec.baseHistory.rb x y := by
-  obtain ⟨z, hz, hxz, hzy⟩ := (hwf.trajectory_WellFormed (exec.role x.val)).call_return_call
+  obtain ⟨z, hz, hxz, hzy⟩ := (hwf.trajectory_wellFormed (exec.role x.val)).call_return_call
     ⟨x.val, rfl⟩ ⟨y.val, hr.symm⟩ hlt x.prop y.prop
   obtain ⟨w, hw, hwz⟩ := (exec.trajectory _).returnOf_le hz hxz
   refine ⟨w.val, ?_, lt_of_le_of_lt hwz hzy⟩
