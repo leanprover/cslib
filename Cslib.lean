@@ -215,6 +215,7 @@ public import Cslib.Foundations.Semantics.LTS.ExampleTermination
 public import Cslib.Foundations.Semantics.LTS.Execution
 public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.LTSCat.Basic
+public import Cslib.Foundations.Semantics.LTS.LTSCat.Prod
 public import Cslib.Foundations.Semantics.LTS.MapHom
 public import Cslib.Foundations.Semantics.LTS.Notation
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
