@@ -17,19 +17,9 @@ produces a value of type `α` and tracks its log of type `w`.
 
 `T` can be instantiated with AddCommMonoid types to count costs in types of varying complexity.
 
-## Notation
-- **`✓`** : A call to tell, see `tell`.
-- **`⟪tm⟫`** : Extract the pure value from an `AddWriter` computation (notation for `tm.ret`).
-
-## Notes on Authorship and Terminology
-This file was authored by Sorrachai Yingchareonthawornchai in the CSLib repository.
-It was named the Time monad `TimeM`. The standard name for this concept is the Writer Monad.
-Since Lean/Mathlib makes a distinction between additive and multiplicative algebraic structures,
-and Mathlib already contains a Writer monad, we call this structure `AddWriter`.
-
 ## References
-1. [Elementary explanation of writer monads](https://williamyaoh.com/posts/2020-07-26-deriving-writer-monad.html)
-2. [Danielsson2008] on lightweight monadic verification of time complexity.
+1. [Monads for Functional Programming, Philip Wadler][wadler1995monads]
+2. [Root-Balanced Tree, Isabelle Archive of Formal Proofs, Nipkow 2018][Nipkow2018]
 -/
 
 
