@@ -52,11 +52,12 @@ lemma multiApp_tail {N} : (M.multiApp (Ns ++ [N])) = (M.multiApp Ns).app  N:= by
 
 /-- A term resulting from a multi-application is locally closed if
     and only if the leftmost term and all arguments applied to it are locally closed -/
+@[scoped grind ←]
 lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
   induction Ns generalizing M with
   | nil => simp
-  | cons _ _ ih =>
-    rw [multiApp, ih, List.forall_mem_cons]
+  | cons N Ns ih =>
+    simp only [multiApp, ih, List.forall_mem_cons]
     constructor
     · rintro ⟨⟨⟩, h⟩
       exact ⟨‹_›, ‹_›, h⟩
