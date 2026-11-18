@@ -91,7 +91,7 @@ class RightEuclidean (f : Frame World τ) (op : τ.A) where
   rightEuclidean w ws₁ ws₂ : f.r op w ws₁ → f.r op w ws₂ → ∃ i, f.r op (ws₂ i) ws₁
 
 /-- A predicate map `Ps` is preserved from `P` by `op` if, whenever `P` holds at a world `w`,
-then for every tuple `ws` accessible from `w` via `op`, each component `ws i` satisfies the
+then for every tuple `ws` accessible from `w` via `op`, some component `ws i` satisfies the
 corresponding predicate `Ps i`. -/
 def PreservesMap (f : Frame α τ) (op : τ.A) (P : α → Prop) (Ps : τ.B op → α → Prop) : Prop :=
   ∀ w ws, f.r op w ws → P w → ∃ i, Ps i (ws i)

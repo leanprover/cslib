@@ -99,7 +99,8 @@ class HasTriangle (α : Type*) (τ : outParam PFunctor) where
 
 /-- The type `α` has a family of nabla operators (`∇`). -/
 class HasNabla (α : Type*) (τ : outParam PFunctor) where
-  /-- `∇[op](φ₁, ..., φₙ)` means that `φ₁`, ..., `φₙ` are valid at all respective related states. -/
+  /-- `∇[op](φ₁, ..., φₙ)` means that, for every related tuple of states, at least one `φᵢ` is
+  valid at its respective state. -/
   nabla (op : τ.A) (arg : τ.B op → α) : α
 
 @[inherit_doc] scoped notation:50 "∇[" op "]" arg:max => HasNabla.nabla op arg

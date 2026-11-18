@@ -193,7 +193,7 @@ scoped notation s:max " ~[" lts "] " s':max => HomBisimilarity lts s s'
 theorem Bisimilarity.follow_fst (hr : s₁ ~[lts₁,lts₂] s₂) (htr : lts₁.Tr s₁ μ s₁') :
     ∃ s₂', lts₂.Tr s₂ μ s₂' ∧ s₁' ~[lts₁,lts₂ ] s₂' := by grind [IsBisimulation]
 
-/-- Helper for following a transition by the first state in a pair of a `Bisimilarity`. -/
+/-- Helper for following a transition by the second state in a pair of a `Bisimilarity`. -/
 theorem Bisimilarity.follow_snd (hr : s₁ ~[lts₁,lts₂] s₂) (htr : lts₂.Tr s₂ μ s₂') :
     ∃ s₁', lts₁.Tr s₁ μ s₁' ∧ s₁' ~[lts₁,lts₂] s₂' := by grind [IsBisimulation]
 
@@ -864,7 +864,8 @@ def IsWeakBisimulation [HasTau Label] (lts₁ : LTS State₁ Label) (lts₂ : LT
     (r : State₁ → State₂ → Prop) :=
   IsBisimulation (lts₁.saturate) (lts₂.saturate) r
 
-/-- A homogeneous bisimulation is a bisimulation where the underlying LTSs are the same. -/
+/-- A homogeneous weak bisimulation is a weak bisimulation where the underlying LTSs are the same.
+-/
 abbrev IsHomWeakBisimulation [HasTau Label] (lts : LTS State Label) := IsWeakBisimulation lts lts
 
 /-- Two states are weakly bisimilar if they are related by some weak bisimulation. -/
@@ -876,10 +877,10 @@ def WeakBisimilarity [HasTau Label] (lts₁ : LTS State₁ Label) (lts₂ : LTS 
 /-- Notation for weak bisimilarity. -/
 scoped notation s:max " ≈[" lts₁ "," lts₂ "] " s':max => WeakBisimilarity lts₁ lts₂ s s'
 
-/-- Homogeneous bisimilarity is bisimilarity where the underlying LTSs are the same. -/
+/-- Homogeneous weak bisimilarity is weak bisimilarity where the underlying LTSs are the same. -/
 abbrev HomWeakBisimilarity [HasTau Label] (lts : LTS State Label) := WeakBisimilarity lts lts
 
-/-- Notation for homogeneous bisimilarity. -/
+/-- Notation for homogeneous weak bisimilarity. -/
 scoped notation s:max " ≈[" lts "] " s':max => HomWeakBisimilarity lts s s'
 
 /-- An `SWBisimulation` is a more convenient definition of weak bisimulation, because the challenge
