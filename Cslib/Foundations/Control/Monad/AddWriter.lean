@@ -15,8 +15,6 @@ public import Mathlib.Algebra.Group.Defs
 `AddWriter w α` represents a writer monad computation that
 produces a value of type `α` and tracks its log of type `w`.
 
-`T` can be instantiated with AddCommMonoid types to count costs in types of varying complexity.
-
 ## References
 1. [Monads for Functional Programming, Philip Wadler][wadler1995monads]
 2. [Root-Balanced Tree, Isabelle Archive of Formal Proofs, Nipkow 2018][Nipkow2018]
