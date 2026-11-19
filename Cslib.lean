@@ -201,10 +201,16 @@ public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Basic
+public import Cslib.Foundations.RelationAlgebra.CanonicalExtension
+public import Cslib.Foundations.RelationAlgebra.Dimensional.Finite
+public import Cslib.Foundations.RelationAlgebra.Dimensional.Representable
+public import Cslib.Foundations.RelationAlgebra.Dimensional.SetRel
 public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Pi
+public import Cslib.Foundations.RelationAlgebra.RelationalBasis
 public import Cslib.Foundations.RelationAlgebra.Representation
+public import Cslib.Foundations.RelationAlgebra.SequentCalculus
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS

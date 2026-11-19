@@ -21,15 +21,23 @@ the representation of a relation algebra.
 
 namespace Cslib
 
-instance Pi.instRelationAlgebra {ι : Type*} {β : ι → Type*} [∀ i, RelationAlgebra (β i)] :
-    RelationAlgebra (∀ i, β i) where
+instance Pi.instNonAssocRelationAlgebra {ι : Type*} {β : ι → Type*}
+    [∀ i, NonAssocRelationAlgebra (β i)] : NonAssocRelationAlgebra (∀ i, β i) where
   sup_mul a b c := funext fun i => RelationAlgebra.sup_mul (a i) (b i) (c i)
   star_sup a b := funext fun i => RelationAlgebra.star_sup (a i) (b i)
   tarski a b i := RelationAlgebra.tarski (a i) (b i)
 
+instance Pi.instSemiAssocRelationAlgebra {ι : Type*} {β : ι → Type*}
+    [∀ i, SemiAssocRelationAlgebra (β i)] : SemiAssocRelationAlgebra (∀ i, β i) where
+  mul_assoc_top a b := funext fun i => RelationAlgebra.mul_assoc_top (a i) (b i)
+
+instance Pi.instRelationAlgebra {ι : Type*} {β : ι → Type*} [∀ i, RelationAlgebra (β i)] :
+    RelationAlgebra (∀ i, β i) where
+
 namespace RelationAlgebraHom
 
-variable {α : Type*} [RelationAlgebra α] {ι : Type*} {β : ι → Type*} [∀ i, RelationAlgebra (β i)]
+variable {α : Type*} [NonAssocRelationAlgebra α] {ι : Type*} {β : ι → Type*}
+  [∀ i, NonAssocRelationAlgebra (β i)]
 
 /-- The product of `RelationAlgebraHom`s is a `RelationAlgebraHom` into a product. -/
 def pi (f : ∀ i, RelationAlgebraHom α (β i)) : RelationAlgebraHom α (∀ i, β i) where

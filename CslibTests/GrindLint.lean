@@ -82,6 +82,7 @@ open_scoped_all Cslib
 #grind_lint skip Cslib.LTS.IsBisimulation.sup
 #grind_lint skip Cslib.LTS.IsBisimulation.traceEq
 #grind_lint skip Cslib.LTS.IsBisimulationUpTo.isBisimulation
+#grind_lint skip Cslib.RelationAlgebra.BoolUltrafilter.mk.sizeOf_spec
 
 #guard_msgs in
 #grind_lint check (min := 20) in Cslib

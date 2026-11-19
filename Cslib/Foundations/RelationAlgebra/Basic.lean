@@ -30,13 +30,19 @@ satisfaction as well as mathematical connections such as combinatorics.
 
 namespace Cslib
 
-/-- The class of relation algebras. Note the notational differences from the literature. In addition
-to inheriting Mathlib's notations for Boolean algebras, `star` is used for converse, and the monoid
-reduct for composition uses multiplicative notation. -/
-class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul α where
+class NonAssocRelationAlgebra (α : Type*) extends BooleanAlgebra α, MulOneClass α, StarMul α where
   sup_mul (a b c : α) : (a ⊔ b) * c = a * c ⊔ b * c
   star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
   tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
+
+class SemiAssocRelationAlgebra (α : Type*) extends NonAssocRelationAlgebra α where
+  mul_assoc_top (a b : α) : a * b * ⊤ = a * (b * ⊤)
+
+/-- The class of relation algebras. Note the notational differences from the literature. In addition
+to inheriting Mathlib's notations for Boolean algebras, `star` is used for converse, and the monoid
+reduct for composition uses multiplicative notation. -/
+class RelationAlgebra (α : Type*) extends SemiAssocRelationAlgebra α, Monoid α where
+  mul_assoc_top a b := mul_assoc a b ⊤
 
 /-- The relation algebra of a complete Boolean algebra. -/
 class CompleteRelationAlgebra (α : Type*) extends RelationAlgebra α, CompleteBooleanAlgebra α
@@ -46,6 +52,10 @@ class CompleteAtomicRelationAlgebra (α : Type*) extends CompleteRelationAlgebra
     CompleteAtomicBooleanAlgebra α
 
 namespace RelationAlgebra
+
+export NonAssocRelationAlgebra (sup_mul star_sup tarski)
+
+export SemiAssocRelationAlgebra (mul_assoc_top)
 
 /-- A `RelationAlgebra` can be constructed using Tarski's original ten axioms. -/
 @[instance_reducible]
@@ -79,7 +89,7 @@ def ofTarski {α : Type*} [Max α] [Compl α] [Mul α] [One α] [Star α]
   star_sup := star_sup
   tarski := tarski
 
-variable {α : Type*} [RelationAlgebra α]
+variable {α : Type*} [NonAssocRelationAlgebra α]
 
 @[gcongr]
 theorem star_mono : Monotone (star : α → α) := by
@@ -104,7 +114,7 @@ theorem star_lt_star_iff {a b : α} : star a < star b ↔ a < b := starOrderIso.
 @[to_dual star_le_iff]
 theorem le_star_iff {a b : α} : a ≤ star b ↔ star a ≤ b := starOrderIso.le_symm_apply
 
-@[to_dual existing (attr := simp)]
+@[to_dual existing (attr := simp) NonAssocRelationAlgebra.star_sup]
 theorem star_inf (a b : α) : star (a ⊓ b) = star a ⊓ star b := starOrderIso.map_inf a b
 
 @[simp]
@@ -170,18 +180,18 @@ theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : 
   exact ⟨star s, isAtom_star_iff.mpr hs, by simpa using star_mono hsa, by simpa using star_mono hps⟩
 
 /-- A relation algebra is *integral* when its identity is an atom. -/
-def IsIntegral (α : Type*) [RelationAlgebra α] : Prop := IsAtom (1 : α)
+def IsIntegral (α : Type*) [SemiAssocRelationAlgebra α] : Prop := IsAtom (1 : α)
 
 /-- The set of identity atoms. -/
-def identityAtoms (α : Type*) [RelationAlgebra α] : Set α := {a : α | IsAtom a ∧ a ≤ 1}
+def identityAtoms (α : Type*) [NonAssocRelationAlgebra α] : Set α := {a : α | IsAtom a ∧ a ≤ 1}
 
 /-- The set of symmetric diversity atoms, those below the complement of identity. -/
-def symmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
+def symmetricDiversityAtoms (α : Type*) [NonAssocRelationAlgebra α] : Set α :=
   {a : α | IsAtom a ∧ a ≤ 1ᶜ ∧ star a = a}
 
 /-- The set of nonsymmetric diversity atoms. The diversity condition follows from
 `le_compl_one_of_mem_nonsymmetricDiversityAtoms`. -/
-def nonsymmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
+def nonsymmetricDiversityAtoms (α : Type*) [NonAssocRelationAlgebra α] : Set α :=
   {a : α | IsAtom a ∧ star a ≠ a}
 
 /-- Every nonsymmetric atom lies below the complement of identity. -/

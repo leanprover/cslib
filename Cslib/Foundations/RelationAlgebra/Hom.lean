@@ -21,22 +21,25 @@ namespace Cslib
 
 /-- The type of relation algebra homomorphisms from `α` to `β`, preserving both the Boolean algebra
   and composition operations -/
-structure RelationAlgebraHom (α β : Type*) [RelationAlgebra α] [RelationAlgebra β]
-    extends BoundedLatticeHom α β, StarMonoidHom α β
+structure RelationAlgebraHom (α β : Type*) [NonAssocRelationAlgebra α]
+    [NonAssocRelationAlgebra β] extends BoundedLatticeHom α β, α →* β where
+  map_star' : ∀ a : α, toFun (star a) = star (toFun a)
 
 open RelationAlgebraHom in
-attribute [nolint docBlame] toStarMonoidHom toBoundedLatticeHom
+attribute [nolint docBlame] toMonoidHom toBoundedLatticeHom
 
 /-- The type of relation algebra equivalence from `α` to `β`, preserving both the Boolean algebra
   and composition operations -/
-structure RelationAlgebraEquiv (α β : Type*) [RelationAlgebra α] [RelationAlgebra β]
+structure RelationAlgebraEquiv (α β : Type*) [NonAssocRelationAlgebra α]
+    [NonAssocRelationAlgebra β]
     extends toOrderIso : OrderIso α β, StarMulEquiv α β
 
 attribute [nolint docBlame] RelationAlgebraEquiv.toStarMulEquiv
 
 namespace RelationAlgebraHom
 
-variable {α β γ : Type*} [RelationAlgebra α] [RelationAlgebra β] [RelationAlgebra γ]
+variable {α β γ : Type*} [NonAssocRelationAlgebra α] [NonAssocRelationAlgebra β]
+  [NonAssocRelationAlgebra γ]
 
 instance : FunLike (RelationAlgebraHom α β) α β where
   coe f := f.toFun
@@ -60,13 +63,13 @@ theorem ext {f g : RelationAlgebraHom α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
 
 /-- `id` as a `RelationAlgebraHom` -/
-protected def id (α : Type*) [RelationAlgebra α] : RelationAlgebraHom α α :=
-  { BoundedLatticeHom.id α, StarMonoidHom.id α with }
+protected def id (α : Type*) [NonAssocRelationAlgebra α] : RelationAlgebraHom α α :=
+  { BoundedLatticeHom.id α, MonoidHom.id α with map_star' _ := rfl }
 
 /-- Composition of `RelationAlgebraHom` -/
 def comp (f : RelationAlgebraHom β γ) (g : RelationAlgebraHom α β) : RelationAlgebraHom α γ :=
-  { f.toBoundedLatticeHom.comp g.toBoundedLatticeHom,
-    f.toStarMonoidHom.comp g.toStarMonoidHom with }
+  { f.toBoundedLatticeHom.comp g.toBoundedLatticeHom, f.toMonoidHom.comp g.toMonoidHom with
+    map_star' a := (congrArg f (map_star g a)).trans (map_star f (g a)) }
 
 @[simp]
 theorem id_apply (a : α) : RelationAlgebraHom.id α a = a := rfl
@@ -75,7 +78,8 @@ theorem id_apply (a : α) : RelationAlgebraHom.id α a = a := rfl
 theorem comp_apply (f : RelationAlgebraHom β γ) (g : RelationAlgebraHom α β) (a : α) :
     f.comp g a = f (g a) := rfl
 
-theorem isIntegral_of_injective (f : RelationAlgebraHom α β) (hf : Function.Injective f)
+theorem isIntegral_of_injective {α β : Type*} [SemiAssocRelationAlgebra α]
+    [SemiAssocRelationAlgebra β] (f : RelationAlgebraHom α β) (hf : Function.Injective f)
     (h : RelationAlgebra.IsIntegral β) : RelationAlgebra.IsIntegral α := by
   refine ⟨fun h1 => IsAtom.ne_bot h ?_, fun b hb => hf ?_⟩
   · rw [← map_one f, h1, map_bot]
@@ -87,7 +91,8 @@ end RelationAlgebraHom
 
 namespace RelationAlgebraEquiv
 
-variable {α β γ : Type*} [RelationAlgebra α] [RelationAlgebra β] [RelationAlgebra γ]
+variable {α β γ : Type*} [NonAssocRelationAlgebra α] [NonAssocRelationAlgebra β]
+  [NonAssocRelationAlgebra γ]
 
 instance : EquivLike (RelationAlgebraEquiv α β) α β where
   coe f := f.toFun
@@ -110,7 +115,7 @@ theorem ext {f g : RelationAlgebraEquiv α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
 
 /-- The reflexive `RelationAlgebraEquiv` -/
-protected def refl (α : Type*) [RelationAlgebra α] : RelationAlgebraEquiv α α :=
+protected def refl (α : Type*) [NonAssocRelationAlgebra α] : RelationAlgebraEquiv α α :=
   { OrderIso.refl α, StarMulEquiv.refl α with }
 
 /-- The symmetric `RelationAlgebraEquiv` -/
@@ -124,7 +129,8 @@ def trans (f : RelationAlgebraEquiv α β) (g : RelationAlgebraEquiv β γ) :
 
 /-- The `RelationAlgebraHom` underlying an `RelationAlgebraEquiv` -/
 def toHom (f : RelationAlgebraEquiv α β) : RelationAlgebraHom α β :=
-  { (f.toOrderIso : BoundedLatticeHom α β), f.toStarMulEquiv.toStarMonoidHom with }
+  { (f.toOrderIso : BoundedLatticeHom α β), f.toMulEquiv.toMonoidHom with
+    map_star' := f.map_star' }
 
 @[simp]
 theorem refl_apply (a : α) : RelationAlgebraEquiv.refl α a = a := rfl
