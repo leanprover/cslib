@@ -315,7 +315,7 @@ theorem and_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool u
     · simp [FF_correct]
     · simp [TT_correct]
 
-/-- Or := λ a b. Cond TT (Cond TT FF b) b -/
+/-- Or := λ a b. Cond TT (Cond TT FF b) a -/
 def OrPoly : SKI.Polynomial 2 := SKI.Cond ⬝' TT ⬝' (SKI.Cond ⬝ TT ⬝ FF ⬝' &1) ⬝' &0
 /-- A SKI term representing Or -/
 protected def Or : SKI := OrPoly.toSKI
