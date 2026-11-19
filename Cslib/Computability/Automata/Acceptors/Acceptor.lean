@@ -6,8 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
-public import Mathlib.Computability.Language
+public import Cslib.Computability.Languages.Language
 
 /-! -/
 
