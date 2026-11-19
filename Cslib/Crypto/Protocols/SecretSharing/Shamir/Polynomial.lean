@@ -40,7 +40,7 @@ theorem tailPolynomial_degree_lt (n : ℕ) (coeffs : Fin n → F) :
     (tailPolynomial (F := F) n coeffs).degree < n :=
   _root_.Polynomial.mem_degreeLT.1
     (((_root_.Polynomial.degreeLTEquiv F n).symm coeffs :
-      _root_.Polynomial.degreeLT F n)).2
+      _root_.Polynomial.degreeLT F n)).property
 
 /-- `tailPolynomial` is additive in its coefficient vector. -/
 theorem tailPolynomial_add (n : ℕ) (a b : Fin n → F) :

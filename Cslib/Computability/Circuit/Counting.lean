@@ -136,7 +136,7 @@ private noncomputable def representative (f : irredundantFunctions I n g) :
   (mem_irredundantFunctions_iff.mp f.property).choose
 
 private theorem representative_spec (f : irredundantFunctions I n g) :
-    (∀ x, (representative f).1.trace I x (representative f).2 = f.1 x) ∧
+    (∀ x, (representative f).1.trace I x (representative f).2 = f.val x) ∧
       (representative f).1.Irredundant I :=
   (mem_irredundantFunctions_iff.mp f.property).choose_spec
 

@@ -624,7 +624,7 @@ section Order
 /-! ## Order properties -/
 
 instance : Max {r // IsBisimulation lts₁ lts₂ r} where
-  max r s := ⟨r.1 ⊔ s.1, IsBisimulation.sup r.2 s.2⟩
+  max r s := ⟨r.val ⊔ s.val, IsBisimulation.sup r.property s.property⟩
 
 @[simp] lemma coe_sup (r s : {r // IsBisimulation lts₁ lts₂ r}) :
     (↑(r ⊔ s) : State₁ → State₂ → Prop) = (r : State₁ → State₂ → Prop) ⊔ s := rfl
