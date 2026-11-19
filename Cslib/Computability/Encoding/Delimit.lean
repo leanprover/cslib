@@ -127,4 +127,66 @@ theorem delimit_prefix_delimit {w v : List Bool} :
   · rintro rfl
     rfl
 
+/-! ### Variants of `undelimit` -/
+
+/-- The word whose delimited code starts `w`, as computed by `undelimit`, or `e` if `w` is
+empty. -/
+def undelimitOr (e : List Bool) : List Bool → List Bool
+  | [] => e
+  | w => undelimit w
+
+@[simp]
+theorem undelimitOr_nil (e : List Bool) : undelimitOr e [] = e := rfl
+
+@[simp]
+theorem undelimitOr_cons (e : List Bool) (b : Bool) (w : List Bool) :
+    undelimitOr e (b :: w) = undelimit (b :: w) := rfl
+
+@[simp]
+theorem undelimitOr_nil_left : undelimitOr [] = undelimit := by
+  funext w
+  cases w <;> rfl
+
+@[simp, scoped grind =]
+theorem undelimitOr_delimit_append (e w u : List Bool) :
+    undelimitOr e (delimit w ++ u) = w := by
+  cases w <;> simp
+
+/-- The concatenation of the words whose delimited codes make up `w`: removes all tags and
+delimiters. A trailing tag `true` without a data bit is ignored. -/
+def undelimitAll : List Bool → List Bool
+  | true :: b :: v => b :: undelimitAll v
+  | false :: v => undelimitAll v
+  | _ => []
+
+@[simp] theorem undelimitAll_nil : undelimitAll [] = [] := rfl
+
+@[simp] theorem undelimitAll_false_cons (v : List Bool) :
+    undelimitAll (false :: v) = undelimitAll v := rfl
+
+@[simp] theorem undelimitAll_true_nil : undelimitAll [true] = [] := rfl
+
+@[simp] theorem undelimitAll_true_cons_cons (b : Bool) (v : List Bool) :
+    undelimitAll (true :: b :: v) = b :: undelimitAll v := rfl
+
+@[simp, scoped grind =]
+theorem undelimitAll_delimit_append (w u : List Bool) :
+    undelimitAll (delimit w ++ u) = w ++ undelimitAll u := by
+  induction w <;> simp [*]
+
+/-! ### Lengths -/
+
+theorem length_undelimit_le (w : List Bool) : (undelimit w).length ≤ w.length := by
+  fun_induction undelimit w <;> grind
+
+theorem length_dropDelimited_le (w : List Bool) : (dropDelimited w).length ≤ w.length := by
+  fun_induction dropDelimited w <;> grind
+
+theorem length_undelimitOr_le (e w : List Bool) :
+    (undelimitOr e w).length ≤ w.length + e.length := by
+  cases w <;> grind [undelimitOr, length_undelimit_le]
+
+theorem length_undelimitAll_le (w : List Bool) : (undelimitAll w).length ≤ w.length := by
+  fun_induction undelimitAll w <;> grind
+
 end Cslib.Encoding

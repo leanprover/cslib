@@ -324,6 +324,15 @@ If the Turing machine halts, it will stay at the halting configuration. -/
 noncomputable def runFrom (cfg : Cfg k Symbol State input) (t : ℕ) : Cfg k Symbol State input :=
   tm.step^[t] cfg
 
+/-- Running for one step is taking one step. -/
+@[simp]
+lemma runFrom_one (cfg : Cfg k Symbol State input) : tm.runFrom cfg 1 = tm.step cfg := rfl
+
+/-- Running for `m + n` steps is running for `m` steps and then for `n` steps. -/
+lemma runFrom_add (cfg : Cfg k Symbol State input) (m n : ℕ) :
+    tm.runFrom cfg (m + n) = tm.runFrom (tm.runFrom cfg m) n := by
+  simpa only [runFrom, Nat.add_comm m n] using Function.iterate_add_apply tm.step n m cfg
+
 /-- Every path of a deterministic machine follows its iterated step function. -/
 lemma runPath_apply_eq_runFrom (p : tm.RunPath input) (i : Fin (p.length + 1)) :
     p i = tm.runFrom p.head i := by
