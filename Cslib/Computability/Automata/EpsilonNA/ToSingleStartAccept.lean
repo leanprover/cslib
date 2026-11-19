@@ -94,7 +94,7 @@ open Acceptor in
 @[scoped grind =]
 theorem toSingleStartAccept_language_eq : language a.toSingleStartAccept = language a := by
   ext xs
-  rw [mem_language_iff, mem_language_iff]
+  simp only [Language.mem_toSet, mem_language_iff]
   constructor
   · rintro ⟨_, hs', _, ht', μs, rfl, h⟩
     obtain rfl := Set.mem_singleton_iff.mp hs'
