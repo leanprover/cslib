@@ -6,11 +6,11 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Mathlib.Computability.Encoding
+public import Mathlib.Data.Nat.Bits
 public import Mathlib.Data.Fintype.EquivFin
 public import Mathlib.Data.Nat.Log
 public import Mathlib.Data.Nat.Size
-public import Mathlib.Data.Num.Lemmas
+import Mathlib.Algebra.Ring.Parity
 public import Cslib.Computability.Encoding.Delimit
 
 /-!
@@ -30,10 +30,9 @@ The product encoding delimits the first component and appends the second, and li
 delimiting each element. Dependent pairs are encoded like products, with the second component
 encoded under the encoding selected by the first one. Sums prefix the code of the component with a
 tag bit, and options are encoded as the sum `Unit ⊕ α`. Booleans are their single bit, natural
-numbers use Mathlib's little-endian binary encoding `Computability.encodeNat`, and `Fin n` uses a
-fixed-width binary code of `Nat.clog 2 n` bits, which `encFintype` transfers to any finite type via
-`Fintype.equivFin`. Subsingletons, including propositions, are encoded as the empty word by
-`encSubsingleton`.
+numbers use the little-endian binary code `Nat.bits`, and `Fin n` uses a fixed-width binary code of
+`Nat.clog 2 n` bits, which `encFintype` transfers to any finite type via `Fintype.equivFin`.
+Subsingletons, including propositions, are encoded as the empty word by `encSubsingleton`.
 
 Products delimit only their first component because the second one extends to the end of the code
 word, so a delimiter would add nothing for parsing; this keeps the second component undoubled and
@@ -79,54 +78,32 @@ def encBool : Bool ↪ List Bool :=
 @[simps (attr := scoped grind =)]
 def encBits : List Bool ↪ List Bool := ⟨id, Function.injective_id⟩
 
-/-- A natural number is encoded in binary, least significant bit first, using Mathlib's
-`Computability.encodeNat`. -/
-def encNat : ℕ ↪ List Bool :=
-  ⟨Computability.encodeNat, Computability.encodingNatBool.encode_injective⟩
-
-theorem encNat_apply (n : ℕ) : encNat n = Computability.encodeNat n := rfl
-
-@[simp, scoped grind =]
-theorem encNat_zero : encNat 0 = [] := rfl
-
-private theorem encodeNum_bit1 (x : Num) :
-    Computability.encodeNum x.bit1 = true :: Computability.encodeNum x := by
-  cases x <;> rfl
-
-private theorem encodeNum_bit0 {x : Num} (hx : x ≠ 0) :
-    Computability.encodeNum x.bit0 = false :: Computability.encodeNum x := by
-  cases x
-  · exact absurd rfl hx
-  · rfl
-
-/-- The code of a natural number is its binary representation `Nat.bits`. This connects `encNat`
-to Mathlib's lemmas about the bits of a natural number. -/
-theorem encNat_eq_bits (n : ℕ) : encNat n = n.bits := by
-  induction n using Nat.binaryRec' with
-  | zero => rfl
-  | bit b n hn ih =>
-    rw [Nat.bits_append_bit n b hn, ← ih, encNat_apply, encNat_apply, Computability.encodeNat,
-      Computability.encodeNat, ← Num.ofNat'_eq, ← Num.ofNat'_eq n, Num.ofNat'_bit]
-    cases b
-    · have hn0 : n ≠ 0 := fun h => by simpa using hn h
-      exact encodeNum_bit0 fun h => hn0 (by
-        have := congrArg (fun x : Num => (x : ℕ)) h
-        simpa [Num.ofNat'_eq] using this)
-    · exact encodeNum_bit1 _
+/-- `Nat.bits` is injective. Candidate for upstreaming to `Mathlib.Data.Nat.Bits`. -/
+theorem _root_.Nat.bits_injective : Function.Injective Nat.bits := by
+  intro m n h
+  induction m using Nat.binaryRec' generalizing n <;> induction n using Nat.binaryRec' <;>
+    grind [Nat.bits_append_bit, Nat.zero_bits]
 
 @[simp]
-theorem encNat_eq_nil {n : ℕ} : encNat n = [] ↔ n = 0 :=
-  encNat.apply_eq_iff_eq n 0
+theorem _root_.Nat.bits_inj {m n : ℕ} : m.bits = n.bits ↔ m = n := Nat.bits_injective.eq_iff
+
+@[simp]
+theorem _root_.Nat.bits_eq_nil {n : ℕ} : n.bits = [] ↔ n = 0 := by
+  simpa using Nat.bits_inj (m := n) (n := 0)
+
+/-- A natural number is encoded in binary, least significant bit first, as `Nat.bits`. -/
+@[simps (attr := scoped grind =)]
+def encNat : ℕ ↪ List Bool := ⟨Nat.bits, Nat.bits_injective⟩
 
 /-- The code of a natural number has as many bits as its binary representation. -/
 theorem length_encNat (n : ℕ) : (encNat n).length = n.size := by
-  rw [encNat_eq_bits, Nat.size_eq_bits_len]
+  rw [encNat_apply, Nat.size_eq_bits_len]
 
 theorem encNat_two_mul {n : ℕ} (hn : n ≠ 0) : encNat (2 * n) = false :: encNat n := by
-  rw [encNat_eq_bits, encNat_eq_bits, Nat.bit0_bits n hn]
+  simpa only [encNat_apply] using Nat.bit0_bits n hn
 
 theorem encNat_two_mul_add_one (n : ℕ) : encNat (2 * n + 1) = true :: encNat n := by
-  rw [encNat_eq_bits, encNat_eq_bits, Nat.bit1_bits]
+  simpa only [encNat_apply] using Nat.bit1_bits n
 
 /-- The successor on binary numbers, least significant bit first: the leading `true` bits become
 `false`, and the first `false` bit, or the end of the word, becomes `true`. -/
@@ -163,8 +140,8 @@ bit first. -/
 def encFin (n : ℕ) : Fin n ↪ List Bool :=
   ⟨fun a => (List.range (Nat.clog 2 n)).map (a.val.testBit ·), fun a b h => by
     refine Fin.ext (Nat.eq_of_testBit_eq fun i => ?_)
-    have := Nat.le_pow_clog one_lt_two n
-    have := @Nat.pow_le_pow_right 2 two_pos (Nat.clog 2 n) i
+    have := Nat.le_pow_clog Nat.one_lt_two n
+    have := @Nat.pow_le_pow_right 2 Nat.two_pos (Nat.clog 2 n) i
     grind [Nat.testBit_lt_two_pow, List.map_inj_left]⟩
 
 theorem encFin_apply (n : ℕ) (a : Fin n) :

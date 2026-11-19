@@ -65,7 +65,7 @@ theorem computableInTimeAndSpace_nat_div_two :
     ComputableInTimeAndSpace (· / 2) encNat encNat (fun n => 2 * (encNat n).length + 1)
       (fun _ => 0) :=
   ((computableInTimeAndSpace_headCases [] (fun _ => []) fun _ => true).of_realizes fun n => by
-    rw [encNat_eq_bits, encNat_eq_bits, ← Nat.div2_val, Nat.div2_bits_eq_tail]
+    simp only [encNat_apply, ← Nat.div2_val, Nat.div2_bits_eq_tail]
     cases n.bits <;> simp).mono (fun _ => by simp) fun _ => le_rfl
 
 /-- The parity is computable in linear time and zero space: it is the least significant bit. -/
@@ -74,7 +74,7 @@ theorem computableInTimeAndSpace_nat_bodd :
       (fun _ => 0) :=
   ((computableInTimeAndSpace_headCases [false] (fun b => [b]) fun _ => false).of_realizes
     fun n => by
-      rw [encNat_eq_bits, Nat.bodd_eq_bits_head]
+      rw [encNat_apply, Nat.bodd_eq_bits_head]
       cases n.bits <;> simp).mono (fun _ => by simp) fun _ => le_rfl
 
 /-- The test for zero is computable in constant time and zero space, since it is constant except

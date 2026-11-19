@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Basic
+import Mathlib.Data.Fintype.Option
 
 /-!
 # Machines inspecting the first bit of a word

@@ -5,6 +5,7 @@ Authors: Christian Reitwiessner
 -/
 
 import Cslib.Computability.Encoding.Basic
+import Mathlib.Computability.Encoding
 
 namespace CslibTests.Encoding
 
@@ -50,16 +51,21 @@ example (w u : List Bool) : (undelimit (w ++ u)).length ≤ w.length + u.length 
 
 /-! ### Basic encodings -/
 
--- `encBool` and `encNat` agree with Mathlib's encodings.
+-- `encBool` agrees with Mathlib's encoding, and `encNat` is `Nat.bits`.
 example : ⇑encBool = Computability.encodingBoolBool.encode := rfl
-example : ⇑encNat = Computability.encodingNatBool.encode := rfl
+example (n : ℕ) : encNat n = n.bits := rfl
 
 -- Binary, least significant bit first.
 example : encNat 0 = [] := by simp
 example : encNat 6 = [false, true, true] := by decide
 
+-- `simp` unfolds `encNat` to `Nat.bits`, which gives it Mathlib's lemmas and injectivity.
+example (n : ℕ) : encNat (2 * n + 1) = true :: encNat n := by simp
+example (n : ℕ) (h : n ≠ 0) : encNat (2 * n) = false :: encNat n := by simp [h]
+example (m n : ℕ) : encNat m = encNat n ↔ m = n := by simp
+example (n : ℕ) : encNat n = [] ↔ n = 0 := by simp
+
 -- The code of a number is its binary representation, which gives its length.
-example (n : ℕ) : encNat n = n.bits := encNat_eq_bits n
 example : (encNat 6).length = 3 := by rw [length_encNat]; decide
 example (n : ℕ) (h : encNat n = []) : n = 0 := by simpa using h
 

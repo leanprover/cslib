@@ -272,8 +272,8 @@ def splitLastTake (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symb
   | some i => xs.take i
 
 /-- With an execution of the string `xs` through states `ss`,
-`splitLastDrop xs ss r` returns a prefix of `xs`
-which ends at the LAST occurrence (excluding the first and last state) of state `r` in `ss`.
+`splitLastDrop xs ss r` returns a suffix of `xs`
+which starts at the LAST occurrence (excluding the first and last state) of state `r` in `ss`.
 When no such occurrence of `r` exists, `splitLastDrop` returns the full string.
 The actual definition does not require an execution, just the string `xs` and the states `ss`. -/
 def splitLastDrop (xs : List Symbol) (ss : List (Fin n)) (r : Fin n) : List Symbol :=
@@ -357,7 +357,7 @@ section kstar
 
 /-- Part of the recursion step of Kleene's algorithm.
 An execution from `r` to `r` whose interior states are `≤ r` is
-a concatenation of executions from `r` to `r` whose interior states are all `≤ r`. -/
+a concatenation of executions from `r` to `r` whose interior states are all `< r`. -/
 theorem bddLang_kstar (lts : LTS (Fin n) Symbol) (r : Fin n) :
     lts.bddLang r r (r + 1) = (lts.bddLang r r r)∗ := by
   rw [← one_mul (lts.bddLang r r r)∗, ← Language.sub_one_kstar]

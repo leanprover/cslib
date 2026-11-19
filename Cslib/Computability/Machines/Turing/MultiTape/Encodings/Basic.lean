@@ -9,6 +9,7 @@ module
 public import Cslib.Computability.Encoding.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OneWay
+import Mathlib.Basic.Finite.Prod
 
 /-!
 # Machines on encoded values
