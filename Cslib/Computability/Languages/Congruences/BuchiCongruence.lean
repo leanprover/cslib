@@ -149,7 +149,6 @@ theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
         have : f 0 + (f k - f 0) = f k := by grind
         have : f 0 + (f (k + 1) - f 0) = f (k + 1) := by lia
         simp_all
-        rfl
       · simp at h
     · grind
   · grind [Nat.base_zero_strictMono h_mono]
