@@ -35,6 +35,7 @@ import CslibTests.PACLearning
 import CslibTests.PFunctor
 import CslibTests.PFunctorFree
 import CslibTests.PRG
+import CslibTests.Probabilistic
 import CslibTests.Query
 import CslibTests.QueryComplexity
 import CslibTests.Reduction
