@@ -123,7 +123,7 @@ theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
   · intro h; by_contra h'
     have := dropLast_append_getLast h'
     grind [Accepts]
-  · grind [Accepts, Language.mem_one]
+  · grind [Accepts, Language.mem_toSet, Language.mem_one]
 
 /-- The language of all finite words is regular. -/
 @[simp]
@@ -141,7 +141,8 @@ theorem IsRegular.inf {l1 l2 : Language Symbol}
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2⟩
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  ext; grind [Accepts, Language.mem_inf]
+  ext
+  grind [Accepts, Language.mem_toSet, Language.mem_inf]
 
 /-- The union of two regular languages is regular. -/
 @[simp]
@@ -153,7 +154,8 @@ theorem IsRegular.add {l1 l2 : Language Symbol}
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2⟩
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  ext; grind [Accepts, Language.mem_add]
+  ext
+  grind [Accepts, Language.mem_toSet, Language.mem_add]
 
 /-- The intersection of any finite number of regular languages is regular. -/
 @[simp]
@@ -180,7 +182,8 @@ theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {l : I → Language Sy
   case succ n h_ind =>
     obtain ⟨i, t, h_i, rfl, rfl⟩ := (ncard_eq_succ (s := s)).mp h_n
     rw [iSup_insert]
-    apply IsRegular.add <;> grind
+    exact IsRegular.add (h i (mem_insert i t))
+      (h_ind (fun j hj ↦ h j (mem_insert_of_mem i hj)) rfl)
 
 /-- The concatenation of two regular languages is regular. -/
 @[simp]
