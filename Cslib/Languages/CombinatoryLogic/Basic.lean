@@ -335,7 +335,104 @@ theorem or_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub
   · apply isBool_trans (a' := TT) (h := cond_correct a _ _ true ha)
     simp [TT_correct]
 
-/- TODO?: other boolean connectives -/
+/-- Not := λ a. Cond FF TT a -/
+def NotPoly : SKI.Polynomial 1 := SKI.Cond ⬝' FF ⬝' TT ⬝' &0
+/-- A SKI term representing Not -/
+protected def Not : SKI := NotPoly.toSKI
+/-- Reduction rule for `SKI.Not`. -/
+theorem not_def (a : SKI) : (SKI.Not ⬝ a) ↠ SKI.Cond ⬝ FF ⬝ TT ⬝ a :=
+  NotPoly.toSKI_correct [a] (by simp)
+
+/-- `SKI.Not` computes boolean negation `!ua`. -/
+theorem not_correct (a : SKI) (ua : Bool) (ha : IsBool ua a) :
+    IsBool (!ua) (SKI.Not ⬝ a) := by
+  apply isBool_trans (a' := SKI.Cond ⬝ FF ⬝ TT ⬝ a) (h := not_def a)
+  apply isBool_trans (a' := if ua then FF else TT) (h := cond_correct a FF TT ua ha)
+  cases ua <;> simp [TT_correct, FF_correct]
+
+/-- Imp := λ a b. Cond b TT a -/
+def ImpPoly : SKI.Polynomial 2 := SKI.Cond ⬝' &1 ⬝' TT ⬝' &0
+/-- A SKI term representing material implication Imp -/
+protected def Imp : SKI := ImpPoly.toSKI
+/-- Reduction rule for `SKI.Imp`. -/
+theorem imp_def (a b : SKI) : (SKI.Imp ⬝ a ⬝ b) ↠ SKI.Cond ⬝ b ⬝ TT ⬝ a :=
+  ImpPoly.toSKI_correct [a, b] (by simp)
+
+/-- `SKI.Imp` computes material implication `!ua || ub`. -/
+theorem imp_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
+    IsBool (!ua || ub) (SKI.Imp ⬝ a ⬝ b) := by
+  apply isBool_trans (a' := SKI.Cond ⬝ b ⬝ TT ⬝ a) (h := imp_def a b)
+  apply isBool_trans (a' := if ua then b else TT) (h := cond_correct a b TT ua ha)
+  cases ua <;> simp [hb, TT_correct]
+
+/-- Xor := λ a b. Cond (Not b) b a -/
+def XorPoly : SKI.Polynomial 2 := SKI.Cond ⬝' (SKI.Not ⬝' &1) ⬝' &1 ⬝' &0
+/-- A SKI term representing exclusive or Xor -/
+protected def Xor : SKI := XorPoly.toSKI
+/-- Reduction rule for `SKI.Xor`. -/
+theorem xor_def (a b : SKI) : (SKI.Xor ⬝ a ⬝ b) ↠ SKI.Cond ⬝ (SKI.Not ⬝ b) ⬝ b ⬝ a :=
+  XorPoly.toSKI_correct [a, b] (by simp)
+
+/-- `SKI.Xor` computes exclusive or `ua != ub`. -/
+theorem xor_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
+    IsBool (ua != ub) (SKI.Xor ⬝ a ⬝ b) := by
+  apply isBool_trans (a' := SKI.Cond ⬝ (SKI.Not ⬝ b) ⬝ b ⬝ a) (h := xor_def a b)
+  apply isBool_trans (a' := if ua then SKI.Not ⬝ b else b)
+    (h := cond_correct a (SKI.Not ⬝ b) b ua ha)
+  cases ua <;> simp [hb, not_correct b ub hb]
+
+/-- Beq := λ a b. Cond b (Not b) a -/
+def BeqPoly : SKI.Polynomial 2 := SKI.Cond ⬝' &1 ⬝' (SKI.Not ⬝' &1) ⬝' &0
+/-- A SKI term representing boolean equivalence Beq -/
+protected def Beq : SKI := BeqPoly.toSKI
+/-- Reduction rule for `SKI.Beq`. -/
+theorem beq_def (a b : SKI) : (SKI.Beq ⬝ a ⬝ b) ↠ SKI.Cond ⬝ b ⬝ (SKI.Not ⬝ b) ⬝ a :=
+  BeqPoly.toSKI_correct [a, b] (by simp)
+
+/-- `SKI.Beq` computes boolean equivalence `ua == ub`. -/
+theorem beq_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
+    IsBool (ua == ub) (SKI.Beq ⬝ a ⬝ b) := by
+  apply isBool_trans (a' := SKI.Cond ⬝ b ⬝ (SKI.Not ⬝ b) ⬝ a) (h := beq_def a b)
+  apply isBool_trans (a' := if ua then b else SKI.Not ⬝ b)
+    (h := cond_correct a b (SKI.Not ⬝ b) ua ha)
+  cases ua <;> simp [hb, not_correct b ub hb]
+
+/-- Alias for boolean equivalence `SKI.Beq`. -/
+protected abbrev Iff : SKI := SKI.Beq
+/-- Reduction rule for `SKI.Iff`. -/
+theorem iff_def (a b : SKI) : (SKI.Iff ⬝ a ⬝ b) ↠ SKI.Cond ⬝ b ⬝ (SKI.Not ⬝ b) ⬝ a :=
+  beq_def a b
+
+/-- `SKI.Iff` computes boolean equivalence `ua == ub`. -/
+theorem iff_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
+    IsBool (ua == ub) (SKI.Iff ⬝ a ⬝ b) :=
+  beq_correct a b ua ub ha hb
+
+/-- Nand := λ a b. Not (And a b) -/
+def NandPoly : SKI.Polynomial 2 := SKI.Not ⬝' (SKI.And ⬝' &0 ⬝' &1)
+/-- A SKI term representing Nand -/
+protected def Nand : SKI := NandPoly.toSKI
+/-- Reduction rule for `SKI.Nand`. -/
+theorem nand_def (a b : SKI) : (SKI.Nand ⬝ a ⬝ b) ↠ SKI.Not ⬝ (SKI.And ⬝ a ⬝ b) :=
+  NandPoly.toSKI_correct [a, b] (by simp)
+
+/-- `SKI.Nand` computes `!(ua && ub)`. -/
+theorem nand_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
+    IsBool (!(ua && ub)) (SKI.Nand ⬝ a ⬝ b) :=
+  isBool_trans _ _ _ (nand_def a b) (not_correct _ _ (and_correct a b ua ub ha hb))
+
+/-- Nor := λ a b. Not (Or a b) -/
+def NorPoly : SKI.Polynomial 2 := SKI.Not ⬝' (SKI.Or ⬝' &0 ⬝' &1)
+/-- A SKI term representing Nor -/
+protected def Nor : SKI := NorPoly.toSKI
+/-- Reduction rule for `SKI.Nor`. -/
+theorem nor_def (a b : SKI) : (SKI.Nor ⬝ a ⬝ b) ↠ SKI.Not ⬝ (SKI.Or ⬝ a ⬝ b) :=
+  NorPoly.toSKI_correct [a, b] (by simp)
+
+/-- `SKI.Nor` computes `!(ua || ub)`. -/
+theorem nor_correct (a b : SKI) (ua ub : Bool) (ha : IsBool ua a) (hb : IsBool ub b) :
+    IsBool (!(ua || ub)) (SKI.Nor ⬝ a ⬝ b) :=
+  isBool_trans _ _ _ (nor_def a b) (not_correct _ _ (or_correct a b ua ub ha hb))
 
 /-! ### Pairs -/
 
