@@ -56,10 +56,15 @@ We also provide ways of constructing polynomial-runtime TMs
 * `TimeComputable.withMonotoneBound`, `PolyTimeComputable.withMonotoneBound`: replace the time
   bound with a monotone one (its `partialSups`) without changing the machine
 
-## TODOs
+## Notation
 
-- Encoding of types in lists to represent computations on arbitrary types.
-- Add `∘` notation for `compComputer`.
+- `tm1 ∘ₜₘ tm2` (scoped to `Cslib.Turing.SingleTapeTM`): sequential composition of
+  single-tape Turing machines via `SingleTapeTM.compComputer`, running `tm1` followed by `tm2`.
+
+## Related Modules
+
+- `Cslib.Computability.Machines.Turing.SingleTape.Encoding`: defines `TapeEncodable`,
+  `TypedTimeComputable`, and `TypedPolyTimeComputable` for computations on arbitrary types.
 
 -/
 
@@ -266,6 +271,8 @@ def compComputer (tm1 tm2 : SingleTapeTM Symbol) : SingleTapeTM Symbol where
           -- Otherwise continue as normal
           | _ => Option.map .inr state)
 
+@[inherit_doc] scoped infixr:90 " ∘ₜₘ " => compComputer
+
 section compComputerLemmas
 
 /-! ### Composition Computer Lemmas -/
@@ -374,6 +381,18 @@ private theorem comp_right_relatesWithinSteps (intermediate output : List Symbol
   refine RelatesWithinSteps.map (toCompCfg_right tm1 tm2) ?_ htm2
   intro a b hab
   grind [map_toCompCfg_right_step tm1 tm2 a]
+
+/-- If `tm1` outputs `intermediate` on `input` within `t₁` steps and `tm2` outputs `output` on
+`intermediate` within `t₂` steps, then `tm1 ∘ₜₘ tm2` outputs `output` on `input` within `t₁ + t₂`
+steps. -/
+theorem OutputsWithinTime.comp {tm1 tm2 : SingleTapeTM Symbol}
+    {input intermediate output : List Symbol} {t₁ t₂ : ℕ}
+    (htm1 : tm1.OutputsWithinTime input intermediate t₁)
+    (htm2 : tm2.OutputsWithinTime intermediate output t₂) :
+    (tm1 ∘ₜₘ tm2).OutputsWithinTime input output (t₁ + t₂) :=
+  RelatesWithinSteps.trans
+    (comp_left_relatesWithinSteps tm1 tm2 input intermediate t₁ htm1)
+    (comp_right_relatesWithinSteps tm1 tm2 intermediate output t₂ htm2)
 
 end compComputerLemmas
 
