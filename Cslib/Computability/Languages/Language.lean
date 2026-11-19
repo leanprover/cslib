@@ -36,36 +36,36 @@ open scoped Computability
 
 variable {α : Type*} {l m : Language α}
 
+instance instCoeSetList : Coe (Set (List α)) (Language α) where
+  coe f := ⟨f⟩
+
+theorem ne_zero_iff_nonempty : l ≠ 0 ↔ l.toSet.Nonempty := by
+  rw [← ne_empty_iff_nonempty, ← toSet_zero, ne_eq, ne_eq, Language.ext_iff]
+
 /-- `0` and `1` are the only possible languages over an empty type. -/
 theorem eq_zero_or_one_ofIsEmpty [IsEmpty α] (l : Language α) : l = 0 ∨ l = 1 := by
   by_cases h : l = 0
   · simp [h]
   · right
     ext xl
-    obtain ⟨yl, _⟩ := ne_empty_iff_nonempty.mp h
+    obtain ⟨yl, _⟩ := ne_zero_iff_nonempty.mp h
     obtain ⟨rfl⟩ := eq_nil_ofIsEmpty xl
     obtain ⟨rfl⟩ := eq_nil_ofIsEmpty yl
     simpa
 
 @[simp]
 theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
-    (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i :=
-  mem_iInter₂
+    (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i := by
+  simp [← mem_toSet]
 
-#adaptation_note
-/-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[simp]
 theorem mem_biSup {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
-    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i where
-  mp h := bex_def.mp (mem_iUnion₂.mp h)
-  mpr h :=  mem_iUnion₂.mpr (bex_def.mpr h)
+    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i := by
+  simp [← mem_toSet]
 
-theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
-  subset_singleton_iff_eq
-
-@[simp, scoped grind =]
-theorem mem_singleton (x y : List α) : x ∈ ({y} : Language α) ↔ x = y :=
-  Iff.rfl
+theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 := by
+  rw [Language.ext_iff, Language.ext_iff]
+  exact subset_singleton_iff_eq
 
 @[simp, scoped grind =]
 theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
@@ -107,8 +107,8 @@ theorem mul_sub_one : l * (l - 1) = l * l - 1 := by
 theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
   ext x; constructor
   · rintro ⟨h1, h2⟩
-    obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
-    have h3 : ¬ xl = [] := by grind [one_def]
+    obtain ⟨xl, rfl, h_xl⟩ := toSet_kstar_nonempty l ▸ h1
+    have h3 : ¬ xl = [] := by grind [toSet_one]
     obtain ⟨x, xl', h_xl'⟩ := exists_cons_of_ne_nil h3
     subst h_xl'
     refine ⟨x, (mem_sub_one x).mpr (h_xl x ?_), xl'.flatten, join_mem_kstar ?_, ?_⟩ <;> grind
@@ -116,12 +116,12 @@ theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
     refine ⟨?_, ?_⟩
     · apply (show l * l∗ ≤ l∗ by exact mul_kstar_le_kstar)
       exact ⟨y, h_y, z, h_z, rfl⟩
-    · grind [one_def, append_eq_nil_iff]
+    · grind [toSet_one, append_eq_nil_iff]
 
 @[scoped grind =]
 theorem sub_one_kstar : (l - 1)∗ = l∗ := by
   ext x
-  grind [mem_kstar, mem_kstar_iff_exists_nonempty]
+  grind [mem_toSet, mem_kstar, mem_kstar_iff_exists_nonempty]
 
 @[scoped grind .]
 theorem kstar_iff_mul_add : m = l∗ ↔ m = (l - 1) * m + 1 := by

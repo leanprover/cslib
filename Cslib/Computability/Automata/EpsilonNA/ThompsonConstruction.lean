@@ -73,13 +73,13 @@ def char (x : Symbol) : FinAcc Bool Symbol where
 @[simp]
 theorem language_zero : language (zero : FinAcc Unit Symbol) = 0 := by
   ext xs
-  rw [mem_language_iff]
+  simp only [Language.mem_toSet, mem_language_iff]
   simp [zero]
 
 @[simp]
 theorem language_epsilon : language (epsilon : FinAcc Unit Symbol) = 1 := by
   ext xs
-  rw [mem_language_iff, Language.mem_one]
+  simp only [Language.mem_toSet, mem_language_iff]
   constructor
   · rintro ⟨_, -, _, -, μs, rfl, h⟩
     cases h with
@@ -91,7 +91,7 @@ theorem language_epsilon : language (epsilon : FinAcc Unit Symbol) = 1 := by
 @[simp]
 theorem language_char (x : Symbol) : language (char x) = {[x]} := by
   ext xs
-  rw [mem_language_iff, Language.mem_singleton]
+  simp only [Language.mem_toSet, mem_language_iff]
   constructor
   · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
     obtain rfl := Set.mem_singleton_iff.mp hs
@@ -121,7 +121,7 @@ variable {a : FinAcc S₁ Symbol} {b : FinAcc S₂ Symbol}
 theorem language_sum (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
     language (sum a b) = language a + language b := by
   ext xs
-  rw [Language.mem_add, mem_language_iff, mem_language_iff, mem_language_iff]
+  simp only [Language.mem_toSet, Language.mem_add, mem_language_iff]
   constructor
   · rintro ⟨_, hs', _, ht', μs, rfl, h⟩
     rcases (Set.mem_union _ _ _).mp hs' with hs' | hs'
@@ -196,6 +196,7 @@ theorem concat_mTr_inl {s : S₁} {t : S₂} {μs : List (Option Symbol)}
 theorem language_concat (a : FinAcc S₁ Symbol) (b : FinAcc S₂ Symbol) :
     language (concat a b) = language a * language b := by
   ext xs
+  simp only [Language.mem_toSet]
   rw [Language.mem_mul, mem_language_iff]
   constructor
   · rintro ⟨_, hs', _, ht', μs, rfl, h⟩
@@ -289,7 +290,7 @@ theorem exists_star_mTr_of_mem_kstar {xs : List Symbol} (hxs : xs ∈ (language 
 @[simp]
 theorem language_star (a : FinAcc S₁ Symbol) : language (star a) = (language a)∗ := by
   ext xs
-  rw [mem_language_iff]
+  simp only [Language.mem_toSet, mem_language_iff]
   constructor
   · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
     obtain rfl := Set.mem_singleton_iff.mp hs

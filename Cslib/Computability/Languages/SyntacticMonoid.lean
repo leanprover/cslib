@@ -74,7 +74,7 @@ theorem IsRegular.exists_finite_monoid {l : Language α} (h : l.IsRegular) :
     ∃ M : Type, ∃ _ : Monoid M, ∃ _ : Finite M, ∃ f : FreeMonoid α →* M, ∃ s : Set M,
     (f ∘ ofList) ⁻¹' s = l := by
   use l.SyntacticMonoid, Con.monoid _, (iff_finite_syntacticMonoid l).mp h,
-    l.homSyntacticMonoid, (l.homSyntacticMonoid ∘ ofList) '' l
+    l.homSyntacticMonoid, (l.homSyntacticMonoid ∘ ofList) '' l.toSet
   apply le_antisymm
   · rintro x ⟨y, hy, heq⟩
     have heq := homSyntacticMonoid_iff_myhillCongruence.mp heq
@@ -109,7 +109,7 @@ theorem inducedCongr_ofList (x : List α) :
 /-- The preimage of a singleton in a finite monoid `M` under a monoid homomorphism
 from the free monoid to `M` is regular. -/
 theorem IsRegular.of_finite_monoid_singleton [Finite M]
-    (m : M) : IsRegular ((f ∘ ofList) ⁻¹' {m}) := by
+    (m : M) : IsRegular (ofSet ((f ∘ ofList) ⁻¹' {m})) := by
   by_cases h : (f ∘ ofList) ⁻¹' {m} = ∅
   · rw [h]
     exact IsRegular.zero
@@ -120,9 +120,9 @@ theorem IsRegular.of_finite_monoid_singleton [Finite M]
 /-- The preimage of a subset of a finite monoid `M` under a monoid homomorphism
 from the free monoid to `M` is regular. -/
 theorem IsRegular.of_finite_monoid [Finite M]
-    (s : Set M) : IsRegular ((f ∘ ofList) ⁻¹' s) := by
-  have h : (f ∘ ofList) ⁻¹' s = ⨆ m ∈ s, (f ∘ ofList) ⁻¹' {m} := by
-    simp only [Set.iSup_eq_iUnion, Set.biUnion_preimage_singleton]
+    (s : Set M) : IsRegular (ofSet ((f ∘ ofList) ⁻¹' s)) := by
+  have h : ofSet ((f ∘ ofList) ⁻¹' s) = ⨆ m ∈ s, ofSet ((f ∘ ofList) ⁻¹' {m}) :=
+    Language.ext (by simp [Set.biUnion_preimage_singleton])
   rw [h]
   apply IsRegular.iSup
   simp [IsRegular.of_finite_monoid_singleton]

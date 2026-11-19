@@ -82,7 +82,7 @@ theorem IsRegular.finite_myhillQuotient {l : Language α}
 
 /-- The deterministic automaton corresponding to the Myhill congruence of a language `l`. -/
 def myhillCongruenceDA (l : Language α) : DA.FinAcc (l.MyhillQuotient) α :=
-  FinAcc.mk l.MyhillCongruence.toDA ((⟦·⟧) '' l)
+  FinAcc.mk l.MyhillCongruence.toDA ((⟦·⟧) '' l.toSet)
 
 /-- The deterministic automaton corresponding to the Myhill congruence of a language `l`
 accepts the same language `l`. -/

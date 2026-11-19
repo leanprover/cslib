@@ -6,8 +6,7 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Init
-public import Mathlib.Computability.Language
+public import Cslib.Computability.Languages.Language
 public import Mathlib.Data.List.ReduceOption
 
 /-!
@@ -114,11 +113,11 @@ section ImagePreimage
 
 /-- The image of a language under a function `f`, which need not be a language homomorphism. -/
 def image (f : List α → List β) (l : Language α) : Language β :=
-  f '' l
+  f '' l.toSet
 
 /-- The preimage of a language under a function `f`, which need not be a language homomorphism. -/
 def preimage (f : List α → List β) (l : Language β) : Language α :=
-  f ⁻¹' l
+  f ⁻¹' l.toSet
 
 @[simp, scoped grind =]
 theorem mem_image (f : List α → List β) (l : Language α) (bs : List β) :
@@ -132,19 +131,19 @@ theorem mem_preimage (f : List α → List β) (l : Language β) (as : List α) 
 
 theorem image_singleton (f : List α → List β) (as : List α) :
     ({as} : Language α).image f = {f as} :=
-  Set.image_singleton
+  Language.ext Set.image_singleton
 
 @[simp]
 theorem image_zero (f : List α → List β) : (0 : Language α).image f = 0 :=
-  Set.image_empty _
+  Language.ext (Set.image_empty _)
 
 theorem image_add (f : List α → List β) (l1 l2 : Language α) :
     (l1 + l2).image f = l1.image f + l2.image f :=
-  Set.image_union _ _ _
+  Language.ext (Set.image_union _ _ _)
 
 theorem image_iSup (f : List α → List β) {I : Type*} (l : I → Language α) :
     (⨆ i : I, l i).image f = ⨆ i : I, (l i).image f :=
-  Set.image_iUnion
+  Language.ext (by simp [image, Set.image_iUnion])
 
 /-! The following distributive laws for the `image` operation requires the function `f`
 to be a language homomorphism. -/

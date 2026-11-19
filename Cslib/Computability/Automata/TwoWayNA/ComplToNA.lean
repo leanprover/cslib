@@ -277,7 +277,7 @@ theorem accepts_complToNA_iff (a : TwoWayNA State Symbol) (input : List Symbol) 
 /-- `a.complToNA` recognises the complement of the language of `a`. -/
 theorem language_complToNA (a : TwoWayNA State Symbol) : language a.complToNA = (language a)ᶜ := by
   ext xs
-  simp only [Acceptor.mem_language]
+  simp only [Language.mem_toSet, Acceptor.mem_language]
   exact accepts_complToNA_iff a xs
 
 end TwoWayNA
