@@ -5,6 +5,7 @@ Authors: Christian Reitwiessner
 -/
 
 import Cslib.Computability.Encoding.Basic
+import Mathlib.Computability.Encoding
 
 namespace CslibTests.Encoding
 
@@ -32,13 +33,19 @@ example (w v u u' : List Bool) : delimit w ++ u = delimit v ++ u' ↔ w = v ∧ 
 
 /-! ### Basic encodings -/
 
--- `encBool` and `encNat` agree with Mathlib's encodings.
+-- `encBool` agrees with Mathlib's encoding, and `encNat` is `Nat.bits`.
 example : ⇑encBool = Computability.encodingBoolBool.encode := rfl
-example : ⇑encNat = Computability.encodingNatBool.encode := rfl
+example (n : ℕ) : encNat n = n.bits := rfl
 
 -- Binary, least significant bit first.
 example : encNat 0 = [] := by decide
 example : encNat 6 = [false, true, true] := by decide
+
+-- `simp` unfolds `encNat` to `Nat.bits`, which gives it Mathlib's lemmas and injectivity.
+example (n : ℕ) : encNat (2 * n + 1) = true :: encNat n := by simp
+example (n : ℕ) (h : n ≠ 0) : encNat (2 * n) = false :: encNat n := by simp [h]
+example (m n : ℕ) : encNat m = encNat n ↔ m = n := by simp
+example (n : ℕ) : encNat n = [] ↔ n = 0 := by simp
 
 /-! ### Finite types -/
 
