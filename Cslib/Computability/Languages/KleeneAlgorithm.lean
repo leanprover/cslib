@@ -170,11 +170,14 @@ theorem bddLang_bound_zero (lts : LTS (Fin n) Symbol) (s t : Fin n) {xs : List S
 theorem bddLang_eq_nfa (lts : LTS (Fin n) Symbol) (s t : Fin n) {r : ℕ} (_ : n ≤ r) :
     lts.bddLang s t r = language (NA.FinAcc.mk ⟨lts, {s}⟩ {t}) := by
   ext xs
-  simp only [bddLang, mem_language, Accepts, Set.mem_singleton_iff]
-  refine ⟨fun ⟨ss, hex, hbdd⟩ ↦ by simpa using hex.to_mTr, fun ⟨s', hs', t', ht', hmtr⟩ ↦ ?_⟩
-  rw [hs', ht'] at hmtr
-  obtain ⟨ss, hex⟩ := mTr_iff_execution.mp hmtr
-  exact ⟨ss, hex, by grind [AllButFirstLast]⟩
+  simp only [bddLang]
+  constructor
+  · rintro ⟨ss, hex, hbdd⟩
+    simpa [Accepts] using hex.to_mTr
+  · rintro ⟨s', hs', t', ht', hmtr⟩
+    rw [hs', ht'] at hmtr
+    obtain ⟨ss, hex⟩ := mTr_iff_execution.mp hmtr
+    exact ⟨ss, hex, by grind [AllButFirstLast]⟩
 
 section splitFirst
 
@@ -239,7 +242,7 @@ an execution from `r` to `t` with all interior states `≤ r`. -/
 theorem bddLang_splitFirst (lts : LTS (Fin n) Symbol) (s t r : Fin n) :
     lts.bddLang s t (r + 1) = lts.bddLang s t r + lts.bddLang s r r * lts.bddLang r t (r + 1) := by
   ext xs
-  rw [Language.mem_add, Language.mem_mul]
+  simp only [Language.mem_toSet, Language.mem_add, Language.mem_mul]
   constructor
   · intro ⟨ss, hex, hbdd⟩
     by_cases hbdd' : AllButFirstLast (· < r) ss
@@ -335,7 +338,7 @@ an execution from `r` to `t` with all interior states `< r`. -/
 theorem bddLang_splitLast (lts : LTS (Fin n) Symbol) (t r : Fin n) :
     lts.bddLang r t (r + 1) = lts.bddLang r r (r + 1) * lts.bddLang r t r := by
   ext xs
-  rw [Language.mem_mul]
+  simp only [Language.mem_toSet, Language.mem_mul]
   constructor
   · intro ⟨ss, hex, hbdd⟩
     simp only [Order.lt_add_one_iff, Fin.val_fin_le] at hbdd
@@ -363,7 +366,7 @@ theorem bddLang_kstar (lts : LTS (Fin n) Symbol) (r : Fin n) :
   rw [← one_mul (lts.bddLang r r r)∗, ← Language.sub_one_kstar]
   refine (Language.self_eq_add_mul_iff (by simp [Language.mem_sub])).mp ?_
   ext xs
-  simp only [Language.mem_add, Language.mem_mul, Language.mem_sub]
+  simp only [Language.mem_toSet, Language.mem_add, Language.mem_mul, Language.mem_sub]
   constructor
   · intro ⟨ss, hex, hbdd⟩
     simp only [Order.lt_add_one_iff, Fin.val_fin_le] at hbdd
@@ -415,15 +418,16 @@ theorem bddLang_eq_regex {r : ℕ} {lts : LTS (Fin n) Symbol} {s t : Fin n} :
     ext xs
     simp only [regex]
     split_ifs with heq
-    · simp only [matches', Language.mem_add, Language.mem_one, mem_sum_matches',
-      mem_map, Finset.mem_toList, Set.Finite.mem_toFinset, Set.mem_ofPred_eq,
-      exists_exists_and_eq_and, Language.mem_singleton]
+    · simp only [Language.mem_toSet, matches', Language.mem_add, Language.mem_one,
+        mem_sum_matches', mem_map, Finset.mem_toList, Set.Finite.mem_toFinset, Set.mem_ofPred_eq,
+        exists_exists_and_eq_and, Language.mem_singleton_iff]
       by_cases hxs : xs = []
       · simp only [← heq, hxs, ne_cons_self, and_false, exists_false, or_false, iff_true]
         exact ⟨[s], Execution.refl s, by simp [AllButFirstLast]⟩
       simpa [hxs] using lts.bddLang_bound_zero s t hxs
-    · simp only [mem_sum_matches', mem_map, Finset.mem_toList, Set.Finite.mem_toFinset,
-      Set.mem_ofPred_eq, exists_exists_and_eq_and, matches', Language.mem_singleton]
+    · simp only [Language.mem_toSet, mem_sum_matches', mem_map, Finset.mem_toList,
+        Set.Finite.mem_toFinset, Set.mem_ofPred_eq, exists_exists_and_eq_and, matches',
+        Language.mem_singleton_iff]
       by_cases hxs : xs = []
       · simp only [hxs, ne_cons_self, and_false, exists_false, iff_false]
         contrapose heq
@@ -458,7 +462,8 @@ theorem nfa_single_start_accept_reindex (nfa : NA.FinAcc State Symbol) (e : Stat
   have nfa_eq : nfa'.MTr (e s) xs (e t) ↔ nfa.MTr s xs t :=
     ⟨by simpa [nfa', LTS.reindex] using (LTS.reindex.bisim_trace nfa'.toLTS e.symm (e s) (e t) xs),
       LTS.reindex.bisim_trace nfa.toLTS e s t xs⟩
-  simp only [mem_language, Accepts, hstart, Set.mem_singleton_iff, haccept, exists_eq_left, hnfa']
+  simp only [Language.mem_toSet, mem_language, Accepts, hstart, Set.mem_singleton_iff,
+    haccept, exists_eq_left, hnfa']
   rw [nfa_eq]
 
 /-- An NFA with exactly one start state and exactly one accept state
@@ -479,7 +484,7 @@ theorem nfa_eq_regex [Finite Symbol] [Finite State] (nfa : NA.FinAcc State Symbo
     (fun p _ ↦ nfa_single_start_accept_eq_regex _ p.1 p.2 rfl rfl)
   use r
   ext xs
-  rw [← hr, Language.mem_biSup]
+  rw [← hr]
   simp [mem_language, Accepts]
   grind
 
