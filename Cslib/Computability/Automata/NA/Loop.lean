@@ -189,7 +189,7 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
     by_cases h_xl : xl = []
     · grind [Language.mem_add, Language.mem_one]
     · have : Nonempty na.start := by
-        obtain ⟨_, s0, _, _⟩ := nonempty_iff_ne_empty.mpr h
+        obtain ⟨_, s0, _, _⟩ := ne_empty_iff_nonempty.mp h
         use s0
       obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.extend_omegaExecution h_mtr
       have h_run : na.finLoop.Run (xl ++ω xs) ss := by grind [Run]
