@@ -9,7 +9,6 @@ module
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Data.OmegaSequence.Topology
-public import Mathlib.Computability.Language
 public import Mathlib.Order.CompleteBooleanAlgebra
 public import Mathlib.Order.Filter.AtTopBot.Defs
 
@@ -60,14 +59,6 @@ denote languages (namely, sets of finite sequences of type `List α`).
 @[expose] public section
 
 variable {α β γ : Type*}
-
--- This section is to be removed after mathlib#36934 is merged into mathlib.
-section Mathlib_36934
-
-/-- The set of lists in a language. -/
-def Language.toSet (l : Language α) : Set (List α) := l
-
-end Mathlib_36934
 
 namespace Cslib
 
@@ -292,7 +283,6 @@ theorem hmul_bot : l * (⊥ : ωLanguage α) = ⊥ := by
 @[simp, scoped grind =]
 theorem one_hmul : (1 : Language α) * p = p := by
   simp [hmul_def]
-  simp [Language.one_def, Language.toSet]
 
 theorem hmul_sup : l * (p ⊔ q) = l * p ⊔ l * q := by
   ext : 1
@@ -305,7 +295,7 @@ theorem add_hmul : (l + m) * p = l * p ⊔ m * p := by
 theorem iSup_hmul {ι : Sort v} (l : ι → Language α) (p : ωLanguage α) :
     (⨆ i, l i) * p = ⨆ i, l i * p := by
   ext : 1
-  simp only [hmul_def, iSup_def]
+  simp only [hmul_def, iSup_def, Language.toSet_iSup]
   apply image2_iUnion_left
 
 theorem hmul_iSup {ι : Sort v} (p : ι → ωLanguage α) (l : Language α) :
