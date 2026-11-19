@@ -87,7 +87,7 @@ theorem loop_run_one_iter {xs : ωSequence Symbol} {ss : ωSequence (Unit ⊕ St
   have : 0 < n ∧ (ss n).isLeft := Nat.find_spec h1'
   have : ∀ k, 0 < k → k < n → (ss k).isRight := by grind [Nat.find_min h1']
   refine ⟨n, by grind, ⟨?_, ?_⟩, ?_⟩
-  · grind [loop_run_left_right_left]
+  · exact loop_run_left_right_left h n ‹_› ‹_›
   · have neq : (ωSequence.take n xs).length ≠ 0 := by grind
     exact neq.imp (congrArg List.length)
   · grind [loop_run_from_left]
@@ -187,9 +187,9 @@ theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
   ext xl; constructor
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
     by_cases h_xl : xl = []
-    · grind [Language.mem_add, Language.mem_one]
+    · grind [Language.mem_toSet, Language.mem_add, Language.mem_one]
     · have : Nonempty na.start := by
-        obtain ⟨_, s0, _, _⟩ := ne_empty_iff_nonempty.mp h
+        obtain ⟨_, s0, _, _⟩ := ne_zero_iff_nonempty.mp h
         use s0
       obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.extend_omegaExecution h_mtr
       have h_run : na.finLoop.Run (xl ++ω xs) ss := by grind [Run]
