@@ -143,11 +143,9 @@ private theorem traces_ltsND_subset_traces_ltsD (μs : List (Act String)) :
       cases htr with
       | choiceL htr => cases htr; exact ⟨_, .const rfl .pre, ih.2.1 hs⟩
       | choiceR htr => cases htr; exact ⟨_, .const rfl .pre, ih.2.2 hs⟩
-    · rintro ⟨s, htr, hs⟩
-      cases htr
+    · rintro ⟨s, ⟨htr⟩, hs⟩
       exact ⟨_, .choiceL .pre, ih.1 hs⟩
-    · rintro ⟨s, htr, hs⟩
-      cases htr
+    · rintro ⟨s, ⟨htr⟩, hs⟩
       exact ⟨_, .choiceR .pre, ih.1 hs⟩
 
 /-- The deterministic and nondeterministic vending machines are trace equivalent. -/
