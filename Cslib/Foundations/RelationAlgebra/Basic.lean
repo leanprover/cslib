@@ -35,8 +35,18 @@ class NonAssocRelationAlgebra (α : Type*) extends BooleanAlgebra α, MulOneClas
   star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
   tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
 
-class SemiAssocRelationAlgebra (α : Type*) extends NonAssocRelationAlgebra α where
+@[simp]
+theorem RelationAlgebra.top_mul_top {α : Type*} [NonAssocRelationAlgebra α] : (⊤ : α) * ⊤ = ⊤ := by
+  have h := NonAssocRelationAlgebra.sup_mul (1 : α) ⊤ ⊤
+  rwa [sup_top_eq, one_mul, top_sup_eq] at h
+
+class WeakAssocRelationAlgebra (α : Type*) extends NonAssocRelationAlgebra α where
+  inf_one_mul_top_mul_top (a : α) : (a ⊓ 1) * ⊤ * ⊤ = (a ⊓ 1) * ⊤
+
+class SemiAssocRelationAlgebra (α : Type*) extends WeakAssocRelationAlgebra α where
   mul_assoc_top (a b : α) : a * b * ⊤ = a * (b * ⊤)
+  inf_one_mul_top_mul_top a :=
+    (mul_assoc_top (a ⊓ 1) ⊤).trans (congrArg ((a ⊓ 1) * ·) RelationAlgebra.top_mul_top)
 
 /-- The class of relation algebras. Note the notational differences from the literature. In addition
 to inheriting Mathlib's notations for Boolean algebras, `star` is used for converse, and the monoid
@@ -54,6 +64,8 @@ class CompleteAtomicRelationAlgebra (α : Type*) extends CompleteRelationAlgebra
 namespace RelationAlgebra
 
 export NonAssocRelationAlgebra (sup_mul star_sup tarski)
+
+export WeakAssocRelationAlgebra (inf_one_mul_top_mul_top)
 
 export SemiAssocRelationAlgebra (mul_assoc_top)
 

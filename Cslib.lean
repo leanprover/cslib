@@ -207,6 +207,7 @@ public import Cslib.Foundations.RelationAlgebra.Dimensional.Representable
 public import Cslib.Foundations.RelationAlgebra.Dimensional.SetRel
 public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.ModelTheory
 public import Cslib.Foundations.RelationAlgebra.Pi
 public import Cslib.Foundations.RelationAlgebra.RelationalBasis
 public import Cslib.Foundations.RelationAlgebra.Representation

@@ -6,7 +6,7 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Basic
+public import Cslib.Foundations.RelationAlgebra.ModelTheory
 public import Cslib.Foundations.Logic.InferenceSystem.Defs
 
 @[expose] public section
@@ -15,43 +15,13 @@ universe u v w
 
 namespace Cslib.RelationAlgebra
 
-inductive Predicate (P : Type u) : Type u where
-  | var (p : P)
-  | one
-  | sup (A B : Predicate P)
-  | compl (A : Predicate P)
-  | mul (A B : Predicate P)
-  | star (A : Predicate P)
-
-namespace Predicate
-
-variable {P : Type u}
-
-instance : One (Predicate P) := ⟨one⟩
-
-instance : Max (Predicate P) := ⟨sup⟩
-
-instance : Compl (Predicate P) := ⟨compl⟩
-
-instance : Mul (Predicate P) := ⟨mul⟩
-
-instance : Star (Predicate P) := ⟨star⟩
-
-def eval {α : Type w} [NonAssocRelationAlgebra α] (v : P → α) : Predicate P → α
-  | var p => v p
-  | one => 1
-  | sup A B => A.eval v ⊔ B.eval v
-  | compl A => (A.eval v)ᶜ
-  | mul A B => A.eval v * B.eval v
-  | star A => Star.star (A.eval v)
-
-end Predicate
+open FirstOrder FirstOrder.RelationAlgebra
 
 namespace SequentCalculus
 
 structure Formula (V : Type v) (P : Type u) where
   left : V
-  pred : Predicate P
+  pred : Language.relationAlgebra.Term P
   right : V
 
 abbrev Sequent (V : Type v) (P : Type u) := Set (Formula V P) × Set (Formula V P)
@@ -66,36 +36,36 @@ inductive Proof (Ψ : Set (Sequent V P)) : Sequent V P → Type (max u v) where
   | cut {Γ Γ' Δ Δ' : Set (Formula V P)} {φ : Formula V P} :
       Proof Ψ (Γ, insert φ Δ) → Proof Ψ (insert φ Γ', Δ') → Proof Ψ (Γ ∪ Γ', Δ ∪ Δ')
   -- 1'|
-  | oneLeft {Γ Δ : Set (Formula V P)} {x y z : V} {A : Predicate P} :
+  | oneLeft {Γ Δ : Set (Formula V P)} {x y z : V} {A : Language.relationAlgebra.Term P} :
       Proof Ψ (insert ⟨x, A, y⟩ Γ, Δ) → Proof Ψ (insert ⟨x, A, z⟩ (insert ⟨z, 1, y⟩ Γ), Δ)
   -- |1'
   | oneRight {Γ Δ : Set (Formula V P)} {x : V} : ⟨x, 1, x⟩ ∈ Δ → Proof Ψ (Γ, Δ)
   -- +|
-  | supLeft {Γ Γ' Δ Δ' : Set (Formula V P)} {x y : V} {A B : Predicate P} :
+  | supLeft {Γ Γ' Δ Δ' : Set (Formula V P)} {x y : V} {A B : Language.relationAlgebra.Term P} :
       Proof Ψ (insert ⟨x, A, y⟩ Γ, Δ) → Proof Ψ (insert ⟨x, B, y⟩ Γ', Δ') →
         Proof Ψ (insert ⟨x, A ⊔ B, y⟩ (Γ ∪ Γ'), Δ ∪ Δ')
   -- |+
-  | supRight {Γ Δ : Set (Formula V P)} {x y : V} {A B : Predicate P} :
+  | supRight {Γ Δ : Set (Formula V P)} {x y : V} {A B : Language.relationAlgebra.Term P} :
       Proof Ψ (Γ, insert ⟨x, A, y⟩ (insert ⟨x, B, y⟩ Δ)) → Proof Ψ (Γ, insert ⟨x, A ⊔ B, y⟩ Δ)
   -- ⁻|
-  | complLeft {Γ Δ : Set (Formula V P)} {x y : V} {A : Predicate P} :
+  | complLeft {Γ Δ : Set (Formula V P)} {x y : V} {A : Language.relationAlgebra.Term P} :
       Proof Ψ (Γ, insert ⟨x, A, y⟩ Δ) → Proof Ψ (insert ⟨x, Aᶜ, y⟩ Γ, Δ)
   -- |⁻
-  | complRight {Γ Δ : Set (Formula V P)} {x y : V} {A : Predicate P} :
+  | complRight {Γ Δ : Set (Formula V P)} {x y : V} {A : Language.relationAlgebra.Term P} :
       Proof Ψ (insert ⟨x, A, y⟩ Γ, Δ) → Proof Ψ (Γ, insert ⟨x, Aᶜ, y⟩ Δ)
   -- ;| with the side condition "no y"
-  | mulLeft {Γ Δ : Set (Formula V P)} {x y z : V} {A B : Predicate P} :
+  | mulLeft {Γ Δ : Set (Formula V P)} {x y z : V} {A B : Language.relationAlgebra.Term P} :
       y ≠ x → y ≠ z → (∀ φ ∈ Γ ∪ Δ, y ≠ φ.left ∧ y ≠ φ.right) →
         Proof Ψ (insert ⟨x, A, y⟩ (insert ⟨y, B, z⟩ Γ), Δ) → Proof Ψ (insert ⟨x, A * B, z⟩ Γ, Δ)
   -- |;
-  | mulRight {Γ Γ' Δ Δ' : Set (Formula V P)} {x y z : V} {A B : Predicate P} :
+  | mulRight {Γ Γ' Δ Δ' : Set (Formula V P)} {x y z : V} {A B : Language.relationAlgebra.Term P} :
       Proof Ψ (Γ, insert ⟨x, A, y⟩ Δ) → Proof Ψ (Γ', insert ⟨y, B, z⟩ Δ') →
         Proof Ψ (Γ ∪ Γ', insert ⟨x, A * B, z⟩ (Δ ∪ Δ'))
   -- ˘|
-  | starLeft {Γ Δ : Set (Formula V P)} {x y : V} {A : Predicate P} :
+  | starLeft {Γ Δ : Set (Formula V P)} {x y : V} {A : Language.relationAlgebra.Term P} :
       Proof Ψ (insert ⟨x, A, y⟩ Γ, Δ) → Proof Ψ (insert ⟨y, star A, x⟩ Γ, Δ)
   -- |˘
-  | starRight {Γ Δ : Set (Formula V P)} {x y : V} {A : Predicate P} :
+  | starRight {Γ Δ : Set (Formula V P)} {x y : V} {A : Language.relationAlgebra.Term P} :
       Proof Ψ (Γ, insert ⟨x, A, y⟩ Δ) → Proof Ψ (Γ, insert ⟨y, star A, x⟩ Δ)
 
 opaque SC (Ψ : Set (Sequent V P)) : Type := Empty
@@ -104,10 +74,11 @@ instance (Ψ : Set (Sequent V P)) : Logic.InferenceSystem (SC Ψ) (Sequent V P) 
   derivation := Proof Ψ
 
 open Logic.InferenceSystem in
-def Sound (α : Type w) [NonAssocRelationAlgebra α] (V : Type v) : Prop :=
-  ∀ (A B : Predicate ℕ) (x y : V), x ≠ y →
+def Sound (α : Type w) [NonAssocRelationAlgebra α] [CompatibleRelationAlgebra α] (V : Type v) :
+    Prop :=
+  ∀ (A B : Language.relationAlgebra.Term ℕ) (x y : V), x ≠ y →
     DerivableIn (SC (∅ : Set (Sequent V ℕ))) (({⟨x, A, y⟩}, {⟨x, B, y⟩}) : Sequent V ℕ) →
-      ∀ v : ℕ → α, A.eval v ≤ B.eval v
+      ∀ v : ℕ → α, A.realize v ≤ B.realize v
 
 end SequentCalculus
 

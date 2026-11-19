@@ -27,6 +27,11 @@ instance Pi.instNonAssocRelationAlgebra {ι : Type*} {β : ι → Type*}
   star_sup a b := funext fun i => RelationAlgebra.star_sup (a i) (b i)
   tarski a b i := RelationAlgebra.tarski (a i) (b i)
 
+instance Pi.instWeakAssocRelationAlgebra {ι : Type*} {β : ι → Type*}
+    [∀ i, WeakAssocRelationAlgebra (β i)] : WeakAssocRelationAlgebra (∀ i, β i) where
+  inf_one_mul_top_mul_top a :=
+    funext fun i => RelationAlgebra.inf_one_mul_top_mul_top (a i)
+
 instance Pi.instSemiAssocRelationAlgebra {ι : Type*} {β : ι → Type*}
     [∀ i, SemiAssocRelationAlgebra (β i)] : SemiAssocRelationAlgebra (∀ i, β i) where
   mul_assoc_top a b := funext fun i => RelationAlgebra.mul_assoc_top (a i) (b i)
