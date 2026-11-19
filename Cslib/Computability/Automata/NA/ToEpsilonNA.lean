@@ -38,7 +38,7 @@ open Acceptor in
 theorem toEpsilonNAFinAcc_language_eq {a : NA.FinAcc State Symbol} :
     language a.toEpsilonNAFinAcc = language a := by
   ext xs
-  rw [εNA.FinAcc.mem_language_iff, mem_language]
+  simp only [Language.mem_toSet, εNA.FinAcc.mem_language_iff]
   constructor
   · rintro ⟨s, hs, t, ht, μs, rfl, h⟩
     exact ⟨s, hs, t, ht, LTS.mapHom_mTr.mp h⟩
