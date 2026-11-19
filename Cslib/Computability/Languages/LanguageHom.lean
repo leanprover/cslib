@@ -113,11 +113,11 @@ section ImagePreimage
 
 /-- The image of a language under a function `f`, which need not be a language homomorphism. -/
 def image (f : List α → List β) (l : Language α) : Language β :=
-  f '' l.toSet
+  ofSet (f '' l.toSet)
 
 /-- The preimage of a language under a function `f`, which need not be a language homomorphism. -/
 def preimage (f : List α → List β) (l : Language β) : Language α :=
-  f ⁻¹' l.toSet
+  ofSet (f ⁻¹' l.toSet)
 
 @[simp, scoped grind =]
 theorem mem_image (f : List α → List β) (l : Language α) (bs : List β) :

@@ -72,7 +72,7 @@ theorem homSyntacticMonoid_iff_myhillCongruence {l : Language α} {x y : List α
 under a monoid homomorphism from the free monoid on its alphabet to `M`. -/
 theorem IsRegular.exists_finite_monoid {l : Language α} (h : l.IsRegular) :
     ∃ M : Type, ∃ _ : Monoid M, ∃ _ : Finite M, ∃ f : FreeMonoid α →* M, ∃ s : Set M,
-    (f ∘ ofList) ⁻¹' s = l := by
+    ofSet ((f ∘ ofList) ⁻¹' s) = l := by
   use l.SyntacticMonoid, Con.monoid _, (iff_finite_syntacticMonoid l).mp h,
     l.homSyntacticMonoid, (l.homSyntacticMonoid ∘ ofList) '' l.toSet
   apply le_antisymm
@@ -102,7 +102,7 @@ instance [Finite M] : Finite (Quotient (inducedCongr f).eq) :=
   Finite.of_equiv _ (Setoid.quotientKerEquivRange (f ∘ ofList)).symm
 
 theorem inducedCongr_ofList (x : List α) :
-    (f ∘ ofList) ⁻¹' {(f ∘ ofList) x} = (inducedCongr f).eqvCls ⟦ x ⟧ := by
+    ofSet ((f ∘ ofList) ⁻¹' {(f ∘ ofList) x}) = (inducedCongr f).eqvCls ⟦ x ⟧ := by
   ext y
   simp [Quotient.eq]
 
@@ -134,7 +134,7 @@ under a monoid homomorphism from the free monoid on its alphabet to `M`. -/
 theorem IsRegular.iff_finite_monoid {l : Language α} :
     l.IsRegular ↔
     ∃ M : Type, ∃ _ : Monoid M, ∃ _ : Finite M, ∃ f : FreeMonoid α →* M, ∃ s : Set M,
-    (f ∘ ofList) ⁻¹' s = l := by
+    ofSet ((f ∘ ofList) ⁻¹' s) = l := by
   apply Iff.intro
   case mp =>
     intro h

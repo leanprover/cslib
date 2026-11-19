@@ -36,7 +36,7 @@ noncomputable def slice (L : Language α) (n : ℕ) : (Fin n → α) → Bool :=
 
 /-- The language whose slice at each length `n` is `f n`. -/
 def ofSlices (f : ∀ n, (Fin n → α) → Bool) : Language α :=
-  {w : List α | f w.length (fun i => w[i]) = true}
+  ofSet {w : List α | f w.length (fun i => w[i]) = true}
 
 theorem mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {w : List α} :
     w ∈ ofSlices f ↔ f w.length (w[·]) := Iff.rfl

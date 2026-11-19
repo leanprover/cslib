@@ -26,7 +26,7 @@ variable {Symbol : Type v}
 /-- The language of an `Acceptor` is the set of strings it `Accepts`. -/
 @[scoped grind .]
 def language [Acceptor A Symbol] (a : A) : Language Symbol :=
-  { xs | Accepts a xs }
+  .ofSet { xs | Accepts a xs }
 
 /-- A string is in the language of an acceptor iff the acceptor accepts it. -/
 @[simp, scoped grind =]

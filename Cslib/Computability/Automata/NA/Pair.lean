@@ -23,7 +23,7 @@ variable {Symbol : Type*} {State : Type}
 /-- `LTS.pairLang s t` is the language of finite words that can take the LTS
 from state `s` to state `t`. -/
 def LTS.pairLang (lts : LTS State Symbol) (s t : State) : Language Symbol :=
-  { xs | lts.MTr s xs t }
+  .ofSet { xs | lts.MTr s xs t }
 
 @[simp, scoped grind =]
 theorem LTS.mem_pairLang {lts : LTS State Symbol} {s t : State} {xs : List Symbol} :

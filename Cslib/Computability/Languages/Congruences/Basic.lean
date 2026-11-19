@@ -31,7 +31,7 @@ namespace RightCongruence
 
 /-- The equivalence class (as a language) corresponding to an element of the quotient type. -/
 abbrev eqvCls [c : RightCongruence α] (a : Quotient c.eq) : Language α :=
-  (Quotient.mk c.eq) ⁻¹' {a}
+  ofSet ((Quotient.mk c.eq) ⁻¹' {a})
 
 end RightCongruence
 
@@ -45,7 +45,7 @@ namespace LeftCongruence
 
 /-- The equivalence class (as a language) corresponding to an element of the quotient type. -/
 abbrev eqvCls [c : LeftCongruence α] (a : Quotient c.eq) : Language α :=
-  (Quotient.mk c.eq) ⁻¹' {a}
+  ofSet ((Quotient.mk c.eq) ⁻¹' {a})
 
 end LeftCongruence
 
@@ -57,7 +57,7 @@ namespace Congruence
 
 /-- The equivalence class (as a language) corresponding to an element of the quotient type. -/
 abbrev eqvCls [c : Congruence α] (a : Quotient c.eq) : Language α :=
-  (Quotient.mk c.eq) ⁻¹' {a}
+  ofSet ((Quotient.mk c.eq) ⁻¹' {a})
 
 end Congruence
 

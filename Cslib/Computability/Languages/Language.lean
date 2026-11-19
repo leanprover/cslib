@@ -36,8 +36,8 @@ open scoped Computability
 
 variable {α : Type*} {l m : Language α}
 
-instance instCoeSetList : Coe (Set (List α)) (Language α) where
-  coe f := ⟨f⟩
+-- instance instCoeSetList : Coe (Set (List α)) (Language α) where
+--   coe f := ⟨f⟩
 
 theorem ne_zero_iff_nonempty : l ≠ 0 ↔ l.toSet.Nonempty := by
   rw [← ne_empty_iff_nonempty, ← toSet_zero, ne_eq, ne_eq, Language.ext_iff]

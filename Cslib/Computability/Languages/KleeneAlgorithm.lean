@@ -151,7 +151,7 @@ def BddExec (lts : LTS (Fin n) Symbol) (start : Fin n) (xs : List Symbol) (last 
 
 /-- The language of finite words that are accepted by a `BddExec`. -/
 def bddLang (lts : LTS (Fin n) Symbol) (start last : Fin n) (bound : ℕ) : Language Symbol :=
-  { xs | ∃ ss, lts.BddExec start xs last ss bound }
+  .ofSet { xs | ∃ ss, lts.BddExec start xs last ss bound }
 
 theorem bddLang_bound_zero (lts : LTS (Fin n) Symbol) (s t : Fin n) {xs : List Symbol}
    (hxs : ¬xs = []) : xs ∈ lts.bddLang s t 0 ↔ ∃ a, lts.Tr s a t ∧ xs = [a] := by
