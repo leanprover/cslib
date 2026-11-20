@@ -21,13 +21,15 @@ output is `e`.
 
 ## Main definitions
 
-* `Cslib.Encoding.headCases`: a function on words that depends only on the first bit, and either
-  keeps or drops the rest.
+* `Cslib.Encoding.headCases` replaces the first bit with a word and uses that bit to decide
+  whether to copy the remaining input. It returns a supplied default on empty input.
 
 ## Main results
 
-* `Turing.MultiTapeTM.computableInTimeAndSpace_headCases`: `headCases` is computable in linear
-  time and zero space.
+* `Cslib.Encoding.length_headCases_le` bounds the output length by the input length plus the
+  maximum length of the default and the two replacement words.
+* `Turing.MultiTapeTM.computableInTimeAndSpace_headCases` computes this function in linear time
+  and zero work space.
 -/
 
 public section
@@ -68,11 +70,14 @@ not. -/
 private def headCasesTransducer (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool) :
     SubsequentialTransducer (Option Bool) Bool Bool where
   start := none
-  step
-    | none, b => (g b, some (keep b))
-    | some true, b => ([b], some true)
-    | some false, _ => ([], some false)
-  final
+  tr
+    | none, b => some (keep b)
+    | some k, _ => some k
+  emit
+    | none, b => g b
+    | some true, b => [b]
+    | some false, _ => []
+  finalOut
     | none => e
     | some _ => []
 

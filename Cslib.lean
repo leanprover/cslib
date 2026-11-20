@@ -25,6 +25,7 @@ public import Cslib.Computability.Automata.DA.Buchi
 public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.DA.Transducer
 public import Cslib.Computability.Automata.EpsilonNA.Basic
 public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
 public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
@@ -45,7 +46,6 @@ public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.ToEpsilonNA
 public import Cslib.Computability.Automata.NA.Total
-public import Cslib.Computability.Automata.Transducers.Subsequential
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Automata.TwoWayNA.Basic
 public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
