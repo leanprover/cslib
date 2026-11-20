@@ -6,6 +6,7 @@ Authors: Fabrizio Montesi
 
 module
 
+public import Cslib.Languages.Mech.Common.GlobalStore
 public import Cslib.Languages.StatefulProcesses.Basic
 
 /-! # Networks of stateful processes and their semantics

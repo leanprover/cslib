@@ -6,7 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Languages.Mech.LocalComputation
+public import Cslib.Foundations.Data.HasTrue
+public import Cslib.Languages.Mech.Common.Expr.Notation
 public import Cslib.Foundations.Semantics.LTS.Basic
 
 set_option linter.style.header false in
@@ -30,7 +31,7 @@ approach to that for `CCS`.
 ## Implementation notes
 
 In process syntax, expressions can use the notation for the syntactic
-category `mechExpr`, see `Cslib.Languages.Mech.LocalComputation`): `{f $x $y}` applies a Lean
+category `mechExpr`, see `Cslib.Languages.Mech.Common.Expr.Notation`): `{f $x $y}` applies a Lean
 function to participant-local variables `x` and `y`, `{term}` embeds a Lean term, and any term of
 type `L.Expr α` can be used directly.
 
