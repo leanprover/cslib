@@ -83,15 +83,16 @@ private def undelimitTransducer (e : List Bool) :
     | .start => e
     | _ => []
 
-private def undelimitFrom (e : List Bool) : UndelimitState → List Bool → List Bool
-  | .start, w => undelimitOr e w
-  | .tag, w => undelimit w
-  | .bit, w => w.head?.toList ++ undelimit w.tail
-  | .done, _ => []
+private def undelimitFrom (e : List Bool) (q : UndelimitState) (w : List Bool) : List Bool :=
+  match q with
+  | .start => undelimitOr e w
+  | .tag => undelimit w
+  | .bit => w.head?.toList ++ undelimit w.tail
+  | .done => []
 
-private lemma outputFrom_undelimit (e : List Bool) (q : UndelimitState) (w : List Bool) :
-    (undelimitTransducer e).outputFrom q w = undelimitFrom e q w := by
-  apply SubsequentialTransducer.outputFrom_eq_of_spec
+private lemma outputFrom_undelimit (e : List Bool) :
+    (undelimitTransducer e).outputFrom = undelimitFrom e := by
+  apply SubsequentialTransducer.outputFrom_unique
   · intro q
     cases q <;> rfl
   · intro q b w
@@ -102,7 +103,10 @@ theorem computableInTimeAndSpace_undelimitOr (e : List Bool) :
     ComputableInTimeAndSpace (undelimitOr e) encBits encBits
       (fun w => 2 * w.length + e.length + 1) (fun _ => 0) :=
   (computableInTimeAndSpace_of_subsequential (undelimitTransducer e) (undelimitOr e)
-    (fun w => by simpa using! outputFrom_undelimit e .start w)).mono
+    (fun w => by
+      rw [SubsequentialTransducer.translates_iff_output_eq, SubsequentialTransducer.output,
+        outputFrom_undelimit]
+      rfl)).mono
     (fun _ => by lia [length_undelimitOr_le]) fun _ => le_rfl
 
 /-- `undelimit` is computable in linear time and zero space. -/
@@ -131,14 +135,15 @@ private def dropDelimitedTransducer : SequentialTransducer DropDelimitedState Bo
     | .copy, b => [b]
     | _, _ => []
 
-private def dropDelimitedFrom : DropDelimitedState → List Bool → List Bool
-  | .tag, w => dropDelimited w
-  | .bit, w => dropDelimited w.tail
-  | .copy, w => w
+private def dropDelimitedFrom (q : DropDelimitedState) (w : List Bool) : List Bool :=
+  match q with
+  | .tag => dropDelimited w
+  | .bit => dropDelimited w.tail
+  | .copy => w
 
-private lemma outputFrom_dropDelimited (q : DropDelimitedState) (w : List Bool) :
-    dropDelimitedTransducer.outputFrom q w = dropDelimitedFrom q w := by
-  apply SequentialTransducer.outputFrom_eq_of_spec
+private lemma outputFrom_dropDelimited :
+    dropDelimitedTransducer.outputFrom = dropDelimitedFrom := by
+  apply SequentialTransducer.outputFrom_unique
   · intro q
     cases q <;> rfl
   · intro q b w
@@ -149,7 +154,10 @@ theorem computableInTimeAndSpace_dropDelimited :
     ComputableInTimeAndSpace dropDelimited encBits encBits (fun w => 2 * w.length + 1)
       (fun _ => 0) :=
   (computableInTimeAndSpace_of_sequential dropDelimitedTransducer dropDelimited
-    (fun w => by simpa using! outputFrom_dropDelimited .tag w)).mono
+    (fun w => by
+      rw [SequentialTransducer.translates_iff_output_eq, SequentialTransducer.output,
+        outputFrom_dropDelimited]
+      rfl)).mono
     (fun _ => by lia [length_dropDelimited_le]) fun _ => le_rfl
 
 /-! ### All delimited codes -/
@@ -160,13 +168,14 @@ private def undelimitAllTransducer : SequentialTransducer Bool Bool Bool where
   tr bit b := !bit && b
   emit bit b := if bit then [b] else []
 
-private def undelimitAllFrom : Bool → List Bool → List Bool
-  | false, w => undelimitAll w
-  | true, w => w.head?.toList ++ undelimitAll w.tail
+private def undelimitAllFrom (q : Bool) (w : List Bool) : List Bool :=
+  match q with
+  | false => undelimitAll w
+  | true => w.head?.toList ++ undelimitAll w.tail
 
-private lemma outputFrom_undelimitAll (q : Bool) (w : List Bool) :
-    undelimitAllTransducer.outputFrom q w = undelimitAllFrom q w := by
-  apply SequentialTransducer.outputFrom_eq_of_spec
+private lemma outputFrom_undelimitAll :
+    undelimitAllTransducer.outputFrom = undelimitAllFrom := by
+  apply SequentialTransducer.outputFrom_unique
   · intro q
     cases q <;> rfl
   · intro q b w
@@ -177,7 +186,10 @@ theorem computableInTimeAndSpace_undelimitAll :
     ComputableInTimeAndSpace undelimitAll encBits encBits (fun w => 2 * w.length + 1)
       (fun _ => 0) :=
   (computableInTimeAndSpace_of_sequential undelimitAllTransducer undelimitAll
-    (fun w => by simpa using! outputFrom_undelimitAll false w)).mono
+    (fun w => by
+      rw [SequentialTransducer.translates_iff_output_eq, SequentialTransducer.output,
+        outputFrom_undelimitAll]
+      rfl)).mono
     (fun _ => by lia [length_undelimitAll_le]) fun _ => le_rfl
 
 end Turing.MultiTapeTM

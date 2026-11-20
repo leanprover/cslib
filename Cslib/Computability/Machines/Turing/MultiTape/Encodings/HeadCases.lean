@@ -43,21 +43,16 @@ def headCases (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool) : 
   | [] => e
   | b :: w => g b ++ if keep b then w else []
 
+attribute [simp] headCases.eq_1 headCases.eq_2
+
 variable (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool)
-
-@[simp]
-theorem headCases_nil : headCases e g keep [] = e := rfl
-
-@[simp]
-theorem headCases_cons (b : Bool) (w : List Bool) :
-    headCases e g keep (b :: w) = g b ++ if keep b then w else [] := rfl
 
 theorem length_headCases_le (w : List Bool) :
     (headCases e g keep w).length ≤
       w.length + max e.length (max (g false).length (g true).length) := by
   cases w with
   | nil => simp
-  | cons b w => cases b <;> grind [headCases_cons]
+  | cons b w => cases b <;> grind [headCases]
 
 end Cslib.Encoding
 

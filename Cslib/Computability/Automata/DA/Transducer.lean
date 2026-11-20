@@ -18,6 +18,9 @@ A subsequential transducer can also output a final word at the end of the input.
 complete input word is the concatenation of the output words along the path through the automaton,
 followed by the final output of the last state.
 
+The transducers here are total. Every state has a transition for each input symbol, and every
+state of a subsequential transducer has a final output. The state type may be infinite.
+
 ## Main definitions
 
 * `Cslib.Automata.SequentialTransducer` extends a deterministic automaton with a word emitted on
@@ -26,6 +29,10 @@ followed by the final output of the last state.
   and the output word it emits.
 * `Cslib.Automata.SequentialTransducer.toSubsequential` equips a sequential transducer with
   empty final output.
+* `Cslib.Automata.SequentialTransducer.outputFrom` and
+  `Cslib.Automata.SubsequentialTransducer.outputFrom` compute the output from a given state.
+* `Cslib.Automata.SequentialTransducer.output` and `Cslib.Automata.SubsequentialTransducer.output`
+  compute the output on a complete input word from the start state.
 
 ## Main results
 
@@ -34,6 +41,10 @@ followed by the final output of the last state.
 * `Cslib.Automata.SequentialTransducer.translates_iff_output_eq` and
   `Cslib.Automata.SubsequentialTransducer.translates_iff_output_eq` characterize translation
   along labelled paths by equality with the recursively computed output.
+
+## References
+
+* [S. Mihov and K. U. Schulz, *Finite-State Techniques*, Chapter 5][MihovSchulz2019]
 -/
 
 @[expose] public section
@@ -57,7 +68,7 @@ variable {State InSymbol OutSymbol : Type*}
 
 variable (transducer : SequentialTransducer State InSymbol OutSymbol)
 
-/-- Label each transition with the consumed symbol and the emitted word.
+/-- An LTS that labels each transition with the consumed symbol and the emitted word.
 The underlying automaton labels transitions by input alone in `transducer.toFLTS.toLTS`. -/
 def toIOLTS (transducer : SequentialTransducer State InSymbol OutSymbol) :
     LTS State (InSymbol × List OutSymbol) where
@@ -67,6 +78,9 @@ def toIOLTS (transducer : SequentialTransducer State InSymbol OutSymbol) :
 theorem toIOLTS_tr (q : State) (label : InSymbol × List OutSymbol) (q' : State) :
     transducer.toIOLTS.Tr q label q' ↔
       transducer.emit q label.1 = label.2 ∧ transducer.tr q label.1 = q' := Iff.rfl
+
+instance : transducer.toIOLTS.Deterministic where
+  deterministic _ _ _ _ h₁ h₂ := h₁.2.symm.trans h₂.2
 
 instance {Input Output : Type v} :
     Transducer (SequentialTransducer State Input Output) Input Output where
@@ -95,6 +109,7 @@ theorem exists_mTr (q : State) (w : List InSymbol) :
     exact ⟨(a, transducer.emit q a) :: labels, q', .stepL ⟨rfl, rfl⟩ h, rfl⟩
 
 /-- Regard a sequential transducer as subsequential by emitting nothing at end of input. -/
+@[simps finalOut toSequentialTransducer]
 def toSubsequential (transducer : SequentialTransducer State InSymbol OutSymbol) :
     SubsequentialTransducer State InSymbol OutSymbol :=
   { toSequentialTransducer := transducer, finalOut := fun _ => [] }
@@ -112,36 +127,29 @@ instance {Input Output : Type v} :
     ∃ labels q, transducer.toIOLTS.MTr transducer.start labels q ∧ labels.map Prod.fst = w ∧
       labels.flatMap Prod.snd ++ transducer.finalOut q = out
 
-/-- A recursive specification of the output of `transducer` from a state,
+/-- A recursive specification of the output of `transducer` from state `q`,
 equivalent to the labelled-path definition. -/
-def outputFrom (transducer : SubsequentialTransducer State InSymbol OutSymbol) :
-    State → List InSymbol → List OutSymbol
-  | q, [] => transducer.finalOut q
-  | q, a :: w => transducer.emit q a ++ transducer.outputFrom (transducer.tr q a) w
-
 @[simp]
-theorem outputFrom_nil (q : State) : transducer.outputFrom q [] = transducer.finalOut q := rfl
+def outputFrom (transducer : SubsequentialTransducer State InSymbol OutSymbol) (q : State) :
+    List InSymbol → List OutSymbol
+  | [] => transducer.finalOut q
+  | a :: w => transducer.emit q a ++ transducer.outputFrom (transducer.tr q a) w
 
-@[simp]
-theorem outputFrom_cons (q : State) (a : InSymbol) (w : List InSymbol) :
-    transducer.outputFrom q (a :: w) =
-      transducer.emit q a ++ transducer.outputFrom (transducer.tr q a) w := rfl
-
-/-- To identify the output from every state, it suffices to verify the final output
-and the effect of consuming one symbol. -/
-theorem outputFrom_eq_of_spec {spec : State → List InSymbol → List OutSymbol}
+/-- The defining equations of `outputFrom` uniquely determine it. -/
+theorem outputFrom_unique {spec : State → List InSymbol → List OutSymbol}
     (hfinal : ∀ q, transducer.finalOut q = spec q [])
-    (hstep : ∀ q a w, transducer.emit q a ++ spec (transducer.tr q a) w = spec q (a :: w))
-    (q : State) (w : List InSymbol) : transducer.outputFrom q w = spec q w := by
+    (hstep : ∀ q a w, transducer.emit q a ++ spec (transducer.tr q a) w = spec q (a :: w)) :
+    transducer.outputFrom = spec := by
+  funext q w
   induction w generalizing q with
   | nil => exact hfinal q
-  | cons a w ih => rw [outputFrom_cons, ih, hstep]
+  | cons a w ih => rw [outputFrom, ih, hstep]
 
 /-- The output on a complete input word. -/
 abbrev output (transducer : SubsequentialTransducer State InSymbol OutSymbol) :=
   transducer.outputFrom transducer.start
 
-/-- The output along an LTS path, including the final output, agrees with evaluation. -/
+/-- The recursive specification `outputFrom` is equivalent to the output along an LTS path. -/
 theorem outputFrom_eq_of_mTr {q q' : State} {labels : List (InSymbol × List OutSymbol)}
     (h : transducer.toIOLTS.MTr q labels q') :
     transducer.outputFrom q (labels.map Prod.fst) =
@@ -176,12 +184,12 @@ variable (transducer : SequentialTransducer State InSymbol OutSymbol)
 abbrev outputFrom (transducer : SequentialTransducer State InSymbol OutSymbol) :=
   transducer.toSubsequential.outputFrom
 
-/-- Identify sequential output by checking the empty word and one transition. -/
-theorem outputFrom_eq_of_spec {spec : State → List InSymbol → List OutSymbol}
+/-- The defining equations of `outputFrom` uniquely determine it. -/
+theorem outputFrom_unique {spec : State → List InSymbol → List OutSymbol}
     (hnil : ∀ q, [] = spec q [])
-    (hstep : ∀ q a w, transducer.emit q a ++ spec (transducer.tr q a) w = spec q (a :: w))
-    (q : State) (w : List InSymbol) : transducer.outputFrom q w = spec q w :=
-  transducer.toSubsequential.outputFrom_eq_of_spec hnil hstep q w
+    (hstep : ∀ q a w, transducer.emit q a ++ spec (transducer.tr q a) w = spec q (a :: w)) :
+    transducer.outputFrom = spec :=
+  transducer.toSubsequential.outputFrom_unique hnil hstep
 
 /-- The concatenated transition outputs from the start state. -/
 abbrev output (transducer : SequentialTransducer State InSymbol OutSymbol) :=
@@ -193,10 +201,7 @@ variable {Input Output : Type v} (transducer : SequentialTransducer State Input 
 theorem toSubsequential_translates_iff (w : List Input) (out : List Output) :
     Transducer.Translates transducer.toSubsequential w out ↔
       Transducer.Translates transducer w out := by
-  change (∃ labels q, transducer.toIOLTS.MTr transducer.start labels q ∧ labels.map Prod.fst = w ∧
-    labels.flatMap Prod.snd ++ [] = out) ↔ _
-  simp only [List.append_nil]
-  rfl
+  simp [Transducer.Translates]
 
 /-- Sequential translation is the graph of evaluation with empty final output. -/
 @[simp]
