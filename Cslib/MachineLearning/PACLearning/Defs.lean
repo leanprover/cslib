@@ -495,30 +495,48 @@ noncomputable def falseNegativeError (P : Measure α) (h c : Set α) : ℝ≥0�
   P (c \ h)
 
 /-- The total hypothesis error decomposes as the sum of false positive and false negative
-errors, since `h ∆ c = (h \ c) ∪ (c \ h)` is a disjoint union. -/
-theorem hypothesisError_eq_add {P : Measure α} {h c : Set α}
-    (hh : MeasurableSet h) (hc : MeasurableSet c) :
-    hypothesisError P h c = falsePositiveError P h c + falseNegativeError P h c :=
-  measure_union disjoint_sdiff_sdiff (hc.diff hh)
+errors, if the concept is measurable: split `h ∆ c` along `c`. -/
+theorem hypothesisError_eq_add {P : Measure α} {h c : Set α} (hc : MeasurableSet c) :
+    hypothesisError P h c = falsePositiveError P h c + falseNegativeError P h c := by
+  rw [hypothesisError, ← measure_inter_add_sdiff _ hc, add_comm]
+  congr 2 <;> ext x <;> by_cases x ∈ h <;> by_cases x ∈ c <;> simp_all [symmDiff_def]
+
+/-- The total hypothesis error decomposes as the sum of false positive and false negative
+errors, if the hypothesis is measurable. -/
+theorem hypothesisError_eq_add_of_measurableSet_left {P : Measure α} {h c : Set α}
+    (hh : MeasurableSet h) :
+    hypothesisError P h c = falsePositiveError P h c + falseNegativeError P h c := by
+  rw [hypothesisError, ← measure_inter_add_sdiff _ hh]
+  congr 2 <;> ext x <;> by_cases x ∈ h <;> by_cases x ∈ c <;> simp_all [symmDiff_def]
 
 open scoped Classical in
 /-- Under a realizable distribution `P.map (x ↦ (x, c(x)))`, the general 0-1 `error`
 coincides with the binary `hypothesisError P h c`, where `h` and `c` are viewed as subsets
 of `α` via the characteristic function `decide (· ∈ ·)`. -/
-theorem error_map_eq_hypothesisError (P : Measure α) (h c : Set α)
-    (hh : MeasurableSet h) (hc : MeasurableSet c) :
+theorem error_map_eq_hypothesisError (P : Measure α) (h c : Set α) (hc : MeasurableSet c) :
     error (P.map (fun x => (x, decide (x ∈ c)))) (fun x => decide (x ∈ h)) =
     hypothesisError P h c := by
   simp only [error, hypothesisError]
   have hf : Measurable (fun x => (x, decide (x ∈ c))) :=
     Measurable.prodMk measurable_id
       (measurable_to_bool (by convert hc using 1; ext x; simp [decide_eq_true_eq]))
-  rw [Measure.map_apply_of_aemeasurable hf.aemeasurable]
-  · congr 1; ext x
-    by_cases hx : x ∈ h <;> simp_all [symmDiff_def]
-  · convert (hh.prod (measurableSet_singleton false)).union
-      (hh.compl.prod (measurableSet_singleton true)) using 1
-    ext ⟨x, b⟩; cases b <;> simp
+  have hpre (s : Set α) (hs : symmDiff h c ⊆ s) : {p : α × Bool | decide (p.1 ∈ h) ≠ p.2} ⊆
+      s ×ˢ Set.univ ∪ cᶜ ×ˢ {true} ∪ c ×ˢ {false} := by
+    rintro ⟨x, b⟩ hp
+    by_cases x ∈ h <;> by_cases x ∈ c <;> cases b <;> simp_all [Set.subset_def, symmDiff_def]
+  refine le_antisymm ?_ ?_
+  · -- cover the error set by a measurable set of the same measure
+    set U := toMeasurable P (symmDiff h c)
+    have hU : MeasurableSet (U ×ˢ Set.univ ∪ cᶜ ×ˢ {true} ∪ c ×ˢ {false}) :=
+      (((measurableSet_toMeasurable _ _).prod .univ).union
+        (hc.compl.prod (measurableSet_singleton _))).union (hc.prod (measurableSet_singleton _))
+    refine (measure_mono (μ := P.map fun x ↦ (x, decide (x ∈ c)))
+      (hpre U (subset_toMeasurable _ _))).trans_eq ?_
+    rw [Measure.map_apply hf hU, ← measure_toMeasurable (symmDiff h c)]
+    congr 1; ext x; by_cases x ∈ c <;> simp_all [U]
+  · refine le_trans (le_of_eq ?_) (Measure.le_map_apply hf.aemeasurable _)
+    congr 1; ext x
+    by_cases x ∈ h <;> by_cases x ∈ c <;> simp_all [symmDiff_def]
 
 end Binary
 
