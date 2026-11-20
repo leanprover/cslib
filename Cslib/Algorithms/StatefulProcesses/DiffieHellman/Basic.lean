@@ -39,9 +39,6 @@ participants' stores and never occur in the process terms or in their transition
 consequence, correctness statements assume that, in each role, the variable receiving the peer's
 public value differs from the exponent, which the reception would otherwise overwrite.
 
-The exponents can also be chosen by the roles themselves with a relational call, such as one
-returning any exponent in `(0, p)`; see the tests for this variant.
-
 The key-agreement computation does not require primality or a primitive root; security properties
 would require additional assumptions.
 -/

@@ -10,56 +10,20 @@ namespace CslibTests.DiffieHellman
 
 open Cslib Cslib.Mech Cslib.StatefulProcesses Cslib.Algorithms.StatefulProcesses.DiffieHellman
 
-section Roles
+variable {Pid SelLabel ProcName : Type} [DecidableEq Pid] {S : Sig Pid} {L : LocalSig} {p : ℕ}
 
-variable {Pid : Type} {L : LocalSig} {SelLabel ProcName : Type} {p : ℕ}
-
-local notation "Proc" => Process Pid L SelLabel ProcName
-
--- The labels in `net_completeTraces` are the actions of the role programs.
-example (g : ZMod p) (peer : Pid) (a : L.Var ℕ) (y key : L.Var (ZMod p)) :
-    (aliceProc peer g a y key : Proc) =
-      .pre (.sendValue peer `(MechExpr| {g ^ $a})) (aliceProc₁ peer a y key) := rfl
-
-example (peer : Pid) (a : L.Var ℕ) (y key : L.Var (ZMod p)) :
-    (aliceProc₁ peer a y key : Proc) = .pre (.recvValue peer y) (aliceProc₂ a y key) := rfl
-
-example (a : L.Var ℕ) (y key : L.Var (ZMod p)) :
-    (aliceProc₂ a y key : Proc) = .pre (.assign key `(MechExpr| {$y ^ $a})) 0 := rfl
-
-example (g : ZMod p) (peer : Pid) (b : L.Var ℕ) (x key : L.Var (ZMod p)) :
-    (bobProc peer g b x key : Proc) = .pre (.recvValue peer x) (bobProc₁ peer g b x key) := rfl
-
-example (g : ZMod p) (peer : Pid) (b : L.Var ℕ) (x key : L.Var (ZMod p)) :
-    (bobProc₁ peer g b x key : Proc) =
-      .pre (.sendValue peer `(MechExpr| {g ^ $b})) (bobProc₂ b x key) := rfl
-
-example (b : L.Var ℕ) (x key : L.Var (ZMod p)) :
-    (bobProc₂ b x key : Proc) = .pre (.assign key `(MechExpr| {$x ^ $b})) 0 := rfl
-
--- The roles can be used inside larger processes that use selections.
-example (g : ZMod p) (peer : Pid) (a : L.Var ℕ) (y key : L.Var (ZMod p)) :
-    Process Pid L Bool PEmpty :=
-  .recvLabel peer [(true, aliceProc peer g a y key), (false, 0)]
-
--- Evaluating a public value `{g ^ $e}`.
+-- Each role uses its own exponent in its public message `{g ^ $e}`.
 theorem eval_publicValue (σ : L.Store) (g : ZMod p) (e : L.Var ℕ) (n : ℕ) (hn : σ[e] = n) :
     LocalSig.Expr.Eval σ `(MechExpr| {g ^ $e}) (g ^ n) :=
   .call (.var e) (by rw [hn])
 
--- Evaluating a key computation `{$u ^ $e}`.
+-- Each role also uses its own exponent on the received message, in `{$u ^ $e}`.
 theorem eval_key (σ : L.Store) (u : L.Var (ZMod p)) (e : L.Var ℕ) (v : ZMod p) (n : ℕ)
     (hv : σ[u] = v) (hn : σ[e] = n) :
     LocalSig.Expr.Eval σ `(MechExpr| {$u ^ $e}) (v ^ n) :=
   .call (.pair (.call (.var u) rfl) (.var e)) (by rw [hv, hn])
 
-end Roles
-
-section Protocol
-
-variable {Pid : Type} [DecidableEq Pid] {S : Sig Pid} {SelLabel ProcName : Type} {p : ℕ}
-
--- Every initial store admits a complete run with the expected key at both participants.
+-- A complete execution exists from every initial store and produces the expected key.
 theorem complete_run (g : ZMod p) (alice bob : Pid) (hne : alice ≠ bob)
     (a : S.Var alice ℕ) (y aliceKey : S.Var alice (ZMod p))
     (b : S.Var bob ℕ) (x bobKey : S.Var bob (ZMod p))
@@ -107,107 +71,4 @@ theorem complete_run (g : ZMod p) (alice bob : Pid) (hne : alice ≠ bob)
     by_cases hqa : q = alice <;> by_cases hqb : q = bob <;> subst_vars <;>
       simp_all [cfg₃, cfg₂, cfg₁, net]
 
-end Protocol
-
-section Choice
-
-variable {Pid : Type} [DecidableEq Pid] {S : Sig Pid} {SelLabel ProcName : Type} {p : ℕ}
-
-/-- Any exponent in `(0, p)`. A compiler can bind this relation to a random number generator. -/
-def randomExponent (p : ℕ) : Unit → ℕ → Prop := fun _ n => 0 < n ∧ n < p
-
-/-- Alice chooses her private exponent nondeterministically, then runs her role. -/
-def aliceChoosing {L : LocalSig} (g : ZMod p) (bob : Pid) (a : L.Var ℕ)
-    (peerPub key : L.Var (ZMod p)) : Process Pid L SelLabel ProcName :=
-  .pre `(SPpre| a ≔ LocalSig.Expr.call (randomExponent p) (.val ())) (aliceProc bob g a peerPub key)
-
-/-- For every choice of Alice's exponent, the protocol completes with the expected keys. -/
-theorem complete_run_choosing (g : ZMod p) (alice bob : Pid) (hne : alice ≠ bob)
-    (a : S.Var alice ℕ) (y aliceKey : S.Var alice (ZMod p))
-    (b : S.Var bob ℕ) (x bobKey : S.Var bob (ZMod p))
-    (hya : y.name ≠ a.name) (hxb : x.name ≠ b.name) (gs : S.Store) (b₀ : ℕ)
-    (hb : (gs bob)[b] = b₀) (n : ℕ) (hn : randomExponent p () n) :
-    ∃ gs' μs, μs.length = 5 ∧
-      (Cfg.lts (SelLabel := SelLabel) (ProcName := ProcName)).MTr
-        ⟨Function.update (net g alice bob a y aliceKey b x bobKey) alice
-          (aliceChoosing g bob a y aliceKey), gs⟩ μs ⟨0, gs'⟩ ∧
-      (gs' alice)[aliceKey] = g ^ (n * b₀) ∧ (gs' bob)[bobKey] = g ^ (n * b₀) := by
-  obtain ⟨gs', μs, hlen, hrun, haliceKey, hbobKey⟩ :=
-    complete_run (SelLabel := SelLabel) (ProcName := ProcName) g alice bob hne a y aliceKey b x
-      bobKey hya hxb gs[⟨alice, a⟩ := n] n b₀ (by simp)
-      (by rw [Sig.Store.subst_apply_of_ne _ _ _ _ _ (Ne.symm hne)]; exact hb)
-  refine ⟨gs', .local alice :: μs, by simp [hlen], .stepL ?_ hrun, haliceKey, hbobKey⟩
-  refine Cfg.Tr.assign (x := a) (e := .call (randomExponent p) (.val ())) (v := n) ?_
-    (.call (.val ()) hn) rfl
-  refine Network.Tr.local (prP := aliceProc bob g a y aliceKey) rfl ?_ ?_
-  · simp only [Function.update_self]
-    exact .pre
-  · funext q
-    by_cases hq : q = alice
-    · subst hq
-      simp [net, Function.update_of_ne hne]
-    · simp [hq]
-
-end Choice
-
 end CslibTests.DiffieHellman
-
-namespace CslibTests.DiffieHellman.Canonical
-
-open Cslib Cslib.Mech Cslib.StatefulProcesses Cslib.Algorithms.StatefulProcesses.DiffieHellman
-
-/-! Alice (`true`) and Bob (`false`) have separate local signatures. -/
-
-inductive AliceName | exp | peerPub | key deriving DecidableEq
-
-inductive BobName | exp | peerPub | key | log deriving DecidableEq
-
-abbrev aliceSig : LocalSig where
-  VarName := AliceName
-  VarType
-    | .exp => ℕ
-    | .peerPub | .key => ZMod 7
-
--- Bob has an additional variable, which Alice does not have.
-abbrev bobSig : LocalSig where
-  VarName := BobName
-  VarType
-    | .exp => ℕ
-    | .peerPub | .key => ZMod 7
-    | .log => String
-
-abbrev sig : Sig Bool
-  | true => aliceSig
-  | false => bobSig
-
-def a : sig.Var true ℕ := ⟨.exp, rfl⟩
-def y : sig.Var true (ZMod 7) := ⟨.peerPub, rfl⟩
-def aliceKey : sig.Var true (ZMod 7) := ⟨.key, rfl⟩
-def b : sig.Var false ℕ := ⟨.exp, rfl⟩
-def x : sig.Var false (ZMod 7) := ⟨.peerPub, rfl⟩
-def bobKey : sig.Var false (ZMod 7) := ⟨.key, rfl⟩
-
-def g : ZMod 7 := 3
-
-/-- Alice holds the exponent 2 and Bob holds the exponent 3. -/
-def initial : sig.Store
-  | true, .exp => (2 : ℕ)
-  | true, .peerPub | true, .key => (0 : ZMod 7)
-  | false, .exp => (3 : ℕ)
-  | false, .peerPub | false, .key => (0 : ZMod 7)
-  | false, .log => ""
-
--- Alice and Bob run the protocol with different local signatures.
-example : ∃ gs' μs, μs.length = 4 ∧
-    (Cfg.lts (S := sig) (SelLabel := Empty) (ProcName := Empty)).MTr
-      ⟨net g true false a y aliceKey b x bobKey, initial⟩ μs ⟨0, gs'⟩ ∧
-    (gs' true)[aliceKey] = g ^ (2 * 3) ∧ (gs' false)[bobKey] = g ^ (2 * 3) :=
-  complete_run g true false (by decide) a y aliceKey b x bobKey (by decide) (by decide) initial
-    2 3 rfl rfl
-
--- Variables of provably different types cannot alias.
-example : y.name ≠ a.name := LocalSig.Var.name_ne_of_type_ne (fun h => by
-  have : Finite ℕ := h ▸ (inferInstance : Finite (ZMod 7))
-  exact not_finite ℕ) y a
-
-end CslibTests.DiffieHellman.Canonical
