@@ -83,8 +83,9 @@ private lemma runFrom_emitChunk {tm : MultiTapeTM 0 Symbol (State × Fin (m + 1)
 
 variable (transducer : SequentialTransducer State Symbol Symbol)
 
-/-- Compile a sequential transducer with zero work tapes. The bound `m` sizes the output
-counter. Supplying `finalOut` also implements subsequential end-of-input output. -/
+/-- Compile a sequential transducer with zero work tapes. The machine emits `finalOut q` at
+end of input in state `q`. For correct simulation, `m` must bound the length of every
+transition output and every `finalOut q`. -/
 def ofSequential (transducer : SequentialTransducer State Symbol Symbol) (m : ℕ)
     (finalOut : State → List Symbol := fun _ => []) :
     MultiTapeTM 0 Symbol (State × Fin (m + 1)) :=
@@ -141,7 +142,8 @@ theorem runFrom_ofSequential_mTr (hstep : ∀ q a, (transducer.emit q a).length 
 
 variable (transducer : SubsequentialTransducer State Symbol Symbol)
 
-/-- Compile a subsequential transducer using its final output at end of input. -/
+/-- Compile a subsequential transducer using its final output at end of input.
+For correct simulation, `m` must bound the length of every transition output and final output. -/
 abbrev ofSubsequential (transducer : SubsequentialTransducer State Symbol Symbol) (m : ℕ) :
     MultiTapeTM 0 Symbol (State × Fin (m + 1)) :=
   ofSequential transducer.toSequentialTransducer m transducer.finalOut

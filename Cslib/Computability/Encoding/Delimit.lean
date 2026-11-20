@@ -145,14 +145,9 @@ theorem delimit_prefix_delimit {w v : List Bool} :
 empty. -/
 def undelimitOr (e : List Bool) : List Bool → List Bool
   | [] => e
-  | w => undelimit w
+  | b :: w => undelimit (b :: w)
 
-@[simp]
-theorem undelimitOr_nil (e : List Bool) : undelimitOr e [] = e := rfl
-
-@[simp]
-theorem undelimitOr_cons (e : List Bool) (b : Bool) (w : List Bool) :
-    undelimitOr e (b :: w) = undelimit (b :: w) := rfl
+attribute [simp] undelimitOr.eq_1 undelimitOr.eq_2
 
 @[simp]
 theorem undelimitOr_nil_left : undelimitOr [] = undelimit := by
@@ -166,20 +161,11 @@ theorem undelimitOr_delimit_append (e w u : List Bool) :
 
 /-- The concatenation of the words whose delimited codes make up `w`: removes all tags and
 delimiters. A trailing tag `true` without a data bit is ignored. -/
+@[simp]
 def undelimitAll : List Bool → List Bool
   | true :: b :: v => b :: undelimitAll v
   | false :: v => undelimitAll v
-  | _ => []
-
-@[simp] theorem undelimitAll_nil : undelimitAll [] = [] := rfl
-
-@[simp] theorem undelimitAll_false_cons (v : List Bool) :
-    undelimitAll (false :: v) = undelimitAll v := rfl
-
-@[simp] theorem undelimitAll_true_nil : undelimitAll [true] = [] := rfl
-
-@[simp] theorem undelimitAll_true_cons_cons (b : Bool) (v : List Bool) :
-    undelimitAll (true :: b :: v) = b :: undelimitAll v := rfl
+  | [] | [true] => []
 
 @[simp, scoped grind =]
 theorem undelimitAll_delimit_append (w u : List Bool) :
