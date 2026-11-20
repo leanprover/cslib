@@ -277,8 +277,10 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StandardReduction
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquiv
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.AlphaEquivVariants
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
-public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.Named.Untyped.Rename
 public import Cslib.Languages.Mech.Choreography.Basic
 public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Languages.StatefulProcesses.Basic
