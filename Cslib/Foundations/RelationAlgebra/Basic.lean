@@ -129,6 +129,14 @@ instance : MulRightMono α where
 theorem mul_bot (a : α) : a * ⊥ = ⊥ :=
   eq_bot_mono (mul_le_mul_right bot_le a) (by simpa using tarski (star a) ⊤)
 
+theorem inf_mul_le (a b c : α) : (a ⊓ b) * c ≤ a * c ⊓ b * c := by
+  nth_grw 1 [le_inf_iff, inf_le_left, inf_le_right]
+  exact ⟨le_rfl, le_rfl⟩
+
+theorem mul_inf_le (a b c : α) : a * (b ⊓ c) ≤ a * b ⊓ a * c := by
+  nth_grw 1 [le_inf_iff, inf_le_left, inf_le_right]
+  exact ⟨le_rfl, le_rfl⟩
+
 @[to_dual (attr := simp)]
 theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
   starOrderIso.isAtom_iff a
@@ -141,6 +149,10 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ ≤ (a * (b ⊓ star a * c) ⊔ cᶜ) ⊓ c := by grw [← tarski (star a) c, star_star]
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
+
+theorem right_modular (a b c : α) : a * b ⊓ c ≤ (a ⊓ c * star b) * b := by
+  rw [← star_le_star_iff]
+  simpa using left_modular (star b) (star a) (star c)
 
 /-- If a nonzero element lies below a product, the right factor meets its converse image. -/
 theorem inf_star_mul_ne_bot {r s p : α} (hp : p ≠ ⊥) (h : p ≤ r * s) : s ⊓ star r * p ≠ ⊥ :=
