@@ -19,12 +19,24 @@ that `true` introduces one data bit and `false` terminates the word, which makes
 recognizable in one left-to-right pass, even when arbitrary data follows it. A word of length `n`
 has a delimited code of length `2 * n + 1`.
 
-`delimit_prefix_delimit` states prefix-freeness: one delimited codeword is a prefix of another
-exactly when their original words are equal. `undelimit_delimit_append` and
-`dropDelimited_delimit_append` recover a word and the suffix following its codeword.
-
 The guarantee concerns individual delimited words. A variable-length list of concatenated
 codewords needs its own delimiter if the entire list encoding is to be prefix-free.
+
+## Main definitions
+
+* `Cslib.Encoding.delimit` encodes a word. `Cslib.Encoding.undelimit` reads the first encoded
+  word, and `Cslib.Encoding.dropDelimited` skips it.
+* `Cslib.Encoding.undelimitOr` supplies a default on empty input.
+  `Cslib.Encoding.undelimitAll` concatenates the decoded words.
+
+## Main results
+
+* `Cslib.Encoding.delimit_prefix_delimit` states that one codeword is a prefix of another
+  exactly when the original words are equal.
+* `Cslib.Encoding.undelimit_delimit_append` and `Cslib.Encoding.dropDelimited_delimit_append`
+  recover the original word and the suffix following its codeword, respectively.
+* `Cslib.Encoding.undelimitAll_delimit_append` decodes a leading codeword and continues
+  decoding the suffix.
 -/
 
 @[expose] public section

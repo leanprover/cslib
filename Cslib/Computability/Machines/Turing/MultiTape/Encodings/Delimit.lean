@@ -14,21 +14,22 @@ import Mathlib.Tactic.DeriveFintype
 # Machines for delimited words
 
 The encoder emits `[true, b]` for each data bit `b` and emits `[false]` at end of input.
-The decoders use the tag bits to decide which data bits to emit or skip. Each proof identifies
-the transducer's output on arbitrary input and applies
-`Turing.MultiTapeTM.computableInTimeAndSpace_of_subsequential` to obtain linear time and
-zero work space.
+The decoders use the tag bits to decide which data bits to emit or skip.
+A subsequential transducer supplies the terminator for `delimit` and the empty-input default for
+`undelimitOr`. Sequential transducers suffice for `dropDelimited` and `undelimitAll`.
 
 ## Main results
 
-* `Turing.MultiTapeTM.computableInTimeAndSpace_delimit`: writing a delimited word.
-* `Turing.MultiTapeTM.computableInTimeAndSpace_undelimit`,
-  `Turing.MultiTapeTM.computableInTimeAndSpace_undelimitOr`: the word whose delimited code starts
-  the input.
-* `Turing.MultiTapeTM.computableInTimeAndSpace_dropDelimited`: what follows the first delimited
-  code.
-* `Turing.MultiTapeTM.computableInTimeAndSpace_undelimitAll`: the concatenation of all words whose
-  delimited codes make up the input.
+Each of the following bounds is linear in the input length and uses zero work space.
+
+* `Turing.MultiTapeTM.computableInTimeAndSpace_delimit` bounds the cost of writing a codeword.
+* `Turing.MultiTapeTM.computableInTimeAndSpace_undelimit` and
+  `Turing.MultiTapeTM.computableInTimeAndSpace_undelimitOr` bound the cost of decoding the first
+  word, with a configurable default on empty input for `undelimitOr`.
+* `Turing.MultiTapeTM.computableInTimeAndSpace_dropDelimited` bounds the cost of copying the
+  suffix after the first codeword.
+* `Turing.MultiTapeTM.computableInTimeAndSpace_undelimitAll` bounds the cost of decoding all
+  codewords and concatenating their contents.
 -/
 
 public section
@@ -41,8 +42,9 @@ open Cslib.Encoding Cslib.Automata
 
 private def delimitTransducer : SubsequentialTransducer Unit Bool Bool where
   start := ()
-  step _ b := ([true, b], ())
-  final _ := [false]
+  tr _ _ := ()
+  emit _ b := [true, b]
+  finalOut _ := [false]
 
 private theorem output_delimit (w : List Bool) : delimitTransducer.outputFrom () w = delimit w := by
   induction w <;> simp_all [delimitTransducer]
@@ -69,12 +71,15 @@ private inductive UndelimitState : Type
 private def undelimitTransducer (e : List Bool) :
     SubsequentialTransducer UndelimitState Bool Bool where
   start := .start
-  step
-    | .start, true | .tag, true => ([], .bit)
-    | .start, false | .tag, false => ([], .done)
-    | .bit, b => ([b], .tag)
-    | .done, _ => ([], .done)
-  final
+  tr
+    | .start, true | .tag, true => .bit
+    | .start, false | .tag, false => .done
+    | .bit, _ => .tag
+    | .done, _ => .done
+  emit
+    | .bit, b => [b]
+    | _, _ => []
+  finalOut
     | .start => e
     | _ => []
 
@@ -115,14 +120,16 @@ private inductive DropDelimitedState : Type
   | copy
   deriving Fintype
 
-private def dropDelimitedTransducer : SubsequentialTransducer DropDelimitedState Bool Bool where
+private def dropDelimitedTransducer : SequentialTransducer DropDelimitedState Bool Bool where
   start := .tag
-  step
-    | .tag, true => ([], .bit)
-    | .tag, false => ([], .copy)
-    | .bit, _ => ([], .tag)
-    | .copy, b => ([b], .copy)
-  final _ := []
+  tr
+    | .tag, true => .bit
+    | .tag, false => .copy
+    | .bit, _ => .tag
+    | .copy, _ => .copy
+  emit
+    | .copy, b => [b]
+    | _, _ => []
 
 private def dropDelimitedFrom : DropDelimitedState → List Bool → List Bool
   | .tag, w => dropDelimited w
@@ -131,7 +138,7 @@ private def dropDelimitedFrom : DropDelimitedState → List Bool → List Bool
 
 private lemma outputFrom_dropDelimited (q : DropDelimitedState) (w : List Bool) :
     dropDelimitedTransducer.outputFrom q w = dropDelimitedFrom q w := by
-  apply SubsequentialTransducer.outputFrom_eq_of_spec
+  apply SequentialTransducer.outputFrom_eq_of_spec
   · intro q
     cases q <;> rfl
   · intro q b w
@@ -141,20 +148,17 @@ private lemma outputFrom_dropDelimited (q : DropDelimitedState) (w : List Bool) 
 theorem computableInTimeAndSpace_dropDelimited :
     ComputableInTimeAndSpace dropDelimited encBits encBits (fun w => 2 * w.length + 1)
       (fun _ => 0) :=
-  (computableInTimeAndSpace_of_subsequential dropDelimitedTransducer dropDelimited
+  (computableInTimeAndSpace_of_sequential dropDelimitedTransducer dropDelimited
     (fun w => by simpa using! outputFrom_dropDelimited .tag w)).mono
     (fun _ => by lia [length_dropDelimited_le]) fun _ => le_rfl
 
 /-! ### All delimited codes -/
 
 /-- The state records whether a data bit follows. -/
-private def undelimitAllTransducer : SubsequentialTransducer Bool Bool Bool where
+private def undelimitAllTransducer : SequentialTransducer Bool Bool Bool where
   start := false
-  step
-    | false, true => ([], true)
-    | false, false => ([], false)
-    | true, b => ([b], false)
-  final _ := []
+  tr bit b := !bit && b
+  emit bit b := if bit then [b] else []
 
 private def undelimitAllFrom : Bool → List Bool → List Bool
   | false, w => undelimitAll w
@@ -162,7 +166,7 @@ private def undelimitAllFrom : Bool → List Bool → List Bool
 
 private lemma outputFrom_undelimitAll (q : Bool) (w : List Bool) :
     undelimitAllTransducer.outputFrom q w = undelimitAllFrom q w := by
-  apply SubsequentialTransducer.outputFrom_eq_of_spec
+  apply SequentialTransducer.outputFrom_eq_of_spec
   · intro q
     cases q <;> rfl
   · intro q b w
@@ -172,7 +176,7 @@ private lemma outputFrom_undelimitAll (q : Bool) (w : List Bool) :
 theorem computableInTimeAndSpace_undelimitAll :
     ComputableInTimeAndSpace undelimitAll encBits encBits (fun w => 2 * w.length + 1)
       (fun _ => 0) :=
-  (computableInTimeAndSpace_of_subsequential undelimitAllTransducer undelimitAll
+  (computableInTimeAndSpace_of_sequential undelimitAllTransducer undelimitAll
     (fun w => by simpa using! outputFrom_undelimitAll false w)).mono
     (fun _ => by lia [length_undelimitAll_le]) fun _ => le_rfl
 

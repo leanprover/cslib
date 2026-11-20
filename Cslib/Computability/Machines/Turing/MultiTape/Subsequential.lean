@@ -6,28 +6,34 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Cslib.Computability.Automata.Transducers.Subsequential
+public import Cslib.Computability.Automata.DA.Transducer
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 import Mathlib.Basic.Finite.Prod
 import Mathlib.Data.Fintype.Order
 
 /-!
-# Turing machine simulation of subsequential transducers
+# Turing machine simulation of sequential and subsequential transducers
 
 The machine spends one step per emitted symbol with its input head stationary. A separate step
 advances the head after each input symbol or halts after the final output. An empty chunk thus
-takes one step. The finite control stores the transducer state and an index in the current chunk.
+takes one step.
+
+## Main definitions
+
+* `Turing.MultiTapeTM.ofSequential` compiles a sequential transducer to a machine with zero
+  work tapes. Its finite control stores the position within the output word.
+* `Turing.MultiTapeTM.ofSubsequential` uses the same compiler with the transducer's final output.
 
 ## Main results
 
-* `Turing.MultiTapeTM.runFrom_ofSubsequential_mTr` simulates a labelled path in one Turing step
-  per input and output symbol, leaving the machine ready for the next transition.
-* `Turing.MultiTapeTM.computesInTimeAndSpace_ofSubsequential_of_translates` runs the path of a
-  translation witness and emits the final output. Its time bound is the sum of the input and
-  output lengths plus one.
-* `Turing.MultiTapeTM.computableInTimeAndSpace_of_subsequential` applies this bound to any
-  function on Boolean words realized by the labelled paths of a finite subsequential transducer.
-  The compiled machine uses zero work tapes.
+* `Turing.MultiTapeTM.runFrom_ofSequential_tr` simulates one labelled transition.
+  `Turing.MultiTapeTM.runFrom_ofSequential_mTr` simulates a path in one step per input and
+  output symbol.
+* `Turing.MultiTapeTM.computesInTimeAndSpace_ofSubsequential_of_translates` gives a time bound
+  of input length plus output length plus one, including the final output and halting step.
+* `Turing.MultiTapeTM.computableInTimeAndSpace_of_sequential` and
+  `Turing.MultiTapeTM.computableInTimeAndSpace_of_subsequential` give this time bound and zero
+  work space for functions on Boolean words realized by finite transducers.
 -/
 
 @[expose] public section
@@ -75,42 +81,42 @@ private lemma runFrom_emitChunk {tm : MultiTapeTM 0 Symbol (State × Fin (m + 1)
   erw [htr]
   apply Cfg.ext_zero_tapes <;> simp [emitChunk]
 
-variable (t : SubsequentialTransducer State Symbol Symbol)
+variable (transducer : SequentialTransducer State Symbol Symbol)
 
-/-- Implement a subsequential transducer with zero work tapes. The bound `m` provides enough
-finite control states to count the symbols of each emitted word. -/
-def ofSubsequential (m : ℕ) : MultiTapeTM 0 Symbol (State × Fin (m + 1)) :=
-  ofTr (t.start, 0) fun s inp _ =>
-    inp.elim (emitChunk (t.final s.1) s.2 s.1 0 none) fun a =>
-      emitChunk (t.step s.1 a).1 s.2 s.1 1 (some (t.step s.1 a).2)
+/-- Compile a sequential transducer with zero work tapes. The bound `m` sizes the output
+counter. Supplying `finalOut` also implements subsequential end-of-input output. -/
+def ofSequential (transducer : SequentialTransducer State Symbol Symbol) (m : ℕ)
+    (finalOut : State → List Symbol := fun _ => []) :
+    MultiTapeTM 0 Symbol (State × Fin (m + 1)) :=
+  ofTr (transducer.start, 0) fun s inp _ =>
+    inp.elim (emitChunk (finalOut s.1) s.2 s.1 0 none) fun a =>
+      emitChunk (transducer.emit s.1 a) s.2 s.1 1 (some (transducer.tr s.1 a))
 
-private theorem exists_chunk_bound [Finite State] [Finite Symbol] :
-    ∃ m, (∀ q a, (t.step q a).1.length ≤ m) ∧ ∀ q, (t.final q).length ≤ m := by
-  obtain ⟨b, hb⟩ := Finite.exists_le fun p : State × Symbol => (t.step p.1 p.2).1.length
-  obtain ⟨c, hc⟩ := Finite.exists_le fun q => (t.final q).length
-  exact ⟨max b c, fun q a => le_max_of_le_left (hb (q, a)), fun q => le_max_of_le_right (hc q)⟩
+variable (finalOut : State → List Symbol)
 
 /-- The compiled machine simulates an edge by emitting the label's output and moving right. -/
-theorem runFrom_ofSubsequential_tr {q q' : State} {a : Symbol} {out : List Symbol}
-    (edge : t.toLTS.Tr q (a, out) q') (hlen : out.length ≤ m)
+theorem runFrom_ofSequential_tr {q q' : State} {a : Symbol} {out : List Symbol}
+    (edge : transducer.toIOLTS.Tr q (a, out) q') (hlen : out.length ≤ m)
     (c : Cfg 0 Symbol (State × Fin (m + 1)) input)
     (hq : c.state = some (q, 0)) (ha : c.inputSymbol = some a) :
-    (ofSubsequential t m).runFrom c (out.length + 1) =
+    (ofSequential transducer m finalOut).runFrom c (out.length + 1) =
       { c with
         state := some (q', 0), inputPos := moveInputPos c.inputPos .pos,
         output := c.output ++ out } := by
-  change t.step q a = (out, q') at edge
+  obtain ⟨hout, hnext⟩ := edge
   exact runFrom_emitChunk (next := some q') c hq
-    (fun j ws => by simp [ofSubsequential, ha, edge]) hlen
+    (fun j ws => by simp [ofSequential, ha, hout, hnext]) hlen
 
 /-- A labelled path consumes its input and appends its output in one step per input
 and output symbol. The machine is ready for the next chunk at the end of the path. -/
-theorem runFrom_ofSubsequential_mTr (hstep : ∀ q a, (t.step q a).1.length ≤ m)
-    {q q' : State} {labels : List (Symbol × List Symbol)} (path : t.toLTS.MTr q labels q')
+theorem runFrom_ofSequential_mTr (hstep : ∀ q a, (transducer.emit q a).length ≤ m)
+    {q q' : State} {labels : List (Symbol × List Symbol)}
+    (path : transducer.toIOLTS.MTr q labels q')
     (pre post : List Symbol) (hin : input = pre ++ labels.map Prod.fst ++ post)
     (c : Cfg 0 Symbol (State × Fin (m + 1)) input)
     (hq : c.state = some (q, 0)) (hp : c.inputPos.val = pre.length + 1) :
-    (ofSubsequential t m).runFrom c (labels.length + (labels.flatMap Prod.snd).length) =
+    (ofSequential transducer m finalOut).runFrom c
+        (labels.length + (labels.flatMap Prod.snd).length) =
       { c with
         state := some (q', 0),
         inputPos := ⟨pre.length + labels.length + 1, by simp +arith [hin]⟩,
@@ -124,29 +130,73 @@ theorem runFrom_ofSubsequential_mTr (hstep : ∀ q a, (t.step q a).1.length ≤ 
       subst input
       simpa using inputSymbolInner (cfg := c) pre.length (by lia) (by simp)
     have hlen : out.length ≤ m := by
-      grind only [SubsequentialTransducer.toLTS_tr]
+      grind only [SequentialTransducer.toIOLTS_tr]
     have hpos : (moveInputPos c.inputPos .pos).val = (pre ++ [a]).length + 1 := by
       grind [moveInputPos_pos_of_ne_right]
-    have edgeRun := runFrom_ofSubsequential_tr t edge hlen c hq ha
+    have edgeRun := runFrom_ofSequential_tr transducer finalOut edge hlen c hq ha
     have tailRun := ih (pre ++ [a]) (by simpa [List.append_assoc] using hin) _
       (congrArg Cfg.state edgeRun) (by simpa only [edgeRun] using hpos)
     rw [← runFrom_add, edgeRun] at tailRun
     simpa +arith [List.append_assoc] using tailRun
 
+variable (transducer : SubsequentialTransducer State Symbol Symbol)
+
+/-- Compile a subsequential transducer using its final output at end of input. -/
+abbrev ofSubsequential (transducer : SubsequentialTransducer State Symbol Symbol) (m : ℕ) :
+    MultiTapeTM 0 Symbol (State × Fin (m + 1)) :=
+  ofSequential transducer.toSequentialTransducer m transducer.finalOut
+
+private theorem exists_chunk_bound [Finite State] [Finite Symbol] :
+    ∃ m, (∀ q a, (transducer.emit q a).length ≤ m) ∧ ∀ q, (transducer.finalOut q).length ≤ m := by
+  obtain ⟨b, hb⟩ := Finite.exists_le fun p : State × Symbol => (transducer.emit p.1 p.2).length
+  obtain ⟨c, hc⟩ := Finite.exists_le fun q => (transducer.finalOut q).length
+  exact ⟨max b c, fun q a => le_max_of_le_left (hb (q, a)), fun q => le_max_of_le_right (hc q)⟩
+
+/-- The compiled machine simulates an edge by emitting the label's output and moving right. -/
+theorem runFrom_ofSubsequential_tr {q q' : State} {a : Symbol} {out : List Symbol}
+    (edge : transducer.toIOLTS.Tr q (a, out) q') (hlen : out.length ≤ m)
+    (c : Cfg 0 Symbol (State × Fin (m + 1)) input)
+    (hq : c.state = some (q, 0)) (ha : c.inputSymbol = some a) :
+    (ofSubsequential transducer m).runFrom c (out.length + 1) =
+      { c with
+        state := some (q', 0), inputPos := moveInputPos c.inputPos .pos,
+        output := c.output ++ out } :=
+  runFrom_ofSequential_tr transducer.toSequentialTransducer transducer.finalOut edge hlen c hq ha
+
+/-- A labelled path consumes its input and appends its output in one step per input
+and output symbol. The machine is ready for the next chunk at the end of the path. -/
+theorem runFrom_ofSubsequential_mTr (hstep : ∀ q a, (transducer.emit q a).length ≤ m)
+    {q q' : State} {labels : List (Symbol × List Symbol)}
+    (path : transducer.toIOLTS.MTr q labels q')
+    (pre post : List Symbol) (hin : input = pre ++ labels.map Prod.fst ++ post)
+    (c : Cfg 0 Symbol (State × Fin (m + 1)) input)
+    (hq : c.state = some (q, 0)) (hp : c.inputPos.val = pre.length + 1) :
+    (ofSubsequential transducer m).runFrom c
+        (labels.length + (labels.flatMap Prod.snd).length) =
+      { c with
+        state := some (q', 0),
+        inputPos := ⟨pre.length + labels.length + 1, by simp +arith [hin]⟩,
+        output := c.output ++ labels.flatMap Prod.snd } :=
+  runFrom_ofSequential_mTr transducer.toSequentialTransducer transducer.finalOut
+    hstep path pre post hin c hq hp
+
 /-- A translation witness gives a zero-work-tape computation in one step per input
 and output symbol plus one for halting. -/
 theorem computesInTimeAndSpace_ofSubsequential_of_translates
-    (hstep : ∀ q a, (t.step q a).1.length ≤ m) (hfinal : ∀ q, (t.final q).length ≤ m)
-    {w out : List Symbol} (h : Transducer.Translates t w out) :
-    (ofSubsequential t m).ComputesInTimeAndSpace w out (w.length + out.length + 1) 0 := by
+    (hstep : ∀ q a, (transducer.emit q a).length ≤ m)
+    (hfinal : ∀ q, (transducer.finalOut q).length ≤ m)
+    {w out : List Symbol} (h : Transducer.Translates transducer w out) :
+    (ofSubsequential transducer m).ComputesInTimeAndSpace w out (w.length + out.length + 1) 0 := by
   obtain ⟨labels, q, path, rfl, rfl⟩ := h
-  let c := (ofSubsequential t m).initCfg (labels.map Prod.fst)
-  have hp := runFrom_ofSubsequential_mTr t hstep path [] [] (by simp) c rfl rfl
-  let d := (ofSubsequential t m).runFrom c (labels.length + (labels.flatMap Prod.snd).length)
+  let c := (ofSubsequential transducer m).initCfg (labels.map Prod.fst)
+  have hp := runFrom_ofSubsequential_mTr transducer hstep path [] [] (by simp) c rfl rfl
+  let d := (ofSubsequential transducer m).runFrom c
+    (labels.length + (labels.flatMap Prod.snd).length)
   have blank : d.inputSymbol = none :=
     inputSymbol_eq_none_of_boundary (.inr (by simp [d, hp]))
-  have finish := runFrom_emitChunk (tm := ofSubsequential t m) (q := q) (move := 0) (next := none)
-    d (by simp [d, hp]) (fun j ws => by simp [ofSubsequential, blank]) (hfinal q)
+  have finish := runFrom_emitChunk (tm := ofSubsequential transducer m) (q := q)
+    (move := 0) (next := none) d (by simp [d, hp])
+    (fun j ws => by simp [ofSubsequential, ofSequential, blank]) (hfinal q)
   dsimp only [d] at finish
   rw [← runFrom_add, hp] at finish
   have halt := congrArg Cfg.state finish
@@ -157,21 +207,32 @@ theorem computesInTimeAndSpace_ofSubsequential_of_translates
 /-- The compiled machine computes the transducer output in at most one step per input and
 output symbol plus one, using zero work space. -/
 theorem computesInTimeAndSpace_ofSubsequential
-    (hstep : ∀ q a, (t.step q a).1.length ≤ m) (hfinal : ∀ q, (t.final q).length ≤ m)
+    (hstep : ∀ q a, (transducer.emit q a).length ≤ m)
+    (hfinal : ∀ q, (transducer.finalOut q).length ≤ m)
     (w : List Symbol) :
-    (ofSubsequential t m).ComputesInTimeAndSpace w (t.output w)
-      (w.length + (t.output w).length + 1) 0 :=
-  computesInTimeAndSpace_ofSubsequential_of_translates t hstep hfinal (by simp)
+    (ofSubsequential transducer m).ComputesInTimeAndSpace w (transducer.output w)
+      (w.length + (transducer.output w).length + 1) 0 :=
+  computesInTimeAndSpace_ofSubsequential_of_translates transducer hstep hfinal (by simp)
 
 /-- A function on binary words realized by a finite subsequential transducer is computable
 in time linear in the input and output lengths and in zero work space. -/
 theorem computableInTimeAndSpace_of_subsequential {State : Type} [Finite State]
-    (t : SubsequentialTransducer State Bool Bool) (f : List Bool → List Bool)
-    (h : ∀ w, Transducer.Translates t w (f w)) :
+    (transducer : SubsequentialTransducer State Bool Bool) (f : List Bool → List Bool)
+    (h : ∀ w, Transducer.Translates transducer w (f w)) :
     ComputableInTimeAndSpace f (Function.Embedding.refl _) (Function.Embedding.refl _)
       (fun w => w.length + (f w).length + 1) (fun _ => 0) := by
-  obtain ⟨m, hstep, hfinal⟩ := exists_chunk_bound t
-  exact ⟨0, _, inferInstance, ofSubsequential t m, fun w =>
-    computesInTimeAndSpace_ofSubsequential_of_translates t hstep hfinal (h w)⟩
+  obtain ⟨m, hstep, hfinal⟩ := exists_chunk_bound transducer
+  exact ⟨0, _, inferInstance, ofSubsequential transducer m, fun w =>
+    computesInTimeAndSpace_ofSubsequential_of_translates transducer hstep hfinal (h w)⟩
+
+/-- A function realized by a finite sequential transducer has the same time and space bounds
+as its subsequential extension with empty final output. -/
+theorem computableInTimeAndSpace_of_sequential {State : Type} [Finite State]
+    (transducer : SequentialTransducer State Bool Bool) (f : List Bool → List Bool)
+    (h : ∀ w, Transducer.Translates transducer w (f w)) :
+    ComputableInTimeAndSpace f (Function.Embedding.refl _) (Function.Embedding.refl _)
+      (fun w => w.length + (f w).length + 1) (fun _ => 0) :=
+  computableInTimeAndSpace_of_subsequential transducer.toSubsequential f fun w =>
+    (transducer.toSubsequential_translates_iff ..).2 (h w)
 
 end Turing.MultiTapeTM
