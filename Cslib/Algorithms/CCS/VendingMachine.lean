@@ -20,11 +20,10 @@ We formalise two versions:
 - A machine with a deterministic LTS: `coin.(tea.VM + coffee.VM)`.
 - A machine with a nondeterministic LTS: `coin.tea.VM + coin.coffee.VM`.
 
-We then prove the classical example that the two are not bisimilar.
+We then prove the classical example that the two are not bisimilar, although they are trace
+equivalent.
 We also show the distinction with HML: only the deterministic machine offers the choice of drink
 after a coin is inserted.
-
-Future work on proving that the two vending machines are trace equivalent would be welcome.
 -/
 
 @[expose] public section
@@ -94,6 +93,65 @@ theorem vm_ltsD_ltsND_not_bisim : ¬(vm ~[ltsD, ltsND] vm) := by
   have hp₁q₁ : p₁ ~[ltsD, ltsND] q₁ := by grind
   have hp₁coffee : ltsD.Tr p₁ Coffee (.const .vm) := .choiceR .pre
   grind [hp₁q₁.follow_fst]
+
+/-! ## Trace equivalence of the two vending machines -/
+
+/-- Every trace of the deterministic machine is a trace of the nondeterministic machine.
+
+The statement is generalised to the states reached after a coin has been inserted, so that it can
+be proved by induction on the trace: the nondeterministic machine has then already committed to a
+drink, hence the disjunction. -/
+private theorem traces_ltsD_subset_traces_ltsND (μs : List (Act String)) :
+    (μs ∈ ltsD.traces vm → μs ∈ ltsND.traces vm) ∧
+    (μs ∈ ltsD.traces `(CCS| (Tea. const .vm) + (Coffee. const .vm)) →
+      μs ∈ ltsND.traces `(CCS| Tea. const .vm) ∨ μs ∈ ltsND.traces `(CCS| Coffee. const .vm)) := by
+  induction μs with
+  | nil => exact ⟨fun _ => ⟨_, .refl⟩, fun _ => .inl ⟨_, .refl⟩⟩
+  | cons μ μs ih =>
+    simp only [mem_traces_cons_iff]
+    constructor
+    · rintro ⟨s, htr, hs⟩
+      cases htr with | «const» hdef htr =>
+      cases hdef
+      cases htr
+      rcases ih.2 hs with h | h
+      · exact ⟨_, .const rfl (.choiceL .pre), h⟩
+      · exact ⟨_, .const rfl (.choiceR .pre), h⟩
+    · rintro ⟨s, htr, hs⟩
+      cases htr with
+      | choiceL htr => cases htr; exact .inl ⟨_, .pre, ih.1 hs⟩
+      | choiceR htr => cases htr; exact .inr ⟨_, .pre, ih.1 hs⟩
+
+/-- Every trace of the nondeterministic machine is a trace of the deterministic machine.
+
+As for `traces_ltsD_subset_traces_ltsND`, the statement is generalised to the states reached after a
+coin has been inserted. -/
+private theorem traces_ltsND_subset_traces_ltsD (μs : List (Act String)) :
+    (μs ∈ ltsND.traces vm → μs ∈ ltsD.traces vm) ∧
+    (μs ∈ ltsND.traces `(CCS| Tea. const .vm) →
+      μs ∈ ltsD.traces `(CCS| (Tea. const .vm) + (Coffee. const .vm))) ∧
+    (μs ∈ ltsND.traces `(CCS| Coffee. const .vm) →
+      μs ∈ ltsD.traces `(CCS| (Tea. const .vm) + (Coffee. const .vm))) := by
+  induction μs with
+  | nil => exact ⟨fun _ => ⟨_, .refl⟩, fun _ => ⟨_, .refl⟩, fun _ => ⟨_, .refl⟩⟩
+  | cons μ μs ih =>
+    simp only [mem_traces_cons_iff]
+    refine ⟨?_, ?_, ?_⟩
+    · rintro ⟨s, htr, hs⟩
+      cases htr with | «const» hdef htr =>
+      cases hdef
+      cases htr with
+      | choiceL htr => cases htr; exact ⟨_, .const rfl .pre, ih.2.1 hs⟩
+      | choiceR htr => cases htr; exact ⟨_, .const rfl .pre, ih.2.2 hs⟩
+    · rintro ⟨s, ⟨htr⟩, hs⟩
+      exact ⟨_, .choiceL .pre, ih.1 hs⟩
+    · rintro ⟨s, ⟨htr⟩, hs⟩
+      exact ⟨_, .choiceR .pre, ih.1 hs⟩
+
+/-- The deterministic and nondeterministic vending machines are trace equivalent. -/
+theorem vm_ltsD_ltsND_traceEq : vm ~tr[ltsD, ltsND] vm :=
+  Set.ext fun μs =>
+    ⟨(traces_ltsD_subset_traces_ltsND μs).1, (traces_ltsND_subset_traces_ltsD μs).1⟩
 
 /-! ## HML properties of the two vending machines -/
 
