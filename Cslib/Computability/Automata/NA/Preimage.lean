@@ -18,7 +18,7 @@ public import Cslib.Foundations.Semantics.LTS.MapHom
 
 namespace Cslib.Automata.NA.FinAcc
 
-open Acceptor Language _root_.Language
+open Acceptor Language
 
 variable {State Symbol Symbol' : Type*} (f : Hom Symbol' Symbol)
 
