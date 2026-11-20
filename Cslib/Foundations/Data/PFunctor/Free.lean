@@ -54,6 +54,9 @@ With the abstract `ι`, the analogous program lives in `Type 1`, so an effect `T
 cannot return it; bumping the effect to `Type 1 → Type 1` pushes its programs to `Type 2`,
 and so on without bound.
 
+Conversely, every `Cslib.FreeM F` is a polynomial free monad: `Cslib.FreeM.equivPFunctorFreeM`
+identifies it with `(PFunctor.ofFamily F).FreeM`, whose shapes package the abstract `ι`.
+
 This construction is ported from the [VCV-io](https://github.com/dtumad/VCV-io) library.
 
 ## Main Definitions

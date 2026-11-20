@@ -16,6 +16,7 @@ Definitions of common `PFunctor` constructions:
 - `monomial A B`: constant direction `B` for any shape `a : A`
 - `P + Q`: shapes are a disjoint sum, directions are defined by sum elimination on `a : P.A ⊕ Q.A`
 - `P * Q`: shapes are pairs of underlying shapes, directions are a disjoint sum over both shapes.
+- `ofFamily F`: shapes are operations `F ι` paired with their answer type `ι`, the directions.
 
 Special cases `C`, `linear`, `selfMonomial`, `purePower`, the indeterminate `y`,
 and canonical choices of `0` and `1` are defined as abbreviations or instances over `monomial`.
@@ -26,7 +27,7 @@ The child-map API includes `const`, `Unary`, and `DecidableEqChildren`.
 
 @[expose] public section
 
-universe uA uB uA₁ uA₂ uB₁ uB₂
+universe u v uA uB uA₁ uA₂ uB₁ uB₂
 
 namespace PFunctor
 
@@ -154,6 +155,12 @@ defined as the product of the head types and the sum of the child types. -/
     P.prod Q = P * Q := rfl
 
 end prod
+
+/-- The polynomial functor of a type-indexed family of operations: a shape packages an operation
+`op : F ι` with its answer type `ι`, which is also its type of directions.
+Its free monad presents the same programs as `Cslib.FreeM F`. -/
+@[implicit_reducible] def ofFamily (F : Type u → Type v) : PFunctor.{max (u + 1) v, u} :=
+  ⟨Σ ι, F ι, Sigma.fst⟩
 
 section Unary
 
