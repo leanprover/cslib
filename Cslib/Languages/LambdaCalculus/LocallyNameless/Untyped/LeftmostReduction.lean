@@ -110,7 +110,7 @@ lemma Leftmost.steps_abs_cong (xs : Finset Var)
     (cofin : ∀ x ∉ xs, (M ^ fvar x) ↠ℓ (M' ^ fvar x)) (lc : LC (abs M)) :
     abs M ↠ℓ abs M' := by
   have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
-  rw [open_close w M 0 (by grind), open_close w M' 0 (by grind)]
+  rw [open_closeRec w M 0 (by grind), open_closeRec w M' 0 (by grind)]
   have hstep := cofin w (by grind)
   have hlc := beta_lc lc (.fvar w)
   exact steps_abs_close hstep hlc
