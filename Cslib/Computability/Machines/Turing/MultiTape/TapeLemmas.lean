@@ -13,9 +13,10 @@ public import Mathlib.Order.Lattice.Nat
 /-!
 # Head movement along run paths
 
-This file collects how a step moves the work-tape heads and changes the work tapes, and what this
-implies for the cells visited along a run path: a head moves by at most one cell per step, so it
-visits every cell between its first and last positions, and a cell changes only under its head.
+This file collects how a step moves the input and work-tape heads and changes the work tapes, and
+what this implies for the cells visited along a run path: a head moves by at most one cell per
+step, so it visits every cell between its first and last positions, and a cell changes only under
+its head.
 
 -/
 
@@ -44,6 +45,16 @@ lemma Step.workTapes_eq_of_ne {c c' : Cfg k Symbol State input} (h : ntm.Step c 
   · obtain ⟨a, _, rfl⟩ := h
     rw [Action.apply_workTapes]
     cases ha : (a.workTapes i).1 <;> simp [ha, hz]
+
+/-- The input head moves by at most one cell in a single step. -/
+lemma Step.inputPos_le {c c' : Cfg k Symbol State input} (h : ntm.Step c c') :
+    |(c'.inputPos.val : ℤ) - c.inputPos.val| ≤ 1 := by
+  unfold Step at h
+  split at h
+  · simp [h]
+  · obtain ⟨a, _, rfl⟩ := h
+    rcases ha : a.inputTape <;>
+      grind [SignType.cast, Action.apply_inputPos, val_moveInputPos_eq c.inputPos a.inputTape]
 
 namespace RunPath
 
