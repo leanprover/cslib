@@ -112,12 +112,8 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN FullB
     | abs _ H => grind [step_open_cong_l _ _ _ _ H]
     | base _ => contradiction
 
-/-- A term of the form λ M N P_1 … P_n is strongly normalizing if
-      1. N is strongly normalizing,
-      1. M ^ N P₁ … Pₙ is strongly normalizing,
-      1. N is locally closed,
-      1. M ^ N P₁ … Pₙ is locally closed -/
-lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
+/-- The case of `sn_abs_app_multiApp` where `N` and `M ^ N P₁ … Pₙ` are locally closed. -/
+private lemma sn_abs_app_multiApp_of_lc [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
     (sn_N : SN FullBeta N) (sn_MNPs : SN FullBeta (multiApp (M ^ N) Ps))
     (lc_N : LC N) (lc_MNPs : LC (multiApp (M ^ N) Ps)) :
     SN FullBeta (multiApp (M.abs.app N) Ps) := by
@@ -154,6 +150,19 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
               right
               refine Relation.TransGen.single (Xi.base (Beta.beta ?_ ?_))
               all_goals grind
+
+/-- A term of the form λ M N P_1 … P_n is strongly normalizing if
+      1. N is strongly normalizing,
+      1. M ^ N P₁ … Pₙ is strongly normalizing -/
+lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
+    (sn_N : SN FullBeta N) (sn_MNPs : SN FullBeta (multiApp (M ^ N) Ps)) :
+    SN FullBeta (multiApp (M.abs.app N) Ps) := by
+  by_cases hlc : ((M.abs.app N).multiApp Ps).LC
+  · obtain ⟨h, hPs⟩ := multiApp_lc.mp hlc
+    cases h with | app hM lc_N =>
+    exact sn_abs_app_multiApp_of_lc sn_N sn_MNPs lc_N (multiApp_lc.mpr ⟨beta_lc hM lc_N, hPs⟩)
+  -- a term that is not locally closed has no step
+  · exact Acc.intro _ fun _ h ↦ absurd (FullBeta.step_lc_l h) hlc
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
