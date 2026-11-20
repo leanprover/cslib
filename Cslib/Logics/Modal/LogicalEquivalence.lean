@@ -8,6 +8,7 @@ module
 
 public import Cslib.Logics.Modal.Semantics
 public import Cslib.Foundations.Logic.LogicalEquivalence
+public import Cslib.Foundations.Logic.Consequence
 
 /-! # Logical Equivalence in Modal Logic
 
@@ -183,6 +184,14 @@ lemma Judgement.Context.fill_def {c : Judgement.Context World τ Atom} {φ : Pro
     Modal[c.m,c.w ⊨ φ] = c<[φ] := rfl
 
 open scoped Judgement.Context
+
+/-- Validity in a class of models is consequence from no premises, over the judgemental contexts
+whose model is in the class. -/
+theorem Proposition.valid_iff_entailsWithin (S : Set (Model World τ Atom))
+    (φ : Proposition τ Atom) :
+    φ.valid S ↔ EntailsWithin (Judgement World τ Atom) InferenceSystem.Default
+      {c : Judgement.Context World τ Atom | c.m ∈ S} ∅ φ :=
+  ⟨fun h c hc _ => h c.m hc c.w, fun h m hm w => h ⟨m, w⟩ hm fun _ h => h.elim⟩
 
 /-- Logical equivalence for Modal Logic K. That is, no assumptions on models are made. -/
 instance {τ : PFunctor} [τ.DecidableEqChildren] : LogicalEquivalence
