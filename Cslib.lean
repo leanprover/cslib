@@ -164,6 +164,7 @@ public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.Finset.Involution
 public import Cslib.Foundations.Data.HasFresh
+public import Cslib.Foundations.Data.HasTrue
 public import Cslib.Foundations.Data.List.IsChainFromTo
 public import Cslib.Foundations.Data.Nat.Asymptotics
 public import Cslib.Foundations.Data.Nat.Factorial
@@ -280,7 +281,11 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 public import Cslib.Languages.Mech.Choreography.Basic
-public import Cslib.Languages.Mech.LocalComputation
+public import Cslib.Languages.Mech.Common.Basic
+public import Cslib.Languages.Mech.Common.Expr.Basic
+public import Cslib.Languages.Mech.Common.Expr.Notation
+public import Cslib.Languages.Mech.Common.GlobalStore
+public import Cslib.Languages.Mech.Common.LocalStore
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.BTL.Basic
