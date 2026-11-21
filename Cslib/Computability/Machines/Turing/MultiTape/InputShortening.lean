@@ -15,17 +15,16 @@ public import Mathlib.Order.Interval.Basic
 /-!
 # Input shortening for multi-tape Turing machines
 
-Consider a deterministic Turing machine and a halting computation path on an input. Input-head
-positions are counted from the left endmarker at position `0`, so the input symbol at index `i` is
-read at position `i + 1`. The *crossing sequence* at an input-head position is the list of storages
-(`Storage`: state, work tapes and work heads) of the running configurations of the path with the
-input head at that position, in chronological order.
+Consider a deterministic Turing machine and a halting computation path on an input. The *crossing
+sequence* at an input-head position is the list of storages (`Storage`: state, work tapes and work
+heads) of the running configurations of the path with the input head at that position, in
+chronological order.
 
-Take two input-symbol indices `a ≤ b` that carry the same symbol and whose positions `a + 1` and
-`b + 1` have the same crossing sequence. Deleting the symbols at indices `a + 1, ..., b` gives the
-*shortened input*. Every configuration of the path whose input head is outside positions
-`a + 1, ..., b + 1` has its storage reached by the machine on the shortened input. This is the main
-ingredient in the proof of `SPACE(o(log log n)) = SPACE(1)`.
+Take two input symbols `a` and `b`, with `a` not after `b`, that are equal and whose input-head
+positions have the same crossing sequence. Deleting the symbols after `a` up to and including `b`
+gives the *shortened input*. Every configuration of the path whose input head is outside the
+positions from `a` to `b` has its storage reached by the machine on the shortened input. This is
+the main ingredient in the proof of `SPACE(o(log log n)) = SPACE(1)`.
 
 The proof idea follows [Katz2007], §1.2, Theorem 4.
 
@@ -34,8 +33,8 @@ The proof idea follows [Katz2007], §1.2, Theorem 4.
 * `MultiTapeNTM.RunPath.visits`: the time steps at which a run path is running with its input head
   at a given position.
 * `MultiTapeNTM.RunPath.crossingSequence`: the storages at those time steps, in chronological order.
-* `InputCut`: an interval `[a, b]` of input-symbol indices; the symbols at indices `a + 1, ..., b`
-  are deleted.
+* `InputCut`: an interval `[a, b]` of input-symbol indices; the symbols after `a` up to and
+  including `b` are deleted.
 * `InputCut.shortened`: the shortened input.
 * `InputCut.SameSide`: two input-head positions on the original input that are on the same side
   of the deleted symbols.
@@ -93,23 +92,21 @@ lemma storage_injOn_visits {tm : MultiTapeTM k Symbol State} (p : tm.RunPath inp
 
 end MultiTapeNTM.RunPath
 
-/-- A cut of `input`: an interval `[a, b]` of input-symbol indices. It deletes the symbols at
-indices `a + 1, ..., b` and keeps those at `a` and `b`, so `a = b` deletes nothing. -/
+/-- A cut of `input`: an interval `[a, b]` of input-symbol indices. It deletes the symbols after `a`
+up to and including `b`, so `a = b` deletes nothing. -/
 abbrev InputCut (input : List Symbol) := NonemptyInterval (Fin input.length)
 
 namespace InputCut
 
 variable (cut : InputCut input)
 
-/-- The input-head position on the original input that reads the first index `a` of the cut. The
-left endmarker is at position `0`, so the symbol at index `i` is read at position `i + 1`. -/
+/-- The input-head position on the original input that reads the first index `a` of the cut. -/
 def left : ℕ := cut.fst.val + 1
 
 /-- The input-head position on the original input that reads the last index `b` of the cut. -/
 def right : ℕ := cut.snd.val + 1
 
-/-- The shortened input: the original input without the symbols at indices `a + 1, ..., b`. On the
-original input, these symbols are read at input-head positions `cut.left + 1, ..., cut.right`. -/
+/-- The shortened input: the original input without the symbols after `a` through `b`. -/
 def shortened : List Symbol :=
   input.take cut.left ++ input.drop cut.right
 
@@ -221,7 +218,7 @@ private lemma reached_slice {p : tm.RunPath input} {pos : ℕ}
     have hj : j.castSucc < v.val := Fin.castSucc_lt_succ.trans_le hjv
     obtain ⟨hs, hr⟩ := ih (Fin.le_castSucc_iff.mpr haj) hj.le
     have hne : (p j.castSucc).inputPos.val ≠ pos := fun hp ↦
-      (hnext (a := ⟨_, mem_visits.mpr ⟨hp, mt (p.halted_mono hj.le) (mem_visits.mp v.2).2⟩⟩)
+      (hnext (a := ⟨_, mem_visits.mpr ⟨hp, mt (p.halted_mono hj.le) (mem_visits.mp v.property).2⟩⟩)
         (Fin.le_castSucc_iff.mpr haj)).not_gt hj
     have hm := abs_le.mp (Step.inputPos_le (p.step j))
     unfold SameSide at hs ⊢
