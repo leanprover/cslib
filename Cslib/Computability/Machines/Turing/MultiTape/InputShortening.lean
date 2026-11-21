@@ -130,14 +130,14 @@ lemma inputPos_moveInputPos {p : Fin (input.length + 2)} {m : SignType}
   Fin.ext <| by grind [SameSide, inputPos, left, right, SignType.cast, val_moveInputPos_eq,
     cut.fst_le_snd, cut.length_shortened_add]
 
-/-- The counterpart of `c` on the shortened input: the same configuration, with the input head moved
-by `inputPos`. -/
+/-- The configuration `c` on the shortened input: its input head lands at `inputPos`, and the rest
+stays the same. -/
 private def cfg (c : Cfg k Symbol State input) : Cfg k Symbol State cut.shortened :=
   ⟨c.state, cut.inputPos c.inputPos, c.workTapes, c.workTapePos, c.output⟩
 
 /-- If the endpoints of the cut hold the same symbol, a configuration whose input head is not
-strictly inside the cut reads the same symbol as its counterpart. At `b`, the counterpart reads the
-symbol at `a`, which is the same. -/
+strictly inside the cut reads the same symbol on the shortened input. At `b`, it reads the symbol
+at `a` there, which is the same. -/
 private lemma inputSymbol_cfg (hsym : input[cut.fst] = input[cut.snd])
     {c : Cfg k Symbol State input} (hp : c.inputPos.val ∉ Set.Ioo cut.left cut.right) :
     (cut.cfg c).inputSymbol = c.inputSymbol := by
@@ -153,7 +153,7 @@ private lemma inputSymbol_cfg (hsym : input[cut.fst] = input[cut.snd])
 variable {tm : MultiTapeTM k Symbol State}
 
 /-- If the endpoints of the cut hold the same symbol, a step that stays on one side of the cut is
-also a step between the counterparts on the shortened input. -/
+also a step on the shortened input. -/
 private lemma step_cfg (hsym : input[cut.fst] = input[cut.snd]) {c c' : Cfg k Symbol State input}
     (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) :
     tm.step (cut.cfg c) = cut.cfg c' :=
@@ -167,11 +167,11 @@ private lemma step_cfg (hsym : input[cut.fst] = input[cut.snd]) {c c' : Cfg k Sy
 
 open MultiTapeNTM MultiTapeNTM.RunPath
 
-/-- The run of `tm` on the shortened input gets to the counterpart of `c`, ignoring the output. -/
+/-- The run of `tm` on the shortened input gets to `c`, ignoring the output. -/
 private abbrev Reached (tm : MultiTapeTM k Symbol State) (c : Cfg k Symbol State input) : Prop :=
   (cut.cfg c).core ∈ Cfg.core '' tm.reachable cut.shortened
 
-/-- The run on the shortened input starts at the counterpart of the initial configuration. -/
+/-- The initial configuration is reached. -/
 private lemma reached_head {p : tm.ComputationPath input} : cut.Reached tm p.head :=
   ⟨_, ⟨0, rfl⟩, by
     rw [p.head_eq]
@@ -249,7 +249,7 @@ private lemma step_sides {p : tm.RunPath input} (u : p.visits cut.left) (v : p.v
 /-- If the endpoints of the cut have the same crossing sequence, every visit to an endpoint is
 reached.
 
-The `n`-th visits to the two endpoints have the same storage, so they have the same counterpart on
+The `n`-th visits to the two endpoints have the same storage, so they are the same configuration on
 the shortened input, up to the output. By induction on `n`: one of the two steps from the `n`-th
 visits does not move into the cut (`step_sides`), so the next visit to that endpoint is reached
 (`reached_covBy`), and with it the next visit to the other endpoint. -/
