@@ -84,11 +84,62 @@ lemma step_multiApp_r (steps : Ns ⭢lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns �
 lemma steps_multiApp_r (steps : Ns ↠lβᶠ Ns') (lc_M : LC M) : M.multiApp Ns ↠βᶠ M.multiApp Ns' := by
   induction steps <;> grind
 
-lemma listFullBeta_cons_r (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) : (l ++ Ns) ⭢lβᶠ (l ++ Ns') := by
+/-- Reducing the head argument of an argument list yields a single argument-list step. -/
+lemma listFullBeta_cons_head (h : M ⭢βᶠ M') (h_lc : ∀ N ∈ Ns, LC N) :
+    (M :: Ns) ⭢lβᶠ (M' :: Ns) :=
+  .step h h_lc
+
+/-- Prepending a locally closed argument preserves a single argument-list step. -/
+lemma listFullBeta_cons_tail (h : Ns ⭢lβᶠ Ns') (lc_M : LC M) :
+    (M :: Ns) ⭢lβᶠ (M :: Ns') :=
+  .cons lc_M h
+
+/-- Multi-step congruence for the head of an argument list. -/
+lemma listFullBeta_steps_cons_head (h : M ↠βᶠ M') (h_lc : ∀ N ∈ Ns, LC N) :
+    (M :: Ns) ↠lβᶠ (M' :: Ns) := by
+  induction h with
+  | refl => rfl
+  | tail _ step ih => exact ih.tail (.step step h_lc)
+
+/-- Multi-step congruence for the tail of an argument list. -/
+lemma listFullBeta_steps_cons_tail (h : Ns ↠lβᶠ Ns') (lc_M : LC M) :
+    (M :: Ns) ↠lβᶠ (M :: Ns') := by
+  induction h with
+  | refl => rfl
+  | tail _ step ih => exact ih.tail (.cons lc_M step)
+
+/-- Prepending a list of locally closed arguments preserves a single argument-list step. -/
+lemma listFullBeta_append_r (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) :
+    (l ++ Ns) ⭢lβᶠ (l ++ Ns') := by
   induction l using List.reverseRecOn generalizing Ns Ns' with grind
 
-lemma listFullBeta_cons_l (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) : (Ns ++ l) ⭢lβᶠ (Ns' ++ l) := by
+@[deprecated (since := "2026-11-18")] alias listFullBeta_cons_r := listFullBeta_append_r
+
+/-- Appending a list of locally closed arguments preserves a single argument-list step. -/
+lemma listFullBeta_append_l (h : Ns ⭢lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) :
+    (Ns ++ l) ⭢lβᶠ (Ns' ++ l) := by
   induction h with grind
+
+@[deprecated (since := "2026-11-18")] alias listFullBeta_cons_l := listFullBeta_append_l
+
+/-- Prepending a list of locally closed arguments preserves multi-step argument-list reduction. -/
+lemma listFullBeta_steps_append_r (h : Ns ↠lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) :
+    (l ++ Ns) ↠lβᶠ (l ++ Ns') := by
+  induction h with
+  | refl => rfl
+  | tail _ step ih => exact ih.tail (listFullBeta_append_r step h_lc)
+
+/-- Appending a list of locally closed arguments preserves multi-step argument-list reduction. -/
+lemma listFullBeta_steps_append_l (h : Ns ↠lβᶠ Ns') (h_lc : ∀ M ∈ l, LC M) :
+    (Ns ++ l) ↠lβᶠ (Ns' ++ l) := by
+  induction h with
+  | refl => rfl
+  | tail _ step ih => exact ih.tail (listFullBeta_append_l step h_lc)
+
+/-- Just like ordinary beta reduction, the left-hand side
+    of a multi-application step is locally closed. -/
+lemma multiApp_step_lc_l (step : Ns ⭢lβᶠ Ns') : ∀ N ∈ Ns, LC N := by
+  induction step <;> grind [FullBeta.step_lc_l]
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- If a term (λ M) N P_1 ... P_n reduces in a single step to Q, then
@@ -110,10 +161,12 @@ lemma invert_abs_multiApp_st {Ps} {M N Q : Term Var}
     rw [multiApp_tail] at h_red
     cases h_red with
     | @appL _ _ P' _ P_P' =>
-      have : (Ps ++ [P]) ⭢lβᶠ Ps ++ [P'] := by apply listFullBeta_cons_r (.step P_P' ?_) <;> grind
+      have : (Ps ++ [P]) ⭢lβᶠ Ps ++ [P'] := by
+        apply listFullBeta_append_r (.step P_P' ?_) <;> grind
       grind [multiApp_tail]
     | appR _ h =>
-      have {Ps'} (h : Ps ⭢lβᶠ Ps') : (Ps ++ [P]) ⭢lβᶠ Ps' ++ [P] := listFullBeta_cons_l h (by grind)
+      have {Ps'} (h : Ps ⭢lβᶠ Ps') : (Ps ++ [P]) ⭢lβᶠ Ps' ++ [P] :=
+        listFullBeta_append_l h (by grind)
       grind [multiApp_tail]
     | base => induction Ps using List.reverseRecOn with grind [multiApp_tail]
 
