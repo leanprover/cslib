@@ -183,7 +183,7 @@ lemma transGen_le [IsRelTrans b] : transGen a ≤ b ↔ a ≤ b := by
 instance : IsRelTrans (transGen a) where
   mul_self_le := by
     refine (transGenStep a).lfp_induction (p := (transGen a * · ≤ transGen a)) ?_ ?_
-    · intro x hx (hle : x ≤ transGen a)
+    · intro x hx _
       grw [transGenStep_coe, mul_sup, ← mul_assoc, hx, transGen_mul_self_le, sup_idem]
     · simp [mul_sSup]
 
