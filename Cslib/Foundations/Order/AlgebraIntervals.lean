@@ -10,7 +10,16 @@ public import Cslib.Init
 public import Mathlib.Order.BooleanAlgebra.Defs
 public import Mathlib.Order.LatticeIntervals
 
-/-! # Algebra instances on intervals -/
+/-! # Algebra instances on intervals
+
+This file defines `SDiff (Set.Iic a)` and `HImp (Set.Ici a)` for an element `a : α` in,
+respectively, a co-Heyting or Heyting algebra. In the case that `α` is a (generalized) Boolean
+algebra, this makes `Set.Iic α` is a Boolean algebra.
+
+Note that further instances of this sort can be defined, but the `SDiff` and `HImp` operations
+cease to commute with the coercions. As it stands, only the instances necessary for downstream use
+are defined.
+-/
 
 @[expose] public section
 
@@ -40,6 +49,5 @@ instance Set.Iic.instBooleanAlgebra [GeneralizedBooleanAlgebra α] {a : α} :
   inf_compl_le_bot _ := inf_sdiff_self_right.le
   top_le_sup_compl _ := le_sup_sdiff
   sdiff_eq x y := by
-    ext
-    change (x : α) \ y = (x : α) ⊓ a \ y
+    refine Subtype.ext (?_ : (x : α) \ y = (x : α) ⊓ a \ y)
     rw [inf_sdiff_left_comm, inf_of_le_right (sdiff_le.trans x.prop)]
