@@ -7,14 +7,15 @@ module
 
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
+public import Cslib.Algorithms.Lean.Query.Sort.IsStableSort
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
 public import Mathlib.Data.List.Sort
 
 /-! # Insertion Sort: Correctness and Upper Bound
 
-Proofs that `insertionSort` is a correct comparison sort and uses at most `n * (n - 1) / 2`
-queries (with `n²` as a corollary). All proofs are by plain equational reasoning on
-`FreeM.eval` and `FreeM.countQueries`.
+Proofs that `insertionSort` is a correct and stable comparison sort and uses at most
+`n * (n - 1) / 2` queries (with `n²` as a corollary). All proofs are by plain equational
+reasoning on `FreeM.eval` and `FreeM.countQueries`.
 -/
 
 open Cslib Cslib.Query
@@ -107,5 +108,13 @@ theorem insertionSort_isSort : IsSort (insertionSort (α := α)) where
     intro xs oracle r _ _ _ horacle
     rw [eval_insertionSort]
     simpa only [horacle, decide_eq_true_eq] using List.pairwise_insertionSort r xs
+
+/-- Insertion sort is stable, by `List.sublist_insertionSort`. -/
+theorem insertionSort_isStableSort : IsStableSort (insertionSort (α := α)) where
+  toIsSort := insertionSort_isSort
+  sublist := by
+    intro xs oracle r _ _ _ horacle c hc hsub
+    rw [eval_insertionSort]
+    simpa only [horacle, decide_eq_true_eq] using List.sublist_insertionSort hc hsub
 
 end Cslib.Query

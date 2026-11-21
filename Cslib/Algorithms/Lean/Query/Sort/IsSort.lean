@@ -12,7 +12,7 @@ import Mathlib.Data.List.Sort
 
 `IsSort sort` asserts that `sort` is a correct comparison sort when viewed as a `FreeM`
 over `LEQuery α`. Correctness means: for any oracle, the result is a permutation of the
-input; and for any oracle implementing a total order, the result is sorted.
+input; and for any oracle implementing a total preorder, the result is sorted.
 -/
 
 open Cslib Cslib.Query
@@ -22,12 +22,12 @@ public section
 namespace Cslib.Query
 
 /-- A `FreeM`-based function is a correct comparison sort if it always produces a permutation
-    of its input, and produces a sorted list when the oracle implements a total order. -/
+    of its input, and produces a sorted list when the oracle implements a total preorder. -/
 structure IsSort (sort : List α → FreeM (LEQuery α) (List α)) : Prop where
   /-- The sort produces a permutation of its input, for any oracle. -/
   perm : ∀ (xs : List α) (oracle : {ι : Type} → LEQuery α ι → ι),
     ((sort xs).eval oracle).Perm xs
-  /-- The sort produces a sorted list, when the oracle implements a total order. -/
+  /-- The sort produces a sorted list, when the oracle implements a total preorder. -/
   sorted : ∀ (xs : List α) (oracle : {ι : Type} → LEQuery α ι → ι)
     (r : α → α → Prop) [DecidableRel r] [Std.Total r] [IsTrans α r]
     (_ : ∀ a b, oracle (.le a b) = decide (r a b)),

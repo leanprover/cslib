@@ -36,6 +36,10 @@ def leOracle : {ι : Type} → LEQuery ℕ ι → ι :=
 #guard (mergeSort [(1, "b"), (0, "x"), (1, "a")]).eval
     (LEQuery.oracleOf fun p q => decide (p.1 ≤ q.1)) == [(0, "x"), (1, "b"), (1, "a")]
 
+-- So is `insertionSort`.
+#guard (insertionSort [(1, "b"), (0, "x"), (1, "a")]).eval
+    (LEQuery.oracleOf fun p q => decide (p.1 ≤ q.1)) == [(0, "x"), (1, "b"), (1, "a")]
+
 -- The complex multiplication examples compute.
 #guard (complexMulNaive (1 : Int) 2 3 4).eval ArithQuery.honest == (-5, 10)
 #guard (complexMulGauss (1 : Int) 2 3 4).eval ArithQuery.honest == (-5, 10)
@@ -44,6 +48,26 @@ def leOracle : {ι : Type} → LEQuery ℕ ι → ι :=
 example (xs : List ℕ) :
     (mergeSort xs).eval leOracle = (insertionSort xs).eval leOracle :=
   mergeSort_isSort.eval_eq insertionSort_isSort (· ≤ ·) leOracle (fun _ _ => rfl) xs
+
+/-- Pairs compared by their first component only: a total preorder with ties. -/
+def keyLE (p q : ℕ × String) : Prop := p.1 ≤ q.1
+
+instance : DecidableRel keyLE := fun p q => inferInstanceAs (Decidable (p.1 ≤ q.1))
+instance : Std.Total keyLE := ⟨fun p q => Nat.le_total p.1 q.1⟩
+instance : IsTrans (ℕ × String) keyLE := ⟨fun _ _ _ => Nat.le_trans⟩
+
+-- Stable sorts agree even under a preorder with ties (`IsStableSort.eval_eq`).
+example (xs : List (ℕ × String)) :
+    (mergeSort xs).eval (LEQuery.oracleOf fun p q => decide (keyLE p q)) =
+      (insertionSort xs).eval (LEQuery.oracleOf fun p q => decide (keyLE p q)) :=
+  mergeSort_isStableSort.eval_eq insertionSort_isStableSort keyLE _ (fun _ _ => rfl) xs
+
+-- Pairs with the same key come out in input order (`IsStableSort.filter_eval`).
+example (xs : List (ℕ × String)) (k : ℕ × String) :
+    ((mergeSort xs).eval (LEQuery.oracleOf fun p q => decide (keyLE p q))).filter
+        (fun x => decide (keyLE x k ∧ keyLE k x)) =
+      xs.filter (fun x => decide (keyLE x k ∧ keyLE k x)) :=
+  mergeSort_isStableSort.filter_eval xs _ keyLE (fun _ _ => rfl) k
 
 -- The sharp triangular bound for insertion sort.
 example (oracle : {ι : Type} → LEQuery ℕ ι → ι) (xs : List ℕ) :
