@@ -46,8 +46,26 @@ variable {State Symbol : Type*}
 
 /-- Infinite run. -/
 structure Run (na : NA State Symbol) (xs : ωSequence Symbol) (ss : ωSequence State) where
+  /-- The initial state of the run is a starting state of the automaton. -/
   start : ss 0 ∈ na.start
+  /-- The state sequence forms an infinite execution over the input sequence. -/
   trans : na.OmegaExecution ss xs
+
+namespace Run
+
+attribute [scoped grind →] start
+
+/-- Every step of an infinite run is a valid transition of the automaton. -/
+theorem step {na : NA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State}
+    (h : na.Run xs ss) (n : ℕ) : na.Tr (ss n) (xs n) (ss (n + 1)) :=
+  h.trans n
+
+/-- Constructs an infinite run from an initial-state proof and an infinite execution. -/
+theorem intro {na : NA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State}
+    (hstart : ss 0 ∈ na.start) (htrans : na.OmegaExecution ss xs) : na.Run xs ss :=
+  ⟨hstart, htrans⟩
+
+end Run
 
 /-- A nondeterministic automaton that accepts finite strings (lists of symbols). -/
 structure FinAcc (State Symbol : Type*) extends NA State Symbol where
