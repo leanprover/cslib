@@ -54,7 +54,7 @@ lemma isRelRefl_iff [One α] [LE α] {a : α} : IsRelRefl a ↔ 1 ≤ a :=
   ⟨@IsRelRefl.one_le _ _ _ a, IsRelRefl.mk⟩
 
 /-- A symmetric element is equal to its `star`. -/
-@[simp] lemma star_eq_of_symm [Star α] (a : α) [IsRelSymm a] : star a = a := IsRelSymm.star_eq
+lemma star_eq_of_symm [Star α] (a : α) [IsRelSymm a] : star a = a := IsRelSymm.star_eq
 
 lemma isRelSymm_iff [Star α] {a : α} : IsRelSymm a ↔ star a = a :=
   ⟨@IsRelSymm.star_eq _ _ a, IsRelSymm.mk⟩
@@ -133,9 +133,10 @@ instance : IsRelSymm (symmGen a) where
 lemma le_symmGen : a ≤ symmGen a := le_sup_left
 
 lemma symmGen_le [IsRelSymm b] : symmGen a ≤ b ↔ a ≤ b := by
-  simp [symmGen, star_le_iff]
+  simp [symmGen, star_le_iff, star_eq_of_symm]
 
-lemma star_le_iff_of_isRelSymm [IsRelSymm b] : star a ≤ b ↔ a ≤ b := by simp [star_le_iff]
+lemma star_le_iff_of_isRelSymm [IsRelSymm b] : star a ≤ b ↔ a ≤ b := by
+  simp [star_le_iff, star_eq_of_symm]
 
 /-! ### Transitive elements -/
 
@@ -205,7 +206,7 @@ instance _root_.Set.Iic.instRelationAlgebra (a : α) [IsRelSymm a] [IsRelTrans a
   one_mul x := private_decl% (Subtype.ext <| inf_one_mul_eq x.prop)
   mul_one x := by
     refine Subtype.ext (star_injective ?_ : x * (a ⊓ 1) = x)
-    simpa using inf_one_mul_eq (star_le_iff_of_isRelSymm.mpr x.prop)
+    simpa [star_eq_of_symm] using inf_one_mul_eq (star_le_iff_of_isRelSymm.mpr x.prop)
   star x := ⟨star (x : α), star_le_iff_of_isRelSymm.mpr x.prop⟩
   star_involutive x := Subtype.ext <| star_involutive (x : α)
   star_mul x y := Subtype.ext <| star_mul (x : α) y
