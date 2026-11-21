@@ -7,20 +7,18 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Encoding.Basic
-public import Cslib.Computability.Machines.Turing.MultiTape.Subsequential
+public import Cslib.Computability.Machines.Turing.MultiTape.Transducer
 import Mathlib.Tactic.DeriveFintype
 
 /-!
-# Machines for delimited words
+# Complexity of operations on delimited Boolean words
 
-The encoder emits `[true, b]` for each data bit `b` and emits `[false]` at end of input.
-The decoders use the tag bits to decide which data bits to emit or skip.
-A subsequential transducer supplies the terminator for `delimit` and the empty-input default for
-`undelimitOr`. Sequential transducers suffice for `dropDelimited` and `undelimitAll`.
+These functions are computable by multitape Turing machines in linear time and zero work space.
+The constructions use subsequential transducers for `delimit` and `undelimitOr`.
+Taking the empty default gives `undelimit`. Sequential transducers suffice for `dropDelimited`
+and `undelimitAll`.
 
 ## Main results
-
-Each of the following bounds is linear in the input length and uses zero work space.
 
 * `Turing.MultiTapeTM.computableInTimeAndSpace_delimit` bounds the cost of writing a codeword.
 * `Turing.MultiTapeTM.computableInTimeAndSpace_undelimit` and
@@ -67,7 +65,7 @@ private inductive UndelimitState : Type
   | done
   deriving Fintype
 
-/-- The transducer emits data bits until the delimiter and emits the default on empty input. -/
+/-- The transducer emits data bits until the delimiter and emits the default `e` on empty input. -/
 private def undelimitTransducer (e : List Bool) :
     SubsequentialTransducer UndelimitState Bool Bool where
   start := .start
@@ -103,10 +101,7 @@ theorem computableInTimeAndSpace_undelimitOr (e : List Bool) :
     ComputableInTimeAndSpace (undelimitOr e) encBits encBits
       (fun w => 2 * w.length + e.length + 1) (fun _ => 0) :=
   (computableInTimeAndSpace_of_subsequential (undelimitTransducer e) (undelimitOr e)
-    (fun w => by
-      rw [SubsequentialTransducer.translates_iff_output_eq, SubsequentialTransducer.output,
-        outputFrom_undelimit]
-      rfl)).mono
+    (fun w => by simp [SubsequentialTransducer.output, outputFrom_undelimit]; rfl)).mono
     (fun _ => by lia [length_undelimitOr_le]) fun _ => le_rfl
 
 /-- `undelimit` is computable in linear time and zero space. -/
@@ -154,10 +149,7 @@ theorem computableInTimeAndSpace_dropDelimited :
     ComputableInTimeAndSpace dropDelimited encBits encBits (fun w => 2 * w.length + 1)
       (fun _ => 0) :=
   (computableInTimeAndSpace_of_sequential dropDelimitedTransducer dropDelimited
-    (fun w => by
-      rw [SequentialTransducer.translates_iff_output_eq, SequentialTransducer.output,
-        outputFrom_dropDelimited]
-      rfl)).mono
+    (fun w => by simp [SequentialTransducer.output, outputFrom_dropDelimited]; rfl)).mono
     (fun _ => by lia [length_dropDelimited_le]) fun _ => le_rfl
 
 /-! ### All delimited codes -/
@@ -186,10 +178,7 @@ theorem computableInTimeAndSpace_undelimitAll :
     ComputableInTimeAndSpace undelimitAll encBits encBits (fun w => 2 * w.length + 1)
       (fun _ => 0) :=
   (computableInTimeAndSpace_of_sequential undelimitAllTransducer undelimitAll
-    (fun w => by
-      rw [SequentialTransducer.translates_iff_output_eq, SequentialTransducer.output,
-        outputFrom_undelimitAll]
-      rfl)).mono
+    (fun w => by simp [SequentialTransducer.output, outputFrom_undelimitAll]; rfl)).mono
     (fun _ => by lia [length_undelimitAll_le]) fun _ => le_rfl
 
 end Turing.MultiTapeTM

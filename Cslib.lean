@@ -126,8 +126,8 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Tidy.Defs
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.Space
-public import Cslib.Computability.Machines.Turing.MultiTape.Subsequential
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
+public import Cslib.Computability.Machines.Turing.MultiTape.Transducer
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
 public import Cslib.Computability.Machines.Turing.SingleTape.NonDeterministic

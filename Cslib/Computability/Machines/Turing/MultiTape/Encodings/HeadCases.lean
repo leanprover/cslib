@@ -7,17 +7,16 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Encoding.Basic
-public import Cslib.Computability.Machines.Turing.MultiTape.Subsequential
+public import Cslib.Computability.Machines.Turing.MultiTape.Transducer
 import Mathlib.Data.Fintype.Option
 
 /-!
-# Machines inspecting the first bit of a word
+# Complexity of operations on the first bit of a Boolean word
 
-Many accessors of the default encodings only inspect or change the first bit of a code word, which
-is the tag of a sum or the least significant bit of a number. `Cslib.Encoding.headCases` captures
-these functions on words. Its subsequential transducer emits `g b` on the first bit `b`,
-then copies or discards the remaining bits according to `keep b`. On empty input its final
-output is `e`.
+A multitape Turing machine computes `headCases e g keep` in linear time and zero work space.
+This function is useful when reading a sum tag or the least significant bit of a number.
+The construction uses a subsequential transducer that reads the first bit to decide whether to copy
+or discard the tail.
 
 ## Main definitions
 
@@ -28,16 +27,16 @@ output is `e`.
 
 * `Cslib.Encoding.length_headCases_le` bounds the output length by the input length plus the
   maximum length of the default and the two replacement words.
-* `Turing.MultiTapeTM.computableInTimeAndSpace_headCases` computes this function in linear time
-  and zero work space.
+* `Turing.MultiTapeTM.computableInTimeAndSpace_headCases` bounds the running time by twice the
+  input length plus a constant depending on `e` and `g`, using zero work space.
 -/
 
 public section
 
 namespace Cslib.Encoding
 
-/-- A function on words that depends only on the first bit: the empty word is mapped to `e`, and
-a word starting with `b` to `g b`, followed by the rest of the word if `keep b`. -/
+/-- Return `e` on empty input. Otherwise replace the first bit `b` with `g b` and
+copy the tail if `keep b` is true. -/
 @[expose]
 def headCases (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool) : List Bool → List Bool
   | [] => e
@@ -60,8 +59,8 @@ namespace Turing.MultiTapeTM
 
 open Cslib.Encoding Cslib.Automata
 
-/-- At the start of the input (`none`), or past the first bit and keeping the rest of the input or
-not. -/
+/-- Start in `none` and emit `e` if the input is empty. After reading the first bit,
+`some true` copies the tail and `some false` discards it. -/
 private def headCasesTransducer (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool) :
     SubsequentialTransducer (Option Bool) Bool Bool where
   start := none
@@ -76,10 +75,19 @@ private def headCasesTransducer (e : List Bool) (g : Bool → List Bool) (keep :
     | none => e
     | some _ => []
 
-private lemma outputFrom_headCases_some {e : List Bool} {g : Bool → List Bool}
-    {keep : Bool → Bool} (k : Bool) (w : List Bool) :
-    (headCasesTransducer e g keep).outputFrom (some k) w = if k then w else [] := by
-  induction w <;> cases k <;> simp_all [headCasesTransducer]
+private def headCasesFrom (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool)
+    (q : Option Bool) (w : List Bool) : List Bool :=
+  match q with
+  | none => headCases e g keep w
+  | some true => w
+  | some false => []
+
+private lemma outputFrom_headCases (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool) :
+    (headCasesTransducer e g keep).outputFrom = headCasesFrom e g keep := by
+  apply SubsequentialTransducer.outputFrom_unique
+  · rintro (_ | (_ | _)) <;> rfl
+  · rintro (_ | (_ | _)) b w <;> simp [headCasesTransducer, headCasesFrom]
+    cases keep b <;> rfl
 
 /-- `headCases e g keep` is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_headCases (e : List Bool) (g : Bool → List Bool)
@@ -89,10 +97,7 @@ theorem computableInTimeAndSpace_headCases (e : List Bool) (g : Bool → List Bo
       (fun _ => 0) :=
   (computableInTimeAndSpace_of_subsequential (headCasesTransducer e g keep)
     (headCases e g keep) fun w => by
-      rw [SubsequentialTransducer.translates_iff_output_eq]
-      cases w with
-      | nil => rfl
-      | cons b w => exact congrArg (g b ++ ·) (outputFrom_headCases_some (keep b) w)).mono
+      simp [SubsequentialTransducer.output, outputFrom_headCases]; rfl).mono
     (fun _ => by lia [length_headCases_le]) fun _ => le_rfl
 
 end Turing.MultiTapeTM

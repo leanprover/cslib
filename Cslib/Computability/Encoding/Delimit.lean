@@ -141,8 +141,7 @@ theorem delimit_prefix_delimit {w v : List Bool} :
 
 /-! ### Variants of `undelimit` -/
 
-/-- The word whose delimited code starts `w`, as computed by `undelimit`, or `e` if `w` is
-empty. -/
+/-- Decode the first word with `undelimit`, and use `e` when the input is empty. -/
 def undelimitOr (e : List Bool) : List Bool → List Bool
   | [] => e
   | b :: w => undelimit (b :: w)
