@@ -14,7 +14,7 @@ public import Mathlib.Order.LatticeIntervals
 
 This file defines `SDiff (Set.Iic a)` and `HImp (Set.Ici a)` for an element `a : α` in,
 respectively, a co-Heyting or Heyting algebra. In the case that `α` is a (generalized) Boolean
-algebra, this makes `Set.Iic α` is a Boolean algebra.
+algebra, this makes `Set.Iic a` a Boolean algebra.
 
 Note that further instances of this sort can be defined, but the `SDiff` and `HImp` operations
 cease to commute with the coercions. As it stands, only the instances necessary for downstream use

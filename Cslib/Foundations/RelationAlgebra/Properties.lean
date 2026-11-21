@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Chris Henson. All rights reserved.
+Copyright (c) 2026 Thomas Waring. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Henson
+Authors: Thomas Waring
 -/
 
 module
@@ -35,7 +35,7 @@ class IsRelRefl [One α] [LE α] (a : α) : Prop where
   protected one_le : 1 ≤ a
 
 /-- A symmetric element of a relation algebra. Note that this is a class version of Mathlib's
-`IsSelfAdjoint.` -/
+`IsSelfAdjoint`. -/
 class IsRelSymm [Star α] (a : α) : Prop where
   protected star_eq : star a = a
 
@@ -159,7 +159,7 @@ section Complete
 
 variable {α : Type*} [CompleteRelationAlgebra α] {a b : α}
 
-/-- Auxilliary definition for `RelationAlgebra.transGen`. -/
+/-- Auxiliary definition for `RelationAlgebra.transGen`. -/
 @[simps]
 def transGenStep (a : α) : α →o α where
   toFun b := a ⊔ b * a
