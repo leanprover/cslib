@@ -336,8 +336,8 @@ variable {tm : MultiTapeTM k Symbol State}
 open MultiTapeNTM MultiTapeNTM.RunPath
 
 /-- **Input shortening.** If a computation path of `tm` halts in space `s` on an input longer than
-`3 * |Symbol| * (B + 1) ^ B`, where `B` bounds the number of storages in space `s`, then each storage
-in the path also occurs in the run of `tm` on some shorter input.
+`3 * |Symbol| * (B + 1) ^ B`, where `B` bounds the number of storages in space `s`, then each
+storage in the path also occurs in the run of `tm` on some shorter input.
 
 By the pigeonhole principle, two input positions on the same side of the input head hold the same
 symbol and have the same crossing sequence, and `InputCut.exists_storage_eq` cuts between them. -/
