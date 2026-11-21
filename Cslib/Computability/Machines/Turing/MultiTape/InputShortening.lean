@@ -337,18 +337,18 @@ open MultiTapeNTM MultiTapeNTM.RunPath
 
 /-- **Input shortening.** If a computation path of `tm` halts in space `s` on an input longer than
 `3 * |Symbol| * (B + 1) ^ B`, where `B` bounds the number of storages in space `s`, then for every
-configuration `d` in the path, the storage of `d` is reached on some shorter input.
+configuration `c` in the path, the storage of `c` is reached on some shorter input.
 
-By the pigeonhole principle, two input positions on the same side of the input head of `d` hold the
-same symbol and have the same crossing sequence; the `3` counts the sides. Then
-`InputCut.exists_storage_eq` applies to the cut between them. -/
+By the pigeonhole principle, two input positions on the same side of the input head of `c` hold the
+same symbol and have the same crossing sequence. Then `InputCut.exists_storage_eq` applies to the
+cut between them. -/
 theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     {path : tm.ComputationPath input} (hs : path.space ≤ s) (hhalt : path.last.Halted)
     (hlen : 3 * Fintype.card Symbol *
       (storageBound Symbol State k s + 1) ^ storageBound Symbol State k s < input.length)
-    {d : Cfg k Symbol State input} (hd : d ∈ path) :
+    {c : Cfg k Symbol State input} (hc : c ∈ path) :
     ∃ input' : List Symbol, input'.length < input.length ∧
-      d.storage ∈ Cfg.storage '' tm.reachable input' := by
+      c.storage ∈ Cfg.storage '' tm.reachable input' := by
   let P := path.toRunPath
   -- Every prefix fits in the windows given by the space of this path.
   let w := spaceUsedByTape P
@@ -366,8 +366,8 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     exact (Finset.card_le_card_of_injOn _ (fun _ _ ↦ Finset.mem_coe.mpr (Finset.mem_univ _))
       ((Storage.toBounded_injOn w).comp (storage_injOn_visits P hhalt pos) fun t _ ↦ hS t)).trans
       (by simpa using hcard)
-  -- Record the side of `d`, the input symbol, and the bounded crossing sequence.
-  let f (j : Fin input.length) := (compare (j.val + 1) d.inputPos.val, input[j],
+  -- Record the side of `c`, the input symbol, and the bounded crossing sequence.
+  let f (j : Fin input.length) := (compare (j.val + 1) c.inputPos.val, input[j],
     fun n : Fin B ↦ ((crossingSequence P (j.val + 1))[n.val]?).map (·.toBounded w))
   obtain ⟨a, b, hab, hf⟩ : ∃ a b, a < b ∧ f a = f b := by
     obtain ⟨a, b, hne, hf⟩ := Fintype.exists_ne_map_eq_of_card_lt f <| by
@@ -387,9 +387,9 @@ theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
         at he ⊢
     exact Storage.toBounded_injOn w (hfits ha) (hfits hb) he
   let cut : InputCut input := ⟨⟨a, b⟩, hab.le⟩
-  have hout : ¬(a.val + 1 ≤ d.inputPos.val ∧ d.inputPos.val ≤ b.val + 1) := by
+  have hout : ¬(a.val + 1 ≤ c.inputPos.val ∧ c.inputPos.val ≤ b.val + 1) := by
     grind [compare_lt_iff_lt, compare_eq_iff_eq, compare_gt_iff_gt]
-  refine ⟨cut.shortened, ?_, cut.exists_storage_eq hsym hseq' hd hout⟩
+  refine ⟨cut.shortened, ?_, cut.exists_storage_eq hsym hseq' hc hout⟩
   have := cut.length_shortened_add
   change cut.shortened.length + (b.val + 1 - (a.val + 1)) = input.length at this
   omega
