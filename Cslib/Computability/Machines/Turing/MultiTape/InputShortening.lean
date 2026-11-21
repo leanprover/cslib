@@ -293,11 +293,8 @@ private lemma reached_visit {p : tm.ComputationPath input}
 /-- If the endpoints of the cut have the same crossing sequence, every configuration in the path
 with the input head outside the cut is reached.
 
-By induction along the path. The input head moves at most one position per step, so one step
-earlier it was outside the cut too, or at an endpoint. In the second case the head then moved, so
-that configuration is not halted: it is a visit to the endpoint, reached by `reached_visit`. The
-endpoints themselves are left out, since a configuration halted at an endpoint may have come there
-from inside the cut. -/
+By induction along the path: one step earlier, the input head was outside the cut too, or at an
+endpoint, where `reached_visit` applies. -/
 private lemma reached_of_mem {p : tm.ComputationPath input}
     (hseq : crossingSequence p.toRunPath cut.left = crossingSequence p.toRunPath cut.right)
     {c : Cfg k Symbol State input} (hc : c ∈ p)
@@ -339,14 +336,12 @@ variable {tm : MultiTapeTM k Symbol State}
 open MultiTapeNTM MultiTapeNTM.RunPath
 
 /-- **Input shortening.** If a computation path of `tm` halts in space `s` on an input longer than
-`3 * |Symbol| * (B + 1) ^ B`, where `B` bounds the number of storages in space `s`, then each
-storage in the path also occurs in the run of `tm` on some shorter input.
+`3 * |Symbol| * (B + 1) ^ B`, where `B` bounds the number of storages in space `s`, then for every
+configuration `d` in the path, the storage of `d` is reached on some shorter input.
 
-Sort the input positions into three groups: left of the input head of `d`, at it, or right of it.
-As the input is longer than three times the number of possible symbols and crossing sequences, by
-the pigeonhole principle two positions in the same group hold the same symbol and have the same
-crossing sequence. They are not both at the input head, so the input head of `d` is outside the cut
-between them, and `InputCut.exists_storage_eq` applies to that cut. -/
+By the pigeonhole principle, two input positions on the same side of the input head of `d` hold the
+same symbol and have the same crossing sequence; the `3` counts the sides. Then
+`InputCut.exists_storage_eq` applies to the cut between them. -/
 theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     {path : tm.ComputationPath input} (hs : path.space ≤ s) (hhalt : path.last.Halted)
     (hlen : 3 * Fintype.card Symbol *
