@@ -13,6 +13,7 @@ import CslibTests.Complexity.Combinators
 import CslibTests.Congruence
 import CslibTests.DFA
 import CslibTests.DiffieHellman
+import CslibTests.Encoding
 import CslibTests.FreeMonad
 import CslibTests.GrindLint
 import CslibTests.HML

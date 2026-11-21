@@ -24,7 +24,7 @@ variable {State Symbol Symbol' : Type*} (f : Hom Symbol' Symbol)
 
 /--
 Given a language homomorphism `f` from `Symbol'` to `Symbol` and an NA `na` on `Symbol`,
-`na.preimage f` is an NA on `Symbol` with the same state space, start states, and
+`na.preimage f` is an NA on `Symbol'` with the same state space, start states, and
 accept states, but with a different transition relation: the step that `na.preimage f` takes
 on input `x` is the composition of the steps taken by `na` on inputs `f [x]`. -/
 def preimage (na : FinAcc State Symbol) : FinAcc State Symbol' where

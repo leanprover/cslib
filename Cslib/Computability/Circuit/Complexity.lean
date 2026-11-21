@@ -70,7 +70,7 @@ theorem Interpretation.IsComplete.exists_computes {I : Interpretation σ U} [I.I
 on `S` under `I`, or `⊤` if there is none. -/
 noncomputable def ecomplexityOn (I : Interpretation σ U) (S : Set (Fin n → U))
     (f : (Fin n → U) → Fin m → U) : ℕ∞ :=
-  ⨅ c : {c : Circuit σ n m // c.ComputesOn I S f}, (c.1.size : ℕ∞)
+  ⨅ c : {c : Circuit σ n m // c.ComputesOn I S f}, (c.val.size : ℕ∞)
 
 /-- The complexity `C(f)` of `f`: its complexity on all inputs. -/
 noncomputable def ecomplexity (I : Interpretation σ U) (f : (Fin n → U) → Fin m → U) : ℕ∞ :=
@@ -83,7 +83,7 @@ variable {I : Interpretation σ U} {S T : Set (Fin n → U)} {f f' : (Fin n → 
 
 theorem ecomplexityOn_le_of_computesOn (c : Circuit σ n m) (hc : c.ComputesOn I S f) :
     ecomplexityOn I S f ≤ c.size :=
-  iInf_le (fun c : {c // c.ComputesOn I S f} => (c.1.size : ℕ∞)) ⟨c, hc⟩
+  iInf_le (fun c : {c // c.ComputesOn I S f} => (c.val.size : ℕ∞)) ⟨c, hc⟩
 
 theorem ecomplexityOn_ne_top_iff :
     ecomplexityOn I S f ≠ ⊤ ↔ ∃ c : Circuit σ n m, c.ComputesOn I S f := by
@@ -95,7 +95,7 @@ theorem exists_computesOn_size_eq_ecomplexityOn (h : ∃ c : Circuit σ n m, c.C
     ∃ c : Circuit σ n m, c.ComputesOn I S f ∧ (c.size : ℕ∞) = ecomplexityOn I S f := by
   have : Nonempty {c : Circuit σ n m // c.ComputesOn I S f} := nonempty_subtype.mpr h
   obtain ⟨⟨c, hc⟩, hmin⟩ := ENat.exists_eq_iInf
-    (fun c : {c : Circuit σ n m // c.ComputesOn I S f} => (c.1.size : ℕ∞))
+    (fun c : {c : Circuit σ n m // c.ComputesOn I S f} => (c.val.size : ℕ∞))
   exact ⟨c, hc, hmin⟩
 
 theorem ecomplexityOn_le_iff :
@@ -118,12 +118,12 @@ theorem le_ecomplexityOn_iff {k : ℕ∞} :
 
 /-- A larger support is harder to compute on. -/
 theorem ecomplexityOn_mono (h : S ⊆ T) : ecomplexityOn I S f ≤ ecomplexityOn I T f :=
-  le_iInf fun c => iInf_le_of_le ⟨c.1, c.2.mono h⟩ le_rfl
+  le_iInf fun c => iInf_le_of_le ⟨c.val, c.property.mono h⟩ le_rfl
 
 /-- Complexity on a support depends only on the values of the function on the support. -/
 theorem ecomplexityOn_congr (h : Set.EqOn f f' S) : ecomplexityOn I S f = ecomplexityOn I S f' :=
-  le_antisymm (le_iInf fun c => iInf_le_of_le ⟨c.1, c.2.trans h.symm⟩ le_rfl)
-    (le_iInf fun c => iInf_le_of_le ⟨c.1, c.2.trans h⟩ le_rfl)
+  le_antisymm (le_iInf fun c => iInf_le_of_le ⟨c.val, c.property.trans h.symm⟩ le_rfl)
+    (le_iInf fun c => iInf_le_of_le ⟨c.val, c.property.trans h⟩ le_rfl)
 
 theorem ecomplexityOn_le_ecomplexity : ecomplexityOn I S f ≤ ecomplexity I f :=
   ecomplexityOn_mono (Set.subset_univ S)

@@ -182,7 +182,11 @@ lemma Cfg.spaceUsed_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
     generalize hM : tm.tr q tape.head = result at hstep
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
     cases hstep; cases dir with
-    | none => simp [Cfg.spaceUsed, BiTape.optionMove, BiTape.spaceUsed_write, hM]
+    | none =>
+      simp [Cfg.spaceUsed, BiTape.optionMove];
+      split
+      · simp
+      · lia
     | some d => simpa [Cfg.spaceUsed, BiTape.optionMove, BiTape.spaceUsed_write, hM] using
         BiTape.spaceUsed_move (tape.write wr) d
 
