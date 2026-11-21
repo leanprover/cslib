@@ -213,8 +213,9 @@ private lemma reached_slice {p : tm.RunPath input} {pos : ℕ}
     unfold SameSide at hs ⊢
     exact ⟨by omega, reached_step hsym hr (p.step j) (by unfold SameSide; omega)⟩
 
-/-- If the input head leaves an endpoint of the cut without moving into the cut, then the next visit
-to that endpoint is reached when this one is. -/
+/-- Take two consecutive visits to an endpoint of the cut, the first of them reached. If the step
+from the first visit does not move the input head into the cut, then the second visit is reached
+too: in between, the input head stays on the outer side of the endpoint. -/
 private lemma reached_covBy {p : tm.RunPath input} {pos : ℕ}
     (hpos : pos = cut.left ∨ pos = cut.right) {u v : p.visits pos} (huv : u ⋖ v)
     (h : cut.Reached tm (p u.val)) (hside : cut.SameSide (tm.step (p u.val)).inputPos pos) :
@@ -292,9 +293,11 @@ private lemma reached_visit {p : tm.ComputationPath input}
 /-- If the endpoints of the cut have the same crossing sequence, every configuration in the path
 with the input head outside the cut is reached.
 
-One step earlier, the input head was outside the cut too, or at a visit to an endpoint, which is
-reached by `reached_visit`. A configuration halted at an endpoint is left out, since the machine may
-have come there from inside the cut. -/
+By induction along the path. The input head moves at most one position per step, so one step
+earlier it was outside the cut too, or at an endpoint. In the second case the head then moved, so
+that configuration is not halted: it is a visit to the endpoint, reached by `reached_visit`. The
+endpoints themselves are left out, since a configuration halted at an endpoint may have come there
+from inside the cut. -/
 private lemma reached_of_mem {p : tm.ComputationPath input}
     (hseq : crossingSequence p.toRunPath cut.left = crossingSequence p.toRunPath cut.right)
     {c : Cfg k Symbol State input} (hc : c ∈ p)
@@ -339,8 +342,11 @@ open MultiTapeNTM MultiTapeNTM.RunPath
 `3 * |Symbol| * (B + 1) ^ B`, where `B` bounds the number of storages in space `s`, then each
 storage in the path also occurs in the run of `tm` on some shorter input.
 
-By the pigeonhole principle, two input positions on the same side of the input head hold the same
-symbol and have the same crossing sequence, and `InputCut.exists_storage_eq` cuts between them. -/
+Sort the input positions into three groups: left of the input head of `d`, at it, or right of it.
+As the input is longer than three times the number of possible symbols and crossing sequences, by
+the pigeonhole principle two positions in the same group hold the same symbol and have the same
+crossing sequence. They are not both at the input head, so the input head of `d` is outside the cut
+between them, and `InputCut.exists_storage_eq` applies to that cut. -/
 theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     {path : tm.ComputationPath input} (hs : path.space ≤ s) (hhalt : path.last.Halted)
     (hlen : 3 * Fintype.card Symbol *
