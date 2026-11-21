@@ -9,6 +9,7 @@ module
 public import Cslib.Foundations.Order.Huntington
 public import Cslib.Init
 public import Mathlib.Algebra.Order.Monoid.Unbundled.Basic
+public import Mathlib.Algebra.Order.Quantale
 public import Mathlib.Algebra.Star.Basic
 public import Mathlib.Basic.Rel
 public import Mathlib.Order.Atoms
@@ -179,41 +180,57 @@ theorem mul_le_compl_star_tfae {a b c : α} :
     rw [← star_compl, le_star_iff, star_mul, mul_le_compl_right, star_star]
   tfae_finish
 
-/-- The right residual, defined so that `a ≤ rightResidual b c ↔ a * c ≤ b`. -/
-def rightResidual (a b : α) : α := (aᶜ * star b)ᶜ
+/-- The right residual, defined so that `a ≤ leftResidual b c ↔ a * b ≤ c`. -/
+def leftResidual (a b : α) : α := (bᶜ * star a)ᶜ
 
-theorem le_rightResidual_iff {a b c : α} : a ≤ rightResidual b c ↔ a * c ≤ b := by
-  rw [rightResidual, le_compl_comm, ← mul_le_compl_left, compl_compl]
+theorem le_leftResidual_iff {a b c : α} : a ≤ leftResidual b c ↔ a * b ≤ c := by
+  rw [leftResidual, le_compl_comm, ← mul_le_compl_left, compl_compl]
 
-/-- The left residual, defined so that `a ≤ leftResidual b c ↔ b * a ≤ c`. -/
-def leftResidual (a b : α) : α := (star a * bᶜ)ᶜ
+/-- The left residual, defined so that `a ≤ rightResidual b c ↔ b * a ≤ c`. -/
+def rightResidual (a b : α) : α := (star a * bᶜ)ᶜ
 
-theorem le_leftResidual_iff {a b c : α} : a ≤ leftResidual b c ↔ b * a ≤ c := by
-  rw [leftResidual, le_compl_comm, ← mul_le_compl_right, compl_compl]
+theorem le_rightResidual_iff {a b c : α} : a ≤ rightResidual b c ↔ b * a ≤ c := by
+  rw [rightResidual, le_compl_comm, ← mul_le_compl_right, compl_compl]
 
 @[simp, push]
-theorem star_rightResidual {a b : α} :
-    star (rightResidual a b) = leftResidual (star b) (star a) := by
-  rw [rightResidual, leftResidual]
+theorem star_leftResidual {a b : α} :
+    star (leftResidual a b) = rightResidual (star a) (star b) := by
+  rw [leftResidual, rightResidual]
   push star
   rfl
 
 @[simp, push]
-theorem star_leftResidual {a b : α} :
-    star (leftResidual a b) = rightResidual (star b) (star a) := by
-  rw [leftResidual, rightResidual]
+theorem star_rightResidual {a b : α} :
+    star (rightResidual a b) = leftResidual (star a) (star b) := by
+  rw [rightResidual, leftResidual]
   push star
   rfl
 
 theorem mul_sSup {α : Type*} [CompleteRelationAlgebra α] {a : α} {s : Set α} :
     a * sSup s = ⨆ b ∈ s, a * b := by
   apply eq_of_forall_ge_iff
-  simp [← le_leftResidual_iff]
+  simp [← le_rightResidual_iff]
 
 theorem sSup_mul {α : Type*} [CompleteRelationAlgebra α] {s : Set α} {b : α} :
     sSup s * b = ⨆ a ∈ s, a * b := by
   apply eq_of_forall_ge_iff
-  simp [← le_rightResidual_iff]
+  simp [← le_leftResidual_iff]
+
+instance instQuantale (α : Type*) [CompleteRelationAlgebra α] : IsQuantale α where
+  mul_sSup_distrib _ _ := mul_sSup
+  sSup_mul_distrib _ _ := sSup_mul
+
+open Quantale in
+theorem leftMulResiduation_eq_leftResidual {α : Type*} [CompleteRelationAlgebra α]
+    {a b : α} : a ⇨ₗ b = leftResidual a b := by
+  apply eq_of_forall_le_iff
+  simp [leftMulResiduation_le_iff_mul_le, le_leftResidual_iff]
+
+open Quantale in
+theorem rightMulResiduation_eq_rightResidual {α : Type*} [CompleteRelationAlgebra α]
+    {a b : α} : a ⇨ᵣ b = rightResidual a b := by
+  apply eq_of_forall_le_iff
+  simp [rightMulResiduation_le_iff_mul_le, le_rightResidual_iff]
 
 /-- If a nonzero element lies below a product, the right factor meets its converse image. -/
 theorem inf_star_mul_ne_bot {r s p : α} (hp : p ≠ ⊥) (h : p ≤ r * s) : s ⊓ star r * p ≠ ⊥ :=
@@ -310,13 +327,13 @@ theorem _root_.SetRel.mem_one : (a, b) ∈ (1 : SetRel α α) ↔ a = b := .rfl
 @[simp]
 theorem _root_.SetRel.mem_star : (a, b) ∈ star R ↔ (b, a) ∈ R := .rfl
 
-theorem _root_.SetRel.mem_rightResidual :
-    (a, b) ∈ rightResidual R S ↔ ∀ c, (b, c) ∈ S → (a, c) ∈ R := by
-  simp [rightResidual, not_imp_not]
-
 theorem _root_.SetRel.mem_leftResidual :
-    (a, b) ∈ leftResidual R S ↔ ∀ c, (c, a) ∈ R → (c, b) ∈ S := by
-  simp [leftResidual]
+    (a, b) ∈ leftResidual R S ↔ ∀ c, (b, c) ∈ R → (a, c) ∈ S := by
+  simp [leftResidual, not_imp_not]
+
+theorem _root_.SetRel.mem_rightResidual :
+    (a, b) ∈ rightResidual R S ↔ ∀ c, (c, a) ∈ R → (c, b) ∈ S := by
+  simp [rightResidual]
 
 end RelationAlgebra
 
