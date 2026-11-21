@@ -136,6 +136,12 @@ lemma step_nop (ws : Fin k → List Symbol) (out : List Symbol) :
   rw [step_of_state (by rfl)]
   simp [nop, Action.apply, wordsCfg, SignType.cast]
 
+/-- `nop` reaches its halting configuration after exactly one step. -/
+@[simp]
+lemma runFrom_nop_one (ws : Fin k → List Symbol) (out : List Symbol) :
+    (nop k Symbol).runFrom (wordsCfg input (some ()) ws out) 1 = wordsCfg input none ws out := by
+  simpa only [runFrom, Function.iterate_one] using step_nop ws out
+
 /-- **The machine that does nothing** halts in one step, leaving every word as it was and emitting
 nothing. Its heads never move, so it visits one cell per tape. This is the first machine of the
 interface: it checks that the specification format is inhabited exactly as intended. -/
@@ -145,7 +151,7 @@ theorem transformsTapes_nop (k : ℕ) (Symbol : Type*) :
   intro input ws out _
   -- the heads never move, so each head visits only the single cell `0`
   refine ⟨ws, [], ⟨rfl, rfl⟩, .ofDeterministic _ (wordsCfg input (some ()) ws out) 1, rfl,
-    by rw [List.append_nil]; exact step_nop ws out, le_rfl,
+    by rw [List.append_nil]; exact runFrom_nop_one ws out, le_rfl,
     (RunPath.space_le_sum_card _ (S := fun _ => {0}) ?_).trans_eq (by simp)⟩
   rintro _ ⟨⟨m, hm⟩, rfl⟩ i
   change m < 2 at hm

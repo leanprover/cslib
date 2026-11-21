@@ -12,7 +12,7 @@ import Mathlib.Basic.Finite.Prod
 import Mathlib.Data.Fintype.Order
 
 /-!
-# Turing machine simulation of sequential and subsequential transducers
+# Turing machine simulation of finite sequential and subsequential transducers
 
 A function on Boolean words computed by a finite sequential or
 subsequential transducer is computable by a multitape Turing machine in zero work space
