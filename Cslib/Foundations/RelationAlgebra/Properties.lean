@@ -240,6 +240,8 @@ instance [hr : r.IsSymm] : IsRelSymm r := r.isRelSymm_iff_isSymm.mpr hr
 theorem isRelTrans_iff_isTrans : IsRelTrans r ↔ r.IsTrans :=
   isRelTrans_iff.trans r.isTrans_iff_comp_subset_self.symm
 
+instance [hr : r.IsTrans] : IsRelTrans r := r.isRelTrans_iff_isTrans.mpr hr
+
 variable {r : SetRel α α} {x y : α}
 
 theorem mem_reflGen_iff : x ~[reflGen r] y ↔ Relation.ReflGen (· ~[r] ·) x y := by
