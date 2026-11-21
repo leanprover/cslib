@@ -207,8 +207,9 @@ public import Cslib.Foundations.RelationAlgebra.Basic
 public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Pi
-public import Cslib.Foundations.RelationAlgebra.Properties
+public import Cslib.Foundations.RelationAlgebra.Relativization
 public import Cslib.Foundations.RelationAlgebra.Representation
+public import Cslib.Foundations.RelationAlgebra.SpecialElements
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
