@@ -33,6 +33,8 @@ state of a subsequential transducer has a final output. The state type may be in
   `Cslib.Automata.SubsequentialTransducer.outputFrom` compute the output from a given state.
 * `Cslib.Automata.SequentialTransducer.output` and `Cslib.Automata.SubsequentialTransducer.output`
   compute the output on a complete input word from the start state.
+* `Cslib.Automata.SubsequentialTransducer.OutputBoundedBy` bounds the length of each word
+  emitted on a transition or at end of input.
 
 ## Main results
 
@@ -120,6 +122,10 @@ namespace SubsequentialTransducer
 
 variable {State InSymbol OutSymbol : Type*}
 variable (transducer : SubsequentialTransducer State InSymbol OutSymbol)
+
+/-- Every transition output and every final output has length at most `m`. -/
+def OutputBoundedBy (m : ℕ) : Prop :=
+  ∀ q (a : Option InSymbol), (a.elim (transducer.finalOut q) (transducer.emit q)).length ≤ m
 
 instance {Input Output : Type v} :
     Transducer (SubsequentialTransducer State Input Output) Input Output where
