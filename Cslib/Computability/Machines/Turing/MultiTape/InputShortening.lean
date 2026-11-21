@@ -16,37 +16,33 @@ public import Mathlib.Order.Interval.Basic
 # Input shortening for multi-tape Turing machines
 
 Consider a deterministic Turing machine and a halting computation path on an input. The *crossing
-sequence* at an input-head position is the list of storages (`Storage`: state, work tapes and work
-heads) of the running configurations of the path with the input head at that position, in
-chronological order.
+sequence* at an input position is the list of storages (`Storage`) of the path at the time steps
+when the input head is at that position, in chronological order.
 
-Take two input symbols `a` and `b`, with `a` not after `b`, that are equal and whose input-head
-positions have the same crossing sequence. Deleting the symbols after `a` up to and including `b`
-gives the *shortened input*. Every configuration of the path whose input head is outside the
-positions from `a` to `b` has its storage reached by the machine on the shortened input. This is
-the main ingredient in the proof of `SPACE(o(log log n)) = SPACE(1)`.
+Take two input positions `a ≤ b` that hold the same symbol and have the same crossing sequence, and
+call `[a, b]` the cut. Deleting the symbols in `(a, b]` gives the *shortened input*. Every
+configuration of the path with the input head outside the cut has its storage reached by the machine
+on the shortened input. This is the main ingredient in the proof of
+`SPACE(o(log log n)) = SPACE(1)`.
 
 The proof idea follows [Katz2007], §1.2, Theorem 4.
 
 ## Main definitions
 
-* `MultiTapeNTM.RunPath.visits`: the time steps at which a run path is running with its input head
-  at a given position.
+* `MultiTapeNTM.RunPath.visits`: the time steps at which a run path is in a configuration with its
+  input head at a given position.
 * `MultiTapeNTM.RunPath.crossingSequence`: the storages at those time steps, in chronological order.
-* `InputCut`: an interval `[a, b]` of input-symbol indices; the symbols after `a` up to and
-  including `b` are deleted.
-* `InputCut.shortened`: the shortened input.
-* `InputCut.SameSide`: two input-head positions on the original input that are on the same side
-  of the deleted symbols.
+* `InputCut`: a nonempty interval `[a, b]` of input positions.
+* `InputCut.shortened`: the input with the symbols in `(a, b]` cut out.
+* `InputCut.SameSide`: two input head positions on the same side of the cut.
 
 ## Main results
 
-* `MultiTapeNTM.RunPath.storage_injOn_visits`: in a halting deterministic run path, the running
-  configurations at distinct time steps with the input head at the same position have distinct
-  storages.
-* `InputCut.exists_storage_eq`: if the two endpoints of the cut carry the same symbol and have the
-  same crossing sequence, every configuration of the path with the input head outside the
-  endpoints and the positions between them has its storage reached on the shortened input.
+* `MultiTapeNTM.RunPath.storage_injOn_visits`: in a run path of a `MultiTapeTM` that ends halted,
+  the configurations at distinct time steps in `visits` have distinct storages.
+* `InputCut.exists_storage_eq`: if the endpoints of the cut hold the same symbol and have the same
+  crossing sequence, every configuration of the path with the input head outside the cut has its
+  storage reached on the shortened input.
 * `MultiTapeTM.exists_shorter_input_storage`: for a halting computation path in space `s` on a long
   enough input, every storage of the path is reached on some shorter input.
 
@@ -66,8 +62,8 @@ namespace MultiTapeNTM.RunPath
 
 variable {ntm : MultiTapeNTM k Symbol State}
 
-/-- The time steps at which the run path `p` is in a running configuration with its input head at
-position `pos`. -/
+/-- The time steps at which the run path `p` is in a configuration with its input head at position
+`pos` that is not halted. -/
 def visits (p : ntm.RunPath input) (pos : ℕ) : Finset (Fin (p.length + 1)) :=
   {i | (p i).inputPos.val = pos ∧ ¬(p i).Halted}
 
@@ -76,14 +72,14 @@ lemma mem_visits {p : ntm.RunPath input} {pos : ℕ} {i : Fin (p.length + 1)} :
     i ∈ p.visits pos ↔ (p i).inputPos.val = pos ∧ ¬(p i).Halted := by
   simp [visits]
 
-/-- The crossing sequence of the run path `p` at input-head position `pos`: the storages of `p` at
+/-- The crossing sequence of the run path `p` at input head position `pos`: the storages of `p` at
 the time steps in `p.visits pos`, in chronological order. -/
 def crossingSequence (p : ntm.RunPath input) (pos : ℕ) : List (Storage Symbol State k) :=
   ((p.visits pos).sort (· ≤ ·)).map fun i ↦ (p i).storage
 
-/-- In a deterministic run path `p` that ends halted, the configurations at distinct time steps in
-`p.visits pos` have distinct storages. Equal storages at the same input-head position would repeat
-the `Cfg.core` of a running configuration, which a halting deterministic run never does. -/
+/-- In a run path `p` of `tm` that ends halted, the configurations at distinct time steps in
+`p.visits pos` have distinct storages. Equal storages at the same input head position would repeat a
+`Cfg.core` before halting, which a deterministic machine never does. -/
 lemma storage_injOn_visits {tm : MultiTapeTM k Symbol State} (p : tm.RunPath input)
     (h : p.last.Halted) (pos : ℕ) : Set.InjOn (fun i ↦ (p i).storage) (p.visits pos) := by
   intro i hi j hj hij
@@ -92,26 +88,25 @@ lemma storage_injOn_visits {tm : MultiTapeTM k Symbol State} (p : tm.RunPath inp
 
 end MultiTapeNTM.RunPath
 
-/-- A cut of `input`: an interval `[a, b]` of input-symbol indices. It deletes the symbols after `a`
-up to and including `b`, so `a = b` deletes nothing. -/
+/-- A cut of `input`: a nonempty interval `[a, b]` of input positions. -/
 abbrev InputCut (input : List Symbol) := NonemptyInterval (Fin input.length)
 
 namespace InputCut
 
 variable (cut : InputCut input)
 
-/-- The input-head position on the original input that reads the first index `a` of the cut. -/
+/-- The input head position at the left endpoint `a` of the cut. -/
 def left : ℕ := cut.fst.val + 1
 
-/-- The input-head position on the original input that reads the last index `b` of the cut. -/
+/-- The input head position at the right endpoint `b` of the cut. -/
 def right : ℕ := cut.snd.val + 1
 
-/-- The shortened input: the original input without the symbols after `a` through `b`. -/
+/-- The shortened input: the original input with the symbols in `(a, b]` cut out. -/
 def shortened : List Symbol :=
   input.take cut.left ++ input.drop cut.right
 
-/-- The input-head positions `p` and `q` on the original input are on the same side of the deleted
-symbols: both are at most `cut.left`, or both are at least `cut.right`. -/
+/-- The input head positions `p` and `q` on the original input are on the same side of the cut:
+both are at most `cut.left`, or both are at least `cut.right`. -/
 def SameSide (p q : ℕ) : Prop :=
   (p ≤ cut.left ∧ q ≤ cut.left) ∨ (cut.right ≤ p ∧ cut.right ≤ q)
 
@@ -120,30 +115,30 @@ lemma length_shortened_add :
     cut.shortened.length + (cut.right - cut.left) = input.length := by
   grind [shortened, left, right, cut.fst_le_snd]
 
-/-- Maps an input-head position `p` on the original input to one on the shortened input. Positions
-up to `cut.left` are unchanged, positions between `cut.left` and `cut.right` go to `cut.left`, and
-positions from `cut.right` on move left by `cut.right - cut.left`. -/
+/-- Maps an input head position `p` on the original input to one on the shortened input. Positions
+up to `cut.left` are unchanged, positions inside the cut go to `cut.left`, and positions from
+`cut.right` on move left by `cut.right - cut.left`. -/
 def inputPos (p : Fin (input.length + 2)) : Fin (cut.shortened.length + 2) :=
   ⟨min p.val cut.left + (p.val - cut.right), by
     have := cut.length_shortened_add
     grind [left, right, cut.fst_le_snd, Fin.le_def]⟩
 
 /-- Let the input head on the original input move from position `p` by `m` and stay on the same
-side of the deleted symbols. Then mapping to the shortened input commutes with the move. -/
+side of the cut. Then mapping to the shortened input commutes with the move. -/
 lemma inputPos_moveInputPos {p : Fin (input.length + 2)} {m : SignType}
     (h : cut.SameSide p (moveInputPos p m)) :
     cut.inputPos (moveInputPos p m) = moveInputPos (cut.inputPos p) m :=
   Fin.ext <| by grind [SameSide, inputPos, left, right, SignType.cast, val_moveInputPos_eq,
     cut.fst_le_snd, cut.length_shortened_add]
 
-/-- Maps a configuration `c` on the original input to one on the shortened input. The input-head
+/-- Maps a configuration `c` on the original input to one on the shortened input. The input head
 position is mapped by `inputPos`, and everything else is unchanged. -/
 private def cfg (c : Cfg k Symbol State input) : Cfg k Symbol State cut.shortened :=
   ⟨c.state, cut.inputPos c.inputPos, c.workTapes, c.workTapePos, c.output⟩
 
-/-- Let the symbols at indices `a` and `b` be equal, and let `c` be a configuration on the original
-input whose input head is not strictly between `cut.left` and `cut.right`. Then the image of `c` on
-the shortened input reads the same input symbol as `c`. -/
+/-- Let the endpoints `a` and `b` of the cut hold the same symbol, and let `c` be a configuration on
+the original input with the input head not strictly inside the cut. Then the image of `c` on the
+shortened input reads the same input symbol as `c`. -/
 private lemma inputSymbol_cfg (hsym : input[cut.fst] = input[cut.snd])
     {c : Cfg k Symbol State input} (hp : c.inputPos.val ∉ Set.Ioo cut.left cut.right) :
     (cut.cfg c).inputSymbol = c.inputSymbol := by
@@ -158,8 +153,8 @@ private lemma inputSymbol_cfg (hsym : input[cut.fst] = input[cut.snd])
 
 variable {tm : MultiTapeTM k Symbol State}
 
-/-- Let the symbols at indices `a` and `b` be equal, and let `tm` step from `c` to `c'` on the
-original input with the input head staying on one side of the deleted symbols. Then on the
+/-- Let the endpoints `a` and `b` of the cut hold the same symbol, and let `tm` step from `c` to
+`c'` on the original input with the input head staying on one side of the cut. Then on the
 shortened input, `tm` steps from the image of `c` to the image of `c'`. -/
 private lemma step_cfg (hsym : input[cut.fst] = input[cut.snd]) {c c' : Cfg k Symbol State input}
     (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) :
@@ -191,7 +186,7 @@ variable {cut} (hsym : input[cut.fst] = input[cut.snd])
 include hsym
 
 /-- If the configuration `c` on the original input is reached and `tm` steps from `c` to `c'` with
-the input head staying on one side of the deleted symbols, then `c'` is reached. -/
+the input head staying on one side of the cut, then `c'` is reached. -/
 private lemma reached_step {c c' : Cfg k Symbol State input} (h : cut.Reached tm c)
     (hstep : tm.Step c c') (hside : cut.SameSide c.inputPos c'.inputPos) : cut.Reached tm c' :=
   let ⟨d, hd, hdc⟩ := h
@@ -200,8 +195,8 @@ private lemma reached_step {c c' : Cfg k Symbol State input} (h : cut.Reached tm
 
 /-- Let `pos` be `cut.left` or `cut.right`, let `a` be a time step of the run path `p` on the
 original input, and let `v` be the first time step from `a` on in `p.visits pos`. If at time `a` the
-input head is on the same side of the deleted symbols as `pos`, it stays on that side until time
-`v`. So if `p a` is reached, then `p v` is reached. -/
+input head is on the same side of the cut as `pos`, it stays on that side until time `v`. So if
+`p a` is reached, then `p v` is reached. -/
 private lemma reached_slice {p : tm.RunPath input} {pos : ℕ}
     (hpos : pos = cut.left ∨ pos = cut.right) {a : Fin (p.length + 1)} {v : p.visits pos}
     (hfirst : IsLeast {w : p.visits pos | a ≤ w.val} v) (hside : cut.SameSide (p a).inputPos pos)
@@ -225,8 +220,8 @@ private lemma reached_slice {p : tm.RunPath input} {pos : ℕ}
     exact ⟨by omega, reached_step hsym hr (p.step j) (by unfold SameSide; omega)⟩
 
 /-- Let `pos` be `cut.left` or `cut.right`, and let `u ⋖ v` be consecutive time steps in
-`p.visits pos`. If the step from `p u` moves the input head to the same side of the deleted symbols
-as `pos`, and `p u` is reached, then `p v` is reached. -/
+`p.visits pos`. If the step from `p u` moves the input head to the same side of the cut as `pos`,
+and `p u` is reached, then `p v` is reached. -/
 private lemma reached_covBy {p : tm.RunPath input} {pos : ℕ}
     (hpos : pos = cut.left ∨ pos = cut.right) {u v : p.visits pos} (huv : u ⋖ v)
     (h : cut.Reached tm (p u.val)) (hside : cut.SameSide (tm.step (p u.val)).inputPos pos) :
@@ -264,7 +259,7 @@ and `cut.right`, and let `u` be a time step in `p.visits pos` with `pos` one of 
 reached.
 
 The proof is by induction on the index `n` of the time step in `p.visits pos`. The `n`-th time steps
-at `cut.left` and at `cut.right` have the same storage. Both input-head positions map to `cut.left`
+at `cut.left` and at `cut.right` have the same storage. Both input head positions map to `cut.left`
 on the shortened input, so the two configurations are both reached or both not. By `step_sides`, the
 step from one of them stays on its side, so by `reached_covBy` the `n + 1`-th time step there is
 reached, and with it the one at the other endpoint. -/
@@ -305,13 +300,12 @@ private lemma reached_visit {p : tm.ComputationPath input}
     exact (hcore n).mp (hl n n.isLt)
 
 /-- Let the computation path `p` on the original input have the same crossing sequence at `cut.left`
-and `cut.right`. Then every configuration `c` of `p` with the input head outside positions
-`cut.left, ..., cut.right` is reached.
+and `cut.right`. Then every configuration `c` of `p` with the input head outside the cut is reached.
 
-The proof is by induction on the time step of `c`. The previous configuration is a running
-configuration at `cut.left` or `cut.right`, reached by `reached_visit`, or is outside these
-positions too. A halted configuration at `cut.left` or `cut.right` is excluded, because it may be
-entered from a deleted symbol. -/
+The proof is by induction on the time step of `c`. The previous configuration is at a time step in
+`p.visits cut.left` or `p.visits cut.right`, reached by `reached_visit`, or has the input head
+outside the cut too. A halted configuration at an endpoint of the cut is excluded, because it may be
+entered from inside the cut. -/
 private lemma reached_of_mem {p : tm.ComputationPath input}
     (hseq : crossingSequence p.toRunPath cut.left = crossingSequence p.toRunPath cut.right)
     {c : Cfg k Symbol State input} (hc : c ∈ p)
@@ -332,11 +326,10 @@ private lemma reached_of_mem {p : tm.ComputationPath input}
 
 omit hsym in
 variable (cut) in
-/-- **Input shortening.** Let the symbols at the cut's indices `a` and `b` be equal, and let the
-computation path `path` of `tm` on the original input have the same crossing sequence at the
-input-head positions `cut.left` and `cut.right`. Then for every configuration `c` of `path` with
-the input head outside positions `cut.left, ..., cut.right`, `tm` reaches a configuration with the
-storage of `c` on the shortened input. -/
+/-- **Input shortening.** Let the endpoints `a` and `b` of the cut hold the same symbol, and let the
+computation path `path` of `tm` on the original input have the same crossing sequence at
+`cut.left` and `cut.right`. Then for every configuration `c` of `path` with the input head outside
+the cut, `tm` reaches a configuration with the storage of `c` on the shortened input. -/
 theorem exists_storage_eq (hsym : input[cut.fst] = input[cut.snd])
     {path : tm.ComputationPath input}
     (hseq : crossingSequence path.toRunPath cut.left = crossingSequence path.toRunPath cut.right)
@@ -359,8 +352,8 @@ and let `input` have more than `3 * |Symbol| * (B + 1) ^ B` symbols, where `B` b
 storages in space `s`. Then for every configuration `d` of `path`, `tm` reaches a configuration
 with the storage of `d` on some shorter input.
 
-By the pigeonhole principle, there are indices `a < b` whose input-head positions are on the same
-side of that of `d`, with the same symbol and the same crossing sequence. Then
+By the pigeonhole principle, there are input positions `a < b` on the same side of the input head
+of `d` that hold the same symbol and have the same crossing sequence. Then
 `InputCut.exists_storage_eq` applies to the cut `[a, b]`. -/
 theorem exists_shorter_input_storage [Fintype Symbol] [Fintype State] {s : ℕ}
     {path : tm.ComputationPath input} (hs : path.space ≤ s) (hhalt : path.last.Halted)
