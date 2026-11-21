@@ -45,10 +45,9 @@ The results are layered, from the purely combinatorial to the machine-specific:
 
 ## Design
 
-The write-only output tape is never read by `step` (`MultiTapeTM.core_step`), so it can be dropped:
-what a machine can still react to is its `Cfg.core`, the pair of the input head position and the
-`Storage`. In particular, a halting run never repeats a running core
-(`MultiTapeNTM.RunPath.core_injOn_running`). The input head
+The write-only output tape is never read by `step`, so it can be dropped: what a machine can still
+react to is its `Cfg.core`, the pair of the input head position and the `Storage`. In particular, a
+halting run never repeats a running core (`MultiTapeNTM.RunPath.core_injOn_running`). The input head
 position, in contrast, *is* read, so it cannot be dropped and has to be counted, which is where
 the factor `n + 2` comes from (the input head may move one step off the input in either direction).
 
