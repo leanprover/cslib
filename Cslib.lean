@@ -188,6 +188,7 @@ public import Cslib.Foundations.Logic.InferenceSystem.Defs
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.MeasureTheory.FiniteSupport
+public import Cslib.Foundations.Order.AlgebraIntervals
 public import Cslib.Foundations.Order.FixedPoints
 public import Cslib.Foundations.Order.Heyting
 public import Cslib.Foundations.Order.Huntington
@@ -206,6 +207,7 @@ public import Cslib.Foundations.RelationAlgebra.Basic
 public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Pi
+public import Cslib.Foundations.RelationAlgebra.Properties
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
