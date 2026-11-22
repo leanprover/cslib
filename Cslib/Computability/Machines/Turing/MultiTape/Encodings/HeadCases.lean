@@ -82,9 +82,9 @@ private def headCasesFrom (e : List Bool) (g : Bool → List Bool) (keep : Bool 
   | some true => w
   | some false => []
 
-private lemma outputFrom_headCases (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool) :
-    (headCasesTransducer e g keep).outputFrom = headCasesFrom e g keep := by
-  apply SubsequentialTransducer.outputFrom_unique
+private lemma evalFrom_headCases (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool) :
+    (headCasesTransducer e g keep).evalFrom = headCasesFrom e g keep := by
+  apply SubsequentialTransducer.evalFrom_unique
   · rintro (_ | (_ | _)) <;> rfl
   · rintro (_ | (_ | _)) b w <;> simp [headCasesTransducer, headCasesFrom]
     cases keep b <;> rfl
@@ -96,8 +96,7 @@ theorem computableInTimeAndSpace_headCases (e : List Bool) (g : Bool → List Bo
       (fun w => 2 * w.length + max e.length (max (g false).length (g true).length) + 1)
       (fun _ => 0) :=
   (computableInTimeAndSpace_of_subsequential (headCasesTransducer e g keep)
-    (headCases e g keep) fun w => by
-      simp [SubsequentialTransducer.output, outputFrom_headCases]; rfl).mono
+    (headCases e g keep) fun w => congrFun₂ (evalFrom_headCases e g keep) _ w).mono
     (fun _ => by lia [length_headCases_le]) fun _ => le_rfl
 
 end Turing.MultiTapeTM

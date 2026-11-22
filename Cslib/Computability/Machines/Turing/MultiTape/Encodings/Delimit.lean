@@ -44,14 +44,14 @@ private def delimitTransducer : SubsequentialTransducer Unit Bool Bool where
   emit _ b := [true, b]
   finalOut _ := [false]
 
-private theorem output_delimit (w : List Bool) : delimitTransducer.outputFrom () w = delimit w := by
+private theorem evalFrom_delimit (w : List Bool) : delimitTransducer.evalFrom () w = delimit w := by
   induction w <;> simp_all [delimitTransducer]
 
 /-- Writing a delimited code is computable in linear time and zero work space. -/
 theorem computableInTimeAndSpace_delimit :
     ComputableInTimeAndSpace delimit encBits encBits (fun w => 3 * w.length + 2) (fun _ => 0) :=
   (computableInTimeAndSpace_of_subsequential delimitTransducer delimit
-    (fun w => by simpa using output_delimit w)).mono
+    evalFrom_delimit).mono
     (fun _ => by lia [length_delimit]) fun _ => le_rfl
 
 /-! ### The word whose delimited code starts the input -/
@@ -88,9 +88,9 @@ private def undelimitFrom (e : List Bool) (q : UndelimitState) (w : List Bool) :
   | .bit => w.head?.toList ++ undelimit w.tail
   | .done => []
 
-private lemma outputFrom_undelimit (e : List Bool) :
-    (undelimitTransducer e).outputFrom = undelimitFrom e := by
-  apply SubsequentialTransducer.outputFrom_unique
+private lemma evalFrom_undelimit (e : List Bool) :
+    (undelimitTransducer e).evalFrom = undelimitFrom e := by
+  apply SubsequentialTransducer.evalFrom_unique
   · intro q
     cases q <;> rfl
   · intro q b w
@@ -101,7 +101,7 @@ theorem computableInTimeAndSpace_undelimitOr (e : List Bool) :
     ComputableInTimeAndSpace (undelimitOr e) encBits encBits
       (fun w => 2 * w.length + e.length + 1) (fun _ => 0) :=
   (computableInTimeAndSpace_of_subsequential (undelimitTransducer e) (undelimitOr e)
-    (fun w => by simp [SubsequentialTransducer.output, outputFrom_undelimit]; rfl)).mono
+    (fun w => congrFun₂ (evalFrom_undelimit e) _ w)).mono
     (fun _ => by lia [length_undelimitOr_le]) fun _ => le_rfl
 
 /-- `undelimit` is computable in linear time and zero space. -/
@@ -136,9 +136,9 @@ private def dropDelimitedFrom (q : DropDelimitedState) (w : List Bool) : List Bo
   | .bit => dropDelimited w.tail
   | .copy => w
 
-private lemma outputFrom_dropDelimited :
-    dropDelimitedTransducer.outputFrom = dropDelimitedFrom := by
-  apply SequentialTransducer.outputFrom_unique
+private lemma evalFrom_dropDelimited :
+    dropDelimitedTransducer.evalFrom = dropDelimitedFrom := by
+  apply SequentialTransducer.evalFrom_unique
   · intro q
     cases q <;> rfl
   · intro q b w
@@ -149,7 +149,7 @@ theorem computableInTimeAndSpace_dropDelimited :
     ComputableInTimeAndSpace dropDelimited encBits encBits (fun w => 2 * w.length + 1)
       (fun _ => 0) :=
   (computableInTimeAndSpace_of_sequential dropDelimitedTransducer dropDelimited
-    (fun w => by simp [SequentialTransducer.output, outputFrom_dropDelimited]; rfl)).mono
+    (fun w => congrFun₂ evalFrom_dropDelimited _ w)).mono
     (fun _ => by lia [length_dropDelimited_le]) fun _ => le_rfl
 
 /-! ### All delimited codes -/
@@ -165,9 +165,9 @@ private def undelimitAllFrom (q : Bool) (w : List Bool) : List Bool :=
   | false => undelimitAll w
   | true => w.head?.toList ++ undelimitAll w.tail
 
-private lemma outputFrom_undelimitAll :
-    undelimitAllTransducer.outputFrom = undelimitAllFrom := by
-  apply SequentialTransducer.outputFrom_unique
+private lemma evalFrom_undelimitAll :
+    undelimitAllTransducer.evalFrom = undelimitAllFrom := by
+  apply SequentialTransducer.evalFrom_unique
   · intro q
     cases q <;> rfl
   · intro q b w
@@ -178,7 +178,7 @@ theorem computableInTimeAndSpace_undelimitAll :
     ComputableInTimeAndSpace undelimitAll encBits encBits (fun w => 2 * w.length + 1)
       (fun _ => 0) :=
   (computableInTimeAndSpace_of_sequential undelimitAllTransducer undelimitAll
-    (fun w => by simp [SequentialTransducer.output, outputFrom_undelimitAll]; rfl)).mono
+    (fun w => congrFun₂ evalFrom_undelimitAll _ w)).mono
     (fun _ => by lia [length_undelimitAll_le]) fun _ => le_rfl
 
 end Turing.MultiTapeTM
