@@ -107,15 +107,17 @@ theorem cycleClosure_id_cycle (g : Finset (Cycle s n))
   grind [conv_conv, conv_one]
 
 /-- Construct an `AtomStructure` from diversity cycle generators whose closure is associative. -/
-def ofCycles (generators : Finset (Cycle s n))
+def ofCycles (generators : Finset (Cycle s n)) : AtomStructure (IntegralAtom s n) where
+  conv := conv
+  id := {one}
+  cycles := cycleClosure generators
+
+theorem lawfulAtomStructure_ofCycles (generators : Finset (Cycle s n))
     (hassoc : ∀ {r q p u t}, (r, q, p) ∈ cycleClosure generators →
       (u, t, q) ∈ cycleClosure generators →
       ∃ q', (q', t, p) ∈ cycleClosure generators ∧ (r, u, q') ∈ cycleClosure generators)
     (hg : ∀ c ∈ generators, let (r, u, t) := c; r ≠ one ∧ u ≠ one ∧ t ≠ one) :
-    AtomStructure (IntegralAtom s n) where
-  conv := conv
-  id := {one}
-  cycles := cycleClosure generators
+    LawfulAtomStructure (ofCycles generators) where
   assoc := hassoc
   id_cycle_right := by rintro _ _ _ rfl; exact cycleClosure_id_cycle _ hg
   exists_id_cycle_right r := ⟨one, rfl, cycleClosure_id_exist _ r⟩
@@ -123,8 +125,9 @@ def ofCycles (generators : Finset (Cycle s n))
 
 /-- The complex algebra constructed from diversity cycles is integral. -/
 @[simp]
-theorem isIntegral_ofCycles (generators : Finset (Cycle s n)) (hassoc) (hg) :
-    IsIntegral (ComplexAlgebra (ofCycles generators hassoc hg)) :=
+theorem isIntegral_ofCycles (generators : Finset (Cycle s n))
+    [LawfulAtomStructure (ofCycles generators)] :
+    IsIntegral (ComplexAlgebra (ofCycles generators)) :=
   (ComplexAlgebra.isIntegral_iff _).mpr ⟨one, rfl⟩
 
 end IntegralAtom

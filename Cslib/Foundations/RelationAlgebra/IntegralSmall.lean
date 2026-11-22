@@ -9,6 +9,7 @@ module
 public import Cslib.Foundations.RelationAlgebra.IntegralCycles
 public import Mathlib.Data.Fin.VecNotation
 public import Mathlib.SetTheory.Cardinal.Finite
+import Mathlib.Tactic.FinCases
 
 /-!
 # Small integral atom structures
@@ -30,16 +31,25 @@ namespace IntegralAtom
 def identityOnly : Fin 1 → AtomStructure (IntegralAtom 0 0) :=
   ![integral_cycles%]
 
+instance (i : Fin 1) : LawfulAtomStructure (identityOnly i) := by
+  fin_cases i; integral_cycles_lawful
+
 /-- The two atom structures with one symmetric diversity atom. -/
 def oneSymm : Fin 2 → AtomStructure (IntegralAtom 1 0) :=
   ![integral_cycles% (symm := a),
     integral_cycles% (symm := a) (a, a, a)]
+
+instance (i : Fin 2) : LawfulAtomStructure (oneSymm i) := by
+  fin_cases i <;> integral_cycles_lawful
 
 /-- The three atom structures with one pair of nonsymmetric atoms. -/
 def oneConv : Fin 3 → AtomStructure (IntegralAtom 0 1) :=
   ![integral_cycles% (nsymm := a) (a, a, a~),
     integral_cycles% (nsymm := a) (a, a, a),
     integral_cycles% (nsymm := a) (a, a, a~) (a, a, a)]
+
+instance (i : Fin 3) : LawfulAtomStructure (oneConv i) := by
+  fin_cases i <;> integral_cycles_lawful
 
 /-- The seven atom structures with two symmetric diversity atoms. -/
 def twoSymm : Fin 7 → AtomStructure (IntegralAtom 2 0) :=
@@ -50,6 +60,9 @@ def twoSymm : Fin 7 → AtomStructure (IntegralAtom 2 0) :=
     integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b),
     integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b) (a, a, a),
     integral_cycles% (symm := [a, b]) (a, a, b) (a, b, b) (a, a, a) (b, b, b)]
+
+instance (i : Fin 7) : LawfulAtomStructure (twoSymm i) := by
+  fin_cases i <;> integral_cycles_lawful
 
 /-- The 37 atom structures with one symmetric diversity atom and one pair of
 nonsymmetric atoms. -/
@@ -106,6 +119,9 @@ def oneSymmOneConv : Fin 37 → AtomStructure (IntegralAtom 1 1) :=
       (b, b, b~) (b, b, b),
     integral_cycles% (symm := a) (nsymm := b) (a, a, b) (a, b, b) (a, b, b~) (a, b~, b~)
       (b, b, b~) (a, a, a) (b, b, b)]
+
+instance (i : Fin 37) : LawfulAtomStructure (oneSymmOneConv i) := by
+  fin_cases i <;> integral_cycles_lawful
 
 /-- The 65 atom structures with three symmetric diversity atoms. -/
 def threeSymm : Fin 65 → AtomStructure (IntegralAtom 3 0) :=
@@ -219,6 +235,9 @@ def threeSymm : Fin 65 → AtomStructure (IntegralAtom 3 0) :=
       (b, b, c) (b, c, c) (a, a, a) (b, b, b),
     integral_cycles% (symm := [a, b, c]) (a, a, b) (a, a, c) (a, b, b) (a, b, c) (a, c, c)
       (b, b, c) (b, c, c) (a, a, a) (b, b, b) (c, c, c)]
+
+instance (i : Fin 65) : LawfulAtomStructure (threeSymm i) := by
+  fin_cases i <;> integral_cycles_lawful
 
 /-!
 ## Classification of finite integral relation algebras

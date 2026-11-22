@@ -191,23 +191,21 @@ syntax (name := integralCycles) "integral_cycles%" optConfig
 
 /-- Elaborate an `IntegralAtom` from `integral_cycles%`. -/
 private def IntegralCyclesConfig.atomExpr (config : IntegralCyclesConfig)
-    (ref : Ident) (isConverse : Bool) :
-    TermElabM (IntegralAtom config.symm.size config.nsymm.size × Expr) := do
+    (ref : Ident) (isConverse : Bool) : TermElabM Expr := do
   let name := ref.getId.eraseMacroScopes
   let s := mkNatLit config.symm.size
   let n := mkNatLit config.nsymm.size
   if let some i := config.symm.findFinIdx? (· == name) then
-    return (.symm i, mkApp3 (mkConst ``IntegralAtom.symm) s n (toExpr i))
+    return mkApp3 (mkConst ``IntegralAtom.symm) s n (toExpr i)
   if let some i := config.nsymm.findFinIdx? (· == name) then
-    return (.nsymm i isConverse,
-      mkApp4 (mkConst ``IntegralAtom.nsymm) s n (toExpr i) (toExpr isConverse))
+    return mkApp4 (mkConst ``IntegralAtom.nsymm) s n (toExpr i) (toExpr isConverse)
   throwErrorAt ref "undeclared atom '{name}'"
 
 /-- Elaborate a theorem's next proof argument, reporting the stage and original error on failure. -/
 private def elabIntegralCyclesProof (f : Expr) (proof : Term)
     (errorMessage : MessageData) : TermElabM Expr := do
   let .forallE _ prop _ _ ← whnf (← inferType f) |
-    throwError "internal error in `integral_cycles%`: unexpected proof handling"
+    throwError "internal error in `integral_cycles_lawful`: unexpected proof handling"
   let saved ← Term.saveState
   try
     withSynthesize <| elabTermEnsuringType proof prop
@@ -229,30 +227,58 @@ def elabIntegralCycles : TermElab := fun stx expectedType? => do
     if names.contains name then throwErrorAt cfg "duplicate atom name '{name}'"
     names := names.insert name
   let mut cycleTerms : Array Expr := #[]
-  let mut generators : Finset (Cycle config.symm.size config.nsymm.size) := ∅
   for r in r, rc in rc, s in s, sc in sc, t in t, tc in tc do
-    let (rAtom, r) ← config.atomExpr r rc.isSome
-    let (sAtom, s) ← config.atomExpr s sc.isSome
-    let (tAtom, t) ← config.atomExpr t tc.isSome
-    generators := insert (rAtom, sAtom, tAtom) generators
+    let r ← config.atomExpr r rc.isSome
+    let s ← config.atomExpr s sc.isSome
+    let t ← config.atomExpr t tc.isSome
     cycleTerms := cycleTerms.push (← mkAppM ``Prod.mk #[r, ← mkAppM ``Prod.mk #[s, t]])
   let s := mkNatLit config.symm.size
   let n := mkNatLit config.nsymm.size
-  let mask := mkNatLit (maskOfFinset cycleIndex (cycleClosure generators))
   let mut cycles := mkApp (mkConst ``Finset.empty [Level.zero]) (mkApp2 (mkConst ``Cycle) s n)
   for c in cycleTerms.reverse do cycles ← mkAppM ``Insert.insert #[c, cycles]
-  withoutErrToSorry <| withSynthesize do
+  ensureHasType expectedType? (mkApp3 (mkConst ``ofCycles) s n cycles)
+
+private unsafe def evalCycleClosureMaskUnsafe (s n cycles : Expr) : MetaM ℕ := do
+  let cycle := mkApp2 (mkConst ``Cycle) s n
+  let code := mkApp3 (mkConst ``Function.Embedding.toFun [1, 1]) cycle (mkConst ``Nat)
+    (mkApp2 (mkConst ``cycleIndex) s n)
+  evalExpr ℕ (mkConst ``Nat) <| mkApp3 (mkConst ``maskOfFinset [0]) cycle code
+    (mkApp3 (mkConst ``cycleClosure) s n cycles)
+
+@[implemented_by evalCycleClosureMaskUnsafe]
+private opaque evalCycleClosureMask (s n cycles : Expr) : MetaM ℕ
+
+syntax (name := integralCyclesLawful) "integral_cycles_lawful" : tactic
+
+@[no_expose, tactic integralCyclesLawful]
+def evalIntegralCyclesLawful : Tactic.Tactic := fun _ => Tactic.withMainContext do
+  let goal ← Tactic.getMainGoal
+  let target ← whnfR (← instantiateMVars (← goal.getType))
+  let_expr LawfulAtomStructure _ atoms := target
+    | throwError "`integral_cycles_lawful` expects a `LawfulAtomStructure` goal, but got\
+        {indentExpr target}"
+  let some atoms ← whnfUntil atoms ``ofCycles
+    | throwError "`integral_cycles_lawful` could not reduce the atom structure to an \
+        application of `ofCycles`{indentExpr atoms}"
+  let_expr ofCycles s n cycles := atoms
+    | throwError "internal error in `integral_cycles_lawful`: unexpected `ofCycles` application"
+  if atoms.hasFVar || atoms.hasMVar then
+    throwError "`integral_cycles_lawful` requires closed generators, but got{indentExpr cycles}"
+  let proof ← Tactic.runTermElab <| withoutErrToSorry do
+    let mask := mkNatLit (← evalCycleClosureMask s n cycles)
     let assoc := mkAppN (mkConst ``cycleClosure_assoc_of_checkRows) #[s, n, cycles, mask]
     let hmask ← elabIntegralCyclesProof assoc
       (← `((maskOfFinset_biUnion _ _ _).trans (by decide +kernel)))
-      "internal error in `integral_cycles%`: failed to verify the cycle encoding"
+      "internal error in `integral_cycles_lawful`: failed to verify the cycle encoding"
     let hcheck ← elabIntegralCyclesProof (mkApp assoc hmask) (← `(by decide +kernel))
-      "`integral_cycles%` could not prove associativity of the generated cycles"
+      "`integral_cycles_lawful` could not prove associativity of the generated cycles"
     let hassoc := mkApp2 assoc hmask hcheck
-    let result := mkAppN (mkConst ``ofCycles) #[s, n, cycles, hassoc]
+    let result := mkAppN (mkConst ``lawfulAtomStructure_ofCycles) #[s, n, cycles, hassoc]
     let hdiversity ← elabIntegralCyclesProof result (← `(by decide +kernel))
-      "`integral_cycles%` could not prove that all generators are diversity cycles"
-    ensureHasType expectedType? (mkApp result hdiversity)
+      "`integral_cycles_lawful` could not prove that all generators are diversity cycles"
+    return mkApp result hdiversity
+  goal.assign proof
+  Tactic.replaceMainGoal []
 
 end IntegralAtom
 
