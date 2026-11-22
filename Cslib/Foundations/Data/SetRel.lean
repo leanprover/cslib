@@ -6,6 +6,7 @@ Authors: Thomas Waring
 
 module
 
+public import Cslib.Init
 public import Mathlib.Basic.Rel
 
 /-! # Set-based relations -/
