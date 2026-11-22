@@ -39,12 +39,29 @@ structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : 
 def Representable (α : Type u) [RelationAlgebra α] : Prop :=
   ∃ (ι : Type u) (β : ι → Type u), Nonempty (Representation α ι β)
 
+/-- Representations can be precomposed with injective homomorphisms. -/
+def Representation.compInjective {α α' ι : Type*} {β : ι → Type*} [RelationAlgebra α]
+    [RelationAlgebra α'] (r : Representation α' ι β) (f : RelationAlgebraHom α α')
+    (hf : Function.Injective f) : Representation α ι β where
+  hom := r.hom.comp f
+  injective := r.injective.comp hf
+
+/-- Representations can be precomposed with equivalences. -/
+def Representation.compEquiv {α α' ι : Type*} {β : ι → Type*} [RelationAlgebra α]
+    [RelationAlgebra α'] (r : Representation α' ι β) (e : RelationAlgebraEquiv α α') :
+    Representation α ι β := r.compInjective e.toHom e.toHom_injective
+
 /-- A relation algebra that embeds into a representable relation algebra is representable. -/
 theorem Representable.of_injective {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
     (f : RelationAlgebraHom α α') (hf : Function.Injective f) (h : Representable α') :
     Representable α :=
   let ⟨ι, β, ⟨r⟩⟩ := h
-  ⟨ι, β, ⟨⟨r.hom.comp f, r.injective.comp hf⟩⟩⟩
+  ⟨ι, β, ⟨r.compInjective f hf⟩⟩
+
+/-- Representability is preserved by equivalence. -/
+theorem Representable.of_equiv {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
+    (heqv : Nonempty (RelationAlgebraEquiv α α')) (h : Representable α') :
+    Representable α := h.of_injective heqv.some.toHom heqv.some.toHom_injective
 
 /-- A `Representation α ι β` in arbitrary universes can be contracted to the universe of `α`. -/
 proof_wanted representable_univ {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w} :

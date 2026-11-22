@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.Data.SetRel
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Mathlib.Algebra.Star.MonoidHom
 public import Mathlib.Order.Hom.BoundedLattice
@@ -58,6 +59,8 @@ instance : StarHomClass (RelationAlgebraHom α β) α β where
 @[ext]
 theorem ext {f g : RelationAlgebraHom α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
+
+theorem mono (f : RelationAlgebraHom α β) : Monotone f := OrderHomClass.mono f
 
 /-- `id` as a `RelationAlgebraHom` -/
 protected def id (α : Type*) [RelationAlgebra α] : RelationAlgebraHom α α :=
@@ -143,6 +146,46 @@ theorem symm_apply_apply (f : RelationAlgebraEquiv α β) (a : α) : f.symm (f a
 @[simp]
 theorem apply_symm_apply (f : RelationAlgebraEquiv α β) (b : β) : f (f.symm b) = b :=
   f.right_inv b
+
+/-- Promote a bijective homomorphism to an equivalence. -/
+@[simps toFun]
+noncomputable def ofBijective {f : RelationAlgebraHom α β} (hf : Function.Bijective f) :
+    RelationAlgebraEquiv α β where
+  toFun := f
+  __ := StarMulEquiv.ofBijective f.toStarMonoidHom hf
+  map_rel_iff' {_ _} := by
+    refine ⟨fun h ↦ ?_, (f.mono ·)⟩
+    rwa [← sup_eq_right, ← hf.injective.eq_iff, map_sup f, sup_eq_right]
+
+lemma toHom_bijective (e : RelationAlgebraEquiv α β) : Function.Bijective e.toHom :=
+  EquivLike.bijective e
+
+lemma toHom_injective (e : RelationAlgebraEquiv α β) : Function.Injective e.toHom :=
+  EquivLike.injective e
+
+lemma inj {e : RelationAlgebraEquiv α β} {x y : α} : e x = e y ↔ x = y :=
+  (EquivLike.injective e).eq_iff
+
+lemma toHom_surjective (e : RelationAlgebraEquiv α β) : Function.Surjective e.toHom :=
+  EquivLike.surjective e
+
+/-- Construct an equivalence from a homomorphism and an inverse. -/
+@[simps!]
+def ofHomInv (f : RelationAlgebraHom α β) (g : RelationAlgebraHom β α)
+    (hfg : ∀ b : β, f (g b) = b) (hgf : ∀ a : α, g (f a) = a) : RelationAlgebraEquiv α β where
+  __ := OrderIso.ofHomInv (.ofClass f) (.ofClass g) (by ext x; exact hfg x) (by ext x; exact hgf x)
+  map_mul' := map_mul f
+  map_star' := map_star f
+
+omit [RelationAlgebra α] [RelationAlgebra β] in
+open RelationAlgebra in
+/-- An equivalence between types lifts to an equivalence between their algebras of relations. -/
+@[simps!]
+def setRelOfEquiv (e : α ≃ β) : RelationAlgebraEquiv (SetRel α α) (SetRel β β) where
+  __ := SetRel.mapEquiv e e
+  map_rel_iff' := SetRel.map_subset_map_iff e.injective e.injective
+  map_mul' _ _ := SetRel.map_comp_of_injective e.injective
+  map_star' _ := SetRel.map_inv.symm
 
 end RelationAlgebraEquiv
 

@@ -6,6 +6,7 @@ Authors: Thomas Waring
 
 module
 
+public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.SpecialElements
 
 /-! # Relativization of a relation algebra
@@ -21,11 +22,13 @@ chapter 10.
 
 @[expose] public section
 
-open Cslib RelationAlgebra
+namespace Cslib
 
-variable {α : Type*} [RelationAlgebra α]
+open RelationAlgebra Set
 
-private lemma Cslib.RelationAlgebra.inf_one_mul_eq {a x : α} (h : x ≤ a)
+variable {α β : Type*} [RelationAlgebra α] [RelationAlgebra β]
+
+private lemma RelationAlgebra.inf_one_mul_eq {a x : α} (h : x ≤ a)
     [IsRelSymm a] [IsRelTrans a] : (a ⊓ 1) * x = x := by
   apply le_antisymm
   · grw [inf_le_right, one_mul]
@@ -34,7 +37,7 @@ private lemma Cslib.RelationAlgebra.inf_one_mul_eq {a x : α} (h : x ≤ a)
 
 /-- The **Relativization** of a relation algebra to a symmetric and transitive element `a`. -/
 @[simps! one_coe mul_coe star_coe]
-instance Set.Iic.instRelationAlgebra (a : α) [IsRelSymm a] [IsRelTrans a] :
+instance _root_.Set.Iic.instRelationAlgebra (a : α) [IsRelSymm a] [IsRelTrans a] :
     RelationAlgebra (Set.Iic a) where
   one := ⟨a ⊓ 1, inf_le_left⟩
   mul x y := ⟨(x : α) * y, mul_le_of_isRelTrans x.prop y.prop⟩
@@ -52,3 +55,42 @@ instance Set.Iic.instRelationAlgebra (a : α) [IsRelSymm a] [IsRelTrans a] :
     change star (x : α) * (a \ (x * y)) ≤ a \ y
     grw [_root_.sdiff_eq, _root_.sdiff_eq, mul_inf_le, tarski, (show x ≤ a from x.prop),
       star_eq_of_symm a, mul_self_le_of_trans a]
+
+/-- A homomorphism from `α` to `β` restricts to the relativization. If `b` is reducibly equal to
+`f a`, then `f.restrictIic (refl a)` can find the required instances on `b` by synthesis. -/
+@[simps]
+def RelationAlgebraHom.restrictIic (f : RelationAlgebraHom α β) {a : α} [IsRelSymm a]
+    [IsRelTrans a] {b : β} [IsRelSymm b] [IsRelTrans b] (h : f a = b) :
+    RelationAlgebraHom (Iic a) (Iic b) where
+  toFun x := ⟨f x, (f.mono x.prop).trans_eq h⟩
+  map_sup' _ _ := Subtype.ext <| map_sup f ..
+  map_inf' _ _ := Subtype.ext <| map_inf f ..
+  map_mul' _ _ := Subtype.ext <| map_mul f ..
+  map_star' _ := Subtype.ext <| map_star f ..
+  map_top' := Subtype.ext h
+  map_bot' := Subtype.ext <| map_bot f ..
+  map_one' := Subtype.ext <| by simp [h]
+
+/-- An equivalence between `α` and `β` restricts to the relativization. If `b` is reducibly equal to
+`f a`, then `f.restrictIic (refl a)` can find the required instances on `b` by synthesis. -/
+def RelationAlgebraEquiv.restrictIic (e : RelationAlgebraEquiv α β) {a : α} [IsRelSymm a]
+    [IsRelTrans a] {b : β} [IsRelSymm b] [IsRelTrans b] (h : e a = b) :
+    RelationAlgebraEquiv (Iic a) (Iic b) := by
+  have hsymm : e.symm.toHom b = a := by simpa using congr(e.symm $h.symm)
+  refine .ofHomInv (e.toHom.restrictIic h) (e.symm.toHom.restrictIic hsymm) ?_ ?_
+  · intro ⟨x, hx⟩
+    ext; simp [e.toHom.restrictIic_toFun_coe h]
+  · intro ⟨x, hx⟩
+    ext; simp [e.symm.toHom.restrictIic_toFun_coe hsymm, e.toHom.restrictIic_toFun_coe h]
+
+@[simp]
+theorem RelationAlgebraEquiv.restrictIic_apply (e : RelationAlgebraEquiv α β)
+    {a : α} [IsRelSymm a] [IsRelTrans a] {b : β} [IsRelSymm b] [IsRelTrans b]
+    (h : e a = b) (x : (Iic a)) : (e.restrictIic h) x = e x := rfl
+
+@[simp]
+theorem RelationAlgebraEquiv.restrictIic_symm_apply (e : RelationAlgebraEquiv α β)
+    {a : α} [IsRelSymm a] [IsRelTrans a] {b : β} [IsRelSymm b] [IsRelTrans b]
+    (h : e a = b) (x : (Iic b)) : (e.restrictIic h).symm x = e.symm x := rfl
+
+end Cslib
