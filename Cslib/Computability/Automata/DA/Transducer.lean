@@ -104,12 +104,12 @@ def evalFrom (transducer : SubsequentialTransducer State InSymbol OutSymbol) (q 
 
 /-- The defining equations of `evalFrom` uniquely determine it. -/
 theorem evalFrom_unique {spec : State → List InSymbol → List OutSymbol}
-    (hfinal : ∀ q, transducer.finalOut q = spec q [])
-    (hstep : ∀ q a w, transducer.emit q a ++ spec (transducer.tr q a) w = spec q (a :: w)) :
+    (hfinal : ∀ q, spec q [] = transducer.finalOut q)
+    (hstep : ∀ q a w, spec q (a :: w) = transducer.emit q a ++ spec (transducer.tr q a) w) :
     transducer.evalFrom = spec := by
   funext q w
   induction w generalizing q with
-  | nil => exact hfinal q
+  | nil => exact (hfinal q).symm
   | cons a w ih => rw [evalFrom, ih, hstep]
 
 /-- The output on a complete input word. -/
@@ -136,8 +136,8 @@ abbrev evalFrom (transducer : SequentialTransducer State InSymbol OutSymbol) :=
 
 /-- The defining equations of `evalFrom` uniquely determine it. -/
 theorem evalFrom_unique {spec : State → List InSymbol → List OutSymbol}
-    (hnil : ∀ q, [] = spec q [])
-    (hstep : ∀ q a w, transducer.emit q a ++ spec (transducer.tr q a) w = spec q (a :: w)) :
+    (hnil : ∀ q, spec q [] = [])
+    (hstep : ∀ q a w, spec q (a :: w) = transducer.emit q a ++ spec (transducer.tr q a) w) :
     transducer.evalFrom = spec :=
   transducer.toSubsequential.evalFrom_unique hnil hstep
 

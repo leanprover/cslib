@@ -13,7 +13,8 @@ import Mathlib.Tactic.DeriveFintype
 /-!
 # Complexity of operations on delimited Boolean words
 
-These functions are computable by multitape Turing machines in linear time and zero work space.
+The functions `delimit`, `undelimit`, `undelimitOr`, `dropDelimited` and `undelimitAll` are
+computable by multitape Turing machines in linear time and zero work space.
 The constructions use subsequential transducers for `delimit` and `undelimitOr`.
 Taking the empty default gives `undelimit`. Sequential transducers suffice for `dropDelimited`
 and `undelimitAll`.
@@ -28,7 +29,6 @@ and `undelimitAll`.
 
 * `Cslib.Encoding.undelimitAll_delimit_append` decodes a leading codeword and continues
   decoding the suffix.
-
 * `Turing.MultiTapeTM.computableInTimeAndSpace_delimit` bounds the cost of writing a codeword.
 * `Turing.MultiTapeTM.computableInTimeAndSpace_undelimit` and
   `Turing.MultiTapeTM.computableInTimeAndSpace_undelimitOr` bound the cost of decoding the first

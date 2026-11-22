@@ -22,6 +22,8 @@ takes one step.
 
 ## Main definitions
 
+* `Turing.MultiTapeTM.emitChunk` is the machine action that writes one output word symbol by
+  symbol and then moves the input head.
 * `Turing.MultiTapeTM.ofSubsequential` compiles a subsequential transducer to a machine with zero
   work tapes. Its finite control stores the position within the output word.
 * `Turing.MultiTapeTM.transducerCfg` describes the machine between chunks using the transducer
@@ -89,9 +91,9 @@ private lemma runFrom_emitChunk {tm : MultiTapeTM 0 Symbol (State × Fin (m + 1)
 
 variable (transducer : SubsequentialTransducer State Symbol Symbol)
 
-/-- Compile a subsequential transducer with zero work tapes. The machine emits `finalOut q` at
-end of input in state `q`. For correct simulation, `m` must bound the length of every
-transition output and every final output. -/
+/-- Compile a subsequential transducer to a machine with zero work tapes. The machine emits
+`finalOut q` at end of input in state `q`. For correct simulation, `m` must bound the length of
+every transition output and every final output. -/
 def ofSubsequential (transducer : SubsequentialTransducer State Symbol Symbol) (m : ℕ) :
     MultiTapeTM 0 Symbol (State × Fin (m + 1)) :=
   ofTr (transducer.start, 0) fun ⟨q, i⟩ inp _ =>
@@ -157,14 +159,13 @@ theorem runFrom_ofSubsequential (hbound : transducer.OutputBoundedBy m)
 /-- The compiled machine computes the transducer output in at most one step per input and
 output symbol plus one, using zero work space. -/
 theorem computesInTimeAndSpace_ofSubsequential
-    (hbound : transducer.OutputBoundedBy m)
-    (w : List Symbol) :
+    (hbound : transducer.OutputBoundedBy m) (w : List Symbol) :
     (ofSubsequential transducer m).ComputesInTimeAndSpace w (transducer.eval w)
       (w.length + (transducer.eval w).length + 1) 0 := by
   have finish : (ofSubsequential transducer m).runFrom ((ofSubsequential transducer m).initCfg w)
       (w.length + (transducer.eval w).length + 1) =
-        transducerHaltCfg (transducer.eval w) := by
-    exact runFrom_ofSubsequential transducer hbound transducer.start w [] [] rfl
+        transducerHaltCfg (transducer.eval w) :=
+    runFrom_ofSubsequential transducer hbound transducer.start w [] [] rfl
   have halt := congrArg Cfg.state finish
   refine ⟨⟨_, halt, ?_⟩, ?_, by simp⟩
   · simpa [runFrom] using congrArg Cfg.output finish
