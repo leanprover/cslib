@@ -68,16 +68,16 @@ lemma map_comp_of_injective (hg : g.Injective) {s : SetRel α β} {r : SetRel β
 @[simp] lemma map_id_fun : s.map id id = s := Set.image_id _
 
 @[simp] lemma map_comp_fun {α₁ α₂ α₃ β₁ β₂ β₃ : Type*} {f₁ : α₁ → α₂} {f₂ : α₂ → α₃} {g₁ : β₁ → β₂}
-    {g₂ : β₂ → β₃} {s : SetRel α₁ β₁} : s.map (f₂ ∘ f₁) (g₂ ∘ g₁) = (s.map f₁ g₁).map f₂ g₂ :=
-  Set.image_comp (Prod.map f₂ g₂) (Prod.map f₁ g₁) s
+    {g₂ : β₂ → β₃} {s : SetRel α₁ β₁} : (s.map f₁ g₁).map f₂ g₂ = s.map (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+  Set.image_comp (Prod.map f₂ g₂) (Prod.map f₁ g₁) s |>.symm
 
 /-- Equivalences between types lift the their types of set-based relations. -/
 @[simps]
 def mapEquiv (eα : α ≃ α') (eβ : β ≃ β') : SetRel α β ≃ SetRel α' β' where
   toFun s := s.map eα eβ
   invFun s := s.map eα.symm eβ.symm
-  left_inv _ := by simp [← map_comp_fun]
-  right_inv _ := by simp [← map_comp_fun]
+  left_inv _ := by simp
+  right_inv _ := by simp
 
 end Map
 

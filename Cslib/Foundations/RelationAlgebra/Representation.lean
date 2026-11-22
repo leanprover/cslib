@@ -25,46 +25,50 @@ matter of much interest.
 
 @[expose] public section
 
-universe u v w
+universe u₁ u₂ v w
 
 namespace Cslib.RelationAlgebra
 
+variable {α α₁ : Type u₁} {α₂ : Type u₂} [RelationAlgebra α] [RelationAlgebra α₁]
+  [RelationAlgebra α₂] {ι : Type v} {β : ι → Type w}
+
+variable (α ι β) in
 /-- A representation of a relation algebra is an injective morphism into a product of relations. -/
-structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : ι → Type w) where
+structure Representation where
   /-- A `RelationAlgebraHom` into a product of relations. -/
   hom : RelationAlgebraHom α (∀ i, SetRel (β i) (β i))
   injective : Function.Injective hom
 
+variable (α) in
 /-- A relation algebra is representable if a `Representation` exists. -/
-def Representable (α : Type u) [RelationAlgebra α] : Prop :=
-  ∃ (ι : Type u) (β : ι → Type u), Nonempty (Representation α ι β)
+def Representable : Prop := ∃ (ι : Type u₁) (β : ι → Type u₁), Nonempty (Representation α ι β)
 
 /-- Representations can be precomposed with injective homomorphisms. -/
-def Representation.compInjective {α α' ι : Type*} {β : ι → Type*} [RelationAlgebra α]
-    [RelationAlgebra α'] (r : Representation α' ι β) (f : RelationAlgebraHom α α')
-    (hf : Function.Injective f) : Representation α ι β where
+def Representation.compInjective (r : Representation α₂ ι β) (f : RelationAlgebraHom α₁ α₂)
+    (hf : Function.Injective f) : Representation α₁ ι β where
   hom := r.hom.comp f
   injective := r.injective.comp hf
 
 /-- Representations can be precomposed with equivalences. -/
-def Representation.compEquiv {α α' ι : Type*} {β : ι → Type*} [RelationAlgebra α]
-    [RelationAlgebra α'] (r : Representation α' ι β) (e : RelationAlgebraEquiv α α') :
-    Representation α ι β := r.compInjective e.toHom e.toHom_injective
+def Representation.compEquiv (r : Representation α₂ ι β) (e : RelationAlgebraEquiv α₁ α₂) :
+    Representation α₁ ι β := r.compInjective e.toHom e.toHom_injective
 
 /-- A relation algebra that embeds into a representable relation algebra is representable. -/
-theorem Representable.of_injective {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
-    (f : RelationAlgebraHom α α') (hf : Function.Injective f) (h : Representable α') :
-    Representable α :=
+theorem Representable.of_injective (f : RelationAlgebraHom α α₁) (hf : Function.Injective f)
+    (h : Representable α₁) : Representable α :=
   let ⟨ι, β, ⟨r⟩⟩ := h
   ⟨ι, β, ⟨r.compInjective f hf⟩⟩
 
 /-- Representability is preserved by equivalence. -/
-theorem Representable.of_equiv {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
-    (heqv : Nonempty (RelationAlgebraEquiv α α')) (h : Representable α') :
-    Representable α := h.of_injective heqv.some.toHom heqv.some.toHom_injective
+theorem Representable.of_equiv (e : RelationAlgebraEquiv α α₁) (h : Representable α₁) :
+    Representable α :=
+  h.of_injective e.toHom e.toHom_injective
+
+theorem _root_.Cslib.RelationAlgebraEquiv.representable_iff (e : RelationAlgebraEquiv α α₁) :
+    Representable α ↔ Representable α₁ :=
+  ⟨fun h ↦ h.of_equiv e.symm, fun h ↦ h.of_equiv e⟩
 
 /-- A `Representation α ι β` in arbitrary universes can be contracted to the universe of `α`. -/
-proof_wanted representable_univ {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w} :
-    Representation α ι β → Representable α
+proof_wanted representable_univ (r : Representation α ι β) : Representable α
 
 end Cslib.RelationAlgebra

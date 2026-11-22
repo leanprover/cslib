@@ -72,7 +72,7 @@ def RelationAlgebraHom.restrictIic (f : RelationAlgebraHom α β) {a : α} [IsRe
   map_one' := Subtype.ext <| by simp [h]
 
 /-- An equivalence between `α` and `β` restricts to the relativization. If `b` is reducibly equal to
-`f a`, then `f.restrictIic (refl a)` can find the required instances on `b` by synthesis. -/
+`f a`, then `e.restrictIic (refl a)` can find the required instances on `b` by synthesis. -/
 def RelationAlgebraEquiv.restrictIic (e : RelationAlgebraEquiv α β) {a : α} [IsRelSymm a]
     [IsRelTrans a] {b : β} [IsRelSymm b] [IsRelTrans b] (h : e a = b) :
     RelationAlgebraEquiv (Iic a) (Iic b) := by
