@@ -132,7 +132,7 @@ protected def refl (α : Type*) [RelationAlgebra α] : RelationAlgebraEquiv α �
   { OrderIso.refl α, StarMulEquiv.refl α with }
 
 /-- The transitive `RelationAlgebraEquiv` -/
-@[simps! apply symm_apply]
+@[simps!]
 def trans (f : RelationAlgebraEquiv α β) (g : RelationAlgebraEquiv β γ) :
     RelationAlgebraEquiv α γ :=
   { f.toOrderIso.trans g.toOrderIso, f.toStarMulEquiv.trans g.toStarMulEquiv with

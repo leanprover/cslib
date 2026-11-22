@@ -73,24 +73,15 @@ def RelationAlgebraHom.restrictIic (f : RelationAlgebraHom α β) {a : α} [IsRe
 
 /-- An equivalence between `α` and `β` restricts to the relativization. If `b` is reducibly equal to
 `f a`, then `e.restrictIic (refl a)` can find the required instances on `b` by synthesis. -/
+@[simps!]
 def RelationAlgebraEquiv.restrictIic (e : RelationAlgebraEquiv α β) {a : α} [IsRelSymm a]
     [IsRelTrans a] {b : β} [IsRelSymm b] [IsRelTrans b] (h : e a = b) :
     RelationAlgebraEquiv (Iic a) (Iic b) := by
   have hsymm : e.symm.toHom b = a := by simpa using congr(e.symm $h.symm)
   refine .ofHomInv (e.toHom.restrictIic h) (e.symm.toHom.restrictIic hsymm) ?_ ?_
   · intro ⟨x, hx⟩
-    ext; simp [e.toHom.restrictIic_toFun_coe h]
+    ext; simp [e.toHom.restrictIic_apply_coe h]
   · intro ⟨x, hx⟩
-    ext; simp [e.symm.toHom.restrictIic_toFun_coe hsymm, e.toHom.restrictIic_toFun_coe h]
-
-@[simp]
-theorem RelationAlgebraEquiv.restrictIic_apply (e : RelationAlgebraEquiv α β)
-    {a : α} [IsRelSymm a] [IsRelTrans a] {b : β} [IsRelSymm b] [IsRelTrans b]
-    (h : e a = b) (x : (Iic a)) : (e.restrictIic h) x = e x := rfl
-
-@[simp]
-theorem RelationAlgebraEquiv.restrictIic_symm_apply (e : RelationAlgebraEquiv α β)
-    {a : α} [IsRelSymm a] [IsRelTrans a] {b : β} [IsRelSymm b] [IsRelTrans b]
-    (h : e a = b) (x : (Iic b)) : (e.restrictIic h).symm x = e.symm x := rfl
+    ext; simp [e.symm.toHom.restrictIic_apply_coe hsymm, e.toHom.restrictIic_apply_coe h]
 
 end Cslib
