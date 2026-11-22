@@ -18,6 +18,7 @@ section Map
 
 variable {α β γ α' β' γ' : Type*} {f : α → α'} {g : β → β'} {h : γ → γ'} {s r : SetRel α β}
 
+/-- Map set-based relations along a pair of functions. -/
 protected def map (f : α → α') (g : β → β') (r : SetRel α β) : SetRel α' β' := Prod.map f g '' r
 
 @[simp, grind =] lemma mem_map : c ~[r.map f g] d ↔ ∃ a b, a ~[r] b ∧ f a = c ∧ g b = d := by
@@ -42,7 +43,7 @@ lemma map_inter_of_injective (hf : f.Injective) (hg : g.Injective) :
     (s ∩ r).map f g = s.map f g ∩ r.map f g :=
   map_inter_of_injective_prodMap (hf.prodMap hg)
 
-@[simp] lemma map_bot : (⊥ : SetRel α β).map f g = ⊥ := by
+@[simp] lemma map_bot : (∅ : SetRel α β).map f g = ⊥ := by
   ext ⟨a, b⟩
   simp
 
@@ -69,6 +70,7 @@ lemma map_comp_of_injective (hg : g.Injective) {s : SetRel α β} {r : SetRel β
     {g₂ : β₂ → β₃} {s : SetRel α₁ β₁} : s.map (f₂ ∘ f₁) (g₂ ∘ g₁) = (s.map f₁ g₁).map f₂ g₂ :=
   Set.image_comp (Prod.map f₂ g₂) (Prod.map f₁ g₁) s
 
+/-- Equivalences between types lift the their types of set-based relations. -/
 @[simps]
 def mapEquiv (eα : α ≃ α') (eβ : β ≃ β') : SetRel α β ≃ SetRel α' β' where
   toFun s := s.map eα eβ
