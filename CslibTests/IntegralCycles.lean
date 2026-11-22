@@ -98,12 +98,16 @@ example : AtomStructure (IntegralAtom 0 1) := integral_cycles% (nsymm := a) (a, 
 error: `integral_cycles_lawful` could not prove associativity of the generated cycles
 ---
 error: Tactic `decide` proved that the proposition
-  (IntegralAtom.checkRows IntegralAtom.conv fun r u =>
-      IntegralAtom.maskRow 17831185 (1 + 2 + 2 * 0) ↑r.atomIndex ↑u.atomIndex) =
+  (checkRows conv fun r u =>
+      maskRow
+        (Finset.fold (fun x1 x2 => x1 ||| x2) 0 (fun a => maskOfFinset (⇑cycleIndex) (cycleOrbit a))
+          (Finset.empty ∪ Finset.image (fun a => (one, a, a)) Finset.univ))
+        (1 + 2 + 2 * 0) ↑r.atomIndex ↑u.atomIndex) =
     true
 is false
 -/
 #guard_msgs in
+open IntegralAtom in
 example : LawfulAtomStructure (integral_cycles% (symm := [a, b])) := by
   integral_cycles_lawful
 
@@ -111,12 +115,17 @@ example : LawfulAtomStructure (integral_cycles% (symm := [a, b])) := by
 error: `integral_cycles_lawful` could not prove associativity of the generated cycles
 ---
 error: Tactic `decide` proved that the proposition
-  (IntegralAtom.checkRows IntegralAtom.conv fun r u =>
-      IntegralAtom.maskRow 17839377 (1 + 2 + 2 * 0) ↑r.atomIndex ↑u.atomIndex) =
+  (checkRows conv fun r u =>
+      maskRow
+        (Finset.fold (fun x1 x2 => x1 ||| x2) 0 (fun a => maskOfFinset (⇑cycleIndex) (cycleOrbit a))
+          (insert (IntegralAtom.symm 0, IntegralAtom.symm 0, IntegralAtom.symm 0) Finset.empty ∪
+            Finset.image (fun a => (one, a, a)) Finset.univ))
+        (1 + 2 + 2 * 0) ↑r.atomIndex ↑u.atomIndex) =
     true
 is false
 -/
 #guard_msgs in
+open IntegralAtom in
 example : LawfulAtomStructure (integral_cycles% (symm := [a, b]) (a, a, a)) := by
   integral_cycles_lawful
 

@@ -238,18 +238,10 @@ def elabIntegralCycles : TermElab := fun stx expectedType? => do
   for c in cycleTerms.reverse do cycles ← mkAppM ``Insert.insert #[c, cycles]
   ensureHasType expectedType? (mkApp3 (mkConst ``ofCycles) s n cycles)
 
-private unsafe def evalCycleClosureMaskUnsafe (s n cycles : Expr) : MetaM ℕ := do
-  let cycle := mkApp2 (mkConst ``Cycle) s n
-  let code := mkApp3 (mkConst ``Function.Embedding.toFun [1, 1]) cycle (mkConst ``Nat)
-    (mkApp2 (mkConst ``cycleIndex) s n)
-  evalExpr ℕ (mkConst ``Nat) <| mkApp3 (mkConst ``maskOfFinset [0]) cycle code
-    (mkApp3 (mkConst ``cycleClosure) s n cycles)
-
-@[implemented_by evalCycleClosureMaskUnsafe]
-private opaque evalCycleClosureMask (s n cycles : Expr) : MetaM ℕ
-
+/-- TODO: write docstring -/
 syntax (name := integralCyclesLawful) "integral_cycles_lawful" : tactic
 
+/-- TODO: write docstring -/
 @[no_expose, tactic integralCyclesLawful]
 def evalIntegralCyclesLawful : Tactic.Tactic := fun _ => Tactic.withMainContext do
   let goal ← Tactic.getMainGoal
@@ -265,11 +257,11 @@ def evalIntegralCyclesLawful : Tactic.Tactic := fun _ => Tactic.withMainContext 
   if atoms.hasFVar || atoms.hasMVar then
     throwError "`integral_cycles_lawful` requires closed generators, but got{indentExpr cycles}"
   let proof ← Tactic.runTermElab <| withoutErrToSorry do
-    let mask := mkNatLit (← evalCycleClosureMask s n cycles)
+    let mask ← mkFreshExprMVar (mkConst ``Nat)
     let assoc := mkAppN (mkConst ``cycleClosure_assoc_of_checkRows) #[s, n, cycles, mask]
-    let hmask ← elabIntegralCyclesProof assoc
-      (← `((maskOfFinset_biUnion _ _ _).trans (by decide +kernel)))
+    let hmask ← elabIntegralCyclesProof assoc (← `(maskOfFinset_biUnion _ _ _))
       "internal error in `integral_cycles_lawful`: failed to verify the cycle encoding"
+    let assoc ← instantiateMVars assoc
     let hcheck ← elabIntegralCyclesProof (mkApp assoc hmask) (← `(by decide +kernel))
       "`integral_cycles_lawful` could not prove associativity of the generated cycles"
     let hassoc := mkApp2 assoc hmask hcheck
