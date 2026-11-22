@@ -56,11 +56,15 @@ instance : MonoidHomClass (RelationAlgebraHom α β) α β where
 instance : StarHomClass (RelationAlgebraHom α β) α β where
   map_star f := f.map_star'
 
+def Simps.apply (f : RelationAlgebraHom α β) : α → β := f
+
+initialize_simps_projections RelationAlgebraHom (toFun → apply)
+
 @[ext]
 theorem ext {f g : RelationAlgebraHom α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
 
-theorem mono (f : RelationAlgebraHom α β) : Monotone f := OrderHomClass.mono f
+protected theorem mono (f : RelationAlgebraHom α β) : Monotone f := OrderHomClass.mono f
 
 /-- `id` as a `RelationAlgebraHom` -/
 protected def id (α : Type*) [RelationAlgebra α] : RelationAlgebraHom α α :=
@@ -112,32 +116,33 @@ instance : StarHomClass (RelationAlgebraEquiv α β) α β where
 theorem ext {f g : RelationAlgebraEquiv α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
 
-/-- The reflexive `RelationAlgebraEquiv` -/
-protected def refl (α : Type*) [RelationAlgebra α] : RelationAlgebraEquiv α α :=
-  { OrderIso.refl α, StarMulEquiv.refl α with }
-
 /-- The symmetric `RelationAlgebraEquiv` -/
 def symm (f : RelationAlgebraEquiv α β) : RelationAlgebraEquiv β α :=
   { f.toOrderIso.symm, f.toStarMulEquiv.symm with }
 
+def Simps.apply (e : RelationAlgebraEquiv α β) : α → β := e
+
+def Simps.symm_apply (e : RelationAlgebraEquiv α β) : β → α := e.symm
+
+initialize_simps_projections RelationAlgebraEquiv (toFun → apply, invFun → symm_apply)
+
+/-- The reflexive `RelationAlgebraEquiv` -/
+@[simps!]
+protected def refl (α : Type*) [RelationAlgebra α] : RelationAlgebraEquiv α α :=
+  { OrderIso.refl α, StarMulEquiv.refl α with }
+
 /-- The transitive `RelationAlgebraEquiv` -/
+@[simps! apply symm_apply]
 def trans (f : RelationAlgebraEquiv α β) (g : RelationAlgebraEquiv β γ) :
     RelationAlgebraEquiv α γ :=
-  { f.toOrderIso.trans g.toOrderIso, f.toStarMulEquiv.trans g.toStarMulEquiv with }
+  { f.toOrderIso.trans g.toOrderIso, f.toStarMulEquiv.trans g.toStarMulEquiv with
+    toFun a := g (f a), invFun c := f.symm (g.symm c)}
 
 /-- The `RelationAlgebraHom` underlying an `RelationAlgebraEquiv` -/
+@[simps]
 def toHom (f : RelationAlgebraEquiv α β) : RelationAlgebraHom α β :=
-  { (f.toOrderIso : BoundedLatticeHom α β), f.toStarMulEquiv.toStarMonoidHom with }
-
-@[simp]
-theorem refl_apply (a : α) : RelationAlgebraEquiv.refl α a = a := rfl
-
-@[simp]
-theorem trans_apply (f : RelationAlgebraEquiv α β) (g : RelationAlgebraEquiv β γ) (a : α) :
-    f.trans g a = g (f a) := rfl
-
-@[simp]
-theorem toHom_apply (f : RelationAlgebraEquiv α β) (a : α) : f.toHom a = f a := rfl
+  { (f.toOrderIso : BoundedLatticeHom α β), f.toStarMulEquiv.toStarMonoidHom with
+    toFun := f}
 
 @[simp]
 theorem symm_apply_apply (f : RelationAlgebraEquiv α β) (a : α) : f.symm (f a) = a :=
@@ -148,7 +153,7 @@ theorem apply_symm_apply (f : RelationAlgebraEquiv α β) (b : β) : f (f.symm b
   f.right_inv b
 
 /-- Promote a bijective homomorphism to an equivalence. -/
-@[simps toFun]
+@[simps apply]
 noncomputable def ofBijective {f : RelationAlgebraHom α β} (hf : Function.Bijective f) :
     RelationAlgebraEquiv α β where
   toFun := f
