@@ -18,7 +18,16 @@ The constructions use subsequential transducers for `delimit` and `undelimitOr`.
 Taking the empty default gives `undelimit`. Sequential transducers suffice for `dropDelimited`
 and `undelimitAll`.
 
+## Main definitions
+
+* `Cslib.Encoding.undelimitOr` decodes the first word like `Cslib.Encoding.undelimit` and
+  supplies a default on empty input.
+* `Cslib.Encoding.undelimitAll` concatenates all decoded words.
+
 ## Main results
+
+* `Cslib.Encoding.undelimitAll_delimit_append` decodes a leading codeword and continues
+  decoding the suffix.
 
 * `Turing.MultiTapeTM.computableInTimeAndSpace_delimit` bounds the cost of writing a codeword.
 * `Turing.MultiTapeTM.computableInTimeAndSpace_undelimit` and
@@ -32,6 +41,50 @@ and `undelimitAll`.
 
 public section
 
+namespace Cslib.Encoding
+
+/-- Decode the first word with `undelimit`, and use `e` when the input is empty. -/
+@[expose]
+def undelimitOr (e : List Bool) : List Bool → List Bool
+  | [] => e
+  | b :: w => undelimit (b :: w)
+
+attribute [simp] undelimitOr.eq_1 undelimitOr.eq_2
+
+@[simp]
+theorem undelimitOr_nil_left : undelimitOr [] = undelimit := by
+  funext w
+  cases w <;> rfl
+
+@[simp, scoped grind =]
+theorem undelimitOr_delimit_append (e w u : List Bool) :
+    undelimitOr e (delimit w ++ u) = w := by
+  cases w <;> simp
+
+/-- The concatenation of the words whose delimited codes make up `w`: removes all tags and
+delimiters. A trailing tag `true` without a data bit is ignored. -/
+@[expose, simp]
+def undelimitAll : List Bool → List Bool
+  | true :: b :: v => b :: undelimitAll v
+  | false :: v => undelimitAll v
+  | [] | [true] => []
+
+@[simp, scoped grind =]
+theorem undelimitAll_delimit_append (w u : List Bool) :
+    undelimitAll (delimit w ++ u) = w ++ undelimitAll u := by
+  induction w <;> simp [*]
+
+/-- Decoding with a default adds at most the length of the default. -/
+theorem length_undelimitOr_le (e w : List Bool) :
+    (undelimitOr e w).length ≤ w.length + e.length := by
+  cases w <;> grind [undelimitOr, length_undelimit_le]
+
+/-- Decoding all codewords does not make a word longer. -/
+theorem length_undelimitAll_le (w : List Bool) : (undelimitAll w).length ≤ w.length := by
+  fun_induction undelimitAll w <;> grind
+
+end Cslib.Encoding
+
 namespace Turing.MultiTapeTM
 
 open Cslib.Encoding Cslib.Automata
@@ -44,14 +97,13 @@ private def delimitTransducer : SubsequentialTransducer Unit Bool Bool where
   emit _ b := [true, b]
   finalOut _ := [false]
 
-private theorem evalFrom_delimit (w : List Bool) : delimitTransducer.evalFrom () w = delimit w := by
+private lemma evalFrom_delimit (w : List Bool) : delimitTransducer.evalFrom () w = delimit w := by
   induction w <;> simp_all [delimitTransducer]
 
 /-- Writing a delimited code is computable in linear time and zero work space. -/
 theorem computableInTimeAndSpace_delimit :
     ComputableInTimeAndSpace delimit encBits encBits (fun w => 3 * w.length + 2) (fun _ => 0) :=
-  (computableInTimeAndSpace_of_subsequential delimitTransducer delimit
-    evalFrom_delimit).mono
+  (computableInTimeAndSpace_of_subsequential delimitTransducer delimit evalFrom_delimit).mono
     (fun _ => by lia [length_delimit]) fun _ => le_rfl
 
 /-! ### The word whose delimited code starts the input -/
@@ -94,7 +146,7 @@ private lemma evalFrom_undelimit (e : List Bool) :
   · intro q
     cases q <;> rfl
   · intro q b w
-    cases q <;> cases b <;> cases w <;> simp [undelimitTransducer, undelimitFrom]
+    cases q <;> cases b <;> cases w <;> rfl
 
 /-- `undelimitOr e` is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_undelimitOr (e : List Bool) :
@@ -142,7 +194,7 @@ private lemma evalFrom_dropDelimited :
   · intro q
     cases q <;> rfl
   · intro q b w
-    cases q <;> cases b <;> cases w <;> simp [dropDelimitedTransducer, dropDelimitedFrom]
+    cases q <;> cases b <;> cases w <;> rfl
 
 /-- `dropDelimited` is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_dropDelimited :
@@ -171,7 +223,7 @@ private lemma evalFrom_undelimitAll :
   · intro q
     cases q <;> rfl
   · intro q b w
-    cases q <;> cases b <;> cases w <;> simp [undelimitAllTransducer, undelimitAllFrom]
+    cases q <;> cases b <;> cases w <;> rfl
 
 /-- `undelimitAll` is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_undelimitAll :

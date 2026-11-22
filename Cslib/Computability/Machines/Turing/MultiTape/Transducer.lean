@@ -8,8 +8,6 @@ module
 
 public import Cslib.Computability.Automata.DA.Transducer
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
-import Mathlib.Basic.Finite.Prod
-import Mathlib.Data.Fintype.Order
 
 /-!
 # Turing machine simulation of finite sequential and subsequential transducers
@@ -79,12 +77,14 @@ private lemma runFrom_emitChunk {tm : MultiTapeTM 0 Symbol (State × Fin (m + 1)
     induction i with
     | zero => simp [← hq]
     | succ i ih =>
-      change i < out.length at hi
-      erw [Function.iterate_succ_apply', ih hi.le, step_of_state rfl, htr]
+      have hi : i < out.length := hi
+      rw [Function.iterate_succ_apply', ih hi.le, step_of_state rfl]
+      refine (congrArg (Action.apply · _) (htr _)).trans ?_
       apply Cfg.ext_zero_tapes <;>
         simp [emitChunk, hi, Fin.ext_iff, Fin.val_add_one, List.append_assoc]
       lia
-  erw [runFrom, Function.iterate_succ_apply', emitPrefix _ le_rfl, step_of_state rfl, htr]
+  rw [runFrom, Function.iterate_succ_apply', emitPrefix _ le_rfl, step_of_state rfl]
+  refine (congrArg (Action.apply · _) (htr _)).trans ?_
   apply Cfg.ext_zero_tapes <;> simp [emitChunk]
 
 variable (transducer : SubsequentialTransducer State Symbol Symbol)
@@ -154,12 +154,6 @@ theorem runFrom_ofSubsequential (hbound : transducer.OutputBoundedBy m)
     rw [← first] at ih
     simpa +arith [runFrom, ← Function.iterate_add_apply, List.append_assoc] using ih
 
-private theorem exists_chunk_bound [Finite State] [Finite Symbol] :
-    ∃ m, transducer.OutputBoundedBy m := by
-  obtain ⟨m, hm⟩ := Finite.exists_le fun p : State × Option Symbol =>
-    (p.2.elim (transducer.finalOut p.1) (transducer.emit p.1)).length
-  exact ⟨m, fun q a => hm (q, a)⟩
-
 /-- The compiled machine computes the transducer output in at most one step per input and
 output symbol plus one, using zero work space. -/
 theorem computesInTimeAndSpace_ofSubsequential
@@ -170,8 +164,7 @@ theorem computesInTimeAndSpace_ofSubsequential
   have finish : (ofSubsequential transducer m).runFrom ((ofSubsequential transducer m).initCfg w)
       (w.length + (transducer.eval w).length + 1) =
         transducerHaltCfg (transducer.eval w) := by
-    simpa using!
-      runFrom_ofSubsequential transducer hbound transducer.start w [] [] (by simp)
+    exact runFrom_ofSubsequential transducer hbound transducer.start w [] [] rfl
   have halt := congrArg Cfg.state finish
   refine ⟨⟨_, halt, ?_⟩, ?_, by simp⟩
   · simpa [runFrom] using congrArg Cfg.output finish
@@ -184,7 +177,7 @@ theorem computableInTimeAndSpace_of_subsequential {State : Type} [Finite State]
     (h : ∀ w, transducer.eval w = f w) :
     ComputableInTimeAndSpace f (Function.Embedding.refl _) (Function.Embedding.refl _)
       (fun w => w.length + (f w).length + 1) (fun _ => 0) := by
-  obtain ⟨m, hbound⟩ := exists_chunk_bound transducer
+  obtain ⟨m, hbound⟩ := transducer.exists_outputBoundedBy_of_finite
   refine ⟨0, _, inferInstance, ofSubsequential transducer m, fun w => ?_⟩
   simpa [h w] using computesInTimeAndSpace_ofSubsequential transducer hbound w
 

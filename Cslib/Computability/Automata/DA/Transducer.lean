@@ -8,6 +8,8 @@ module
 
 public import Cslib.Computability.Automata.DA.Basic
 public import Cslib.Computability.Automata.Transducers.Transducer
+import Mathlib.Basic.Finite.Prod
+import Mathlib.Data.Fintype.Order
 
 /-!
 # Sequential and subsequential transducers
@@ -37,6 +39,8 @@ state of a subsequential transducer has a final output. The state type may be in
 
 ## Main results
 
+* `Cslib.Automata.SubsequentialTransducer.exists_outputBoundedBy_of_finite` bounds the output
+  words of a transducer with finitely many states and input symbols.
 * `Cslib.Automata.SequentialTransducer.evalFrom_unique` and
   `Cslib.Automata.SubsequentialTransducer.evalFrom_unique` characterize the output by its
   defining equations.
@@ -78,9 +82,18 @@ namespace SubsequentialTransducer
 variable {State InSymbol OutSymbol : Type*}
 variable (transducer : SubsequentialTransducer State InSymbol OutSymbol)
 
-/-- Every transition output and every final output has length at most `m`. -/
+/-- Every transition output and every final output has length at most `m`. The input `none`
+stands for the end of the input, where the final output is emitted. -/
 def OutputBoundedBy (m : ℕ) : Prop :=
   ∀ q (a : Option InSymbol), (a.elim (transducer.finalOut q) (transducer.emit q)).length ≤ m
+
+/-- A transducer with finitely many states and input symbols has a uniform bound on the length
+of its transition and final outputs. -/
+theorem exists_outputBoundedBy_of_finite [Finite State] [Finite InSymbol] :
+    ∃ m, transducer.OutputBoundedBy m := by
+  obtain ⟨m, hm⟩ := Finite.exists_le fun p : State × Option InSymbol =>
+    (p.2.elim (transducer.finalOut p.1) (transducer.emit p.1)).length
+  exact ⟨m, fun q a => hm (q, a)⟩
 
 /-- The output of `transducer` on an input word when starting from state `q`. -/
 @[simp]
@@ -103,9 +116,10 @@ theorem evalFrom_unique {spec : State → List InSymbol → List OutSymbol}
 abbrev eval (transducer : SubsequentialTransducer State InSymbol OutSymbol) :=
   transducer.evalFrom transducer.start
 
-/-- A subsequential transducer translates each input word into its output. -/
-instance {Input Output : Type v} :
-    Transducer (SubsequentialTransducer State Input Output) Input Output where
+/-- A subsequential transducer translates each input word into its output. This instance is an
+example of the general `Transducer` interface; downstream code should use `eval` directly. -/
+instance {InSymbol OutSymbol : Type v} :
+    Transducer (SubsequentialTransducer State InSymbol OutSymbol) InSymbol OutSymbol where
   Translates transducer w out := transducer.eval w = out
 
 end SubsequentialTransducer
@@ -131,9 +145,10 @@ theorem evalFrom_unique {spec : State → List InSymbol → List OutSymbol}
 abbrev eval (transducer : SequentialTransducer State InSymbol OutSymbol) :=
   transducer.evalFrom transducer.start
 
-/-- A sequential transducer translates each input word into its output. -/
-instance {Input Output : Type v} :
-    Transducer (SequentialTransducer State Input Output) Input Output where
+/-- A sequential transducer translates each input word into its output. This instance is an
+example of the general `Transducer` interface; downstream code should use `eval` directly. -/
+instance {InSymbol OutSymbol : Type v} :
+    Transducer (SequentialTransducer State InSymbol OutSymbol) InSymbol OutSymbol where
   Translates transducer w out := transducer.eval w = out
 
 end SequentialTransducer

@@ -46,6 +46,8 @@ attribute [simp] headCases.eq_1 headCases.eq_2
 
 variable (e : List Bool) (g : Bool → List Bool) (keep : Bool → Bool)
 
+/-- The output is at most as long as the input plus the longest of `e`, `g false` and
+`g true`. -/
 theorem length_headCases_le (w : List Bool) :
     (headCases e g keep w).length ≤
       w.length + max e.length (max (g false).length (g true).length) := by
@@ -86,8 +88,7 @@ private lemma evalFrom_headCases (e : List Bool) (g : Bool → List Bool) (keep 
     (headCasesTransducer e g keep).evalFrom = headCasesFrom e g keep := by
   apply SubsequentialTransducer.evalFrom_unique
   · rintro (_ | (_ | _)) <;> rfl
-  · rintro (_ | (_ | _)) b w <;> simp [headCasesTransducer, headCasesFrom]
-    cases keep b <;> rfl
+  · rintro (_ | (_ | _)) b w <;> cases h : keep b <;> simp [headCasesTransducer, headCasesFrom, h]
 
 /-- `headCases e g keep` is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_headCases (e : List Bool) (g : Bool → List Bool)
