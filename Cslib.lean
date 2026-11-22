@@ -72,8 +72,12 @@ public import Cslib.Computability.Circuit.Signature
 public import Cslib.Computability.Circuit.Simulation
 public import Cslib.Computability.Circuit.Synthesis
 public import Cslib.Computability.Circuit.Wire
+public import Cslib.Computability.Distributed.Consistency.Enumeration
+public import Cslib.Computability.Distributed.Consistency.Execution
 public import Cslib.Computability.Distributed.Consistency.Hierarchy
 public import Cslib.Computability.Distributed.Consistency.Specification
+public import Cslib.Computability.Distributed.Consistency.Trajectory
+public import Cslib.Computability.Distributed.Consistency.Transition
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.Consensus
@@ -82,6 +86,8 @@ public import Cslib.Computability.Distributed.FLP.Impossibility
 public import Cslib.Computability.Distributed.FLP.OnePseudoConsensus
 public import Cslib.Computability.Distributed.FLP.PseudoConsensus
 public import Cslib.Computability.Distributed.FLP.ZeroConsensus
+public import Cslib.Computability.Encoding.Basic
+public import Cslib.Computability.Encoding.Delimit
 public import Cslib.Computability.Languages.Congruences.Basic
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.MyhillCongruence
@@ -98,6 +104,7 @@ public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Languages.Slice
 public import Cslib.Computability.Languages.SyntacticMonoid
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Concatenate
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
@@ -181,6 +188,7 @@ public import Cslib.Foundations.Logic.InferenceSystem.Defs
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.MeasureTheory.FiniteSupport
+public import Cslib.Foundations.Order.AlgebraIntervals
 public import Cslib.Foundations.Order.FixedPoints
 public import Cslib.Foundations.Order.Heyting
 public import Cslib.Foundations.Order.Huntington
@@ -196,12 +204,15 @@ public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Basic
+public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
 public import Cslib.Foundations.RelationAlgebra.IntegralCycles
 public import Cslib.Foundations.RelationAlgebra.IntegralSmall
 public import Cslib.Foundations.RelationAlgebra.Pi
+public import Cslib.Foundations.RelationAlgebra.Relativization
 public import Cslib.Foundations.RelationAlgebra.Representation
+public import Cslib.Foundations.RelationAlgebra.SpecialElements
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS

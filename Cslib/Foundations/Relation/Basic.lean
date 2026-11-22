@@ -64,22 +64,22 @@ attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
 theorem ReflGen.le_reflGen : r ≤ ReflGen r := fun _ _ => ReflGen.single
 
 theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b :=
-  EqvGen.reflGen_le_eqvGen r _ _ h
+  reflGen_le_eqvGen r _ _ h
 
 @[scoped grind .]
 theorem TransGen.le_transGen : r ≤ TransGen r := fun _ _ => TransGen.single
 
 theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b :=
-  EqvGen.transGen_le_eqvGen r _ _ h
+  transGen_le_eqvGen r _ _ h
 
 theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b :=
-  EqvGen.reflTransGen_le_eqvGen r _ _ h
+  reflTransGen_le_eqvGen r _ _ h
 
 @[scoped grind .]
 theorem SymmGen.le_symmGen : r ≤ SymmGen r := fun _ _ => Or.inl
 
 theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b :=
-  EqvGen.symmGen_le_eqvGen r _ _ h
+  symmGen_le_eqvGen r _ _ h
 
 @[simp, scoped grind =] theorem sup_swap_eq_symmGen : r ⊔ Function.swap r = SymmGen r := rfl
 
@@ -88,7 +88,7 @@ theorem EqvGen.le_eqvGen : r ≤ EqvGen r := EqvGen.rel
 
 theorem _root_.Equivalence.eqvGen_le (h : Equivalence r₂) (hle : r₁ ≤ r₂) : EqvGen r₁ ≤ r₂ :=
   have := h.isEquiv
-  EqvGen.eqvGen_le hle
+  Relation.eqvGen_le hle
 
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
   SymmGen.to_eqvGen
@@ -126,7 +126,7 @@ theorem _root_.Equivalence.join_reflTransGen_le (h : Equivalence r₂) (hle : r�
   join_le_of_equivalence_of_le h <| reflTransGen_le_of_le hle
 
 theorem join_reflTransGen_le_eqvGen : Join (ReflTransGen r) ≤ EqvGen r :=
-    (EqvGen.is_equivalence r).join_reflTransGen_le EqvGen.le_eqvGen
+    (EqvGen.equivalence r).join_reflTransGen_le EqvGen.le_eqvGen
 
 theorem join₂_reflTransGen_le [Std.Refl r] [IsTrans α r] (h₁ : r₁ ≤ r) (h₂ : swap r₂ ≤ r) :
     Join₂ (ReflTransGen r₁) (ReflTransGen r₂) ≤ r := by
@@ -158,8 +158,7 @@ theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTra
 lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a :=
   Std.Symm.symm a b
 
-@[simp, scoped grind =]
-theorem reflTransGen_symmGen : ReflTransGen (SymmGen r) = EqvGen r := EqvGen.reflTransGen_symmGen r
+attribute [simp, scoped grind =] reflTransGen_symmGen
 
 @[scoped grind <=]
 theorem join_inl (r₁_ab : r₁ a b) : (r₁ ⊔ r₂) a b :=

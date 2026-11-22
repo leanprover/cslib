@@ -13,7 +13,7 @@ public import Mathlib.Data.Set.Finite.Basic
 /-! # Consistency hierarchy
 
 We prove a number of results about the various notions of consistency for replicated data types.
-In paricular, we prove that:
+In particular, we prove that:
 
   Linearizability → SequentialConsistency → CausalConsistency → BasicEventualConsistency
 

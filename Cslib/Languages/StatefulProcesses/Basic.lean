@@ -9,8 +9,6 @@ module
 public import Cslib.Languages.Mech.LocalComputation
 public import Cslib.Foundations.Semantics.LTS.Basic
 
-set_option linter.style.header false in
-set_option linter.style.longLine false in
 /-!
 # Stateful Processes
 
@@ -36,7 +34,8 @@ described in [Acclavio2026].
 
 ## References
 
-* [M. Acclavio, G. Manara, F. Montesi, X. Qin, *Choreographic Programming: a Semantic Approach*][Acclavio2026]
+* [M. Acclavio, G. Manara, F. Montesi, X. Qin,
+  *Choreographic Programming: a Semantic Approach*][Acclavio2026]
 * [F. Montesi, *Introduction to Choreographies*][Montesi2023]
 -/
 
