@@ -106,23 +106,44 @@ lemma reflGen_le [hb : IsRelRefl b] : reflGen a ≤ b ↔ a ≤ b := by
 
 /-! ### Symmetric elements -/
 
+@[to_dual]
 instance : IsRelSymm (⊥ : α) where
   star_eq := star_bot
+
+instance [IsRelSymm a] : IsRelSymm aᶜ where
+  star_eq := by simp [star_eq_of_symm]
 
 instance : IsRelSymm (1 : α) where
   star_eq := star_one α
 
-instance : IsRelSymm (⊤ : α) where
-  star_eq := star_top
-
 instance [IsRelSymm a] : IsRelSymm (star a) where
   star_eq := (star_star a).trans (star_eq_of_symm a).symm
 
+@[to_dual IsRelSymm.of_le_star]
 lemma IsRelSymm.of_star_le (ha : star a ≤ a) : IsRelSymm a where
   star_eq := ha.antisymm <| le_star_iff.mpr ha
 
-lemma IsRelSymm.of_le_star (ha : a ≤ star a) : IsRelSymm a where
-  star_eq := (le_star_iff.mp ha).antisymm ha
+@[to_dual]
+theorem IsRelSymm.of_isLUB (hs : ∀ b ∈ s, IsRelSymm b) (h : IsLUB s a) : IsRelSymm a := by
+  obtain ⟨hub, hleast⟩ := h
+  apply IsRelSymm.of_le_star (hleast ?_)
+  grind [isRelSymm_iff, le_star_iff, mem_upperBounds]
+
+@[to_dual]
+instance [IsRelSymm a] [IsRelSymm b] : IsRelSymm (a ⊔ b) :=
+  .of_isLUB (s := {a, b}) (by simp_all) isLUB_pair
+
+@[to_dual]
+theorem IsRelSymm.sSup {α : Type*} [CompleteRelationAlgebra α] {s : Set α}
+    (hs : ∀ b ∈ s, IsRelSymm b) : IsRelSymm (sSup s) :=
+  .of_isLUB hs (isLUB_sSup s)
+
+theorem isRelSymm_mul_iff [IsRelSymm a] [IsRelSymm b] : IsRelSymm (a * b) ↔ a * b = b * a := by
+  simp [isRelSymm_iff, star_eq_of_symm, eq_comm]
+
+theorem isRelSymm_compl_mul_compl_iff [IsRelSymm a] [IsRelSymm b] :
+    IsRelSymm (aᶜ * bᶜ)ᶜ ↔ (aᶜ * bᶜ)ᶜ = (bᶜ * aᶜ)ᶜ := by
+  simp [isRelSymm_iff, ← isRelSymm_mul_iff]
 
 /-- The relation-algebra equivalent of `Relation.SymmGen`. -/
 def symmGen (a : α) : α := a ⊔ star a
@@ -155,6 +176,46 @@ instance [IsRelTrans a] : IsRelTrans (star a) where
 lemma mul_le_of_isRelTrans [IsRelTrans c] (ha : a ≤ c) (hb : b ≤ c) : a * b ≤ c := by
   grw [← mul_self_le_of_trans c, ha, hb]
 
+instance : IsRelTrans (rightResidual a a) where
+  mul_self_le := by
+    rw [le_rightResidual_iff, ← mul_assoc]
+    grw [le_rightResidual_iff.mp le_rfl, le_rightResidual_iff.mp le_rfl]
+
+instance : IsRelTrans (leftResidual a a) where
+  mul_self_le := by
+    rw [le_leftResidual_iff, mul_assoc]
+    grw [le_leftResidual_iff.mp le_rfl, le_leftResidual_iff.mp le_rfl]
+
+theorem isRelTrans_iff_le_rightResidual : IsRelTrans a ↔ a ≤ rightResidual a a := by
+  rw [isRelTrans_iff, le_rightResidual_iff]
+
+theorem isRelTrans_iff_le_leftResidual : IsRelTrans a ↔ a ≤ leftResidual a a := by
+  rw [isRelTrans_iff, le_leftResidual_iff]
+
+theorem isRelTrans_iff_star_mul_compl_le : IsRelTrans a ↔ star a * aᶜ ≤ aᶜ := by
+  rw [isRelTrans_iff, ← mul_le_compl_right, compl_compl]
+
+theorem isRelTrans_iff_compl_mul_star_le : IsRelTrans a ↔ aᶜ * star a ≤ aᶜ := by
+  rw [isRelTrans_iff, ← mul_le_compl_left, compl_compl]
+
+theorem isRelTrans_iff_exists_inf_rightResidual :
+    IsRelTrans a ↔ ∃ s, a = s ⊓ rightResidual s s := by
+  refine ⟨fun h ↦ ⟨a, ?_⟩, ?_⟩
+  · exact (inf_eq_left.mpr (isRelTrans_iff_le_rightResidual.mp h)).symm
+  · rintro ⟨s, rfl⟩
+    rw [isRelTrans_iff, le_inf_iff]
+    exact ⟨(mul_le_mul' inf_le_left inf_le_right).trans (le_rightResidual_iff.mp le_rfl),
+      mul_le_of_isRelTrans inf_le_right inf_le_right⟩
+
+theorem isRelTrans_iff_exists_inf_leftResidual :
+    IsRelTrans a ↔ ∃ s, a = s ⊓ leftResidual s s := by
+  refine ⟨fun h ↦ ⟨a, ?_⟩, ?_⟩
+  · exact (inf_eq_left.mpr (isRelTrans_iff_le_leftResidual.mp h)).symm
+  · rintro ⟨s, rfl⟩
+    rw [isRelTrans_iff, le_inf_iff]
+    exact ⟨(mul_le_mul' inf_le_right inf_le_left).trans (le_leftResidual_iff.mp le_rfl),
+      mul_le_of_isRelTrans inf_le_right inf_le_right⟩
+
 section Complete
 
 variable {α : Type*} [CompleteRelationAlgebra α] {a b : α}
@@ -186,6 +247,18 @@ instance : IsRelTrans (transGen a) where
     · intro x hx _
       grw [transGenStep_coe, mul_sup, ← mul_assoc, hx, transGen_mul_self_le, sup_idem]
     · simp [mul_sSup]
+
+theorem isRelTrans_iff_exists_iSup_pow : IsRelTrans a ↔ ∃ s, a = ⨆ n, s ^ (n + 1) := by
+  refine ⟨fun h ↦ ⟨a, le_antisymm (le_iSup_of_le 0 (by simp)) (iSup_le fun n ↦ ?_)⟩, ?_⟩
+  · induction n with
+    | zero => simp
+    | succ n ih => grw [pow_succ, ih, mul_self_le_of_trans a]
+  · rintro ⟨s, rfl⟩
+    simp only [isRelTrans_iff, Quantale.iSup_mul_distrib, Quantale.mul_iSup_distrib, iSup_le_iff,
+      ← pow_add]
+    intro n m
+    rw [show m + 1 + (n + 1) = n + m + 1 + 1 by omega]
+    exact le_iSup (fun k ↦ s ^ (k + 1)) _
 
 end Complete
 
