@@ -56,6 +56,7 @@ instance : MonoidHomClass (RelationAlgebraHom α β) α β where
 instance : StarHomClass (RelationAlgebraHom α β) α β where
   map_star f := f.map_star'
 
+/-- See Note [custom simps projection]. -/
 def Simps.apply (f : RelationAlgebraHom α β) : α → β := f
 
 initialize_simps_projections RelationAlgebraHom (toFun → apply)
@@ -120,8 +121,10 @@ theorem ext {f g : RelationAlgebraEquiv α β} (h : ∀ a, f a = g a) : f = g :=
 def symm (f : RelationAlgebraEquiv α β) : RelationAlgebraEquiv β α :=
   { f.toOrderIso.symm, f.toStarMulEquiv.symm with }
 
+/-- See Note [custom simps projection]. -/
 def Simps.apply (e : RelationAlgebraEquiv α β) : α → β := e
 
+/-- See Note [custom simps projection]. -/
 def Simps.symm_apply (e : RelationAlgebraEquiv α β) : β → α := e.symm
 
 initialize_simps_projections RelationAlgebraEquiv (toFun → apply, invFun → symm_apply)
