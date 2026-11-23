@@ -18,6 +18,11 @@ This module abstractly defines the atoms of an integral relation algebra, along 
 characterization of its identity and non-identity cycles that form an atom structure when
 shown to be associative.
 
+## References
+
+* [Steven Givant, *Introduction to Relation Algebras*][Givant2017a], Section 4.2
+* [Steven Givant, *Advanced Topics in Relation Algebras*][Givant2017b], Section 19.3
+
 -/
 
 @[expose] public section
@@ -50,15 +55,24 @@ def conv : IntegralAtom s n → IntegralAtom s n
 /-- An integral cycle is a triple of integral atoms. -/
 abbrev Cycle (s n : ℕ) := IntegralAtom s n × IntegralAtom s n × IntegralAtom s n
 
-/-- The Peircean orbit of a cycle under the converse and cycle rules. -/
-def cycleOrbit : Cycle s n → Finset (Cycle s n)
-  | (r, u, t) =>
-    {(r, u, t), (conv u, conv r, conv t), (conv r, t, u),
-      (conv t, r, conv u), (u, conv t, conv r), (t, conv u, r)}
+/-- The left cycle transformation: `t ≤ r * u` implies `u ≤ conv r * t` -/
+def Cycle.left : Cycle s n → Cycle s n
+  | (r, u, t) => (conv r, t, u)
+
+/-- The right cycle transformation: `t ≤ r * u` implies `r ≤ t * conv u` -/
+def Cycle.right : Cycle s n → Cycle s n
+  | (r, u, t) => (t, conv u, r)
+
+/-- A cycle without identity. -/
+abbrev Cycle.IsDiversity : Cycle s n → Prop
+  | (r, u, t) => r ≠ one ∧ u ≠ one ∧ t ≠ one
 
 /-- The union of the Peircean orbits of the generators and all identity cycles. -/
-def cycleClosure (generators : Finset (Cycle s n)) : Finset (Cycle s n) :=
-  (generators ∪ Finset.univ.image (fun a => (one, a, a))).biUnion cycleOrbit
+inductive CycleClosure (g : Set (Cycle s n)) : Cycle s n → Prop
+  | of {c : Cycle s n} : c ∈ g → CycleClosure g c
+  | id (a : IntegralAtom s n) : CycleClosure g (a, one, a)
+  | left {c : Cycle s n} : CycleClosure g c → CycleClosure g c.left
+  | right {c : Cycle s n} : CycleClosure g c → CycleClosure g c.right
 
 @[simp, grind =]
 theorem conv_one : conv (one : IntegralAtom s n) = one := rfl
@@ -67,62 +81,48 @@ theorem conv_one : conv (one : IntegralAtom s n) = one := rfl
 theorem conv_conv (a : IntegralAtom s n) : conv (conv a) = a := by
   cases a <;> simp [conv]
 
-theorem cycleOrbit_conv_cycles {c : Cycle s n} {r u t : IntegralAtom s n}
-    (h : (r, u, t) ∈ cycleOrbit c) : (conv u, conv r, conv t) ∈ cycleOrbit c := by
-  simp only [cycleOrbit, Finset.mem_insert] at *
-  grind
+private theorem CycleClosure.id_cycle_aux {g : Set (Cycle s n)} (hg : ∀ c ∈ g, c.IsDiversity)
+    {r u t : IntegralAtom s n} (h : CycleClosure g (r, u, t)) :
+    (r = one → t = u) ∧ (u = one → t = r) ∧ (t = one → u = conv r) := by
+  generalize hc : (r, u, t) = c at h
+  induction h generalizing r u t <;> grind [Cycle.left, Cycle.right, conv_conv]
 
-theorem cycleOrbit_cycle_left {c : Cycle s n} {r u t : IntegralAtom s n}
-    (h : (r, u, t) ∈ cycleOrbit c) : (conv r, t, u) ∈ cycleOrbit c := by
-  simp only [cycleOrbit, Finset.mem_insert] at *
-  grind
+theorem CycleClosure.id_cycle_left {g : Set (Cycle s n)} (hg : ∀ c ∈ g, c.IsDiversity)
+    {u t : IntegralAtom s n} (h : CycleClosure g (one, u, t)) : t = u :=
+  (h.id_cycle_aux hg).1 rfl
 
-theorem cycleClosure_id_exist (g : Finset (Cycle s n)) (r : IntegralAtom s n) :
-    (r, one, r) ∈ cycleClosure g := by
-  apply Finset.mem_biUnion.mpr
-  use (one, conv r, conv r)
-  simp [cycleOrbit]
+theorem CycleClosure.id_cycle_right {g : Set (Cycle s n)} (hg : ∀ c ∈ g, c.IsDiversity)
+    {r t : IntegralAtom s n} (h : CycleClosure g (r, one, t)) : t = r :=
+  (h.id_cycle_aux hg).2.1 rfl
 
-theorem cycleClosure_conv_cycles (g : Finset (Cycle s n)) {r u t : IntegralAtom s n}
-    (h : (r, u, t) ∈ cycleClosure g) :
-    (conv u, conv r, conv t) ∈ cycleClosure g := by
-  obtain ⟨c, hc, h⟩ := Finset.mem_biUnion.mp h
-  exact Finset.mem_biUnion.mpr ⟨c, hc, cycleOrbit_conv_cycles h⟩
+theorem CycleClosure.id_cycle_conv {g : Set (Cycle s n)} (hg : ∀ c ∈ g, c.IsDiversity)
+    {r u : IntegralAtom s n} (h : CycleClosure g (r, u, one)) : u = conv r :=
+  (h.id_cycle_aux hg).2.2 rfl
 
-theorem cycleClosure_cycle_left (g : Finset (Cycle s n)) {r u t : IntegralAtom s n}
-    (h : (r, u, t) ∈ cycleClosure g) : (conv r, t, u) ∈ cycleClosure g := by
-  obtain ⟨c, hc, h⟩ := Finset.mem_biUnion.mp h
-  exact Finset.mem_biUnion.mpr ⟨c, hc, cycleOrbit_cycle_left h⟩
-
-theorem cycleClosure_id_cycle (g : Finset (Cycle s n))
-    (hg : ∀ c ∈ g, let (r, u, t) := c; r ≠ one ∧ u ≠ one ∧ t ≠ one)
-    {r p : IntegralAtom s n} (h : (r, one, p) ∈ cycleClosure g) : p = r := by
-  obtain ⟨c, hc, h⟩ := Finset.mem_biUnion.mp h
-  simp [cycleOrbit] at h
-  grind [conv_conv, conv_one]
+theorem cycleClosure_one_iff {g : Set (Cycle s n)} (hg : ∀ c ∈ g, c.IsDiversity)
+    {r p : IntegralAtom s n} : CycleClosure g (r, one, p) ↔ p = r :=
+  ⟨fun h => h.id_cycle_right hg, fun h => h ▸ .id p⟩
 
 /-- Construct an `AtomStructure` from diversity cycle generators whose closure is associative. -/
-def ofCycles (generators : Finset (Cycle s n)) : AtomStructure (IntegralAtom s n) where
+def ofCycles (g : Set (Cycle s n)) : AtomStructure (IntegralAtom s n) where
   conv := conv
   id := {one}
-  cycles := cycleClosure generators
+  cycles := {c | CycleClosure g c}
 
-theorem lawfulAtomStructure_ofCycles (generators : Finset (Cycle s n))
-    (hassoc : ∀ {r q p u t}, (r, q, p) ∈ cycleClosure generators →
-      (u, t, q) ∈ cycleClosure generators →
-      ∃ q', (q', t, p) ∈ cycleClosure generators ∧ (r, u, q') ∈ cycleClosure generators)
-    (hg : ∀ c ∈ generators, let (r, u, t) := c; r ≠ one ∧ u ≠ one ∧ t ≠ one) :
-    LawfulAtomStructure (ofCycles generators) where
+theorem lawfulAtomStructure_ofCycles (g : Set (Cycle s n))
+    (hassoc : ∀ {r q p u t}, CycleClosure g (r, q, p) → CycleClosure g (u, t, q) →
+      ∃ q', CycleClosure g (q', t, p) ∧ CycleClosure g (r, u, q'))
+    (hg : ∀ c ∈ g, c.IsDiversity) :
+    LawfulAtomStructure (ofCycles g) where
   assoc := hassoc
-  id_cycle_right := by rintro _ _ _ rfl; exact cycleClosure_id_cycle _ hg
-  exists_id_cycle_right r := ⟨one, rfl, cycleClosure_id_exist _ r⟩
-  cycle_left := cycleClosure_cycle_left _
+  id_cycle_right hs h := (cycleClosure_one_iff hg).mp (hs ▸ h)
+  exists_id_cycle_right r := ⟨one, rfl, .id r⟩
+  cycle_left := .left
 
 /-- The complex algebra constructed from diversity cycles is integral. -/
 @[simp]
-theorem isIntegral_ofCycles (generators : Finset (Cycle s n))
-    [LawfulAtomStructure (ofCycles generators)] :
-    IsIntegral (ComplexAlgebra (ofCycles generators)) :=
+theorem isIntegral_ofCycles (g : Set (Cycle s n)) [LawfulAtomStructure (ofCycles g)] :
+    IsIntegral (ComplexAlgebra (ofCycles g)) :=
   (ComplexAlgebra.isIntegral_iff _).mpr ⟨one, rfl⟩
 
 end IntegralAtom
