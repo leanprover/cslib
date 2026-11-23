@@ -71,6 +71,7 @@ private meta def extractLocalReads (stx : Syntax) :
     let binder ← withFreshMacroScope `(ident| localValue)
     return (binder.raw, #[(binder, ⟨target⟩)])
   -- Any other node: rewrite its children, collecting their reads from left to right.
+  let .node _ _ children := stx | return (stx, #[])
   let mut args := #[]
   let mut reads := #[]
   for arg in stx.getArgs do
