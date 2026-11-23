@@ -12,6 +12,7 @@ public import Mathlib.Algebra.Order.Monoid.Unbundled.Basic
 public import Mathlib.Algebra.Order.Quantale
 public import Mathlib.Algebra.Star.Basic
 public import Mathlib.Basic.Rel
+public import Mathlib.Data.Set.Card
 public import Mathlib.Order.Atoms
 
 /-!
@@ -290,6 +291,63 @@ theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
     _ = a := star_star a
   cases h
   grind
+
+@[simp]
+theorem disjoint_identityAtoms_symmetricDiversityAtoms :
+    Disjoint (identityAtoms α) (symmetricDiversityAtoms α) := by
+  rw [Set.disjoint_left]
+  rintro a ⟨ha, hle⟩ ⟨-, hle', -⟩
+  rw [le_compl_iff_disjoint_right, ← ha.not_le_iff_disjoint] at hle'
+  exact hle' hle
+
+@[simp]
+theorem disjoint_identityAtoms_nonsymmetricDiversityAtoms :
+    Disjoint (identityAtoms α) (nonsymmetricDiversityAtoms α) := by
+  rw [Set.disjoint_left]
+  rintro a ⟨ha, hle⟩ hb
+  have hle' := le_compl_one_of_mem_nonsymmetricDiversityAtoms hb
+  rw [le_compl_iff_disjoint_right, ← ha.not_le_iff_disjoint] at hle'
+  exact hle' hle
+
+@[simp]
+theorem disjoint_symmetricDiversityAtoms_nonsymmetricDiversityAtoms :
+    Disjoint (symmetricDiversityAtoms α) (nonsymmetricDiversityAtoms α) := by
+  rw [Set.disjoint_left]
+  rintro a ⟨-, -, hstar⟩ ⟨-, hne⟩
+  exact hne hstar
+
+theorem setOf_isAtom_eq : {a : α | IsAtom a} =
+    identityAtoms α ∪ symmetricDiversityAtoms α ∪ nonsymmetricDiversityAtoms α := by
+  ext a
+  have := @le_compl_iff_disjoint_right α _ a 1
+  have := fun ha : IsAtom a => ha.not_le_iff_disjoint (b := 1)
+  grind [identityAtoms, symmetricDiversityAtoms, nonsymmetricDiversityAtoms]
+
+theorem identityAtoms_eq_of_isIntegral (h : IsIntegral α) : identityAtoms α = {1} := by
+  ext a
+  constructor
+  · rintro ⟨ha, hle⟩
+    exact (h.le_iff_eq ha.ne_bot).mp hle
+  · rintro rfl
+    exact ⟨h, le_rfl⟩
+
+theorem even_ncard_nonsymmetricDiversityAtoms [Finite α] :
+    Even (nonsymmetricDiversityAtoms α).ncard := by
+  have hfin := Set.toFinite (nonsymmetricDiversityAtoms α)
+  rw [Set.ncard_eq_toFinset_card _ hfin, ← neg_one_pow_eq_one_iff_even (R := ℤ) (by decide),
+    ← Finset.prod_const]
+  apply Finset.prod_involution (fun a _ => star a) <;>
+    grind [nonsymmetricDiversityAtoms, isAtom_star_iff, Set.Finite.mem_toFinset, star_star]
+
+theorem ncard_setOf_isAtom [Finite α] :
+    {a : α | IsAtom a}.ncard = (identityAtoms α).ncard +
+      (symmetricDiversityAtoms α).ncard + (nonsymmetricDiversityAtoms α).ncard := by
+  rw [setOf_isAtom_eq, Set.ncard_union_eq (by simp), Set.ncard_union_eq (by simp)]
+
+theorem ncard_setOf_isAtom_of_isIntegral [Finite α] (h : IsIntegral α) :
+    {a : α | IsAtom a}.ncard =
+      1 + (symmetricDiversityAtoms α).ncard + (nonsymmetricDiversityAtoms α).ncard := by
+  rw [ncard_setOf_isAtom, identityAtoms_eq_of_isIntegral h, Set.ncard_singleton]
 
 /-- The relation algebra of all binary relations on a type `α`. This is scoped so that other
 instances, such as those under `Pointwise`, can be used elsewhere. -/

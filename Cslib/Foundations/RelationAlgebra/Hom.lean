@@ -185,8 +185,39 @@ def ofHomInv (f : RelationAlgebraHom α β) (g : RelationAlgebraHom β α)
   map_mul' := map_mul f
   map_star' := map_star f
 
+@[simp]
+theorem isAtom_apply_iff (e : RelationAlgebraEquiv α β) : IsAtom (e a) ↔ IsAtom a :=
+  OrderIso.isAtom_iff e.toOrderIso a
+
+@[simp]
+theorem star_apply_eq_iff (e : RelationAlgebraEquiv α β) : star (e a) = e a ↔ star a = a := by
+  simp [← map_star]
+
+@[simp]
+theorem apply_le_compl_one_iff (e : RelationAlgebraEquiv α β) {a : α} : e a ≤ 1ᶜ ↔ a ≤ 1ᶜ := by
+  rw [← map_one e, ← map_compl' e, map_le_map_iff]
+
+open RelationAlgebra
+
+@[simp]
+theorem apply_mem_symmetricDiversityAtoms_iff (e : RelationAlgebraEquiv α β) {a : α} :
+    e a ∈ symmetricDiversityAtoms β ↔ a ∈ symmetricDiversityAtoms α := by
+  simp [symmetricDiversityAtoms]
+
+@[simp]
+theorem apply_mem_nonsymmetricDiversityAtoms_iff (e : RelationAlgebraEquiv α β) {a : α} :
+    e a ∈ nonsymmetricDiversityAtoms β ↔ a ∈ nonsymmetricDiversityAtoms α := by
+  simp [nonsymmetricDiversityAtoms]
+
+theorem ncard_symmetricDiversityAtoms (e : RelationAlgebraEquiv α β) :
+    (symmetricDiversityAtoms α).ncard = (symmetricDiversityAtoms β).ncard :=
+  Nat.card_congr (e.toEquiv.subtypeEquiv fun _ => e.apply_mem_symmetricDiversityAtoms_iff.symm)
+
+theorem ncard_nonsymmetricDiversityAtoms (e : RelationAlgebraEquiv α β) :
+    (nonsymmetricDiversityAtoms α).ncard = (nonsymmetricDiversityAtoms β).ncard :=
+  Nat.card_congr (e.toEquiv.subtypeEquiv fun _ => e.apply_mem_nonsymmetricDiversityAtoms_iff.symm)
+
 omit [RelationAlgebra α] [RelationAlgebra β] in
-open RelationAlgebra in
 /-- An equivalence between types lifts to an equivalence between their algebras of relations. -/
 @[simps!]
 def setRelOfEquiv (e : α ≃ β) : RelationAlgebraEquiv (SetRel α α) (SetRel β β) where

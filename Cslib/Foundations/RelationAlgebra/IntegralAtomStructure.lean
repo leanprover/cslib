@@ -7,8 +7,10 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
+public import Mathlib.Algebra.BigOperators.NatAntidiagonal
 public import Mathlib.Data.Fintype.Sigma
 public import Mathlib.Data.Fintype.Sum
+public import Mathlib.Data.Set.Card.Arithmetic
 public import Mathlib.Tactic.DeriveFintype
 
 /-!
@@ -126,5 +128,153 @@ theorem isIntegral_ofCycles (g : Set (Cycle s n)) [LawfulAtomStructure (ofCycles
   (ComplexAlgebra.isIntegral_iff _).mpr ⟨one, rfl⟩
 
 end IntegralAtom
+
+universe u
+
+/-- A bundled type for finite integral relation algebra. This is useful for stating theorems about
+the number of algebras up to isomorphism. -/
+structure IntegralAlgebra where
+  /-- TODO: write docstring -/
+  carrier : Type u
+  [relationAlgebra : RelationAlgebra carrier]
+  [finite : Finite carrier]
+  isIntegral : IsIntegral carrier
+
+attribute [instance] IntegralAlgebra.relationAlgebra IntegralAlgebra.finite
+
+namespace IntegralAlgebra
+
+instance setoid : Setoid IntegralAlgebra where
+  r A B := Nonempty (RelationAlgebraEquiv A.carrier B.carrier)
+  iseqv := ⟨fun _ => ⟨.refl _⟩, fun ⟨e⟩ => ⟨e.symm⟩, fun ⟨e⟩ ⟨f⟩ => ⟨e.trans f⟩⟩
+
+/-- Isomorphism classes of finite integral relation algebras. -/
+abbrev IsoClass : Type (u + 1) := Quotient setoid
+
+namespace IsoClass
+
+/-- The set of isomorphism classes with `s` symmetric diversity atoms and `m` nonsymmetric
+atoms. Note for symmetric atoms this is a count of atoms, not pairs. Use the `ofType` abbrev
+to avoid confusion with the usual convention.
+-/
+def ofCounts (s m : ℕ) : Set IsoClass :=
+  {q | ∃ A : IntegralAlgebra, ⟦A⟧ = q ∧ (symmetricDiversityAtoms A.carrier).ncard = s ∧
+    (nonsymmetricDiversityAtoms A.carrier).ncard = m}
+
+/-- The set of isomorphism classes with `k` atoms. -/
+def ofAtoms (k : ℕ) : Set IsoClass :=
+  {q | ∃ A : IntegralAlgebra, ⟦A⟧ = q ∧ {a : A.carrier | IsAtom a}.ncard = k}
+
+theorem mem_ofAtoms_iff {k : ℕ} {q : IsoClass} :
+    q ∈ ofAtoms k ↔ ∃ s m, 1 + s + m = k ∧ q ∈ ofCounts s m := by
+  simp [ofAtoms, ofCounts, ncard_setOf_isAtom_of_isIntegral (IntegralAlgebra.isIntegral _),
+    and_comm]
+
+theorem ofCounts_eq_empty_of_odd {s m : ℕ} (hm : Odd m) : ofCounts s m = ∅ := by
+  rw [Set.eq_empty_iff_forall_notMem]
+  rintro _ ⟨A, rfl, -, hA⟩
+  exact Nat.not_even_iff_odd.mpr hm (hA ▸ even_ncard_nonsymmetricDiversityAtoms)
+
+theorem pairwiseDisjoint_ofCounts {t : Set (ℕ × ℕ)} :
+    t.PairwiseDisjoint fun (s, m) => ofCounts s m := by
+  rintro ⟨s, m⟩ - ⟨s', m'⟩ - h
+  rw [Function.onFun, Set.disjoint_left]
+  rintro _ ⟨A, rfl, hs, hm⟩ ⟨B, hB, hs', hm'⟩
+  obtain ⟨e⟩ := Quotient.exact hB
+  have := e.ncard_symmetricDiversityAtoms
+  have := e.ncard_nonsymmetricDiversityAtoms
+  grind
+
+theorem encard_ofAtoms_succ (k : ℕ) :
+    (ofAtoms.{u} (k + 1)).encard = ∑ p ∈ Finset.antidiagonal k, (ofCounts.{u} p.1 p.2).encard := by
+  rw [← finsum_mem_coe_finset, ← (Finset.finite_toSet _).encard_biUnion pairwiseDisjoint_ofCounts]
+  congr 1 with q
+  simp [mem_ofAtoms_iff]
+  grind
+
+/-- The set of isomorphism classes with `s` symmetric diversity atoms and `n` pairs of nonsymmetric
+atoms. This is an abbrev for the convenience of matching the usual convention without making proofs
+more complicated. -/
+abbrev ofType (s n : ℕ) : Set IsoClass := ofCounts s (2 * n)
+
+theorem encard_ofAtoms_succ_eq_sum_ofType (k : ℕ) :
+    (ofAtoms.{u} (k + 1)).encard =
+      ∑ i ∈ Finset.range (k / 2 + 1), (ofType.{u} (k % 2 + 2 * i) (k / 2 - i)).encard := by
+  rw [encard_ofAtoms_succ, Finset.Nat.sum_antidiagonal_eq_sum_range_succ_mk]
+  refine (Finset.sum_of_injOn (k % 2 + 2 * ·) ?_ ?_ (fun j hj hj' => ?_) fun i hi => ?_).symm
+  · grind [Set.InjOn]
+  · grind [Set.MapsTo]
+  · rw [ofCounts_eq_empty_of_odd, Set.encard_empty]
+    by_contra hodd
+    exact hj' ⟨(j - k % 2) / 2, by grind, by grind⟩
+  · grind
+
+/-- Expand `ofAtoms` to a sum of `ofType`. -/
+macro (name := expandOfAtoms) "expand_ofAtoms" : tactic => `(tactic|
+  simp only [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ, Finset.sum_range_zero,
+    zero_add, Nat.reduceDiv, Nat.reduceMod, Nat.reduceMul, Nat.reduceAdd, Nat.reduceSub])
+
+/-!
+### Counts of isomorphism classes
+
+The following statements are all of the known counts of isomorphism
+classes finite integral relation algebras, by type and by number of atoms.
+
+They will certainly be too computationally expensive to prove here, but we
+provide their statements as a reference.
+-/
+
+proof_wanted encard_ofType_zero_zero : (ofType 0 0).encard = 1
+
+proof_wanted encard_ofAtoms_one : (ofAtoms 1).encard = 1
+
+proof_wanted encard_ofType_one_zero : (ofType 1 0).encard = 2
+
+proof_wanted encard_ofAtoms_two : (ofAtoms 2).encard = 2
+
+proof_wanted encard_ofType_zero_one : (ofType 0 1).encard = 3
+
+proof_wanted encard_ofType_two_zero : (ofType 2 0).encard = 7
+
+proof_wanted encard_ofAtoms_three : (ofAtoms 3).encard = 3 + 7
+
+proof_wanted encard_ofType_one_one : (ofType 1 1).encard = 37
+
+proof_wanted encard_ofType_three_zero : (ofType 3 0).encard = 65
+
+proof_wanted encard_ofAtoms_four : (ofAtoms 4).encard = 37 + 65
+
+proof_wanted encard_ofType_zero_two : (ofType 0 2).encard = 83
+
+proof_wanted encard_ofType_two_one : (ofType 2 1).encard = 1316
+
+proof_wanted encard_ofType_four_zero : (ofType 4 0).encard = 3013
+
+proof_wanted encard_ofAtoms_five : (ofAtoms 5).encard = 83 + 1316 + 3013
+
+proof_wanted encard_ofType_one_two : (ofType 1 2).encard = 47965
+
+proof_wanted encard_ofType_three_one : (ofType 3 1).encard = 988464
+
+proof_wanted encard_ofType_five_zero : (ofType 5 0).encard = 3849920
+
+proof_wanted encard_ofAtoms_six : (ofAtoms 6).encard = 47965 + 988464 + 3849920
+
+proof_wanted encard_ofType_zero_three : (ofType 0 3).encard = 4492953
+
+proof_wanted encard_ofType_two_two : (ofType 2 2).encard = 2186435732
+
+proof_wanted encard_ofType_four_one : (ofType 4 1).encard = 50265788140
+
+proof_wanted encard_ofType_six_zero : (ofType 6 0).encard = 292352449486
+
+proof_wanted encard_ofAtoms_seven :
+    (ofAtoms 7).encard = 4492953 + 2186435732 + 50265788140 + 292352449486
+
+proof_wanted encard_ofType_one_three : (ofType 1 3).encard = 52506245239168
+
+end IsoClass
+
+end IntegralAlgebra
 
 end Cslib.RelationAlgebra
