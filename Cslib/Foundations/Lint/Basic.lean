@@ -13,13 +13,18 @@ namespace Cslib.Lint
 
 open Lean Meta Std Batteries.Tactic.Lint
 
--- TODO: adapt `topNamespace` to the module system
+/--
+A linter for checking that new declarations fall under some preexisting namespace.
 
-/-- A linter for checking that new declarations fall under some preexisting namespace. -/
+Private declarations, which include all non-`public` declarations of a `module`, are skipped:
+they are not exported, and their internal names are prefixed with `_private`.
+-/
+@[env_linter]
 public meta def topNamespace : Batteries.Tactic.Lint.Linter where
   noErrorsFound := "No declarations are outside a namespace."
   errorsFound := "TOP LEVEL DECLARATIONS:"
   test declName := do
+    if isPrivateName declName then return none
     if ← isAutoDecl declName then return none
     let env ← getEnv
     if ← isImplicitReducible declName then return none

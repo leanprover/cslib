@@ -86,6 +86,7 @@ theorem SymmGen.to_eqvGen (h : SymmGen r a b) : EqvGen r a b :=
 @[scoped grind .]
 theorem EqvGen.le_eqvGen : r ≤ EqvGen r := EqvGen.rel
 
+@[nolint topNamespace]
 theorem _root_.Equivalence.eqvGen_le (h : Equivalence r₂) (hle : r₁ ≤ r₂) : EqvGen r₁ ≤ r₂ :=
   have := h.isEquiv
   Relation.eqvGen_le hle
@@ -120,6 +121,7 @@ theorem MJoin.refl (a : α) : MJoin r a a := _root_.refl a
 @[deprecated Join.single +typeChanged (since := "2026-09-07")]
 theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := Join.single h
 
+@[nolint topNamespace]
 theorem _root_.Equivalence.join_reflTransGen_le (h : Equivalence r₂) (hle : r₁ ≤ r₂) :
     Join (ReflTransGen r₁) ≤ r₂ :=
   have := h.isEquiv
@@ -137,6 +139,7 @@ theorem join₂_reflTransGen_le_of_isEquiv [IsEquiv α r] (h₁ : r₁ ≤ r) (h
     Join₂ (ReflTransGen r₁) (ReflTransGen r₂) ≤ r :=
   join₂_reflTransGen_le h₁ (by rwa [swap_le_iff_le_swap, Std.Symm.swap_eq])
 
+@[nolint topNamespace]
 theorem _root_.Equivalence.join₂_reflTransGen_le (h : Equivalence r) (h₁ : r₁ ≤ r) (h₂ : r₂ ≤ r) :
     Join₂ (ReflTransGen r₁) (ReflTransGen r₂) ≤ r :=
   have := h.isEquiv
