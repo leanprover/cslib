@@ -101,7 +101,7 @@ error: Tactic `decide` proved that the proposition
   (checkRows conv fun r u =>
       maskRow
         (Finset.fold (fun x1 x2 => x1 ||| x2) 0 (fun a => maskOfFinset (⇑cycleIndex) (cycleOrbit a))
-          (Finset.empty ∪ Finset.image (fun a => (one, a, a)) Finset.univ))
+          (Finset.empty ∪ Finset.image (fun a => (a, one, a)) Finset.univ))
         (1 + 2 + 2 * 0) ↑r.atomIndex ↑u.atomIndex) =
     true
 is false
@@ -119,7 +119,7 @@ error: Tactic `decide` proved that the proposition
       maskRow
         (Finset.fold (fun x1 x2 => x1 ||| x2) 0 (fun a => maskOfFinset (⇑cycleIndex) (cycleOrbit a))
           (insert (IntegralAtom.symm 0, IntegralAtom.symm 0, IntegralAtom.symm 0) Finset.empty ∪
-            Finset.image (fun a => (one, a, a)) Finset.univ))
+            Finset.image (fun a => (a, one, a)) Finset.univ))
         (1 + 2 + 2 * 0) ↑r.atomIndex ↑u.atomIndex) =
     true
 is false
@@ -134,14 +134,22 @@ example : LawfulAtomStructure (integral_cycles% (symm := [a, b]) (a, a, a)) := b
 error: `integral_cycles_lawful` could not prove that all generators are diversity cycles
 ---
 error: Tactic `decide` proved that the proposition
-  ∀ c ∈ {(IntegralAtom.one, IntegralAtom.symm 0, IntegralAtom.symm 0)},
-    match c with
-    | (r, u, t) => r ≠ IntegralAtom.one ∧ u ≠ IntegralAtom.one ∧ t ≠ IntegralAtom.one
+  ∀ c ∈ {(IntegralAtom.one, IntegralAtom.symm 0, IntegralAtom.symm 0)}, c.IsDiversity
 is false
 -/
 #guard_msgs in
+example : LawfulAtomStructure (IntegralAtom.ofCycles (s := 1) (n := 0)
+    ↑({(.one, .symm 0, .symm 0)} : Finset (IntegralAtom.Cycle 1 0))) := by
+  integral_cycles_lawful
+
+-- The generators must be a `Finset` coerced to a `Set`.
+/--
+error: `integral_cycles_lawful` requires generators coerced from a `Finset`, but got
+  {(IntegralAtom.symm 0, IntegralAtom.symm 0, IntegralAtom.symm 0)}
+-/
+#guard_msgs in
 example : LawfulAtomStructure
-    (IntegralAtom.ofCycles (s := 1) (n := 0) {(.one, .symm 0, .symm 0)}) := by
+    (IntegralAtom.ofCycles (s := 1) (n := 0) {(.symm 0, .symm 0, .symm 0)}) := by
   integral_cycles_lawful
 
 -- The goal must be an `ofCycles` atom structure with closed generators.
@@ -158,7 +166,8 @@ error: `integral_cycles_lawful` requires closed generators, but got
   g
 -/
 #guard_msgs in
-example (g : Finset (IntegralAtom.Cycle 1 0)) : LawfulAtomStructure (IntegralAtom.ofCycles g) := by
+example (g : Finset (IntegralAtom.Cycle 1 0)) :
+    LawfulAtomStructure (IntegralAtom.ofCycles (g : Set (IntegralAtom.Cycle 1 0))) := by
   integral_cycles_lawful
 
 /--

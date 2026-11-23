@@ -32,6 +32,59 @@ namespace IntegralAtom
 
 variable {s n : ℕ}
 
+@[simp, grind =]
+theorem Cycle.left_left (c : Cycle s n) : c.left.left = c := by
+  simp [Cycle.left]
+
+@[simp, grind =]
+theorem Cycle.right_right (c : Cycle s n) : c.right.right = c := by
+  simp [Cycle.right]
+
+@[grind =]
+theorem Cycle.right_left_right (c : Cycle s n) : c.right.left.right = c.left.right.left := by
+  simp [Cycle.left, Cycle.right]
+
+/-- The Peircean orbit of a cycle under the converse and cycle rules. -/
+def cycleOrbit (c : Cycle s n) : Finset (Cycle s n) :=
+  {c, c.left, c.right, c.right.left, c.left.right, c.left.right.left}
+
+/-- TODO: write docstring -/
+def cycleClosureFinset (generators : Finset (Cycle s n)) : Finset (Cycle s n) :=
+  (generators ∪ Finset.univ.image (fun a => (a, one, a))).biUnion cycleOrbit
+
+theorem mem_cycleOrbit {c x : Cycle s n} : x ∈ cycleOrbit c ↔
+    x = c ∨ x = c.left ∨ x = c.right ∨ x = c.right.left ∨ x = c.left.right ∨
+      x = c.left.right.left := by
+  simp [cycleOrbit]
+
+theorem cycleClosure_iff_mem_cycleClosureFinset {generators : Finset (Cycle s n)}
+    {c : Cycle s n} :
+    CycleClosure (generators : Set (Cycle s n)) c ↔ c ∈ cycleClosureFinset generators := by
+  constructor
+  · intro h
+    induction h with
+    | of hc => exact Finset.mem_biUnion.mpr ⟨_, by simpa using .inl hc, by simp [cycleOrbit]⟩
+    | id a => exact Finset.mem_biUnion.mpr ⟨(a, one, a), by simp, by simp [cycleOrbit]⟩
+    | left _ ih =>
+      obtain ⟨d, hd, h⟩ := Finset.mem_biUnion.mp ih
+      exact Finset.mem_biUnion.mpr ⟨d, hd, by grind [mem_cycleOrbit]⟩
+    | right _ ih =>
+      obtain ⟨d, hd, h⟩ := Finset.mem_biUnion.mp ih
+      exact Finset.mem_biUnion.mpr ⟨d, hd, by grind [mem_cycleOrbit]⟩
+  · intro h
+    obtain ⟨d, hd, h⟩ := Finset.mem_biUnion.mp h
+    have base : CycleClosure (generators : Set (Cycle s n)) d := by
+      obtain hd | hd := Finset.mem_union.mp hd
+      · exact .of hd
+      · obtain ⟨a, -, rfl⟩ := Finset.mem_image.mp hd
+        exact .id a
+    obtain rfl | rfl | rfl | rfl | rfl | rfl := mem_cycleOrbit.mp h
+    exacts [base, base.left, base.right, base.right.left, base.left.right, base.left.right.left]
+
+instance (generators : Finset (Cycle s n)) :
+    DecidablePred (CycleClosure (generators : Set (Cycle s n))) := fun _ =>
+  decidable_of_iff _ cycleClosure_iff_mem_cycleClosureFinset.symm
+
 /-- A natural number indexing of integral atoms. -/
 def atomIndex : IntegralAtom s n → Fin (1 + s + 2 * n)
   | .one => ⟨0, by lia⟩
@@ -122,27 +175,33 @@ theorem lt_of_maskRow_testBit {mask count r s i : Nat} (h : (maskRow mask count 
   grind [maskRow]
 
 theorem cycleClosure_assoc_of_checkRows (generators : Finset (Cycle s n)) (mask : ℕ)
-    (hmask : maskOfFinset cycleIndex (cycleClosure generators) = mask)
+    (hmask : maskOfFinset cycleIndex (cycleClosureFinset generators) = mask)
     (hcheck : checkRows (α := IntegralAtom s n) conv
       (fun r u => maskRow mask (1 + s + 2 * n) (atomIndex r) (atomIndex u))) :
-    ∀ {r q p u t}, (r, q, p) ∈ cycleClosure generators →
-      (u, t, q) ∈ cycleClosure generators →
-      ∃ q', (q', t, p) ∈ cycleClosure generators ∧
-        (r, u, q') ∈ cycleClosure generators := by
+    ∀ {r q p u t}, CycleClosure (generators : Set (Cycle s n)) (r, q, p) →
+      CycleClosure (generators : Set (Cycle s n)) (u, t, q) →
+      ∃ q', CycleClosure (generators : Set (Cycle s n)) (q', t, p) ∧
+        CycleClosure (generators : Set (Cycle s n)) (r, u, q') := by
   intro r q p u t hr hq
-  apply assoc_of_checkRows _ conv _ (Fin.val ∘ atomIndex) conv_conv
-    (cycleClosure_cycle_left generators) _ _ _ hcheck hr hq
-  · intro r u t h
-    simpa using
-      cycleClosure_conv_cycles _ (cycleClosure_cycle_left _ (cycleClosure_conv_cycles _ h))
+  apply assoc_of_checkRows {c | CycleClosure (generators : Set (Cycle s n)) c} conv _
+    (Fin.val ∘ atomIndex) conv_conv CycleClosure.left CycleClosure.right _ _ hcheck hr hq
   · intro r u t
     rw [Function.comp_apply, maskRow_testBit _ _ _ _ _ (atomIndex t).is_lt, ← hmask]
-    change (r, u, t) ∈ cycleClosure generators ↔
-      (maskOfFinset cycleIndex (cycleClosure generators)).testBit (cycleIndex (r, u, t))
-    simp [testBit_maskOfFinset_iff]
+    change CycleClosure (generators : Set (Cycle s n)) (r, u, t) ↔
+      (maskOfFinset cycleIndex (cycleClosureFinset generators)).testBit (cycleIndex (r, u, t))
+    simp [testBit_maskOfFinset_iff, cycleClosure_iff_mem_cycleClosureFinset]
   · intro r u i hi
     obtain ⟨a, ha⟩ := atomIndex_surjective ⟨i, lt_of_maskRow_testBit hi⟩
     exact ⟨a, congrArg Fin.val ha⟩
+
+theorem lawfulAtomStructure_ofCycles_coe (generators : Finset (Cycle s n))
+    (hassoc : ∀ {r q p u t}, CycleClosure (generators : Set (Cycle s n)) (r, q, p) →
+      CycleClosure (generators : Set (Cycle s n)) (u, t, q) →
+      ∃ q', CycleClosure (generators : Set (Cycle s n)) (q', t, p) ∧
+        CycleClosure (generators : Set (Cycle s n)) (r, u, q'))
+    (hg : ∀ c ∈ generators, c.IsDiversity) :
+    LawfulAtomStructure (ofCycles (generators : Set (Cycle s n))) :=
+  lawfulAtomStructure_ofCycles _ hassoc hg
 
 open Lean Elab Term Meta Parser Tactic
 
@@ -236,7 +295,7 @@ def elabIntegralCycles : TermElab := fun stx expectedType? => do
   let n := mkNatLit config.nsymm.size
   let mut cycles := mkApp (mkConst ``Finset.empty [Level.zero]) (mkApp2 (mkConst ``Cycle) s n)
   for c in cycleTerms.reverse do cycles ← mkAppM ``Insert.insert #[c, cycles]
-  ensureHasType expectedType? (mkApp3 (mkConst ``ofCycles) s n cycles)
+  ensureHasType expectedType? (mkApp3 (mkConst ``ofCycles) s n (← mkAppM ``SetLike.coe #[cycles]))
 
 /-- TODO: write docstring -/
 syntax (name := integralCyclesLawful) "integral_cycles_lawful" : tactic
@@ -254,6 +313,9 @@ def evalIntegralCyclesLawful : Tactic.Tactic := fun _ => Tactic.withMainContext 
         application of `ofCycles`{indentExpr atoms}"
   let_expr ofCycles s n cycles := atoms
     | throwError "internal error in `integral_cycles_lawful`: unexpected `ofCycles` application"
+  let_expr SetLike.coe _ _ _ cycles := cycles
+    | throwError "`integral_cycles_lawful` requires generators coerced from a `Finset`, but got\
+        {indentExpr cycles}"
   if atoms.hasFVar || atoms.hasMVar then
     throwError "`integral_cycles_lawful` requires closed generators, but got{indentExpr cycles}"
   let proof ← Tactic.runTermElab <| withoutErrToSorry do
@@ -265,7 +327,7 @@ def evalIntegralCyclesLawful : Tactic.Tactic := fun _ => Tactic.withMainContext 
     let hcheck ← elabIntegralCyclesProof (mkApp assoc hmask) (← `(by decide +kernel))
       "`integral_cycles_lawful` could not prove associativity of the generated cycles"
     let hassoc := mkApp2 assoc hmask hcheck
-    let result := mkAppN (mkConst ``lawfulAtomStructure_ofCycles) #[s, n, cycles, hassoc]
+    let result := mkAppN (mkConst ``lawfulAtomStructure_ofCycles_coe) #[s, n, cycles, hassoc]
     let hdiversity ← elabIntegralCyclesProof result (← `(by decide +kernel))
       "`integral_cycles_lawful` could not prove that all generators are diversity cycles"
     return mkApp result hdiversity
