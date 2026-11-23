@@ -274,7 +274,8 @@ lemma relDom_le_iff_le_mul [IsRelCorefl b] : relDom a ≤ b ↔ a ≤ b * a := b
   · grw [← h, relDom, inf_comm, ← le_top (a := star a), ← right_modular, one_mul, inf_idem]
   · grw [relDom, h, mul_assoc, left_modular, inf_le_right, star_eq_of_symm b, mul_one, mul_left_le]
 
-/-- Reading left multiplication by a coreflexive element as restriction, this result characterises
+/-- Reading left multiplication by a coreflexive element as restriction (cf
+`SetRel.mem_ofSet_comp_iff` in `Cslib.Foundations.Data.SetRel`), this result characterises
 `relDom a` as the largest coreflexive `b` such that the restriction of `a` to `b` is `a`. -/
 theorem relDom_le_iff [IsRelCorefl b] : relDom a ≤ b ↔ b * a = a := by
   simp [relDom_le_iff_le_mul, le_antisymm_iff, mul_left_le]
@@ -284,9 +285,9 @@ lemma relDom_mul_self : relDom a * a = a := by simp [← relDom_le_iff (b := rel
 lemma relCod_le_iff_le_mul [IsRelCorefl b] : relCod a ≤ b ↔ a ≤ a * b := by
   rw [← star_le_star_iff, star_relCod, relDom_le_iff_le_mul, ← star_mul, star_le_star_iff]
 
-/-- Reading right multiplication by a coreflexive element as coerestriction (relating only those
-pairs whose second components lies in some set), this result characterises `relDom a` as the
-largest coreflexive `b` such that the corestriction of `a` to `b` is `a`. -/
+/-- Reading right multiplication by a coreflexive element as coerestriction (cf
+`SetRel.mem_comp_ofSet_iff` in `Cslib.Foundations.Data.SetRel`), this result characterises
+`relCod a` as the largest coreflexive `b` such that the corestriction of `a` to `b` is `a`. -/
 theorem relCod_le_iff [IsRelCorefl b] : relCod a ≤ b ↔ a * b = a := by
   simp [relCod_le_iff_le_mul, le_antisymm_iff, mul_right_le]
 

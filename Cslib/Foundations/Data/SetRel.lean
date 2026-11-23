@@ -81,7 +81,7 @@ def mapEquiv (eα : α ≃ α') (eβ : β ≃ β') : SetRel α β ≃ SetRel α'
 
 end Map
 
-variable {α : Type*} {s : Set α} {x y : α}
+variable {α : Type*} {s : Set α} {r : SetRel α α} {x y : α}
 
 def ofSet (s : Set α) : SetRel α α := {p | p.1 = p.2 ∧ p.1 ∈ s}
 
@@ -104,10 +104,14 @@ lemma left_mem_of_mem_ofSet (h : x ~[ofSet s] y) : x ∈ s := by grind
 
 lemma right_mem_of_mem_ofSet (h : x ~[ofSet s] y) : y ∈ s := by grind
 
-lemma ofSet_dom_comp (r : SetRel α α) : ofSet r.dom ○ r = r := by
+lemma ofSet_dom_comp_self (r : SetRel α α) : ofSet r.dom ○ r = r := by
   grind
 
-lemma comp_ofSet_cod (r : SetRel α α) : r ○ ofSet r.cod = r := by
+lemma self_comp_ofSet_cod (r : SetRel α α) : r ○ ofSet r.cod = r := by
   grind
+
+lemma mem_ofSet_comp_iff : x ~[ofSet s ○ r] y ↔ x ∈ s ∧ x ~[r] y := by simp
+
+lemma mem_comp_ofSet_iff : x ~[r ○ ofSet s] y ↔ y ∈ s ∧ x ~[r] y := by simp [and_comm]
 
 end SetRel
