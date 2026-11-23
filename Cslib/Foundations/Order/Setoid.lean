@@ -19,6 +19,7 @@ variable {ι α : Type*} {s : ι → Set α} (hs : IndexedPartition s)
 
 lemma mem_apply_index (x : α) : x ∈ s (hs.index x) := hs.mem_iff_index_eq.mpr rfl
 
+@[simps]
 def equivSigma : α ≃ Σ i, s i where
   toFun x := ⟨hs.index x, x, hs.mem_apply_index x⟩
   invFun x := x.snd.val
@@ -41,17 +42,20 @@ end IndexedPartition
 
 namespace Setoid
 
-def eqvClass {α : Type*} (s : Setoid α) : Quotient s → Set α :=
+variable {α : Type*} (s : Setoid α)
+
+def eqvClass : Quotient s → Set α :=
   Quotient.lift (fun a ↦ {b | s a b}) <| by
     intro _ _ (h : s _ _)
     grind [s.iseqv.trans, s.iseqv.symm]
 
-@[simp] lemma mem_eqvClass {α : Type*} (s : Setoid α) (x : α) (i : Quotient s) :
+@[simp] lemma mem_eqvClass (x : α) (i : Quotient s) :
     x ∈ s.eqvClass i ↔ ⟦x⟧ = i := by
   apply i.ind
   simp [eqvClass, Quotient.eq, comm]
 
-noncomputable def toIndexedPartition {α : Type*} (s : Setoid α) :
+@[simps]
+noncomputable def toIndexedPartition :
     IndexedPartition s.eqvClass where
   eq_of_mem := by simp
   some := Quotient.out
@@ -62,5 +66,20 @@ noncomputable def toIndexedPartition {α : Type*} (s : Setoid α) :
 open SetRel in
 example {α : Type*} {r : SetRel α α} {s : Setoid α} : r ⊆ .ofRel s ↔ ∀ x y, x ~[r] y → s x y := by
   grind
+
+lemma equivSigma_map_eq_sigmaSetoid :
+    (SetRel.ofRel s).map s.toIndexedPartition.equivSigma s.toIndexedPartition.equivSigma =
+      .sigmaSetoid _ _ := by
+  ext ⟨⟨i, ⟨a, ha⟩⟩, ⟨j, ⟨b, hb⟩⟩⟩
+  obtain rfl : ⟦a⟧ = i := by simpa using ha
+  obtain rfl : ⟦b⟧ = j := by simpa using hb
+  simp only [SetRel.mem_map, SetRel.mk_mem_ofRel, Sigma.ext_iff,
+    IndexedPartition.equivSigma_apply_fst, toIndexedPartition_index, Quotient.eq,
+    SetRel.mem_sigmaSetoid]
+  constructor
+  · grind [s.iseqv.symm, s.iseqv.trans]
+  · intro h
+    refine ⟨a, b, h, ⟨?_, ?_⟩, ?_, ?_⟩
+    all_goals rfl
 
 end Setoid

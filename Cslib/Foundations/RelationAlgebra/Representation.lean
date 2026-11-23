@@ -66,6 +66,14 @@ theorem _root_.SetRel.mem_one : (a, b) ∈ (1 : SetRel α α) ↔ a = b := .rfl
 @[simp]
 theorem _root_.SetRel.mem_star : (a, b) ∈ star R ↔ (b, a) ∈ R := .rfl
 
+@[simps!]
+def _root_.RelationAlgebraEquiv.ofEquivSetRel (e : α ≃ β) :
+    RelationAlgebraEquiv (SetRel α α) (SetRel β β) where
+  __ := SetRel.mapEquiv e e
+  map_rel_iff' := SetRel.map_subset_map_iff e.injective e.injective
+  map_mul' _ _ := SetRel.map_comp_of_injective e.injective
+  map_star' _ := SetRel.inv_map.symm
+
 /-- A representation of a relation algebra is an injective morphism into a product of relations. -/
 structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : ι → Type w) where
   /-- A `RelationAlgebraHom` into a product of relations. -/
@@ -85,7 +93,8 @@ variable {α β : Type*} [RelationAlgebra α]
 structure Representation' (α β : Type*) [RelationAlgebra α] extends
     LatticeHom α (SetRel β β), StarMonoidHom α (SetRel β β) where
   injective' : Function.Injective toFun
-  map_sdiff' (a b : α) : toFun (a \ b) = toFun a \ toFun b
+  map_bot' : toFun ⊥ = ⊥
+  -- map_sdiff' (a b : α) : toFun (a \ b) = toFun a \ toFun b
 
 instance instFunLikeRepresentation' : FunLike (Representation' α β) α (SetRel β β) where
   coe R := R.toFun
@@ -100,8 +109,8 @@ instance : LatticeHomClass (Representation' α β) α (SetRel β β) where
 protected lemma Representation'.mono (R : Representation' α β) :
   Monotone R := OrderHomClass.mono R
 
-lemma Representation'.map_sdiff (R : Representation' α β) {a b : α} :
-    R (a \ b) = R a \ R b := R.map_sdiff' a b
+-- lemma Representation'.map_sdiff (R : Representation' α β) {a b : α} :
+--     R (a \ b) = R a \ R b := R.map_sdiff' a b
 
 instance : MonoidHomClass (Representation' α β) α (SetRel β β) where
   map_mul R := R.map_mul'
@@ -111,8 +120,8 @@ instance : StarHomClass (Representation' α β) α (SetRel β β) where
   map_star R := R.map_star'
 
 instance : BotHomClass (Representation' α β) α (SetRel β β) where
-  map_bot R := by
-    rw [← sdiff_self (a := 1), ← sdiff_self (a := (1 : SetRel β β)), R.map_sdiff, map_one R]
+  map_bot R := R.map_bot'
+--     rw [← sdiff_self (a := 1), ← sdiff_self (a := (1 : SetRel β β)), R.map_sdiff, map_one R]
 
 @[simps]
 def prodRepresentation' (ι : Type v) (α : ι → Type w) :
@@ -124,7 +133,8 @@ def prodRepresentation' (ι : Type v) (α : ι → Type w) :
   map_one' := SetRel.piToSigma_id
   map_mul' _ _ := SetRel.piToSigma_comp
   map_star' _ := SetRel.piToSigma_inv
-  map_sdiff' _ _ := SetRel.piToSigma_sdiff
+  map_bot' := SetRel.piToSigma_bot
+  -- map_sdiff' _ _ := SetRel.piToSigma_sdiff
 
 def Representation'.compHom {α β γ : Type*} [RelationAlgebra α] [RelationAlgebra β]
     (f : RelationAlgebraHom α β) (hf : Function.Injective f) (R : Representation' β γ) :
@@ -133,7 +143,8 @@ def Representation'.compHom {α β γ : Type*} [RelationAlgebra α] [RelationAlg
   __ := R.toStarMonoidHom.comp f.toStarMonoidHom
   __ := R.toLatticeHom.comp f.toBoundedLatticeHom.toLatticeHom
   injective' := R.injective.comp hf
-  map_sdiff' a b := by simp_rw [_root_.map_sdiff', R.map_sdiff']
+  map_bot' := by simp [R.map_bot']
+  -- map_sdiff' a b := by simp_rw [_root_.map_sdiff', R.map_sdiff']
 
 def Representation'.ofRepresentation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : ι → Type w)
     (R : Representation α ι β) : Representation' α (Σ i, β i) :=

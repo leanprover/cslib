@@ -91,6 +91,8 @@ instance : EquivLike (RelationAlgebraEquiv α β) α β where
 instance : OrderIsoClass (RelationAlgebraEquiv α β) α β where
   map_le_map_iff f := f.map_rel_iff'
 
+protected lemma mono (e : RelationAlgebraEquiv α β) : Monotone (e : α → β) := OrderHomClass.mono e
+
 instance : MulEquivClass (RelationAlgebraEquiv α β) α β where
   map_mul f := f.map_mul'
 
@@ -142,6 +144,18 @@ noncomputable def ofBijective (f : RelationAlgebraHom α β) (hf : Function.Bije
   map_rel_iff' {_ _} := by
     refine ⟨fun h ↦ ?_, (OrderHomClass.mono f ·)⟩
     rwa [← sup_eq_right, ← hf.injective.eq_iff, map_sup f, sup_eq_right]
+
+lemma toHom_bijective (e : RelationAlgebraEquiv α β) : Function.Bijective e.toHom :=
+  EquivLike.bijective e
+
+lemma toHom_injective (e : RelationAlgebraEquiv α β) : Function.Injective e.toHom :=
+  EquivLike.injective e
+
+lemma inj {e : RelationAlgebraEquiv α β} {x y : α} : e x = e y ↔ x = y :=
+  (EquivLike.injective e).eq_iff
+
+lemma toHom_surjective (e : RelationAlgebraEquiv α β) : Function.Surjective e.toHom :=
+  EquivLike.surjective e
 
 end RelationAlgebraEquiv
 

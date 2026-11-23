@@ -145,15 +145,18 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
 
+theorem right_modular (a b c : α) : a * b ⊓ c ≤ (a ⊓ c * star b) * b := by
+  rw [← star_le_star_iff]
+  simpa using left_modular (star b) (star a) (star c)
+
 theorem mul_le_compl_right {a b c : α} : a * b ≤ cᶜ ↔ star a * c ≤ bᶜ := by
-  have h (x y z : α) (h : x * y ≤ zᶜ) : star x * z ≤ yᶜ := by
-    grw [← tarski x y, h, compl_compl]
+  have h (x y z : α) (h : x * y ≤ zᶜ) : star x * z ≤ yᶜ := by grw [← tarski x y, h, compl_compl]
   refine ⟨h a b c, ?_⟩
   simpa using h (star a) c b
 
 theorem mul_le_compl_left {a b c : α} : a * b ≤ cᶜ ↔ c * star b ≤ aᶜ := by
-  rw [← star_le_star_iff, star_mul, star_compl, mul_le_compl_right, ← star_compl, ← star_mul,
-    star_le_star_iff]
+  refine (star_le_star_iff.symm.trans ?_).trans star_le_star_iff
+  simpa using @mul_le_compl_right _ _ (star b) (star a) (star c)
 
 def over (a b : α) : α := (aᶜ * star b)ᶜ
 
@@ -174,6 +177,11 @@ theorem sSup_mul {α : Type*} [CompleteRelationAlgebra α] {s : Set α} {b : α}
     sSup s * b = ⨆ a ∈ s, a * b := by
   apply eq_of_forall_ge_iff
   simp [← le_over_iff]
+
+theorem le_mul_star_mul (a : α) : a ≤ a * star a * a := calc
+  a ≤ a * ⊤ ⊓ a := by grw [← le_top (a := 1), mul_one, inf_idem]
+  _ ≤ a * (⊤ ⊓ star a * a) := left_modular a ⊤ a
+  _ = a * star a * a := by simp [mul_assoc]
 
 /-- If a nonzero element lies below a product, the right factor meets its converse image. -/
 theorem inf_star_mul_ne_bot {r s p : α} (hp : p ≠ ⊥) (h : p ≤ r * s) : s ⊓ star r * p ≠ ⊥ :=
