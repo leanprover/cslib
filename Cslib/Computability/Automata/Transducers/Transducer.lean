@@ -21,6 +21,6 @@ class Transducer (A : Type u) (InSymbol OutSymbol : outParam (Type v)) where
   Translates (a : A) (xs : List InSymbol) (ys : List OutSymbol) : Prop
 
 @[inherit_doc]
-scoped notation xs "[" a "]" ys => Transducer.Translates a xs ys
+scoped notation:50 xs:51 " [" a "]↦ " ys:51 => Transducer.Translates a xs ys
 
 end Cslib.Automata

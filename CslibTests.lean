@@ -42,3 +42,4 @@ import CslibTests.Reduction
 import CslibTests.StatefulProcesses
 import CslibTests.SyncTrace
 import CslibTests.Synthesis
+import CslibTests.Transducer
