@@ -74,7 +74,7 @@ private meta def extractLocalReads (stx : Syntax) :
   let .node _ _ children := stx | return (stx, #[])
   let mut args := #[]
   let mut reads := #[]
-  for arg in stx.getArgs do
+  for arg in children do
     let (arg', found) ← extractLocalReads arg
     args := args.push arg'
     reads := reads ++ found
