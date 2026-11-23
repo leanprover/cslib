@@ -18,9 +18,6 @@ This module abstractly defines the atoms of an integral relation algebra, along 
 characterization of its identity and non-identity cycles that form an atom structure when
 shown to be associative.
 
-To concretely construct such an algebra, see the `integral_cycles%` elaborator
-in `Cslib.Foundations.RelationAlgebra.IntegralCycles`.
-
 -/
 
 @[expose] public section
