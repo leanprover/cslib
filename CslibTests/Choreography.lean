@@ -11,7 +11,7 @@ namespace CslibTests
 open Cslib.Mech Cslib.Languages.Mech
 
 -- Notation
-
+-- The notation of a local assignment.
 example {S : Sig Pid} (p : Pid) (x : S.Var p α) (e : S.Expr p α) :
     (`(Mech|p . x ≔ e; 0) : Choreography Pid S SelLabel ProcName) =
     Choreography.pre (Prefix.assign p x e) 0 := rfl
