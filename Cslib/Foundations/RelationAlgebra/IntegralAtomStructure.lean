@@ -24,6 +24,7 @@ shown to be associative.
 
 * [Steven Givant, *Introduction to Relation Algebras*][Givant2017a], Section 4.2
 * [Steven Givant, *Advanced Topics in Relation Algebras*][Givant2017b], Section 19.3
+* [Peter Jipsen, *Small relation algebras*](https://www1.chapman.edu/~jipsen/gap/ramaddux.html)
 
 -/
 
@@ -105,7 +106,7 @@ theorem cycleClosure_one_iff {g : Set (Cycle s n)} (hg : ∀ c ∈ g, c.IsDivers
     {r p : IntegralAtom s n} : CycleClosure g (r, one, p) ↔ p = r :=
   ⟨fun h => h.id_cycle_right hg, fun h => h ▸ .id p⟩
 
-/-- Construct an `AtomStructure` from diversity cycle generators whose closure is associative. -/
+/-- Construct an `AtomStructure` from diversity cycle generators. -/
 def ofCycles (g : Set (Cycle s n)) : AtomStructure (IntegralAtom s n) where
   conv := conv
   id := {one}
@@ -134,7 +135,7 @@ universe u
 /-- A bundled type for finite integral relation algebra. This is useful for stating theorems about
 the number of algebras up to isomorphism. -/
 structure IntegralAlgebra where
-  /-- TODO: write docstring -/
+  /-- The underlying type of the algebra. -/
   carrier : Type u
   [relationAlgebra : RelationAlgebra carrier]
   [finite : Finite carrier]
@@ -154,12 +155,22 @@ abbrev IsoClass : Type (u + 1) := Quotient setoid
 namespace IsoClass
 
 /-- The set of isomorphism classes with `s` symmetric diversity atoms and `m` nonsymmetric
-atoms. Note for symmetric atoms this is a count of atoms, not pairs. Use the `ofType` abbrev
+atoms. Note for nonsymmetric atoms this is a count of atoms, not pairs. Use the `ofType` abbrev
 to avoid confusion with the usual convention.
 -/
 def ofCounts (s m : ℕ) : Set IsoClass :=
   {q | ∃ A : IntegralAlgebra, ⟦A⟧ = q ∧ (symmetricDiversityAtoms A.carrier).ncard = s ∧
     (nonsymmetricDiversityAtoms A.carrier).ncard = m}
+
+@[simp]
+theorem mk_mem_ofCounts_iff {A : IntegralAlgebra} {s m : ℕ} :
+    ⟦A⟧ ∈ ofCounts s m ↔ (symmetricDiversityAtoms A.carrier).ncard = s ∧
+      (nonsymmetricDiversityAtoms A.carrier).ncard = m := by
+  constructor
+  · rintro ⟨B, hB, rfl, rfl⟩
+    obtain ⟨e⟩ := Quotient.exact hB
+    exact ⟨e.ncard_symmetricDiversityAtoms.symm, e.ncard_nonsymmetricDiversityAtoms.symm⟩
+  · exact fun h => ⟨A, rfl, h⟩
 
 /-- The set of isomorphism classes with `k` atoms. -/
 def ofAtoms (k : ℕ) : Set IsoClass :=
@@ -170,6 +181,11 @@ theorem mem_ofAtoms_iff {k : ℕ} {q : IsoClass} :
   simp [ofAtoms, ofCounts, ncard_setOf_isAtom_of_isIntegral (IntegralAlgebra.isIntegral _),
     and_comm]
 
+@[simp]
+theorem ofAtoms_zero : ofAtoms 0 = ∅ := by
+  ext q
+  simp [mem_ofAtoms_iff]
+
 theorem ofCounts_eq_empty_of_odd {s m : ℕ} (hm : Odd m) : ofCounts s m = ∅ := by
   rw [Set.eq_empty_iff_forall_notMem]
   rintro _ ⟨A, rfl, -, hA⟩
@@ -179,11 +195,10 @@ theorem pairwiseDisjoint_ofCounts {t : Set (ℕ × ℕ)} :
     t.PairwiseDisjoint fun (s, m) => ofCounts s m := by
   rintro ⟨s, m⟩ - ⟨s', m'⟩ - h
   rw [Function.onFun, Set.disjoint_left]
-  rintro _ ⟨A, rfl, hs, hm⟩ ⟨B, hB, hs', hm'⟩
-  obtain ⟨e⟩ := Quotient.exact hB
-  have := e.ncard_symmetricDiversityAtoms
-  have := e.ncard_nonsymmetricDiversityAtoms
-  grind
+  refine Quotient.ind fun A hA hA' => h ?_
+  obtain ⟨hs, hm⟩ := mk_mem_ofCounts_iff.mp hA
+  obtain ⟨hs', hm'⟩ := mk_mem_ofCounts_iff.mp hA'
+  exact Prod.ext (hs.symm.trans hs') (hm.symm.trans hm')
 
 theorem encard_ofAtoms_succ (k : ℕ) :
     (ofAtoms.{u} (k + 1)).encard = ∑ p ∈ Finset.antidiagonal k, (ofCounts.{u} p.1 p.2).encard := by

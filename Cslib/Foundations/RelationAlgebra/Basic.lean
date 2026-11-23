@@ -331,13 +331,13 @@ theorem identityAtoms_eq_of_isIntegral (h : IsIntegral α) : identityAtoms α = 
   · rintro rfl
     exact ⟨h, le_rfl⟩
 
-theorem even_ncard_nonsymmetricDiversityAtoms [Finite α] :
-    Even (nonsymmetricDiversityAtoms α).ncard := by
-  have hfin := Set.toFinite (nonsymmetricDiversityAtoms α)
-  rw [Set.ncard_eq_toFinset_card _ hfin, ← neg_one_pow_eq_one_iff_even (R := ℤ) (by decide),
-    ← Finset.prod_const]
-  apply Finset.prod_involution (fun a _ => star a) <;>
-    grind [nonsymmetricDiversityAtoms, isAtom_star_iff, Set.Finite.mem_toFinset, star_star]
+theorem even_ncard_nonsymmetricDiversityAtoms : Even (nonsymmetricDiversityAtoms α).ncard := by
+  rcases (nonsymmetricDiversityAtoms α).finite_or_infinite with hfin | hinf
+  · rw [Set.ncard_eq_toFinset_card _ hfin, ← neg_one_pow_eq_one_iff_even (R := ℤ) (by decide),
+      ← Finset.prod_const]
+    apply Finset.prod_involution (fun a _ => star a) <;>
+      grind [nonsymmetricDiversityAtoms, isAtom_star_iff, Set.Finite.mem_toFinset, star_star]
+  · simp [hinf.ncard]
 
 theorem ncard_setOf_isAtom [Finite α] :
     {a : α | IsAtom a}.ncard = (identityAtoms α).ncard +
