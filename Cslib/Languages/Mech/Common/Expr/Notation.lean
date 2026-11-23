@@ -145,7 +145,7 @@ private meta def expandBracedExpr (stx : Syntax) : MacroM (TSyntax `term) := do
 open Lean in
 /-- Whether the syntax contains a `$` read outside Lean quotations. This is used to reject reads in
 local expressions that are not braced computations (see the `macro_rules` below). -/
-private meta partial def hasLocalRead (stx : Syntax) : Bool :=
+private meta def hasLocalRead (stx : Syntax) : Bool :=
   if stx.getKind == ``Lean.Parser.Term.quot || stx.getKind == ``Lean.Parser.Term.dynamicQuot ||
       stx.getKind == ``Lean.Parser.Term.precheckedQuot ||
       stx.getKind == ``Lean.Parser.Command.quot || stx.getKind == ``Lean.Parser.Tactic.quot then
