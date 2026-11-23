@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Vignesh Karri
 -/
 
-import Cslib.Computability.QueryComplexity.Measures
+import Cslib.Computability.QueryComplexity.DecisionTree
 import Mathlib.Data.Fin.VecNotation
 
 /-! # Query complexity tests
 
-Worked examples of `s(f)`, `bs(f)` and `C(f)` on some standard Boolean functions. All three
-measures are decidable, so the values are checked by `decide`.
+Worked examples of `s(f)`, `bs(f)`, `C(f)` and `D(f)` on some standard Boolean functions. The
+first three are decidable, so their values are checked by `decide`. `D(f)` is not, so its values
+come from the chain `s(f, x) ≤ s(f) ≤ bs(f) ≤ C(f) ≤ D(f) ≤ n`: an input sensitive to every
+coordinate forces `D(f) = n`.
 -/
 
 namespace CslibTests.QueryComplexity
@@ -42,8 +44,8 @@ example : maj3 ![true, false, false] = false := rfl
 
 /-! ## OR
 
-Every coordinate is sensitive at the all-zeroes input, so `s = n`, and `s ≤ bs ≤ C ≤ n` forces
-all three measures to equal `n`.
+Every coordinate is sensitive at the all-zeroes input, so `s = n`, and `s ≤ bs ≤ C ≤ D ≤ n`
+forces all four measures to equal `n`.
 -/
 
 example : sensitivity (orF 2) = 2 := by decide
@@ -103,6 +105,26 @@ example : sensitiveCoords maj3 ![true, true, false] = {0, 1} := by decide
 
 /-- Two agreeing bits are a certificate, so `C(f, x) = 2` everywhere. -/
 example : certificateComplexityAt maj3 ![true, true, false] = 2 := by decide
+
+/-! ## Decision tree complexity
+
+`D(f) = n` whenever some input is sensitive to every coordinate, and `D(f) = 0` exactly for the
+constants. `D(MAJ₃) = 3` is also true but needs an adversary argument, since `s(MAJ₃) = 2`.
+-/
+
+example : DecisionTree.complexity (orF 3) = 3 :=
+  DecisionTree.complexity_eq_card_of_sensitivityAt_eq_card (x := ![false, false, false])
+    (by decide)
+
+example : DecisionTree.complexity (andF 3) = 3 :=
+  DecisionTree.complexity_eq_card_of_sensitivityAt_eq_card (x := ![true, true, true]) (by decide)
+
+example : DecisionTree.complexity (parityF 3) = 3 :=
+  DecisionTree.complexity_eq_card_of_sensitivityAt_eq_card (x := ![false, false, false])
+    (by decide)
+
+example : DecisionTree.complexity (fun _ => true : BooleanFunction 3) = 0 :=
+  DecisionTree.complexity_eq_zero_iff.2 fun _ _ => rfl
 
 /-! ## Constant functions
 
