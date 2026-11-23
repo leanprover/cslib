@@ -14,7 +14,7 @@ public import Mathlib.Data.Nat.Pairing
 
 In this file we implement general recursion functions (on the natural numbers), inspired by the
 formalisation of `Mathlib.Computability.Partrec`. Since composition (`B`-combinator) and pairs
-(`MkPair`, `Fst`, `Snd`) have been implemented in `Cslib.Computability.CombinatoryLogic.Basic`,
+(`MkPair`, `Fst`, `Snd`) have been implemented in `Cslib.Languages.CombinatoryLogic.Basic`,
 what remains are the following definitions and proofs of their correctness.
 
 - Church numerals : a predicate `IsChurch n a` expressing that the term `a` is βη-equivalent to
@@ -23,11 +23,11 @@ the standard church numeral `n` — that is, `a ⬝ f ⬝ x ↠ f ⬝ (f ⬝ ...
 correctness proofs `zero_correct` and `succ_correct`.
 - Predecessor : a term `Pred` so that (`pred_correct`)
 `IsChurch n a → IsChurch n.pred (Pred ⬝ a)`.
-- Primitive recursion : a term `Rec` so that (`rec_correct_succ`) `IsChurch (n+1) a` implies
-`Rec ⬝ x ⬝ g ⬝ a ↠ g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))` and (`rec_correct_zero`) `IsChurch 0 a`
+- Primitive recursion : a term `Rec` so that (`rec_succ`) `IsChurch (n+1) a` implies
+`Rec ⬝ x ⬝ g ⬝ a ↠ g ⬝ a ⬝ (Rec ⬝ x ⬝ g ⬝ (Pred ⬝ a))` and (`rec_zero`) `IsChurch 0 a`
 implies `Rec ⬝ x ⬝ g ⬝ a ↠ x`.
 - Unbounded root finding (μ-recursion) : given a term  `f` representing a function `fℕ: Nat → Nat`,
-which takes on the value 0 a term `RFind` such that (`rFind_correct`) `RFind ⬝ f ↠ a` such that
+which takes on the value 0 a term `RFind` such that (`RFind_correct`) `RFind ⬝ f ↠ a` such that
 `IsChurch n a` for `n` the smallest root of `fℕ`.
 - Integer square root : a term `Sqrt` so that (`sqrt_correct`)
 `IsChurch n a → IsChurch n.sqrt (Sqrt ⬝ a)`.
@@ -48,7 +48,7 @@ Selinger's notes <https://www.mscs.dal.ca/~selinger/papers/papers/lambdanotes.pd
 `represents : α → SKI → Prop`, for any type `α` "built from pieces that we understand" — something
 along the lines of "pure finite types"
 (see eg <https://en.wikipedia.org/wiki/Primitive_recursive_functional>). This would also clean up
-the statement of `rfind_correct`.
+the statement of `RFind_correct`.
 - The predicate `∃ n : Nat, IsChurch n : SKI → Prop` is semidecidable: by confluence, it suffices
 to normal-order reduce `a ⬝ f ⬝ x` for any "atomic" terms `f` and `x`. This could be implemented
 by defining reduction on polynomials.
@@ -235,8 +235,8 @@ theorem isZero_correct (n : Nat) (a : SKI) (h : IsChurch n a) :
 
 
 /--
-To define `Rec x g n := if n==0 then x else (Rec x g (Pred n))`, we obtain a fixed point of
-R ↦ λ x g n. Cond ⬝ (IsZero ⬝ n) ⬝ x ⬝ (g ⬝ a ⬝ (R ⬝ x ⬝ g ⬝ (Pred ⬝ n)))
+To define `Rec x g n := if n==0 then x else g n (Rec x g (Pred n))`, we obtain a fixed point of
+R ↦ λ x g n. Cond ⬝ x ⬝ (g ⬝ n ⬝ (R ⬝ x ⬝ g ⬝ (Pred ⬝ n))) ⬝ (IsZero ⬝ n)
 -/
 def RecAuxPoly : SKI.Polynomial 4 :=
   SKI.Cond ⬝' &1 ⬝' (&2 ⬝' &3 ⬝' (&0 ⬝' &1 ⬝' &2 ⬝' (Pred ⬝' &3))) ⬝' (IsZero ⬝' &3)
@@ -298,8 +298,8 @@ theorem rec_correct' (base step : SKI) (r : ℕ → ℕ)
 
 /--
 First define an auxiliary function `RFindAbove` that looks for roots above a fixed number n, as a
-fixed point of R ↦ λ n f. if f n = 0 then n else R f (n+1)
-                 ~ λ n f. Cond ⬝ n (R f (Succ n)) (IsZero (f n))
+fixed point of R ↦ λ n f. if f n = 0 then n else R (n+1) f
+                 ~ λ n f. Cond ⬝ n (R (Succ n) f) (IsZero (f n))
 -/
 def RFindAboveAuxPoly : SKI.Polynomial 3 :=
     SKI.Cond ⬝' &1 ⬝' (&0 ⬝' (SKI.Succ ⬝' &1) ⬝' &2) ⬝' (IsZero ⬝' (&2 ⬝' &1))
