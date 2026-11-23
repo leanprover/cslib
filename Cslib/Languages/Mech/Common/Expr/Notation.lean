@@ -149,7 +149,10 @@ private meta partial def hasLocalRead (stx : Syntax) : Bool :=
       stx.getKind == ``Lean.Parser.Command.quot || stx.getKind == ``Lean.Parser.Tactic.quot then
     false
   else
-    stx.getKind == `term.pseudo.antiquot || stx.getArgs.any hasLocalRead
+    stx.getKind == `term.pseudo.antiquot ||
+      match stx with
+      | .node _ _ args => args.any hasLocalRead
+      | _ => false
 
 /- Expansion of `` `(MechExpr| e) ``. A braced computation is expanded by `expandBracedExpr`. Any
 other local expression is a term of type `L.Expr α`, which is returned as it is. A `$` read in such
