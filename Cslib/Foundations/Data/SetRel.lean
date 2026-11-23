@@ -83,6 +83,7 @@ end Map
 
 variable {α : Type*} {s : Set α} {r : SetRel α α} {x y : α}
 
+/-- Encode a `s` set as a relation, by relating each element of `s` to itself. -/
 def ofSet (s : Set α) : SetRel α α := {p | p.1 = p.2 ∧ p.1 ∈ s}
 
 @[simp, grind =] lemma mem_ofSet : x ~[ofSet s] y ↔ x = y ∧ x ∈ s := .rfl
