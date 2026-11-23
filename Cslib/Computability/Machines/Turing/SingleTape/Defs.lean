@@ -16,10 +16,10 @@ namespace Cslib.Computability.Turing.SingleTape
 
 /-- The transition labels used by a single-tape Turing Machine. -/
 inductive TrLabel (Symbol : Type*)
-  /-- Read `x` from the tape. -/
-  | read (x : Symbol)
-  /-- Write `x` on the tape. -/
-  | write (x : Symbol)
+  /-- Read `x` from the tape, where `none` is a blank. -/
+  | read (x : Option Symbol)
+  /-- Write `x` on the tape, where `none` erases the cell. -/
+  | write (x : Option Symbol)
   /-- Move the head of the tape. -/
   | move (d : Turing.Dir)
   /-- Do nothing. -/

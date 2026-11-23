@@ -39,6 +39,7 @@ import CslibTests.PRG
 import CslibTests.Query
 import CslibTests.QueryComplexity
 import CslibTests.Reduction
+import CslibTests.SingleTapeNTM
 import CslibTests.StatefulProcesses
 import CslibTests.SyncTrace
 import CslibTests.Synthesis
