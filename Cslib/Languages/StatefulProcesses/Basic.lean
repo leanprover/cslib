@@ -35,10 +35,10 @@ category `mechExpr`, see `Cslib.Languages.Mech.Common.Expr.Notation`): `{f $x $y
 function to participant-local variables `x` and `y`, `{term}` embeds a Lean term, and any term of
 type `L.Expr α` can be used directly.
 
-This development otherwise follows the presentation in [Montesi2023], with one difference: we adopt a modular
-approach to the definition of operational semantics, by first defining a symbolic semantics from
-which a concrete semantics is then derived by adding stores (process memory). This approach is
-described in [Acclavio2026].
+This development otherwise follows the presentation in [Montesi2023], with one difference: we
+adopt a modular approach to the definition of operational semantics, by first defining a symbolic
+semantics from which a concrete semantics is then derived by adding stores (process memory). This
+approach is described in [Acclavio2026].
 
 ## References
 
