@@ -52,7 +52,7 @@ reads occur from left to right. Each occurrence gets its own identifier, also wh
 is read more than once.
 
 For example, `f $x $y` becomes `f b₁ b₂`, with the reads `#[(b₁, x), (b₂, y)]`. -/
-private meta partial def extractLocalReads (stx : Syntax) :
+private meta def extractLocalReads (stx : Syntax) :
     MacroM (Syntax × Array (Ident × Ident)) := do
   -- Lean quotations have their own antiquotations, which must remain untouched.
   if stx.getKind == ``Lean.Parser.Term.quot || stx.getKind == ``Lean.Parser.Term.dynamicQuot ||
