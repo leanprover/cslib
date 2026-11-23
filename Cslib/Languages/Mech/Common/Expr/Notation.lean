@@ -89,7 +89,7 @@ open Lean in
 
 For example, the plain identifiers of `f $x y` are `f` and `y`. They are used to check that no
 variable read with `$` also occurs as a plain identifier (see `expandBracedExpr`). -/
-private meta partial def plainIdentifiers (stx : Syntax) : Array Ident := Id.run do
+private meta def plainIdentifiers (stx : Syntax) : Array Ident := Id.run do
   if stx.getKind == `term.pseudo.antiquot || stx.getKind == ``Lean.Parser.Term.quot ||
       stx.getKind == ``Lean.Parser.Term.dynamicQuot ||
       stx.getKind == ``Lean.Parser.Term.precheckedQuot ||
