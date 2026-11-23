@@ -16,6 +16,7 @@ example {S : Sig Pid} (p : Pid) (x : S.Var p α) (e : S.Expr p α) :
     (`(Mech|p . x ≔ e; 0) : Choreography Pid S SelLabel ProcName) =
     Choreography.pre (Prefix.assign p x e) 0 := rfl
 
+-- The notation of a communication.
 example {S : Sig Pid} (p q : Pid) (e : S.Expr p α) (x : S.Var q α) :
     (`(Mech|p . e ⮕ q . x; 0) : Choreography Pid S SelLabel ProcName) =
     Choreography.pre (Prefix.com p e q x) 0 := rfl
