@@ -7,6 +7,7 @@ public import Cslib.Algorithms.Lean.Query.Arith.Lemmas
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.FreeM
 public import Cslib.Algorithms.Lean.Query.Maximum
+public import Cslib.Algorithms.Lean.Query.MinMax
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort

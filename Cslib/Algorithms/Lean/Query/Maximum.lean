@@ -163,6 +163,16 @@ def comparisons {β : Type} (oracle : {ι : Type} → LEQuery α ι → ι) :
   | .pure _ => []
   | .liftBind (.le a b) cont => (a, b) :: comparisons oracle (cont (oracle (.le a b)))
 
+theorem comparisons_pure {β : Type} (oracle : {ι : Type} → LEQuery α ι → ι) (x : β) :
+    comparisons oracle (.pure x : FreeM (LEQuery α) β) = [] := by
+  simp [comparisons]
+
+theorem comparisons_liftBind {β : Type} (oracle : {ι : Type} → LEQuery α ι → ι)
+    (a b : α) (cont : Bool → FreeM (LEQuery α) β) :
+    comparisons oracle (.liftBind (.le a b) cont) =
+      (a, b) :: comparisons oracle (cont (oracle (.le a b))) := by
+  simp [comparisons]
+
 @[simp] theorem length_comparisons {β : Type} (oracle : {ι : Type} → LEQuery α ι → ι)
     (p : FreeM (LEQuery α) β) : (comparisons oracle p).length = p.countQueries oracle := by
   induction p with
@@ -193,6 +203,10 @@ theorem eval_eq_of_comparisons {β : Type} (o₁ o₂ : {ι : Type} → LEQuery 
 /-- The loser of the comparison `(a, b)`: `a` if the oracle answers `a ≤ b`, and `b` otherwise. -/
 def loser (oracle : {ι : Type} → LEQuery α ι → ι) (q : α × α) : α :=
   if oracle (.le q.1 q.2) then q.1 else q.2
+
+theorem loser_def (oracle : {ι : Type} → LEQuery α ι → ι) (q : α × α) :
+    loser oracle q = if oracle (.le q.1 q.2) then q.1 else q.2 := by
+  simp [loser]
 
 /-! ## The adversary lower bound -/
 
