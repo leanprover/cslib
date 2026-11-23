@@ -95,6 +95,7 @@ private meta partial def plainIdentifiers (stx : Syntax) : Array Ident := Id.run
       stx.getKind == ``Lean.Parser.Term.precheckedQuot ||
       stx.getKind == ``Lean.Parser.Command.quot || stx.getKind == ``Lean.Parser.Tactic.quot then
     return #[]
+  let .node _ _ args := stx | return #[]
   if stx.isIdent then return #[⟨stx⟩]
   let mut found := #[]
   for arg in stx.getArgs do
