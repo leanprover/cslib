@@ -99,7 +99,7 @@ private meta def plainIdentifiers (stx : Syntax) : Array Ident := Id.run do
   let .node _ _ args := stx | return #[]
   if stx.isIdent then return #[⟨stx⟩]
   let mut found := #[]
-  for arg in stx.getArgs do
+  for arg in args do
     found := found ++ plainIdentifiers arg
   return found
 
