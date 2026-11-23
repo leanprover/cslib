@@ -81,4 +81,33 @@ def mapEquiv (eα : α ≃ α') (eβ : β ≃ β') : SetRel α β ≃ SetRel α'
 
 end Map
 
+variable {α : Type*} {s : Set α} {x y : α}
+
+def ofSet (s : Set α) : SetRel α α := {p | p.1 = p.2 ∧ p.1 ∈ s}
+
+@[simp, grind =] lemma mem_ofSet : x ~[ofSet s] y ↔ x = y ∧ x ∈ s := .rfl
+
+lemma mem_ofSet' : x ~[ofSet s] y ↔ x = y ∧ y ∈ s := by simp +contextual
+
+lemma mem_ofSet_self_iff : x ~[ofSet s] x ↔ x ∈ s := by simp
+
+lemma ofSet_injective : Function.Injective (α := Set α) ofSet := by
+  intro s t h
+  ext
+  rw [← mem_ofSet_self_iff, h, mem_ofSet_self_iff]
+
+lemma ofSet_inj {s t : Set α} : ofSet s = ofSet t ↔ s = t := ofSet_injective.eq_iff
+
+lemma eq_of_mem_ofSet (h : x ~[ofSet s] y) : x = y := by grind
+
+lemma left_mem_of_mem_ofSet (h : x ~[ofSet s] y) : x ∈ s := by grind
+
+lemma right_mem_of_mem_ofSet (h : x ~[ofSet s] y) : y ∈ s := by grind
+
+lemma ofSet_dom_comp (r : SetRel α α) : ofSet r.dom ○ r = r := by
+  grind
+
+lemma comp_ofSet_cod (r : SetRel α α) : r ○ ofSet r.cod = r := by
+  grind
+
 end SetRel
