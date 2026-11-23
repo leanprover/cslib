@@ -275,6 +275,11 @@ lemma IsIntegral.one_ne_bot {α : Type*} [RelationAlgebra α] (h : IsIntegral α
 lemma IsIntegral.nontrivial {α : Type*} [RelationAlgebra α] (h : IsIntegral α) : Nontrivial α where
   exists_pair_ne := ⟨1, ⊥, h.one_ne_bot⟩
 
+lemma one_eq_bot_iff (α : Type*) [RelationAlgebra α] : (1 : α) = ⊥ ↔ Subsingleton α := by
+  refine ⟨fun h ↦ ⟨?_⟩, fun h ↦ (h.eq_one ⊥).symm⟩
+  intro a b
+  rw [← mul_one a, h, mul_bot, ← mul_one b, h, mul_bot]
+
 /-- The set of identity atoms. -/
 def identityAtoms (α : Type*) [RelationAlgebra α] : Set α := {a : α | IsAtom a ∧ a ≤ 1}
 

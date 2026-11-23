@@ -313,10 +313,20 @@ lemma relDom_eq_bot_iff : relDom a = ⊥ ↔ a = ⊥ := by
   refine ⟨fun h ↦ ?_, fun h ↦ h.symm ▸ relDom_bot⟩
   rw [← relDom_mul_self (a := a), h, bot_mul]
 
+lemma relDom_eq_one_iff : relDom a = 1 ↔ a * ⊤ = ⊤ := by
+  rw [relDom, inf_eq_right, eq_top_iff]
+  refine ⟨?_, le_top.trans⟩
+  intro h
+  nth_grw 1 [← one_mul ⊤, h, mul_assoc, mul_self_le_of_trans ⊤]
+
 lemma relCod_bot : relCod (⊥ : α) = ⊥ := by simp [relCod]
 
 lemma relCod_eq_bot_iff : relCod a = ⊥ ↔ a = ⊥ := by
   rw [← star_inj, star_relCod, star_bot, relDom_eq_bot_iff, star_eq_iff_star_eq, star_bot, Eq.comm]
+
+lemma relCod_eq_one_iff : relCod a = 1 ↔ ⊤ * a = ⊤ := by
+  nth_rw 1 [← star_inj, star_one, star_relCod, relDom_eq_one_iff, ← star_top, ← star_mul,
+    star_eq_iff_star_eq, star_top, Eq.comm]
 
 lemma relDom_of_isRelRefl [IsRelRefl a] : relDom a = 1 := by
   apply (le_one_of_corefl <| relDom a).antisymm
@@ -326,37 +336,6 @@ lemma relDom_of_isRelRefl [IsRelRefl a] : relDom a = 1 := by
 lemma relCod_of_isRelRefl [IsRelRefl a] : relCod a = 1 := star_injective <| by
   push star
   exact relDom_of_isRelRefl
-
-lemma IsIntegral.relDom_eq_one (h : IsIntegral α) (ha : a ≠ ⊥) : relDom a = 1 := by
-  have := h.le_iff.mp (le_one_of_corefl <| relDom a)
-  grind [relDom_eq_bot_iff]
-
-/-- A relation algebra is integral iff it is nontrivial, and every non-bot element has full
-domain. -/
-theorem isIntegral_iff_forall_relDom :
-    IsIntegral α ↔ Nontrivial α ∧ ∀ a : α, a ≠ ⊥ → relDom a = 1 := by
-  refine ⟨fun h ↦ ⟨h.nontrivial, fun a ha ↦ h.relDom_eq_one ha⟩, ?_⟩
-  intro ⟨hnt, h⟩
-  rw [IsIntegral, isAtom_iff_le_of_ge]
-  constructor
-  · contrapose! hnt with hone
-    refine (subsingleton_iff_forall_eq ⊥).mpr fun y => ?_
-    rw [← mul_one y, hone, mul_bot]
-  · intro a hbot hle
-    rw [← @relDom_corefl _ _ _ ⟨hle⟩, h a hbot]
-
-lemma IsIntegral.relCod_eq_one (h : IsIntegral α) (ha : a ≠ ⊥) : relCod a = 1 := by
-  have := h.le_iff.mp (le_one_of_corefl <| relCod a)
-  grind [relCod_eq_bot_iff]
-
-/-- A relation algebra is integral iff it is nontrivial, and every non-bot element has full
-codomain. -/
-theorem isIntegral_iff_forall_relCod :
-    IsIntegral α ↔ Nontrivial α ∧ ∀ a : α, a ≠ ⊥ → relCod a = 1 := by
-  refine ⟨fun h ↦ ⟨h.nontrivial, fun a ha ↦ h.relCod_eq_one ha⟩, ?_⟩
-  rw [isIntegral_iff_forall_relDom, and_imp]
-  refine fun hnt h ↦ ⟨hnt, fun a hbot ↦ star_injective ?_⟩
-  grind [star_relDom, star_inj, star_bot]
 
 end Cslib.RelationAlgebra
 
