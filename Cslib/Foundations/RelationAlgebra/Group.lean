@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Representation
+public import Cslib.Foundations.RelationAlgebra.SpecialElements
 public import Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
 public import Mathlib.Algebra.Group.Action.Prod
 public import Mathlib.Algebra.Group.Basic
@@ -72,6 +73,30 @@ variable {G : Type*} [Group G]
 theorem isIntegral_ofGroup : IsIntegral (ComplexAlgebra (ofGroup G)) :=
   (isIntegral_iff _).mpr ⟨1, rfl⟩
 
+lemma ofGroup_isRelRefl_iff (x : ComplexAlgebra (ofGroup G)) : IsRelRefl x ↔ 1 ∈ x := by
+  simp [isRelRefl_iff, IsConcreteLE.le_iff]
+
+lemma ofGroup_isRelSymm_iff (x : ComplexAlgebra (ofGroup G)) :
+    IsRelSymm x ↔ ∀ {g : G}, g ∈ x → g⁻¹ ∈ x := by
+  simp only [isRelSymm_iff, SetLike.ext_iff, mem_star, ofGroup_conv]
+  refine ⟨fun h g ↦ (h g).mpr, fun h g ↦ ⟨?_, h⟩⟩
+  simpa using @h g⁻¹
+
+lemma ofGroup_isRelTrans_iff (x : ComplexAlgebra (ofGroup G)) :
+    IsRelTrans x ↔ ∀ {g₁ g₂ : G}, g₁ ∈ x → g₂ ∈ x → g₁ * g₂ ∈ x := by
+  simp [isRelTrans_iff, IsConcreteLE.le_iff, mem_mul]
+  grind
+
+theorem ofGroup_carrier_eq_subgroup (x : ComplexAlgebra (ofGroup G)) :
+    IsRelRefl x ∧ IsRelSymm x ∧ IsRelTrans x ↔ ∃ H : Subgroup G, (x : Set G) = H := by
+  rw [ofGroup_isRelRefl_iff, ofGroup_isRelSymm_iff, ofGroup_isRelTrans_iff]
+  constructor
+  · intro ⟨hone, hinv, hmul⟩
+    exact ⟨{carrier := x, mul_mem' := hmul, one_mem' := hone, inv_mem' := hinv}, rfl⟩
+  · cases x
+    rintro ⟨H, rfl⟩
+    simp +contextual [H.mul_mem]
+
 variable (G) in
 /-- The Cayley representation of the complex algebra of a group. -/
 def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SetRel G G) where
@@ -114,6 +139,7 @@ theorem _root_.MulAction.set_mem_fixedPoints_iff {G α : Type*} [Group G] [MulAc
   ⟨fun h g => (h g).subset, fun h g => (h g).antisymm (Set.subset_smul_set_iff.mpr (h g⁻¹))⟩
 
 open scoped Pointwise in
+/-- `cayley` represents `ComplexAlgebra (ofGroup G)` by the left-invariant relations on `G`. -/
 theorem range_cayley : Set.range (cayley G) = MulAction.fixedPoints G (SetRel G G) := by
   ext
   simp [↓mem_range_cayley, ↓MulAction.set_mem_fixedPoints_iff, Set.smul_set_subset_iff]
