@@ -81,4 +81,50 @@ def mapEquiv (eα : α ≃ α') (eβ : β ≃ β') : SetRel α β ≃ SetRel α'
 
 end Map
 
+variable {α : Type*} {s : Set α} {r : SetRel α α} {x y : α}
+
+/-- Encode a `s` set as a relation, by relating each element of `s` to itself. -/
+def ofSet (s : Set α) : SetRel α α := {(a, b) | a = b ∧ a ∈ s}
+
+@[simp, grind =] lemma mem_ofSet : x ~[ofSet s] y ↔ x = y ∧ x ∈ s := .rfl
+
+lemma mem_ofSet' : x ~[ofSet s] y ↔ x = y ∧ y ∈ s := by simp +contextual
+
+lemma mem_ofSet_self_iff : x ~[ofSet s] x ↔ x ∈ s := by simp
+
+@[simp] lemma dom_ofSet : (ofSet s).dom = s := by ext; simp
+
+@[simp] lemma cod_ofSet : (ofSet s).cod = s := by ext; simp
+
+lemma ofSet_injective : Function.Injective (α := Set α) ofSet := by
+  intro s t h
+  simpa using congr(SetRel.dom $h)
+
+lemma ofSet_inj {s t : Set α} : ofSet s = ofSet t ↔ s = t := ofSet_injective.eq_iff
+
+lemma ofSet_le_ofSet_iff {s t : Set α} : ofSet s ≤ ofSet t ↔ s ⊆ t := by
+  simp [Set.subset_def]
+
+lemma eq_of_mem_ofSet (h : x ~[ofSet s] y) : x = y := by grind
+
+lemma left_mem_of_mem_ofSet (h : x ~[ofSet s] y) : x ∈ s := by grind
+
+lemma right_mem_of_mem_ofSet (h : x ~[ofSet s] y) : y ∈ s := by grind
+
+lemma ofSet_dom_comp_self (r : SetRel α α) : ofSet r.dom ○ r = r := by
+  grind
+
+lemma self_comp_ofSet_cod (r : SetRel α α) : r ○ ofSet r.cod = r := by
+  grind
+
+lemma mem_ofSet_comp_iff : x ~[ofSet s ○ r] y ↔ x ∈ s ∧ x ~[r] y := by simp
+
+lemma mem_comp_ofSet_iff : x ~[r ○ ofSet s] y ↔ y ∈ s ∧ x ~[r] y := by simp [and_comm]
+
+lemma comp_ofSet_eq_self_iff : ofSet s ○ r = r ↔ r.dom ⊆ s := by
+  grind
+
+lemma ofSet_comp_eq_self_iff : r ○ ofSet s = r ↔ r.cod ⊆ s := by
+  grind
+
 end SetRel
