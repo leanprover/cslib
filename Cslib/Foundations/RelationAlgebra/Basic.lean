@@ -275,10 +275,14 @@ def symmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
 def nonsymmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
   {a : α | IsAtom a ∧ star a ≠ a}
 
+theorem _root_.IsAtom.le_compl_iff {α : Type*} [HeytingAlgebra α] {a b : α} (ha : IsAtom a) :
+    a ≤ bᶜ ↔ ¬a ≤ b := by
+  rw [le_compl_iff_disjoint_right, ha.not_le_iff_disjoint]
+
 /-- Every nonsymmetric atom lies below the complement of identity. -/
 theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
     (h : a ∈ nonsymmetricDiversityAtoms α) : a ≤ 1ᶜ := by
-  rw [le_compl_iff_disjoint_right, ← h.1.not_le_iff_disjoint]
+  rw [h.1.le_compl_iff]
   intro ha
   have hstar : a ≤ star a := by calc
      a = a * 1 ⊓ 1 := by rw [mul_one, inf_eq_left.mpr ha]
@@ -297,17 +301,14 @@ theorem disjoint_identityAtoms_symmetricDiversityAtoms :
     Disjoint (identityAtoms α) (symmetricDiversityAtoms α) := by
   rw [Set.disjoint_left]
   rintro a ⟨ha, hle⟩ ⟨-, hle', -⟩
-  rw [le_compl_iff_disjoint_right, ← ha.not_le_iff_disjoint] at hle'
-  exact hle' hle
+  exact ha.le_compl_iff.mp hle' hle
 
 @[simp]
 theorem disjoint_identityAtoms_nonsymmetricDiversityAtoms :
     Disjoint (identityAtoms α) (nonsymmetricDiversityAtoms α) := by
   rw [Set.disjoint_left]
   rintro a ⟨ha, hle⟩ hb
-  have hle' := le_compl_one_of_mem_nonsymmetricDiversityAtoms hb
-  rw [le_compl_iff_disjoint_right, ← ha.not_le_iff_disjoint] at hle'
-  exact hle' hle
+  exact ha.le_compl_iff.mp (le_compl_one_of_mem_nonsymmetricDiversityAtoms hb) hle
 
 @[simp]
 theorem disjoint_symmetricDiversityAtoms_nonsymmetricDiversityAtoms :
@@ -319,9 +320,7 @@ theorem disjoint_symmetricDiversityAtoms_nonsymmetricDiversityAtoms :
 theorem setOf_isAtom_eq : {a : α | IsAtom a} =
     identityAtoms α ∪ symmetricDiversityAtoms α ∪ nonsymmetricDiversityAtoms α := by
   ext a
-  have := @le_compl_iff_disjoint_right α _ a 1
-  have := fun ha : IsAtom a => ha.not_le_iff_disjoint (b := 1)
-  grind [identityAtoms, symmetricDiversityAtoms, nonsymmetricDiversityAtoms]
+  grind [identityAtoms, symmetricDiversityAtoms, nonsymmetricDiversityAtoms, IsAtom.le_compl_iff]
 
 theorem identityAtoms_eq_of_isIntegral (h : IsIntegral α) : identityAtoms α = {1} := by
   ext a
