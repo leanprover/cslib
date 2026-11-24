@@ -175,7 +175,7 @@ theorem ncard_nonsymmetricDiversityAtoms_ofCycles (g : Set (Cycle s n))
 
 end IntegralAtom
 
-/-- A bundled type for finite integral relation algebra. This is useful for stating theorems about
+/-- A bundled type for finite integral relation algebras. This is useful for stating theorems about
 the number of algebras up to isomorphism. -/
 structure IntegralAlgebra where
   /-- The underlying type of the algebra. -/
@@ -278,7 +278,7 @@ theorem encard_ofAtoms_succ_eq_sum_ofType (k : ℕ) :
 ### Counts of isomorphism classes
 
 The following statements are all of the known counts of isomorphism
-classes finite integral relation algebras, by type and by number of atoms.
+classes of finite integral relation algebras, by type and by number of atoms.
 
 They will certainly be too computationally expensive to prove here, but we
 provide their statements as a reference. Proofs of the `ofAtoms` statements can start with
