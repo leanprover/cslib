@@ -7,6 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.SpecialElements
 public import Mathlib.Data.Fintype.Powerset
 public import Mathlib.Order.BooleanAlgebra.Set
 
@@ -162,6 +163,20 @@ theorem mem_mul : a ∈ x * y ↔ ∃ r ∈ x, ∃ s ∈ y, (r, s, a) ∈ A.cycl
 @[simp, grind =]
 theorem mem_star [LawfulAtomStructure A] : a ∈ star x ↔ A.conv a ∈ x :=
   Set.mem_image_iff_of_inverse A.conv_conv A.conv_conv
+
+protected theorem isRelRefl_iff (x : ComplexAlgebra A) : IsRelRefl x ↔ A.id ⊆ x := by
+  simp [isRelRefl_iff, IsConcreteLE.le_iff]
+
+protected theorem isRelSymm_iff [LawfulAtomStructure A] (x : ComplexAlgebra A) :
+    IsRelSymm x ↔ ∀ {a : α}, a ∈ x → A.conv a ∈ x := by
+  simp_rw [isRelSymm_iff, SetLike.ext_iff, mem_star]
+  refine ⟨fun h a ↦ (h a).mpr, fun h a ↦ ⟨?_, h⟩⟩
+  simpa using @h (A.conv a)
+
+protected theorem isRelTrans_iff (x : ComplexAlgebra A) :
+    IsRelTrans x ↔ ∀ {a b c : α}, a ∈ x → b ∈ x → (a, b, c) ∈ A.cycles → c ∈ x := by
+  simp [isRelTrans_iff, IsConcreteLE.le_iff, mem_mul]
+  grind
 
 @[simp, norm_cast]
 theorem coe_singleton : (({a} : ComplexAlgebra A) : Set α) = {a} := rfl
