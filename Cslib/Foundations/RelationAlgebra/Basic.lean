@@ -41,7 +41,7 @@ class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul
   tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
 
 attribute [simp] RelationAlgebra.star_sup
-attribute [push] RelationAlgebra.star_sup StarMul.star_mul star_star
+attribute [push] RelationAlgebra.star_sup StarMul.star_mul star_star star_one
 
 /-- The relation algebra of a complete Boolean algebra. -/
 class CompleteRelationAlgebra (α : Type*) extends RelationAlgebra α, CompleteBooleanAlgebra α
@@ -138,6 +138,8 @@ instance : MulRightMono α where
 theorem mul_bot (a : α) : a * ⊥ = ⊥ :=
   eq_bot_mono (mul_le_mul_right bot_le a) (by simpa using tarski (star a) ⊤)
 
+@[simp] theorem bot_mul (a : α) : ⊥ * a = ⊥ := star_injective <| by simp
+
 theorem inf_mul_le (a b c : α) : (a ⊓ b) * c ≤ a * c ⊓ b * c := by
   nth_grw 1 [le_inf_iff, inf_le_left, inf_le_right]
   exact ⟨le_rfl, le_rfl⟩
@@ -162,6 +164,11 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
 theorem right_modular (a b c : α) : a * b ⊓ c ≤ (a ⊓ c * star b) * b := by
   rw [← star_le_star_iff]
   simpa using left_modular (star b) (star a) (star c)
+
+lemma le_mul_star_mul (a : α) : a ≤ a * star a * a := by calc
+  a ≤ a * ⊤ ⊓ a := by grw [← le_top (a := 1)]; simp
+  _ ≤ a * (⊤ ⊓ star a * a) := left_modular a ⊤ a
+  _ = a * star a * a := by simp [mul_assoc]
 
 theorem mul_le_compl_right (a b c : α) : a * b ≤ cᶜ ↔ star a * c ≤ bᶜ := by
   have h (x y z : α) (h : x * y ≤ zᶜ) : star x * z ≤ yᶜ := by grw [← tarski x y, h, compl_compl]
@@ -261,6 +268,17 @@ theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : 
 
 /-- A relation algebra is *integral* when its identity is an atom. -/
 def IsIntegral (α : Type*) [RelationAlgebra α] : Prop := IsAtom (1 : α)
+
+lemma IsIntegral.one_ne_bot {α : Type*} [RelationAlgebra α] (h : IsIntegral α) : (1 : α) ≠ ⊥ :=
+  h.ne_bot
+
+lemma IsIntegral.nontrivial {α : Type*} [RelationAlgebra α] (h : IsIntegral α) : Nontrivial α where
+  exists_pair_ne := ⟨1, ⊥, h.one_ne_bot⟩
+
+lemma one_eq_bot_iff (α : Type*) [RelationAlgebra α] : (1 : α) = ⊥ ↔ Subsingleton α := by
+  refine ⟨fun h ↦ ⟨?_⟩, fun h ↦ (h.eq_one ⊥).symm⟩
+  intro a b
+  rw [← mul_one a, h, mul_bot, ← mul_one b, h, mul_bot]
 
 /-- The set of identity atoms. -/
 def identityAtoms (α : Type*) [RelationAlgebra α] : Set α := {a : α | IsAtom a ∧ a ≤ 1}
