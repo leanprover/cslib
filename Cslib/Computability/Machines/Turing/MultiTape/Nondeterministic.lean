@@ -145,6 +145,10 @@ lemma length_output_mono (p : ntm.RunPath input) :
   have : ntm.Step (p i.castSucc) (p i.succ) := p.step i
   grind [Step, Action.apply_output]
 
+/-- Once halted, a run path stays halted. -/
+lemma halted_mono (p : ntm.RunPath input) : Monotone fun i ↦ (p i).Halted :=
+  Fin.monotone_iff_le_succ.mpr fun i h ↦ (step_of_halt h).mp (p.step i) ▸ h
+
 /-- Once a run path is halted, its configuration stays unchanged. -/
 lemma last_eq_of_head_halted (p : ntm.RunPath input) (h : p.head.Halted) : p.last = p.head := by
   induction p using RelSeries.inductionOn' with
@@ -184,6 +188,15 @@ structure ComputationPath (ntm : MultiTapeNTM k Symbol State) (input : List Symb
   head_eq : toRunPath.head = ntm.initCfg input
 
 namespace ComputationPath
+
+/-- A computation path is a function from its indices to configurations, as a run path. -/
+instance : CoeFun (ntm.ComputationPath input)
+    (fun p ↦ Fin (p.length + 1) → Cfg k Symbol State input) :=
+  ⟨fun p ↦ p.toRunPath⟩
+
+/-- The configurations of a computation path are those of its run path. -/
+instance : Membership (Cfg k Symbol State input) (ntm.ComputationPath input) :=
+  ⟨fun p c ↦ c ∈ p.toRunPath⟩
 
 /-- The number of steps taken by a computation path. -/
 def time (p : ntm.ComputationPath input) : ℕ := RunPath.time p.toRunPath
