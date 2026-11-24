@@ -9,7 +9,6 @@ module
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Mathlib.Algebra.BigOperators.NatAntidiagonal
 public import Mathlib.Data.Set.Card.Arithmetic
-public import Mathlib.Tactic.DeriveFintype
 
 /-!
 # Integral atom structures
@@ -30,22 +29,37 @@ shown to be associative.
 
 namespace Cslib.RelationAlgebra
 
+universe u
+
 /--
 The atoms of an integral atom structure: the identity atom, `s` symmetric diversity (non-identity)
 atoms, and `n` pairs of nonsymmetric atoms.
 -/
-inductive IntegralAtom (s n : ℕ) where
+inductive IntegralAtom (s n : ℕ) : Type u where
   /-- The identity atom. -/
   | one
   /-- A symmetric diversity atom. -/
   | symm (i : Fin s)
   /-- A nonsymmetric atom. `nsymm i true` is the converse of `nsymm i false`. -/
   | nsymm (i : Fin n) (conv : Bool)
-  deriving DecidableEq, Fintype
+  deriving DecidableEq
 
 namespace IntegralAtom
 
 variable {s n : ℕ}
+
+instance : Fintype (IntegralAtom.{u} s n) :=
+  .ofEquiv (Option (Fin s ⊕ Fin n × Bool)) {
+    toFun
+      | none => one
+      | some (.inl i) => symm i
+      | some (.inr (i, b)) => nsymm i b
+    invFun
+      | one => none
+      | symm i => some (.inl i)
+      | nsymm i b => some (.inr (i, b))
+    left_inv := by rintro (_ | _ | ⟨_, _⟩) <;> rfl
+    right_inv := by rintro (_ | _ | _) <;> rfl }
 
 /-- The converse of an atom, where just nonsymmetric atoms are flipped. -/
 def conv : IntegralAtom s n → IntegralAtom s n
@@ -54,7 +68,7 @@ def conv : IntegralAtom s n → IntegralAtom s n
   | nsymm i b => nsymm i (!b)
 
 /-- An integral cycle is a triple of integral atoms. -/
-abbrev Cycle (s n : ℕ) := IntegralAtom s n × IntegralAtom s n × IntegralAtom s n
+abbrev Cycle (s n : ℕ) := IntegralAtom.{u} s n × IntegralAtom.{u} s n × IntegralAtom.{u} s n
 
 /-- The left cycle transformation: `t ≤ r * u` implies `u ≤ conv r * t` -/
 def Cycle.left : Cycle s n → Cycle s n
@@ -161,8 +175,6 @@ theorem ncard_nonsymmetricDiversityAtoms_ofCycles (g : Set (Cycle s n))
 
 end IntegralAtom
 
-universe u
-
 /-- A bundled type for finite integral relation algebra. This is useful for stating theorems about
 the number of algebras up to isomorphism. -/
 structure IntegralAlgebra where
@@ -243,9 +255,10 @@ atoms. This is an abbrev for the convenience of matching the usual convention wi
 more complicated. -/
 abbrev ofType (s n : ℕ) : Set IsoClass := ofCounts s (2 * n)
 
-theorem mk_complexAlgebra_ofCycles_mem_ofType {s n : ℕ} (g : Set (IntegralAtom.Cycle s n))
+theorem mk_complexAlgebra_ofCycles_mem_ofType {s n : ℕ} (g : Set (IntegralAtom.Cycle.{u} s n))
     [LawfulAtomStructure (IntegralAtom.ofCycles g)] :
-    ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ ∈ ofType s n :=
+    ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ ∈
+      ofType.{u} s n :=
   mk_mem_ofCounts_iff.mpr ⟨IntegralAtom.ncard_symmetricDiversityAtoms_ofCycles g,
     IntegralAtom.ncard_nonsymmetricDiversityAtoms_ofCycles g⟩
 
@@ -261,11 +274,6 @@ theorem encard_ofAtoms_succ_eq_sum_ofType (k : ℕ) :
     exact hj' ⟨(j - k % 2) / 2, by grind, by grind⟩
   · grind
 
-/-- Expand `ofAtoms` to a sum of `ofType`. -/
-macro (name := expandOfAtoms) "expand_ofAtoms" : tactic => `(tactic|
-  simp only [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ, Finset.sum_range_zero,
-    zero_add, Nat.reduceDiv, Nat.reduceMod, Nat.reduceMul, Nat.reduceAdd, Nat.reduceSub])
-
 /-!
 ### Counts of isomorphism classes
 
@@ -273,7 +281,9 @@ The following statements are all of the known counts of isomorphism
 classes finite integral relation algebras, by type and by number of atoms.
 
 They will certainly be too computationally expensive to prove here, but we
-provide their statements as a reference.
+provide their statements as a reference. Proofs of the `ofAtoms` statements can start with
+`simp [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ]` and then get use each of
+the `ofType` results.
 -/
 
 proof_wanted encard_ofType_zero_zero : (ofType 0 0).encard = 1
