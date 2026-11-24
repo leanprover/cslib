@@ -292,7 +292,7 @@ classes of finite integral relation algebras, by type and by number of atoms.
 
 They will certainly be too computationally expensive to prove here, but we
 provide their statements as a reference. Proofs of the `ofAtoms` statements can start with
-`simp [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ]` and then get use each of
+`simp [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ]` and then use each of
 the `ofType` results.
 -/
 
