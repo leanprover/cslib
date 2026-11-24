@@ -26,7 +26,6 @@ public section
 
 -- Missing from core
 
-@[nolint topNamespace]
 theorem _root_.Id.pure_injective : Function.Injective (pure : α → Id α) :=
   fun _ _ => Id.ext_iff.1
 
