@@ -161,6 +161,20 @@ theorem mem_mul : a ∈ x * y ↔ ∃ r ∈ x, ∃ s ∈ y, (r, s, a) ∈ A.cycl
 theorem mem_star [LawfulAtomStructure A] : a ∈ star x ↔ A.conv a ∈ x :=
   Set.mem_image_iff_of_inverse A.conv_conv A.conv_conv
 
+protected theorem isRelRefl_iff (x : ComplexAlgebra A) : IsRelRefl x ↔ A.id ⊆ x := by
+  simp [isRelRefl_iff, IsConcreteLE.le_iff]
+
+protected theorem isRelSymm_iff [LawfulAtomStructure A] (x : ComplexAlgebra A) :
+    IsRelSymm x ↔ ∀ {a : α}, a ∈ x → A.conv a ∈ x := by
+  simp_rw [isRelSymm_iff, SetLike.ext_iff, mem_star]
+  refine ⟨fun h a ↦ (h a).mpr, fun h a ↦ ⟨?_, h⟩⟩
+  simpa using @h (A.conv a)
+
+protected theorem isRelTrans_iff (x : ComplexAlgebra A) :
+    IsRelTrans x ↔ ∀ {a b c : α}, a ∈ x → b ∈ x → (a, b, c) ∈ A.cycles → c ∈ x := by
+  simp [isRelTrans_iff, IsConcreteLE.le_iff, mem_mul]
+  grind
+
 end
 
 variable [LawfulAtomStructure A]
@@ -180,20 +194,6 @@ instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 /-- A complex algebra is integral exactly when its identity set is a singleton. -/
 theorem isIntegral_iff : IsIntegral (ComplexAlgebra A) ↔ ∃ a, A.id = {a} :=
   ((orderIsoSet A).isAtom_iff (1 : ComplexAlgebra A)).symm.trans Set.isAtom_iff
-
-protected theorem isRelRefl_iff (x : ComplexAlgebra A) : IsRelRefl x ↔ A.id ⊆ x := by
-  simp [isRelRefl_iff, IsConcreteLE.le_iff]
-
-protected theorem isRelSymm_iff (x : ComplexAlgebra A) :
-    IsRelSymm x ↔ ∀ {a : α}, a ∈ x → A.conv a ∈ x := by
-  simp_rw [isRelSymm_iff, SetLike.ext_iff, mem_star]
-  refine ⟨fun h a ↦ (h a).mpr, fun h a ↦ ⟨?_, h⟩⟩
-  simpa using @h (A.conv a)
-
-protected theorem isRelTrans_iff (x : ComplexAlgebra A) :
-    IsRelTrans x ↔ ∀ {a b c : α}, a ∈ x → b ∈ x → (a, b, c) ∈ A.cycles → c ∈ x := by
-  simp [isRelTrans_iff, IsConcreteLE.le_iff, mem_mul]
-  grind
 
 end ComplexAlgebra
 

@@ -8,7 +8,6 @@ module
 
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Representation
-public import Cslib.Foundations.RelationAlgebra.SpecialElements
 public import Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
 public import Mathlib.Algebra.Group.Action.Prod
 public import Mathlib.Algebra.Group.Basic
@@ -77,11 +76,11 @@ lemma ofGroup_isRelRefl_iff (x : ComplexAlgebra (ofGroup G)) : IsRelRefl x ↔ 1
   simp [isRelRefl_iff, IsConcreteLE.le_iff]
 
 lemma ofGroup_isRelSymm_iff (x : ComplexAlgebra (ofGroup G)) :
-  IsRelSymm x ↔ ∀ {g : G}, g ∈ x → g⁻¹ ∈ x := ComplexAlgebra.isRelSymm_iff (ofGroup G) x
+  IsRelSymm x ↔ ∀ {g : G}, g ∈ x → g⁻¹ ∈ x := ComplexAlgebra.isRelSymm_iff x
 
 lemma ofGroup_isRelTrans_iff (x : ComplexAlgebra (ofGroup G)) :
     IsRelTrans x ↔ ∀ {g₁ g₂ : G}, g₁ ∈ x → g₂ ∈ x → g₁ * g₂ ∈ x := by
-  simp [ComplexAlgebra.isRelTrans_iff (ofGroup G)]
+  simp [ComplexAlgebra.isRelTrans_iff]
 
 theorem ofGroup_carrier_eq_subgroup (x : ComplexAlgebra (ofGroup G)) :
     IsRelRefl x ∧ IsRelSymm x ∧ IsRelTrans x ↔ ∃ H : Subgroup G, (x : Set G) = H := by
