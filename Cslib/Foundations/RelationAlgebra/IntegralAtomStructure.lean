@@ -301,54 +301,68 @@ provide their statements as a reference. Proofs of the `ofAtoms` statements can 
 the `ofType` results.
 -/
 
-proof_wanted encard_ofType_zero_zero : (ofType 0 0).encard = 1
+theorem_wanted encard_ofType_zero_zero : (ofType 0 0).encard = 1
 
-proof_wanted encard_ofAtoms_one : (ofAtoms 1).encard = 1
+theorem_wanted encard_ofAtoms_one : (ofAtoms.{u} 1).encard = 1 := by
+  simpa [encard_ofAtoms_succ_eq_sum_ofType] using (❰encard_ofType_zero_zero❱)
 
-proof_wanted encard_ofType_one_zero : (ofType 1 0).encard = 2
+theorem_wanted encard_ofType_one_zero : (ofType 1 0).encard = 2
 
-proof_wanted encard_ofAtoms_two : (ofAtoms 2).encard = 2
+theorem_wanted encard_ofAtoms_two : (ofAtoms.{u} 2).encard = 2 := by
+  simpa [encard_ofAtoms_succ_eq_sum_ofType] using (❰encard_ofType_one_zero❱)
 
-proof_wanted encard_ofType_zero_one : (ofType 0 1).encard = 3
+theorem_wanted encard_ofType_zero_one : (ofType 0 1).encard = 3
 
-proof_wanted encard_ofType_two_zero : (ofType 2 0).encard = 7
+theorem_wanted encard_ofType_two_zero : (ofType 2 0).encard = 7
 
-proof_wanted encard_ofAtoms_three : (ofAtoms 3).encard = 3 + 7
+theorem_wanted encard_ofAtoms_three : (ofAtoms.{u} 3).encard = 10 := by
+  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofType_zero_one❱) + $(❰encard_ofType_two_zero❱))
 
-proof_wanted encard_ofType_one_one : (ofType 1 1).encard = 37
+theorem_wanted encard_ofType_one_one : (ofType 1 1).encard = 37
 
-proof_wanted encard_ofType_three_zero : (ofType 3 0).encard = 65
+theorem_wanted encard_ofType_three_zero : (ofType 3 0).encard = 65
 
-proof_wanted encard_ofAtoms_four : (ofAtoms 4).encard = 37 + 65
+theorem_wanted encard_ofAtoms_four : (ofAtoms.{u} 4).encard = 102 := by
+  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofType_one_one❱) + $(❰encard_ofType_three_zero❱))
 
-proof_wanted encard_ofType_zero_two : (ofType 0 2).encard = 83
+theorem_wanted encard_ofType_zero_two : (ofType 0 2).encard = 83
 
-proof_wanted encard_ofType_two_one : (ofType 2 1).encard = 1316
+theorem_wanted encard_ofType_two_one : (ofType 2 1).encard = 1316
 
-proof_wanted encard_ofType_four_zero : (ofType 4 0).encard = 3013
+theorem_wanted encard_ofType_four_zero : (ofType 4 0).encard = 3013
 
-proof_wanted encard_ofAtoms_five : (ofAtoms 5).encard = 83 + 1316 + 3013
+theorem_wanted encard_ofAtoms_five : (ofAtoms.{u} 5).encard = 4412 := by
+  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofType_zero_two❱) + $(❰encard_ofType_two_one❱) +
+      $(❰encard_ofType_four_zero❱))
 
-proof_wanted encard_ofType_one_two : (ofType 1 2).encard = 47965
+theorem_wanted encard_ofType_one_two : (ofType 1 2).encard = 47965
 
-proof_wanted encard_ofType_three_one : (ofType 3 1).encard = 988464
+theorem_wanted encard_ofType_three_one : (ofType 3 1).encard = 988464
 
-proof_wanted encard_ofType_five_zero : (ofType 5 0).encard = 3849920
+theorem_wanted encard_ofType_five_zero : (ofType 5 0).encard = 3849920
 
-proof_wanted encard_ofAtoms_six : (ofAtoms 6).encard = 47965 + 988464 + 3849920
+theorem_wanted encard_ofAtoms_six : (ofAtoms.{u} 6).encard = 4886349 := by
+  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofType_one_two❱) + $(❰encard_ofType_three_one❱) +
+      $(❰encard_ofType_five_zero❱))
 
-proof_wanted encard_ofType_zero_three : (ofType 0 3).encard = 4492953
+theorem_wanted encard_ofType_zero_three : (ofType 0 3).encard = 4492953
 
-proof_wanted encard_ofType_two_two : (ofType 2 2).encard = 2186435732
+theorem_wanted encard_ofType_two_two : (ofType 2 2).encard = 2186435732
 
-proof_wanted encard_ofType_four_one : (ofType 4 1).encard = 50265788140
+theorem_wanted encard_ofType_four_one : (ofType 4 1).encard = 50265788140
 
-proof_wanted encard_ofType_six_zero : (ofType 6 0).encard = 292352449486
+theorem_wanted encard_ofType_six_zero : (ofType 6 0).encard = 292352449486
 
-proof_wanted encard_ofAtoms_seven :
-    (ofAtoms 7).encard = 4492953 + 2186435732 + 50265788140 + 292352449486
+theorem_wanted encard_ofAtoms_seven : (ofAtoms.{u} 7).encard = 344809166311 := by
+  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofType_zero_three❱) + $(❰encard_ofType_two_two❱) +
+      $(❰encard_ofType_four_one❱) + $(❰encard_ofType_six_zero❱))
 
-proof_wanted encard_ofType_one_three : (ofType 1 3).encard = 52506245239168
+theorem_wanted encard_ofType_one_three : (ofType 1 3).encard = 52506245239168
 
 end IsoClass
 
