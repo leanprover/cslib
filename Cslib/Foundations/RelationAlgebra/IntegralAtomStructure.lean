@@ -203,12 +203,12 @@ attribute [instance] IntegralAlgebra.relationAlgebra IntegralAlgebra.finite
 
 namespace IntegralAlgebra
 
-instance setoid : Setoid IntegralAlgebra where
+protected instance setoid : Setoid IntegralAlgebra where
   r A B := Nonempty (RelationAlgebraEquiv A.carrier B.carrier)
   iseqv := ⟨fun _ => ⟨.refl _⟩, fun ⟨e⟩ => ⟨e.symm⟩, fun ⟨e⟩ ⟨f⟩ => ⟨e.trans f⟩⟩
 
 /-- Isomorphism classes of finite integral relation algebras. -/
-abbrev IsoClass : Type (u + 1) := Quotient setoid
+abbrev IsoClass : Type (u + 1) := Quotient IntegralAlgebra.setoid
 
 namespace IsoClass
 
