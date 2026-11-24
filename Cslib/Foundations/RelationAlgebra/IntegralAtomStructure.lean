@@ -29,13 +29,11 @@ shown to be associative.
 
 namespace Cslib.RelationAlgebra
 
-universe u
-
 /--
 The atoms of an integral atom structure: the identity atom, `s` symmetric diversity (non-identity)
 atoms, and `n` pairs of nonsymmetric atoms.
 -/
-inductive IntegralAtom (s n : ℕ) : Type u where
+inductive IntegralAtom (s n : ℕ) : Type where
   /-- The identity atom. -/
   | one
   /-- A symmetric diversity atom. -/
@@ -49,7 +47,7 @@ namespace IntegralAtom
 variable {s n : ℕ}
 
 /-- `IntegralAtom n s` as a sum. -/
-def equivOptionSum : IntegralAtom.{u} s n ≃ Option (Fin s ⊕ Fin n × Bool) where
+def equivOptionSum : IntegralAtom s n ≃ Option (Fin s ⊕ Fin n × Bool) where
   toFun
     | one => none
     | symm i => some (.inl i)
@@ -61,7 +59,7 @@ def equivOptionSum : IntegralAtom.{u} s n ≃ Option (Fin s ⊕ Fin n × Bool) w
   left_inv := by rintro (_ | _ | _) <;> rfl
   right_inv := by rintro (_ | _ | ⟨_, _⟩) <;> rfl
 
-instance : Fintype (IntegralAtom.{u} s n) := .ofEquiv _ equivOptionSum.symm
+instance : Fintype (IntegralAtom s n) := .ofEquiv _ equivOptionSum.symm
 
 /-- The converse of an atom, where just nonsymmetric atoms are flipped. -/
 def conv : IntegralAtom s n → IntegralAtom s n
@@ -70,7 +68,7 @@ def conv : IntegralAtom s n → IntegralAtom s n
   | nsymm i b => nsymm i (!b)
 
 /-- An integral cycle is a triple of integral atoms. -/
-abbrev Cycle (s n : ℕ) := IntegralAtom.{u} s n × IntegralAtom.{u} s n × IntegralAtom.{u} s n
+abbrev Cycle (s n : ℕ) := IntegralAtom s n × IntegralAtom s n × IntegralAtom s n
 
 /-- The left cycle transformation: `t ≤ r * u` implies `u ≤ conv r * t` -/
 def Cycle.left : Cycle s n → Cycle s n
@@ -194,7 +192,7 @@ end IntegralAtom
 the number of algebras up to isomorphism. -/
 structure IntegralAlgebra where
   /-- The underlying type of the algebra. -/
-  carrier : Type u
+  carrier : Type
   [relationAlgebra : RelationAlgebra carrier]
   [finite : Finite carrier]
   isIntegral : IsIntegral carrier
@@ -208,7 +206,7 @@ protected instance setoid : Setoid IntegralAlgebra where
   iseqv := ⟨fun _ => ⟨.refl _⟩, fun ⟨e⟩ => ⟨e.symm⟩, fun ⟨e⟩ ⟨f⟩ => ⟨e.trans f⟩⟩
 
 /-- Isomorphism classes of finite integral relation algebras. -/
-abbrev IsoClass : Type (u + 1) := Quotient IntegralAlgebra.setoid
+abbrev IsoClass : Type 1 := Quotient IntegralAlgebra.setoid
 
 namespace IsoClass
 
@@ -259,7 +257,7 @@ theorem pairwiseDisjoint_ofCounts {t : Set (ℕ × ℕ)} :
   exact Prod.ext (hs.symm.trans hs') (hm.symm.trans hm')
 
 theorem encard_ofAtoms_succ (k : ℕ) :
-    (ofAtoms.{u} (k + 1)).encard = ∑ p ∈ Finset.antidiagonal k, (ofCounts.{u} p.1 p.2).encard := by
+    (ofAtoms (k + 1)).encard = ∑ p ∈ Finset.antidiagonal k, (ofCounts p.1 p.2).encard := by
   rw [← finsum_mem_coe_finset, ← (Finset.finite_toSet _).encard_biUnion pairwiseDisjoint_ofCounts]
   congr 1 with q
   simp [mem_ofAtoms_iff]
@@ -270,30 +268,30 @@ atoms. This is an abbrev for the convenience of matching the usual convention wi
 more complicated. -/
 abbrev ofSymmNsymm (s n : ℕ) : Set IsoClass := ofCounts s (2 * n)
 
-theorem mk_complexAlgebra_ofCycles_mem_ofSymmNsymm {s n : ℕ} (g : Set (IntegralAtom.Cycle.{u} s n))
+theorem mk_complexAlgebra_ofCycles_mem_ofSymmNsymm {s n : ℕ} (g : Set (IntegralAtom.Cycle s n))
     [LawfulAtomStructure (IntegralAtom.ofCycles g)] :
     ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ ∈
-      ofSymmNsymm.{u} s n :=
+      ofSymmNsymm s n :=
   mk_mem_ofCounts_iff.mpr ⟨IntegralAtom.ncard_symmetricDiversityAtoms_ofCycles g,
     IntegralAtom.ncard_nonsymmetricDiversityAtoms_ofCycles g⟩
 
-theorem_wanted exists_ofCycles_of_mem_ofSymmNsymm {s n : ℕ} {q : IsoClass.{u}}
+theorem_wanted exists_ofCycles_of_mem_ofSymmNsymm {s n : ℕ} {q : IsoClass}
     (hq : q ∈ ofSymmNsymm s n) :
-    ∃ (g : Set (IntegralAtom.Cycle.{u} s n)) (_ : LawfulAtomStructure (IntegralAtom.ofCycles g)),
+    ∃ (g : Set (IntegralAtom.Cycle s n)) (_ : LawfulAtomStructure (IntegralAtom.ofCycles g)),
       ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ = q
 
 /-- The isomorphism classes with `s` symmetric diversity atoms and `n` pairs of nonsymmetric atoms 
 are exactly those of the complex algebras of `IntegralAtom.ofCycles`. -/
-theorem_wanted mem_ofSymmNsymm_iff {s n : ℕ} {q : IsoClass.{u}} :
+theorem_wanted mem_ofSymmNsymm_iff {s n : ℕ} {q : IsoClass} :
     q ∈ ofSymmNsymm s n ↔
-      ∃ (g : Set (IntegralAtom.Cycle.{u} s n)) (_ : LawfulAtomStructure (IntegralAtom.ofCycles g)),
+      ∃ (g : Set (IntegralAtom.Cycle s n)) (_ : LawfulAtomStructure (IntegralAtom.ofCycles g)),
         ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ = q :=
   ⟨fun hq => ❰exists_ofCycles_of_mem_ofSymmNsymm❱ hq,
     fun ⟨g, _, h⟩ => h ▸ mk_complexAlgebra_ofCycles_mem_ofSymmNsymm g⟩
 
 theorem encard_ofAtoms_succ_eq_sum_ofSymmNsymm (k : ℕ) :
-    (ofAtoms.{u} (k + 1)).encard =
-      ∑ i ∈ Finset.range (k / 2 + 1), (ofSymmNsymm.{u} (k % 2 + 2 * i) (k / 2 - i)).encard := by
+    (ofAtoms (k + 1)).encard =
+      ∑ i ∈ Finset.range (k / 2 + 1), (ofSymmNsymm (k % 2 + 2 * i) (k / 2 - i)).encard := by
   rw [encard_ofAtoms_succ, Finset.Nat.sum_antidiagonal_eq_sum_range_succ_mk]
   refine (Finset.sum_of_injOn (k % 2 + 2 * ·) ?_ ?_ (fun j hj hj' => ?_) fun i hi => ?_).symm
   · grind [Set.InjOn]
@@ -317,19 +315,19 @@ the `ofSymmNsymm` results.
 
 theorem_wanted encard_ofSymmNsymm_zero_zero : (ofSymmNsymm 0 0).encard = 1
 
-theorem_wanted encard_ofAtoms_one : (ofAtoms.{u} 1).encard = 1 := by
+theorem_wanted encard_ofAtoms_one : (ofAtoms 1).encard = 1 := by
   simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm] using (❰encard_ofSymmNsymm_zero_zero❱)
 
 theorem_wanted encard_ofSymmNsymm_one_zero : (ofSymmNsymm 1 0).encard = 2
 
-theorem_wanted encard_ofAtoms_two : (ofAtoms.{u} 2).encard = 2 := by
+theorem_wanted encard_ofAtoms_two : (ofAtoms 2).encard = 2 := by
   simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm] using (❰encard_ofSymmNsymm_one_zero❱)
 
 theorem_wanted encard_ofSymmNsymm_zero_one : (ofSymmNsymm 0 1).encard = 3
 
 theorem_wanted encard_ofSymmNsymm_two_zero : (ofSymmNsymm 2 0).encard = 7
 
-theorem_wanted encard_ofAtoms_three : (ofAtoms.{u} 3).encard = 10 := by
+theorem_wanted encard_ofAtoms_three : (ofAtoms 3).encard = 10 := by
   simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
     mod_cast congr($(❰encard_ofSymmNsymm_zero_one❱) + $(❰encard_ofSymmNsymm_two_zero❱))
 
@@ -337,7 +335,7 @@ theorem_wanted encard_ofSymmNsymm_one_one : (ofSymmNsymm 1 1).encard = 37
 
 theorem_wanted encard_ofSymmNsymm_three_zero : (ofSymmNsymm 3 0).encard = 65
 
-theorem_wanted encard_ofAtoms_four : (ofAtoms.{u} 4).encard = 102 := by
+theorem_wanted encard_ofAtoms_four : (ofAtoms 4).encard = 102 := by
   simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
     mod_cast congr($(❰encard_ofSymmNsymm_one_one❱) + $(❰encard_ofSymmNsymm_three_zero❱))
 
@@ -347,7 +345,7 @@ theorem_wanted encard_ofSymmNsymm_two_one : (ofSymmNsymm 2 1).encard = 1316
 
 theorem_wanted encard_ofSymmNsymm_four_zero : (ofSymmNsymm 4 0).encard = 3013
 
-theorem_wanted encard_ofAtoms_five : (ofAtoms.{u} 5).encard = 4412 := by
+theorem_wanted encard_ofAtoms_five : (ofAtoms 5).encard = 4412 := by
   simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
     mod_cast congr($(❰encard_ofSymmNsymm_zero_two❱) + $(❰encard_ofSymmNsymm_two_one❱) +
       $(❰encard_ofSymmNsymm_four_zero❱))
@@ -358,7 +356,7 @@ theorem_wanted encard_ofSymmNsymm_three_one : (ofSymmNsymm 3 1).encard = 988464
 
 theorem_wanted encard_ofSymmNsymm_five_zero : (ofSymmNsymm 5 0).encard = 3849920
 
-theorem_wanted encard_ofAtoms_six : (ofAtoms.{u} 6).encard = 4886349 := by
+theorem_wanted encard_ofAtoms_six : (ofAtoms 6).encard = 4886349 := by
   simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
     mod_cast congr($(❰encard_ofSymmNsymm_one_two❱) + $(❰encard_ofSymmNsymm_three_one❱) +
       $(❰encard_ofSymmNsymm_five_zero❱))
@@ -371,7 +369,7 @@ theorem_wanted encard_ofSymmNsymm_four_one : (ofSymmNsymm 4 1).encard = 50265788
 
 theorem_wanted encard_ofSymmNsymm_six_zero : (ofSymmNsymm 6 0).encard = 292352449486
 
-theorem_wanted encard_ofAtoms_seven : (ofAtoms.{u} 7).encard = 344809166311 := by
+theorem_wanted encard_ofAtoms_seven : (ofAtoms 7).encard = 344809166311 := by
   simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
     mod_cast congr($(❰encard_ofSymmNsymm_zero_three❱) + $(❰encard_ofSymmNsymm_two_two❱) +
       $(❰encard_ofSymmNsymm_four_one❱) + $(❰encard_ofSymmNsymm_six_zero❱))
