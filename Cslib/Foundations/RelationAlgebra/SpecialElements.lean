@@ -254,14 +254,15 @@ def relCod (a : α) : α := ⊤ * a ⊓ 1
 
 instance : IsRelCorefl (relCod a) := ⟨inf_le_right⟩
 
-@[simp, push]
-lemma star_relDom : star (relDom a) = relCod (star a) := by
-  rw [relDom, relCod]
+@[simp]
+lemma relDom_star : relDom (star a) = relCod a := by
+  rw [← star_eq_of_symm (relCod a), relCod, relDom]
   push star
   rfl
 
-@[simp, push]
-lemma star_relCod : star (relCod a) = relDom (star a) := star_injective <| by
+@[simp]
+lemma relCod_star : relCod (star a) = relDom a := by
+  rw [← star_eq_of_symm (relDom a), relDom, relCod]
   push star
   rfl
 
@@ -280,10 +281,10 @@ lemma relDom_le_iff_le_mul [IsRelCorefl b] : relDom a ≤ b ↔ a ≤ b * a := b
 theorem relDom_le_iff [IsRelCorefl b] : relDom a ≤ b ↔ b * a = a := by
   simp [relDom_le_iff_le_mul, le_antisymm_iff, mul_left_le]
 
-lemma relDom_mul_self : relDom a * a = a := by simp [← relDom_le_iff (b := relDom a)]
+lemma relDom_mul_self (a : α) : relDom a * a = a := by simp [← relDom_le_iff]
 
 lemma relCod_le_iff_le_mul [IsRelCorefl b] : relCod a ≤ b ↔ a ≤ a * b := by
-  rw [← star_le_star_iff, star_relCod, relDom_le_iff_le_mul, ← star_mul, star_le_star_iff]
+  simp [← relDom_star, relDom_le_iff_le_mul, star_le_iff, star_eq_of_symm b]
 
 /-- Reading right multiplication by a coreflexive element as coerestriction (cf
 `SetRel.mem_comp_ofSet_iff` in `Cslib.Foundations.Data.SetRel`), this result characterises
@@ -291,7 +292,7 @@ lemma relCod_le_iff_le_mul [IsRelCorefl b] : relCod a ≤ b ↔ a ≤ a * b := b
 theorem relCod_le_iff [IsRelCorefl b] : relCod a ≤ b ↔ a * b = a := by
   simp [relCod_le_iff_le_mul, le_antisymm_iff, mul_right_le]
 
-lemma self_mul_relCod : a * relCod a = a := by simp [← relCod_le_iff (b := relCod a)]
+lemma self_mul_relCod (a : α) : a * relCod a = a := by simp [← relCod_le_iff]
 
 lemma relDom_eq_mul_star (a : α) : relDom a = a * star a ⊓ 1 := by
   apply le_antisymm
@@ -299,20 +300,20 @@ lemma relDom_eq_mul_star (a : α) : relDom a = a * star a ⊓ 1 := by
     grw [relDom_le_iff_le_mul, inf_comm, ← right_modular, one_mul, inf_idem]
   · grw [relDom, le_top (a := star a)]
 
-lemma relCod_eq_star_mul : relCod a = star a * a ⊓ 1 := star_injective <| by
-  simpa using relDom_eq_mul_star (star a)
+lemma relCod_eq_star_mul : relCod a = star a * a ⊓ 1 := by
+  rw [← relDom_star, relDom_eq_mul_star, star_star]
 
-lemma relDom_corefl [IsRelCorefl a] : relDom a = a := by
+lemma relDom_of_isRelCorefl (a : α) [IsRelCorefl a] : relDom a = a := by
   simpa [relDom_eq_mul_star, star_eq_of_symm a, mul_eq_inf] using le_one_of_corefl a
 
-lemma relCod_corefl [IsRelCorefl a] : relCod a = a := by
+lemma relCod_of_isRelCorefl (a : α) [IsRelCorefl a] : relCod a = a := by
   simpa [relCod_eq_star_mul, star_eq_of_symm a, mul_eq_inf] using le_one_of_corefl a
 
 lemma relDom_bot : relDom (⊥ : α) = ⊥ := by simp [relDom]
 
 lemma relDom_eq_bot_iff : relDom a = ⊥ ↔ a = ⊥ := by
   refine ⟨fun h ↦ ?_, fun h ↦ h.symm ▸ relDom_bot⟩
-  rw [← relDom_mul_self (a := a), h, bot_mul]
+  rw [← relDom_mul_self a, h, bot_mul]
 
 lemma relDom_eq_one_iff : relDom a = 1 ↔ a * ⊤ = ⊤ := by
   rw [relDom, inf_eq_right, eq_top_iff]
@@ -323,20 +324,18 @@ lemma relDom_eq_one_iff : relDom a = 1 ↔ a * ⊤ = ⊤ := by
 lemma relCod_bot : relCod (⊥ : α) = ⊥ := by simp [relCod]
 
 lemma relCod_eq_bot_iff : relCod a = ⊥ ↔ a = ⊥ := by
-  rw [← star_inj, star_relCod, star_bot, relDom_eq_bot_iff, star_eq_iff_star_eq, star_bot, Eq.comm]
+  nth_rw 1 [← relDom_star, relDom_eq_bot_iff, ← star_bot, star_inj]
 
 lemma relCod_eq_one_iff : relCod a = 1 ↔ ⊤ * a = ⊤ := by
-  nth_rw 1 [← star_inj, star_one, star_relCod, relDom_eq_one_iff, ← star_top, ← star_mul,
-    star_eq_iff_star_eq, star_top, Eq.comm]
+  rw [← relDom_star, relDom_eq_one_iff, ← star_top, ← star_mul, star_inj, star_top]
 
 lemma relDom_of_isRelRefl [IsRelRefl a] : relDom a = 1 := by
   apply (le_one_of_corefl <| relDom a).antisymm
   grw [← one_le_of_refl a]
   simp [relDom]
 
-lemma relCod_of_isRelRefl [IsRelRefl a] : relCod a = 1 := star_injective <| by
-  push star
-  exact relDom_of_isRelRefl
+lemma relCod_of_isRelRefl [IsRelRefl a] : relCod a = 1 := by
+  rw [← relDom_star, relDom_of_isRelRefl]
 
 end Cslib.RelationAlgebra
 
@@ -394,7 +393,7 @@ theorem isRelCorefl_iff_eq_ofSet (r : SetRel α α) : IsRelCorefl r ↔ ∃ s, r
   constructor
   · intro h
     use r.dom
-    nth_rw 1 [← relDom_corefl (a := r), relDom_eq_ofSet]
+    nth_rw 1 [← relDom_of_isRelCorefl r, relDom_eq_ofSet]
   · rw [isRelCorefl_iff]
     rintro ⟨s, rfl⟩ ⟨x, y⟩ ⟨(rfl : x = y), -⟩
     exact mem_one.mpr rfl

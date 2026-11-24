@@ -30,7 +30,7 @@ theorem isIntegral_iff_forall_relDom :
   constructor
   · simp [one_eq_bot_iff, not_subsingleton]
   · intro a hbot hle
-    rw [← @relDom_corefl _ _ _ ⟨hle⟩, h a hbot]
+    rw [← @relDom_of_isRelCorefl _ _ _ ⟨hle⟩, h a hbot]
 
 lemma IsIntegral.relCod_eq_one (h : IsIntegral α) (ha : a ≠ ⊥) : relCod a = 1 := by
   have := h.le_iff.mp (le_one_of_corefl <| relCod a)
@@ -41,9 +41,9 @@ codomain. -/
 theorem isIntegral_iff_forall_relCod :
     IsIntegral α ↔ Nontrivial α ∧ ∀ a : α, a ≠ ⊥ → relCod a = 1 := by
   refine ⟨fun h ↦ ⟨h.nontrivial, fun a ha ↦ h.relCod_eq_one ha⟩, ?_⟩
-  rw [isIntegral_iff_forall_relDom, and_imp]
-  refine fun hnt h ↦ ⟨hnt, fun a hbot ↦ star_injective ?_⟩
-  grind [star_relDom, star_inj, star_bot]
+  simp_rw [isIntegral_iff_forall_relDom, and_imp, ← relCod_star]
+  refine fun hnt h ↦ ⟨hnt, fun a hbot ↦ ?_⟩
+  grind [star_inj, star_bot]
 
 lemma IsIntegral.mul_eq_bot_iff (h : IsIntegral α) : a * b = ⊥ ↔ a = ⊥ ∨ b = ⊥ := by
   constructor
@@ -62,7 +62,7 @@ theorem isIntegral_tfae (α : Type*) [RelationAlgebra α] [Nontrivial α] :
   tfae_have 2 → 5 := fun h a hbot ↦ by
     rw [← compl_inj_iff, compl_top]
     apply h (star a) (a * ⊤)ᶜ (by grw [eq_bot_iff, tarski, compl_top]) |>.resolve_left
-    rwa [star_eq_iff_star_eq, star_bot, ← ne_eq, ne_comm]
+    rwa [← star_bot, star_inj, ← ne_eq]
   tfae_have 1 → 2 := fun h a b ↦ h.mul_eq_bot_iff.mp
   tfae_have 1 ↔ 3 := by simp_all [isIntegral_iff_forall_relDom]
   tfae_have 1 ↔ 4 := by simp_all [isIntegral_iff_forall_relCod]
