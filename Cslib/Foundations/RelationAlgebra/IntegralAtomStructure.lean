@@ -93,8 +93,14 @@ inductive CycleClosure (g : Set (Cycle s n)) : Cycle s n → Prop
 theorem conv_one : conv (one : IntegralAtom s n) = one := rfl
 
 @[simp, grind =]
+theorem conv_symm (i : Fin s) : conv (symm i : IntegralAtom s n) = symm i := rfl
+
+@[simp, grind =]
+theorem conv_nsymm (i : Fin n) (b : Bool) : conv (nsymm i b : IntegralAtom s n) = nsymm i !b := rfl
+
+@[simp, grind =]
 theorem conv_conv (a : IntegralAtom s n) : conv (conv a) = a := by
-  cases a <;> simp [conv]
+  cases a <;> simp
 
 private theorem CycleClosure.id_cycle_aux {g : Set (Cycle s n)} (hg : ∀ c ∈ g, c.IsDiversity)
     {r u t : IntegralAtom s n} (h : CycleClosure g (r, u, t)) :
@@ -132,6 +138,10 @@ theorem ofCycles_conv (g : Set (Cycle s n)) (a : IntegralAtom s n) :
 theorem mem_ofCycles_id {g : Set (Cycle s n)} {a : IntegralAtom s n} :
     a ∈ (ofCycles g).id ↔ a = one := .rfl
 
+@[simp]
+theorem mem_ofCycles_cycles {g : Set (Cycle s n)} {c : Cycle s n} :
+    c ∈ (ofCycles g).cycles ↔ CycleClosure g c := .rfl
+
 theorem lawfulAtomStructure_ofCycles (g : Set (Cycle s n))
     (hassoc : ∀ {r q p u t}, CycleClosure g (r, q, p) → CycleClosure g (u, t, q) →
       ∃ q', CycleClosure g (q', t, p) ∧ CycleClosure g (r, u, q'))
@@ -151,12 +161,12 @@ theorem isIntegral_ofCycles (g : Set (Cycle s n)) [LawfulAtomStructure (ofCycles
 theorem setOf_ne_one_and_conv_eq_self :
     {a : IntegralAtom s n | a ≠ one ∧ conv a = a} = Set.range symm := by
   ext a
-  cases a <;> simp [conv]
+  cases a <;> simp
 
 theorem setOf_conv_ne_self :
     {a : IntegralAtom s n | conv a ≠ a} = Set.range (Function.uncurry nsymm) := by
   ext a
-  cases a <;> simp [conv]
+  cases a <;> simp
 
 theorem ncard_symmetricDiversityAtoms_ofCycles (g : Set (Cycle s n))
     [LawfulAtomStructure (ofCycles g)] :
