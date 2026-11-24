@@ -8,8 +8,6 @@ module
 
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Mathlib.Algebra.BigOperators.NatAntidiagonal
-public import Mathlib.Data.Fintype.Sigma
-public import Mathlib.Data.Fintype.Sum
 public import Mathlib.Data.Set.Card.Arithmetic
 public import Mathlib.Tactic.DeriveFintype
 
@@ -112,6 +110,14 @@ def ofCycles (g : Set (Cycle s n)) : AtomStructure (IntegralAtom s n) where
   id := {one}
   cycles := {c | CycleClosure g c}
 
+@[simp]
+theorem ofCycles_conv (g : Set (Cycle s n)) (a : IntegralAtom s n) :
+    (ofCycles g).conv a = conv a := rfl
+
+@[simp]
+theorem mem_ofCycles_id {g : Set (Cycle s n)} {a : IntegralAtom s n} :
+    a ∈ (ofCycles g).id ↔ a = one := .rfl
+
 theorem lawfulAtomStructure_ofCycles (g : Set (Cycle s n))
     (hassoc : ∀ {r q p u t}, CycleClosure g (r, q, p) → CycleClosure g (u, t, q) →
       ∃ q', CycleClosure g (q', t, p) ∧ CycleClosure g (r, u, q'))
@@ -127,6 +133,31 @@ theorem lawfulAtomStructure_ofCycles (g : Set (Cycle s n))
 theorem isIntegral_ofCycles (g : Set (Cycle s n)) [LawfulAtomStructure (ofCycles g)] :
     IsIntegral (ComplexAlgebra (ofCycles g)) :=
   (ComplexAlgebra.isIntegral_iff _).mpr ⟨one, rfl⟩
+
+theorem setOf_ne_one_and_conv_eq_self :
+    {a : IntegralAtom s n | a ≠ one ∧ conv a = a} = Set.range symm := by
+  ext a
+  cases a <;> simp [conv]
+
+theorem setOf_conv_ne_self :
+    {a : IntegralAtom s n | conv a ≠ a} = Set.range (Function.uncurry nsymm) := by
+  ext a
+  cases a <;> simp [conv]
+
+theorem ncard_symmetricDiversityAtoms_ofCycles (g : Set (Cycle s n))
+    [LawfulAtomStructure (ofCycles g)] :
+    (symmetricDiversityAtoms (ComplexAlgebra (ofCycles g))).ncard = s := by
+  rw [ComplexAlgebra.ncard_symmetricDiversityAtoms]
+  change {a : IntegralAtom s n | a ≠ one ∧ conv a = a}.ncard = s
+  rw [setOf_ne_one_and_conv_eq_self, Set.ncard_range_of_injective fun _ _ => symm.inj, Nat.card_fin]
+
+theorem ncard_nonsymmetricDiversityAtoms_ofCycles (g : Set (Cycle s n))
+    [LawfulAtomStructure (ofCycles g)] :
+    (nonsymmetricDiversityAtoms (ComplexAlgebra (ofCycles g))).ncard = 2 * n := by
+  rw [ComplexAlgebra.ncard_nonsymmetricDiversityAtoms]
+  change {a : IntegralAtom s n | conv a ≠ a}.ncard = 2 * n
+  rw [setOf_conv_ne_self, Set.ncard_range_of_injective (by simp [Function.Injective])]
+  simp [mul_comm]
 
 end IntegralAtom
 
@@ -211,6 +242,12 @@ theorem encard_ofAtoms_succ (k : ℕ) :
 atoms. This is an abbrev for the convenience of matching the usual convention without making proofs
 more complicated. -/
 abbrev ofType (s n : ℕ) : Set IsoClass := ofCounts s (2 * n)
+
+theorem mk_complexAlgebra_ofCycles_mem_ofType {s n : ℕ} (g : Set (IntegralAtom.Cycle s n))
+    [LawfulAtomStructure (IntegralAtom.ofCycles g)] :
+    ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ ∈ ofType s n :=
+  mk_mem_ofCounts_iff.mpr ⟨IntegralAtom.ncard_symmetricDiversityAtoms_ofCycles g,
+    IntegralAtom.ncard_nonsymmetricDiversityAtoms_ofCycles g⟩
 
 theorem encard_ofAtoms_succ_eq_sum_ofType (k : ℕ) :
     (ofAtoms.{u} (k + 1)).encard =

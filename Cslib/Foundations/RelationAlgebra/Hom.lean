@@ -197,7 +197,16 @@ theorem star_apply_eq_iff (e : RelationAlgebraEquiv α β) : star (e a) = e a �
 theorem apply_le_compl_one_iff (e : RelationAlgebraEquiv α β) {a : α} : e a ≤ 1ᶜ ↔ a ≤ 1ᶜ := by
   rw [← map_one e, ← map_compl' e, map_le_map_iff]
 
+@[simp]
+theorem apply_le_one_iff (e : RelationAlgebraEquiv α β) {a : α} : e a ≤ 1 ↔ a ≤ 1 := by
+  rw [← map_one e, map_le_map_iff]
+
 open RelationAlgebra
+
+@[simp]
+theorem apply_mem_identityAtoms_iff (e : RelationAlgebraEquiv α β) {a : α} :
+    e a ∈ identityAtoms β ↔ a ∈ identityAtoms α := by
+  simp [identityAtoms]
 
 @[simp]
 theorem apply_mem_symmetricDiversityAtoms_iff (e : RelationAlgebraEquiv α β) {a : α} :
@@ -208,6 +217,10 @@ theorem apply_mem_symmetricDiversityAtoms_iff (e : RelationAlgebraEquiv α β) {
 theorem apply_mem_nonsymmetricDiversityAtoms_iff (e : RelationAlgebraEquiv α β) {a : α} :
     e a ∈ nonsymmetricDiversityAtoms β ↔ a ∈ nonsymmetricDiversityAtoms α := by
   simp [nonsymmetricDiversityAtoms]
+
+theorem ncard_identityAtoms (e : RelationAlgebraEquiv α β) :
+    (identityAtoms α).ncard = (identityAtoms β).ncard :=
+  Nat.card_congr (e.toEquiv.subtypeEquiv fun _ => e.apply_mem_identityAtoms_iff.symm)
 
 theorem ncard_symmetricDiversityAtoms (e : RelationAlgebraEquiv α β) :
     (symmetricDiversityAtoms α).ncard = (symmetricDiversityAtoms β).ncard :=
