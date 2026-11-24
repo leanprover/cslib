@@ -277,6 +277,19 @@ theorem mk_complexAlgebra_ofCycles_mem_ofType {s n : ℕ} (g : Set (IntegralAtom
   mk_mem_ofCounts_iff.mpr ⟨IntegralAtom.ncard_symmetricDiversityAtoms_ofCycles g,
     IntegralAtom.ncard_nonsymmetricDiversityAtoms_ofCycles g⟩
 
+theorem_wanted exists_ofCycles_of_mem_ofType {s n : ℕ} {q : IsoClass.{u}} (hq : q ∈ ofType s n) :
+    ∃ (g : Set (IntegralAtom.Cycle.{u} s n)) (_ : LawfulAtomStructure (IntegralAtom.ofCycles g)),
+      ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ = q
+
+/-- The isomorphism classes with `s` symmetric diversity atoms and `n` pairs of nonsymmetric atoms 
+are exactly those of the complex algebras of `IntegralAtom.ofCycles`. -/
+theorem_wanted mem_ofType_iff {s n : ℕ} {q : IsoClass.{u}} :
+    q ∈ ofType s n ↔
+      ∃ (g : Set (IntegralAtom.Cycle.{u} s n)) (_ : LawfulAtomStructure (IntegralAtom.ofCycles g)),
+        ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ = q :=
+  ⟨fun hq => ❰exists_ofCycles_of_mem_ofType❱ hq,
+    fun ⟨g, _, h⟩ => h ▸ mk_complexAlgebra_ofCycles_mem_ofType g⟩
+
 theorem encard_ofAtoms_succ_eq_sum_ofType (k : ℕ) :
     (ofAtoms.{u} (k + 1)).encard =
       ∑ i ∈ Finset.range (k / 2 + 1), (ofType.{u} (k % 2 + 2 * i) (k / 2 - i)).encard := by
