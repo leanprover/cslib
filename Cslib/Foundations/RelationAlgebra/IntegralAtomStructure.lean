@@ -160,29 +160,32 @@ theorem isIntegral_ofCycles (g : Set (Cycle s n)) [LawfulAtomStructure (ofCycles
     IsIntegral (ComplexAlgebra (ofCycles g)) :=
   (ComplexAlgebra.isIntegral_iff _).mpr ⟨one, rfl⟩
 
-theorem setOf_ne_one_and_conv_eq_self :
-    {a : IntegralAtom s n | a ≠ one ∧ conv a = a} = Set.range symm := by
+theorem preimage_singleton_symmetricDiversityAtoms (g : Set (Cycle s n))
+    [LawfulAtomStructure (ofCycles g)] :
+    singleton ⁻¹' symmetricDiversityAtoms (ComplexAlgebra (ofCycles g)) = Set.range symm := by
   ext a
   cases a <;> simp
 
-theorem setOf_conv_ne_self :
-    {a : IntegralAtom s n | conv a ≠ a} = Set.range (Function.uncurry nsymm) := by
+theorem preimage_singleton_nonsymmetricDiversityAtoms (g : Set (Cycle s n))
+    [LawfulAtomStructure (ofCycles g)] :
+    singleton ⁻¹' nonsymmetricDiversityAtoms (ComplexAlgebra (ofCycles g)) =
+      Set.range (Function.uncurry nsymm) := by
   ext a
   cases a <;> simp
 
 theorem ncard_symmetricDiversityAtoms_ofCycles (g : Set (Cycle s n))
     [LawfulAtomStructure (ofCycles g)] :
     (symmetricDiversityAtoms (ComplexAlgebra (ofCycles g))).ncard = s := by
-  rw [ComplexAlgebra.ncard_symmetricDiversityAtoms]
-  change {a : IntegralAtom s n | a ≠ one ∧ conv a = a}.ncard = s
-  rw [setOf_ne_one_and_conv_eq_self, Set.ncard_range_of_injective fun _ _ => symm.inj, Nat.card_fin]
+  rw [← ComplexAlgebra.ncard_preimage_singleton fun _ => And.left,
+    preimage_singleton_symmetricDiversityAtoms,
+    Set.ncard_range_of_injective fun _ _ => symm.inj, Nat.card_fin]
 
 theorem ncard_nonsymmetricDiversityAtoms_ofCycles (g : Set (Cycle s n))
     [LawfulAtomStructure (ofCycles g)] :
     (nonsymmetricDiversityAtoms (ComplexAlgebra (ofCycles g))).ncard = 2 * n := by
-  rw [ComplexAlgebra.ncard_nonsymmetricDiversityAtoms]
-  change {a : IntegralAtom s n | conv a ≠ a}.ncard = 2 * n
-  rw [setOf_conv_ne_self, Set.ncard_range_of_injective (by simp [Function.Injective])]
+  rw [← ComplexAlgebra.ncard_preimage_singleton fun _ => And.left,
+    preimage_singleton_nonsymmetricDiversityAtoms,
+    Set.ncard_range_of_injective (by simp [Function.Injective])]
   simp [mul_comm]
 
 end IntegralAtom

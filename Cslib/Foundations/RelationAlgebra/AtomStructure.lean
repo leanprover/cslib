@@ -228,16 +228,6 @@ theorem singleton_mem_nonsymmetricDiversityAtoms_iff :
     {a} ∈ nonsymmetricDiversityAtoms (ComplexAlgebra A) ↔ A.conv a ≠ a := by
   simp [nonsymmetricDiversityAtoms]
 
-theorem ncard_symmetricDiversityAtoms : (symmetricDiversityAtoms (ComplexAlgebra A)).ncard =
-    {a | a ∉ A.id ∧ A.conv a = a}.ncard :=
-  (ncard_preimage_singleton fun _ => And.left).symm.trans <|
-    congrArg Set.ncard <| Set.ext fun _ => singleton_mem_symmetricDiversityAtoms_iff
-
-theorem ncard_nonsymmetricDiversityAtoms : (nonsymmetricDiversityAtoms (ComplexAlgebra A)).ncard =
-    {a | A.conv a ≠ a}.ncard :=
-  (ncard_preimage_singleton fun _ => And.left).symm.trans <|
-    congrArg Set.ncard <| Set.ext fun _ => singleton_mem_nonsymmetricDiversityAtoms_iff
-
 end ComplexAlgebra
 
 /-- The atom structure formed by the atoms of an atomic relation algebra. -/
