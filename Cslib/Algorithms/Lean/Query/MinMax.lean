@@ -126,13 +126,7 @@ private theorem minMaxAux_mem (oracle : {ι : Type} → LEQuery α ι → ι) :
       then (bif oracle (.le x y) then x else y) else mn)
       (bif oracle (.le mx (bif oracle (.le x y) then y else x))
       then (bif oracle (.le x y) then y else x) else mx) rest
-    constructor
-    · rcases List.mem_cons.mp h₁ with h | h
-      · rw [h]; cases oracle (.le x y) <;> cases oracle _ <;> simp
-      · exact List.mem_cons_of_mem _ (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ h))
-    · rcases List.mem_cons.mp h₂ with h | h
-      · rw [h]; cases oracle (.le x y) <;> cases oracle _ <;> simp
-      · exact List.mem_cons_of_mem _ (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ h))
+    constructor <;> grind
 
 /-- The invariant of the scan, under an oracle implementing a total preorder: the result is below
 the initial minimum and every scanned element, and above the initial maximum and every scanned
@@ -207,13 +201,7 @@ theorem minMax_isMinMaxFinder : IsMinMaxFinder (minMax (α := α)) where
       obtain ⟨h₁, h₂⟩ := minMaxAux_mem oracle (bif oracle (.le x y) then x else y)
         (bif oracle (.le x y) then y else x) rest
       rw [h] at h₁ h₂
-      constructor
-      · rcases List.mem_cons.mp h₁ with h | h
-        · simp only at h; rw [h]; cases oracle (.le x y) <;> simp
-        · simp [h]
-      · rcases List.mem_cons.mp h₂ with h | h
-        · simp only at h; rw [h]; cases oracle (.le x y) <;> simp
-        · simp [h]
+      constructor <;> grind
   le_of_mem xs oracle r _ _ _ horacle mn mx h := by
     match xs with
     | [] => simp [minMax] at h
