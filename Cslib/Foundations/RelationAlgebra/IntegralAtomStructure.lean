@@ -213,7 +213,7 @@ abbrev IsoClass : Type (u + 1) := Quotient IntegralAlgebra.setoid
 namespace IsoClass
 
 /-- The set of isomorphism classes with `s` symmetric diversity atoms and `m` nonsymmetric
-atoms. Note for nonsymmetric atoms this is a count of atoms, not pairs. Use the `ofType` abbrev
+atoms. Note for nonsymmetric atoms this is a count of atoms, not pairs. Use the `ofSymmNsymm` abbrev
 to avoid confusion with the usual convention.
 -/
 def ofCounts (s m : ℕ) : Set IsoClass :=
@@ -268,31 +268,32 @@ theorem encard_ofAtoms_succ (k : ℕ) :
 /-- The set of isomorphism classes with `s` symmetric diversity atoms and `n` pairs of nonsymmetric
 atoms. This is an abbrev for the convenience of matching the usual convention without making proofs
 more complicated. -/
-abbrev ofType (s n : ℕ) : Set IsoClass := ofCounts s (2 * n)
+abbrev ofSymmNsymm (s n : ℕ) : Set IsoClass := ofCounts s (2 * n)
 
-theorem mk_complexAlgebra_ofCycles_mem_ofType {s n : ℕ} (g : Set (IntegralAtom.Cycle.{u} s n))
+theorem mk_complexAlgebra_ofCycles_mem_ofSymmNsymm {s n : ℕ} (g : Set (IntegralAtom.Cycle.{u} s n))
     [LawfulAtomStructure (IntegralAtom.ofCycles g)] :
     ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ ∈
-      ofType.{u} s n :=
+      ofSymmNsymm.{u} s n :=
   mk_mem_ofCounts_iff.mpr ⟨IntegralAtom.ncard_symmetricDiversityAtoms_ofCycles g,
     IntegralAtom.ncard_nonsymmetricDiversityAtoms_ofCycles g⟩
 
-theorem_wanted exists_ofCycles_of_mem_ofType {s n : ℕ} {q : IsoClass.{u}} (hq : q ∈ ofType s n) :
+theorem_wanted exists_ofCycles_of_mem_ofSymmNsymm {s n : ℕ} {q : IsoClass.{u}}
+    (hq : q ∈ ofSymmNsymm s n) :
     ∃ (g : Set (IntegralAtom.Cycle.{u} s n)) (_ : LawfulAtomStructure (IntegralAtom.ofCycles g)),
       ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ = q
 
 /-- The isomorphism classes with `s` symmetric diversity atoms and `n` pairs of nonsymmetric atoms 
 are exactly those of the complex algebras of `IntegralAtom.ofCycles`. -/
-theorem_wanted mem_ofType_iff {s n : ℕ} {q : IsoClass.{u}} :
-    q ∈ ofType s n ↔
+theorem_wanted mem_ofSymmNsymm_iff {s n : ℕ} {q : IsoClass.{u}} :
+    q ∈ ofSymmNsymm s n ↔
       ∃ (g : Set (IntegralAtom.Cycle.{u} s n)) (_ : LawfulAtomStructure (IntegralAtom.ofCycles g)),
         ⟦⟨ComplexAlgebra (IntegralAtom.ofCycles g), IntegralAtom.isIntegral_ofCycles g⟩⟧ = q :=
-  ⟨fun hq => ❰exists_ofCycles_of_mem_ofType❱ hq,
-    fun ⟨g, _, h⟩ => h ▸ mk_complexAlgebra_ofCycles_mem_ofType g⟩
+  ⟨fun hq => ❰exists_ofCycles_of_mem_ofSymmNsymm❱ hq,
+    fun ⟨g, _, h⟩ => h ▸ mk_complexAlgebra_ofCycles_mem_ofSymmNsymm g⟩
 
-theorem encard_ofAtoms_succ_eq_sum_ofType (k : ℕ) :
+theorem encard_ofAtoms_succ_eq_sum_ofSymmNsymm (k : ℕ) :
     (ofAtoms.{u} (k + 1)).encard =
-      ∑ i ∈ Finset.range (k / 2 + 1), (ofType.{u} (k % 2 + 2 * i) (k / 2 - i)).encard := by
+      ∑ i ∈ Finset.range (k / 2 + 1), (ofSymmNsymm.{u} (k % 2 + 2 * i) (k / 2 - i)).encard := by
   rw [encard_ofAtoms_succ, Finset.Nat.sum_antidiagonal_eq_sum_range_succ_mk]
   refine (Finset.sum_of_injOn (k % 2 + 2 * ·) ?_ ?_ (fun j hj hj' => ?_) fun i hi => ?_).symm
   · grind [Set.InjOn]
@@ -305,77 +306,77 @@ theorem encard_ofAtoms_succ_eq_sum_ofType (k : ℕ) :
 /-!
 ### Counts of isomorphism classes
 
-The following statements are all of the known counts of isomorphism
-classes of finite integral relation algebras, by type and by number of atoms.
+The following statements are all of the known counts of isomorphism classes of finite integral
+relation algebras, by symmetric and nonsymmetric atoms as well as overall.
 
 They will certainly be too computationally expensive to prove here, but we
 provide their statements as a reference. Proofs of the `ofAtoms` statements can start with
-`simp [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ]` and then use each of
-the `ofType` results.
+`simp [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ]` and then use each of
+the `ofSymmNsymm` results.
 -/
 
-theorem_wanted encard_ofType_zero_zero : (ofType 0 0).encard = 1
+theorem_wanted encard_ofSymmNsymm_zero_zero : (ofSymmNsymm 0 0).encard = 1
 
 theorem_wanted encard_ofAtoms_one : (ofAtoms.{u} 1).encard = 1 := by
-  simpa [encard_ofAtoms_succ_eq_sum_ofType] using (❰encard_ofType_zero_zero❱)
+  simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm] using (❰encard_ofSymmNsymm_zero_zero❱)
 
-theorem_wanted encard_ofType_one_zero : (ofType 1 0).encard = 2
+theorem_wanted encard_ofSymmNsymm_one_zero : (ofSymmNsymm 1 0).encard = 2
 
 theorem_wanted encard_ofAtoms_two : (ofAtoms.{u} 2).encard = 2 := by
-  simpa [encard_ofAtoms_succ_eq_sum_ofType] using (❰encard_ofType_one_zero❱)
+  simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm] using (❰encard_ofSymmNsymm_one_zero❱)
 
-theorem_wanted encard_ofType_zero_one : (ofType 0 1).encard = 3
+theorem_wanted encard_ofSymmNsymm_zero_one : (ofSymmNsymm 0 1).encard = 3
 
-theorem_wanted encard_ofType_two_zero : (ofType 2 0).encard = 7
+theorem_wanted encard_ofSymmNsymm_two_zero : (ofSymmNsymm 2 0).encard = 7
 
 theorem_wanted encard_ofAtoms_three : (ofAtoms.{u} 3).encard = 10 := by
-  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
-    mod_cast congr($(❰encard_ofType_zero_one❱) + $(❰encard_ofType_two_zero❱))
+  simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofSymmNsymm_zero_one❱) + $(❰encard_ofSymmNsymm_two_zero❱))
 
-theorem_wanted encard_ofType_one_one : (ofType 1 1).encard = 37
+theorem_wanted encard_ofSymmNsymm_one_one : (ofSymmNsymm 1 1).encard = 37
 
-theorem_wanted encard_ofType_three_zero : (ofType 3 0).encard = 65
+theorem_wanted encard_ofSymmNsymm_three_zero : (ofSymmNsymm 3 0).encard = 65
 
 theorem_wanted encard_ofAtoms_four : (ofAtoms.{u} 4).encard = 102 := by
-  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
-    mod_cast congr($(❰encard_ofType_one_one❱) + $(❰encard_ofType_three_zero❱))
+  simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofSymmNsymm_one_one❱) + $(❰encard_ofSymmNsymm_three_zero❱))
 
-theorem_wanted encard_ofType_zero_two : (ofType 0 2).encard = 83
+theorem_wanted encard_ofSymmNsymm_zero_two : (ofSymmNsymm 0 2).encard = 83
 
-theorem_wanted encard_ofType_two_one : (ofType 2 1).encard = 1316
+theorem_wanted encard_ofSymmNsymm_two_one : (ofSymmNsymm 2 1).encard = 1316
 
-theorem_wanted encard_ofType_four_zero : (ofType 4 0).encard = 3013
+theorem_wanted encard_ofSymmNsymm_four_zero : (ofSymmNsymm 4 0).encard = 3013
 
 theorem_wanted encard_ofAtoms_five : (ofAtoms.{u} 5).encard = 4412 := by
-  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
-    mod_cast congr($(❰encard_ofType_zero_two❱) + $(❰encard_ofType_two_one❱) +
-      $(❰encard_ofType_four_zero❱))
+  simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofSymmNsymm_zero_two❱) + $(❰encard_ofSymmNsymm_two_one❱) +
+      $(❰encard_ofSymmNsymm_four_zero❱))
 
-theorem_wanted encard_ofType_one_two : (ofType 1 2).encard = 47965
+theorem_wanted encard_ofSymmNsymm_one_two : (ofSymmNsymm 1 2).encard = 47965
 
-theorem_wanted encard_ofType_three_one : (ofType 3 1).encard = 988464
+theorem_wanted encard_ofSymmNsymm_three_one : (ofSymmNsymm 3 1).encard = 988464
 
-theorem_wanted encard_ofType_five_zero : (ofType 5 0).encard = 3849920
+theorem_wanted encard_ofSymmNsymm_five_zero : (ofSymmNsymm 5 0).encard = 3849920
 
 theorem_wanted encard_ofAtoms_six : (ofAtoms.{u} 6).encard = 4886349 := by
-  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
-    mod_cast congr($(❰encard_ofType_one_two❱) + $(❰encard_ofType_three_one❱) +
-      $(❰encard_ofType_five_zero❱))
+  simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofSymmNsymm_one_two❱) + $(❰encard_ofSymmNsymm_three_one❱) +
+      $(❰encard_ofSymmNsymm_five_zero❱))
 
-theorem_wanted encard_ofType_zero_three : (ofType 0 3).encard = 4492953
+theorem_wanted encard_ofSymmNsymm_zero_three : (ofSymmNsymm 0 3).encard = 4492953
 
-theorem_wanted encard_ofType_two_two : (ofType 2 2).encard = 2186435732
+theorem_wanted encard_ofSymmNsymm_two_two : (ofSymmNsymm 2 2).encard = 2186435732
 
-theorem_wanted encard_ofType_four_one : (ofType 4 1).encard = 50265788140
+theorem_wanted encard_ofSymmNsymm_four_one : (ofSymmNsymm 4 1).encard = 50265788140
 
-theorem_wanted encard_ofType_six_zero : (ofType 6 0).encard = 292352449486
+theorem_wanted encard_ofSymmNsymm_six_zero : (ofSymmNsymm 6 0).encard = 292352449486
 
 theorem_wanted encard_ofAtoms_seven : (ofAtoms.{u} 7).encard = 344809166311 := by
-  simpa [encard_ofAtoms_succ_eq_sum_ofType, Finset.sum_range_succ] using
-    mod_cast congr($(❰encard_ofType_zero_three❱) + $(❰encard_ofType_two_two❱) +
-      $(❰encard_ofType_four_one❱) + $(❰encard_ofType_six_zero❱))
+  simpa [encard_ofAtoms_succ_eq_sum_ofSymmNsymm, Finset.sum_range_succ] using
+    mod_cast congr($(❰encard_ofSymmNsymm_zero_three❱) + $(❰encard_ofSymmNsymm_two_two❱) +
+      $(❰encard_ofSymmNsymm_four_one❱) + $(❰encard_ofSymmNsymm_six_zero❱))
 
-theorem_wanted encard_ofType_one_three : (ofType 1 3).encard = 52506245239168
+theorem_wanted encard_ofSymmNsymm_one_three : (ofSymmNsymm 1 3).encard = 52506245239168
 
 end IsoClass
 
