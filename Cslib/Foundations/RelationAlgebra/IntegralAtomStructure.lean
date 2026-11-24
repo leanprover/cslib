@@ -48,18 +48,20 @@ namespace IntegralAtom
 
 variable {s n : ℕ}
 
-instance : Fintype (IntegralAtom.{u} s n) :=
-  .ofEquiv (Option (Fin s ⊕ Fin n × Bool)) {
-    toFun
-      | none => one
-      | some (.inl i) => symm i
-      | some (.inr (i, b)) => nsymm i b
-    invFun
-      | one => none
-      | symm i => some (.inl i)
-      | nsymm i b => some (.inr (i, b))
-    left_inv := by rintro (_ | _ | ⟨_, _⟩) <;> rfl
-    right_inv := by rintro (_ | _ | _) <;> rfl }
+/-- `IntegralAtom n s` as a sum. -/
+def equivOptionSum : IntegralAtom.{u} s n ≃ Option (Fin s ⊕ Fin n × Bool) where
+  toFun
+    | one => none
+    | symm i => some (.inl i)
+    | nsymm i b => some (.inr (i, b))
+  invFun
+    | none => one
+    | some (.inl i) => symm i
+    | some (.inr (i, b)) => nsymm i b
+  left_inv := by rintro (_ | _ | _) <;> rfl
+  right_inv := by rintro (_ | _ | ⟨_, _⟩) <;> rfl
+
+instance : Fintype (IntegralAtom.{u} s n) := .ofEquiv _ equivOptionSum.symm
 
 /-- The converse of an atom, where just nonsymmetric atoms are flipped. -/
 def conv : IntegralAtom s n → IntegralAtom s n
