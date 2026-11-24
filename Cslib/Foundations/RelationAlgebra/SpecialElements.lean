@@ -175,6 +175,9 @@ instance [IsRelTrans a] : IsRelTrans (star a) where
 lemma mul_le_of_isRelTrans [IsRelTrans c] (ha : a ≤ c) (hb : b ≤ c) : a * b ≤ c := by
   grw [← mul_self_le_of_trans c, ha, hb]
 
+lemma mul_self_eq (a : α) [IsRelRefl a] [IsRelTrans a] : a * a = a :=
+  (mul_self_le_of_trans a).antisymm le_mul_left
+
 section Complete
 
 variable {α : Type*} [CompleteRelationAlgebra α] {a b : α}
@@ -244,6 +247,14 @@ lemma mul_eq_inf [IsRelCorefl a] [IsRelCorefl b] : a * b = a ⊓ b := by
   · intro h
     exact ⟨h.trans mul_right_le, h.trans mul_left_le⟩
 
+lemma mul_top_inf_eq_mul [IsRelCorefl a] : a * ⊤ ⊓ b = a * b := by
+  refine le_antisymm ?_ <| le_inf (mul_le_mul_right le_top a) mul_left_le
+  grw [left_modular, top_inf_eq, mul_left_le, star_eq_of_symm a]
+
+lemma top_mul_inf_eq_mul [IsRelCorefl a] : ⊤ * a ⊓ b = b * a := star_injective <| by
+  push star
+  exact mul_top_inf_eq_mul
+
 /-- The domain of an element in a relation algebra, as a coreflexive. -/
 def relDom (a : α) : α := a * ⊤ ⊓ 1
 
@@ -277,7 +288,7 @@ lemma relDom_le_iff_le_mul [IsRelCorefl b] : relDom a ≤ b ↔ a ≤ b * a := b
 
 /-- Reading left multiplication by a coreflexive element as restriction (cf
 `SetRel.mem_ofSet_comp_iff` in `Cslib.Foundations.Data.SetRel`), this result characterises
-`relDom a` as the largest coreflexive `b` such that the restriction of `a` to `b` is `a`. -/
+`relDom a` as the smallest coreflexive `b` such that the restriction of `a` to `b` is `a`. -/
 theorem relDom_le_iff [IsRelCorefl b] : relDom a ≤ b ↔ b * a = a := by
   simp [relDom_le_iff_le_mul, le_antisymm_iff, mul_left_le]
 
@@ -286,9 +297,9 @@ lemma relDom_mul_self (a : α) : relDom a * a = a := by simp [← relDom_le_iff]
 lemma relCod_le_iff_le_mul [IsRelCorefl b] : relCod a ≤ b ↔ a ≤ a * b := by
   simp [← relDom_star, relDom_le_iff_le_mul, star_le_iff, star_eq_of_symm b]
 
-/-- Reading right multiplication by a coreflexive element as coerestriction (cf
+/-- Reading right multiplication by a coreflexive element as corestriction (cf
 `SetRel.mem_comp_ofSet_iff` in `Cslib.Foundations.Data.SetRel`), this result characterises
-`relCod a` as the largest coreflexive `b` such that the corestriction of `a` to `b` is `a`. -/
+`relCod a` as the smallest coreflexive `b` such that the corestriction of `a` to `b` is `a`. -/
 theorem relCod_le_iff [IsRelCorefl b] : relCod a ≤ b ↔ a * b = a := by
   simp [relCod_le_iff_le_mul, le_antisymm_iff, mul_right_le]
 
@@ -303,31 +314,43 @@ lemma relDom_eq_mul_star (a : α) : relDom a = a * star a ⊓ 1 := by
 lemma relCod_eq_star_mul : relCod a = star a * a ⊓ 1 := by
   rw [← relDom_star, relDom_eq_mul_star, star_star]
 
+lemma relDom_mul_top : relDom a * ⊤ = a * ⊤ := by
+  apply le_antisymm
+  · grw [relDom, inf_mul_le, mul_assoc, mul_self_eq ⊤]; simp
+  · nth_rw 1 [← relDom_mul_self a, mul_assoc]
+    exact mul_le_mul_right le_top (relDom a)
+
+lemma top_mul_relCod : ⊤ * relCod a = ⊤ * a := star_injective <| by
+  simpa [star_eq_of_symm, ← relDom_star] using relDom_mul_top
+
+lemma relDom_eq_relDom_iff : relDom a = relDom b ↔ a * ⊤ = b * ⊤ := by
+  constructor
+  · intro h
+    rw [← relDom_mul_top, h, relDom_mul_top]
+  · simp +contextual [relDom]
+
+lemma relCod_eq_relCod_iff : relCod a = relCod b ↔ ⊤ * a = ⊤ * b := by
+  constructor
+  · intro h
+    rw [← top_mul_relCod, h, top_mul_relCod]
+  · simp +contextual [relCod]
+
 lemma relDom_of_isRelCorefl (a : α) [IsRelCorefl a] : relDom a = a := by
-  simpa [relDom_eq_mul_star, star_eq_of_symm a, mul_eq_inf] using le_one_of_corefl a
+  rw [relDom, mul_top_inf_eq_mul, mul_one]
 
 lemma relCod_of_isRelCorefl (a : α) [IsRelCorefl a] : relCod a = a := by
-  simpa [relCod_eq_star_mul, star_eq_of_symm a, mul_eq_inf] using le_one_of_corefl a
+  rw [relCod, top_mul_inf_eq_mul, one_mul]
 
 lemma relDom_bot : relDom (⊥ : α) = ⊥ := by simp [relDom]
+
+lemma relCod_bot : relCod (⊥ : α) = ⊥ := by simp [relCod]
 
 lemma relDom_eq_bot_iff : relDom a = ⊥ ↔ a = ⊥ := by
   refine ⟨fun h ↦ ?_, fun h ↦ h.symm ▸ relDom_bot⟩
   rw [← relDom_mul_self a, h, bot_mul]
 
-lemma relDom_eq_one_iff : relDom a = 1 ↔ a * ⊤ = ⊤ := by
-  rw [relDom, inf_eq_right, eq_top_iff]
-  refine ⟨?_, le_top.trans⟩
-  intro h
-  nth_grw 1 [← one_mul ⊤, h, mul_assoc, mul_self_le_of_trans ⊤]
-
-lemma relCod_bot : relCod (⊥ : α) = ⊥ := by simp [relCod]
-
 lemma relCod_eq_bot_iff : relCod a = ⊥ ↔ a = ⊥ := by
   nth_rw 1 [← relDom_star, relDom_eq_bot_iff, ← star_bot, star_inj]
-
-lemma relCod_eq_one_iff : relCod a = 1 ↔ ⊤ * a = ⊤ := by
-  rw [← relDom_star, relDom_eq_one_iff, ← star_top, ← star_mul, star_inj, star_top]
 
 lemma relDom_of_isRelRefl [IsRelRefl a] : relDom a = 1 := by
   apply (le_one_of_corefl <| relDom a).antisymm
@@ -336,6 +359,12 @@ lemma relDom_of_isRelRefl [IsRelRefl a] : relDom a = 1 := by
 
 lemma relCod_of_isRelRefl [IsRelRefl a] : relCod a = 1 := by
   rw [← relDom_star, relDom_of_isRelRefl]
+
+lemma relDom_eq_one_iff : relDom a = 1 ↔ a * ⊤ = ⊤ := by
+  rw [← relDom_of_isRelRefl (a := ⊤), relDom_eq_relDom_iff, mul_self_eq]
+
+lemma relCod_eq_one_iff : relCod a = 1 ↔ ⊤ * a = ⊤ := by
+  rw [← relCod_of_isRelRefl (a := ⊤), relCod_eq_relCod_iff, mul_self_eq]
 
 end Cslib.RelationAlgebra
 

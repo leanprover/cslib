@@ -84,7 +84,7 @@ end Map
 variable {α : Type*} {s : Set α} {r : SetRel α α} {x y : α}
 
 /-- Encode a `s` set as a relation, by relating each element of `s` to itself. -/
-def ofSet (s : Set α) : SetRel α α := {p | p.1 = p.2 ∧ p.1 ∈ s}
+def ofSet (s : Set α) : SetRel α α := {(a, b) | a = b ∧ a ∈ s}
 
 @[simp, grind =] lemma mem_ofSet : x ~[ofSet s] y ↔ x = y ∧ x ∈ s := .rfl
 
@@ -92,10 +92,13 @@ lemma mem_ofSet' : x ~[ofSet s] y ↔ x = y ∧ y ∈ s := by simp +contextual
 
 lemma mem_ofSet_self_iff : x ~[ofSet s] x ↔ x ∈ s := by simp
 
+@[simp] lemma dom_ofSet : (ofSet s).dom = s := by ext; simp
+
+@[simp] lemma cod_ofSet : (ofSet s).cod = s := by ext; simp
+
 lemma ofSet_injective : Function.Injective (α := Set α) ofSet := by
   intro s t h
-  ext
-  rw [← mem_ofSet_self_iff, h, mem_ofSet_self_iff]
+  simpa using congr(SetRel.dom $h)
 
 lemma ofSet_inj {s t : Set α} : ofSet s = ofSet t ↔ s = t := ofSet_injective.eq_iff
 
