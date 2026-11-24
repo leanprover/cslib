@@ -87,8 +87,8 @@ theorem ofGroup_carrier_eq_subgroup (x : ComplexAlgebra (ofGroup G)) :
     IsRelRefl x ∧ IsRelSymm x ∧ IsRelTrans x ↔ ∃ H : Subgroup G, (x : Set G) = H := by
   rw [ofGroup_isRelRefl_iff, ofGroup_isRelSymm_iff, ofGroup_isRelTrans_iff]
   constructor
-  · intro ⟨hone, hinv, hmul⟩
-    exact ⟨{carrier := x, mul_mem' := hmul, one_mem' := hone, inv_mem' := hinv}, rfl⟩
+  · intro ⟨one_mem', inv_mem', mul_mem'⟩
+    exact ⟨{carrier := x, mul_mem', one_mem', inv_mem'}, rfl⟩
   · cases x
     rintro ⟨H, rfl⟩
     simp +contextual [H.mul_mem]
