@@ -77,15 +77,11 @@ lemma ofGroup_isRelRefl_iff (x : ComplexAlgebra (ofGroup G)) : IsRelRefl x ↔ 1
   simp [isRelRefl_iff, IsConcreteLE.le_iff]
 
 lemma ofGroup_isRelSymm_iff (x : ComplexAlgebra (ofGroup G)) :
-    IsRelSymm x ↔ ∀ {g : G}, g ∈ x → g⁻¹ ∈ x := by
-  simp only [isRelSymm_iff, SetLike.ext_iff, mem_star, ofGroup_conv]
-  refine ⟨fun h g ↦ (h g).mpr, fun h g ↦ ⟨?_, h⟩⟩
-  simpa using @h g⁻¹
+  IsRelSymm x ↔ ∀ {g : G}, g ∈ x → g⁻¹ ∈ x := ComplexAlgebra.isRelSymm_iff (ofGroup G) x
 
 lemma ofGroup_isRelTrans_iff (x : ComplexAlgebra (ofGroup G)) :
     IsRelTrans x ↔ ∀ {g₁ g₂ : G}, g₁ ∈ x → g₂ ∈ x → g₁ * g₂ ∈ x := by
-  simp [isRelTrans_iff, IsConcreteLE.le_iff, mem_mul]
-  grind
+  simp [ComplexAlgebra.isRelTrans_iff (ofGroup G)]
 
 theorem ofGroup_carrier_eq_subgroup (x : ComplexAlgebra (ofGroup G)) :
     IsRelRefl x ∧ IsRelSymm x ∧ IsRelTrans x ↔ ∃ H : Subgroup G, (x : Set G) = H := by

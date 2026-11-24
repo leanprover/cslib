@@ -7,6 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.SpecialElements
 public import Mathlib.Data.Fintype.Powerset
 public import Mathlib.Order.BooleanAlgebra.Set
 
@@ -179,6 +180,20 @@ instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 /-- A complex algebra is integral exactly when its identity set is a singleton. -/
 theorem isIntegral_iff : IsIntegral (ComplexAlgebra A) ↔ ∃ a, A.id = {a} :=
   ((orderIsoSet A).isAtom_iff (1 : ComplexAlgebra A)).symm.trans Set.isAtom_iff
+
+protected theorem isRelRefl_iff (x : ComplexAlgebra A) : IsRelRefl x ↔ A.id ⊆ x := by
+  simp [isRelRefl_iff, IsConcreteLE.le_iff]
+
+protected theorem isRelSymm_iff (x : ComplexAlgebra A) :
+    IsRelSymm x ↔ ∀ {a : α}, a ∈ x → A.conv a ∈ x := by
+  simp_rw [isRelSymm_iff, SetLike.ext_iff, mem_star]
+  refine ⟨fun h a ↦ (h a).mpr, fun h a ↦ ⟨?_, h⟩⟩
+  simpa using @h (A.conv a)
+
+protected theorem isRelTrans_iff (x : ComplexAlgebra A) :
+    IsRelTrans x ↔ ∀ {a b c : α}, a ∈ x → b ∈ x → (a, b, c) ∈ A.cycles → c ∈ x := by
+  simp [isRelTrans_iff, IsConcreteLE.le_iff, mem_mul]
+  grind
 
 end ComplexAlgebra
 
