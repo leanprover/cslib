@@ -10,92 +10,65 @@ namespace CslibTests.DiffieHellman
 
 open Cslib Cslib.Mech Cslib.StatefulProcesses Cslib.Algorithms.StatefulProcesses.DiffieHellman
 
-variable {Pid Var : Type*} (params : Params Pid Var)
+variable {Pid SelLabel ProcName : Type} [DecidableEq Pid] {S : Sig Pid} {L : LocalSig} {p : ℕ}
 
--- Each role must use its own exponent in its public message.
-example (σ : LocalStore Var params.Val) :
-    (funEval params).EvalExpr σ (aliceComputeMesg params) (.zMod (params.g ^ params.a)) := by
-  apply FunCallEval.EvalExpr.call (.cons .val (.cons .val (.cons .val .nil)))
-  exact ⟨rfl, rfl⟩
+-- Each role uses its own exponent in its public message `{g ^ $e}`.
+theorem eval_publicValue (σ : L.Store) (g : ZMod p) (e : L.Var ℕ) (n : ℕ) (hn : σ[e] = n) :
+    LocalSig.Expr.Eval σ `(MechExpr| {g ^ $e}) (g ^ n) :=
+  .call (.var e) (by rw [hn])
 
-example (σ : LocalStore Var params.Val) :
-    (funEval params).EvalExpr σ (bobComputeMesg params) (.zMod (params.g ^ params.b)) := by
-  apply FunCallEval.EvalExpr.call (.cons .val (.cons .val (.cons .val .nil)))
-  exact ⟨rfl, rfl⟩
-
--- Each role must also use its own exponent on the received message.
-example (σ : LocalStore Var params.Val) (message : ZMod params.p)
-    (h : σ params.y = .zMod message) :
-    (funEval params).EvalExpr σ (aliceComputeSharedSecret params) (.zMod (message ^ params.a)) := by
-  apply FunCallEval.EvalExpr.call (.cons .val (.cons .var (.cons .val .nil)))
-  simp [h, funEval, computeSharedSecret]
-
-example (σ : LocalStore Var params.Val) (message : ZMod params.p)
-    (h : σ params.x = .zMod message) :
-    (funEval params).EvalExpr σ (bobComputeSharedSecret params) (.zMod (message ^ params.b)) := by
-  apply FunCallEval.EvalExpr.call (.cons .val (.cons .var (.cons .val .nil)))
-  simp [h, funEval, computeSharedSecret]
-
--- A mismatched modulus must reject every result for either function.
-example (f : FunId) (p : ℕ) (hp : p ≠ params.p) (message : ZMod params.p)
-    (privateExp : ℕ) (v : params.Val) :
-    ¬ funEval params f [.nat p, .zMod message, .nat privateExp] v := by
-  cases f <;> exact fun h => hp h.1
+-- Each role also uses its own exponent on the received message, in `{$u ^ $e}`.
+theorem eval_key (σ : L.Store) (u : L.Var (ZMod p)) (e : L.Var ℕ) (v : ZMod p) (n : ℕ)
+    (hv : σ[u] = v) (hn : σ[e] = n) :
+    LocalSig.Expr.Eval σ `(MechExpr| {$u ^ $e}) (v ^ n) :=
+  .call (.pair (.call (.var u) rfl) (.var e)) (by rw [hv, hn])
 
 -- A complete execution exists from every initial store and produces the expected key.
-theorem complete_run [DecidableEq Pid] [DecidableEq Var]
-    (gs : GlobalStore Pid Var params.Val) :
-    ∃ gs' μs, μs.length = 4 ∧ params.cfgLts.MTr ⟨net params, gs⟩ μs ⟨0, gs'⟩ ∧
-      (gs' params.alice) params.s = .zMod (params.g ^ (params.a * params.b)) ∧
-      (gs' params.bob) params.s = .zMod (params.g ^ (params.a * params.b)) := by
-  let aliceMsg : params.Val := .zMod (params.g ^ params.a)
-  let bobMsg : params.Val := .zMod (params.g ^ params.b)
-  let key : params.Val := .zMod (params.g ^ (params.a * params.b))
-  let cfg₁ := Cfg.mk ((net params)[params.alice := alice₁ params][params.bob := bob₁ params])
-    (gs[(params.bob, params.x) := aliceMsg])
-  let cfg₂ := Cfg.mk (cfg₁.net[params.bob := bob₂ params][params.alice := alice₂ params])
-    (cfg₁.store[(params.alice, params.y) := bobMsg])
-  let cfg₃ := Cfg.mk (Function.update cfg₂.net params.alice 0)
-    (cfg₂.store[(params.alice, params.s) := key])
-  refine ⟨cfg₃.store[(params.bob, params.s) := key],
-    [.com params.alice params.bob aliceMsg, .com params.bob params.alice bobMsg,
-      .local params.alice, .local params.bob], rfl,
-    .stepL (s2 := cfg₁) ?_ (.stepL (s2 := cfg₂) ?_ (.stepL (s2 := cfg₃) ?_ (.single _ ?_))),
-    ?_, ?_⟩
-  · apply Cfg.Tr.com (e := aliceComputeMesg params) (hstore := rfl)
-    · refine Network.Tr.com ?_ ?_ rfl
-      · simp only [net, HasSubstitution.subst, Function.update_of_ne params.alice_neq_bob,
-          Function.update_self]
-        exact .pre
-      · simp only [net, HasSubstitution.subst, Function.update_self]
-        exact .pre
-    · exact .call (.cons .val (.cons .val (.cons .val .nil))) ⟨rfl, rfl⟩
-  · apply Cfg.Tr.com (e := bobComputeMesg params) (hstore := rfl)
-    · refine Network.Tr.com ?_ ?_ rfl
-      · simp only [cfg₁, HasSubstitution.subst, Function.update_self]
-        exact .pre
-      · simp only [cfg₁, HasSubstitution.subst, Function.update_of_ne params.alice_neq_bob,
-          Function.update_self]
-        exact .pre
-    · exact .call (.cons .val (.cons .val (.cons .val .nil))) ⟨rfl, rfl⟩
-  · apply Cfg.Tr.assign (x := params.s) (e := aliceComputeSharedSecret params) (hstore := rfl)
-    · refine Network.Tr.local rfl ?_ rfl
-      simp only [cfg₂, HasSubstitution.subst, Function.update_self]
-      exact .pre
-    · apply FunCallEval.EvalExpr.call (.cons .val (.cons .var (.cons .val .nil)))
-      simp [cfg₂, HasSubstitution.subst, key, bobMsg, funEval, computeSharedSecret,
-        ← pow_mul, Nat.mul_comm]
-  · apply Cfg.Tr.assign (x := params.s) (e := bobComputeSharedSecret params) (hstore := rfl)
-    · apply Network.Tr.local (prP := 0) rfl
-      · simp only [cfg₃, cfg₂, HasSubstitution.subst,
-          Function.update_of_ne (Ne.symm params.alice_neq_bob), Function.update_self]
-        exact .pre
-      · ext p
-        simp +contextual [cfg₃, cfg₂, cfg₁, net, HasSubstitution.subst, Function.update_apply]
-    · apply FunCallEval.EvalExpr.call (.cons .val (.cons .var (.cons .val .nil)))
-      simp [cfg₃, cfg₂, cfg₁, HasSubstitution.subst, key, aliceMsg, funEval, computeSharedSecret,
-        ← pow_mul, Ne.symm params.alice_neq_bob]
-  · simp [cfg₃, HasSubstitution.subst, params.alice_neq_bob, key]
-  · simp [HasSubstitution.subst, key]
+theorem complete_run (g : ZMod p) (alice bob : Pid) (hne : alice ≠ bob)
+    (a : S.Var alice ℕ) (y aliceKey : S.Var alice (ZMod p))
+    (b : S.Var bob ℕ) (x bobKey : S.Var bob (ZMod p))
+    (hya : y.name ≠ a.name) (hxb : x.name ≠ b.name) (gs : S.Store) (a₀ b₀ : ℕ)
+    (ha : (gs alice)[a] = a₀) (hb : (gs bob)[b] = b₀) :
+    ∃ gs' μs, μs.length = 4 ∧
+      (Cfg.lts (SelLabel := SelLabel) (ProcName := ProcName)).MTr
+        ⟨net g alice bob a y aliceKey b x bobKey, gs⟩ μs ⟨0, gs'⟩ ∧
+      (gs' alice)[aliceKey] = g ^ (a₀ * b₀) ∧ (gs' bob)[bobKey] = g ^ (a₀ * b₀) := by
+  -- The configurations after each of the first three steps.
+  let cfg₁ : Cfg Pid S SelLabel ProcName := ⟨Function.update (Function.update
+    (net g alice bob a y aliceKey b x bobKey) alice (aliceProc₁ bob a y aliceKey)) bob
+    (bobProc₁ alice g b x bobKey), gs[⟨bob, x⟩ := g ^ a₀]⟩
+  let cfg₂ : Cfg Pid S SelLabel ProcName := ⟨Function.update (Function.update cfg₁.net
+    bob (bobProc₂ b x bobKey)) alice (aliceProc₂ a y aliceKey), cfg₁.store[⟨alice, y⟩ := g ^ b₀]⟩
+  let cfg₃ : Cfg Pid S SelLabel ProcName :=
+    ⟨Function.update cfg₂.net alice 0, cfg₂.store[⟨alice, aliceKey⟩ := (g ^ b₀) ^ a₀]⟩
+  -- The run: Alice sends `g ^ a` to Bob, Bob sends `g ^ b` to Alice, then both compute the key.
+  -- The remaining goals are named after the step that they belong to.
+  refine ⟨cfg₃.store[⟨bob, bobKey⟩ := (g ^ a₀) ^ b₀],
+    [.com alice bob (g ^ a₀), .com bob alice (g ^ b₀), .local alice, .local bob], rfl,
+    .stepL (s2 := cfg₁)
+      (.com (x := x) (.com ?send₁ ?recv₁ rfl) (eval_publicValue _ g a a₀ ha) rfl) <|
+    .stepL (s2 := cfg₂)
+      (.com (x := y) (.com ?send₂ ?recv₂ rfl) (eval_publicValue _ g b b₀ ?read₂) rfl) <|
+    .stepL (s2 := cfg₃)
+      (.assign (x := aliceKey) (.local rfl ?assign₃ rfl)
+        (eval_key _ y a _ a₀ ?read₃ ?read₃') rfl) <|
+    .single _
+      (.assign (x := bobKey) (.local (prP := 0) rfl ?assign₄ ?done)
+        (eval_key _ x b _ b₀ ?read₄ ?read₄') rfl),
+    ?aliceKey, ?bobKey⟩
+  -- Each participant is ready to perform the action of its step.
+  case send₁ | recv₁ | send₂ | recv₂ | assign₃ | assign₄ =>
+    simp only [cfg₃, cfg₂, cfg₁, net, ne_eq, hne, Ne.symm hne, not_false_eq_true,
+      Function.update_self, Function.update_of_ne, Function.update_idem]
+    exact .pre
+  -- The variables read in each step hold the expected values.
+  case read₂ | read₃ | read₃' | read₄ | read₄' => grind
+  -- Both keys are `g ^ (a₀ * b₀)`.
+  case aliceKey | bobKey => grind [pow_mul, Nat.mul_comm]
+  -- After the last step, every process has terminated.
+  case done =>
+    funext q
+    by_cases hqa : q = alice <;> by_cases hqb : q = bob <;> subst_vars <;>
+      simp_all [cfg₃, cfg₂, cfg₁, net]
 
 end CslibTests.DiffieHellman

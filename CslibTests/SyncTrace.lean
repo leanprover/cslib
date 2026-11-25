@@ -8,7 +8,8 @@ import Cslib.Foundations.Semantics.FLTS.SyncTrace
 
 /-! # The finite-state hypothesis in pairwise synchronisation
 
-This module proves that `Cslib.FLTS.hasSyncTrace_iff_pairwise` does not hold for infinite `FLTS`.
+This module proves that `Cslib.FLTS.hasSyncTrace_iff_pairwiseHasSyncTrace` does not hold for
+infinite `FLTS`.
 -/
 
 namespace CslibTests.SyncTrace

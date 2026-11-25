@@ -6,11 +6,13 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.Order.Huntington
 public import Cslib.Init
 public import Mathlib.Algebra.Order.Monoid.Unbundled.Basic
+public import Mathlib.Algebra.Order.Quantale
 public import Mathlib.Algebra.Star.Basic
+public import Mathlib.Basic.Rel
 public import Mathlib.Order.Atoms
-public import Cslib.Foundations.Order.Huntington
 
 /-!
 # Relation algebras
@@ -37,6 +39,9 @@ class RelationAlgebra (α : Type*) extends BooleanAlgebra α, Monoid α, StarMul
   sup_mul (a b c : α) : (a ⊔ b) * c = a * c ⊔ b * c
   star_sup (a b : α) : star (a ⊔ b) = star a ⊔ star b
   tarski (a b : α) : star a * (a * b)ᶜ ≤ bᶜ
+
+attribute [simp] RelationAlgebra.star_sup
+attribute [push] RelationAlgebra.star_sup StarMul.star_mul star_star star_one
 
 /-- The relation algebra of a complete Boolean algebra. -/
 class CompleteRelationAlgebra (α : Type*) extends RelationAlgebra α, CompleteBooleanAlgebra α
@@ -92,7 +97,7 @@ def starOrderIso : α ≃o α := Equiv.Perm.star.toOrderIso star_mono star_mono
 
 attribute [to_dual existing] BooleanAlgebra.toBot
 
-@[to_dual (attr := simp)]
+@[to_dual (attr := simp, push)]
 theorem star_bot : star (⊥ : α) = ⊥ := (starOrderIso : α ≃o α).map_bot
 
 @[simp, to_dual self]
@@ -104,16 +109,20 @@ theorem star_lt_star_iff {a b : α} : star a < star b ↔ a < b := starOrderIso.
 @[to_dual star_le_iff]
 theorem le_star_iff {a b : α} : a ≤ star b ↔ star a ≤ b := starOrderIso.le_symm_apply
 
-@[to_dual existing (attr := simp)]
+@[to_dual existing (attr := simp, push)]
 theorem star_inf (a b : α) : star (a ⊓ b) = star a ⊓ star b := starOrderIso.map_inf a b
 
-@[simp]
+@[simp, push]
 theorem star_compl (a : α) : star aᶜ = (star a)ᶜ :=
   (starOrderIso.isCompl isCompl_compl).compl_eq.symm
 
-@[simp]
+@[simp, push]
 theorem star_sdiff (a b : α) : star (a \ b) = star a \ star b := by
   rw [sdiff_eq, star_inf, star_compl, sdiff_eq]
+
+@[to_dual (attr := simp, push)]
+theorem star_sSup {α : Type*} [CompleteRelationAlgebra α] (s : Set α) :
+    star (sSup s) = ⨆ a ∈ s, star a := starOrderIso.map_sSup s
 
 theorem mul_sup (a b c : α) : a * (b ⊔ c) = a * b ⊔ a * c := by
   apply star_injective
@@ -129,6 +138,16 @@ instance : MulRightMono α where
 theorem mul_bot (a : α) : a * ⊥ = ⊥ :=
   eq_bot_mono (mul_le_mul_right bot_le a) (by simpa using tarski (star a) ⊤)
 
+@[simp] theorem bot_mul (a : α) : ⊥ * a = ⊥ := star_injective <| by simp
+
+theorem inf_mul_le (a b c : α) : (a ⊓ b) * c ≤ a * c ⊓ b * c := by
+  nth_grw 1 [le_inf_iff, inf_le_left, inf_le_right]
+  exact ⟨le_rfl, le_rfl⟩
+
+theorem mul_inf_le (a b c : α) : a * (b ⊓ c) ≤ a * b ⊓ a * c := by
+  nth_grw 1 [le_inf_iff, inf_le_left, inf_le_right]
+  exact ⟨le_rfl, le_rfl⟩
+
 @[to_dual (attr := simp)]
 theorem isAtom_star_iff {a : α} : IsAtom (star a) ↔ IsAtom a :=
   starOrderIso.isAtom_iff a
@@ -141,6 +160,84 @@ theorem left_modular (a b c : α) : a * b ⊓ c ≤ a * (b ⊓ star a * c) :=
     _ ≤ (a * (b ⊓ star a * c) ⊔ cᶜ) ⊓ c := by grw [← tarski (star a) c, star_star]
     _ = a * (b ⊓ star a * c) ⊓ c := by rw [inf_sup_right, compl_inf_self, sup_bot_eq]
     _ ≤ a * (b ⊓ star a * c) := inf_le_left
+
+theorem right_modular (a b c : α) : a * b ⊓ c ≤ (a ⊓ c * star b) * b := by
+  rw [← star_le_star_iff]
+  simpa using left_modular (star b) (star a) (star c)
+
+lemma le_mul_star_mul (a : α) : a ≤ a * star a * a := by calc
+  a ≤ a * ⊤ ⊓ a := by grw [← le_top (a := 1)]; simp
+  _ ≤ a * (⊤ ⊓ star a * a) := left_modular a ⊤ a
+  _ = a * star a * a := by simp [mul_assoc]
+
+theorem mul_le_compl_right (a b c : α) : a * b ≤ cᶜ ↔ star a * c ≤ bᶜ := by
+  have h (x y z : α) (h : x * y ≤ zᶜ) : star x * z ≤ yᶜ := by grw [← tarski x y, h, compl_compl]
+  refine ⟨h a b c, ?_⟩
+  simpa using h (star a) c b
+
+theorem mul_le_compl_left (a b c : α) : a * b ≤ cᶜ ↔ c * star b ≤ aᶜ := by
+  refine (star_le_star_iff.symm.trans ?_).trans star_le_star_iff
+  simpa using mul_le_compl_right (star b) (star a) (star c)
+
+theorem mul_le_compl_star_tfae {a b c : α} :
+    [a * b ≤ (star c)ᶜ, b * c ≤ (star a)ᶜ, c * a ≤ (star b)ᶜ].TFAE := by
+  tfae_have 1 ↔ 2 := by
+    rw [← star_compl, le_star_iff, star_mul, mul_le_compl_right, star_star]
+  tfae_have 2 ↔ 3 := by
+    rw [← star_compl, le_star_iff, star_mul, mul_le_compl_right, star_star]
+  tfae_finish
+
+/-- The right residual, defined so that `a ≤ leftResidual b c ↔ a * b ≤ c`. -/
+def leftResidual (a b : α) : α := (bᶜ * star a)ᶜ
+
+theorem le_leftResidual_iff {a b c : α} : a ≤ leftResidual b c ↔ a * b ≤ c := by
+  rw [leftResidual, le_compl_comm, ← mul_le_compl_left, compl_compl]
+
+/-- The left residual, defined so that `a ≤ rightResidual b c ↔ b * a ≤ c`. -/
+def rightResidual (a b : α) : α := (star a * bᶜ)ᶜ
+
+theorem le_rightResidual_iff {a b c : α} : a ≤ rightResidual b c ↔ b * a ≤ c := by
+  rw [rightResidual, le_compl_comm, ← mul_le_compl_right, compl_compl]
+
+@[simp, push]
+theorem star_leftResidual {a b : α} :
+    star (leftResidual a b) = rightResidual (star a) (star b) := by
+  rw [leftResidual, rightResidual]
+  push star
+  rfl
+
+@[simp, push]
+theorem star_rightResidual {a b : α} :
+    star (rightResidual a b) = leftResidual (star a) (star b) := by
+  rw [rightResidual, leftResidual]
+  push star
+  rfl
+
+theorem mul_sSup {α : Type*} [CompleteRelationAlgebra α] {a : α} {s : Set α} :
+    a * sSup s = ⨆ b ∈ s, a * b := by
+  apply eq_of_forall_ge_iff
+  simp [← le_rightResidual_iff]
+
+theorem sSup_mul {α : Type*} [CompleteRelationAlgebra α] {s : Set α} {b : α} :
+    sSup s * b = ⨆ a ∈ s, a * b := by
+  apply eq_of_forall_ge_iff
+  simp [← le_leftResidual_iff]
+
+instance instQuantale (α : Type*) [CompleteRelationAlgebra α] : IsQuantale α where
+  mul_sSup_distrib _ _ := mul_sSup
+  sSup_mul_distrib _ _ := sSup_mul
+
+open Quantale in
+theorem leftMulResiduation_eq_leftResidual {α : Type*} [CompleteRelationAlgebra α]
+    {a b : α} : a ⇨ₗ b = leftResidual a b := by
+  apply eq_of_forall_le_iff
+  simp [leftMulResiduation_le_iff_mul_le, le_leftResidual_iff]
+
+open Quantale in
+theorem rightMulResiduation_eq_rightResidual {α : Type*} [CompleteRelationAlgebra α]
+    {a b : α} : a ⇨ᵣ b = rightResidual a b := by
+  apply eq_of_forall_le_iff
+  simp [rightMulResiduation_le_iff_mul_le, le_rightResidual_iff]
 
 /-- If a nonzero element lies below a product, the right factor meets its converse image. -/
 theorem inf_star_mul_ne_bot {r s p : α} (hp : p ≠ ⊥) (h : p ≤ r * s) : s ⊓ star r * p ≠ ⊥ :=
@@ -172,6 +269,17 @@ theorem exists_atom_le_mul_left [IsAtomic α] {a b p : α} (hp : IsAtom p) (h : 
 /-- A relation algebra is *integral* when its identity is an atom. -/
 def IsIntegral (α : Type*) [RelationAlgebra α] : Prop := IsAtom (1 : α)
 
+lemma IsIntegral.one_ne_bot {α : Type*} [RelationAlgebra α] (h : IsIntegral α) : (1 : α) ≠ ⊥ :=
+  h.ne_bot
+
+lemma IsIntegral.nontrivial {α : Type*} [RelationAlgebra α] (h : IsIntegral α) : Nontrivial α where
+  exists_pair_ne := ⟨1, ⊥, h.one_ne_bot⟩
+
+lemma one_eq_bot_iff (α : Type*) [RelationAlgebra α] : (1 : α) = ⊥ ↔ Subsingleton α := by
+  refine ⟨fun h ↦ ⟨?_⟩, fun h ↦ (h.eq_one ⊥).symm⟩
+  intro a b
+  rw [← mul_one a, h, mul_bot, ← mul_one b, h, mul_bot]
+
 /-- The set of identity atoms. -/
 def identityAtoms (α : Type*) [RelationAlgebra α] : Set α := {a : α | IsAtom a ∧ a ≤ 1}
 
@@ -200,6 +308,50 @@ theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
     _ = a := star_star a
   cases h
   grind
+
+/-- The relation algebra of all binary relations on a type `α`. This is scoped so that other
+instances, such as those under `Pointwise`, can be used elsewhere. -/
+scoped instance (α : Type u) : CompleteAtomicRelationAlgebra (SetRel α α) where
+  one := SetRel.id
+  mul := SetRel.comp
+  mul_assoc := SetRel.comp_assoc
+  one_mul := SetRel.id_comp
+  mul_one := SetRel.comp_id
+  star := SetRel.inv
+  star_involutive _ := SetRel.inv_inv
+  star_mul := SetRel.inv_comp
+  sup_mul a b c := by
+    ext ⟨x, z⟩
+    exact (exists_congr fun y => or_and_right).trans exists_or
+  star_sup _ _ := rfl
+  tarski a b := by
+    rintro ⟨x, z⟩ ⟨y, hxy, hyz⟩ hxz
+    exact hyz ⟨x, hxy, hxz⟩
+
+variable {α : Type u} {R S : SetRel α α} {a b c : α}
+
+theorem _root_.SetRel.mul_eq_comp : R * S = R.comp S := rfl
+
+theorem _root_.SetRel.one_eq_id : (1 : SetRel α α) = SetRel.id := rfl
+
+theorem _root_.SetRel.star_eq_inv : star R = R.inv := rfl
+
+@[simp]
+theorem _root_.SetRel.mem_mul : (a, c) ∈ R * S ↔ ∃ b, (a, b) ∈ R ∧ (b, c) ∈ S := .rfl
+
+@[simp]
+theorem _root_.SetRel.mem_one : (a, b) ∈ (1 : SetRel α α) ↔ a = b := .rfl
+
+@[simp]
+theorem _root_.SetRel.mem_star : (a, b) ∈ star R ↔ (b, a) ∈ R := .rfl
+
+theorem _root_.SetRel.mem_leftResidual :
+    (a, b) ∈ leftResidual R S ↔ ∀ c, (b, c) ∈ R → (a, c) ∈ S := by
+  simp [leftResidual, not_imp_not]
+
+theorem _root_.SetRel.mem_rightResidual :
+    (a, b) ∈ rightResidual R S ↔ ∀ c, (c, a) ∈ R → (c, b) ∈ S := by
+  simp [rightResidual]
 
 end RelationAlgebra
 

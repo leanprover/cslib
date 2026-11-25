@@ -141,7 +141,7 @@ by performing only `τ`-transitions. -/
 def τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State :=
   lts.saturate.setImage S HasTau.τ
 
-/-- Monotonicity of `setImage` on `HasTau.τ`. -/
+/-- Every set is contained in its `τ`-closure. -/
 @[scoped grind .]
 lemma τClosure_subset [HasTau Label] (lts : LTS State Label) :
     S ⊆ lts.τClosure S := by grind [Set.mem_of_mem_of_subset, = τClosure]

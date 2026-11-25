@@ -41,7 +41,7 @@ different ways.
 
 - `LTS.finiteState_imageFinite`: every finite-state LTS is also image-finite.
 
-- `LTS.finiteState_finitelyBranching`: every finite-state LTS is also finitely-branching, if the
+- `LTS.FinitelyBranching.of_finite`: every finite-state LTS is also finitely-branching, if the
 type of labels is finite.
 
 ## References

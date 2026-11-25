@@ -4,6 +4,7 @@ import CslibTests.BooleanCircuits
 import CslibTests.CCS
 import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
+import CslibTests.Choreography
 import CslibTests.CircuitComplexity
 import CslibTests.CircuitComposition
 import CslibTests.CircuitCounting
@@ -13,6 +14,7 @@ import CslibTests.Complexity.Combinators
 import CslibTests.Congruence
 import CslibTests.DFA
 import CslibTests.DiffieHellman
+import CslibTests.Encoding
 import CslibTests.FreeMonad
 import CslibTests.GrindLint
 import CslibTests.HML

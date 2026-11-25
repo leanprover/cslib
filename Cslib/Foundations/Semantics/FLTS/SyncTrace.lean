@@ -13,8 +13,8 @@ public import Mathlib.SetTheory.Cardinal.Finite
 
 This module defines synchronising traces for `FLTS`.
 
-For finite state spaces, `hasSyncTrace_iff_pairwise` characterises synchronisation by the
-ability to merge each pair of states, possibly using a different trace for each pair.
+For finite state spaces, `hasSyncTrace_iff_pairwiseHasSyncTrace` characterises synchronisation by
+the ability to merge each pair of states, possibly using a different trace for each pair.
 The label type need not be finite.
 
 ## References

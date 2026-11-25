@@ -149,7 +149,7 @@ private theorem eventually_card_le_exp_neg [Finite σ.Op] [Finite U] [Nontrivial
     _ ≤ Real.exp (-(s : ℝ) + (q : ℝ) ^ n * Real.log q) := Real.exp_le_exp.mpr hexponent
     _ = Real.exp (-(s : ℝ)) * (q : ℝ) ^ (q ^ n : ℕ) := by
       rw [Real.exp_add, show (q : ℝ) ^ n = ((q ^ n : ℕ) : ℝ) by norm_cast,
-        Real.exp_nat_mul, Real.exp_log (zero_lt_one.trans hqR)]
+        Real.exp_natCast_mul, Real.exp_log (zero_lt_one.trans hqR)]
 
 /-- Almost all functions on `n` inputs require more than `|U|ⁿ/n` gates over a fixed finite
 signature whose operations have arity at most two: the fraction of functions computable within

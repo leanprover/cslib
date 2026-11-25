@@ -113,7 +113,7 @@ theorem IsRegular.of_finite_monoid_singleton [Finite M]
   by_cases h : (f ∘ ofList) ⁻¹' {m} = ∅
   · rw [h]
     exact IsRegular.zero
-  · obtain ⟨x, rfl⟩ := Set.nonempty_iff_ne_empty.mpr h
+  · obtain ⟨x, rfl⟩ := Set.ne_empty_iff_nonempty.mp h
     rw [inducedCongr_ofList]
     exact IsRegular.congr_fin_index (c := inducedCongr f) _
 
