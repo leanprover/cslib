@@ -54,7 +54,7 @@ private theorem natCard_sigma {α : Type*} (β : α → Type*) [∀ a, Finite (�
   · have := Set.Infinite.to_subtype hs
     have : Infinite (Σ a, β a) := Infinite.of_injective
       (fun a : Function.support fun a ↦ Nat.card (β a) ↦
-        ⟨a.1, Classical.choice (Nat.card_ne_zero.mp a.2).1⟩)
+        ⟨a.val, Classical.choice (Nat.card_ne_zero.mp a.property).1⟩)
       fun _ _ h ↦ Subtype.ext (congrArg Sigma.fst h)
     rw [Nat.card_eq_zero_of_infinite, finsum_of_infinite_support hs]
 
