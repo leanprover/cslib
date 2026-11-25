@@ -186,7 +186,7 @@ theorem mem_singleton {b : α} : b ∈ ({a} : ComplexAlgebra A) ↔ b = a := .rf
 
 variable (A) in
 theorem singleton_injective : Function.Injective (singleton : α → ComplexAlgebra A) :=
-  fun _ _ h => Set.singleton_injective (congrArg carrier h)
+  fun _ _ h => Set.singleton_injective congr(carrier $h)
 
 @[simp]
 theorem singleton_inj {b : α} : ({a} : ComplexAlgebra A) = {b} ↔ a = b :=
