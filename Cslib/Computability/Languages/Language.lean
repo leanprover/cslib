@@ -42,7 +42,7 @@ theorem eq_zero_or_one_ofIsEmpty [IsEmpty α] (l : Language α) : l = 0 ∨ l = 
   · simp [h]
   · right
     ext xl
-    obtain ⟨yl, _⟩ := nonempty_iff_ne_empty.mpr h
+    obtain ⟨yl, _⟩ := ne_empty_iff_nonempty.mp h
     obtain ⟨rfl⟩ := eq_nil_ofIsEmpty xl
     obtain ⟨rfl⟩ := eq_nil_ofIsEmpty yl
     simpa

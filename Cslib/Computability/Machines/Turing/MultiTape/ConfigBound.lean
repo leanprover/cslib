@@ -126,7 +126,7 @@ lemma Storage.FitsIn_mono {x : Storage Symbol State k} : Monotone x.FitsIn := by
 clamped to `0`). -/
 def Storage.toBounded (x : Storage Symbol State k) (w : Fin k → ℕ) :
     BoundedStorage Symbol State w :=
-  (x.state, fun j z => x.workTapes j z.1,
+  (x.state, fun j z => x.workTapes j z.val,
     fun j => if h : x.workTapePos j ∈ window (w j) then ⟨x.workTapePos j, h⟩
       else ⟨0, mem_window.mpr (Nat.zero_le _)⟩)
 

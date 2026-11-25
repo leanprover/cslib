@@ -45,10 +45,6 @@ def ofGroup : AtomStructure G where
   conv g := g⁻¹
   id := {1}
   cycles := {(f, g, h) | f * g = h}
-  assoc := by simp +contextual [mul_assoc]
-  id_cycle_right := by simp
-  exists_id_cycle_right r := by simp
-  cycle_left := by simp
 
 @[simp]
 theorem ofGroup_conv (g : G) : (ofGroup G).conv g = g⁻¹ := rfl
@@ -58,6 +54,12 @@ theorem mem_ofGroup_id {g : G} : g ∈ (ofGroup G).id ↔ g = 1 := .rfl
 
 @[simp]
 theorem mem_ofGroup_cycles {f g h : G} : (f, g, h) ∈ (ofGroup G).cycles ↔ f * g = h := .rfl
+
+instance : LawfulAtomStructure (ofGroup G) where
+  assoc := by simp +contextual [mul_assoc]
+  id_cycle_right := by simp
+  exists_id_cycle_right r := by simp
+  cycle_left := by simp
 
 end AtomStructure
 
@@ -69,6 +71,26 @@ variable {G : Type*} [Group G]
 
 theorem isIntegral_ofGroup : IsIntegral (ComplexAlgebra (ofGroup G)) :=
   (isIntegral_iff _).mpr ⟨1, rfl⟩
+
+lemma ofGroup_isRelRefl_iff (x : ComplexAlgebra (ofGroup G)) : IsRelRefl x ↔ 1 ∈ x := by
+  simp [isRelRefl_iff, IsConcreteLE.le_iff]
+
+lemma ofGroup_isRelSymm_iff (x : ComplexAlgebra (ofGroup G)) :
+  IsRelSymm x ↔ ∀ {g : G}, g ∈ x → g⁻¹ ∈ x := ComplexAlgebra.isRelSymm_iff x
+
+lemma ofGroup_isRelTrans_iff (x : ComplexAlgebra (ofGroup G)) :
+    IsRelTrans x ↔ ∀ {g₁ g₂ : G}, g₁ ∈ x → g₂ ∈ x → g₁ * g₂ ∈ x := by
+  simp [ComplexAlgebra.isRelTrans_iff]
+
+theorem ofGroup_carrier_eq_subgroup (x : ComplexAlgebra (ofGroup G)) :
+    IsRelRefl x ∧ IsRelSymm x ∧ IsRelTrans x ↔ ∃ H : Subgroup G, (x : Set G) = H := by
+  rw [ofGroup_isRelRefl_iff, ofGroup_isRelSymm_iff, ofGroup_isRelTrans_iff]
+  constructor
+  · intro ⟨one_mem', inv_mem', mul_mem'⟩
+    exact ⟨{carrier := x, mul_mem', one_mem', inv_mem'}, rfl⟩
+  · cases x
+    rintro ⟨H, rfl⟩
+    simp +contextual [H.mul_mem]
 
 variable (G) in
 /-- The Cayley representation of the complex algebra of a group. -/
@@ -112,6 +134,7 @@ theorem _root_.MulAction.set_mem_fixedPoints_iff {G α : Type*} [Group G] [MulAc
   ⟨fun h g => (h g).subset, fun h g => (h g).antisymm (Set.subset_smul_set_iff.mpr (h g⁻¹))⟩
 
 open scoped Pointwise in
+/-- `cayley` represents `ComplexAlgebra (ofGroup G)` by the left-invariant relations on `G`. -/
 theorem range_cayley : Set.range (cayley G) = MulAction.fixedPoints G (SetRel G G) := by
   ext
   simp [↓mem_range_cayley, ↓MulAction.set_mem_fixedPoints_iff, Set.smul_set_subset_iff]
