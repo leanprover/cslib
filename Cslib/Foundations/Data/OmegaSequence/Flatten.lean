@@ -76,7 +76,7 @@ theorem cumLen_segment_one_add {ls : ωSequence (List α)} (h_ls : ∀ k, 0 < (l
     segment ls.cumLen n = 1 + segment (ls.drop 1).cumLen (n - (ls 0).length) := by
   have h_mono := cumLen_strictMono (ls := ls.drop 1) (fun k => h_ls (k + 1))
   have h_lower := segment_lower_bound h_mono rfl (n - (ls 0).length)
-  have h_upper := segment_upper_bound h_mono (n - (ls 0).length)
+  have h_upper := segment_upper_bound h_mono rfl (n - (ls 0).length)
   apply segment_range_val (cumLen_strictMono h_ls) <;>
     simp only [Nat.add_assoc, cumLen_one_add_drop] <;> lia
 
@@ -190,7 +190,7 @@ theorem strictMono_flatten [Inhabited α] {f : ℕ → ℕ}
     (s.toSegs f).flatten = s := by
   ext k; rw [flatten_def, segment_toSegs_cumLen hm h0, toSegs_def]
   have := segment_lower_bound hm h0 k
-  have := segment_upper_bound hm k
+  have := segment_upper_bound hm h0 k
   grind
 
 end ωSequence

@@ -107,8 +107,9 @@ theorem segment_plus_one (h0 : f 0 = 0) (k : ℕ) :
   suffices _ : count (· ∈ range f) (k + 1) ≠ 0 by unfold segment; lia
   apply count_ne_iff_exists.mpr; use 0; grind
 
-/-- The case `f 0 = 0` of `segment_upper_bound`. -/
-private theorem segment_upper_bound_of_zero (hm : StrictMono f) (h0 : f 0 = 0) (k : ℕ) :
+/-- For a strictly monotonic function `f : ℕ → ℕ` with `f 0 = 0`,
+`k < f (segment f k + 1)` for all `k : ℕ`. -/
+theorem segment_upper_bound (hm : StrictMono f) (h0 : f 0 = 0) (k : ℕ) :
     k < f (segment f k + 1) := by
   classical
   rw [nth_of_strictMono hm (segment f k + 1), segment_plus_one h0 k]
@@ -148,7 +149,7 @@ theorem segment_galois_connection (hm : StrictMono f) (h0 : f 0 = 0) :
   intro m k
   constructor
   · intro h
-    exact Nat.le_of_lt_succ (hm.lt_iff_lt.mp (h.trans_lt (segment_upper_bound_of_zero hm h0 k)))
+    exact Nat.le_of_lt_succ (hm.lt_iff_lt.mp (h.trans_lt (segment_upper_bound hm h0 k)))
   · intro h
     exact (hm.monotone h).trans (segment_lower_bound hm h0 k)
 
@@ -176,7 +177,7 @@ theorem segment'_eq_segment (hm : StrictMono f) :
   · rw [segment_pre_zero hm hk, Nat.sub_eq_zero_of_le (by lia)]
     exact segment_zero
   · have h_lower := segment_lower_bound (base_zero_strictMono hm) (by simp) (k - f 0)
-    have h_upper := segment_upper_bound_of_zero (base_zero_strictMono hm) (by simp) (k - f 0)
+    have h_upper := segment_upper_bound (base_zero_strictMono hm) (by simp) (k - f 0)
     symm
     apply segment_range_val hm <;> lia
 
@@ -187,16 +188,14 @@ theorem segment_zero' (hm : StrictMono f) {k : ℕ} (h : k ≤ f 0) :
   grind
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `k < f (segment f k + 1)` for all `k : ℕ`. -/
-theorem segment_upper_bound (hm : StrictMono f) (k : ℕ) :
+theorem segment_upper_bound' (hm : StrictMono f) (k : ℕ) :
     k < f (segment f k + 1) := by
   by_cases hk : k < f 0
   · rw [segment_pre_zero hm hk]
     exact hk.trans (hm zero_lt_one)
   rw [← segment'_eq_segment hm, segment']
-  have := segment_upper_bound_of_zero (base_zero_strictMono hm) (base_zero_shift f) (k - f 0)
+  have := segment_upper_bound (base_zero_strictMono hm) (base_zero_shift f) (k - f 0)
   lia
-
-@[deprecated (since := "2026-11-16")] alias segment_upper_bound' := segment_upper_bound
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `f (segment f k) ≤ k` for all `k ≥ f 0`. -/
 theorem segment_lower_bound' (hm : StrictMono f) {k : ℕ} (h : f 0 ≤ k) :
