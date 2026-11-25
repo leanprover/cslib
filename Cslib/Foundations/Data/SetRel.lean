@@ -71,7 +71,7 @@ lemma map_comp_of_injective (hg : g.Injective) {s : SetRel α β} {r : SetRel β
     {g₂ : β₂ → β₃} {s : SetRel α₁ β₁} : (s.map f₁ g₁).map f₂ g₂ = s.map (f₂ ∘ f₁) (g₂ ∘ g₁) :=
   Set.image_comp (Prod.map f₂ g₂) (Prod.map f₁ g₁) s |>.symm
 
-/-- Equivalences between types lift the their types of set-based relations. -/
+/-- Equivalences between types lift to the their types of set-based relations. -/
 @[simps]
 def mapEquiv (eα : α ≃ α') (eβ : β ≃ β') : SetRel α β ≃ SetRel α' β' where
   toFun s := s.map eα eβ
@@ -79,6 +79,67 @@ def mapEquiv (eα : α ≃ α') (eβ : β ≃ β') : SetRel α β ≃ SetRel α'
   left_inv _ := by simp
   right_inv _ := by simp
 
+protected def comap (f : α → α') (g : β → β') (r : SetRel α' β') : SetRel α β :=
+  (Prod.map f g) ⁻¹' r
+
+variable {s r : SetRel α' β'}
+
+@[simp, grind =] lemma mem_comap : a ~[r.comap f g] b ↔ f a ~[r] g b := .rfl
+
+@[simp] lemma comap_inv : r.inv.comap g f = (r.comap f g).inv := by ext ⟨x, y⟩; simp
+
+@[simp] lemma comap_union : (s ∪ r).comap f g = s.comap f g ∪ r.comap f g := Set.preimage_union
+
+@[simp] lemma comap_inter : (s ∩ r).comap f g = s.comap f g ∩ r.comap f g := Set.preimage_inter
+
+lemma comap_subset_comap (h : s ⊆ r) : s.comap f g ⊆ r.comap f g := Set.preimage_mono h
+
+lemma comap_subset_comap_iff (hf : f.Surjective) (hg : g.Surjective) :
+    s.comap f g ⊆ r.comap f g ↔ s ⊆ r := (hf.prodMap hg).preimage_subset_preimage_iff
+
+@[simp] lemma comap_bot : SetRel.comap f g ⊥ = ⊥ := Set.preimage_empty
+
+@[simp] lemma comap_top : SetRel.comap f g ⊤ = ⊤ := Set.preimage_univ
+
+lemma map_id_of_injective (hf : f.Injective) : SetRel.comap f f .id = .id := by
+  ext ⟨x, y⟩
+  exact hf.eq_iff
+
+lemma map_comp_of_surjective (hg : g.Surjective) {r : SetRel β' γ'} :
+    (s ○ r).comap f h = s.comap f g ○ r.comap g h := by
+  ext ⟨x, z⟩
+  simpa using hg.exists
+
+@[simp] lemma comap_id_fun : r.map id id = r := by ext ⟨x, y⟩; simp
+
+@[simp] lemma comap_comp_fun {α₁ α₂ α₃ β₁ β₂ β₃ : Type*} {f₁ : α₁ → α₂} {f₂ : α₂ → α₃}
+    {g₁ : β₁ → β₂} {g₂ : β₂ → β₃} {s : SetRel α₃ β₃} :
+    (s.comap f₂ g₂).comap f₁ g₁ =  s.comap (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+  Set.preimage_comp.symm
+
+def mapBijective (hf : f.Bijective) (hg : g.Bijective) : SetRel α β ≃ SetRel α' β' where
+  toFun := .map f g
+  invFun := .comap f g
+  left_inv r := by ext ⟨x, y⟩; simp [hf.injective.eq_iff, hg.injective.eq_iff]
+  right_inv r := by
+    ext ⟨x, y⟩
+    constructor
+    · rintro ⟨⟨a, b⟩, h, rfl, rfl⟩
+      exact h
+    · intro h
+      obtain ⟨x', rfl⟩ := hf.surjective x
+      obtain ⟨y', rfl⟩ := hg.surjective y
+      exact map_mem_map h
+
 end Map
+
+section Sigma
+
+variable {α β ι : Type*}
+
+def toPartition (s : ι → Set α) (t : ι → Set β) : SetRel α β → Π i, SetRel (s i) (t i) :=
+    fun r _ ↦ r.comap (↑) (↑)
+
+end Sigma
 
 end SetRel
