@@ -197,7 +197,7 @@ theorem singleton_le_iff : {a} ≤ x ↔ a ∈ x := Set.singleton_subset_iff
 
 @[simp]
 theorem star_singleton : star ({a} : ComplexAlgebra A) = {A.conv a} :=
-  congrArg mk (Set.image_singleton ..)
+  congr(mk $(Set.image_singleton ..))
 
 theorem isAtom_iff : IsAtom x ↔ ∃ a, x = {a} :=
   ((orderIsoSet A).isAtom_iff x).symm.trans <|
