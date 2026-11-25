@@ -6,8 +6,10 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Mathlib.Data.Fintype.Inv
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
+public import Mathlib.Data.Fintype.Inv
+
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 
 /-!
 # Extending a machine with additional work tapes

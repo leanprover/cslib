@@ -7,8 +7,11 @@ module
 
 public import Cslib.Computability.Circuit.Boolean.Basic
 public import Cslib.Computability.Circuit.Counting
+public import Cslib.Foundations.Data.BitString
 
-import Mathlib.Tactic.Linarith
+import Cslib.Computability.Circuit.Finite
+import Mathlib.Algebra.Order.Ring.Int
+import Mathlib.Tactic.Linarith.Frontend
 
 /-!
 # Counting De Morgan circuits

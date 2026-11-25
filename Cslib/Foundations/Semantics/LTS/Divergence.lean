@@ -9,6 +9,8 @@ module
 public import Cslib.Foundations.Semantics.LTS.HasTau
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-!
 # Divergence of LTS
 -/

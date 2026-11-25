@@ -6,8 +6,10 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
+public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
-public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
+
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 
 /-!
 # Machines as transformers of tape words

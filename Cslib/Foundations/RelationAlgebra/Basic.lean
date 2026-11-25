@@ -7,8 +7,6 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.Order.Huntington
-public import Cslib.Init
-public import Mathlib.Algebra.Order.Monoid.Unbundled.Basic
 public import Mathlib.Algebra.Order.Quantale
 public import Mathlib.Algebra.Star.Basic
 public import Mathlib.Basic.Rel

@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Data.PFunctor.Basic
 
 /-! # Modal Frames

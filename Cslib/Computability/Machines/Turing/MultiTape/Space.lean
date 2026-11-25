@@ -6,10 +6,12 @@ Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 
 module
 
-public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-public import Mathlib.Data.Int.Interval
-public import Mathlib.Order.Lattice.Nat
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
+public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
+public import Mathlib.Data.Int.Interval
+
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Order.Lattice.Nat
 
 /-!
 # Space usage of multi-tape Turing machines

@@ -7,10 +7,11 @@ Authors: Yusuf Demir
 module
 
 public import Cslib.Computability.Automata.EpsilonNA.ToSingleStartAccept
-public import Cslib.Computability.Languages.Language
-public import Cslib.Foundations.Semantics.LTS.Simulation
 public import Cslib.Foundations.Semantics.LTS.Union
-public import Mathlib.Data.List.ReduceOption
+
+import Cslib.Computability.Languages.Language
+import Cslib.Foundations.Semantics.LTS.Simulation
+import Mathlib.Data.List.ReduceOption
 
 /-! # Thompson's construction
 

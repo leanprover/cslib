@@ -8,9 +8,8 @@ module
 
 public import Cslib.Init
 public import Mathlib.Algebra.Polynomial.Eval.Defs
-public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-public import Mathlib.Algebra.Order.Monoid.Canonical.Defs
-public import Mathlib.Algebra.Order.Ring.Defs
+
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 /-!
 # Monotonicity of polynomial evaluation

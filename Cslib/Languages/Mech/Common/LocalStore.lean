@@ -6,9 +6,9 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Languages.Mech.Common.Basic
 public import Cslib.Foundations.Syntax.HasSubstitution
-public import Mathlib.Data.Finset.Basic
+public import Cslib.Languages.Mech.Common.Basic
+public import Mathlib.Data.Finset.Defs
 
 /-! # Local stores -/
 

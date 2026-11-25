@@ -6,12 +6,16 @@ Authors: Sorrachai Yingchareonthawornhcai
 
 module
 
-public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Algorithms.Lean.Sort.Merge
-import all Cslib.Algorithms.Lean.Sort.Merge
-public import Mathlib.Data.Nat.Cast.Order.Ring
-public import Mathlib.Order.Lattice.Nat
+public import Cslib.Algorithms.Lean.TimeM
+public import Mathlib.Algebra.Group.Nat.Defs
 public import Mathlib.Data.Nat.Log
+
+import all Cslib.Algorithms.Lean.Sort.Merge
+import Mathlib.Algebra.Order.Group.Nat
+import Mathlib.Algebra.Order.Monoid.NatCast
+import Mathlib.Algebra.Ring.Nat
+import Mathlib.Data.List.Sort
 
 /-!
 # MergeSort on a list

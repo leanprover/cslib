@@ -7,8 +7,10 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Init
-public import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.Algebra.Order.Archimedean.Real.Basic
+public import Mathlib.Analysis.Asymptotics.Defs
+
+import Mathlib.Analysis.Asymptotics.Basic
+import Mathlib.Analysis.Normed.Field.Basic
 import Mathlib.Data.Fintype.Order
 
 /-!

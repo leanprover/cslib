@@ -9,6 +9,8 @@ module
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.LTS.OmegaExecution
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-!
 # Total LTS
 

@@ -6,8 +6,13 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 module
 
-public import Cslib.Foundations.Relation.Termination
-public import Mathlib.Tactic.TFAE
+public import Cslib.Foundations.Relation.Defs
+public import Mathlib.Data.List.TFAE
+public import Mathlib.Order.PropInstances
+
+import Cslib.Foundations.Relation.Basic
+import Cslib.Foundations.Relation.Termination
+import Mathlib.Tactic.TFAE
 
 /-! # Relations: Confluence
 

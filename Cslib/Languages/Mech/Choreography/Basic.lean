@@ -8,7 +8,6 @@ module
 
 public import Cslib.Foundations.Data.HasTrue
 public import Cslib.Languages.Mech.Common.Expr.Notation
-public import Mathlib.Data.Finset.Basic
 
 /-!
 # Choreography

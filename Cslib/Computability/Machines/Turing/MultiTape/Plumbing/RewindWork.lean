@@ -6,8 +6,8 @@ Authors: Christian Reitwiessner, Samuel Schlesinger
 
 module
 
+public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
-public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 
 /-!
 # A machine that rewinds a work-tape head

@@ -7,7 +7,11 @@ Authors: Fabrizio Montesi, Kenny Lau
 module -- shake: keep-downstream
 
 public import Cslib.Init
-public import Mathlib.Analysis.Normed.Field.Lemmas
+public import Mathlib.Algebra.Order.Ring.Unbundled.Rat
+public import Mathlib.Algebra.Ring.Rat
+public import Mathlib.Data.Finset.Max
+public import Mathlib.Data.Finset.Preimage
+public import Mathlib.Order.SuccPred.Nat
 
 /-! Computable chacterization of infinite types. -/
 

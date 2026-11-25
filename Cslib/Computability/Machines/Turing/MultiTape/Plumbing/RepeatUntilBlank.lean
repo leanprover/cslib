@@ -8,6 +8,8 @@ module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 
+import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
+
 /-!
 # Repeating a machine until a tape goes blank
 

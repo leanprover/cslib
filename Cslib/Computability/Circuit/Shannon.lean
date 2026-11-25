@@ -6,16 +6,12 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Counting
-public import Mathlib.Basic.Real.Basic
-public import Mathlib.SetTheory.Cardinal.Finite
 public import Mathlib.Topology.MetricSpace.Pseudo.Defs
 
+import Cslib.Computability.Circuit.Finite
 import Cslib.Computability.Circuit.Full
 import Cslib.Foundations.Data.Nat.Asymptotics
 import Cslib.Foundations.Data.Nat.Factorial
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Order.Filter.AtTopBot.Basic
-import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
 # Shannon's lower bounds for finite carriers

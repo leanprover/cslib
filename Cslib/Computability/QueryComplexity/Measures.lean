@@ -7,11 +7,11 @@ Authors: Vignesh Karri
 module
 
 public import Cslib.Computability.QueryComplexity.Defs
+public import Mathlib.Data.Fintype.Option
 public import Mathlib.Data.Fintype.Pi
 public import Mathlib.Data.Fintype.Powerset
-public import Mathlib.Data.Fintype.Option
-public import Mathlib.Data.Finset.Lattice.Fold
-public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 /-!
 # Boolean function complexity measures

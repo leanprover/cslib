@@ -7,7 +7,9 @@ Authors: Chris Henson
 module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Context
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
+
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # λ-calculus
 

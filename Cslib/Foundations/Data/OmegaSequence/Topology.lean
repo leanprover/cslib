@@ -6,9 +6,11 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Foundations.Data.OmegaSequence.Init
+public import Cslib.Foundations.Data.OmegaSequence.Defs
 public import Mathlib.Topology.Homeomorph.TransferInstance
 public import Mathlib.Topology.MetricSpace.PiNat
+
+import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-!
 # Topology on ω-sequences

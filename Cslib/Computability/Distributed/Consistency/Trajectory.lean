@@ -7,7 +7,6 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Distributed.Consistency.Enumeration
-public import Cslib.Computability.Distributed.Consistency.Specification
 public import Cslib.Computability.Distributed.Consistency.Transition
 public import Mathlib.Data.Finset.Max
 

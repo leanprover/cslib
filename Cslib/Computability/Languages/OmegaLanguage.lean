@@ -6,12 +6,12 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Data.OmegaSequence.Topology
 public import Mathlib.Computability.Language
-public import Mathlib.Order.CompleteBooleanAlgebra
-public import Mathlib.Order.Filter.AtTopBot.Defs
+
+import Cslib.Computability.Languages.Language
+import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-!
 # ωLanguage

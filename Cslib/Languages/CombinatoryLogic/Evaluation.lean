@@ -6,8 +6,12 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Languages.CombinatoryLogic.Confluence
+public import Cslib.Foundations.Relation.Defs
 public import Cslib.Languages.CombinatoryLogic.Recursion
+
+import Cslib.Foundations.Relation.Basic
+import Cslib.Foundations.Relation.Termination
+import Cslib.Languages.CombinatoryLogic.Confluence
 
 /-!
 # Evaluation results

@@ -6,11 +6,9 @@ Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 
 module
 
-public import Mathlib.Algebra.Order.Group.Abs
-public import Mathlib.Algebra.Order.Group.Int
-public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-public import Mathlib.Basic.Sign.Defs
 public import Cslib.Computability.Machines.Turing.MultiTape.Space
+
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 /-!
 # Deterministic Multi-Tape Turing Machines

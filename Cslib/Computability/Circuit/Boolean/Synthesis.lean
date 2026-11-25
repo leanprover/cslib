@@ -7,7 +7,9 @@ module
 
 public import Cslib.Computability.Circuit.Boolean.Basic
 public import Cslib.Computability.Circuit.Synthesis
-public import Mathlib.Data.Fintype.Card
+public import Cslib.Foundations.Data.BitString
+
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 
 /-!
 # Boolean synthesis

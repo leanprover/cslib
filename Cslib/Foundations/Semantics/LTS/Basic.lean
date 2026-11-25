@@ -7,8 +7,10 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Relation.Defs
-public import Mathlib.Data.Set.Finite.Basic
-public import Mathlib.Order.SetNotation
+public import Mathlib.Basic.Finite.Defs
+public import Mathlib.Data.Set.Subsingleton
+
+import Mathlib.Data.Set.Finite.Basic
 
 /-!
 # Labelled Transition System (LTS)

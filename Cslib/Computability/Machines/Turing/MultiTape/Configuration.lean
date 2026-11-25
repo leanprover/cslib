@@ -4,15 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christian Reitwiessner, Samuel Schlesinger, Aviv Bar Natan
 -/
 
-module
+module -- shake: keep-all
 
 public import Mathlib.Algebra.Order.Group.Abs
 public import Mathlib.Algebra.Order.Group.Int
-public import Mathlib.Algebra.Order.Group.Nat
-public import Mathlib.Algebra.Ring.Int.Defs
-public import Mathlib.Algebra.Ring.Nat
 public import Mathlib.Basic.Sign.Defs
-public import Mathlib.Data.Fin.Basic
 public import Cslib.Init
 
 /-!

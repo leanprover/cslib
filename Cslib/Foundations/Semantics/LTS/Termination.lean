@@ -6,9 +6,11 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Relation.Termination
-public import Cslib.Foundations.Semantics.LTS.Execution
+public import Cslib.Foundations.Semantics.LTS.Basic
 public import Mathlib.SetTheory.Cardinal.Finite
+
+import Cslib.Foundations.Relation.Termination
+import Cslib.Foundations.Semantics.LTS.Execution
 
 /-!
 # Termination of LTS

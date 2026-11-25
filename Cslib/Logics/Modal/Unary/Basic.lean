@@ -6,9 +6,6 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Data.PFunctor.Basic
-public import Cslib.Logics.Modal.Basic
-public import Cslib.Logics.Modal.Semantics
 public import Cslib.Logics.Modal.LogicalEquivalence
 
 /-! # Unary Modal Logic -/

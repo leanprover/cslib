@@ -6,10 +6,8 @@ Authors: Bolton Bailey
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Data.List.IsChainFromTo
 public import Mathlib.Data.Set.Card
-public import Mathlib.Logic.Relation
 
 /-! # Relations Across Steps
 

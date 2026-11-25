@@ -7,11 +7,10 @@ module
 
 public import Cslib.Algorithms.Lean.Query.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.IsSort
-public import Mathlib.Data.List.Sort
 public import Mathlib.Data.Nat.Factorial.Basic
-public import Mathlib.Data.Fintype.Perm
-public import Mathlib.Data.List.FinRange
-public import Mathlib.SetTheory.Cardinal.Order
+
+import Mathlib.Data.Fintype.Perm
+import Mathlib.SetTheory.Cardinal.Basic
 
 /-! # Comparison Sorting Lower Bound
 

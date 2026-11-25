@@ -5,13 +5,13 @@ Authors: Sebastian Graf, Kim Morrison, Shreyas Srinivas, Eric Wieser
 -/
 module
 
-public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Algorithms.Lean.TimeM
-public import Mathlib.Combinatorics.Pigeonhole
-public import Mathlib.Data.Fintype.Card
+public import Cslib.Foundations.Control.Monad.Free
 public import Mathlib.Data.Nat.Log
-public import Mathlib.Data.Set.Function
-public import Mathlib.SetTheory.Cardinal.Finite
+public import Mathlib.SetTheory.Cardinal.Order
+
+import Mathlib.Combinatorics.Pigeonhole
+import Mathlib.SetTheory.Cardinal.Basic
 
 /-! # FreeM: query/cost interpreters and lower-bound lemma
 

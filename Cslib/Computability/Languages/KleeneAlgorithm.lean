@@ -7,9 +7,12 @@ Authors: Brooke Gill, Chi-Yun Hsu
 module
 
 public import Cslib.Computability.Automata.NA.Basic
-public import Cslib.Computability.Languages.RegularExpressions
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
-public import Mathlib.SetTheory.Cardinal.NatCard
+public import Mathlib.Computability.RegularExpressions
+
+import Cslib.Computability.Languages.Language
+import Cslib.Computability.Languages.RegularExpressions
+import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
 # Kleene's Algorithm

@@ -8,7 +8,8 @@ module
 
 public import Cslib.Init
 public import Mathlib.Order.SetNotation
-public import Mathlib.Data.Set.Basic
+
+import Mathlib.Data.Set.Basic
 
 /-!
 # Saturation

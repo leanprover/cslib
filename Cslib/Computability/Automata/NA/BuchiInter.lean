@@ -8,7 +8,9 @@ module
 
 public import Cslib.Computability.Automata.NA.Hist
 public import Cslib.Computability.Automata.NA.Prod
-public import Cslib.Foundations.Data.OmegaSequence.Temporal
+
+import Cslib.Foundations.Data.OmegaSequence.Init
+import Cslib.Foundations.Data.OmegaSequence.Temporal
 
 /-! # Intersection of nondeterministic Buchi automata.
 

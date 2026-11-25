@@ -7,8 +7,9 @@ Authors: Yusuf Demir
 module
 
 public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
-public import Mathlib.Basic.Finite.Sum
 public import Mathlib.Computability.RegularExpressions
+
+import Mathlib.Basic.Finite.Sum
 
 /-! # The ε-NA of a regular expression
 

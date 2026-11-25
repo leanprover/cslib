@@ -7,7 +7,6 @@ Authors: Chris Henson
 module
 
 public import Batteries.Tactic.Lint.Basic
-public import Lean.Message
 
 namespace Cslib.Lint
 

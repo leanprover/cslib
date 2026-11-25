@@ -8,6 +8,8 @@ module
 
 public import Cslib.Foundations.Semantics.LTS.Execution
 
+import Mathlib.Data.List.Basic
+
 /-!
 # Reverse operation for LTS
 

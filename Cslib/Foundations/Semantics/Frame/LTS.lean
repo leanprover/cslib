@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Semantics.Frame.Basic
 public import Cslib.Foundations.Semantics.LTS.Basic
 

@@ -7,8 +7,6 @@ module
 
 public import Cslib.Init
 
-public import Batteries.Control.AlternativeMonad
-public import Std.Do.WP.Monad
 
 /-!
 # (unbundled) morphisms of monads

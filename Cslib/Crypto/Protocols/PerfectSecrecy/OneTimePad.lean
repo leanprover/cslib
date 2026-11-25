@@ -6,8 +6,10 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
+public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Mathlib.Data.FinEnum
+
+import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
 import Mathlib.Data.LawfulXor.Equiv
 
 /-!

@@ -7,7 +7,6 @@ Authors: Josha Dekker, Devon Tuma, Kexing Ying, Samuel Schlesinger
 module
 
 public import Cslib.Init
-public import Mathlib.Probability.ProbabilityMassFunction.Monad
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 /-!

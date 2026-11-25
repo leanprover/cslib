@@ -6,7 +6,10 @@ Authors: Samuel Schlesinger
 
 module
 
-public import Cslib.Foundations.Semantics.LTS.Termination
+public import Cslib.Foundations.Semantics.LTS.Basic
+
+import Cslib.Foundations.Relation.Termination
+import Cslib.Foundations.Semantics.LTS.Termination
 
 /-!
 # Examples separating boundedness, termination, and acyclicity

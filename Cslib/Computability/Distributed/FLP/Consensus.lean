@@ -9,6 +9,8 @@ module
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Mathlib.Data.Set.Card
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-! # Fault-tolerant consensus
 
 Roughly speaking, a distributed consensus algorithm can tolerate `f` faults if up to `f`

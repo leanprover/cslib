@@ -10,7 +10,6 @@ public import Cslib.Foundations.Syntax.HasWellFormed
 public import Mathlib.Data.Finset.Dedup
 public import Mathlib.Data.List.Sigma
 
-
 /-! # λ-calculus
 
 Contexts as pairs of free variables and types.

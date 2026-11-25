@@ -6,9 +6,7 @@ Authors: Thomas Waring
 
 module
 
-public import Mathlib.Data.Finset.Insert
-public import Mathlib.Data.Finset.SDiff
-public import Mathlib.Data.Finset.Image
+import Mathlib.Data.Finset.Image
 
 /-! # Membership annotations -/
 

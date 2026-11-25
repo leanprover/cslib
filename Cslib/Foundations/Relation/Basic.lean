@@ -7,7 +7,9 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 module
 
 public import Cslib.Foundations.Relation.Defs
-public import Mathlib.Order.WellFounded
+public import Mathlib.Order.PropInstances
+
+import Mathlib.Order.WellFounded
 
 /-! # Basic properties of relations
 

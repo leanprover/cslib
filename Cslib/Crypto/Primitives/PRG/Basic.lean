@@ -7,7 +7,6 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Crypto.Primitives.PRG.Defs
-public import Cslib.Probability.PMF
 
 /-!
 # Pseudorandom generators against arbitrary adversaries

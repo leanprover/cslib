@@ -7,7 +7,8 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Distributed.FLP.Algorithm
-public import Cslib.Foundations.Relation.Confluence
+
+import Cslib.Foundations.Relation.Confluence
 
 /-! # Reachability via a subset of processes
 

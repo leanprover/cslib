@@ -9,7 +9,6 @@ public import Cslib.Init
 public import Mathlib.Data.Nat.Log
 public import Mathlib.Order.Filter.AtTopBot.Defs
 import Mathlib.Analysis.SpecificLimits.Normed
-import Mathlib.Tactic.Linarith
 
 /-!
 # Asymptotic bounds on natural numbers

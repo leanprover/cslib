@@ -6,7 +6,6 @@ Authors: Fabrizio Montesi, Thomas Waring
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Data.PFunctor.Basic
 
 /-! # Logical operators

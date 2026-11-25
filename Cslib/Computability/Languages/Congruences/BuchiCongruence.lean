@@ -7,8 +7,12 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Pair
-public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
+public import Cslib.Computability.Languages.Congruences.Basic
 public import Cslib.Foundations.Data.Set.Saturation
+
+import Cslib.Computability.Languages.Language
+import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
+import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-!
 # Buchi Congruence

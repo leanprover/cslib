@@ -7,8 +7,6 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Syntax.Context
-public import Mathlib.Tactic.ToAdditive
-public import Mathlib.Tactic.ToDual
 
 /-! # Calculus of Communicating Systems (CCS)
 

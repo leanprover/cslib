@@ -6,10 +6,12 @@ Authors: Vignesh Karri
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Data.BitString
+public import Mathlib.Data.Finset.Card
 public import Mathlib.Data.Finset.Piecewise
-public import Mathlib.Data.Fintype.Card
+public import Mathlib.Data.Fintype.Basic
+
+import Mathlib.Data.Fintype.Card
 
 /-!
 # Boolean functions on the hypercube

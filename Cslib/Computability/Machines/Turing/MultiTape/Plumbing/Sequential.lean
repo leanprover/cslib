@@ -8,6 +8,8 @@ module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsTapes
 
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+
 /-!
 # Sequential composition of machines on shared tapes
 

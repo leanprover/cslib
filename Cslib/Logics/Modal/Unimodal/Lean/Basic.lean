@@ -6,10 +6,10 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Relation.Preserves
-public import Cslib.Logics.Modal.Denotation
 public import Cslib.Logics.Modal.Lean.Basic
 public import Cslib.Logics.Modal.Unimodal.Basic
+
+import Cslib.Foundations.Relation.Preserves
 
 /-! # Basic Modal Logic for Lean -/
 

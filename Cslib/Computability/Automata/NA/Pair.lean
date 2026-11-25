@@ -6,8 +6,13 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Languages.RegularLanguage
-public import Cslib.Foundations.Data.OmegaSequence.Temporal
+public import Cslib.Computability.Automata.NA.Basic
+public import Mathlib.Computability.DFA
+
+import Cslib.Computability.Languages.Language
+import Cslib.Computability.Languages.RegularLanguage
+import Cslib.Foundations.Data.OmegaSequence.Init
+import Cslib.Foundations.Data.OmegaSequence.Temporal
 
 /-! # Languages determined by pairs of states
 -/

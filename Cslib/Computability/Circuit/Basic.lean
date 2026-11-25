@@ -6,7 +6,6 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Program
-public import Mathlib.Data.Set.Function
 public import Mathlib.Logic.Function.DependsOn
 
 /-!

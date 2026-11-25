@@ -6,14 +6,12 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
-public import Mathlib.Data.Fintype.BigOperators
-public import Mathlib.Data.Fintype.Pi
-public import Mathlib.Data.Fintype.Prod
-public import Mathlib.Data.Fintype.Option
+public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Mathlib.Data.Set.Card
-public import Mathlib.Order.Lattice.Nat
-public import Mathlib.Tactic.Ring
+
+import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Tactic.Ring.RingNF
 
 /-!
 # Bounds on the number of reachable configurations in bounded space

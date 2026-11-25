@@ -7,6 +7,8 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Languages.Mech.Common.LocalStore
+public import Mathlib.Data.Finset.Insert
+public import Mathlib.Data.Finset.Lattice.Basic
 
 /-! # Local expressions -/
 

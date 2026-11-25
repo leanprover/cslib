@@ -7,9 +7,9 @@ Authors: Jesse Alama
 module
 
 public import Cslib.Init
-public import Mathlib.Order.BoundedOrder.Lattice
-public import Mathlib.Order.Lattice
-public import Mathlib.Tactic.DeriveFintype
+public import Mathlib.Data.Fintype.Defs
+
+import Mathlib.Tactic.DeriveFintype
 
 /-! # Truth values of Kleene's strong three-valued logic
 

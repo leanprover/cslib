@@ -7,9 +7,9 @@ Authors: Ching-Tsun Chou, Thomas Waring
 module
 
 public import Cslib.Foundations.Relation.Defs
-public import Mathlib.Data.Set.Card
-public import Mathlib.Order.Interval.Finset.Nat
 public import Mathlib.Order.SuccPred.LinearLocallyFinite
+
+import Mathlib.Order.Interval.Finset.Basic
 
 /-! # Enumeration
 

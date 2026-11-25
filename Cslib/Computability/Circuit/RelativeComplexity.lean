@@ -7,6 +7,8 @@ module
 
 public import Cslib.Computability.Circuit.Complexity
 
+import Cslib.Computability.Circuit.Composition
+
 /-!
 # Relative circuit complexity
 

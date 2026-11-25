@@ -8,6 +8,8 @@ module
 
 public import Cslib.Init
 
+import Mathlib.Data.List.Infix
+
 /-!
 # Delimited Boolean words
 

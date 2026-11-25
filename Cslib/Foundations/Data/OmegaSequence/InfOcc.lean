@@ -6,10 +6,12 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Foundations.Data.Nat.Segment
 public import Cslib.Foundations.Data.OmegaSequence.Defs
-public import Mathlib.Order.Filter.Cofinite
-public import Mathlib.Order.Filter.Finite
+public import Mathlib.Basic.Finite.Defs
+public import Mathlib.Order.Filter.AtTopBot.Defs
+
+import Cslib.Foundations.Data.Nat.Segment
+import Mathlib.Order.Filter.Cofinite
 
 /-!
 # Infinite occurrences

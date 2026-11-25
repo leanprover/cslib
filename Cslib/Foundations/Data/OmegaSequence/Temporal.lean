@@ -6,8 +6,11 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Foundations.Data.OmegaSequence.Init
-public import Mathlib.Order.Filter.AtTopBot.Basic
+public import Cslib.Foundations.Data.OmegaSequence.Defs
+public import Mathlib.Order.Filter.AtTopBot.Defs
+
+import Cslib.Foundations.Data.OmegaSequence.Init
+import Mathlib.Order.Filter.AtTopBot.Basic
 
 /-!
 # Temporal reasoning over infinite sequences.

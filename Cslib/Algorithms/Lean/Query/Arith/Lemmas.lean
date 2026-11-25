@@ -6,8 +6,9 @@ Authors: Kim Morrison
 module
 
 public import Cslib.Algorithms.Lean.Query.Arith.Defs
-import Mathlib.Tactic.Ring
-public import Mathlib.Algebra.Ring.Defs
+public import Cslib.Algorithms.Lean.Query.FreeM
+
+import Mathlib.Tactic.Ring.RingNF
 
 /-! # Complex Multiplication: Correctness and Cost Analysis
 

@@ -8,6 +8,8 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.CallByName
 
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+
 /-! # Redex Positions
 
 This module defines β-reduction at a given redex position and proves its basic properties.

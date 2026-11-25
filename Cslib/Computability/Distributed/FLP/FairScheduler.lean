@@ -7,7 +7,9 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Distributed.FLP.Consensus
-public import Mathlib.Data.List.ReduceOption
+
+import Cslib.Foundations.Data.OmegaSequence.Init
+import Mathlib.Data.List.ReduceOption
 
 /-! # Machinery for constructing infinite fair executions
 

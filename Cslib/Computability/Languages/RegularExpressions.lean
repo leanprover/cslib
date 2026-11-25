@@ -8,7 +8,8 @@ module
 
 public import Cslib.Init
 public import Mathlib.Computability.RegularExpressions
-public import Mathlib.Data.Set.Card
+
+import Mathlib.Data.Set.Card
 
 /-!
 # Regular Expressions (additional definitions and theorems)

@@ -7,7 +7,9 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Semantics.FLTS.Basic
-public import Mathlib.SetTheory.Cardinal.Finite
+public import Mathlib.Basic.Finite.Defs
+
+import Mathlib.SetTheory.Cardinal.Finite
 
 /-! # Synchronising traces
 

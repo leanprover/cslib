@@ -6,19 +6,27 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Automata.DA.Congr
-public import Cslib.Computability.Automata.DA.Prod
-public import Cslib.Computability.Automata.DA.ToNA
-public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
-public import Cslib.Computability.Automata.EpsilonNA.ToNA
-public import Cslib.Computability.Automata.NA.Preimage
-public import Cslib.Computability.Automata.NA.Reverse
-public import Cslib.Computability.Automata.NA.ToDA
-public import Cslib.Computability.Automata.NA.ToEpsilonNA
-public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
-public import Cslib.Computability.Automata.TwoWayNA.OfNA
-public import Cslib.Computability.Languages.KleeneAlgorithm
+public import Cslib.Computability.Automata.DA.Basic
+public import Cslib.Computability.Automata.EpsilonNA.Basic
+public import Cslib.Computability.Automata.TwoWayNA.Basic
+public import Cslib.Computability.Languages.Congruences.Basic
+public import Cslib.Computability.Languages.LanguageHom
 public import Mathlib.Computability.DFA
+public import Mathlib.Computability.RegularExpressions
+
+import Cslib.Computability.Automata.DA.Congr
+import Cslib.Computability.Automata.DA.Prod
+import Cslib.Computability.Automata.DA.ToNA
+import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
+import Cslib.Computability.Automata.EpsilonNA.ToNA
+import Cslib.Computability.Automata.NA.Preimage
+import Cslib.Computability.Automata.NA.Reverse
+import Cslib.Computability.Automata.NA.ToDA
+import Cslib.Computability.Automata.NA.ToEpsilonNA
+import Cslib.Computability.Automata.TwoWayNA.ComplToNA
+import Cslib.Computability.Automata.TwoWayNA.OfNA
+import Cslib.Computability.Languages.KleeneAlgorithm
+import Mathlib.Basic.Finite.Sum
 
 /-!
 # Regular languages

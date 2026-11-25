@@ -7,9 +7,10 @@ Authors: Christian Reitwiessner, Thomas Waring
 module
 
 public import Cslib.Init
-public import Mathlib.Data.List.Chain
-public import Mathlib.Data.List.Nodup
 public import Mathlib.Logic.Relation
+
+import Mathlib.Data.List.Chain
+import Mathlib.Data.List.Nodup
 
 /-! # Chains with a designated start and end
 

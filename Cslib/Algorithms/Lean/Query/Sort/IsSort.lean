@@ -6,7 +6,6 @@ Authors: Kim Morrison, Shreyas Srinivas
 module
 
 public import Cslib.Algorithms.Lean.Query.Sort.LEQuery
-import Mathlib.Data.List.Sort
 
 /-! # IsSort: Specification for Comparison Sorts
 
