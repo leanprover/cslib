@@ -92,6 +92,22 @@ abbrev StronglyConfluent (r : α → α → Prop) :=
 def StronglyCommute (r₁ r₂ : α → α → Prop) :=
   ∀ {x y₁ y₂}, r₁ x y₁ → r₂ x y₂ → ∃ z, ReflGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
 
+/--
+`TransGenCommute r₁ r₂` states that a single step of `r₁` and a single step of `r₂`
+with the same source can be joined by a path along `r₂` from the first result and a
+reflexive-transitive path along `r₁` from the second result.
+-/
+abbrev TransGenCommute (r₁ r₂ : α → α → Prop) :=
+  ∀ ⦃x y₁ y₂⦄, r₁ x y₁ → r₂ x y₂ → ∃ z, TransGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
+
+/--
+`SemiDiamondCommute r₁ r₂` is the asymmetric version of the commutation square where one
+branch takes a single `r₁`-step and the other takes a non-empty `r₂`-path. The two
+outcomes are then joinable by a further `r₂`-path and an `r₁`-reflexive-transitive path.
+-/
+abbrev SemiDiamondCommute (r₁ r₂ : α → α → Prop) :=
+  ∀ ⦃x y₁ y₂⦄, r₁ x y₁ → TransGen r₂ x y₂ → ∃ z, TransGen r₂ y₁ z ∧ ReflTransGen r₁ y₂ z
+
 /-! ### Normalization properties -/
 
 /-- An element is reducible with respect to a relation if there is a value it is related to. -/
