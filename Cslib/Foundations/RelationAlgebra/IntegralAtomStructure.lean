@@ -211,7 +211,7 @@ abbrev ofSymmNsymm (s n : ℕ) : Type := Quotient (setoid (Fin s) (Fin n))
 abbrev ofAtoms (k : ℕ) : Type := Σ s, Σ n : {n // 1 + s + 2 * n = k}, ofSymmNsymm s n
 
 theorem isEmpty_ofAtoms_zero : IsEmpty (ofAtoms 0) :=
-  ⟨fun ⟨_, n, _⟩ => by have := n.property; omega⟩
+  ⟨fun ⟨_, n, _⟩ => by lia⟩
 
 theorem card_ofAtoms_succ_eq_sum_ofSymmNsymm (k : ℕ) :
     Nat.card (ofAtoms (k + 1)) =
