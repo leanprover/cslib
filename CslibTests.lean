@@ -32,6 +32,7 @@ import CslibTests.Modal.Stlc
 import CslibTests.Modal.UnimodalCube
 import CslibTests.MultiTapeComplexity
 import CslibTests.MultiTapeConcatenate
+import CslibTests.MultiTapeEncoding
 import CslibTests.PACLearning
 import CslibTests.PFunctor
 import CslibTests.PFunctorFree
