@@ -53,7 +53,7 @@ private theorem exists_mtr_eq_on_finset (flts : FLTS State Label)
     · simp
     · obtain ⟨νs, hνs⟩ := h (flts.mtr s₁ μs) (flts.mtr s₂ μs)
       refine ⟨μs ++ νs, ?_⟩
-      simp; grind
+      grind
 
 /-- A finite-state `FLTS` has a synchronising trace iff every pair of states can be merged
 by some trace. This is the pairwise synchronisation criterion of Liu and Černý;
