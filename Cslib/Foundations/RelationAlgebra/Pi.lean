@@ -32,6 +32,7 @@ namespace RelationAlgebraHom
 variable {α : Type*} [RelationAlgebra α] {ι : Type*} {β : ι → Type*} [∀ i, RelationAlgebra (β i)]
 
 /-- The product of `RelationAlgebraHom`s is a `RelationAlgebraHom` into a product. -/
+@[simps apply]
 def pi (f : ∀ i, RelationAlgebraHom α (β i)) : RelationAlgebraHom α (∀ i, β i) where
   toFun a i := f i a
   __ := MonoidHom.pi fun i => (f i).toMonoidHom
@@ -41,12 +42,9 @@ def pi (f : ∀ i, RelationAlgebraHom α (β i)) : RelationAlgebraHom α (∀ i,
   map_bot' := funext fun i => map_bot (f i)
   map_star' a := funext fun i => map_star (f i) a
 
-@[simp]
-theorem pi_apply (f : ∀ i, RelationAlgebraHom α (β i)) (a : α) (i : ι) : pi f a i = f i a :=
-  rfl
-
 variable (β) in
 /-- The `RelationAlgebraHom` into a single fiber. -/
+@[simps apply]
 def eval (i : ι) : RelationAlgebraHom (∀ i, β i) (β i) where
   toFun b := b i
   __ := Pi.evalLatticeHom i
@@ -55,19 +53,30 @@ def eval (i : ι) : RelationAlgebraHom (∀ i, β i) (β i) where
   map_bot' := rfl
   map_star' _ := rfl
 
-@[simp]
-theorem eval_apply (i : ι) (b : ∀ i, β i) : eval β i b = b i :=
-  rfl
-
 variable (α β) in
 /-- The equivalence between products of `RelationAlgebraHom` and the `RelationAlgebraHom` into a
   product that is given by composition of `eval`. -/
+@[simps! apply_apply]
 def piEquiv : (∀ i, RelationAlgebraHom α (β i)) ≃ RelationAlgebraHom α (∀ i, β i) where
   toFun := pi
   invFun f i := (eval β i).comp f
   left_inv _ := rfl
   right_inv _ := rfl
 
+/-- A specialisation of `RelationAlgebraHom.pi` to maps between two products. -/
+@[simps! apply]
+def piMap {α β : ι → Type*} [∀ i, RelationAlgebra (α i)] [∀ i, RelationAlgebra (β i)]
+  (f : Π i, RelationAlgebraHom (α i) (β i)) : RelationAlgebraHom (Π i, α i) (Π i, β i) :=
+  pi fun i ↦ (f i).comp (eval α i)
+
 end RelationAlgebraHom
+
+/-- Lift an equivalence on each component to an equivalence of the products. -/
+@[simps! apply symm_apply]
+protected def RelationAlgebraEquiv.piMap
+    {ι : Type*} {α β : ι → Type*} [∀ i, RelationAlgebra (α i)] [∀ i, RelationAlgebra (β i)]
+    (e : Π i, RelationAlgebraEquiv (α i) (β i)) : RelationAlgebraEquiv (Π i, α i) (Π i, β i) :=
+  .ofHomInv (.piMap fun i ↦ (e i).toHom) (.piMap fun i ↦ (e i).symm.toHom)
+    (by intro b; ext; simp) (by intro a; ext; simp)
 
 end Cslib

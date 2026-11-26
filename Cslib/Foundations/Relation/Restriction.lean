@@ -50,4 +50,49 @@ theorem SymmOn.of_dom {r} : (dom r).SymmOn r → r a b → r b c → r b a
 theorem SymmOn.of_cod {r} : (cod r).SymmOn r → r a b → r c a → r b a
 | h, hab, hca => h a (Relation.of_cod hca) b (Relation.of_cod hab) hab
 
+variable {r} in
+lemma _root_.Relation.rfl_of_rel [Std.Symm r] [IsTrans α r] (h : r x y) : r x x :=
+    _root_.trans h (symm h)
+
+lemma leftQuasiRefl_of_per [Std.Symm r] [IsTrans α r] : Set.LeftQuasiRefl r :=
+  fun _ ⟨_, h⟩ ↦ rfl_of_rel h
+
+lemma rightQuasiRefl_of_per [Std.Symm r] [IsTrans α r] : Set.RightQuasiRefl r :=
+  fun _ ⟨_, h⟩ ↦ rfl_of_rel (symm h)
+
 end Set
+
+namespace Relation
+
+variable {α : Type*} {r : α → α → Prop} {s : Set α} {x x' y y' : α}
+
+instance [Std.Refl r] (s : Set α) : Std.Refl (α := s) r where
+  refl a := refl (a : α)
+
+instance [Std.Symm r] (s : Set α) : Std.Symm (α := s) r where
+  symm _ _ h := symm (α := α) h
+
+instance [Std.Symm r] [IsTrans α r] : Std.Refl (α := dom r) r where
+  refl := fun ⟨_, _, h⟩ ↦ rfl_of_rel h
+
+instance [IsTrans α r] (s : Set α) : IsTrans s r where
+  trans _ _ _ h h' := _root_.trans (α := α) h h'
+
+instance [Std.Symm r] [IsTrans α r] : IsEquiv (α := dom r) r where
+
+instance [Std.Symm r] [IsTrans α r] : Std.Refl (α := cod r) r where
+  refl := fun ⟨_, _, h⟩ ↦ rfl_of_rel (symm h)
+
+instance [Std.Symm r] [IsTrans α r] : IsEquiv (α := cod r) r where
+
+lemma dom_restrict_of_cod_subset (h : cod r ⊆ s) :
+    dom (r : s → s → Prop) = Subtype.val ⁻¹' dom r := by
+  ext ⟨x, hx⟩
+  grind
+
+lemma cod_restrict_of_dom_subset (h : dom r ⊆ s) :
+    cod (r : s → s → Prop) = Subtype.val ⁻¹' cod r := by
+  ext ⟨x, hx⟩
+  grind
+
+end Relation

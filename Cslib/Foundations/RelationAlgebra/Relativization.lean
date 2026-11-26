@@ -6,7 +6,7 @@ Authors: Thomas Waring
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.Pi
 public import Cslib.Foundations.RelationAlgebra.SpecialElements
 
 /-! # Relativization of a relation algebra
@@ -24,7 +24,7 @@ chapter 10.
 
 namespace Cslib
 
-open RelationAlgebra Set
+open RelationAlgebra Set Sigma
 
 variable {α β : Type*} [RelationAlgebra α] [RelationAlgebra β]
 
@@ -83,5 +83,45 @@ def RelationAlgebraEquiv.restrictIic (e : RelationAlgebraEquiv α β) {a : α} [
     ext; simp [e.toHom.restrictIic_apply_coe h]
   · intro ⟨x, hx⟩
     ext; simp [e.symm.toHom.restrictIic_apply_coe hsymm, e.toHom.restrictIic_apply_coe h]
+
+open SetRel Set
+
+def equivPiPartition {ι α : Type*} {A : ι → Set α} (h : Set.univ.PairwiseDisjoint A)
+    [(ofPartition A A).IsTrans] :
+    RelationAlgebraEquiv (Iic <| ofPartition A A) (Π i, SetRel (A i) (A i)) where
+  toFun r := comapPartition A A r
+  invFun r := ⟨mapPartition r, mapPartition_subset_ofPartition r⟩
+  left_inv r := Subtype.ext <| comapPartition_mapPartition r.prop
+  right_inv r := mapPartition_comapPartition h r
+  map_rel_iff' {s _} := comapPartition_le_iff_of_subset s.prop
+  map_mul' s _ := comapPartition_comp_of_le h s.prop
+  map_star' _ := comapPartition_inv
+
+private lemma pairwiseDisjoint_image_sigmaMk {ι : Type*} (α : ι → Type*) :
+    Set.univ.PairwiseDisjoint (α := Set (Σ i, α i)) (range <| mk ·) := by
+  intro; grind
+
+@[simps apply_coe]
+def equivRangeSigmaMk {ι : Type*} (α : ι → Type*) (i : ι) :
+    α i ≃ range (mk i : α i → Σ i, α i) where
+  toFun a := ⟨⟨i, a⟩, a, rfl⟩
+  invFun
+    | ⟨⟨j, a⟩, ha⟩ => (show i = j by grind) ▸ a
+  left_inv _ := rfl
+  right_inv := by
+    intro ⟨⟨j, a⟩, ha⟩
+    obtain rfl : i = j := by grind
+    simp
+
+@[simps! symm_apply_coe]
+noncomputable def piEquivIicSigma {ι : Type*} (α : ι → Type*) :
+    RelationAlgebraEquiv
+      (Iic <| ofPartition (α := Σ i, α i) (β := Σ i, α i) (range <| mk ·) (range <| mk ·))
+      (Π i, SetRel (α i) (α i)) :=
+  (equivPiPartition <| private_decl% pairwiseDisjoint_image_sigmaMk α).trans <|
+    RelationAlgebraEquiv.piMap fun i ↦
+      RelationAlgebraEquiv.setRelOfEquiv (equivRangeSigmaMk α i).symm
+
+
 
 end Cslib
