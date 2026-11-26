@@ -53,7 +53,7 @@ theorem ComputableInTimeAndSpace.sum_inl {f : γ → α}
     ComputableInTimeAndSpace (fun x => (Sum.inl (f x) : α ⊕ β)) encIn (encSum enc₁ enc₂)
       (fun x => t x + 8) (fun x => 3 * s x) :=
   ((computableInTimeAndSpace_const (encOut := encBool) false).concatenate h fun _ => rfl).mono
-    (fun _ => by simp only [encBool_apply, List.length_singleton]; lia) fun _ => by lia
+    (by grind) fun _ => by lia
 
 /-- `Sum.inr` of a computable function is computable in time `t + 8` and space `3 * s`, as for
 `sum_inl`. -/
@@ -62,7 +62,7 @@ theorem ComputableInTimeAndSpace.sum_inr {f : γ → β}
     ComputableInTimeAndSpace (fun x => (Sum.inr (f x) : α ⊕ β)) encIn (encSum enc₁ enc₂)
       (fun x => t x + 8) (fun x => 3 * s x) :=
   ((computableInTimeAndSpace_const (encOut := encBool) true).concatenate h fun _ => rfl).mono
-    (fun _ => by simp only [encBool_apply, List.length_singleton]; lia) fun _ => by lia
+    (by grind) fun _ => by lia
 
 /-- `some` of a computable function is computable in time `t + 8` and space `3 * s`, as for
 `sum_inl`. -/
@@ -71,7 +71,7 @@ theorem ComputableInTimeAndSpace.option_some {f : γ → α}
     ComputableInTimeAndSpace (fun x => some (f x)) encIn (encOption enc₁)
       (fun x => t x + 8) (fun x => 3 * s x) :=
   ((computableInTimeAndSpace_const (encOut := encBool) true).concatenate h fun _ => rfl).mono
-    (fun _ => by simp only [encBool_apply, List.length_singleton]; lia) fun _ => by lia
+    (by grind) fun _ => by lia
 
 /-! ### Sums -/
 

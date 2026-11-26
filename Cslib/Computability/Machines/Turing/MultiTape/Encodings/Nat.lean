@@ -68,7 +68,7 @@ theorem bitsSucc_encNat (n : ℕ) : bitsSucc (encNat n) = encNat (n + 1) := by
   | _ n ih =>
     rcases Nat.even_or_odd' n with ⟨k, rfl | rfl⟩
     · rcases Nat.eq_zero_or_pos k with rfl | hk
-      · simp [encNat_eq_bits]
+      · simp
       · rw [encNat_two_mul (by lia), encNat_two_mul_add_one, bitsSucc_false_cons]
     · rw [encNat_two_mul_add_one, show 2 * k + 1 + 1 = 2 * (k + 1) by lia,
         encNat_two_mul (by lia), bitsSucc_true_cons, ih k (by lia)]
@@ -101,14 +101,14 @@ private lemma evalFrom_succTransducer :
 
 private lemma eval_succTransducer (w : List Bool) :
     succTransducer.eval w = bitsSucc w := by
-  show succTransducer.evalFrom true w = bitsSucc w
+  change succTransducer.evalFrom true w = bitsSucc w
   rw [evalFrom_succTransducer]; simp
 
 /-- `bitsSucc` is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_bitsSucc :
     ComputableInTimeAndSpace bitsSucc encBits encBits (fun w => 2 * w.length + 2) (fun _ => 0) :=
   (computableInTimeAndSpace_of_subsequential succTransducer bitsSucc eval_succTransducer).mono
-    (fun w => by have := length_bitsSucc_le w; lia) fun _ => le_rfl
+    (fun w => by lia [length_bitsSucc_le]) fun _ => le_rfl
 
 /-- The successor is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_nat_succ :

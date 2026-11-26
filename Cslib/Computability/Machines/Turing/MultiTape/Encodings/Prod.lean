@@ -37,19 +37,19 @@ variable {α β γ : Type*} {enc₁ : α ↪ List Bool} {enc₂ : β ↪ List Bo
 
 /-- The first projection is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_prod_fst :
-    ComputableInTimeAndSpace (Prod.fst : α × β → α) (encProd enc₁ enc₂) enc₁
+    ComputableInTimeAndSpace Prod.fst (encProd enc₁ enc₂) enc₁
       (fun p => 2 * (encProd enc₁ enc₂ p).length + 1) (fun _ => 0) :=
   computableInTimeAndSpace_undelimit.of_realizes fun _ => by simp
 
 /-- The second projection is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_prod_snd :
-    ComputableInTimeAndSpace (Prod.snd : α × β → β) (encProd enc₁ enc₂) enc₂
+    ComputableInTimeAndSpace Prod.snd (encProd enc₁ enc₂) enc₂
       (fun p => 2 * (encProd enc₁ enc₂ p).length + 1) (fun _ => 0) :=
   computableInTimeAndSpace_dropDelimited.of_realizes fun _ => by simp
 
 /-- The first component of a dependent pair is computable in linear time and zero space. -/
 theorem computableInTimeAndSpace_sigma_fst {δ : α → Type*} {encδ : ∀ a, δ a ↪ List Bool} :
-    ComputableInTimeAndSpace (Sigma.fst : (a : α) × δ a → α) (encSigma enc₁ encδ) enc₁
+    ComputableInTimeAndSpace Sigma.fst (encSigma enc₁ encδ) enc₁
       (fun x => 2 * (encSigma enc₁ encδ x).length + 1) (fun _ => 0) :=
   computableInTimeAndSpace_undelimit.of_realizes fun _ => by simp
 
