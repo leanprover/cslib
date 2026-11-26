@@ -119,10 +119,27 @@ def reflGen (a : α) : α := 1 ⊔ a
 instance : IsRelRefl (reflGen a) where
   one_le := le_sup_left
 
-lemma le_reflGen : a ≤ reflGen a := le_sup_right
+lemma le_reflGen (a : α) : a ≤ reflGen a := le_sup_right
 
 lemma reflGen_le [hb : IsRelRefl b] : reflGen a ≤ b ↔ a ≤ b := by
   simp [reflGen, one_le_of_refl b]
+
+@[gcongr] lemma reflGen_mono (h : a ≤ b) : reflGen a ≤ reflGen b := sup_le_sup_left h 1
+
+lemma reflGen_eq_self_iff : reflGen a = a ↔ IsRelRefl a := by
+  simp [reflGen, isRelRefl_iff]
+
+lemma reflGen_of_refl (a : α) [IsRelRefl a] : reflGen a = a := reflGen_eq_self_iff.mpr inferInstance
+
+@[simp, push] lemma star_reflGen (a : α) : star (reflGen a) = reflGen (star a) := by simp [reflGen]
+
+instance [IsRelSymm a] : IsRelSymm (reflGen a) where
+  star_eq := by rw [star_reflGen, star_eq_of_symm a]
+
+instance [IsRelTrans a] : IsRelTrans (reflGen a) where
+  mul_self_le := by
+    grw [reflGen, mul_sup, sup_mul, sup_mul, mul_self_le_of_trans a]
+    simp
 
 /-! ### Symmetric elements -/
 
@@ -150,13 +167,29 @@ def symmGen (a : α) : α := a ⊔ star a
 instance : IsRelSymm (symmGen a) where
   star_eq := by simp [symmGen, sup_comm]
 
-lemma le_symmGen : a ≤ symmGen a := le_sup_left
+lemma le_symmGen (a : α) : a ≤ symmGen a := le_sup_left
 
 lemma symmGen_le [IsRelSymm b] : symmGen a ≤ b ↔ a ≤ b := by
   simp [symmGen, star_le_iff, star_eq_of_symm]
 
+@[gcongr] lemma symmGen_mono (h : a ≤ b) : symmGen a ≤ symmGen b := by
+  grw [symmGen, symmGen, h]
+
+lemma symmGen_eq_self_iff : symmGen a = a ↔ IsRelSymm a := by
+  simp [symmGen, isRelSymm_iff, le_antisymm_iff, star_le_iff]
+
+lemma symmGen_of_symm (a : α) [IsRelSymm a] : symmGen a = a := symmGen_eq_self_iff.mpr inferInstance
+
+@[simp] lemma symmGen_star (a : α) : symmGen (star a) = symmGen a := by simp [symmGen, sup_comm]
+
 lemma star_le_iff_of_isRelSymm [IsRelSymm b] : star a ≤ b ↔ a ≤ b := by
   simp [star_le_iff, star_eq_of_symm]
+
+instance [IsRelRefl a] : IsRelRefl (symmGen a) where
+  one_le := (one_le_of_refl a).trans (le_symmGen a)
+
+lemma symmGen_reflGen (a : α) : symmGen (reflGen a) = reflGen (symmGen a) := by
+  simp [symmGen, reflGen]; grind
 
 /-! ### Transitive elements -/
 
@@ -209,6 +242,75 @@ instance : IsRelTrans (transGen a) where
     · intro x hx _
       grw [transGenStep_coe, mul_sup, ← mul_assoc, hx, transGen_mul_self_le, sup_idem]
     · simp [mul_sSup]
+
+lemma mul_transGen_self_le (a : α) : a * transGen a ≤ transGen a :=
+  (mul_le_mul_left (le_transGen a) (transGen a)).trans <| mul_self_le_of_trans (transGen a)
+
+@[gcongr] lemma transGen_mono (h : a ≤ b) : transGen a ≤ transGen b :=
+  transGen_le.mpr (h.trans <| le_transGen b)
+
+lemma transGen_eq_self_iff : transGen a = a ↔ IsRelTrans a := by
+  refine ⟨fun h ↦ h ▸ instIsRelTransTransGen, ?_⟩
+  simp +contextual [le_antisymm_iff, le_transGen a, transGen_le]
+
+lemma transGen_of_trans (a : α) [IsRelTrans a] : transGen a = a :=
+  transGen_eq_self_iff.mpr inferInstance
+
+@[simp, push] lemma star_transGen (a : α) : star (transGen a) = transGen (star a) := by
+  suffices ∀ b, transGen (star b) ≤ star (transGen b) by
+    refine le_antisymm ?_ (this a)
+    nth_grw 1 [← star_star a, this (star a), star_star]
+  intro b
+  grw [transGen_le, le_transGen b]
+
+instance [IsRelRefl a] : IsRelRefl (transGen a) where
+  one_le := (one_le_of_refl a).trans (le_transGen a)
+
+instance [IsRelSymm a] : IsRelSymm (transGen a) where
+  star_eq := by rw [star_transGen, star_eq_of_symm a]
+
+lemma transGen_reflGen (a : α) : transGen (reflGen a) = reflGen (transGen a) := by
+  apply le_antisymm
+  · grw [transGen_le, le_transGen a]
+  · grw [reflGen_le, le_reflGen a]
+
+lemma symmGen_transGen_le (a : α) : symmGen (transGen a) ≤ transGen (symmGen a) := by
+  grw [symmGen_le, le_symmGen a]
+
+/-- The relation-algebra equivalent of `Relation.ReflTransGen`. -/
+def reflTransGen (a : α) : α := reflGen (transGen a)
+
+lemma le_reflTransGen (a : α) : a ≤ reflTransGen a := by
+  grw [reflTransGen, le_transGen a, le_reflGen (transGen a)]
+
+lemma reflTransGen_le [IsRelRefl b] [IsRelTrans b] : reflTransGen a ≤ b ↔ a ≤ b := by
+  refine ⟨fun h ↦ (le_reflTransGen a).trans h, fun h ↦ ?_⟩
+  rwa [reflTransGen, reflGen_le, transGen_le]
+
+instance : IsRelRefl (reflTransGen a) := inferInstanceAs <| IsRelRefl (reflGen _)
+
+instance : IsRelTrans (reflTransGen a) := inferInstanceAs <| IsRelTrans (reflGen _)
+
+@[gcongr] lemma reflTransGen_mono (h : a ≤ b) : reflTransGen a ≤ reflTransGen b := by
+  grw [reflTransGen, reflTransGen, h]
+
+lemma reflTransGen_eq_self_iff : reflTransGen a = a ↔ IsRelRefl a ∧ IsRelTrans a := by
+  refine ⟨fun h ↦ ⟨?_, ?_⟩, fun ⟨_, _⟩ ↦ ?eq⟩
+  case eq => rw [reflTransGen, transGen_of_trans, reflGen_of_refl]
+  all_goals
+    rw [← h]
+    infer_instance
+
+lemma reflTransGen_of_refl_trans (a : α) [IsRelRefl a] [IsRelTrans a] : reflTransGen a = a :=
+  reflTransGen_eq_self_iff.mpr ⟨inferInstance, inferInstance⟩
+
+@[simp, push] lemma star_reflTransGen (a : α) : star (reflTransGen a) = reflTransGen (star a) := by
+  simp [reflTransGen]
+
+instance [IsRelSymm a] : IsRelSymm (reflTransGen a) := inferInstanceAs <| IsRelSymm (reflGen _)
+
+lemma symmGen_reflTransGen_le (a : α) : symmGen (reflTransGen a) ≤ reflTransGen (symmGen a) := by
+  grw [reflTransGen, symmGen_reflGen, symmGen_transGen_le, reflTransGen]
 
 end Complete
 
