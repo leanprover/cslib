@@ -8,6 +8,7 @@ module
 
 public import Cslib.Languages.CombinatoryLogic.Basic
 public import Mathlib.Data.Nat.Pairing
+import Mathlib.Data.Nat.Sqrt
 
 /-!
 # General recursion in the SKI calculus
