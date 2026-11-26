@@ -114,8 +114,8 @@ instance : SetLike (ComplexAlgebra A) α where
 instance : CompleteAtomicBooleanAlgebra (ComplexAlgebra A) :=
   (equivSet A).completeAtomicBooleanAlgebra
 
-instance : IsConcreteLE (ComplexAlgebra A) α where
-  le_iff := .rfl
+instance : IsMemLE (ComplexAlgebra A) α where
+  le_iff_mem_imp_mem := .rfl
 
 instance [Finite α] : Finite (ComplexAlgebra A) := Finite.of_equiv (Set α) (equivSet A).symm
 
@@ -165,7 +165,7 @@ theorem mem_star [LawfulAtomStructure A] : a ∈ star x ↔ A.conv a ∈ x :=
   Set.mem_image_iff_of_inverse A.conv_conv A.conv_conv
 
 protected theorem isRelRefl_iff (x : ComplexAlgebra A) : IsRelRefl x ↔ A.id ⊆ x := by
-  simp [isRelRefl_iff, IsConcreteLE.le_iff]
+  simp [isRelRefl_iff, le_iff_mem_imp_mem]
 
 protected theorem isRelSymm_iff [LawfulAtomStructure A] (x : ComplexAlgebra A) :
     IsRelSymm x ↔ ∀ {a : α}, a ∈ x → A.conv a ∈ x := by
@@ -175,7 +175,7 @@ protected theorem isRelSymm_iff [LawfulAtomStructure A] (x : ComplexAlgebra A) :
 
 protected theorem isRelTrans_iff (x : ComplexAlgebra A) :
     IsRelTrans x ↔ ∀ {a b c : α}, a ∈ x → b ∈ x → (a, b, c) ∈ A.cycles → c ∈ x := by
-  simp [isRelTrans_iff, IsConcreteLE.le_iff, mem_mul]
+  simp [isRelTrans_iff, le_iff_mem_imp_mem, mem_mul]
   grind
 
 @[simp, norm_cast]
@@ -223,7 +223,7 @@ instance : RelationAlgebra (ComplexAlgebra A) where
   star_mul x y := by ext; grind [=> A.conv_cycles]
   sup_mul a b c := by ext; grind
   star_sup a b := by ext; simp
-  tarski x y := by grind [IsConcreteLE.le_iff, => A.cycle_left]
+  tarski x y := by grind [le_iff_mem_imp_mem, => A.cycle_left]
 
 instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 
