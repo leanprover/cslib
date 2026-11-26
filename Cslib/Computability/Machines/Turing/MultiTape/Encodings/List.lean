@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Concatenate
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.DelimitOutput
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Delimit
 
 /-!

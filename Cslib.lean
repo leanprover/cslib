@@ -123,7 +123,6 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ClearWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ForwardWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.InputFromTape
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OneWay
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OutputToTape
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RepeatUntilBlank
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput

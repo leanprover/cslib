@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Concatenate
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.HeadCases
 
 /-!

@@ -8,7 +8,7 @@ module
 
 public import Cslib.Computability.Encoding.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.OneWay
+public import Cslib.Computability.Machines.Turing.MultiTape.Transducer
 
 /-!
 # Machines on encoded values
@@ -24,10 +24,11 @@ words, and this function realizes the function on values in the sense of `Cslib.
   function on Boolean words is computable within the same bounds.
 * `Turing.MultiTapeTM.ComputableInTimeAndSpace.congr_out`: the output type and encoding of a
   computable function can be replaced by ones that yield the same code words.
-* `Turing.MultiTapeTM.computableInTimeAndSpace_of_oneWayOutput_eq`: a function on Boolean words
-  that is the output function of a one-way machine is computable in linear time and zero space.
 * `Turing.MultiTapeTM.computableInTimeAndSpace_const`: constant functions are computable in
   constant time and zero space.
+
+Functions on Boolean words given by a subsequential transducer are computable in linear time and
+zero space by `Turing.MultiTapeTM.computableInTimeAndSpace_of_subsequential`.
 -/
 
 public section
@@ -55,20 +56,6 @@ theorem ComputableInTimeAndSpace.congr_out {f : α → β} {f' : α → γ} {enc
     ComputableInTimeAndSpace f' encIn encOut' t s := by
   obtain ⟨k, State, hfinite, tm, htm⟩ := h
   exact ⟨k, State, hfinite, tm, fun a => by rw [henc a]; exact htm a⟩
-
-/-- A function on Boolean words that is the output function of a one-way machine is computable in
-one step per input and output bit plus one, and in zero space. -/
-theorem computableInTimeAndSpace_of_oneWayOutput_eq {State : Type} [Finite State] (q₀ : State)
-    (step : State → Bool → List Bool × State) (final : State → List Bool)
-    {g : List Bool → List Bool} (hg : ∀ w, oneWayOutput step final q₀ w = g w) :
-    ComputableInTimeAndSpace g encBits encBits (fun w => w.length + (g w).length + 1)
-      (fun _ => 0) :=
-  have ⟨m, hstep, hfinal⟩ := exists_oneWay_length_le step final
-  ⟨0, _, inferInstance, oneWay m q₀ step final, fun w => by
-    have h := computesInTimeAndSpace_oneWay q₀ hstep hfinal w
-    have ht := oneWayTime_le step final q₀ w
-    rw [hg] at h ht
-    exact ⟨h.1, h.2.1.mono ht, h.2.2⟩⟩
 
 /-- A constant function is computable in the length of the code of its value plus two steps, and
 in zero space, relative to every input encoding. -/

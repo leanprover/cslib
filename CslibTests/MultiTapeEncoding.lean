@@ -14,19 +14,19 @@ namespace CslibTests.MultiTapeEncoding
 
 open Turing.MultiTapeTM Cslib.Encoding
 
-/-! ### One-way machines -/
+/-! ### Transducers -/
 
--- The output and running time of a one-way machine are functions on words.
-example : oneWayOutput (fun (_ : Unit) b => ([b, b], ())) (fun _ => [false]) () [true, false] =
+-- The output of a subsequential transducer is a function on words.
+example : ({ start := (), tr := fun _ _ => (), emit := fun _ b => [b, b], finalOut := fun _ => [false] } :
+    Cslib.Automata.SubsequentialTransducer Unit Bool Bool).eval [true, false] =
     [true, true, false, false, false] := rfl
-example : oneWayTime (fun (_ : Unit) b => ([b, b], ())) (fun _ => [false]) () [true, false] = 5 :=
-  rfl
--- Emitting nothing still takes one step per input symbol.
-example : oneWayTime (fun (_ : Unit) (_ : Bool) => ([], ())) (fun _ => []) () [true, false] = 3 :=
-  rfl
--- The time is linear in the input and the output.
-example : oneWayTime (fun (_ : Unit) b => ([b, b], ())) (fun _ => [false]) () [true, false] ≤
-    2 + 5 + 1 := oneWayTime_le ..
+
+-- The machine compiled from a transducer runs in one step per input and output bit plus one.
+example (m : ℕ) (t : Cslib.Automata.SubsequentialTransducer Unit Bool Bool)
+    (h : t.OutputBoundedBy m) (w : List Bool) :
+    (ofSubsequential t m).ComputesInTimeAndSpace w (t.eval w)
+      (w.length + (t.eval w).length + 1) 0 :=
+  computesInTimeAndSpace_ofSubsequential t h w
 
 /-! ### Extending the library -/
 
@@ -47,8 +47,12 @@ example : ComputableInTimeAndSpace (2 * ·) encNat encNat (fun n => 2 * (encNat 
 -- A machine given directly as a transducer: the bitwise complement.
 example : ComputableInTimeAndSpace (List.map not) encBits encBits (fun w => 2 * w.length + 1)
     (fun _ => 0) :=
-  (computableInTimeAndSpace_of_oneWayOutput_eq () (fun _ b => ([!b], ())) (fun _ => [])
-    fun w => by induction w <;> simp [*]).mono (fun _ => by simp; lia) fun _ => le_rfl
+  (computableInTimeAndSpace_of_subsequential
+      ({ start := (), tr := fun _ _ => (), emit := fun _ b => [!b], finalOut := fun _ => [] } :
+        Cslib.Automata.SubsequentialTransducer Unit Bool Bool)
+      (List.map not) fun w => by
+        induction w <;> simp [Cslib.Automata.SubsequentialTransducer.eval, *]).mono
+    (fun _ => by simp; lia) fun _ => le_rfl
 
 /-! ### Functions on words -/
 
