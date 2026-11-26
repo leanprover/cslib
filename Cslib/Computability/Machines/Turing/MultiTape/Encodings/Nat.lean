@@ -53,6 +53,7 @@ theorem length_bitsSucc_le (w : List Bool) : (bitsSucc w).length ≤ w.length + 
 theorem encNat_eq_bits (n : ℕ) : encNat n = n.bits := rfl
 
 /-- Not a `simp` lemma: `encNat n` is the more useful normal form. -/
+@[scoped grind =]
 theorem length_encNat (n : ℕ) : (encNat n).length = n.size := by
   rw [encNat_eq_bits, Nat.size_eq_bits_len]
 
