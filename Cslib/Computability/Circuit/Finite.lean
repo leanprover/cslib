@@ -14,7 +14,7 @@ import Mathlib.Basic.Finite.Sigma
 import Mathlib.Basic.Finite.Sum
 
 /-!
-# Finite circuit syntax
+# Finite circuit syntax.
 
 A finite signature gives finitely many lines and programs of each fixed size.
 Their cardinalities count syntax and are independent of any interpretation or carrier.

@@ -8,7 +8,7 @@ module
 public import Cslib.Computability.Circuit.Basic
 
 /-!
-# Circuit depth bounds
+# Circuit depth bounds.
 
 This file proves bounds for `Program.depth`, defined in `Cslib.Computability.Circuit.Program`,
 and `Circuit.depth`, defined in `Cslib.Computability.Circuit.Basic`. Program depth is the maximum

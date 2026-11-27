@@ -10,7 +10,7 @@ public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.LTS.MapHom
 
 /-!
-# Preimage construction on nondeterministic automata
+# Preimage construction on nondeterministic automata.
 -/
 
 

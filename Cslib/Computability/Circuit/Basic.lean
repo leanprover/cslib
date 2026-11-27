@@ -10,7 +10,7 @@ public import Mathlib.Data.Set.Function
 public import Mathlib.Logic.Function.DependsOn
 
 /-!
-# Circuits
+# Circuits.
 
 A circuit is a straight-line `Program` together with a choice of output wires.
 Any input or internal-gate wire may be designated as an output, and designating

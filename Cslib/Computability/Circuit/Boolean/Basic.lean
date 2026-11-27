@@ -12,7 +12,7 @@ public import Mathlib.Data.Fintype.Sum
 public import Mathlib.Tactic.DeriveFintype
 
 /-!
-# Boolean circuits
+# Boolean circuits.
 
 The De Morgan basis consists of binary AND and OR, unary NOT, and Boolean constants.
 Every gate has fan-in at most two, so these are the usual bounded fan-in Boolean circuits

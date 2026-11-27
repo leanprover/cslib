@@ -10,7 +10,7 @@ public import Cslib.Computability.Circuit.Boolean.Synthesis
 import Mathlib.Algebra.BigOperators.Fin
 
 /-!
-# Lupanov's block construction
+# Lupanov's block construction.
 
 This file is the finite, parametrised core of Lupanov's upper bound. Its purpose is to give a
 gate budget `bound k d s` that is valid for every Boolean function on `k + d` inputs and every

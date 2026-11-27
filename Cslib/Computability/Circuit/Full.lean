@@ -13,7 +13,7 @@ import Mathlib.Data.Fintype.Pi
 import Mathlib.SetTheory.Cardinal.Arithmetic
 
 /-!
-# Circuits over the full basis
+# Circuits over the full basis.
 
 The full basis of arity `k` contains every constant and every operation with `k` arguments.
 Each takes one gate, and so does every operation with at most `k` arguments: a nullary

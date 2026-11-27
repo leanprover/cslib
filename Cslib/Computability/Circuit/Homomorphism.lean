@@ -8,7 +8,7 @@ module
 public import Cslib.Computability.Circuit.Signature
 
 /-!
-# Homomorphisms of interpretations
+# Homomorphisms of interpretations.
 
 A homomorphism between two interpretations of the same signature is a map of
 carriers that commutes with every operation. This file defines identity and

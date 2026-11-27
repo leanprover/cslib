@@ -10,7 +10,7 @@ public import Mathlib.Data.ZMod.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 
 /-!
-# Diffie-Hellman Key Exchange in Stateful Processes (testbed)
+# Diffie-Hellman Key Exchange in Stateful Processes (testbed).
 
 This module formalises the Diffie-Hellman key exchange protocol in `StatefulProcesses`.
 

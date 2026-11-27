@@ -8,7 +8,7 @@ module
 public import Cslib.Computability.Circuit.Basic
 
 /-!
-# Semantic circuit normalization
+# Semantic circuit normalization.
 
 Merging gates that compute the same function preserves wire values and does not
 increase circuit size.

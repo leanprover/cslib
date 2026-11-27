@@ -10,7 +10,7 @@ public import Cslib.Computability.Circuit.Synthesis
 public import Mathlib.Data.Fintype.Card
 
 /-!
-# Boolean synthesis
+# Boolean synthesis.
 
 The generic synthesis rules specialize to the De Morgan basis: constants, negation, conjunction,
 and disjunction. Finite conjunctions and disjunctions use the generic fold bound, and

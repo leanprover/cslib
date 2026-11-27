@@ -10,7 +10,7 @@ public import Cslib.Computability.Circuit.Synthesis
 public import Mathlib.Data.ENat.Lattice
 
 /-!
-# Circuit complexity
+# Circuit complexity.
 
 The complexity of a function `f` on a support `S`, written `C^S(f)`, is the least number of gates
 in a circuit whose outputs agree with `f` on every input in `S`. The function may have several

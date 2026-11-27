@@ -9,7 +9,7 @@ public import Cslib.Foundations.Control.Monad.IsMonadHom
 import all Init.Data.List.Sort.Basic
 
 /-!
-# A Monadic version of the builtin `List.mergeSort`
+# A Monadic version of the builtin `List.mergeSort`.
 
 This can be instantiated with `Id` to recover the original, or with `TimeM` or `FreeM` for
 algorithmic analysis.

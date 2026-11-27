@@ -14,7 +14,7 @@ public import Mathlib.Order.Lattice.Nat
 public import Mathlib.Data.Nat.Log
 
 /-!
-# MergeSort on a list
+# MergeSort on a list.
 
 In this file we introduce `merge` and `mergeSort` algorithms that returns a time monad
 over the list `TimeM ℕ (List α)`. The time complexity of `mergeSort` is the number of comparisons.

@@ -12,7 +12,7 @@ import Mathlib.Basic.Finite.Prod
 import Mathlib.Data.Fintype.Order
 
 /-!
-# Sequential and subsequential transducers
+# Sequential and subsequential transducers.
 
 A sequential transducer is a deterministic automaton that emits a word per transition.
 A subsequential transducer can also output a final word at the end of the input. The output on a

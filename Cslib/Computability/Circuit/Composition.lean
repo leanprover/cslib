@@ -10,7 +10,7 @@ public import Cslib.Computability.Circuit.Basic
 public import Mathlib.Data.Fin.Tuple.Basic
 
 /-!
-# Composing circuits
+# Composing circuits.
 
 A program can be continued by a second program whose inputs are read from wires of the first.
 Reading them from the outputs of a circuit gives sequential composition, `Circuit.comp`, which

@@ -9,7 +9,7 @@ public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 public import Cslib.Computability.Circuit.Complexity
 
 /-!
-# Completeness of the De Morgan basis
+# Completeness of the De Morgan basis.
 
 Every Boolean function has a De Morgan circuit, by the Lupanov construction with no data
 bits, so the basis is complete and `complexity interpretation f` is the circuit complexity of

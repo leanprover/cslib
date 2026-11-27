@@ -10,7 +10,7 @@ public import Cslib.Computability.Circuit.Wire
 public import Mathlib.Data.Finset.Union
 
 /-!
-# Straight-line programs
+# Straight-line programs.
 
 A program is a topologically ordered sequence of gates. Each `Line` records an
 operation and its argument wires. The gate-count index ensures that wires refer

@@ -8,7 +8,7 @@ module
 public import Cslib.Computability.Circuit.Complexity
 
 /-!
-# Relative circuit complexity
+# Relative circuit complexity.
 
 The complexity `C(f | g)` of `f` relative to `g` is the least number of gates needed to compute
 `f` when the values of `g` come for free: the circuit reads an input `x` followed by the values

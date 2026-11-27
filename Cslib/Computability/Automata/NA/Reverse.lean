@@ -10,7 +10,7 @@ public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.LTS.Reverse
 
 /-!
-# Reversal of nondeterministic automata
+# Reversal of nondeterministic automata.
 
 This file defines `Cslib.Automata.NA.FinAcc.reverse`, which reverses every transition of a
 nondeterministic automaton and swaps its start and accept states. Its underlying transition system

@@ -9,7 +9,7 @@ public import Cslib.Computability.Circuit.Boolean.Complexity
 public import Cslib.Computability.Circuit.Shannon
 
 /-!
-# Shannon's lower bound for De Morgan circuits
+# Shannon's lower bound for De Morgan circuits.
 
 This is the De Morgan specialization of `Cslib.Circuits.Shannon`: almost all Boolean functions
 on `n` inputs require more than `2ⁿ/n` gates, so for large `n` some function does, stated for

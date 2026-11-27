@@ -21,7 +21,7 @@ import Mathlib.Tactic.GCongr
 import Mathlib.Tactic.NormNum
 
 /-!
-# Counting functions computed by finite circuits
+# Counting functions computed by finite circuits.
 
 For a finite signature, only finitely many functions can be computed with a fixed gate budget,
 even when the carrier is infinite. The set `computableFunctions I n s` of scalar functions whose
