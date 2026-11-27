@@ -7,6 +7,7 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Encoding.Basic
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.TransduceOutput
 public import Cslib.Computability.Machines.Turing.MultiTape.Transducer
 import Mathlib.Tactic.DeriveFintype
 
@@ -30,6 +31,8 @@ and `undelimitAll`.
 * `Cslib.Encoding.undelimitAll_delimit_append` decodes a leading codeword and continues
   decoding the suffix.
 * `Turing.MultiTapeTM.computableInTimeAndSpace_delimit` bounds the cost of writing a codeword.
+* `Turing.MultiTapeTM.ComputableInTimeAndSpace.delimit`: a computable function is computable with
+  the delimited output encoding `Cslib.Encoding.encDelimited`, in time `2 * t + 1`.
 * `Turing.MultiTapeTM.computableInTimeAndSpace_undelimit` and
   `Turing.MultiTapeTM.computableInTimeAndSpace_undelimitOr` bound the cost of decoding the first
   word, with a configurable default on empty input for `undelimitOr`.
@@ -105,6 +108,14 @@ theorem computableInTimeAndSpace_delimit :
     ComputableInTimeAndSpace delimit encBits encBits (fun w => 3 * w.length + 2) (fun _ => 0) :=
   (computableInTimeAndSpace_of_subsequential delimitTransducer delimit evalFrom_delimit).mono
     (fun _ => by lia [length_delimit]) fun _ => le_rfl
+
+/-- A function computable with some output encoding is computable with the delimited output
+encoding, in at most twice the time plus one step, and in the same space. -/
+theorem ComputableInTimeAndSpace.delimit {α β : Type*} {f : α → β} {encIn : α ↪ List Bool}
+    {encOut : β ↪ List Bool} {t s : α → ℕ} (h : ComputableInTimeAndSpace f encIn encOut t s) :
+    ComputableInTimeAndSpace f encIn (encDelimited encOut) (fun a => 2 * t a + 1) s :=
+  h.transduce (g := id) delimitTransducer (m := 2) (l := 1) (by simp [delimitTransducer])
+    (by simp [delimitTransducer]) fun b => evalFrom_delimit _
 
 /-! ### The word whose delimited code starts the input -/
 

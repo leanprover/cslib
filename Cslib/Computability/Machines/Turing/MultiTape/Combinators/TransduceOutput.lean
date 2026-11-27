@@ -7,7 +7,6 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Automata.DA.Transducer
-public import Cslib.Computability.Encoding.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Mathlib.Basic.Finite.Prod
 public import Mathlib.Data.Set.Finite.List
@@ -24,13 +23,9 @@ state, so it has to be of length at most `n`. On the step where `tm` halts, the 
 takes at most `max 1 m` steps, where `m` bounds the words emitted on transitions, and the final
 output adds its length.
 
-Delimiting the output (`Cslib.Encoding.delimit`) is the special case of the transducer
-`delimitTransducer`, which replaces each bit `b` by `true, b` and emits a final `false`.
-
 ## Main definitions
 
 * `Turing.MultiTapeTM.transduceOutput`: the machine with transduced output.
-* `Turing.MultiTapeTM.delimitTransducer`: the transducer computing `Cslib.Encoding.delimit`.
 
 ## Main results
 
@@ -39,15 +34,13 @@ Delimiting the output (`Cslib.Encoding.delimit`) is the special case of the tran
   `m` and `l`, then `tm.transduceOutput tr (m + l)` outputs `tr.eval out` in time
   `max 1 m * t + l` and space `s`.
 * `Turing.MultiTapeTM.ComputableInTimeAndSpace.transduce`: the same for computable functions.
-* `Turing.MultiTapeTM.ComputableInTimeAndSpace.delimit`: a computable function is computable with
-  the delimited output encoding `Cslib.Encoding.encDelimited`, in time `2 * t + 1`.
 -/
 
 public section
 
 namespace Turing.MultiTapeTM
 
-open Cslib.Automata Cslib.Encoding
+open Cslib.Automata
 
 variable {k : ℕ} {Symbol State StateT : Type*} {input : List Symbol}
 
@@ -335,27 +328,5 @@ theorem ComputableInTimeAndSpace.transduce {α β γ : Type*} {f : α → β} {g
   have := (List.finite_length_le Bool (m + l)).to_subtype
   exact ⟨k, _, inferInstance, tm.transduceOutput tr (m + l),
     fun a => hg (f a) ▸ (htm a).transduceOutput tr hemit hfinal⟩
-
-/-! ### Delimiting the output -/
-
-/-- The transducer that maps a word to its delimited code `Cslib.Encoding.delimit`: it replaces
-each bit `b` by `true, b` and emits a final `false`. -/
-def delimitTransducer : SubsequentialTransducer Unit Bool Bool where
-  start := ()
-  tr _ _ := ()
-  emit _ b := [true, b]
-  finalOut _ := [false]
-
-@[simp]
-lemma eval_delimitTransducer (w : List Bool) : delimitTransducer.eval w = delimit w := by
-  induction w <;> simp_all [delimitTransducer]
-
-/-- A function computable with some output encoding is computable with the delimited output
-encoding, in at most twice the time plus one step, and in the same space. -/
-theorem ComputableInTimeAndSpace.delimit {α β : Type*} {f : α → β} {encIn : α ↪ List Bool}
-    {encOut : β ↪ List Bool} {t s : α → ℕ} (h : ComputableInTimeAndSpace f encIn encOut t s) :
-    ComputableInTimeAndSpace f encIn (encDelimited encOut) (fun a => 2 * t a + 1) s :=
-  h.transduce (g := id) delimitTransducer (m := 2) (l := 1) (by simp [delimitTransducer])
-    (by simp [delimitTransducer]) fun b => by simp
 
 end Turing.MultiTapeTM

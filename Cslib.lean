@@ -106,8 +106,8 @@ public import Cslib.Computability.Languages.Slice
 public import Cslib.Computability.Languages.SyntacticMonoid
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Concatenate
-public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.DelimitOutput
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.TransduceOutput
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
