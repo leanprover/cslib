@@ -24,6 +24,10 @@ Coreflexive (`Cslib.RelationAlgebra.IsRelCorefl`) elements are defined as those 
 shown to be the analogue in relation algebras of sets, via the domain and codomain maps `relDom`
 and `relCod`.
 
+In general, most relational properties have RA equivalents, translating universal quantifiers using
+`≤`, and existential quantifiers with `*`. We translate many of the properties defined on
+`α → α → Prop` in `Foundations/Relation/Defs` to the relation algebra `SetRel α α`.
+
 ## References
 
 - [S. Givant, *Introduction to Relation Algebras: Relation Algebras, Volume 1*][Givant2017a],
