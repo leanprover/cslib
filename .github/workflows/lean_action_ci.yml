@@ -38,6 +38,9 @@ jobs:
         # This step only collects suggestions, it must never fail the job. They are reported by
         # the weekly-lints job, so that they do not need a second build.
         continue-on-error: true
+        env:
+          # Each changed file is elaborated again, so skip the linters on PRs that change many files.
+          MAX_FILES: 20
         run: |
           set -euo pipefail
           findings="${RUNNER_TEMP}/weekly-lints-findings.jsonl"
@@ -45,6 +48,11 @@ jobs:
           # HEAD is the merge of the PR into the base branch, so HEAD^1 is the base branch.
           git diff -z --name-only --diff-filter=d HEAD^1 HEAD -- 'Cslib/*.lean' > "${RUNNER_TEMP}/changed-files"
           mapfile -d '' -t files < "${RUNNER_TEMP}/changed-files"
+          if [ "${#files[@]}" -gt "${MAX_FILES}" ]; then
+            echo "::notice::Skipping the weekly linters, this PR changes ${#files[@]} files in Cslib (the limit is ${MAX_FILES})"
+            echo "skipped=true" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
           for file in "${files[@]}"; do
             echo "Checking ${file}"
             # Keep only the messages of the linters in `linter.weeklyLintSet` (see `Mathlib/Init.lean`).
@@ -65,14 +73,16 @@ jobs:
           echo "findings=$(jq -cs . "${findings}")" >> "${GITHUB_OUTPUT}"
     outputs:
       weekly-lints-outcome: ${{ steps.weekly-lints.outcome }}
+      weekly-lints-skipped: ${{ steps.weekly-lints.outputs.skipped }}
       weekly-lints-findings: ${{ steps.weekly-lints.outputs.findings }}
 
   # Optional suggestions from the weekly linters. This job fails when there are any, so that they
-  # are visible on the PR, but it is not a required check, so it does not block merging.
+  # are visible on the PR, but it is not a required check, so it does not block merging. It is
+  # skipped when the linters were not run because the PR changes too many files.
   weekly-lints:
     name: "Weekly linter suggestions (optional)"
     needs: ci-checks
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && needs.ci-checks.outputs.weekly-lints-skipped != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: "Report weekly linter suggestions"
