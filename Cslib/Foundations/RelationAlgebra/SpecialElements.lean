@@ -8,6 +8,7 @@ module
 
 public import Cslib.Foundations.Data.SetRel
 public import Cslib.Foundations.Order.AlgebraIntervals
+public import Cslib.Foundations.Relation.Defs
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Mathlib.Order.FixedPoints
 
@@ -539,6 +540,10 @@ theorem isRelRefl_iff_isRefl : IsRelRefl r ↔ r.IsRefl :=
 
 instance [hr : r.IsRefl] : IsRelRefl r := r.isRelRefl_iff_isRefl.mpr hr
 
+theorem isIrrefl_iff : r ≤ 1ᶜ ↔ r.IsIrrefl := by
+  simp_rw [SetRel.IsIrrefl, irrefl_iff_le_ne, Set.subset_def, LE.le, Prod.forall,
+    Set.mem_compl_iff, mem_one]
+
 theorem isRelSymm_iff_isSymm : IsRelSymm r ↔ r.IsSymm :=
   isRelSymm_iff.trans r.inv_eq_self_iff
 
@@ -549,13 +554,21 @@ theorem isRelTrans_iff_isTrans : IsRelTrans r ↔ r.IsTrans :=
 
 instance [hr : r.IsTrans] : IsRelTrans r := r.isRelTrans_iff_isTrans.mpr hr
 
-variable {r : SetRel α α} {x y : α}
+variable {s r : SetRel α α} {x y : α}
 
 theorem mem_reflGen_iff : x ~[reflGen r] y ↔ Relation.ReflGen (· ~[r] ·) x y := by
   simp [reflGen, Relation.reflGen_iff, comm]
 
+theorem reflGen_eq : (· ~[reflGen r] ·) = Relation.ReflGen (· ~[r] ·) := by
+  ext
+  exact mem_reflGen_iff
+
 theorem mem_symmGen_iff : x ~[symmGen r] y ↔ Relation.SymmGen (· ~[r] ·) x y := by
   simp [symmGen, Relation.SymmGen]
+
+theorem symmGen_eq : (· ~[symmGen r] ·) = Relation.SymmGen (· ~[r] ·) := by
+  ext
+  exact mem_symmGen_iff
 
 theorem mem_transGen_iff : x ~[transGen r] y ↔ Relation.TransGen (· ~[r] ·) x y := by
   suffices transGen r = {p | Relation.TransGen (· ~[r] ·) p.1 p.2} by simp_all
@@ -568,9 +581,17 @@ theorem mem_transGen_iff : x ~[transGen r] y ↔ Relation.TransGen (· ~[r] ·) 
     | single h => exact le_transGen r h
     | @tail y z h h' ih => exact transGen_mul_self_le r ⟨y, ih, h'⟩
 
+theorem transGen_eq : (· ~[transGen r] ·) = Relation.TransGen (· ~[r] ·) := by
+  ext
+  exact mem_transGen_iff
+
 theorem mem_reflTransGen_iff : x ~[reflTransGen r] y ↔ Relation.ReflTransGen (· ~[r] ·) x y := by
   rw [reflTransGen, reflGen, Relation.reflTransGen_iff_eq_or_transGen, Eq.comm, Set.mem_union,
     mem_one, mem_transGen_iff]
+
+theorem reflTransGen_eq : (· ~[reflTransGen r] ·) = Relation.ReflTransGen (· ~[r] ·) := by
+  ext
+  exact mem_reflTransGen_iff
 
 theorem relDom_eq_ofSet : relDom r = ofSet r.dom := by
   ext ⟨x, y⟩
@@ -588,5 +609,133 @@ theorem isRelCorefl_iff_eq_ofSet (r : SetRel α α) : IsRelCorefl r ↔ ∃ s, r
   · rw [isRelCorefl_iff]
     rintro ⟨s, rfl⟩ ⟨x, y⟩ ⟨(rfl : x = y), -⟩
     exact mem_one.mpr rfl
+
+lemma ofSet_compl_eq {s : Set α} : ofSet sᶜ = 1 \ ofSet s := by
+  ext ⟨a, b⟩
+  simp; grind
+
+lemma ofSet_eq_one_iff {s : Set α} : ofSet s = 1 ↔ s = .univ := by
+  simp [Set.ext_iff]
+
+theorem rightEuclidean_iff : Relation.RightEuclidean (· ~[r] ·) ↔ star r * r ⊆ r :=
+  ⟨fun ⟨h⟩ ⟨_, _⟩ ⟨_, hb, ha ⟩ ↦ h hb ha, fun h ↦ ⟨fun hb ha ↦ h ⟨_, hb, ha⟩⟩⟩
+
+theorem leftEuclidean_iff : Relation.LeftEuclidean (· ~[r] ·) ↔ r * star r ⊆ r :=
+  ⟨fun ⟨h⟩ ⟨_, _⟩ ⟨_, ha, hb ⟩↦ h ha hb, fun h ↦ ⟨fun ha hb ↦ h ⟨_, ha, hb⟩⟩⟩
+
+theorem rightTotal_iff : Relator.RightTotal (· ~[r] ·) ↔ relCod r = 1 := by
+  simp only [Relator.RightTotal, relCod_eq_one_iff, Set.top_eq_univ, Set.eq_univ_iff_forall,
+    Prod.forall, mem_mul, Set.mem_univ, true_and]
+  exact ⟨fun h _ a ↦ h a, fun h a ↦ h a a⟩
+
+theorem leftTotal_iff : Relator.LeftTotal (· ~[r] ·) ↔ relDom r = 1 := by
+  simp only [Relator.LeftTotal, relDom_eq_one_iff, Set.top_eq_univ, Set.eq_univ_iff_forall,
+    Prod.forall, mem_mul, Set.mem_univ, and_true]
+  exact ⟨fun h a _ ↦ h a, fun h a ↦ h a a⟩
+
+theorem rightUnique_iff : Relator.RightUnique (· ~[r] ·) ↔ star r * r ≤ 1 := by
+  simp [Relator.RightUnique, Set.subset_def]
+  grind
+
+theorem leftUnique_iff : Relator.LeftUnique (· ~[r] ·) ↔ r * star r ≤ 1 := by
+  simp [Relator.LeftUnique, Set.subset_def]
+
+theorem reflOn_iff {s : Set α} : s.ReflOn (· ~[r] ·) ↔ ofSet s ≤ r ⊓ 1 := by
+  simp [Set.ReflOn, Set.subset_def]
+
+theorem symmOn_iff {s : Set α} : s.SymmOn (· ~[r] ·) ↔ ofSet s * r * ofSet s ≤ star r := by
+  simp [Set.SymmOn, Set.subset_def]
+  grind
+
+theorem join_iff : Relation.Join (· ~[r] ·) x y ↔ x ~[r * star r] y := .rfl
+
+theorem join₂_iff : Relation.Join₂ (· ~[s] ·) (· ~[r] ·) x y ↔ x ~[s * star r] y := .rfl
+
+theorem diamond_iff : Relation.Diamond (· ~[r] ·) ↔ star r * r ≤ r * star r := by
+  simp [Relation.Diamond, join_iff, Set.subset_def]
+  grind
+
+theorem diamond_commute_iff :
+    Relation.DiamondCommute (· ~[s] ·) (· ~[r] ·) ↔ star s * r ≤ r * star s := by
+  simp [Relation.DiamondCommute, join₂_iff, Set.subset_def]
+  grind
+
+theorem confluent_iff : Relation.Confluent (· ~[r] ·) ↔
+    reflTransGen (star r) * reflTransGen r ≤ reflTransGen r * reflTransGen (star r) := by
+  rw [Relation.Confluent, ← reflTransGen_eq, ← star_reflTransGen]
+  exact diamond_iff
+
+theorem commute_iff : Relation.Commute (· ~[s] ·) (· ~[r] ·) ↔
+    reflTransGen (star s) * reflTransGen r ≤ reflTransGen r * reflTransGen (star s) := by
+  rw [Relation.Commute, ← reflTransGen_eq, ← reflTransGen_eq, ← star_reflTransGen]
+  exact diamond_commute_iff
+
+theorem semiConfluent_iff : Relation.SemiConfluent (· ~[r] ·) ↔
+    star r * reflTransGen r ≤ reflTransGen r * reflTransGen (star r) := by
+  simp [Relation.SemiConfluent, ← reflTransGen_eq, Set.subset_def, ← star_reflTransGen, join_iff]
+  grind
+
+theorem semiCommute_iff : Relation.SemiCommute (· ~[s] ·) (· ~[r] ·) ↔
+    star s * reflTransGen r ≤ reflTransGen r * reflTransGen (star s) := by
+  simp [Relation.SemiCommute, ← reflTransGen_eq, Set.subset_def, ← star_reflTransGen, join₂_iff]
+  grind
+
+theorem churchRosser_iff : Relation.ChurchRosser (· ~[r] ·) ↔
+    reflTransGen (symmGen r) ≤ reflTransGen r * reflTransGen (star r) := by
+  simp [Relation.ChurchRosser, ← Relation.reflTransGen_symmGen, Set.subset_def, Relation.Join,
+    ← reflTransGen_eq, ← symmGen_eq, ← star_reflTransGen]
+
+theorem locallyConfluent_iff : Relation.LocallyConfluent (· ~[r] ·) ↔
+    star r * r ≤ reflTransGen r * reflTransGen (star r) := by
+  simp [Relation.LocallyConfluent, ← reflTransGen_eq, join_iff, Set.subset_def]
+  grind
+
+theorem locallyCommute_iff : Relation.LocallyCommute (· ~[s] ·) (· ~[r] ·) ↔
+    star s * r ≤ reflTransGen r * reflTransGen (star s) := by
+  simp [Relation.LocallyCommute, ← reflTransGen_eq, join₂_iff, Set.subset_def]
+  grind
+
+theorem stronglyConfluent_iff : Relation.StronglyConfluent (· ~[r] ·) ↔
+    star r * r ≤ reflGen r * reflTransGen (star r) := by
+  simp [Relation.StronglyConfluent, ← reflGen_eq, ← reflTransGen_eq, Set.subset_def,
+    ← star_reflTransGen]
+  grind
+
+theorem stronglyCommute_iff : Relation.StronglyCommute (· ~[s] ·) (· ~[r] ·) ↔
+    star s * r ≤ reflGen r * reflTransGen (star s) := by
+  simp [Relation.StronglyCommute, ← reflGen_eq, ← reflTransGen_eq, Set.subset_def,
+    ← star_reflTransGen]
+  grind
+
+theorem ofSet_reducible_eq : ofSet {x | Relation.Reducible (· ~[r] ·) x} = relDom r := by
+  rw [relDom_eq_ofSet]
+  congr
+
+theorem ofSet_normal_eq : ofSet {x | Relation.Normal (· ~[r] ·) x} = 1 \ relDom r := by
+  rw [← ofSet_reducible_eq, ← ofSet_compl_eq]
+  congr
+
+theorem ofSet_normalizable_eq :
+    ofSet {x | Relation.Normalizable (· ~[r] ·) x} = relDom (reflTransGen r * (1 \ relDom r)) := by
+  rw [relDom_eq_ofSet]
+  congr
+  simp [Relation.Normalizable, mem_reflTransGen_iff, relDom_eq_ofSet]
+
+theorem normalizing_iff :
+    Relation.Normalizing (· ~[r] ·) ↔ reflTransGen r * (1 \ relDom r) * ⊤ = ⊤ := by
+  rw [← relDom_eq_one_iff, ← ofSet_normalizable_eq, Relation.Normalizing, ofSet_eq_one_iff,
+    Set.eq_univ_iff_forall]
+  rfl
+
+theorem ofSet_preimage_eq {s : Set α} : ofSet (r.preimage s) = relDom (r * ofSet s) := by
+  simp [relDom_eq_ofSet, ofSet, and_comm]
+
+theorem ofSet_image_eq {s : Set α} : ofSet (r.image s) = relCod (ofSet s * r) := by
+  simp [relCod_eq_ofSet, ofSet]
+
+theorem ofSet_core_eq {s : Set α} :
+    ofSet (r.core s) = rightResidual (star r) (ofSet s * ⊤) ⊓ 1 := by
+  ext ⟨a, b⟩
+  simp [mem_rightResidual, and_comm]
 
 end SetRel

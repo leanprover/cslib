@@ -102,7 +102,7 @@ lemma ofSet_injective : Function.Injective (α := Set α) ofSet := by
 
 lemma ofSet_inj {s t : Set α} : ofSet s = ofSet t ↔ s = t := ofSet_injective.eq_iff
 
-lemma ofSet_le_ofSet_iff {s t : Set α} : ofSet s ≤ ofSet t ↔ s ⊆ t := by
+lemma ofSet_subset_ofSet_iff {s t : Set α} : ofSet s ⊆ ofSet t ↔ s ⊆ t := by
   simp [Set.subset_def]
 
 lemma eq_of_mem_ofSet (h : x ~[ofSet s] y) : x = y := by grind
