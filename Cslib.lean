@@ -212,10 +212,12 @@ public import Cslib.Foundations.RelationAlgebra.Asymptotics
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Cslib.Foundations.RelationAlgebra.CycleCount
+public import Cslib.Foundations.RelationAlgebra.FiniteEquation
 public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Integral
 public import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
+public import Cslib.Foundations.RelationAlgebra.IntegralCycleCount
 public import Cslib.Foundations.RelationAlgebra.IsoClass
 public import Cslib.Foundations.RelationAlgebra.Language
 public import Cslib.Foundations.RelationAlgebra.Pi
@@ -223,7 +225,9 @@ public import Cslib.Foundations.RelationAlgebra.RandomRepresentability
 public import Cslib.Foundations.RelationAlgebra.Relativization
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.RelationAlgebra.SpecialElements
+public import Cslib.Foundations.RelationAlgebra.SymmetricCycleOrbits
 public import Cslib.Foundations.RelationAlgebra.SymmetricCycles
+public import Cslib.Foundations.RelationAlgebra.WitnessNetwork
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS

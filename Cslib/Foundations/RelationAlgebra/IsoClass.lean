@@ -51,7 +51,8 @@ noncomputable def ofAlgebra {A : Type*} [RelationAlgebra A] [Finite A] {k : ℕ}
   letI := CompleteAtomicRelationAlgebra.ofFinite A
   ⟦⟨(atomStructure A).map (Finite.equivFinOfCardEq h), inferInstance⟩⟧
 
-private noncomputable def labelledEquiv {A : Type*} [RelationAlgebra A] [Finite A] {k : ℕ}
+/-- An algebra is isomorphic to its presentation with atoms labelled by `Fin k`. -/
+noncomputable def labelledEquiv {A : Type*} [RelationAlgebra A] [Finite A] {k : ℕ}
     (h : Nat.card {a : A // IsAtom a} = k) :
     letI := CompleteAtomicRelationAlgebra.ofFinite A
     RelationAlgebraEquiv A (ComplexAlgebra ((atomStructure A).map (Finite.equivFinOfCardEq h))) :=

@@ -79,20 +79,26 @@ private theorem card_rotation (hf : Function.Involutive f) [Finite α] (i : ZMod
 
 private theorem card_reflection (hf : Function.Involutive f) [Finite α] (i : ZMod 3) :
     letI := action hf
-    Nat.card (MulAction.fixedBy (Triangle f) (DihedralGroup.sr i)) ≤ Nat.card α ^ 2 := by
+    Nat.card (MulAction.fixedBy (Triangle f) (DihedralGroup.sr i)) ≤
+      Nat.card {a // f a = a} * Nat.card α := by
   let _ := action hf
-  rw [pow_two, ← Nat.card_prod]
-  -- A reflection interchanges two positions and fixes the third. Keep the fixed position
-  -- and one member of the interchanged pair.
-  let j : ZMod 3 := if i = 1 then 2 else 1
-  apply Nat.card_le_card_of_injective (fun t => (t.val.edge 0, t.val.edge j))
+  rw [← Nat.card_prod]
+  -- The reflection fixes position 2i and swaps the other two positions.
+  let j : ZMod 3 := 2 * i
+  have hj : i - j = j := by fin_cases i <;> decide
+  let fixed (t : MulAction.fixedBy (Triangle f) (DihedralGroup.sr i)) : {a // f a = a} :=
+    ⟨t.val.edge j, by
+      have h : f (t.val.edge (i - j)) = t.val.edge j := congrArg (fun t => t.edge j) t.prop
+      rwa [hj] at h⟩
+  let l : ZMod 3 := j + 1
+  apply Nat.card_le_card_of_injective (fun t => (fixed t, t.val.edge l))
   intro x y he
   have hx (k : ZMod 3) : f (x.val.edge (i - k)) = x.val.edge k :=
     congrArg (fun t => t.edge k) x.prop
   have hy (k : ZMod 3) : f (y.val.edge (i - k)) = y.val.edge k :=
     congrArg (fun t => t.edge k) y.prop
-  have h₀ : x.val.edge 0 = y.val.edge 0 := congrArg Prod.fst he
-  have h₁ : x.val.edge j = y.val.edge j := congrArg Prod.snd he
+  have h₀ : x.val.edge j = y.val.edge j := congrArg (fun p => p.1.val) he
+  have h₁ : x.val.edge l = y.val.edge l := congrArg Prod.snd he
   have flip (u v : ZMod 3) (h : x.val.edge v = y.val.edge v) (huv : i - u = v) :
       x.val.edge u = y.val.edge u := by
     rw [← hx u, ← hy u, huv, h]
@@ -101,13 +107,13 @@ private theorem card_reflection (hf : Function.Involutive f) [Finite α] (i : ZM
   fin_cases i <;> fin_cases k <;> first
     | exact h₀
     | exact h₁
-    | exact flip _ _ h₀ (by decide)
     | exact flip _ _ h₁ (by decide)
 
-/-- The identity rotation fixes every triangle, each other rotation fixes at most `d`
-triangles, and each reflection fixes at most `d²`, where `d` is the number of labels. -/
-theorem six_mul_card_orbit_le (hf : Function.Involutive f) [Finite α] :
-    6 * Nat.card (Orbit hf) ≤ Nat.card α ^ 3 + 3 * Nat.card α ^ 2 + 2 * Nat.card α := by
+/-- Each reflection fixes at most `s * d` labelled triangles, where `s` counts the
+self-converse labels among the `d` diversity atoms. -/
+theorem six_mul_card_orbit_le_of_fixed (hf : Function.Involutive f) [Finite α] :
+    6 * Nat.card (Orbit hf) ≤ Nat.card α ^ 3 + 3 * (Nat.card {a // f a = a} * Nat.card α) +
+      2 * Nat.card α := by
   classical
   let _ := action hf
   let _ := Fintype.ofFinite α
@@ -123,7 +129,7 @@ theorem six_mul_card_orbit_le (hf : Function.Involutive f) [Finite α] :
     simpa [c, Nat.card_fun, Nat.card_eq_fintype_card] using h
   have hr (i : ZMod 3) (hi : i ≠ 0) : c (.r i) ≤ Nat.card α := by
     simpa only [c, ← Nat.card_eq_fintype_card] using card_rotation hf i hi
-  have hs (i : ZMod 3) : c (.sr i) ≤ Nat.card α ^ 2 := by
+  have hs (i : ZMod 3) : c (.sr i) ≤ Nat.card {a // f a = a} * Nat.card α := by
     simpa only [c, ← Nat.card_eq_fintype_card] using card_reflection hf i
   have hu : (Finset.univ : Finset (DihedralGroup 3)) =
       {.r 0, .r 1, .r 2, .sr 0, .sr 1, .sr 2} := by decide
@@ -135,6 +141,29 @@ theorem six_mul_card_orbit_le (hf : Function.Involutive f) [Finite α] :
   have := hs 1
   have := hs 2
   omega
+
+/-- The bound obtained by allowing every diversity atom to be self-converse. -/
+theorem six_mul_card_orbit_le (hf : Function.Involutive f) [Finite α] :
+    6 * Nat.card (Orbit hf) ≤ Nat.card α ^ 3 + 3 * Nat.card α ^ 2 + 2 * Nat.card α := by
+  refine (six_mul_card_orbit_le_of_fixed hf).trans ?_
+  rw [pow_two]
+  gcongr
+  exact Nat.card_le_card_of_injective Subtype.val Subtype.val_injective
+
+/-- Each pair of distinct converse atoms reduces the cycle exponent by at least the number
+of diversity atoms. -/
+theorem card_orbit_add_le_choose (hf : Function.Involutive f) [Finite α] {m : ℕ}
+    (hm : Nat.card {a // f a = a} + 2 * m = Nat.card α) :
+    Nat.card (Orbit hf) + m * Nat.card α ≤ (Nat.card α + 2).choose 3 := by
+  let d := Nat.card α
+  have h₁ := Nat.add_one_mul_choose_eq d 1
+  have h₂ := Nat.add_one_mul_choose_eq (d + 1) 2
+  simp only [Nat.choose_one_right] at h₁
+  have h := six_mul_card_orbit_le_of_fixed hf
+  change 6 * _ ≤ d ^ 3 + 3 * (Nat.card {a // f a = a} * d) + 2 * d at h
+  change Nat.card {a // f a = a} + 2 * m = d at hm
+  change _ + m * d ≤ (d + 2).choose 3
+  nlinarith [congrArg (fun n => (d + 2) * n) h₁, congrArg (· * d) hm]
 
 /-- The number of cycle orbits is at most the number of unordered triples with repetitions. -/
 theorem card_orbit_le_choose (hf : Function.Involutive f) [Finite α] :

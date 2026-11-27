@@ -98,169 +98,241 @@ theorem lawful_of_hasWitnesses {T : Table α} (h : HasWitnesses T) :
       obtain ⟨w, h₃, h₄⟩ := h (pair t p) (pair r s)
       exact ⟨some w, rot T (rot T (a := some t) (b := some p) (c := some w) h₃), h₄⟩
 
-/-- For each disjoint pair of coordinates, three of the four subsets omit at least
-one coordinate. All remaining coordinates can be chosen freely. -/
-private theorem card_missing_pairs {X W : Type*} [Finite X] [Finite W] (e : W × Bool ↪ X) :
-    (Nat.card {T : Set X // ∀ w, ¬(e (w, false) ∈ T ∧ e (w, true) ∈ T)} : ℝ) ≤
-      2 ^ Nat.card X * (3 / 4 : ℝ) ^ Nat.card W := by
+/-- Maddux's common-witness condition for a family of `k` pairs of diversity atoms. -/
+def HasCommonWitnesses (k : ℕ) (T : Table α) : Prop :=
+  ∀ p : Fin k → Sym α 2, ∃ w, ∀ i, w ::ₛ p i ∈ T
+
+/-- Pad a nonempty family by repeating one pair. -/
+theorem HasCommonWitnesses.mono {k l : ℕ} {T : Table α} (h : HasCommonWitnesses l T)
+    (hk : 0 < k) (hl : k ≤ l) : HasCommonWitnesses k T := by
+  intro p
+  let f := Fin.castLEEmb hl
+  obtain ⟨w, hw⟩ := h (Function.extend f p fun _ => p ⟨0, hk⟩)
+  exact ⟨w, fun i => by simpa only [f.injective.extend_apply] using hw (f i)⟩
+
+/-- In a network on at most `k + 1` vertices, a consistent partial assignment of diversity
+labels to the edges incident to a new vertex extends to all those edges. This is the extension
+step in Maddux's construction of a finite-dimensional relational basis (Theorem 14). -/
+theorem HasCommonWitnesses.extend {k : ℕ} {T : Table α} (h : HasCommonWitnesses k T)
+    {V : Type*} [Fintype V] (hV : Fintype.card V ≤ k + 1)
+    (edge : V → V → α) (hsymm : ∀ i j, edge i j = edge j i) (s : Finset V) (c : V → α)
+    (hc : ∀ i ∈ s, ∀ j ∈ s, i ≠ j → c i ::ₛ pair (c j) (edge i j) ∈ T) :
+    ∃ d : V → α, (∀ i ∈ s, d i = c i) ∧ ∀ i j, i ≠ j → d i ::ₛ pair (d j) (edge i j) ∈ T := by
   classical
-  let B := {T : Set X // ∀ w, ¬(e (w, false) ∈ T ∧ e (w, true) ∈ T)}
+  by_cases hall : ∀ i, i ∈ s
+  · exact ⟨c, fun _ _ => rfl, fun i j => hc i (hall i) j (hall j)⟩
+  obtain ⟨v, hv⟩ := not_forall.mp hall
+  have hcard : s.card < Fintype.card V := by
+    simpa [Finset.card_insert_of_notMem hv] using (insert v s).card_le_univ
+  let f : s ↪ Fin k := s.equivFin.toEmbedding.trans (Fin.castLEEmb (by omega))
+  let pairs (i : s) := pair (c i) (edge v i)
+  let pad (_ : Fin k) := pair (c v) (c v)
+  obtain ⟨w, hw⟩ := h (Function.extend f pairs pad)
+  have hw' (i : V) (hi : i ∈ s) : w ::ₛ pair (c i) (edge v i) ∈ T := by
+    simpa only [f.injective.extend_apply, pairs] using hw (f ⟨i, hi⟩)
+  let c' := Function.update c v w
+  have hc' : ∀ i ∈ insert v s, ∀ j ∈ insert v s, i ≠ j → c' i ::ₛ pair (c' j) (edge i j) ∈ T := by
+    intro i hi j hj hij
+    rcases Finset.mem_insert.mp hi with rfl | his
+    · have hj := Finset.mem_of_mem_insert_of_ne hj hij.symm
+      simpa [c', hij.symm] using hw' j hj
+    rcases Finset.mem_insert.mp hj with rfl | hj
+    · rw [hsymm i j, pair, Sym.cons_swap]
+      simpa [c', hij, pair] using hw' i his
+    · simpa [c', ne_of_mem_of_not_mem his hv, ne_of_mem_of_not_mem hj hv] using hc i his j hj hij
+  obtain ⟨d, hd, ht⟩ := h.extend hV edge hsymm (insert v s) c' hc'
+  exact ⟨d, fun i hi => (hd i (Finset.mem_insert_of_mem hi)).trans
+    (Function.update_of_ne (ne_of_mem_of_not_mem hi hv) ..), ht⟩
+termination_by Fintype.card V - s.card
+decreasing_by
+  classical
+  rw [Finset.card_insert_of_notMem hv]
+  omega
+
+private theorem card_missing_blocks {X W I : Type*} [Finite X] [Finite W] [Finite I]
+    (e : W × I ↪ X) :
+    (Nat.card {T : Set X // ∀ w, ¬ ∀ i, e (w, i) ∈ T} : ℝ) ≤
+      2 ^ Nat.card X * (1 - (1 / 2 : ℝ) ^ Nat.card I) ^ Nat.card W := by
+  classical
+  let _ := Fintype.ofFinite X
+  let _ := Fintype.ofFinite W
+  let _ := Fintype.ofFinite I
+  let B := {T : Set X // ∀ w, ¬ ∀ i, e (w, i) ∈ T}
   let R := Set.range e
-  let bits (T : B) (w : W) : Fin 3 :=
-    if e (w, false) ∈ T.val then 0 else if e (w, true) ∈ T.val then 1 else 2
-  let code (T : B) : (W → Fin 3) × Set ↥(Rᶜ : Set X) := (bits T, Subtype.val ⁻¹' T.val)
+  let row (T : B) (w : W) : {s : Set I // s ≠ Set.univ} :=
+    ⟨{i | e (w, i) ∈ T.val}, fun h => T.prop w (Set.eq_univ_iff_forall.mp h)⟩
+  let code (T : B) := (row T, (Subtype.val ⁻¹' T.val : Set ↥(Rᶜ : Set X)))
   have hinj : Function.Injective code := by
-    intro S T he
+    intro S T h
     apply Subtype.ext
     ext x
     by_cases hx : x ∈ R
-    · obtain ⟨⟨w, b⟩, rfl⟩ := hx
-      have h : bits S w = bits T w := congrFun (congrArg Prod.fst he) w
-      have hs := S.prop w
-      have ht := T.prop w
-      cases b <;> grind
-    · exact Set.ext_iff.mp (congrArg Prod.snd he) ⟨x, hx⟩
+    · obtain ⟨⟨w, i⟩, rfl⟩ := hx
+      exact Set.ext_iff.mp (congrArg Subtype.val (congrFun (congrArg Prod.fst h) w)) i
+    · exact Set.ext_iff.mp (congrArg Prod.snd h) ⟨x, hx⟩
   have h := Nat.card_le_card_of_injective _ hinj
+  have hrow : Nat.card {s : Set I // s ≠ Set.univ} = 2 ^ Nat.card I - 1 := by
+    simp [Nat.card_eq_fintype_card, Fintype.card_subtype_compl]
   have hset : Nat.card (Set ↥(Rᶜ : Set X)) = 2 ^ (Rᶜ : Set X).ncard := by
-    let _ := Fintype.ofFinite ↥(Rᶜ : Set X)
-    change Nat.card (Set ↥(Rᶜ : Set X)) = 2 ^ Nat.card ↥(Rᶜ : Set X)
+    change _ = 2 ^ Nat.card ↥(Rᶜ : Set X)
     simp [Nat.card_eq_fintype_card]
-  rw [Nat.card_prod, Nat.card_fun, Nat.card_fin, hset] at h
-  have hR : R.ncard = Nat.card W * 2 := by
-    rw [Set.ncard_range_of_injective e.injective, Nat.card_prod]
-    simp [Nat.card_eq_fintype_card]
-  have hX := R.ncard_add_ncard_compl
-  rw [hR] at hX
-  change (Nat.card B : ℝ) ≤ _
+  rw [Nat.card_prod, Nat.card_fun, hrow, hset] at h
+  have hR := R.ncard_add_ncard_compl
+  rw [show R.ncard = Nat.card W * Nat.card I from
+    (Set.ncard_range_of_injective e.injective).trans (Nat.card_prod W I)] at hR
   calc
-    (Nat.card B : ℝ) ≤ (3 : ℝ) ^ Nat.card W * 2 ^ (Rᶜ : Set X).ncard := by exact_mod_cast h
-    _ = 2 ^ Nat.card X * (3 / 4 : ℝ) ^ Nat.card W := by
-      rw [← hX, pow_add, Nat.mul_comm, pow_mul, div_pow]
-      norm_num
-      field_simp
+    (Nat.card B : ℝ) ≤ ((2 : ℝ) ^ Nat.card I - 1) ^ Nat.card W * 2 ^ (Rᶜ : Set X).ncard := by
+      simpa only [Nat.cast_mul, Nat.cast_pow, Nat.cast_sub Nat.one_le_two_pow, Nat.cast_one,
+        Nat.cast_ofNat] using (Nat.cast_le (α := ℝ)).mpr h
+    _ = _ := by
+      rw [← hR, pow_add, Nat.mul_comm (Nat.card W), pow_mul, mul_right_comm,
+        ← mul_pow, one_div, inv_pow, mul_sub, mul_inv_cancel₀ (by positivity), mul_one]
 
-private theorem card_failed_witness {α : Type*} [Finite α] (p q : Sym α 2) (hpq : p ≠ q) :
-    (Nat.card {T : Table α // ¬ ∃ w, w ::ₛ p ∈ T ∧ w ::ₛ q ∈ T} : ℝ) ≤
-      2 ^ Nat.card (Sym α 3) * (3 / 4 : ℝ) ^ (Nat.card α - 4) := by
+private theorem card_failed_family {n k : ℕ} (p : Fin k → Sym (Fin n) 2) :
+    (Nat.card {T : Table (Fin n) // ¬ ∃ w, ∀ i, w ::ₛ p i ∈ T} : ℝ) ≤
+      2 ^ ((n + 2).choose 3) * (1 - (1 / 2 : ℝ) ^ k) ^ (n - 2 * k) := by
   classical
-  let U : Finset α := p.val.toFinset ∪ q.val.toFinset
-  let W := {w : α // w ∉ U}
-  let e : W × Bool → Sym α 3 := fun (w, b) => w.val ::ₛ (if b then q else p)
-  have free (w : W) : w.val ∉ p ∧ w.val ∉ q := by
-    simpa [U, ← Sym.mem_coe] using w.prop
+  let U := Finset.univ.biUnion fun i => (p i).val.toFinset
+  let W := {w : Fin n // w ∉ U}
+  let I := Set.range p
+  let e : W × I → Sym (Fin n) 3 := fun (w, q) => w.val ::ₛ q.val
+  have free (w : W) (q : I) : w.val ∉ q.val := by
+    obtain ⟨i, hi⟩ := q.prop
+    rw [← hi, ← Sym.mem_coe]
+    exact fun hw => w.prop (Finset.mem_biUnion.mpr ⟨i, Finset.mem_univ _, by simpa using hw⟩)
   have inj : Function.Injective e := by
-    rintro ⟨x, b⟩ ⟨y, c⟩ h
-    have hmem : x.val ∈ e (y, c) := h ▸ Sym.mem_cons_self _ _
-    have hxy : x = y := by
-      apply Subtype.ext
-      cases c <;> simp_all [e]
-    subst y
-    cases b <;> cases c <;> simp_all [e, Ne.symm hpq]
-  have h := card_missing_pairs (⟨e, inj⟩ : W × Bool ↪ Sym α 3)
-  have hle := Nat.card_le_card_of_injective
-    (fun T : {T : Table α // ¬ ∃ w, w ::ₛ p ∈ T ∧ w ::ₛ q ∈ T} =>
-      (⟨T.val, fun w h => T.prop ⟨w.val, h⟩⟩ :
-        {T : Table α // ∀ w : W, ¬(e (w, false) ∈ T ∧ e (w, true) ∈ T)}))
+    rintro ⟨w, a⟩ ⟨v, b⟩ h
+    change w.val ::ₛ a.val = v.val ::ₛ b.val at h
+    have hm : w.val ∈ v.val ::ₛ b.val := h ▸ Sym.mem_cons_self _ _
+    obtain rfl : w = v := Subtype.ext ((Sym.mem_cons.mp hm).resolve_right (free w b))
+    exact Prod.ext rfl (Subtype.ext (by simpa using h))
+  have hmap := Nat.card_le_card_of_injective
+    (fun T : {T : Table (Fin n) // ¬ ∃ w, ∀ i, w ::ₛ p i ∈ T} =>
+      (⟨T.val, fun w hw => T.prop ⟨w.val, fun i => hw ⟨p i, i, rfl⟩⟩⟩ :
+        {T : Table (Fin n) // ∀ w : W, ¬ ∀ q : I, e (w, q) ∈ T}))
     (fun _ _ h => Subtype.ext (Subtype.mk.inj h))
-  have hU : U.card ≤ 4 := by
-    have hp := Multiset.toFinset_card_le p.val
-    have hq := Multiset.toFinset_card_le q.val
-    exact (Finset.card_union_le ..).trans (by simpa using Nat.add_le_add hp hq)
-  have hW : Nat.card α - 4 ≤ Nat.card W := by
-    have hh := (U : Set α).ncard_add_ncard_compl
-    rw [Set.ncard_coe_finset] at hh
-    change U.card + Nat.card W = Nat.card α at hh
+  have h := ((Nat.cast_le (α := ℝ)).mpr hmap).trans (card_missing_blocks ⟨e, inj⟩)
+  have hU : U.card ≤ 2 * k := by
+    simpa [U, Nat.mul_comm] using Finset.card_biUnion_le_card_mul Finset.univ
+      (fun i => (p i).val.toFinset) 2 (fun i _ => by
+        simpa using Multiset.toFinset_card_le (p i).val)
+  have hW : n - 2 * k ≤ Nat.card W := by
+    have hc := (U : Set (Fin n)).ncard_add_ncard_compl
+    rw [Set.ncard_coe_finset, Nat.card_fin] at hc
+    change U.card + Nat.card W = n at hc
     omega
-  exact (Nat.cast_le.mpr hle).trans (h.trans (mul_le_mul_of_nonneg_left
-    (pow_le_pow_of_le_one (by norm_num) (by norm_num) hW) (by positivity)))
+  have hI : Nat.card I ≤ k := by
+    simpa [I, Nat.card_eq_fintype_card] using Fintype.card_range_le p
+  rw [Sym.natCard_sym_eq_choose, Nat.card_fin, Nat.add_succ_sub_one] at h
+  refine h.trans (mul_le_mul_of_nonneg_left ?_ (by positivity))
+  have hbase := pow_le_pow_of_le_one (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num) hI
+  have hnn (j : ℕ) : 0 ≤ 1 - (1 / 2 : ℝ) ^ j := sub_nonneg.mpr (pow_le_one₀ (by norm_num)
+    (by norm_num))
+  exact (pow_le_pow_left₀ (hnn _) (sub_le_sub_left hbase _) _).trans
+    (pow_le_pow_of_le_one (hnn _) (sub_le_self _ (by positivity)) hW)
+
+/-- A union bound over the families of pairs. For fixed `k`, the exceptional fraction decays
+exponentially up to a polynomial factor. -/
+theorem card_not_hasCommonWitnesses_le (k n : ℕ) :
+    (Nat.card {T : Table (Fin n) // ¬ HasCommonWitnesses k T} : ℝ) ≤
+      (n : ℝ) ^ (2 * k) * (2 ^ ((n + 2).choose 3) * (1 - (1 / 2 : ℝ) ^ k) ^ (n - 2 * k)) := by
+  classical
+  let X (p : Fin k → Sym (Fin n) 2) := {T : Table (Fin n) // ¬ ∃ w, ∀ i, w ::ₛ p i ∈ T}
+  let B := {T : Table (Fin n) // ¬ HasCommonWitnesses k T}
+  have fails (T : B) : ∃ p : Fin k → Sym (Fin n) 2, ¬ ∃ w, ∀ i, w ::ₛ p i ∈ T.val :=
+    not_forall.mp T.prop
+  choose p hp using fails
+  let encode (T : B) : Σ p, X p := ⟨p T, T.val, hp T⟩
+  have h := Nat.card_le_card_of_injective encode fun _ _ he =>
+    Subtype.ext (congrArg (fun t : Σ p, X p => t.2.val) he)
+  have hpairs : Nat.card (Sym (Fin n) 2) ≤ n ^ 2 := by
+    rw [Sym.natCard_sym_eq_choose, Nat.card_fin, Nat.choose_two_right]
+    simp only [Nat.add_succ_sub_one, Nat.add_sub_cancel]
+    rw [pow_two, Nat.add_mul, one_mul]
+    have := Nat.le_mul_self n
+    omega
+  have hf : (Fintype.card (Fin k → Sym (Fin n) 2) : ℝ) ≤ (n : ℝ) ^ (2 * k) := by
+    rw [← Nat.card_eq_fintype_card, Nat.card_fun, Nat.card_fin, pow_mul]
+    exact_mod_cast Nat.pow_le_pow_left hpairs k
+  calc
+    (Nat.card B : ℝ) ≤ Nat.card (Σ p, X p) := Nat.cast_le.mpr h
+    _ = ∑ p, (Nat.card (X p) : ℝ) := by rw [Nat.card_sigma, Nat.cast_sum]
+    _ ≤ _ := (Finset.sum_le_sum fun p _ => card_failed_family p).trans <| by
+      simpa using mul_le_mul_of_nonneg_right hf (mul_nonneg (by positivity)
+        (pow_nonneg (sub_nonneg.mpr (pow_le_one₀ (by norm_num : (0 : ℝ) ≤ 1 / 2)
+          (by norm_num))) (n - 2 * k)))
+
+theorem hasCommonWitnesses_two_iff (T : Table α) :
+    HasCommonWitnesses 2 T ↔ HasWitnesses T := by
+  constructor
+  · intro h p q
+    obtain ⟨w, hw⟩ := h ![p, q]
+    exact ⟨w, hw 0, hw 1⟩
+  · intro h p
+    obtain ⟨w, hw, hw'⟩ := h (p 0) (p 1)
+    exact ⟨w, fun i => by fin_cases i <;> assumption⟩
 
 /-- Union bound for tables without common witnesses. -/
 theorem card_not_hasWitnesses_le (n : ℕ) (hn : 2 ≤ n) :
     (Nat.card {T : Table (Fin n) // ¬ HasWitnesses T} : ℝ) ≤
       (n : ℝ) ^ 4 * (2 ^ ((n + 2).choose 3) * (3 / 4 : ℝ) ^ (n - 4)) := by
-  classical
-  let P := Sym (Fin n) 2
-  let X (pq : P × P) :=
-    {T : Table (Fin n) // ¬ ∃ w, w ::ₛ pq.1 ∈ T ∧ w ::ₛ pq.2 ∈ T}
-  let B := {T : Table (Fin n) // ¬ HasWitnesses T}
-  have hle : Nat.card B ≤ Nat.card (Σ pq, X pq) := by
-    have h (T : B) : ∃ pq, ∃ z : X pq, z.val = T.val := by
-      have h := T.prop
-      simp only [HasWitnesses, not_forall] at h
-      obtain ⟨p, q, hp⟩ := h
-      exact ⟨(p, q), ⟨T.val, hp⟩, rfl⟩
-    choose pq z hz using h
-    exact Nat.card_le_card_of_injective (fun T => Sigma.mk (pq T) (z T)) fun x y h =>
-      Subtype.ext <| (hz x).symm.trans ((congrArg (fun t : Σ pq, X pq => t.2.val) h).trans (hz y))
-  have bound (pq : P × P) (hpq : pq.1 ≠ pq.2) :
-      (Nat.card (X pq) : ℝ) ≤ 2 ^ ((n + 2).choose 3) * (3 / 4 : ℝ) ^ (n - 4) := by
-    simpa only [Sym.natCard_sym_eq_choose, Nat.card_fin, Nat.add_succ_sub_one] using
-      card_failed_witness pq.1 pq.2 hpq
-  have hdiff : Nontrivial P := by
-    let a : Fin n := ⟨0, by omega⟩
-    let b : Fin n := ⟨1, by omega⟩
-    exact ⟨pair a a, pair b b, fun h => by
-      have hm : a ∈ pair b b := h ▸ Sym.mem_cons_self _ _
-      simp [pair, a, b] at hm⟩
-  have hX (pq : P × P) : (Nat.card (X pq) : ℝ) ≤
-      2 ^ ((n + 2).choose 3) * (3 / 4 : ℝ) ^ (n - 4) := by
-    by_cases hpq : pq.1 = pq.2
-    · obtain ⟨p, hp⟩ := exists_ne pq.1
-      have h := Nat.card_le_card_of_injective (fun T : X pq =>
-        (⟨T.val, fun ⟨w, hw, _⟩ => T.prop
-          ⟨w, hw, (congrArg (fun a => w ::ₛ a ∈ T.val) hpq).mp hw⟩⟩ : X (pq.1, p)))
-        (fun _ _ he => Subtype.ext (Subtype.mk.inj he))
-      exact (Nat.cast_le.mpr h).trans (bound _ hp.symm)
-    · exact bound _ hpq
-  have hP : Nat.card P ≤ n ^ 2 := by
-    rw [Sym.natCard_sym_eq_choose, Nat.card_fin, Nat.choose_two_right]
-    simp only [Nat.add_succ_sub_one, Nat.add_sub_cancel]
-    rw [pow_two, Nat.add_mul, one_mul]
-    have := Nat.mul_le_mul_left n (show 1 ≤ n by omega)
-    omega
-  have hPP : (Fintype.card (P × P) : ℝ) ≤ (n : ℝ) ^ 4 := by
-    rw [← Nat.card_eq_fintype_card, Nat.card_prod]
-    exact_mod_cast (Nat.mul_le_mul hP hP).trans_eq (by ring)
-  calc
-    (Nat.card B : ℝ) ≤ Nat.card (Σ pq, X pq) := Nat.cast_le.mpr hle
-    _ = ∑ pq, (Nat.card (X pq) : ℝ) := by rw [Nat.card_sigma, Nat.cast_sum]
-    _ ≤ _ := (Finset.sum_le_sum fun pq _ => hX pq).trans <| by
-      simpa using mul_le_mul_of_nonneg_right hPP (show
-        0 ≤ (2 : ℝ) ^ ((n + 2).choose 3) * (3 / 4 : ℝ) ^ (n - 4) by positivity)
+  obtain ⟨m, rfl⟩ := Nat.exists_eq_add_of_le hn
+  simpa only [hasCommonWitnesses_two_iff, show 2 * 2 = 4 by decide,
+    show 1 - (1 / 2 : ℝ) ^ 2 = 3 / 4 by norm_num] using card_not_hasCommonWitnesses_le 2 (2 + m)
 
 open Filter
 open scoped Topology
+
+/-- Number of labelled symmetric tables on `n` diversity atoms. -/
+theorem card_table (n : ℕ) : Nat.card (Table (Fin n)) = 2 ^ ((n + 2).choose 3) := by
+  rw [Nat.card_eq_fintype_card, Fintype.card_set, ← Nat.card_eq_fintype_card,
+    Sym.natCard_sym_eq_choose, Nat.card_fin]
+  rfl
+
+/-- Almost every labelled symmetric table supplies a common witness for every family of
+`k` pairs, for each fixed `k`. This is the symmetric case of Maddux's Theorem 10. -/
+theorem tendsto_card_hasCommonWitnesses_div_all (k : ℕ) :
+    Tendsto (fun n => (Nat.card {T : Table (Fin n) // HasCommonWitnesses k T} : ℝ) /
+      Nat.card (Table (Fin n))) atTop (𝓝 1) := by
+  let r := 1 - (1 / 2 : ℝ) ^ k
+  have hr : 0 ≤ r := sub_nonneg.mpr (pow_le_one₀ (by norm_num) (by norm_num))
+  have hr' : r < 1 := sub_lt_self _ (by positivity)
+  have hbound : Tendsto (fun n : ℕ => (n : ℝ) ^ (2 * k) * r ^ (n - 2 * k)) atTop (𝓝 0) := by
+    by_cases hz : r = 0
+    · apply tendsto_const_nhds.congr' _
+      filter_upwards [eventually_gt_atTop (2 * k)] with n hn
+      simp [hz, zero_pow (by omega : n - 2 * k ≠ 0)]
+    have h := (tendsto_pow_const_mul_const_pow_of_lt_one (2 * k) hr hr').div_const (r ^ (2 * k))
+    rw [zero_div] at h
+    apply h.congr' _
+    filter_upwards [eventually_ge_atTop (2 * k)] with n hn
+    rw [← Nat.sub_add_cancel hn, pow_add r, Nat.sub_add_cancel hn]
+    field_simp
+  have hbad : Tendsto (fun n => (Nat.card {T : Table (Fin n) // ¬ HasCommonWitnesses k T} : ℝ) /
+      Nat.card (Table (Fin n))) atTop (𝓝 0) := by
+    apply squeeze_zero (fun n => by positivity) _ hbound
+    intro n
+    rw [card_table, Nat.cast_pow, Nat.cast_ofNat, div_le_iff₀ (by positivity)]
+    simpa only [r, mul_assoc, mul_left_comm, mul_comm] using card_not_hasCommonWitnesses_le k n
+  have h := tendsto_const_nhds (x := (1 : ℝ)) |>.sub hbad
+  rw [sub_zero] at h
+  apply h.congr fun n => ?_
+  let G := {T : Table (Fin n) | HasCommonWitnesses k T}
+  have hc : (G.ncard : ℝ) + Gᶜ.ncard = Nat.card (Table (Fin n)) := by
+    exact_mod_cast G.ncard_add_ncard_compl
+  change 1 - (Gᶜ.ncard : ℝ) / _ = (G.ncard : ℝ) / _
+  have hp : (Nat.card (Table (Fin n)) : ℝ) ≠ 0 := by rw [card_table]; positivity
+  field_simp
+  linarith
 
 /-- For sufficiently many diversity atoms, at least half of all symmetric tables
 have common witnesses. -/
 theorem eventually_half_le_card_hasWitnesses :
     ∀ᶠ n : ℕ in atTop, (2 : ℝ) ^ ((n + 2).choose 3) / 2 ≤
       Nat.card {T : Table (Fin n) // HasWitnesses T} := by
-  have hlim := (tendsto_pow_const_mul_const_pow_of_lt_one 4 (r := (3 / 4 : ℝ))
-    (by norm_num) (by norm_num)).mul_const ((3 / 4 : ℝ) ^ 4)⁻¹
-  rw [zero_mul] at hlim
-  filter_upwards [eventually_ge_atTop 4, hlim.eventually_le_const (by norm_num : (0 : ℝ) < 1 / 2)]
-    with n hn hsmall
-  have hn' : n - 4 + 4 = n := Nat.sub_add_cancel hn
-  have hpow : (3 / 4 : ℝ) ^ n = (3 / 4 : ℝ) ^ (n - 4) * (3 / 4 : ℝ) ^ 4 := by
-    rw [← pow_add, hn']
-  change (n : ℝ) ^ 4 * (3 / 4 : ℝ) ^ n * _ ≤ _ at hsmall
-  rw [hpow] at hsmall
-  let G := {T : Table (Fin n) | HasWitnesses T}
-  have hc := G.ncard_add_ncard_compl
-  have htotal : Nat.card (Table (Fin n)) = 2 ^ ((n + 2).choose 3) := by
-    rw [Nat.card_eq_fintype_card, Fintype.card_set, ← Nat.card_eq_fintype_card,
-      Sym.natCard_sym_eq_choose, Nat.card_fin]
-    rfl
-  rw [htotal] at hc
-  have hr : (G.ncard : ℝ) + (Gᶜ.ncard : ℝ) = (2 : ℝ) ^ ((n + 2).choose 3) := by
-    exact_mod_cast hc
-  have hb := card_not_hasWitnesses_le n (by omega)
-  change (Gᶜ.ncard : ℝ) ≤ _ at hb
-  change _ ≤ (G.ncard : ℝ)
-  norm_num at hsmall
-  have hs : (n : ℝ) ^ 4 * (3 / 4 : ℝ) ^ (n - 4) ≤ 1 / 2 := by linarith only [hsmall]
-  have h := mul_le_mul_of_nonneg_right hs (show 0 ≤ (2 : ℝ) ^ ((n + 2).choose 3) by positivity)
-  linarith only [hr, hb, h]
+  filter_upwards [(tendsto_card_hasCommonWitnesses_div_all 2).eventually_const_le
+    (by norm_num : (1 / 2 : ℝ) < 1)] with n hn
+  simp only [hasCommonWitnesses_two_iff, card_table, Nat.cast_pow, Nat.cast_ofNat] at hn
+  linarith only [(le_div_iff₀ (by positivity)).mp hn]
 
 end Cslib.RelationAlgebra.SymmetricCycles

@@ -161,7 +161,8 @@ theorem eventually_le_card_mul_relabellings :
   obtain ⟨n, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (show k ≠ 0 by omega)
   exact (hN n (by omega)).trans (by exact_mod_cast card_good_le n)
 
-private theorem eventually_pow_le_choose :
+/-- A quadratic binomial exponent absorbs the polynomial cost per labelled atom. -/
+theorem eventually_pow_le_choose :
     ∀ᶠ k : ℕ in atTop, (4 * k ^ 3) ^ k ≤ 2 ^ k.choose 2 := by
   have hlim := tendsto_pow_const_div_const_pow_of_one_lt 6 (r := (2 : ℝ)) (by norm_num)
   filter_upwards [eventually_ge_atTop 1, hlim.eventually_le_const (by norm_num : (0 : ℝ) < 1 / 32)]

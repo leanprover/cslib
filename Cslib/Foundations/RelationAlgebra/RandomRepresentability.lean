@@ -6,11 +6,8 @@ Authors: Chris Henson
 
 module
 
-public import Cslib.Foundations.RelationAlgebra.IsoClass
-public import Cslib.Foundations.RelationAlgebra.Language
-public import Cslib.Foundations.RelationAlgebra.Representation
-public import Mathlib.ModelTheory.Semantics
-public import Mathlib.Topology.Instances.Real.Lemmas
+public import Cslib.Foundations.RelationAlgebra.FiniteEquation
+public import Cslib.Foundations.RelationAlgebra.IntegralCycleCount
 
 /-!
 # Equations and random representability
@@ -33,31 +30,7 @@ Both statements give each isomorphism class equal weight.
 
 namespace Cslib.RelationAlgebra
 
-open FirstOrder.Language FirstOrder.RelationAlgebra
-
-/-- A pair of relation-algebra terms with variables in `α`, asserted to be equal. -/
-abbrev Equation (α : Type*) := relationAlgebra.Term α × relationAlgebra.Term α
-
 variable {α : Type*}
-
-/-- An algebra satisfies an equation if the terms agree at every assignment. -/
-def Equation.Holds (e : Equation α) (A : Type*) [RelationAlgebra A] : Prop :=
-  letI := compatibleRelationAlgebraOfRelationAlgebra A
-  ∀ v : α → A, e.1.realize v = e.2.realize v
-
-/-- An equation valid in every representable relation algebra, including infinite ones. -/
-def Equation.ValidInRRA (e : Equation α) : Prop :=
-  ∀ (A : Type*) [RelationAlgebra A], Representable A → e.Holds A
-
-/-- Equations valid in the codomain of an embedding also hold in its domain. -/
-theorem Equation.holds_of_injective {A B : Type*} [RelationAlgebra A] [RelationAlgebra B]
-    (e : Equation α) (f : RelationAlgebraHom A B) (hf : Function.Injective f) (h : e.Holds B) :
-    e.Holds A := by
-  let _ := compatibleRelationAlgebraOfRelationAlgebra A
-  let _ := compatibleRelationAlgebraOfRelationAlgebra B
-  intro v
-  apply hf
-  simpa only [HomClass.realize_term] using h (f ∘ v)
 
 namespace IsoClass
 
@@ -67,6 +40,14 @@ def Satisfies {n : ℕ} (q : ofAtoms n) (e : Equation α) : Prop :=
     propext ⟨e.holds_of_injective f.symm.toHom f.symm.toHom_injective,
       e.holds_of_injective f.toHom f.toHom_injective⟩
 
+@[simp]
+theorem satisfies_ofAlgebra {A : Type*} [RelationAlgebra A] [Finite A] {n : ℕ}
+    (h : Nat.card {a : A // IsAtom a} = n) (e : Equation α) :
+    Satisfies (ofAlgebra h) e ↔ e.Holds A :=
+  let iso := labelledEquiv h
+  ⟨e.holds_of_injective iso.toHom iso.toHom_injective,
+    e.holds_of_injective iso.symm.toHom iso.symm.toHom_injective⟩
+
 /-- Representability of an isomorphism class with `n` atoms, allowing infinite bases. -/
 def IsRepresentable {n : ℕ} (q : ofAtoms n) : Prop :=
   Quotient.liftOn q (fun S => Representable (ComplexAlgebra S.val)) fun _ _ ⟨f⟩ =>
@@ -75,11 +56,50 @@ def IsRepresentable {n : ℕ} (q : ofAtoms n) : Prop :=
 open Filter
 open scoped Topology
 
+/-- It suffices to verify the equations on symmetric tables with a fixed common-witness bound.
+All classes in the resulting lower bound are counted without labellings. -/
+theorem tendsto_satisfying_of_commonWitnesses (E : Finset (Equation α)) {k : ℕ} (hk : 2 ≤ k)
+    (h : ∀ (d : ℕ) (_ : 0 < d) (T : SymmetricCycles.Table (Fin d))
+      [LawfulAtomStructure (SymmetricCycles.atomStructure T)],
+      SymmetricCycles.HasCommonWitnesses k T →
+      ∀ e ∈ E, e.Holds (ComplexAlgebra (SymmetricCycles.atomStructure T))) :
+    Tendsto (fun n => (Nat.card {q : ofAtoms n // ∀ e ∈ E, Satisfies q e} : ℝ) /
+      Nat.card (ofAtoms n)) atTop (𝓝 1) := by
+  apply (tendsto_add_atTop_iff_nat 1).mp
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le' (IntegralAtom.tendsto_witness_orbits_div_all k)
+    tendsto_const_nhds
+  · filter_upwards [eventually_gt_atTop 0] with d hd
+    let X := {q : SymmetricCycles.UnlabelledTable (Fin d) // q.HasCommonWitnesses k}
+    have hw (x : X) := SymmetricCycles.UnlabelledTable.hasCommonWitnesses_out.mpr x.prop
+    let f (x : X) : {q : SymmetricCycles.UnlabelledTable (Fin d) // q.HasCommonWitnesses 2} :=
+      ⟨x.val, SymmetricCycles.UnlabelledTable.hasCommonWitnesses_out.mp
+        ((hw x).mono (by decide) hk)⟩
+    have hs (x : X) (e : Equation α) (he : e ∈ E) :
+        Satisfies (SymmetricCycles.UnlabelledTable.toIsoClass (f x)) e := by
+      let _ := SymmetricCycles.lawful_of_hasWitnesses ((SymmetricCycles.hasCommonWitnesses_two_iff
+        _).mp ((hw x).mono (by decide) hk))
+      exact (satisfies_ofAlgebra _ e).mpr (h d hd x.val.out (hw x) e he)
+    gcongr
+    exact Nat.card_le_card_of_injective
+      (fun x : X => (⟨SymmetricCycles.UnlabelledTable.toIsoClass (f x), hs x⟩ :
+        {q : ofAtoms (d + 1) // ∀ e ∈ E, Satisfies q e}))
+      (fun x y he => Subtype.ext (show (f x).val = (f y).val from congrArg Subtype.val
+        (SymmetricCycles.UnlabelledTable.toIsoClass_injective d (congrArg Subtype.val he))))
+  · filter_upwards with d
+    exact (div_le_one (by exact_mod_cast card_ofAtoms_pos (d + 1))).mpr
+      (Nat.cast_le.mpr (Nat.card_le_card_of_injective Subtype.val Subtype.val_injective))
+
 /-- For each fixed finite set of equations valid in RRA, the proportion of finite
 relation-algebra isomorphism classes satisfying them all tends to one. -/
-theorem_wanted tendsto_satisfying_div_all (E : Finset (Equation α)) (hE : ∀ e ∈ E, e.ValidInRRA) :
+theorem tendsto_satisfying_div_all (E : Finset (Equation α)) (hE : ∀ e ∈ E, e.ValidInRRA) :
     Tendsto (fun n => (Nat.card {q : ofAtoms n // ∀ e ∈ E, Satisfies q e} : ℝ) /
-      Nat.card (ofAtoms n)) atTop (𝓝 1)
+      Nat.card (ofAtoms n)) atTop (𝓝 1) := by
+  classical
+  choose! k hk h using fun e he => Equation.exists_commonWitnesses_bound e (hE e he)
+  apply tendsto_satisfying_of_commonWitnesses E (le_max_left 2 (E.sup k))
+  intro d hd T _ hw e he
+  have hle := (Finset.le_sup (f := k) he).trans (le_max_right 2 (E.sup k))
+  exact h e he d hd T (hw.mono (by have := hk e he; omega) hle)
 
 /-- Maddux's Random Representability Conjecture. The proportion of representable isomorphism
 classes among all finite relation algebras with `n` Boolean atoms tends to one. -/
