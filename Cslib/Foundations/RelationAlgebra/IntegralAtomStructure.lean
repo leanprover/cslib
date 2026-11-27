@@ -7,7 +7,7 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.AtomStructure
-public import Mathlib.Data.Set.Card.Arithmetic
+public import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
 # Integral atom structures
@@ -194,11 +194,115 @@ instance setoid (α β : Type*) :
     (ComplexAlgebra (ofCycles g₂.val)))
   iseqv := ⟨fun _ => ⟨.refl _⟩, fun ⟨e⟩ => ⟨e.symm⟩, fun ⟨e⟩ ⟨f⟩ => ⟨e.trans f⟩⟩
 
-theorem_wanted exists_ofCycles_of_isIntegral {A : Type*} [RelationAlgebra A] [Finite A] {s n : ℕ}
+private theorem exists_equiv_fin_prod_bool {X : Type*} [Finite X] {f : X → X}
+    (hf : ∀ x, f (f x) = x) (hne : ∀ x, f x ≠ x) {n : ℕ} (hn : Nat.card X = 2 * n) :
+    ∃ e : X ≃ Fin n × Bool, ∀ x, e (f x) = ((e x).1, !(e x).2) := by
+  classical
+  let ι := Finite.equivFin X
+  have hlt : ∀ x, ¬ι x < ι (f x) → ι (f x) < ι (f (f x)) := fun x hx => by
+    rw [hf]
+    exact lt_of_le_of_ne (not_lt.mp hx) fun h => hne x (ι.injective h)
+  let φ : X ≃ {x : X // ι x < ι (f x)} × Bool :=
+    { toFun x := if h : ι x < ι (f x) then (⟨x, h⟩, false) else (⟨f x, hlt x h⟩, true)
+      invFun p := if p.2 then f p.1 else p.1
+      left_inv x := by by_cases h : ι x < ι (f x) <;> simp [h, hf]
+      right_inv := by
+        rintro ⟨⟨x, hx⟩, b⟩
+        cases b
+        · simp [hx]
+        · simp [hx.asymm, hf] }
+  have hR : Nat.card {x : X // ι x < ι (f x)} = n := by
+    have := Nat.card_congr φ
+    rw [Nat.card_prod, Nat.card_eq_fintype_card (α := Bool), Fintype.card_bool] at this
+    omega
+  refine ⟨φ.trans ((Finite.equivFinOfCardEq hR).prodCongr (Equiv.refl _)), fun x => ?_⟩
+  by_cases h : ι x < ι (f x)
+  · simp [φ, h, h.asymm, hf]
+  · simp [φ, h, hlt x h]
+
+private theorem exists_equiv_isAtom {α : Type*} [RelationAlgebra α] [Finite α]
+    (h : IsIntegral α) {s n : ℕ} (hs : (symmetricDiversityAtoms α).ncard = s)
+    (hn : (nonsymmetricDiversityAtoms α).ncard = 2 * n) :
+    ∃ e : IntegralAtom (Fin s) (Fin n) ≃ {a : α // IsAtom a},
+      (e .one : α) = 1 ∧ ∀ x, e x.conv = (atomStructure α).conv (e x) := by
+  let eS : symmetricDiversityAtoms α ≃ Fin s := Finite.equivFinOfCardEq hs
+  let f : nonsymmetricDiversityAtoms α → nonsymmetricDiversityAtoms α := fun a =>
+    ⟨star a.val, isAtom_star_iff.mpr a.property.1, fun h => a.property.2 (star_injective h)⟩
+  obtain ⟨eN, heN⟩ := exists_equiv_fin_prod_bool (f := f) (fun a => Subtype.ext (star_star a.val))
+    (fun a h => a.property.2 (congrArg Subtype.val h)) hn
+  let ψ : IntegralAtom (Fin s) (Fin n) → {a : α // IsAtom a}
+    | .one => ⟨1, h⟩
+    | .symm i => ⟨eS.symm i, (eS.symm i).property.1⟩
+    | .nsymm i b => ⟨eN.symm (i, b), (eN.symm (i, b)).property.1⟩
+  have hsurj : Function.Surjective ψ := by
+    intro a
+    obtain ⟨a, ha⟩ := a
+    by_cases h1 : a = 1
+    · exact ⟨.one, Subtype.ext h1.symm⟩
+    by_cases hsym : star a = a
+    · have ha' : a ∈ symmetricDiversityAtoms α :=
+        ⟨ha, ha.le_compl_iff.mpr fun hle => h1 ((h.le_iff_eq ha.ne_bot).mp hle), hsym⟩
+      exact ⟨.symm (eS ⟨a, ha'⟩), by simp [ψ]⟩
+    · exact ⟨.nsymm (eN ⟨a, ha, hsym⟩).1 (eN ⟨a, ha, hsym⟩).2, by simp [ψ]⟩
+  have hcard : Nat.card (IntegralAtom (Fin s) (Fin n)) = Nat.card {a : α // IsAtom a} := by
+    have hA : Nat.card {a : α // IsAtom a} = 1 + s + 2 * n := by
+      rw [← hs, ← hn]
+      exact ncard_setOf_isAtom_of_isIntegral h
+    rw [hA, Nat.card_congr IntegralAtom.equivOptionSum]
+    simp only [Nat.card_eq_fintype_card, Fintype.card_option, Fintype.card_sum, Fintype.card_prod,
+      Fintype.card_fin, Fintype.card_bool]
+    omega
+  refine ⟨Equiv.ofBijective ψ ((Nat.bijective_iff_surjective_and_card ψ).mpr ⟨hsurj, hcard⟩),
+    rfl, ?_⟩
+  rintro (_ | i | ⟨i, b⟩)
+  · exact Subtype.ext (star_one α).symm
+  · exact Subtype.ext (eS.symm i).property.2.2.symm
+  · have := heN (eN.symm (i, b))
+    rw [Equiv.apply_symm_apply] at this
+    have key : (eN.symm (i, !b)).val = star (eN.symm (i, b)).val :=
+      congrArg Subtype.val ((Equiv.symm_apply_eq eN).mpr this.symm)
+    exact Subtype.ext key
+
+private theorem exists_eq_ofCycles {α β : Type*} (B : AtomStructure (IntegralAtom α β))
+    [LawfulAtomStructure B] (hconv : B.conv = conv) (hid : B.id = {one}) :
+    B = ofCycles B.cycles := by
+  apply AtomStructure.ext hconv hid
+  ext c
+  refine ⟨CycleClosure.of, fun (h : CycleClosure _ c) => ?_⟩
+  induction h with
+  | of hc => exact hc
+  | id a =>
+    obtain ⟨e, he, h⟩ := B.exists_id_cycle_right a
+    rw [hid] at he
+    exact he ▸ h
+  | @left c _ ih =>
+    obtain ⟨r, u, t⟩ := c
+    simpa [Cycle.left, ← hconv] using B.cycle_left ih
+  | @right c _ ih =>
+    obtain ⟨r, u, t⟩ := c
+    simpa [Cycle.right, ← hconv] using B.conv_cycles (B.cycle_left (B.conv_cycles ih))
+
+/-- Every finite integral relation algebra has a presentation by integral cycle generators. -/
+theorem exists_ofCycles_of_isIntegral {A : Type*} [RelationAlgebra A] [Finite A] {s n : ℕ}
     (hA : IsIntegral A) (hs : (symmetricDiversityAtoms A).ncard = s)
     (hn : (nonsymmetricDiversityAtoms A).ncard = 2 * n) :
     ∃ (g : Set (Cycle (Fin s) (Fin n))) (_ : LawfulAtomStructure (ofCycles g)),
-      Nonempty (RelationAlgebraEquiv A (ComplexAlgebra (ofCycles g)))
+      Nonempty (RelationAlgebraEquiv A (ComplexAlgebra (ofCycles g))) := by
+  let _ := CompleteAtomicRelationAlgebra.ofFinite A
+  obtain ⟨e, he1, heconv⟩ := exists_equiv_isAtom hA hs hn
+  let B := (atomStructure A).map e.symm
+  have hB : B = ofCycles B.cycles := exists_eq_ofCycles B
+    (funext fun b => by simp [B, ← heconv]) <| by
+      ext b
+      refine ⟨fun hb => e.injective (Subtype.ext ?_), ?_⟩
+      · exact ((hA.le_iff_eq (e b).property.ne_bot).mp hb).trans he1.symm
+      · rintro rfl
+        exact he1.le
+  have f : RelationAlgebraEquiv A (ComplexAlgebra B) :=
+    complexAlgebraEquiv.trans (ComplexAlgebra.mapEquiv _ e.symm)
+  let P (S : AtomStructure (IntegralAtom (Fin s) (Fin n))) :=
+    ∃ _ : LawfulAtomStructure S, Nonempty (RelationAlgebraEquiv A (ComplexAlgebra S))
+  exact ⟨B.cycles, hB ▸ (show P B from ⟨inferInstance, ⟨f⟩⟩)⟩
 
 namespace IsoClass
 

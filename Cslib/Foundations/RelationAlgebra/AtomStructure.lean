@@ -29,6 +29,7 @@ from its atom structure.
 namespace Cslib.RelationAlgebra
 
 /-- The data of an atom structure. -/
+@[ext]
 structure AtomStructure (α : Type*) where
   /-- The converse operation, presented as a function for stating the cycle rules. -/
   conv : α → α
@@ -88,6 +89,34 @@ theorem id_cycle_left {s r p : α} (hs : s ∈ A.id) (h : (s, r, p) ∈ A.cycles
 theorem exists_id_cycle_left (r : α) : ∃ s ∈ A.id, (s, r, r) ∈ A.cycles := by
   obtain ⟨s, hs, h⟩ := A.exists_id_cycle_right (A.conv r)
   exact ⟨s, hs, by simpa [A.conv_eq_self_of_mem_id hs] using A.conv_cycles h⟩
+
+variable {α β : Type*} (A : AtomStructure α) (e : α ≃ β)
+
+/-- Transport an atom structure along a relabelling of its atoms. -/
+def map : AtomStructure β where
+  conv b := e (A.conv (e.symm b))
+  id := e.symm ⁻¹' A.id
+  cycles := {c | (e.symm c.1, e.symm c.2.1, e.symm c.2.2) ∈ A.cycles}
+
+@[simp]
+theorem map_conv (b : β) : (A.map e).conv b = e (A.conv (e.symm b)) := rfl
+
+@[simp]
+theorem mem_map_id {b : β} : b ∈ (A.map e).id ↔ e.symm b ∈ A.id := .rfl
+
+@[simp]
+theorem mem_map_cycles {r s t : β} :
+    (r, s, t) ∈ (A.map e).cycles ↔ (e.symm r, e.symm s, e.symm t) ∈ A.cycles := .rfl
+
+instance [LawfulAtomStructure A] : LawfulAtomStructure (A.map e) where
+  assoc {r q p s t} h₁ h₂ := by
+    obtain ⟨q', h, h'⟩ := A.assoc ((A.mem_map_cycles e).mp h₁) ((A.mem_map_cycles e).mp h₂)
+    exact ⟨e q', by simpa using h, by simpa using h'⟩
+  id_cycle_right hs h := e.symm.injective (A.id_cycle_right hs h)
+  exists_id_cycle_right r := by
+    obtain ⟨s, hs, h⟩ := A.exists_id_cycle_right (e.symm r)
+    exact ⟨e s, by simpa using hs, by simpa using h⟩
+  cycle_left h := by simpa using A.cycle_left ((A.mem_map_cycles e).mp h)
 
 end AtomStructure
 
@@ -206,6 +235,15 @@ theorem isAtom_iff : IsAtom x ↔ ∃ a, x = {a} :=
 @[simp]
 theorem isAtom_singleton : IsAtom ({a} : ComplexAlgebra A) := isAtom_iff.mpr ⟨a, rfl⟩
 
+/-- The atoms of a complex algebra are the singleton sets of labels. -/
+noncomputable def singletonEquiv (A : AtomStructure α) : α ≃ {a : ComplexAlgebra A // IsAtom a} :=
+  Equiv.ofBijective (fun x => ⟨{x}, isAtom_singleton⟩)
+    ⟨fun _ _ h => singleton_inj.mp (Subtype.mk.inj h),
+      fun ⟨_, h⟩ => (isAtom_iff.mp h).imp fun _ ha => Subtype.ext ha.symm⟩
+
+theorem card_atoms (A : AtomStructure α) : Nat.card {a : ComplexAlgebra A // IsAtom a} =
+    Nat.card α := Nat.card_congr (singletonEquiv A).symm
+
 theorem ncard_preimage_singleton {S : Set (ComplexAlgebra A)} (hS : ∀ x ∈ S, IsAtom x) :
     (singleton ⁻¹' S).ncard = S.ncard :=
   Set.ncard_preimage_of_injective_subset_range (singleton_injective A)
@@ -230,6 +268,47 @@ instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 /-- A complex algebra is integral exactly when its identity set is a singleton. -/
 theorem isIntegral_iff : IsIntegral (ComplexAlgebra A) ↔ ∃ a, A.id = {a} :=
   ((orderIsoSet A).isAtom_iff (1 : ComplexAlgebra A)).symm.trans Set.isAtom_iff
+
+/-- Relabelling the atoms induces an isomorphism of complex algebras. -/
+def mapEquiv {β : Type*} (e : α ≃ β) :
+    RelationAlgebraEquiv (ComplexAlgebra A) (ComplexAlgebra (A.map e)) where
+  toFun x := ⟨e.symm ⁻¹' x.carrier⟩
+  invFun y := ⟨e ⁻¹' y.carrier⟩
+  left_inv x := by ext; simp [mem_carrier]
+  right_inv y := by ext; simp [mem_carrier]
+  map_rel_iff' := e.symm.surjective.preimage_subset_preimage_iff
+  map_mul' x y := by
+    ext t
+    simp only [mem_mul, mem_mk, Set.mem_preimage, mem_carrier]
+    constructor
+    · rintro ⟨r, hr, s, hs, h⟩
+      exact ⟨e r, by simpa using hr, e s, by simpa using hs, by simpa using h⟩
+    · rintro ⟨r, hr, s, hs, h⟩
+      exact ⟨e.symm r, hr, e.symm s, hs, h⟩
+  map_star' x := by ext; simp [mem_carrier]
+
+variable {β : Type*} {B : AtomStructure β} [LawfulAtomStructure B]
+
+/-- The relabelling of atoms induced by an isomorphism of complex algebras. -/
+noncomputable def atomEquiv (e : RelationAlgebraEquiv (ComplexAlgebra A) (ComplexAlgebra B)) :
+    α ≃ β :=
+  (singletonEquiv A).trans <| (e.toEquiv.subtypeEquiv fun _ => e.isAtom_apply_iff.symm).trans
+    (singletonEquiv B).symm
+
+theorem map_singleton_eq (e : RelationAlgebraEquiv (ComplexAlgebra A) (ComplexAlgebra B)) (a : α) :
+    e {a} = {atomEquiv A e a} :=
+  congrArg Subtype.val ((singletonEquiv B).apply_symm_apply
+    ⟨e {a}, e.isAtom_apply_iff.mpr isAtom_singleton⟩).symm
+
+private theorem cycle_iff_singleton_le {γ : Type*} (C : AtomStructure γ) (a b c : γ) :
+    (a, b, c) ∈ C.cycles ↔ ({c} : ComplexAlgebra C) ≤ {a} * {b} := by
+  simp [mem_mul]
+
+theorem atomEquiv_mem_cycles (e : RelationAlgebraEquiv (ComplexAlgebra A) (ComplexAlgebra B))
+    (a b c : α) : (atomEquiv A e a, atomEquiv A e b, atomEquiv A e c) ∈ B.cycles ↔
+      (a, b, c) ∈ A.cycles := by
+  rw [cycle_iff_singleton_le A, cycle_iff_singleton_le B, ← map_singleton_eq, ← map_singleton_eq,
+    ← map_singleton_eq, ← map_mul, map_le_map_iff]
 
 variable {A} {a : α}
 

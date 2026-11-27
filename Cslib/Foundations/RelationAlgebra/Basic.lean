@@ -12,6 +12,7 @@ public import Mathlib.Algebra.Order.Monoid.Unbundled.Basic
 public import Mathlib.Algebra.Order.Quantale
 public import Mathlib.Algebra.Star.Basic
 public import Mathlib.Basic.Rel
+public import Mathlib.Data.Fintype.Order
 public import Mathlib.Data.Set.Card
 public import Mathlib.Order.Atoms
 
@@ -50,6 +51,12 @@ class CompleteRelationAlgebra (α : Type*) extends RelationAlgebra α, CompleteB
 /-- The relation algebra of a complete and atomic Boolean algebra. -/
 class CompleteAtomicRelationAlgebra (α : Type*) extends CompleteRelationAlgebra α,
     CompleteAtomicBooleanAlgebra α
+
+/-- The complete atomic structure on a finite relation algebra. -/
+noncomputable abbrev CompleteAtomicRelationAlgebra.ofFinite (α : Type*) [RelationAlgebra α]
+    [Finite α] : CompleteAtomicRelationAlgebra α :=
+  letI := Fintype.ofFinite α
+  { ‹RelationAlgebra α›, Fintype.toCompleteAtomicBooleanAlgebra α with }
 
 namespace RelationAlgebra
 
