@@ -33,19 +33,55 @@ jobs:
           set -e
           lake exe checkInitImports
       - name: "mergeWithGrind linter on changed files"
+        id: merge-with-grind
         if: github.event_name == 'pull_request'
-        # This step only reports suggestions, it must never fail the job.
+        # This step only collects suggestions, it must never fail the job. They are reported by
+        # the merge-with-grind job, so that they do not need a second build.
         continue-on-error: true
         run: |
           set -euo pipefail
+          findings="${RUNNER_TEMP}/merge-with-grind-findings.jsonl"
+          : > "${findings}"
           # HEAD is the merge of the PR into the base branch, so HEAD^1 is the base branch.
           git diff -z --name-only --diff-filter=d HEAD^1 HEAD -- 'Cslib/*.lean' > "${RUNNER_TEMP}/changed-files"
           mapfile -d '' -t files < "${RUNNER_TEMP}/changed-files"
           for file in "${files[@]}"; do
             echo "Checking ${file}"
             lake lean "${file}" -- --json -Dweak.linter.tacticAnalysis.mergeWithGrind=true |
-              jq -rR --arg file "${file}" 'fromjson?
+              jq -cR --arg file "${file}" 'fromjson?
                 | select(.kind == "linter.tacticAnalysis.mergeWithGrind")
-                | "::warning file=\($file),line=\(.pos.line),col=\(.pos.column + 1)::This tactic is not needed: the grind call after it also closes the goal (linter.tacticAnalysis.mergeWithGrind)"' ||
-              echo "::warning file=${file}::Could not run the mergeWithGrind linter on this file"
+                | {path: $file, line: .pos.line, col: (.pos.column + 1),
+                   message: "This tactic is not needed: the grind call after it also closes the goal (linter.tacticAnalysis.mergeWithGrind)"}' \
+                >> "${findings}" ||
+              jq -nc --arg file "${file}" \
+                '{path: $file, message: "Could not run the mergeWithGrind linter on this file"}' >> "${findings}"
           done
+          echo "findings=$(jq -cs . "${findings}")" >> "${GITHUB_OUTPUT}"
+    outputs:
+      merge-with-grind-outcome: ${{ steps.merge-with-grind.outcome }}
+      merge-with-grind-findings: ${{ steps.merge-with-grind.outputs.findings }}
+
+  # Optional suggestions from the mergeWithGrind linter. This job fails when there are any, so
+  # that they are visible on the PR, but it is not a required check, so it does not block merging.
+  merge-with-grind:
+    name: "mergeWithGrind suggestions (optional)"
+    needs: ci-checks
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Report mergeWithGrind suggestions"
+        env:
+          OUTCOME: ${{ needs.ci-checks.outputs.merge-with-grind-outcome }}
+          FINDINGS: ${{ needs.ci-checks.outputs.merge-with-grind-findings }}
+        run: |
+          set -euo pipefail
+          if [ "${OUTCOME}" != "success" ]; then
+            echo "::error::The mergeWithGrind linter step did not succeed (${OUTCOME}), see the ci-checks job"
+            exit 1
+          fi
+          jq -r '.[] | "::warning file=\(.path)\(if .line then ",line=\(.line),col=\(.col)" else "" end)::\(.message)"' <<< "${FINDINGS}"
+          count=$(jq length <<< "${FINDINGS}")
+          if [ "${count}" -gt 0 ]; then
+            echo "::error::The mergeWithGrind linter has ${count} suggestion(s), see the annotations. This check is optional and does not block merging."
+            exit 1
+          fi
