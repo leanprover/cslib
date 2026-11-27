@@ -217,7 +217,9 @@ public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Integral
 public import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
 public import Cslib.Foundations.RelationAlgebra.IsoClass
+public import Cslib.Foundations.RelationAlgebra.Language
 public import Cslib.Foundations.RelationAlgebra.Pi
+public import Cslib.Foundations.RelationAlgebra.RandomRepresentability
 public import Cslib.Foundations.RelationAlgebra.Relativization
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Cslib.Foundations.RelationAlgebra.SpecialElements
