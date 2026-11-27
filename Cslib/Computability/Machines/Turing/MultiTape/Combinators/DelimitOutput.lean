@@ -10,513 +10,352 @@ public import Cslib.Computability.Automata.DA.Transducer
 public import Cslib.Computability.Encoding.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
 public import Mathlib.Basic.Finite.Prod
-public import Mathlib.Data.Fintype.Option
+public import Mathlib.Data.Set.Finite.List
 
 /-!
-# Delimiting the output of a machine
+# Transducing the output of a machine
 
-`tm.delimitOutput` behaves like `tm`, but outputs the delimited code `Cslib.Encoding.delimit` of
-the output of `tm`: each emitted bit `b` becomes `true, b`, and a final `false` is emitted before
-halting. A step of `tm` that emits a bit takes two steps, so the time at most doubles, plus one
-step for the final delimiter. The work tapes are used exactly as `tm` uses them.
+`tm.transduceOutput tr n` behaves like `tm`, but pipes its output through the subsequential
+transducer `tr`. Each step of `tm` is performed together with emitting the first symbol of the
+word that `tr` emits on the output of this step; the rest of the word is emitted one symbol per
+step, with the input and work heads standing still. The word still to be emitted is stored in the
+state, so it has to be of length at most `n`. On the step where `tm` halts, the final output of
+`tr` is appended to this word, and the machine halts with its last symbol. A step of `tm` thus
+takes at most `max 1 m` steps, where `m` bounds the words emitted on transitions, and the final
+output adds its length.
+
+Delimiting the output (`Cslib.Encoding.delimit`) is the special case of the transducer
+`delimitTransducer`, which replaces each bit `b` by `true, b` and emits a final `false`.
 
 ## Main definitions
 
-* `Turing.MultiTapeTM.delimitOutput`: the machine with delimited output.
+* `Turing.MultiTapeTM.transduceOutput`: the machine with transduced output.
+* `Turing.MultiTapeTM.delimitTransducer`: the transducer computing `Cslib.Encoding.delimit`.
 
 ## Main results
 
-* `Turing.MultiTapeTM.ComputesInTimeAndSpace.delimitOutput`: if `tm` outputs `out` in time `t` and
-  space `s`, then `tm.delimitOutput` outputs `delimit out` in time `2 * t + 1` and space `s`.
-* `Turing.MultiTapeTM.ComputableInTimeAndSpace.delimit`: the same for computable functions, with
-  the delimited output encoding `Cslib.Encoding.encDelimited`.
+* `Turing.MultiTapeTM.ComputesInTimeAndSpace.transduceOutput`: if `tm` outputs `out` in time `t`
+  and space `s`, and the words emitted by `tr` on transitions and at the end have length at most
+  `m` and `l`, then `tm.transduceOutput tr (m + l)` outputs `tr.eval out` in time
+  `max 1 m * t + l` and space `s`.
+* `Turing.MultiTapeTM.ComputableInTimeAndSpace.transduce`: the same for computable functions.
+* `Turing.MultiTapeTM.ComputableInTimeAndSpace.delimit`: a computable function is computable with
+  the delimited output encoding `Cslib.Encoding.encDelimited`, in time `2 * t + 1`.
 -/
 
 public section
 
 namespace Turing.MultiTapeTM
 
-open Cslib.Encoding
+open Cslib.Automata Cslib.Encoding
 
-variable {k : ℕ} {State : Type*} {input : List Bool}
+variable {k : ℕ} {Symbol State StateT : Type*} {input : List Symbol}
 
-/-- The machine that behaves like `tm`, but outputs `true, b` for each bit `b` that `tm` outputs,
-and a final `false`. Its state is the (optional) state of `tm` together with an optional bit that
-is still to be emitted. In state `(some q, none)` it acts like `tm` in `q`, emitting `true` in
-place of a bit `b`, which it then emits from state `(_, some b)`. In state `(none, none)`, reached
-when `tm` has halted, it emits `false` and halts. -/
-noncomputable def delimitOutput (tm : MultiTapeTM k Bool State) :
-    MultiTapeTM k Bool (Option State × Option Bool) :=
-  ofTr (some tm.q₀, none) fun st inp work =>
+/-- The output of `tr` on `w` from state `q`, including the final output if and only if the
+state `s` of the machine producing `w` is the halting state `none`. -/
+def transduced (tr : SubsequentialTransducer StateT Symbol Symbol) (s : Option State) (q : StateT)
+    (w : List Symbol) : List Symbol :=
+  s.elim (tr.evalFrom q w) fun _ => tr.toSequentialTransducer.evalFrom q w
+
+/-- The state of `tm.transduceOutput tr n` in which `w` is still to be emitted, where `s` is the
+state of `tm` and `qT` the state of `tr`. If `tm` has halted and nothing is left to emit, this is
+the halting state `none`. -/
+def TransduceOutput.nextState {n : ℕ} (s : Option State) (qT : StateT) (w : List Symbol)
+    (hw : w.length ≤ n) : Option ((Option State × StateT) × {w : List Symbol // w.length ≤ n}) :=
+  if s.isNone && w.isEmpty then none else some ((s, qT), ⟨w, hw⟩)
+
+open TransduceOutput in
+/-- The machine that behaves like `tm`, but pipes its output through the subsequential
+transducer `tr`. Its state consists of the state of `tm` (`none` once `tm` has halted), the state
+of `tr`, and the word still to be emitted, of length at most `n`. If this word is nonempty, the
+machine emits its first symbol. Otherwise, it performs the step of `tm`, computes the word that
+`tr` emits on the output of this step (including the final output if `tm` halts), emits its first
+symbol and stores the rest. The machine halts as soon as `tm` has halted and everything is
+emitted. -/
+noncomputable def transduceOutput (tm : MultiTapeTM k Symbol State)
+    (tr : SubsequentialTransducer StateT Symbol Symbol) (n : ℕ) :
+    MultiTapeTM k Symbol ((Option State × StateT) × {w : List Symbol // w.length ≤ n}) :=
+  ofTr ((some tm.q₀, tr.start), ⟨[], by simp⟩) fun st inp work =>
     match st with
-    | (q, some b) =>
-      { inputTape := 0, workTapes := fun _ => (none, 0), output := some b, state := some (q, none) }
-    | (none, none) =>
-      { inputTape := 0, workTapes := fun _ => (none, 0), output := some false, state := none }
-    | (some q, none) =>
-      { inputTape := (tm.tr q inp work).inputTape, workTapes := (tm.tr q inp work).workTapes,
-        output := (tm.tr q inp work).output.map fun _ => true,
-        state := some ((tm.tr q inp work).state, (tm.tr q inp work).output) }
+    | ((s, qT), ⟨b :: w, hw⟩) => ⟨0, fun _ => (none, 0), some b, nextState s qT w (by grind)⟩
+    | ((none, _), ⟨[], _⟩) => ⟨0, fun _ => (none, 0), none, none⟩
+    | ((some q, qT), ⟨[], _⟩) =>
+      let a := tm.tr q inp work
+      let w := (transduced tr a.state qT a.output.toList).take n
+      ⟨a.inputTape, a.workTapes, w.head?,
+        nextState a.state (a.output.toList.foldl tr.tr qT) w.tail (by grind)⟩
 
-namespace DelimitOutput
+namespace TransduceOutput
 
-variable {tm : MultiTapeTM k Bool State}
+variable (tr : SubsequentialTransducer StateT Symbol Symbol) {n m : ℕ}
+  {tm : MultiTapeTM k Symbol State}
 
-/-- The configuration of `tm.delimitOutput` simulating the configuration `c` of `tm`, with no bit
-pending: the output of `c` appears delimited, but without the final `false`. -/
-def cfg (c : Cfg k Bool State input) : Cfg k Bool (Option State × Option Bool) input :=
-  ⟨some (c.state, none), c.inputPos, c.workTapes, c.workTapePos,
-    c.output.flatMap fun b => [true, b]⟩
+private lemma evalFrom_append (q : StateT) (x y : List Symbol) :
+    tr.evalFrom q (x ++ y) =
+      tr.toSequentialTransducer.evalFrom q x ++ tr.evalFrom (x.foldl tr.tr q) y := by
+  induction x generalizing q <;> simp_all
 
-private lemma runFrom_add {tm' : MultiTapeTM k Bool State} (c : Cfg k Bool State input) (a b : ℕ) :
-    tm'.runFrom c (a + b) = tm'.runFrom (tm'.runFrom c a) b := by
-  simp [runFrom, ← Function.iterate_add_apply, Nat.add_comm a b]
+@[simp]
+private lemma transduced_none (q : StateT) (w : List Symbol) :
+    transduced tr (none : Option State) q w = tr.evalFrom q w := rfl
 
-/-- One step of `tm` is simulated by at most two steps, during which the work heads are where
-they are before or after the step of `tm`. -/
-lemma exists_runFrom_cfg_step (c : Cfg k Bool State input) :
-    ∃ m ≤ 2, tm.delimitOutput.runFrom (cfg c) m = cfg (tm.step c) ∧
-      ∀ m' ≤ m, (tm.delimitOutput.runFrom (cfg c) m').workTapePos = c.workTapePos ∨
-        (tm.delimitOutput.runFrom (cfg c) m').workTapePos = (tm.step c).workTapePos := by
-  rcases hq : c.state with _ | q
-  · exact ⟨0, by lia, by rw [step_of_halt hq]; rfl, fun m' hm' =>
-      .inl (by rw [Nat.le_zero.mp hm']; rfl)⟩
-  set a := tm.tr q c.inputSymbol c.workTapeSymbols with ha
-  have hc : tm.step c = a.apply c := step_of_state hq
-  have h1 : tm.delimitOutput.runFrom (cfg c) 1 = Action.apply
-      { inputTape := a.inputTape, workTapes := a.workTapes, output := a.output.map fun _ => true,
-        state := some (a.state, a.output) } (cfg c) := by
-    change tm.delimitOutput.step (cfg c) = _
-    rw [step_of_state (q := (some q, none)) (by simp [cfg, hq]), delimitOutput, tr_ofTr]
-    rfl
-  obtain ⟨m, hm, hm', hrun⟩ :
-      ∃ m, 1 ≤ m ∧ m ≤ 2 ∧ tm.delimitOutput.runFrom (cfg c) m = cfg (tm.step c) := by
-    rcases ho : a.output with _ | b
-    · exact ⟨1, le_rfl, by lia, by rw [h1, hc]; simp [cfg, Action.apply, ho]⟩
-    · refine ⟨2, by lia, le_rfl, ?_⟩
-      rw [show tm.delimitOutput.runFrom (cfg c) 2 =
-        tm.delimitOutput.step (tm.delimitOutput.runFrom (cfg c) 1) from rfl, h1, ho,
-        step_of_state (q := (a.state, some b)) rfl, delimitOutput, tr_ofTr, hc]
-      simp [cfg, Action.apply, ho]
-  refine ⟨m, hm', hrun, fun m' _ => ?_⟩
-  obtain rfl | rfl | rfl : m' = 0 ∨ m' = 1 ∨ m' = m := by lia
-  exacts [.inl rfl, .inr (by rw [h1, hc]; rfl), .inr (by rw [hrun]; rfl)]
+@[simp]
+private lemma transduced_some (s : State) (q : StateT) (w : List Symbol) :
+    transduced tr (some s) q w = tr.toSequentialTransducer.evalFrom q w := rfl
 
-/-- `n` steps of `tm` are simulated by at most `2 * n` steps, during which the work heads are
-where they are at some point of the run of `tm`. -/
-lemma exists_runFrom_cfg (c : Cfg k Bool State input) (n : ℕ) :
-    ∃ m ≤ 2 * n, tm.delimitOutput.runFrom (cfg c) m = cfg (tm.runFrom c n) ∧
-      ∀ m' ≤ m, ∃ n' ≤ n,
-        (tm.delimitOutput.runFrom (cfg c) m').workTapePos = (tm.runFrom c n').workTapePos := by
-  induction n with
-  | zero => exact ⟨0, le_rfl, rfl, fun m' hm' => ⟨0, le_rfl, by rw [Nat.le_zero.mp hm']; rfl⟩⟩
-  | succ n ih =>
-    obtain ⟨m, hm, hrun, hpos⟩ := ih
-    obtain ⟨j, hj, hrun', hpos'⟩ := exists_runFrom_cfg_step (tm := tm) (tm.runFrom c n)
-    have hsucc : tm.runFrom c (n + 1) = tm.step (tm.runFrom c n) := by
-      simp [runFrom, Function.iterate_succ_apply']
-    refine ⟨m + j, by omega, by
-      rw [runFrom_add, hrun, hrun', hsucc], fun m' hm' => ?_⟩
-    rcases le_or_gt m' m with h | h
-    · obtain ⟨n', hn', h'⟩ := hpos m' h; exact ⟨n', by omega, h'⟩
-    · obtain ⟨i, rfl⟩ := Nat.exists_eq_add_of_le h.le
-      rw [runFrom_add, hrun]
-      rcases hpos' i (by omega) with h' | h'
-      · exact ⟨n, by omega, h'⟩
-      · exact ⟨n + 1, le_rfl, by rw [h', hsucc]⟩
+variable {m l : ℕ} (hemit : ∀ q b, (tr.emit q b).length ≤ m)
+  (hfinal : ∀ q, (tr.finalOut q).length ≤ l)
+include hemit hfinal in
+/-- The word that `tr` emits on the output of a step of `tm` is short. -/
+private lemma length_transduced_le (s : Option State) (q : StateT) (b : Option Symbol) :
+    (transduced tr s q b.toList).length ≤ m + if s = none then l else 0 := by
+  rcases b <;> rcases s <;> simp <;> grind
 
-/-- Once `tm` has halted, the final delimiter is emitted and the machine halts. -/
-lemma step_cfg_of_halted {c : Cfg k Bool State input} (h : c.Halted) :
-    tm.delimitOutput.step (cfg c) =
-      ⟨none, c.inputPos, c.workTapes, c.workTapePos, delimit c.output⟩ := by
-  rw [step_of_state (q := (none, none)) (by simp [cfg, show c.state = none from h]),
-    delimitOutput, tr_ofTr]
-  simp [cfg, Action.apply, delimit]
+private lemma transduced_append (s : Option State) (q : StateT) (x y : List Symbol) :
+    transduced tr s q (x ++ y) =
+      tr.toSequentialTransducer.evalFrom q x ++ transduced tr s (x.foldl tr.tr q) y := by
+  cases s
+  · exact evalFrom_append tr q x y
+  · exact evalFrom_append tr.toSequentialTransducer.toSubsequential q x y
 
-end DelimitOutput
+private lemma runFrom_succ {tm : MultiTapeTM k Symbol State} (c : Cfg k Symbol State input)
+    (t : ℕ) : tm.runFrom c (t + 1) = tm.step (tm.runFrom c t) :=
+  Function.iterate_succ_apply' ..
 
-open DelimitOutput in
-/-- If `tm` outputs `out`, then `tm.delimitOutput` outputs the delimited code of `out`, in at most
-twice the time plus one step, and in the same space. -/
-theorem ComputesInTimeAndSpace.delimitOutput {tm : MultiTapeTM k Bool State} {out : List Bool}
-    {t s : ℕ} (h : tm.ComputesInTimeAndSpace input out t s) :
-    tm.delimitOutput.ComputesInTimeAndSpace input (delimit out) (2 * t + 1) s := by
+private lemma runFrom_add {tm : MultiTapeTM k Symbol State} (c : Cfg k Symbol State input)
+    (a b : ℕ) : tm.runFrom c (a + b) = tm.runFrom (tm.runFrom c a) b := by
+  simp [runFrom, Nat.add_comm a b, Function.iterate_add_apply]
+
+private lemma head?_toList_append_tail (w : List Symbol) : w.head?.toList ++ w.tail = w := by
+  cases w <;> rfl
+
+/-- Once a run path has halted, every configuration of the run from its head lies on it. -/
+private lemma runFrom_mem {tm : MultiTapeTM k Symbol State} {p : tm.RunPath input}
+    (h : p.last.Halted) (t : ℕ) : tm.runFrom p.head t ∈ p := by
+  rcases le_or_gt t p.length with ht | ht
+  · exact ⟨⟨t, by lia⟩, runPath_apply_eq_runFrom ..⟩
+  · rw [runFrom_eq_of_halt _ _ ht.le (runPath_last_eq_runFrom p ▸ h), ← runPath_last_eq_runFrom]
+    exact p.last_mem
+
+@[simp]
+lemma nextState_cons {s : Option State} {qT : StateT} {b : Symbol} {w : List Symbol}
+    {hw : (b :: w).length ≤ n} : nextState s qT (b :: w) hw = some ((s, qT), ⟨b :: w, hw⟩) := by
+  simp [nextState]
+
+@[simp]
+lemma nextState_some {q : State} {qT : StateT} {w : List Symbol} {hw : w.length ≤ n} :
+    nextState (some q) qT w hw = some ((some q, qT), ⟨w, hw⟩) := by
+  simp [nextState]
+
+@[simp]
+lemma nextState_none_nil {qT : StateT} {hw : [].length ≤ n} :
+    nextState (State := State) (Symbol := Symbol) none qT [] hw = none := by
+  simp [nextState]
+
+lemma fst_of_mem_nextState {s : Option State} {qT : StateT} {w : List Symbol}
+    {hw : w.length ≤ n} : ∀ x ∈ nextState s qT w hw, x.1.1 = s := by
+  unfold nextState
+  split <;> simp
+
+/-- The configuration of `tm.transduceOutput tr n` with nothing to emit that simulates the
+configuration `c` of `tm`. It is halted if `c` is. -/
+def cfg (c : Cfg k Symbol State input) :
+    Cfg k Symbol ((Option State × StateT) × {w : List Symbol // w.length ≤ n}) input :=
+  ⟨nextState c.state (c.output.foldl tr.tr tr.start) [] (by simp), c.inputPos, c.workTapes,
+    c.workTapePos, transduced tr c.state tr.start c.output⟩
+
+section Steps
+
+variable {e : Cfg k Symbol ((Option State × StateT) × {w : List Symbol // w.length ≤ n}) input}
+
+/-- With a nonempty pending word, the machine emits its first symbol. -/
+lemma step_of_pending {s : Option State} {qT : StateT} {b : Symbol} {w : List Symbol}
+    {hw : (b :: w).length ≤ n} (he : e.state = some ((s, qT), ⟨b :: w, hw⟩)) :
+    (tm.transduceOutput tr n).step e =
+      { e with state := nextState s qT w (by grind), output := e.output ++ [b] } := by
+  rw [step_of_state he, transduceOutput, tr_ofTr]
+  ext <;> simp [Action.apply]
+
+/-- With nothing pending, the machine halts once `tm` has halted. -/
+lemma step_of_halted {qT : StateT} {hw : [].length ≤ n}
+    (he : e.state = some ((none, qT), ⟨[], hw⟩)) :
+    (tm.transduceOutput tr n).step e = { e with state := none } := by
+  rw [step_of_state he, transduceOutput, tr_ofTr]
+  ext <;> simp [Action.apply]
+
+/-- With nothing pending, the machine performs the step `a` of `tm`, emits the first symbol of
+the word that `tr` emits on the output of `a`, and stores the rest. -/
+lemma step_of_running {q : State} {qT : StateT} {hw : [].length ≤ n}
+    (he : e.state = some ((some q, qT), ⟨[], hw⟩)) {a : Action k Symbol State}
+    (ha : tm.tr q e.inputSymbol e.workTapeSymbols = a) :
+    (tm.transduceOutput tr n).step e =
+      let w := (transduced tr a.state qT a.output.toList).take n
+      Action.apply ⟨a.inputTape, a.workTapes, w.head?,
+        nextState a.state (a.output.toList.foldl tr.tr qT) w.tail (by grind)⟩ e := by
+  rw [step_of_state he, transduceOutput, tr_ofTr]
+  ext <;> simp [Action.apply, ha]
+
+/-- Emitting the pending word `w` takes `w.length` steps. -/
+lemma runFrom_of_pending {s : Option State} {qT : StateT} {w : List Symbol} {hw : w.length ≤ n}
+    (he : e.state = nextState s qT w hw) :
+    (tm.transduceOutput tr n).runFrom e w.length =
+      { e with state := nextState s qT [] (by simp), output := e.output ++ w } := by
+  induction w generalizing e with
+  | nil => simp [runFrom, ← he]
+  | cons b w ih =>
+    rw [List.length_cons, runFrom, Function.iterate_succ_apply, ← runFrom,
+      ih (by rw [step_of_pending tr (he.trans nextState_cons)]),
+      step_of_pending tr (he.trans nextState_cons)]
+    simp
+
+end Steps
+
+include hemit hfinal in
+/-- A step of `tm` is simulated by at most `max 1 m` steps, plus `l` steps if `tm` halts. -/
+lemma exists_runFrom_cfg_step {c : Cfg k Symbol State input} (hc : ¬c.Halted) :
+    ∃ j ≤ max 1 m + if (tm.step c).Halted then l else 0,
+      (tm.transduceOutput tr (m + l)).runFrom (cfg tr c) j = cfg tr (tm.step c) := by
+  obtain ⟨_ | q, pos, tapes, heads, out⟩ := c
+  · exact absurd rfl hc
+  set c : Cfg k Symbol State input := ⟨some q, pos, tapes, heads, out⟩
+  set a := tm.tr q c.inputSymbol c.workTapeSymbols
+  set w := transduced tr a.state (out.foldl tr.tr tr.start) a.output.toList
+  have hw := length_transduced_le tr hemit hfinal a.state (out.foldl tr.tr tr.start) a.output
+  have hw' : w.length ≤ m + l := hw.trans (by split <;> lia)
+  have hc' : tm.step c = a.apply c := step_of_state rfl
+  refine ⟨(w.take (m + l)).tail.length + 1, ?_, ?_⟩
+  · rw [hc']
+    simp only [List.take_of_length_le hw', List.length_tail, Cfg.Halted, Action.apply_state]
+    split <;> simp_all <;> lia
+  · rw [runFrom, Function.iterate_succ_apply, ← runFrom, step_of_running tr (a := a) rfl rfl,
+      runFrom_of_pending tr rfl, hc']
+    ext <;> simp [cfg, Action.apply, transduced_append, List.take_of_length_le hw',
+      head?_toList_append_tail, w, c]
+
+include hemit hfinal in
+/-- `t` steps of `tm` are simulated by at most `max 1 m * t` steps, plus `l` steps if `tm`
+halts. -/
+lemma exists_runFrom_cfg (c : Cfg k Symbol State input) (t : ℕ) :
+    ∃ j ≤ max 1 m * t + if (tm.runFrom c t).Halted then l else 0,
+      (tm.transduceOutput tr (m + l)).runFrom (cfg tr c) j = cfg tr (tm.runFrom c t) := by
+  induction t with
+  | zero => exact ⟨0, by simp, rfl⟩
+  | succ t ih =>
+    obtain ⟨j, hj, h⟩ := ih
+    rw [runFrom_succ, Nat.mul_succ]
+    by_cases hc : (tm.runFrom c t).Halted
+    · rw [step_of_halt hc]
+      exact ⟨j, by lia, h⟩
+    · obtain ⟨j', hj', h'⟩ := exists_runFrom_cfg_step tr hemit hfinal hc
+      simp only [hc, ↓reduceIte] at hj
+      exact ⟨j + j', by omega, by rw [runFrom_add, h, h']⟩
+
+/-- The configuration `e` of `tm.transduceOutput tr n` has the heads and tapes of the
+configuration `c` of `tm`, and it is halted or in the state of `c`. -/
+def Tracks (c : Cfg k Symbol State input)
+    (e : Cfg k Symbol ((Option State × StateT) × {w : List Symbol // w.length ≤ n}) input) :
+    Prop :=
+  e.inputPos = c.inputPos ∧ e.workTapes = c.workTapes ∧ e.workTapePos = c.workTapePos ∧
+    ∀ x ∈ e.state, x.1.1 = c.state
+
+/-- A step of `tm.transduceOutput tr n` keeps tracking `c` or tracks the successor of `c`. -/
+lemma Tracks.step {c : Cfg k Symbol State input}
+    {e : Cfg k Symbol ((Option State × StateT) × {w : List Symbol // w.length ≤ n}) input}
+    (h : Tracks c e) :
+    Tracks c ((tm.transduceOutput tr n).step e) ∨
+      Tracks (tm.step c) ((tm.transduceOutput tr n).step e) := by
+  obtain ⟨hi, hw, hp, hs⟩ := h
+  rcases he : e.state with _ | ⟨⟨s, qT⟩, ⟨_ | ⟨b, w⟩, hw'⟩⟩
+  · exact .inl (by rw [step_of_halt he]; exact ⟨hi, hw, hp, hs⟩)
+  · obtain rfl : s = c.state := hs _ he
+    rcases hq : c.state with _ | q
+    · rw [hq] at he
+      exact .inl (by simp [step_of_halted tr he, Tracks, hi, hw, hp])
+    · rw [hq] at he
+      have hi' : e.inputSymbol = c.inputSymbol := by simp [Cfg.inputSymbol, hi]
+      have hw' : e.workTapeSymbols = c.workTapeSymbols := by
+        funext; simp [Cfg.workTapeSymbols, hw, hp]
+      refine .inr ?_
+      rw [step_of_running tr he rfl, step_of_state hq, hi', hw']
+      simpa [Tracks, Action.apply, hi, hw, hp] using fst_of_mem_nextState
+  · refine .inl ?_
+    rw [step_of_pending tr he]
+    exact ⟨hi, hw, hp, hs _ he ▸ fst_of_mem_nextState⟩
+
+/-- Every configuration of the run of `tm.transduceOutput tr n` from `cfg tr c` tracks a
+configuration of the run of `tm` from `c`. -/
+lemma exists_tracks_runFrom (c : Cfg k Symbol State input) (j : ℕ) :
+    ∃ t, Tracks (tm.runFrom c t) ((tm.transduceOutput tr n).runFrom (cfg tr c) j) := by
+  induction j with
+  | zero => exact ⟨0, rfl, rfl, rfl, fst_of_mem_nextState⟩
+  | succ j ih =>
+    obtain ⟨t, h⟩ := ih
+    rw [runFrom_succ]
+    exact (h.step tr).elim (⟨t, ·⟩) fun h => ⟨t + 1, by rwa [runFrom_succ]⟩
+
+end TransduceOutput
+
+open TransduceOutput in
+/-- If `tm` outputs `out` in time `t` and space `s`, and the words emitted by `tr` on its
+transitions and at the end have length at most `m` and `l`, then `tm.transduceOutput tr (m + l)`
+outputs `tr.eval out` in time `max 1 m * t + l` and space `s`. -/
+theorem ComputesInTimeAndSpace.transduceOutput {tm : MultiTapeTM k Symbol State}
+    (tr : SubsequentialTransducer StateT Symbol Symbol) {m l : ℕ}
+    (hemit : ∀ q b, (tr.emit q b).length ≤ m) (hfinal : ∀ q, (tr.finalOut q).length ≤ l)
+    {out : List Symbol} {t s : ℕ} (h : tm.ComputesInTimeAndSpace input out t s) :
+    (tm.transduceOutput tr (m + l)).ComputesInTimeAndSpace input (tr.eval out)
+      (max 1 m * t + l) s := by
   obtain ⟨p, hh, halt, rfl, ht, hs⟩ := computesInTimeAndSpace_iff_exists_runPath.mp h
-  obtain ⟨m, hm, hrun, hpos⟩ := exists_runFrom_cfg (tm := tm) p.head p.length
-  rw [← runPath_last_eq_runFrom] at hrun
-  have hlast : tm.delimitOutput.runFrom (cfg p.head) (m + 1) =
-      ⟨none, p.last.inputPos, p.last.workTapes, p.last.workTapePos, delimit p.last.output⟩ := by
-    rw [runFrom, Function.iterate_succ_apply', ← runFrom, hrun, step_cfg_of_halted halt]
+  obtain ⟨j, hj, hrun⟩ := exists_runFrom_cfg tr hemit hfinal p.head p.length
+  rw [← runPath_last_eq_runFrom] at hrun hj
+  simp only [eq_true halt, ↓reduceIte] at hj
+  have hlast : (MultiTapeNTM.RunPath.ofDeterministic _ (cfg tr p.head) j).last =
+      cfg tr p.last := hrun
   refine computesInTimeAndSpace_iff_exists_runPath.mpr
-    ⟨.ofDeterministic _ (cfg p.head) (m + 1), by rw [hh]; rfl, ?_, ?_, ?_, ?_⟩
-  · exact congrArg Cfg.state hlast
-  · exact congrArg Cfg.output hlast
-  · exact (Nat.add_le_add_right hm 1).trans (by change _ ≤ 2 * t + 1; lia)
+    ⟨.ofDeterministic _ (cfg tr p.head) j, by rw [hh]; rfl, by rw [hlast]; simp [cfg, halt],
+      by rw [hlast]; simp [cfg, halt], ?_, ?_⟩
+  · exact hj.trans (by grw [ht])
   · refine (MultiTapeNTM.RunPath.space_le_sum_card _ (S := p.visitedByTapeHead) ?_).trans hs
-    rintro _ ⟨⟨m', hm'⟩, rfl⟩ i
-    rw [MultiTapeNTM.RunPath.mem_visitedByTapeHead]
-    change m' < m + 1 + 1 at hm'
-    rcases Nat.lt_succ_iff_lt_or_eq.mp hm' with h' | rfl
-    · obtain ⟨n', hn', h⟩ := hpos m' (by lia)
-      exact ⟨p ⟨n', by lia⟩, ⟨_, rfl⟩, by
-        rw [runPath_apply_eq_runFrom]
-        exact (congrFun h i).symm⟩
-    · exact ⟨p.last, p.last_mem, (congrFun (congrArg Cfg.workTapePos hlast) i).symm⟩
+    rintro _ ⟨i, rfl⟩ l
+    obtain ⟨n, -, -, hn, -⟩ := exists_tracks_runFrom tr p.head i
+    exact (p.mem_visitedByTapeHead).mpr ⟨_, runFrom_mem halt n, (congrFun hn l).symm⟩
+
+/-- If `f` is computable in time `t` and space `s` with output encoding `encOut`, and the finite
+subsequential transducer `tr` translates `encOut b` to `encOut' (g b)`, then `g ∘ f` is
+computable in time `max 1 m * t + l` and space `s` with output encoding `encOut'`, where `m` and
+`l` bound the lengths of the words emitted by `tr` on its transitions and at the end. -/
+theorem ComputableInTimeAndSpace.transduce {α β γ : Type*} {f : α → β} {g : β → γ}
+    {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {encOut' : γ ↪ List Bool} {t s : α → ℕ}
+    {StateT : Type} [Finite StateT] (tr : SubsequentialTransducer StateT Bool Bool) {m l : ℕ}
+    (hemit : ∀ q b, (tr.emit q b).length ≤ m) (hfinal : ∀ q, (tr.finalOut q).length ≤ l)
+    (hg : ∀ b, tr.eval (encOut b) = encOut' (g b))
+    (h : ComputableInTimeAndSpace f encIn encOut t s) :
+    ComputableInTimeAndSpace (g ∘ f) encIn encOut' (fun a => max 1 m * t a + l) s := by
+  obtain ⟨k, State, _, tm, htm⟩ := h
+  have := (List.finite_length_le Bool (m + l)).to_subtype
+  exact ⟨k, _, inferInstance, tm.transduceOutput tr (m + l),
+    fun a => hg (f a) ▸ (htm a).transduceOutput tr hemit hfinal⟩
+
+/-! ### Delimiting the output -/
+
+/-- The transducer that maps a word to its delimited code `Cslib.Encoding.delimit`: it replaces
+each bit `b` by `true, b` and emits a final `false`. -/
+def delimitTransducer : SubsequentialTransducer Unit Bool Bool where
+  start := ()
+  tr _ _ := ()
+  emit _ b := [true, b]
+  finalOut _ := [false]
+
+@[simp]
+lemma eval_delimitTransducer (w : List Bool) : delimitTransducer.eval w = delimit w := by
+  induction w <;> simp_all [delimitTransducer]
 
 /-- A function computable with some output encoding is computable with the delimited output
 encoding, in at most twice the time plus one step, and in the same space. -/
 theorem ComputableInTimeAndSpace.delimit {α β : Type*} {f : α → β} {encIn : α ↪ List Bool}
     {encOut : β ↪ List Bool} {t s : α → ℕ} (h : ComputableInTimeAndSpace f encIn encOut t s) :
-    ComputableInTimeAndSpace f encIn (encDelimited encOut) (fun a => 2 * t a + 1) s := by
-  obtain ⟨k, State, _, tm, htm⟩ := h
-  exact ⟨k, _, inferInstance, tm.delimitOutput, fun a => (htm a).delimitOutput⟩
-
-/-! ### Transducing the output with a subsequential transducer -/
-
-section TransduceOutput
-
-variable {Symbol : Type*} {StateT : Type*} {input : List Symbol}
-
-/-- The machine that behaves like `tm`, but pipes its output through the subsequential
-transducer `tr`: each output symbol `b` emitted by `tm` while `tr` is in state `qT` is replaced by
-the word `tr.emit qT b`, and when `tm` halts, `tr.finalOut qT` is appended. Its state is the
-state of `tm`, the state of `tr`, and an optional pending output word (the symbol being transduced
-and the position within its chunk). In a pending state the input and work heads stay put. -/
-noncomputable def transduceOutput (tm : MultiTapeTM k Symbol State)
-    (tr : Cslib.Automata.SubsequentialTransducer StateT Symbol Symbol) (m : ℕ) :
-    MultiTapeTM k Symbol ((Option State × StateT) × Option (Option Symbol × Fin (m + 1))) :=
-  ofTr ((some tm.q₀, tr.start), none) fun st inp work =>
-    match st with
-    | ((some q, qT), none) =>
-      let a := tm.tr q inp work
-      match a.output with
-      | none =>
-        { inputTape := a.inputTape, workTapes := a.workTapes, output := none,
-          state := some ((a.state, qT), none) }
-      | some b =>
-        { inputTape := a.inputTape, workTapes := a.workTapes, output := none,
-          state := some ((a.state, qT), some (some b, 0)) }
-    | ((q', qT), some (some b, i)) =>
-      let out := tr.emit qT b
-      if h : i.val < out.length then
-        { inputTape := 0, workTapes := fun _ => (none, 0), output := some out[i.val],
-          state := some ((q', qT), some (some b, i + 1)) }
-      else
-        { inputTape := 0, workTapes := fun _ => (none, 0), output := none,
-          state := some ((q', tr.tr qT b), none) }
-    | ((q', qT), some (none, i)) =>
-      let out := tr.finalOut qT
-      if h : i.val < out.length then
-        { inputTape := 0, workTapes := fun _ => (none, 0), output := some out[i.val],
-          state := some ((q', qT), some (none, i + 1)) }
-      else
-        { inputTape := 0, workTapes := fun _ => (none, 0), output := none, state := none }
-    | ((none, qT), none) =>
-      { inputTape := 0, workTapes := fun _ => (none, 0), output := none,
-        state := some ((none, qT), some (none, 0)) }
-
-namespace TransduceOutput
-
-variable {tm : MultiTapeTM k Symbol State}
-variable (tr : Cslib.Automata.SubsequentialTransducer StateT Symbol Symbol) {m : ℕ}
-
-/-- The words emitted by `tr` on `w` per transition, without the final output. -/
-private abbrev chunks (q : StateT) (w : List Symbol) : List Symbol :=
-  tr.toSequentialTransducer.evalFrom q w
-
-private lemma chunks_nil (q : StateT) : chunks tr q [] = [] := rfl
-
-private lemma chunks_cons (q : StateT) (b : Symbol) (w : List Symbol) :
-    chunks tr q (b :: w) = tr.emit q b ++ chunks tr (tr.tr q b) w := rfl
-
-private lemma chunks_append (q : StateT) (w : List Symbol) (b : Symbol) :
-    chunks tr q (w ++ [b]) = chunks tr q w ++ tr.emit (w.foldl tr.tr q) b := by
-  induction w generalizing q with
-  | nil => simp [chunks]
-  | cons a w ih =>
-    rw [List.cons_append, chunks_cons, ih, chunks_cons, List.foldl_cons, List.append_assoc]
-
-private lemma evalFrom_eq_chunks_final (q : StateT) (w : List Symbol) :
-    tr.evalFrom q w = chunks tr q w ++ tr.finalOut (w.foldl tr.tr q) := by
-  induction w generalizing q with
-  | nil => simp [chunks]
-  | cons a w ih =>
-    rw [Cslib.Automata.SubsequentialTransducer.evalFrom, chunks_cons, ih, List.foldl_cons]
-    simp [List.append_assoc]
-
-/-- The configuration of `tm.transduceOutput tr m` simulating the configuration `c` of `tm`,
-where `qT` is the state of `tr` after consuming the output of `c`. -/
-def cfg (c : Cfg k Symbol State input) (qT : StateT) :
-    Cfg k Symbol ((Option State × StateT) × Option (Option Symbol × Fin (m + 1))) input :=
-  ⟨some ((c.state, qT), none), c.inputPos, c.workTapes, c.workTapePos,
-    chunks tr tr.start c.output⟩
-
-lemma runFrom_add {tm' : MultiTapeTM k Symbol State} (c : Cfg k Symbol State input) (a b : ℕ) :
-    tm'.runFrom c (a + b) = tm'.runFrom (tm'.runFrom c a) b := by
-  simp [runFrom, ← Function.iterate_add_apply, Nat.add_comm a b]
-
-/-- While a chunk `out` is pending, the machine emits one symbol of the chunk per
-step, keeping the input and work heads in place, and then enters `next`. -/
-private lemma runFrom_pending
-    (c : Cfg k Symbol ((Option State × StateT) × Option (Option Symbol × Fin (m + 1))) input)
-    (q' : Option State) (qT : StateT) (pb : Option Symbol) (out : List Symbol)
-    (hL : out.length ≤ m) (hout : out = pb.elim (tr.finalOut qT) (fun b => tr.emit qT b))
-    (next : Option ((Option State × StateT) × Option (Option Symbol × Fin (m + 1))))
-    (hnext : next = pb.elim none (fun b => some ((q', tr.tr qT b), none)))
-    (hstate : c.state = some ((q', qT), some (pb, 0))) :
-    (∀ j (hj : j ≤ out.length),
-      (tm.transduceOutput tr m).runFrom c j =
-        ⟨some ((q', qT), some (pb, ⟨j, by lia⟩)), c.inputPos, c.workTapes,
-          c.workTapePos, c.output ++ out.take j⟩) ∧
-    (tm.transduceOutput tr m).runFrom c (out.length + 1) =
-      ⟨next, c.inputPos, c.workTapes, c.workTapePos, c.output ++ out⟩ := by
-  have hfin : ∀ j (hj : j < out.length), (⟨j, by lia⟩ : Fin (m + 1)) + 1 = ⟨j + 1, by lia⟩ := by
-    intro j hj
-    have h1 : (1 : Fin (m + 1)).val = 1 := Nat.mod_eq_of_lt (by lia)
-    simp only [Fin.ext_iff, Fin.val_add, h1]
-    exact Nat.mod_eq_of_lt (by lia)
-  have hstep : ∀ j (hj : j < out.length),
-      (tm.transduceOutput tr m).step
-          ⟨some ((q', qT), some (pb, ⟨j, by lia⟩)), c.inputPos, c.workTapes,
-            c.workTapePos, c.output ++ out.take j⟩ =
-        ⟨some ((q', qT), some (pb, ⟨j + 1, by lia⟩)), c.inputPos, c.workTapes,
-          c.workTapePos, c.output ++ out.take (j + 1)⟩ := by
-    intro j hj
-    cases pb with
-    | none =>
-      have hout' : out = tr.finalOut qT := hout
-      subst hout'
-      rw [step_of_state rfl, transduceOutput, tr_ofTr]
-      simp [hj, Action.apply, hfin j hj]
-    | some b =>
-      have hout' : out = tr.emit qT b := hout
-      subst hout'
-      rw [step_of_state rfl, transduceOutput, tr_ofTr]
-      simp [hj, Action.apply, hfin j hj]
-  have key : ∀ j (hj : j ≤ out.length),
-      (tm.transduceOutput tr m).runFrom c j =
-        ⟨some ((q', qT), some (pb, ⟨j, by lia⟩)), c.inputPos, c.workTapes,
-          c.workTapePos, c.output ++ out.take j⟩ := by
-    intro j
-    induction j with
-    | zero =>
-      intro _
-      simp only [runFrom, Function.iterate_zero_apply, List.take_zero, List.append_nil]
-      exact Cfg.ext hstate rfl rfl rfl rfl
-    | succ j ih =>
-      intro hj
-      rw [runFrom, Function.iterate_succ_apply', ← runFrom, ih (by lia), hstep j (by lia)]
-  refine ⟨key, ?_⟩
-  rw [runFrom, Function.iterate_succ_apply', ← runFrom, key _ le_rfl,
-    List.take_of_length_le (Nat.le_refl _)]
-  cases pb with
-  | none => simp [step_of_state _, transduceOutput, tr_ofTr, hout, hnext, Action.apply]
-  | some b => simp [step_of_state _, transduceOutput, tr_ofTr, hout, hnext, Action.apply]
-
-/-- One step of `tm` is simulated by at most `m + 2` steps: the step of `tm` itself, then the
-chunk `tr.emit qT b` for its output symbol `b`, one symbol per step. The work heads are where they
-are before or after the step of `tm`. -/
-lemma exists_runFrom_cfg_step (hbound : tr.OutputBoundedBy m) (c : Cfg k Symbol State input)
-    (qT : StateT) (hqT : qT = c.output.foldl tr.tr tr.start) :
-    ∃ j ≤ m + 2, (tm.transduceOutput tr m).runFrom (cfg tr c qT) j =
-        cfg tr (tm.step c) ((tm.step c).output.foldl tr.tr tr.start) ∧
-      ∀ j' ≤ j, ((tm.transduceOutput tr m).runFrom (cfg tr c qT) j').workTapePos =
-        c.workTapePos ∨ ((tm.transduceOutput tr m).runFrom (cfg tr c qT) j').workTapePos =
-          (tm.step c).workTapePos := by
-  rcases hq : c.state with _ | q
-  · refine ⟨0, by lia, ?_, fun j' hj' => .inl ?_⟩
-    · rw [step_of_halt hq, ← hqT]
-      simp [runFrom, Function.iterate_zero_apply]
-    · rw [Nat.le_zero.mp hj']
-      simp [runFrom, Function.iterate_zero_apply, cfg]
-  have hc : tm.step c = (tm.tr q c.inputSymbol c.workTapeSymbols).apply c := step_of_state hq
-  have hstep1 : (tm.transduceOutput tr m).step (cfg tr c qT) =
-      ((tm.transduceOutput tr m).tr ((some q, qT), none) (cfg tr c qT).inputSymbol
-        (cfg tr c qT).workTapeSymbols).apply (cfg tr c qT) :=
-    step_of_state (q := ((some q, qT), none))
-      (show (cfg (m := m) tr c qT).state = some ((some q, qT), none) by simp [cfg, hq])
-  rcases ho : (tm.tr q c.inputSymbol c.workTapeSymbols).output with _ | b
-  · have h1 : (tm.transduceOutput tr m).step (cfg tr c qT) = Action.apply
-        { inputTape := (tm.tr q c.inputSymbol c.workTapeSymbols).inputTape,
-          workTapes := (tm.tr q c.inputSymbol c.workTapeSymbols).workTapes, output := none,
-          state := some (((tm.tr q c.inputSymbol c.workTapeSymbols).state, qT), none) }
-        (cfg tr c qT) := by
-      rw [hstep1, transduceOutput, tr_ofTr]
-      have hinp : (cfg (m := m) tr c qT).inputSymbol = c.inputSymbol := rfl
-      have hwork : (cfg (m := m) tr c qT).workTapeSymbols = c.workTapeSymbols := rfl
-      simp only [hinp, hwork]
-      rw [ho]
-    have hq' : (tm.step c).output.foldl tr.tr tr.start = qT := by
-      rw [hc]
-      simp [Action.apply, ho, hqT]
-    refine ⟨1, by lia, ?_, ?_⟩
-    · rw [runFrom, Function.iterate_one, h1, hc]
-      simp [cfg, Action.apply, chunks, ho, hqT]
-    · intro j' hj'
-      obtain rfl | rfl : j' = 0 ∨ j' = 1 := by lia
-      · exact .inl (by simp [runFrom, Function.iterate_zero_apply, cfg])
-      · exact .inr (by rw [runFrom, Function.iterate_one, h1, hc]; simp [cfg, Action.apply])
-  · have hL : (tr.emit qT b).length ≤ m := hbound qT (some b)
-    have hfold : (tm.step c).output.foldl tr.tr tr.start = tr.tr qT b := by
-      rw [hc]
-      simp [Action.apply, ho, hqT]
-    have hout : chunks tr tr.start (tm.step c).output =
-        chunks tr tr.start c.output ++ tr.emit qT b := by
-      rw [hc]
-      simp [Action.apply, ho, chunks_append, hqT]
-    have h1 : (tm.transduceOutput tr m).step (cfg tr c qT) =
-        ⟨some (((tm.tr q c.inputSymbol c.workTapeSymbols).state, qT), some (some b, 0)),
-          (tm.step c).inputPos, (tm.step c).workTapes,
-          (tm.step c).workTapePos, chunks tr tr.start c.output⟩ := by
-      rw [hstep1, transduceOutput, tr_ofTr]
-      have hinp : (cfg (m := m) tr c qT).inputSymbol = c.inputSymbol := rfl
-      have hwork : (cfg (m := m) tr c qT).workTapeSymbols = c.workTapeSymbols := rfl
-      simp only [hinp, hwork]
-      rw [ho]
-      simp [hc, cfg, Action.apply]
-    obtain ⟨hpend, hnext⟩ := runFrom_pending tr
-      ⟨some (((tm.tr q c.inputSymbol c.workTapeSymbols).state, qT), some (some b, 0)),
-        (tm.step c).inputPos, (tm.step c).workTapes,
-        (tm.step c).workTapePos, chunks tr tr.start c.output⟩
-      (tm.tr q c.inputSymbol c.workTapeSymbols).state qT (some b) (tr.emit qT b)
-      hL rfl (some (((tm.tr q c.inputSymbol c.workTapeSymbols).state, tr.tr qT b), none)) rfl rfl
-    refine ⟨(tr.emit qT b).length + 2, by lia, ?_, ?_⟩
-    · have h12 : (tr.emit qT b).length + 2 = ((tr.emit qT b).length + 1) + 1 := by lia
-      rw [h12, runFrom, Function.iterate_add_apply, Function.iterate_one, h1, ← runFrom, hnext, hc]
-      simp [cfg, Action.apply, ho, hqT, chunks_append]
-    · intro j' hj'
-      rcases le_or_gt j' 1 with h | h
-      · obtain rfl | rfl : j' = 0 ∨ j' = 1 := by lia
-        · exact .inl (by simp [runFrom, Function.iterate_zero_apply, cfg])
-        · exact .inr (by rw [runFrom, Function.iterate_one, h1])
-      · obtain ⟨i, rfl⟩ := Nat.exists_eq_add_of_le h.le
-        have hi : i ≤ (tr.emit qT b).length + 1 := by lia
-        rw [show (1 : ℕ) + i = i + 1 from by lia, runFrom, Function.iterate_add_apply,
-          Function.iterate_one, h1, ← runFrom]
-        rcases le_or_gt i (tr.emit qT b).length with hi' | hi'
-        · exact .inr (by rw [hpend i hi'])
-        · have hi'' : i = (tr.emit qT b).length + 1 := by lia
-          subst hi''
-          exact .inr (by rw [hnext])
-
-/-- `n` steps of `tm` are simulated by at most `(m + 2) * n` steps, during which the work heads
-are where they are at some point of the run of `tm`. -/
-lemma exists_runFrom_cfg (hbound : tr.OutputBoundedBy m) (c : Cfg k Symbol State input)
-    (qT : StateT) (hqT : qT = c.output.foldl tr.tr tr.start) (n : ℕ) :
-    ∃ j ≤ (m + 2) * n, (tm.transduceOutput tr m).runFrom (cfg tr c qT) j =
-        cfg tr (tm.runFrom c n) ((tm.runFrom c n).output.foldl tr.tr tr.start) ∧
-      ∀ j' ≤ j, ∃ n' ≤ n,
-        ((tm.transduceOutput tr m).runFrom (cfg tr c qT) j').workTapePos =
-          (tm.runFrom c n').workTapePos := by
-  induction n with
-  | zero =>
-    exact ⟨0, le_rfl, by simp [runFrom, ← hqT], fun j' hj' =>
-      ⟨0, le_rfl, by simp [runFrom, cfg, Nat.le_zero.mp hj']⟩⟩
-  | succ n ih =>
-    obtain ⟨j, hj, hrun, hpos⟩ := ih
-    obtain ⟨j', hj', hrun', hpos'⟩ := exists_runFrom_cfg_step tr hbound (tm.runFrom c n) _ rfl
-    have hsucc : tm.runFrom c (n + 1) = tm.step (tm.runFrom c n) := by
-      rw [runFrom, Function.iterate_succ_apply', ← runFrom]
-    refine ⟨j + j', by rw [Nat.mul_succ]; exact Nat.add_le_add hj hj', by
-      rw [runFrom_add, hrun, hrun', hsucc], fun j'' hj'' => ?_⟩
-    rcases le_or_gt j'' j with h | h
-    · obtain ⟨n', hn', h'⟩ := hpos j'' h; exact ⟨n', by omega, h'⟩
-    · obtain ⟨i, rfl⟩ := Nat.exists_eq_add_of_le h.le; rw [runFrom_add, hrun]
-      rcases hpos' i (by omega) with h' | h'
-      · exact ⟨n, by omega, h'⟩
-      · exact ⟨n + 1, le_rfl, by rw [h', hsucc]⟩
-
-/-- Once `tm` has halted, the final output of `tr` is emitted and the machine halts, without
-moving the work heads. -/
-lemma exists_runFrom_cfg_of_halted (hbound : tr.OutputBoundedBy m) {c : Cfg k Symbol State input}
-    (h : c.Halted) (qT : StateT) (hqT : qT = c.output.foldl tr.tr tr.start) :
-    ∃ j ≤ m + 2, (tm.transduceOutput tr m).runFrom (cfg tr c qT) j =
-        ⟨none, c.inputPos, c.workTapes, c.workTapePos, tr.evalFrom tr.start c.output⟩ ∧
-      ∀ j' ≤ j,
-        ((tm.transduceOutput tr m).runFrom (cfg tr c qT) j').workTapePos = c.workTapePos := by
-  have hL : (tr.finalOut qT).length ≤ m := hbound qT none
-  have h1 : (tm.transduceOutput tr m).step (cfg tr c qT) =
-      ⟨some ((none, qT), some (none, 0)), c.inputPos, c.workTapes, c.workTapePos,
-        chunks tr tr.start c.output⟩ := by
-    rw [step_of_state (q := ((none, qT), none)) (by simp [cfg, h]), transduceOutput, tr_ofTr]
-    simp [cfg, Action.apply]
-  obtain ⟨hpend, hnext⟩ := runFrom_pending tr
-    ⟨some ((none, qT), some (none, 0)), c.inputPos, c.workTapes, c.workTapePos,
-      chunks tr tr.start c.output⟩ none qT none (tr.finalOut qT) hL rfl none rfl rfl
-  set L := (tr.finalOut qT).length with hLdef
-  refine ⟨L + 2, by omega, ?_, ?_⟩
-  · rw [show L + 2 = (L + 1) + 1 by omega, runFrom, Function.iterate_add_apply,
-      Function.iterate_one, h1, ← runFrom, hnext,
-      evalFrom_eq_chunks_final tr tr.start c.output, hqT]
-  · intro j' hj'
-    rcases le_or_gt j' 1 with h' | h'
-    · obtain rfl | rfl : j' = 0 ∨ j' = 1 := by omega
-      · rfl
-      · rw [runFrom, Function.iterate_one, h1]
-    · obtain ⟨i, rfl⟩ := Nat.exists_eq_add_of_le h'.le
-      rw [show (1 : ℕ) + i = i + 1 by omega, runFrom, Function.iterate_add_apply,
-        Function.iterate_one, h1, ← runFrom]
-      rcases le_or_gt i L with hi' | hi'
-      · rw [hpend i hi']
-      · obtain rfl : i = L + 1 := by omega
-        exact congrArg Cfg.workTapePos hnext
-
-end TransduceOutput
-
-open TransduceOutput in
-/-- If `tm` outputs `out` in time `t` and space `s`, then `tm.transduceOutput tr m` outputs
-`tr.eval out` in time at most `(m + 2) * (t + 1)` and space `s`, provided that `m` bounds every
-chunk that `tr` emits. -/
-theorem ComputesInTimeAndSpace.transduceOutput {tm : MultiTapeTM k Symbol State}
-    (tr : Cslib.Automata.SubsequentialTransducer StateT Symbol Symbol) {m : ℕ}
-    (hbound : tr.OutputBoundedBy m)
-    {out : List Symbol} {t s : ℕ} (h : tm.ComputesInTimeAndSpace input out t s) :
-    (tm.transduceOutput tr m).ComputesInTimeAndSpace input (tr.eval out) ((m + 2) * (t + 1)) s := by
-  obtain ⟨p, hh, halt, rfl, ht, hs⟩ := computesInTimeAndSpace_iff_exists_runPath.mp h
-  obtain ⟨j, hj, hrun, hpos⟩ :=
-    exists_runFrom_cfg tr hbound p.head tr.start (by rw [hh]; rfl) p.length
-  rw [← runPath_last_eq_runFrom] at hrun
-  obtain ⟨j', hj', hlast, hpos'⟩ := exists_runFrom_cfg_of_halted tr hbound halt _ rfl
-  have hrun' : (tm.transduceOutput tr m).runFrom (cfg tr p.head tr.start) (j + j') =
-      ⟨none, p.last.inputPos, p.last.workTapes, p.last.workTapePos, tr.eval p.last.output⟩ := by
-    rw [runFrom_add, hrun, hlast]
-  refine computesInTimeAndSpace_iff_exists_runPath.mpr
-    ⟨.ofDeterministic _ (cfg tr p.head tr.start) (j + j'), by rw [hh]; rfl, ?_, ?_, ?_, ?_⟩
-  · exact congrArg Cfg.state hrun'
-  · exact congrArg Cfg.output hrun'
-  · exact (Nat.add_le_add hj hj').trans_eq (by rw [← Nat.mul_succ]) |>.trans
-      (Nat.mul_le_mul_left _ (by omega))
-  · refine (MultiTapeNTM.RunPath.space_le_sum_card _ (S := p.visitedByTapeHead) ?_).trans hs
-    rintro _ ⟨⟨m', hm'⟩, rfl⟩ i
-    rw [MultiTapeNTM.RunPath.mem_visitedByTapeHead]
-    rcases Nat.lt_succ_iff_lt_or_eq.mp (show m' < j + j' + 1 from hm') with h' | rfl
-    · rcases le_or_gt m' j with hle | hgt
-      · obtain ⟨n', hn', h⟩ := hpos m' hle
-        exact ⟨p ⟨n', by omega⟩, ⟨_, rfl⟩, by
-          rw [runPath_apply_eq_runFrom]; exact (congrFun h i).symm⟩
-      · obtain ⟨i', rfl⟩ := Nat.exists_eq_add_of_le hgt.le
-        have hgoal : ∃ c ∈ p, c.workTapePos i =
-            ((tm.transduceOutput tr m).runFrom (cfg tr p.head tr.start)
-              (j + i')).workTapePos i := by
-          rw [runFrom_add, hrun]
-          exact ⟨p.last, p.last_mem, by rw [hpos' i' (by omega)]⟩
-        exact hgoal
-    · exact ⟨p.last, p.last_mem, (congrFun (congrArg Cfg.workTapePos hrun') i).symm⟩
-
-end TransduceOutput
-
-/-- Composing a function on Boolean words that is computable in time `t` and space `s` with a
-subsequential transducer `tr` on the output: the composite `tr.eval ∘ f` is computable in time
-`(m + 2) * (t + 1)` and space `s`, where `m` bounds the output chunks of `tr`. -/
-theorem ComputableInTimeAndSpace.transduce {StateT : Type} [Finite StateT]
-    (tr : Cslib.Automata.SubsequentialTransducer StateT Bool Bool)
-    {f : List Bool → List Bool} {t s : List Bool → ℕ}
-    (h : ComputableInTimeAndSpace f encBits encBits t s) :
-    ∃ m, ComputableInTimeAndSpace (tr.eval ∘ f) encBits encBits
-      (fun w => (m + 2) * (t w + 1)) s := by
-  obtain ⟨m, hbound⟩ := tr.exists_outputBoundedBy_of_finite
-  obtain ⟨k, State, _, tm, htm⟩ := h
-  refine ⟨m, k, _, inferInstance, tm.transduceOutput tr m, fun w => ?_⟩
-  exact (htm w).transduceOutput tr hbound
+    ComputableInTimeAndSpace f encIn (encDelimited encOut) (fun a => 2 * t a + 1) s :=
+  h.transduce (g := id) delimitTransducer (m := 2) (l := 1) (by simp [delimitTransducer])
+    (by simp [delimitTransducer]) fun b => by simp
 
 end Turing.MultiTapeTM
