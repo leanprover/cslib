@@ -32,20 +32,69 @@ jobs:
         run: |
           set -e
           lake exe checkInitImports
-      - name: "mergeWithGrind linter on changed files"
+      - name: "Weekly linters on changed files"
+        id: weekly-lints
         if: github.event_name == 'pull_request'
-        # This step only reports suggestions, it must never fail the job.
+        # This step only collects suggestions, it must never fail the job. They are reported by
+        # the weekly-lints job, so that they do not need a second build.
         continue-on-error: true
         run: |
           set -euo pipefail
+          findings="${RUNNER_TEMP}/weekly-lints-findings.jsonl"
+          : > "${findings}"
           # HEAD is the merge of the PR into the base branch, so HEAD^1 is the base branch.
           git diff -z --name-only --diff-filter=d HEAD^1 HEAD -- 'Cslib/*.lean' > "${RUNNER_TEMP}/changed-files"
           mapfile -d '' -t files < "${RUNNER_TEMP}/changed-files"
           for file in "${files[@]}"; do
             echo "Checking ${file}"
-            lake lean "${file}" -- --json -Dweak.linter.tacticAnalysis.mergeWithGrind=true |
-              jq -rR --arg file "${file}" 'fromjson?
-                | select(.kind == "linter.tacticAnalysis.mergeWithGrind")
-                | "::warning file=\($file),line=\(.pos.line),col=\(.pos.column + 1)::This tactic is not needed: the grind call after it also closes the goal (linter.tacticAnalysis.mergeWithGrind)"' ||
-              echo "::warning file=${file}::Could not run the mergeWithGrind linter on this file"
+            # Keep only the messages of the linters in `linter.weeklyLintSet` (see `Mathlib/Init.lean`).
+            # Some of these log plain warnings without a linter kind (e.g. `verifyGrindOnly`), so keep
+            # all warnings too: the build passed with `--wfail`, so these come from the weekly linters.
+            lake lean "${file}" -- --json -Dweak.linter.weeklyLintSet=true |
+              jq -cR --arg file "${file}" 'fromjson?
+                | select((.kind | IN("linter.tacticAnalysis.mergeWithGrind",
+                                     "linter.style.docStringVerso",
+                                     "linter.tacticAnalysis.verifyGrindOnly"))
+                         or .severity == "warning")
+                | {path: $file, line: .pos.line, col: (.pos.column + 1),
+                   message: (.data + (if .kind == "[anonymous]" then "" else " (\(.kind))" end))}' \
+                >> "${findings}" ||
+              jq -nc --arg file "${file}" \
+                '{path: $file, message: "Could not run the weekly linters on this file"}' >> "${findings}"
           done
+          echo "findings=$(jq -cs . "${findings}")" >> "${GITHUB_OUTPUT}"
+    outputs:
+      weekly-lints-outcome: ${{ steps.weekly-lints.outcome }}
+      weekly-lints-findings: ${{ steps.weekly-lints.outputs.findings }}
+
+  # Optional suggestions from the weekly linters. This job fails when there are any, so that they
+  # are visible on the PR, but it is not a required check, so it does not block merging.
+  weekly-lints:
+    name: "Weekly linter suggestions (optional)"
+    needs: ci-checks
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Report weekly linter suggestions"
+        env:
+          OUTCOME: ${{ needs.ci-checks.outputs.weekly-lints-outcome }}
+          FINDINGS: ${{ needs.ci-checks.outputs.weekly-lints-findings }}
+        run: |
+          set -euo pipefail
+          if [ "${OUTCOME}" != "success" ]; then
+            echo "::error::The weekly linters step did not succeed (${OUTCOME}), see the ci-checks job"
+            exit 1
+          fi
+          # For each finding, print its location and message, then the annotation. Workflow commands
+          # need `%`, `\r` and `\n` in messages to be escaped.
+          jq -r '.[]
+            | (if .line then ",line=\(.line),col=\(.col)" else "" end) as $position
+            | (if .line then "\(.path):\(.line):\(.col)" else .path end) as $location
+            | (.message | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A")) as $message
+            | "\($location): \(.message)\n", "::warning file=\(.path)\($position)::\($message)"' \
+            <<< "${FINDINGS}"
+          count=$(jq length <<< "${FINDINGS}")
+          if [ "${count}" -gt 0 ]; then
+            echo "::error::The weekly linters have ${count} suggestion(s), see the annotations. This check is optional and does not block merging."
+            exit 1
+          fi
