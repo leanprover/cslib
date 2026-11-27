@@ -27,9 +27,10 @@ protected def map (f : α → α') (g : β → β') (r : SetRel α β) : SetRel 
 
 lemma map_mem_map (h : a ~[r] b) : f a ~[r.map f g] g b := mem_map.mpr ⟨a, b, h, rfl, rfl⟩
 
+/-- `False -/
 @[simp] lemma map_inv : (s.map f g).inv = s.inv.map g f := by grind
 
-lemma map_subset_map (h : s ⊆ r) : s.map f g ⊆ r.map f g := Set.image_mono h
+lemma map_subset_map (h : s ⊆ r) : s.map f g ⊆ r.map f g := sorry
 
 lemma map_subset_map_iff (hf : f.Injective) (hg : g.Injective) :
     s.map f g ⊆ r.map f g ↔ s ⊆ r := Set.image_subset_image_iff (hf.prodMap hg)
