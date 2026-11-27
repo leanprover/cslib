@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Also fetch the parents of the PR merge commit, to diff against the base branch.
+          fetch-depth: 2
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail --iofail"
@@ -29,3 +32,20 @@ jobs:
         run: |
           set -e
           lake exe checkInitImports
+      - name: "mergeWithGrind linter on changed files"
+        if: github.event_name == 'pull_request'
+        # This step only reports suggestions, it must never fail the job.
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          # HEAD is the merge of the PR into the base branch, so HEAD^1 is the base branch.
+          git diff -z --name-only --diff-filter=d HEAD^1 HEAD -- 'Cslib/*.lean' > "${RUNNER_TEMP}/changed-files"
+          mapfile -d '' -t files < "${RUNNER_TEMP}/changed-files"
+          for file in "${files[@]}"; do
+            echo "Checking ${file}"
+            lake lean "${file}" -- --json -Dweak.linter.tacticAnalysis.mergeWithGrind=true |
+              jq -rR --arg file "${file}" 'fromjson?
+                | select(.kind == "linter.tacticAnalysis.mergeWithGrind")
+                | "::warning file=\($file),line=\(.pos.line),col=\(.pos.column + 1)::This tactic is not needed: the grind call after it also closes the goal (linter.tacticAnalysis.mergeWithGrind)"' ||
+              echo "::warning file=${file}::Could not run the mergeWithGrind linter on this file"
+          done
