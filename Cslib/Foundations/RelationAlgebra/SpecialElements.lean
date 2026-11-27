@@ -281,16 +281,18 @@ instance [IsRelRefl a] : IsRelRefl (transGen a) where
 instance [IsRelSymm a] : IsRelSymm (transGen a) where
   star_eq := by rw [star_transGen, star_eq_of_symm a]
 
-lemma transGen_reflGen (a : α) : transGen (reflGen a) = reflGen (transGen a) := by
-  apply le_antisymm
-  · grw [transGen_le, le_transGen a]
-  · grw [reflGen_le, le_reflGen a]
-
 lemma symmGen_transGen_le (a : α) : symmGen (transGen a) ≤ transGen (symmGen a) := by
   grw [symmGen_le, le_symmGen a]
 
 /-- The relation-algebra equivalent of `Relation.ReflTransGen`. -/
 def reflTransGen (a : α) : α := reflGen (transGen a)
+
+lemma reflGen_transGen (a : α) : reflGen (transGen a) = reflTransGen a := rfl
+
+lemma transGen_reflGen (a : α) : transGen (reflGen a) = reflTransGen a := by
+  apply le_antisymm
+  · grw [← reflGen_transGen, transGen_le, le_transGen a]
+  · grw [← reflGen_transGen, reflGen_le, le_reflGen a]
 
 lemma le_reflTransGen (a : α) : a ≤ reflTransGen a := by
   grw [reflTransGen, le_transGen a, le_reflGen (transGen a)]
@@ -544,7 +546,7 @@ theorem isRelRefl_iff_isRefl : IsRelRefl r ↔ r.IsRefl :=
 
 instance [hr : r.IsRefl] : IsRelRefl r := r.isRelRefl_iff_isRefl.mpr hr
 
-theorem isIrrefl_iff : r ≤ 1ᶜ ↔ r.IsIrrefl := by
+theorem isIrrefl_iff : r ⊆ 1ᶜ ↔ r.IsIrrefl := by
   simp_rw [SetRel.IsIrrefl, irrefl_iff_le_ne, Set.subset_def, LE.le, Prod.forall,
     Set.mem_compl_iff, mem_one]
 
@@ -637,17 +639,17 @@ theorem leftTotal_iff : Relator.LeftTotal (· ~[r] ·) ↔ relDom r = 1 := by
     Prod.forall, mem_mul, Set.mem_univ, and_true]
   exact ⟨fun h a _ ↦ h a, fun h a ↦ h a a⟩
 
-theorem rightUnique_iff : Relator.RightUnique (· ~[r] ·) ↔ star r * r ≤ 1 := by
+theorem rightUnique_iff : Relator.RightUnique (· ~[r] ·) ↔ star r * r ⊆ 1 := by
   simp [Relator.RightUnique, Set.subset_def]
   grind
 
-theorem leftUnique_iff : Relator.LeftUnique (· ~[r] ·) ↔ r * star r ≤ 1 := by
+theorem leftUnique_iff : Relator.LeftUnique (· ~[r] ·) ↔ r * star r ⊆ 1 := by
   simp [Relator.LeftUnique, Set.subset_def]
 
-theorem reflOn_iff {s : Set α} : s.ReflOn (· ~[r] ·) ↔ ofSet s ≤ r ⊓ 1 := by
+theorem reflOn_iff {s : Set α} : s.ReflOn (· ~[r] ·) ↔ ofSet s ⊆ r := by
   simp [Set.ReflOn, Set.subset_def]
 
-theorem symmOn_iff {s : Set α} : s.SymmOn (· ~[r] ·) ↔ ofSet s * r * ofSet s ≤ star r := by
+theorem symmOn_iff {s : Set α} : s.SymmOn (· ~[r] ·) ↔ ofSet s * r * ofSet s ⊆ star r := by
   simp [Set.SymmOn, Set.subset_def]
   grind
 
@@ -655,61 +657,55 @@ theorem join_iff : Relation.Join (· ~[r] ·) x y ↔ x ~[r * star r] y := .rfl
 
 theorem join₂_iff : Relation.Join₂ (· ~[s] ·) (· ~[r] ·) x y ↔ x ~[s * star r] y := .rfl
 
-theorem diamond_iff : Relation.Diamond (· ~[r] ·) ↔ star r * r ≤ r * star r := by
-  simp [Relation.Diamond, join_iff, Set.subset_def]
-  grind
-
-theorem diamond_commute_iff :
-    Relation.DiamondCommute (· ~[s] ·) (· ~[r] ·) ↔ star s * r ≤ r * star s := by
+theorem diamondCommute_iff :
+    Relation.DiamondCommute (· ~[s] ·) (· ~[r] ·) ↔ star s * r ⊆ r * star s := by
   simp [Relation.DiamondCommute, join₂_iff, Set.subset_def]
   grind
 
-theorem confluent_iff : Relation.Confluent (· ~[r] ·) ↔
-    reflTransGen (star r) * reflTransGen r ≤ reflTransGen r * reflTransGen (star r) := by
-  rw [Relation.Confluent, ← reflTransGen_eq, ← star_reflTransGen]
-  exact diamond_iff
+theorem diamond_iff : Relation.Diamond (· ~[r] ·) ↔ star r * r ⊆ r * star r :=
+  diamondCommute_iff
 
 theorem commute_iff : Relation.Commute (· ~[s] ·) (· ~[r] ·) ↔
-    reflTransGen (star s) * reflTransGen r ≤ reflTransGen r * reflTransGen (star s) := by
+    reflTransGen (star s) * reflTransGen r ⊆ reflTransGen r * reflTransGen (star s) := by
   rw [Relation.Commute, ← reflTransGen_eq, ← reflTransGen_eq, ← star_reflTransGen]
-  exact diamond_commute_iff
+  exact diamondCommute_iff
 
-theorem semiConfluent_iff : Relation.SemiConfluent (· ~[r] ·) ↔
-    star r * reflTransGen r ≤ reflTransGen r * reflTransGen (star r) := by
-  simp [Relation.SemiConfluent, ← reflTransGen_eq, Set.subset_def, ← star_reflTransGen, join_iff]
-  grind
+theorem confluent_iff : Relation.Confluent (· ~[r] ·) ↔
+    reflTransGen (star r) * reflTransGen r ⊆ reflTransGen r * reflTransGen (star r) :=
+  commute_iff
 
 theorem semiCommute_iff : Relation.SemiCommute (· ~[s] ·) (· ~[r] ·) ↔
-    star s * reflTransGen r ≤ reflTransGen r * reflTransGen (star s) := by
+    star s * reflTransGen r ⊆ reflTransGen r * reflTransGen (star s) := by
   simp [Relation.SemiCommute, ← reflTransGen_eq, Set.subset_def, ← star_reflTransGen, join₂_iff]
   grind
 
+theorem semiConfluent_iff : Relation.SemiConfluent (· ~[r] ·) ↔
+    star r * reflTransGen r ⊆ reflTransGen r * reflTransGen (star r) :=
+  semiCommute_iff
+
 theorem churchRosser_iff : Relation.ChurchRosser (· ~[r] ·) ↔
-    reflTransGen (symmGen r) ≤ reflTransGen r * reflTransGen (star r) := by
+    reflTransGen (symmGen r) ⊆ reflTransGen r * reflTransGen (star r) := by
   simp [Relation.ChurchRosser, ← Relation.reflTransGen_symmGen, Set.subset_def, Relation.Join,
     ← reflTransGen_eq, ← symmGen_eq, ← star_reflTransGen]
 
-theorem locallyConfluent_iff : Relation.LocallyConfluent (· ~[r] ·) ↔
-    star r * r ≤ reflTransGen r * reflTransGen (star r) := by
-  simp [Relation.LocallyConfluent, ← reflTransGen_eq, join_iff, Set.subset_def]
-  grind
-
 theorem locallyCommute_iff : Relation.LocallyCommute (· ~[s] ·) (· ~[r] ·) ↔
-    star s * r ≤ reflTransGen r * reflTransGen (star s) := by
+    star s * r ⊆ reflTransGen r * reflTransGen (star s) := by
   simp [Relation.LocallyCommute, ← reflTransGen_eq, join₂_iff, Set.subset_def]
   grind
 
-theorem stronglyConfluent_iff : Relation.StronglyConfluent (· ~[r] ·) ↔
-    star r * r ≤ reflGen r * reflTransGen (star r) := by
-  simp [Relation.StronglyConfluent, ← reflGen_eq, ← reflTransGen_eq, Set.subset_def,
-    ← star_reflTransGen]
-  grind
+theorem locallyConfluent_iff : Relation.LocallyConfluent (· ~[r] ·) ↔
+    star r * r ⊆ reflTransGen r * reflTransGen (star r) :=
+  locallyCommute_iff
 
 theorem stronglyCommute_iff : Relation.StronglyCommute (· ~[s] ·) (· ~[r] ·) ↔
-    star s * r ≤ reflGen r * reflTransGen (star s) := by
+    star s * r ⊆ reflGen r * reflTransGen (star s) := by
   simp [Relation.StronglyCommute, ← reflGen_eq, ← reflTransGen_eq, Set.subset_def,
     ← star_reflTransGen]
   grind
+
+theorem stronglyConfluent_iff : Relation.StronglyConfluent (· ~[r] ·) ↔
+    star r * r ⊆ reflGen r * reflTransGen (star r) :=
+  stronglyCommute_iff
 
 theorem ofSet_reducible_eq : ofSet {x | Relation.Reducible (· ~[r] ·) x} = relDom r := by
   rw [relDom_eq_ofSet]

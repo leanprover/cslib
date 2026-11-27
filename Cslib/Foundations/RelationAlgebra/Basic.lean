@@ -337,7 +337,6 @@ theorem disjoint_symmetricDiversityAtoms_nonsymmetricDiversityAtoms :
 
 theorem setOf_isAtom_eq : {a : α | IsAtom a} =
     identityAtoms α ∪ symmetricDiversityAtoms α ∪ nonsymmetricDiversityAtoms α := by
-  ext a
   grind [identityAtoms, symmetricDiversityAtoms, nonsymmetricDiversityAtoms, IsAtom.le_compl_iff]
 
 theorem identityAtoms_eq_of_isIntegral (h : IsIntegral α) : identityAtoms α = {1} := by
