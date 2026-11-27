@@ -503,7 +503,7 @@ theorem extract_succ_right {xs : ωSequence α} {m n : ℕ} (h_mn : m ≤ n) :
   rw [← append_extract_extract h_mn] <;>
   grind [extract_eq_drop_take, add_tsub_cancel_left]
 
-@[simp, scoped grind =]
+@[scoped grind =]
 theorem extract_lu_extract_lu {xs : ωSequence α} {m n i j : ℕ} (h : j ≤ n - m) :
     (xs.extract m n).extract i j = xs.extract (m + i) (m + j) := by
   ext k
@@ -525,8 +525,11 @@ theorem take_extract {xs : ωSequence α} {m n k : ℕ} (h : k ≤ n - m) :
   grind [extract_lu_extract_lu (xs := xs) (i := 0) h]
 
 @[simp, scoped grind =]
-theorem drop_extract {xs : ωSequence α} {m n k : ℕ} (h : k ≤ n - m) :
+theorem drop_extract {xs : ωSequence α} {m n k : ℕ} :
     (xs.extract m n).drop k = xs.extract (m + k) n := by
+  by_cases h : n - m < k
+  · rw [List.drop_eq_nil_of_le (by simp; lia), eq_comm, extract_eq_nil_iff]
+    lia
   by_cases m ≤ n
   · grind only [extract_lu_extract_lu, length_extract, List.length_drop, List.take_length]
   · have : k = 0 := by grind only
