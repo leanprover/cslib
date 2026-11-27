@@ -34,10 +34,10 @@ abbrev Equation (α : Type*) := relationAlgebra.Term α × relationAlgebra.Term 
 
 variable {α : Type*}
 
-/-- An algebra satisfies an equation if the terms agree at every assignment. -/
+/-- An algebra satisfies an equation if its equality formula holds at every assignment. -/
 def Equation.Holds (e : Equation α) (A : Type*) [RelationAlgebra A] : Prop :=
   letI := compatibleRelationAlgebraOfRelationAlgebra A
-  ∀ v : α → A, e.1.realize v = e.2.realize v
+  ∀ v : α → A, (e.1.equal e.2).Realize v
 
 /-- An equation valid in every representable relation algebra, including infinite ones. -/
 def Equation.ValidInRRA (e : Equation α) : Prop :=
@@ -50,8 +50,9 @@ theorem Equation.holds_of_injective {A B : Type*} [RelationAlgebra A] [RelationA
   let _ := compatibleRelationAlgebraOfRelationAlgebra A
   let _ := compatibleRelationAlgebraOfRelationAlgebra B
   intro v
+  apply Formula.realize_equal.mpr
   apply hf
-  simpa only [HomClass.realize_term] using h (f ∘ v)
+  simpa only [HomClass.realize_term] using Formula.realize_equal.mp (h (f ∘ v))
 
 namespace Equation
 
@@ -167,6 +168,7 @@ private theorem no_failures {e : Equation α}
   choose N hseed hN using networks
   let v (x : α) : SetRel (ULift.{u} ℕ) (ULift.{u} ℕ) :=
     {p | ∀ᶠ n in U, (N n).atom p.1.down p.2.down ∈ (F n).assignment x}
+  simp only [Holds, Formula.realize_equal] at he
   have hv : value v e.1 = value v e.2 := he v
   have endpoints : ∀ᶠ n in U, ∃ j : Fin 2, (N n).atom 0 j = (F n).atom := .of_forall fun n => by
     cases h : (F n).atom with
@@ -195,6 +197,7 @@ theorem exists_commonWitnesses_bound (e : Equation α) (he : e.ValidInRRA) :
   have bad (n : ℕ) : Nonempty (Failure e (n + 2)) := by
     obtain ⟨d,hd,T,inst,hw,hbad⟩ := h (n + 2) (by omega)
     let _ := inst
+    simp only [Holds, Formula.realize_equal] at hbad
     obtain ⟨v,hv⟩ := not_forall.mp hbad
     have hz : ∃ z, ¬ (z ∈ value v e.1 ↔ z ∈ value v e.2) :=
       not_forall.mp fun hs => hv (ComplexAlgebra.ext hs)
