@@ -15,7 +15,7 @@ import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 
 /-!
-# Lupanov's asymptotically optimal upper bound.
+# Lupanov's asymptotically optimal upper bound
 
 Every Boolean function on `n` inputs has a De Morgan circuit with at most
 `(1 + ε) * 2 ^ n / n` gates for all sufficiently large `n`, given any `ε > 0`.

@@ -11,7 +11,7 @@ public import Cslib.Computability.Circuit.Counting
 import Mathlib.Tactic.Linarith
 
 /-!
-# Counting De Morgan circuits.
+# Counting De Morgan circuits
 
 This file specializes the generic circuit counting bound to the five De Morgan operations,
 all of arity at most two. The resulting factorial correction is used in Shannon's lower bound.
