@@ -16,7 +16,7 @@ This file defines `SDiff (Set.Iic a)` and `HImp (Set.Ici a)` for an element `a :
 respectively, a co-Heyting or Heyting algebra. In the case that `α` is a (generalized) Boolean
 algebra, this makes `Set.Iic a` a Boolean algebra.
 
-Note that further instances of this sort can be defined, but the `SDiff` and `HImp` operations
+Note that further instances of this sort can be defined, but the `SDiff` and `HImp operations
 cease to commute with the coercions. As it stands, only the instances necessary for downstream use
 are defined.
 -/

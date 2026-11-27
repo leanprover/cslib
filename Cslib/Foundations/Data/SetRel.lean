@@ -29,6 +29,7 @@ lemma map_mem_map (h : a ~[r] b) : f a ~[r.map f g] g b := mem_map.mpr ⟨a, b, 
 
 @[simp] lemma map_inv : (s.map f g).inv = s.inv.map g f := by ext; grind
 
+/-- Test docstring for the weekly linters CI, with an unclosed code span: `Set.image_mono. -/
 lemma map_subset_map (h : s ⊆ r) : s.map f g ⊆ r.map f g := Set.image_mono h
 
 lemma map_subset_map_iff (hf : f.Injective) (hg : g.Injective) :
