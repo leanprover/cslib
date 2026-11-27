@@ -68,12 +68,9 @@ variable {Γ Δ Θ : Context Var (Ty Base)}
 omit [DecidableEq Var] in
 /-- Typing is preserved on permuting a context. -/
 theorem perm (ht : Γ ⊢ t ∶ τ) (hperm : Γ.Perm Δ) : Δ ⊢ t ∶ τ := by
-  induction ht generalizing Δ
-  case abs ih =>
-    constructor
-    intros x mem
-    exact ih x mem (by simp_all)
-  all_goals grind
+  induction ht generalizing Δ with
+  | abs _ _ ih => exact abs _ fun x mem => ih x mem (hperm.cons _)
+  | _ => grind
 
 /-- Weakening of a typing derivation with an appended context. -/
 lemma weaken_aux (der : Γ ++ Δ ⊢ t ∶ τ) : (Γ ++ Θ ++ Δ)✓ → (Γ ++ Θ ++ Δ) ⊢ t ∶ τ := by

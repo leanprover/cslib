@@ -42,19 +42,19 @@ Technical leads guide long-term developments that may span multiple areas of the
 
 Area maintainers are trusted contributors who take ownership of specific areas of the codebase, supporting their growth both as subject-matter experts and reviewers.
 
+- Ching-Tsun Chou (@ctchou). Areas: automata theory, formal languages, distributed computing, temporal logics, LTS, circuit complexity.
 - Chris Henson (@chenson2018), Drexel University. Areas: Lambda calculus, metaprogramming.
 - Kim Morrison (@kim-em), Lean FRO. Areas: Continuous Integration and Deployment (CI/CD) with upstream (Lean, mathlib).
 - Alexandre Rademaker (@arademaker), Renaissance Philanthropy and Getulio Vargas Foundation. Areas: logic.
 - Samuel Schlesinger (@SamuelSchlesinger), Google. Areas: complexity, cryptography, and learning theory.
 - Christian Reitwiessner (@crei). Areas: complexity.
+- Thomas Waring (@thomaskwaring). Areas: logic.
 - Sorrachai Yingchareonthawornchai (@sorrachai), ETH Zurich. Areas: algorithms and data structures.
 
 ## Reviewers
 
 Reviewers are trusted contributors who provide regular reviewing and technical guidance to PRs to CSLib.
 
-- Ching-Tsun Chou (@ctchou).
-- Aviv Bar Natan (@barni120400).
-- Thomas Waring (@thomaskwaring).
+- Aviv Bar Natan (@barni120400). Areas: complexity, algorithms and data structures.
 - Eric Wieser (@eric-wieser), Google DeepMind.
-- Xueying Qin (@XYUnknown), FORM, University of Southern Denmark.
+- Xueying Qin (@XYUnknown), FORM, University of Southern Denmark. Areas: concurrency theory, LTS, modal logic.

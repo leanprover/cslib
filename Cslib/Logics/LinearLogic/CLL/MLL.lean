@@ -7,7 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Logics.LinearLogic.CLL.Basic
-public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.InferenceSystem.Defs
 
 /-! # Multiplicative Classical Linear Logic (MLL)
 

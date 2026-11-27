@@ -24,7 +24,7 @@ namespace Cslib.Circuits.Boolean
 variable {n s : ℕ}
 
 /-- Boolean functions on `n` inputs computable with at most `s` De Morgan gates. -/
-noncomputable abbrev computableFunctions (n s : ℕ) : Finset (BooleanFunction n) :=
+abbrev computableFunctions (n s : ℕ) : Set (BooleanFunction n) :=
   Circuits.computableFunctions interpretation n s
 
 theorem mem_computableFunctions {f : BooleanFunction n} :
@@ -34,7 +34,7 @@ theorem mem_computableFunctions {f : BooleanFunction n} :
 
 /-- The De Morgan counting bound, accounting for gate relabelings. -/
 theorem card_computableFunctions_mul_factorial_le (n s : ℕ) :
-    (computableFunctions n s).card * s.factorial ≤
+    (computableFunctions n s).ncard * s.factorial ≤
       (s + 1) * (5 * (n + s + 1) ^ 2) ^ s * (n + s) := by
   apply Circuits.card_computableFunctions_mul_factorial_le interpretation n s
   · nlinarith [Nat.le_mul_self (n + s + 1)]

@@ -14,10 +14,10 @@ permissions:
 jobs:
   build:
     if: github.repository == 'leanprover/cslib'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
