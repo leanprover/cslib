@@ -243,7 +243,7 @@ instance : IsRelTrans (transGen a) where
       grw [transGenStep_coe, mul_sup, ← mul_assoc, hx, transGen_mul_self_le, sup_idem]
     · simp [mul_sSup]
 
-lemma mul_transGen_self_le (a : α) : a * transGen a ≤ transGen a :=
+lemma self_mul_transGen_le (a : α) : a * transGen a ≤ transGen a :=
   (mul_le_mul_left (le_transGen a) (transGen a)).trans <| mul_self_le_of_trans (transGen a)
 
 @[gcongr] lemma transGen_mono (h : a ≤ b) : transGen a ≤ transGen b :=
@@ -262,6 +262,13 @@ lemma transGen_of_trans (a : α) [IsRelTrans a] : transGen a = a :=
     nth_grw 1 [← star_star a, this (star a), star_star]
   intro b
   grw [transGen_le, le_transGen b]
+
+lemma transGen_eq_sup (a : α) : transGen a = a ⊔ transGen a * a :=
+  (transGenStep a).map_lfp.symm
+
+lemma transGen_eq_sup' (a : α) : transGen a = a ⊔ a * transGen a := star_injective <| by
+  push star
+  exact transGen_eq_sup (star a)
 
 instance [IsRelRefl a] : IsRelRefl (transGen a) where
   one_le := (one_le_of_refl a).trans (le_transGen a)
@@ -311,6 +318,18 @@ instance [IsRelSymm a] : IsRelSymm (reflTransGen a) := inferInstanceAs <| IsRelS
 
 lemma symmGen_reflTransGen_le (a : α) : symmGen (reflTransGen a) ≤ reflTransGen (symmGen a) := by
   grw [reflTransGen, symmGen_reflGen, symmGen_transGen_le, reflTransGen]
+
+lemma reflTransGen_mul_self (a : α) : reflTransGen a * a = transGen a := by
+  rw [reflTransGen, reflGen, sup_mul, one_mul, ← transGen_eq_sup]
+
+lemma self_mul_reflTransGen (a : α) : a * reflTransGen a = transGen a := by
+  rw [reflTransGen, reflGen, mul_sup, mul_one, ← transGen_eq_sup']
+
+lemma reflTransGen_eq_sup (a : α) : reflTransGen a = 1 ⊔ reflTransGen a * a :=
+  congr(1 ⊔ $((reflTransGen_mul_self a).symm))
+
+lemma reflTransGen_eq_sup' (a : α) : reflTransGen a = 1 ⊔ a * reflTransGen a :=
+  congr(1 ⊔ $((self_mul_reflTransGen a).symm))
 
 end Complete
 
@@ -437,6 +456,18 @@ lemma relCod_eq_relCod_iff : relCod a = relCod b ↔ ⊤ * a = ⊤ * b := by
     rw [← top_mul_relCod, h, top_mul_relCod]
   · simp +contextual [relCod]
 
+lemma relDom_mul_relDom : relDom (a * relDom b) = relDom (a * b) := by
+  rw [relDom_eq_relDom_iff, mul_assoc, relDom_mul_top, mul_assoc]
+
+lemma relDom_mul_le : relDom (a * b) ≤ relDom a := by
+  grw [← relDom_mul_relDom, mul_right_le]
+
+lemma relCod_relCod_mul : relCod (relCod a * b) = relCod (a * b) := by
+  rw [relCod_eq_relCod_iff, ← mul_assoc, top_mul_relCod, ← mul_assoc]
+
+lemma relCod_mul_le : relCod (a * b) ≤ relCod b := by
+  grw [← relCod_relCod_mul, mul_left_le]
+
 lemma relDom_of_isRelCorefl (a : α) [IsRelCorefl a] : relDom a = a := by
   rw [relDom, mul_top_inf_eq_mul, mul_one]
 
@@ -467,6 +498,31 @@ lemma relDom_eq_one_iff : relDom a = 1 ↔ a * ⊤ = ⊤ := by
 
 lemma relCod_eq_one_iff : relCod a = 1 ↔ ⊤ * a = ⊤ := by
   rw [← relCod_of_isRelRefl (a := ⊤), relCod_eq_relCod_iff, mul_self_eq]
+
+@[simp] lemma relDom_sup : relDom (a ⊔ b) = relDom a ⊔ relDom b := by
+  simp [relDom, sup_mul, inf_sup_right]
+
+@[simp] lemma relCod_sup : relCod (a ⊔ b) = relCod a ⊔ relCod b := by
+  simp [relCod, mul_sup, inf_sup_right]
+
+@[simp] lemma relDom_symmGen : relDom (symmGen a) = relDom a ⊔ relCod a := by
+  rw [symmGen, relDom_sup, relDom_star]
+
+@[simp] lemma relCod_symmGen : relCod (symmGen a) = relDom a ⊔ relCod a := by
+  rw [← relDom_star, star_eq_of_symm, relDom_symmGen]
+
+@[simp] lemma relDom_transGen {α : Type*} [CompleteRelationAlgebra α] (a : α) :
+    relDom (transGen a) = relDom a := by
+  refine le_antisymm (relDom_le_iff_le_mul.mpr ?_) (relDom_mono <| le_transGen a)
+  refine (transGenStep a).lfp_induction (p := (· ≤ relDom a * transGen a)) ?_ (by simp)
+  intro b hb hb'
+  apply sup_le
+  · grw [← le_transGen, relDom_mul_self a]
+  · grw [hb, mul_assoc, transGen_mul_self_le]
+
+@[simp] lemma relCod_transGen {α : Type*} [CompleteRelationAlgebra α] (a : α) :
+    relCod (transGen a) = relCod a := by
+  rw [← relDom_star, star_transGen, relDom_transGen, relDom_star]
 
 end Cslib.RelationAlgebra
 
@@ -511,6 +567,10 @@ theorem mem_transGen_iff : x ~[transGen r] y ↔ Relation.TransGen (· ~[r] ·) 
     induction h with
     | single h => exact le_transGen r h
     | @tail y z h h' ih => exact transGen_mul_self_le r ⟨y, ih, h'⟩
+
+theorem mem_reflTransGen_iff : x ~[reflTransGen r] y ↔ Relation.ReflTransGen (· ~[r] ·) x y := by
+  rw [reflTransGen, reflGen, Relation.reflTransGen_iff_eq_or_transGen, Eq.comm, Set.mem_union,
+    mem_one, mem_transGen_iff]
 
 theorem relDom_eq_ofSet : relDom r = ofSet r.dom := by
   ext ⟨x, y⟩
