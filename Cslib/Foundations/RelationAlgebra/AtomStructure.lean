@@ -114,8 +114,8 @@ instance : SetLike (ComplexAlgebra A) α where
 instance : CompleteAtomicBooleanAlgebra (ComplexAlgebra A) :=
   (equivSet A).completeAtomicBooleanAlgebra
 
-instance : IsConcreteLE (ComplexAlgebra A) α where
-  le_iff := .rfl
+instance : IsMemLE (ComplexAlgebra A) α where
+  le_iff_mem_imp_mem := .rfl
 
 instance [Finite α] : Finite (ComplexAlgebra A) := Finite.of_equiv (Set α) (equivSet A).symm
 
@@ -132,6 +132,9 @@ instance : Mul (ComplexAlgebra A) where
 
 instance : Star (ComplexAlgebra A) where
   star x := ⟨A.conv '' x.carrier⟩
+
+instance : Singleton α (ComplexAlgebra A) where
+  singleton a := ⟨{a}⟩
 
 section
 
@@ -162,7 +165,7 @@ theorem mem_star [LawfulAtomStructure A] : a ∈ star x ↔ A.conv a ∈ x :=
   Set.mem_image_iff_of_inverse A.conv_conv A.conv_conv
 
 protected theorem isRelRefl_iff (x : ComplexAlgebra A) : IsRelRefl x ↔ A.id ⊆ x := by
-  simp [isRelRefl_iff, IsConcreteLE.le_iff]
+  simp [isRelRefl_iff, le_iff_mem_imp_mem]
 
 protected theorem isRelSymm_iff [LawfulAtomStructure A] (x : ComplexAlgebra A) :
     IsRelSymm x ↔ ∀ {a : α}, a ∈ x → A.conv a ∈ x := by
@@ -172,8 +175,41 @@ protected theorem isRelSymm_iff [LawfulAtomStructure A] (x : ComplexAlgebra A) :
 
 protected theorem isRelTrans_iff (x : ComplexAlgebra A) :
     IsRelTrans x ↔ ∀ {a b c : α}, a ∈ x → b ∈ x → (a, b, c) ∈ A.cycles → c ∈ x := by
-  simp [isRelTrans_iff, IsConcreteLE.le_iff, mem_mul]
+  simp [isRelTrans_iff, le_iff_mem_imp_mem, mem_mul]
   grind
+
+@[simp, norm_cast]
+theorem coe_singleton : (({a} : ComplexAlgebra A) : Set α) = {a} := rfl
+
+@[simp, grind =]
+theorem mem_singleton {b : α} : b ∈ ({a} : ComplexAlgebra A) ↔ b = a := .rfl
+
+variable (A) in
+theorem singleton_injective : Function.Injective (singleton : α → ComplexAlgebra A) :=
+  fun _ _ h => Set.singleton_injective congr(carrier $h)
+
+@[simp]
+theorem singleton_inj {b : α} : ({a} : ComplexAlgebra A) = {b} ↔ a = b :=
+  (singleton_injective A).eq_iff
+
+@[simp]
+theorem singleton_le_iff : {a} ≤ x ↔ a ∈ x := Set.singleton_subset_iff
+
+@[simp]
+theorem star_singleton : star ({a} : ComplexAlgebra A) = {A.conv a} :=
+  congr(mk $(Set.image_singleton ..))
+
+theorem isAtom_iff : IsAtom x ↔ ∃ a, x = {a} :=
+  ((orderIsoSet A).isAtom_iff x).symm.trans <|
+    Set.isAtom_iff.trans <| exists_congr fun _ => (equivSet A).eq_symm_apply.symm
+
+@[simp]
+theorem isAtom_singleton : IsAtom ({a} : ComplexAlgebra A) := isAtom_iff.mpr ⟨a, rfl⟩
+
+theorem ncard_preimage_singleton {S : Set (ComplexAlgebra A)} (hS : ∀ x ∈ S, IsAtom x) :
+    (singleton ⁻¹' S).ncard = S.ncard :=
+  Set.ncard_preimage_of_injective_subset_range (singleton_injective A)
+    fun x hx => (isAtom_iff.mp (hS x hx)).imp fun _ => Eq.symm
 
 end
 
@@ -187,13 +223,25 @@ instance : RelationAlgebra (ComplexAlgebra A) where
   star_mul x y := by ext; grind [=> A.conv_cycles]
   sup_mul a b c := by ext; grind
   star_sup a b := by ext; simp
-  tarski x y := by grind [IsConcreteLE.le_iff, => A.cycle_left]
+  tarski x y := by grind [le_iff_mem_imp_mem, => A.cycle_left]
 
 instance : CompleteAtomicRelationAlgebra (ComplexAlgebra A) where
 
 /-- A complex algebra is integral exactly when its identity set is a singleton. -/
 theorem isIntegral_iff : IsIntegral (ComplexAlgebra A) ↔ ∃ a, A.id = {a} :=
   ((orderIsoSet A).isAtom_iff (1 : ComplexAlgebra A)).symm.trans Set.isAtom_iff
+
+variable {A} {a : α}
+
+@[simp]
+theorem singleton_mem_symmetricDiversityAtoms_iff :
+    {a} ∈ symmetricDiversityAtoms (ComplexAlgebra A) ↔ a ∉ A.id ∧ A.conv a = a := by
+  simp [symmetricDiversityAtoms]
+
+@[simp]
+theorem singleton_mem_nonsymmetricDiversityAtoms_iff :
+    {a} ∈ nonsymmetricDiversityAtoms (ComplexAlgebra A) ↔ A.conv a ≠ a := by
+  simp [nonsymmetricDiversityAtoms]
 
 end ComplexAlgebra
 
