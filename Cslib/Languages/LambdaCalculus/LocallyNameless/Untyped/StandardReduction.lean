@@ -182,14 +182,19 @@ lemma StandardSeq.app_l_cong (h : StandardSeq n L L') :
     · have hseq := hc.tail (step.appNoAbsL hQ) (by simp only [ite_eq_right hQ] at hc_le; omega)
       exact ⟨_, hseq, by split <;> omega⟩
 
-/-- A nonempty operator reduction lifts to the application, bounded by the operator's redex
-    count. -/
-lemma StandardSeq.app_l_cong_of_ne (h : StandardSeq n L L') (hne : L ≠ L') :
+/-- An operator reduction lifts to the application, bounded by the operator's redex count. -/
+lemma StandardSeq.app_l_cong_le_countRedexes (h : StandardSeq n L L') :
     ∃ k, StandardSeq k (app L M) (app L' M) ∧
       k ≤ countRedexes L' + (if IsAbs L' then 1 else 0) := by
+  by_cases hne : L = L'
+  · subst hne
+    exact ⟨0, .refl, Nat.zero_le _⟩
   have hn := h.le_countRedexes_of_ne hne
   have ⟨k, hseq, hk⟩ := h.app_l_cong (M := M)
   exact ⟨k, hseq, by omega⟩
+
+@[deprecated (since := "2026-11-16")]
+alias StandardSeq.app_l_cong_of_ne := StandardSeq.app_l_cong_le_countRedexes
 
 omit [HasFresh Var] in
 /-- Append an operand step to a standard sequence of applications. -/
@@ -221,7 +226,7 @@ lemma StandardSeq.app_cong (hL : StandardSeq n L L') (hM : StandardSeq b M M') :
   · subst hLL
     have ⟨k, hseq, _⟩ := hM.app_r_cong (L := L)
     exact ⟨k, hseq⟩
-  · have ⟨_, happ, hbound⟩ := hL.app_l_cong_of_ne (M := M) hLL
+  · have ⟨_, happ, hbound⟩ := hL.app_l_cong_le_countRedexes (M := M)
     have ⟨k, hseq, _⟩ := hM.app_r_trans happ hbound
     exact ⟨k, hseq⟩
 
@@ -230,7 +235,7 @@ variable [DecidableEq Var]
 /-! ## Standardization -/
 
 /-- Standard reduction is preserved by substitution. -/
-lemma Standard.subst (hM : M ⭢ₛ M') (hN : N ⭢ₛ N') (x : Var) (lc_N : LC N) (lc_N' : LC N') :
+lemma Standard.subst (hM : M ⭢ₛ M') (hN : N ⭢ₛ N') (x : Var) :
     (M[x := N]) ⭢ₛ (M'[x := N']) := by
   induction hM generalizing N N'
   case fvar =>
@@ -238,18 +243,22 @@ lemma Standard.subst (hM : M ⭢ₛ M') (hN : N ⭢ₛ N') (x : Var) (lc_N : LC 
     split
     · exact hN
     · exact fvar _
-  case app ihL ihM => exact app (ihL hN lc_N lc_N') (ihM hN lc_N lc_N')
+  case app ihL ihM => exact app (ihL hN) (ihM hN)
   case abs m m' _ _ ih =>
+    have := hN.lc_l
+    have := hN.lc_r
     apply abs <| free_union [fv] Var
     grind
   case rdx n m' _ lc_m lc_n cbn_m std_p ih =>
     rw [Term.subst_app]
-    have std_p_subst := ih hN lc_N lc_N'
-    rw [Term.subst_open x N n m' lc_N] at std_p_subst
-    exact rdx (subst_lc lc_m lc_N) (subst_lc lc_n lc_N) (CBN.steps_subst x cbn_m lc_N) std_p_subst
+    have std_p_subst := ih hN
+    rw [Term.subst_open x N n m' hN.lc_l] at std_p_subst
+    exact rdx (subst_lc lc_m hN.lc_l) (subst_lc lc_n hN.lc_l) (CBN.steps_subst x cbn_m hN.lc_l)
+      std_p_subst
 
 /-- A single full β-step is a standard reduction. -/
-lemma Standard.of_beta_step (step : M ⭢βᶠ N) (lc_M : LC M) : M ⭢ₛ N := by
+lemma Standard.of_beta_step (step : M ⭢βᶠ N) : M ⭢ₛ N := by
+  have lc_M := FullBeta.step_lc_l step
   induction step
   case base h_beta => grind [rdx, lc_refl]
   case appL Z A B lc_Z _ ih =>
@@ -294,12 +303,14 @@ lemma Standard.abs_inv (h : M ⭢ₛ N) (M' : Term Var) (eq : N = Term.abs M') :
 
 /-- Standard reduction of abstractions is preserved by opening. -/
 lemma Standard.abs_subst
-    (h_abs : Term.abs M ⭢ₛ Term.abs M') (hN : N ⭢ₛ N') (lc_N : LC N) (lc_N' : LC N') :
+    (h_abs : Term.abs M ⭢ₛ Term.abs M') (hN : N ⭢ₛ N') :
     (M ^ N) ⭢ₛ (M' ^ N') := by
+  have lc_N := hN.lc_l
+  have lc_N' := hN.lc_r
   cases h_abs
   case abs h_body =>
     have ⟨y, _⟩ := fresh_exists <| free_union [fv] Var
-    have := subst (h_body y (by grind)) hN y lc_N lc_N'
+    have := subst (h_body y (by grind)) hN y
     grind
 
 /-- A standard reduction followed by a full β-step is a standard reduction. -/
@@ -319,7 +330,7 @@ lemma Standard.trans_step (h1 : M ⭢ₛ P) (h2 : P ⭢βᶠ N) : M ⭢ₛ N := 
     case base h_beta =>
       cases h_beta
       have ⟨L, cbn_L1, std_abs⟩ := abs_inv std_L _ rfl
-      have std_subst := std_abs.abs_subst std_M std_M.lc_l std_M.lc_r
+      have std_subst := std_abs.abs_subst std_M
       have s1 : L'.app M ↠ₙ L.abs.app M := CBN.steps_app_l_cong cbn_L1 std_M.lc_l
       have s2 : L.abs.app M ⭢ₙ L ^ M := .base (.beta (CBN.steps_lc_r std_L.lc_l cbn_L1) std_M.lc_l)
       exact Standard.cbn_trans (.tail s1 s2) std_subst
@@ -347,7 +358,7 @@ instance : Trans (· ⭢ₛ · : Term Var → Term Var → Prop) (· ⭢ₛ ·) 
 theorem Standard.standardization (lc_M : LC M) (step : M ↠βᶠ N) : M ⭢ₛ N := by
   induction step with
   | refl => exact lc_refl M lc_M
-  | tail _ h_step ih => exact ih.trans (of_beta_step h_step h_step.step_lc_l)
+  | tail _ h_step ih => exact ih.trans (of_beta_step h_step)
 
 /-- Standard reduction coincides with full β-reduction on locally closed terms. -/
 theorem Standard.iff_redex (lc_M : LC M) : M ⭢ₛ N ↔ M ↠βᶠ N :=
@@ -362,23 +373,20 @@ lemma StandardSeq.lc_r (h : StandardSeq n M N) (lc : LC M) : LC N := by
   | tail _ step _ ih => exact step.lc_r (ih lc)
 
 /-- Closing a variable and abstracting preserves a standard sequence. -/
-lemma StandardSeq.abs_close {x : Var} (h : StandardSeq n M M') (lc : LC M) :
+lemma StandardSeq.abs_close {x : Var} (h : StandardSeq n M M') :
     StandardSeq n (M⟦0 ↜ x⟧.abs) (M'⟦0 ↜ x⟧.abs) := by
   induction h with
   | refl => exact .refl
-  | tail seq step hni ih => exact (ih lc).tail (step.abs_close (seq.lc_r lc)) hni
+  | tail _ step hni ih => exact ih.tail step.abs_close hni
 
 /-- Abstraction congruence for standard sequences. -/
 lemma StandardSeq.abs_cong (xs : Finset Var)
-    (cofin : ∀ x ∉ xs, ∃ n, StandardSeq n (M ^ fvar x) (M' ^ fvar x))
-    (lc : LC (abs M)) : ∃ n, StandardSeq n (abs M) (abs M') := by
+    (cofin : ∀ x ∉ xs, ∃ n, StandardSeq n (M ^ fvar x) (M' ^ fvar x)) :
+    ∃ n, StandardSeq n (abs M) (abs M') := by
   have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
   have ⟨n, hseq⟩ := cofin w (by grind)
-  have hlc := beta_lc lc (.fvar w)
-  have habs : StandardSeq n (abs M) (abs M') := by
-    rw [open_close w M 0 (by grind), open_close w M' 0 (by grind)]
-    exact hseq.abs_close hlc
-  exact ⟨n, habs⟩
+  rw [open_close w M 0 (by grind), open_close w M' 0 (by grind)]
+  exact ⟨n, hseq.abs_close⟩
 
 /-- A standard sequence is a full β-reduction. -/
 lemma StandardSeq.to_redex (h : StandardSeq n M N) (lc_M : LC M) : M ↠βᶠ N := by
@@ -394,7 +402,7 @@ theorem Standard.to_seq (h : M ⭢ₛ N) : ∃ n, StandardSeq n M N := by
     have ⟨_, hL⟩ := ihL
     have ⟨_, hM⟩ := ihM
     exact hL.app_cong hM
-  case abs xs h_body ih => exact StandardSeq.abs_cong xs ih ((Standard.abs xs h_body).lc_l)
+  case abs xs _ ih => exact StandardSeq.abs_cong xs ih
   case rdx K P K' _ lc_K lc_P cbn _ ih =>
     have ⟨_, hk⟩ := ih
     have cbn_full : K.app P ↠ₙ K' ^ P :=
