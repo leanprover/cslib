@@ -45,9 +45,9 @@ inductive BetaAt : Nat → Term Var → Term Var → Prop
 /-- The outermost redex sits at position `0`. -/
 | outer : LC (abs M) → LC N → BetaAt 0 (app (abs M) N) (M ^ N)
 /-- Reducing the operator advances the position by one when the operator is an abstraction. -/
-| appL : BetaAt i M M' → BetaAt (i + if IsAbs M then 1 else 0) (app M N) (app M' N)
+| appL : LC N → BetaAt i M M' → BetaAt (i + if IsAbs M then 1 else 0) (app M N) (app M' N)
 /-- Reducing the operand adds the operator's redex count, plus one when it is an abstraction. -/
-| appR : BetaAt i M M' →
+| appR : LC N → BetaAt i M M' →
     BetaAt (i + countRedexes N + if IsAbs N then 1 else 0) (app N M) (app N M')
 /-- Reducing under a binder keeps the position. -/
 | abs (xs : Finset Var) :
@@ -55,25 +55,34 @@ inductive BetaAt : Nat → Term Var → Term Var → Prop
 
 variable {L L' M M' N N' P : Term Var} {a b i m n : Nat}
 
+/-- The left side of a `BetaAt` step is locally closed. -/
+@[scoped grind →]
+lemma BetaAt.lc_l (h : BetaAt i M M') : LC M := by
+  induction h with
+  | outer lc_M lc_N => exact .app lc_M lc_N
+  | appL lc_N _ ih => exact .app ih lc_N
+  | appR lc_N _ ih => exact .app lc_N ih
+  | abs xs _ ih => exact .abs xs _ ih
+
 /-- Reducing a non-abstraction operator keeps the position. -/
-lemma BetaAt.appNoAbsL (h : BetaAt i M M') (hna : ¬IsAbs M) :
+lemma BetaAt.appNoAbsL (h : BetaAt i M M') (lc : LC N) (hna : ¬IsAbs M) :
     BetaAt i (app M N) (app M' N) := by
-  simpa [ite_eq_right hna] using h.appL
+  simpa [ite_eq_right hna] using h.appL lc
 
 /-- Reducing an abstraction operator advances the position by one. -/
-lemma BetaAt.appAbsL (h : BetaAt i M M') (ha : IsAbs M) :
+lemma BetaAt.appAbsL (h : BetaAt i M M') (lc : LC N) (ha : IsAbs M) :
     BetaAt (i + 1) (app M N) (app M' N) := by
-  simpa [ite_eq_left ha] using h.appL
+  simpa [ite_eq_left ha] using h.appL lc
 
 /-- Reducing the operand adds the redex count of a non-abstraction operator. -/
-lemma BetaAt.appNoAbsR (h : BetaAt i M M') (hna : ¬IsAbs N) :
+lemma BetaAt.appNoAbsR (h : BetaAt i M M') (lc : LC N) (hna : ¬IsAbs N) :
     BetaAt (i + countRedexes N) (app N M) (app N M') := by
-  simpa [ite_eq_right hna] using h.appR (N := N)
+  simpa [ite_eq_right hna] using h.appR lc
 
 /-- Reducing the operand adds the redex count of an abstraction operator, plus one. -/
-lemma BetaAt.appAbsR (h : BetaAt i M M') (ha : IsAbs N) :
+lemma BetaAt.appAbsR (h : BetaAt i M M') (lc : LC N) (ha : IsAbs N) :
     BetaAt (i + countRedexes N + 1) (app N M) (app N M') := by
-  simpa [ite_eq_left ha] using h.appR (N := N)
+  simpa [ite_eq_left ha] using h.appR lc
 
 /-- Opening with a free variable preserves the number of redexes. -/
 lemma countRedexes_openRec_fvar (M : Term Var) (k : Nat) (x : Var) :
@@ -117,7 +126,15 @@ lemma BetaAt.of_cbn_step (h : M ⭢ₙ N) : BetaAt 0 M N := by
   | base h_beta =>
     cases h_beta with
     | beta lc_M lc_N => exact .outer lc_M lc_N
-  | app _ step_M ih => exact .appNoAbsL ih (cbn_not_isAbs step_M)
+  | app lc_Z step_M ih => exact ih.appNoAbsL lc_Z (cbn_not_isAbs step_M)
+
+/-- A `BetaAt` step is a full β-step. -/
+lemma BetaAt.to_step (h : BetaAt i M N) : M ⭢βᶠ N := by
+  induction h with
+  | outer lc_M lc_N => exact .base (.beta lc_M lc_N)
+  | appL lc_N _ ih => exact .appR lc_N ih
+  | appR lc_N _ ih => exact .appL lc_N ih
+  | abs xs _ ih => exact .abs xs ih
 
 /-- Renaming a free variable preserves the number of redexes. -/
 lemma countRedexes_subst_fvar [DecidableEq Var] (M : Term Var) (x y : Var) :
@@ -132,30 +149,24 @@ lemma countRedexes_subst_fvar [DecidableEq Var] (M : Term Var) (x y : Var) :
 lemma isAbs_subst_fvar [DecidableEq Var] {x y : Var} : IsAbs (M[x := fvar y]) ↔ IsAbs M := by
   cases M <;> grind
 
-/-- A `BetaAt` step is a full β-step. -/
-lemma BetaAt.to_step [DecidableEq Var] (h : BetaAt i M N) (lc : LC M) : M ⭢βᶠ N := by
-  induction h with
-  | outer lc_M lc_N => exact .base (.beta lc_M lc_N)
-  | appL _ ih =>
-    cases lc with
-    | app lc_L lc_R => exact .appR lc_R (ih lc_L)
-  | appR _ ih =>
-    cases lc with
-    | app lc_L lc_R => exact .appL lc_L (ih lc_R)
-  | abs xs _ ih =>
-    cases lc with
-    | abs ys _ h_body =>
-      apply Xi.abs (xs ∪ ys)
-      intro z hz
-      exact ih z (by grind) (h_body z (by grind))
-
 variable [HasFresh Var]
+
+/-- The right side of a `BetaAt` step is locally closed. -/
+@[scoped grind →]
+lemma BetaAt.lc_r (h : BetaAt i M M') : LC M' := by
+  induction h with
+  | outer lc_M lc_N =>
+    rw [← lcAt_iff_LC] at lc_M lc_N ⊢
+    simpa [open', lcAt_openRec_iff_lcAt _ _ 0 lc_N] using lc_M
+  | appL lc_N _ ih => exact .app ih lc_N
+  | appR lc_N _ ih => exact .app lc_N ih
+  | abs xs _ ih => exact .abs xs _ ih
 
 /-- The position of a contracted redex is at most the redex count of the result. -/
 lemma BetaAt.le_countRedexes (h : BetaAt i M N) : i ≤ countRedexes N := by
   induction h with
   | outer => exact Nat.zero_le _
-  | appL step =>
+  | appL _ step =>
     split
     · rw [countRedexes_app_abs (step.isAbs_r (by assumption))]
       omega
@@ -178,44 +189,49 @@ lemma BetaAt.rename (h : BetaAt i M M') (x y : Var) :
   | outer lc_M lc_N =>
     rw [subst_open x (fvar y) _ _ (.fvar y)]
     exact .outer (subst_lc lc_M (.fvar y)) (subst_lc lc_N (.fvar y))
-  | appL _ ih =>
+  | appL lc_N _ ih =>
     split
-    · exact ih.appAbsL (isAbs_subst_fvar.mpr (by assumption))
-    · exact ih.appNoAbsL (mt isAbs_subst_fvar.mp (by assumption))
-  | appR _ ih =>
+    · exact ih.appAbsL (subst_lc lc_N (.fvar y)) (isAbs_subst_fvar.mpr (by assumption))
+    · exact ih.appNoAbsL (subst_lc lc_N (.fvar y)) (mt isAbs_subst_fvar.mp (by assumption))
+  | appR lc_N _ ih =>
     rw [← countRedexes_subst_fvar _ x y]
     split
-    · exact ih.appAbsR (isAbs_subst_fvar.mpr (by assumption))
-    · exact ih.appNoAbsR (mt isAbs_subst_fvar.mp (by assumption))
+    · exact ih.appAbsR (subst_lc lc_N (.fvar y)) (isAbs_subst_fvar.mpr (by assumption))
+    · exact ih.appNoAbsR (subst_lc lc_N (.fvar y)) (mt isAbs_subst_fvar.mp (by assumption))
   | abs =>
     apply BetaAt.abs <| free_union [fv] Var
     grind
 
-/-- Contracting a redex preserves local closure. -/
-lemma BetaAt.lc_r (h : BetaAt i M M') (lc : LC M) : LC M' := by
-  induction h with
-  | outer lc_M lc_N => exact beta_lc lc_M lc_N
-  | appL _ ih =>
-    cases lc with
-    | app lc_L lc_R => exact .app (ih lc_L) lc_R
-  | appR _ ih =>
-    cases lc with
-    | app lc_L lc_R => exact .app lc_L (ih lc_R)
-  | abs xs _ ih =>
-    cases lc with
-    | abs ys _ h_body =>
-      apply LC.abs (xs ∪ ys)
-      intro z hz
-      exact ih z (by grind) (h_body z (by grind))
-
 /-- Closing a variable and abstracting preserves the position of the contracted redex. -/
-lemma BetaAt.abs_close {x : Var} (h : BetaAt i M M') (lc : LC M) :
+lemma BetaAt.abs_close {x : Var} (h : BetaAt i M M') :
     BetaAt i (M⟦0 ↜ x⟧.abs) (M'⟦0 ↜ x⟧.abs) := by
   apply BetaAt.abs ∅
   intro z _
-  have lc' := h.lc_r lc
   have hr : BetaAt i (M[x := fvar z]) (M'[x := fvar z]) := h.rename x z
   grind
+
+/-- Every full β-step contracts the redex at some position. -/
+lemma BetaAt.of_step (h : M ⭢βᶠ N) : ∃ i, BetaAt i M N := by
+  induction h with
+  | base h_beta =>
+    cases h_beta with
+    | beta lc_M lc_N => exact ⟨0, .outer lc_M lc_N⟩
+  | appL lc_Z _ ih =>
+    obtain ⟨i, hi⟩ := ih
+    exact ⟨_, hi.appR lc_Z⟩
+  | appR lc_Z _ ih =>
+    obtain ⟨i, hi⟩ := ih
+    exact ⟨_, hi.appL lc_Z⟩
+  | @abs M M' xs _ ih =>
+    have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
+    obtain ⟨i, hi⟩ := ih w (by grind)
+    refine ⟨i, ?_⟩
+    rw [open_close w M 0 (by grind), open_close w M' 0 (by grind)]
+    exact hi.abs_close
+
+/-- A full β-step is equivalent to contracting the redex at some position. -/
+theorem BetaAt.iff_step : M ⭢βᶠ N ↔ ∃ i, BetaAt i M N :=
+  ⟨BetaAt.of_step, fun ⟨_, h⟩ => h.to_step⟩
 
 end LambdaCalculus.LocallyNameless.Untyped.Term
 
