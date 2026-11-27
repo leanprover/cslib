@@ -76,56 +76,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Report weekly linter suggestions"
-        shell: python
         env:
           OUTCOME: ${{ needs.ci-checks.outputs.weekly-lints-outcome }}
           FINDINGS: ${{ needs.ci-checks.outputs.weekly-lints-findings }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          # The merge commit that the linters ran on, so the line numbers match.
-          SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}
         run: |
-          import hashlib
-          import json
-          import os
-          import sys
-
-          if os.environ["OUTCOME"] != "success":
-              print(f"::error::The weekly linters step did not succeed ({os.environ['OUTCOME']}), see the ci-checks job")
-              sys.exit(1)
-          findings = json.loads(os.environ["FINDINGS"])
-          if not findings:
-              sys.exit(0)
-
-
-          def escape(message):
-              # Workflow commands need `%`, `\r` and `\n` in messages to be escaped.
-              return message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-
-
-          rows = []
-          for finding in findings:
-              path, line, message = finding["path"], finding.get("line"), finding["message"]
-              location = f"{path}:{line}:{finding['col']}" if line else path
-              # GitHub anchors files in the diff by the SHA-256 of their path.
-              diff_url = f"{os.environ['PR_URL']}/files#diff-{hashlib.sha256(path.encode()).hexdigest()}"
-              source_url = f"{os.environ['SOURCE_URL']}/{path}"
-              if line:
-                  diff_url += f"R{line}"
-                  source_url += f"#L{line}"
-              print(f"{location}: {message}\n")
-              position = f",line={line},col={finding['col']}" if line else ""
-              print(f"::warning file={path}{position}::{escape(message)}")
-              summary = message.splitlines()[0].replace("|", "\\|")
-              rows.append(f"| [`{location}`]({diff_url}) ([source]({source_url})) | {summary} |")
-
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
-              f.write(
-                  "## Weekly linter suggestions\n\n"
-                  "These are optional and do not block merging.\n\n"
-                  "| Location | Suggestion |\n| --- | --- |\n" + "\n".join(rows) + "\n"
-              )
-          print(
-              f"::error::The weekly linters have {len(findings)} suggestion(s), see the annotations or the job"
-              " summary. This check is optional and does not block merging."
-          )
-          sys.exit(1)
+          set -euo pipefail
+          if [ "${OUTCOME}" != "success" ]; then
+            echo "::error::The weekly linters step did not succeed (${OUTCOME}), see the ci-checks job"
+            exit 1
+          fi
+          # For each finding, print its location and message, then the annotation. Workflow commands
+          # need `%`, `\r` and `\n` in messages to be escaped.
+          jq -r '.[]
+            | (if .line then ",line=\(.line),col=\(.col)" else "" end) as $position
+            | (if .line then "\(.path):\(.line):\(.col)" else .path end) as $location
+            | (.message | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A")) as $message
+            | "\($location): \(.message)\n", "::warning file=\(.path)\($position)::\($message)"' \
+            <<< "${FINDINGS}"
+          count=$(jq length <<< "${FINDINGS}")
+          if [ "${count}" -gt 0 ]; then
+            echo "::error::The weekly linters have ${count} suggestion(s), see the annotations. This check is optional and does not block merging."
+            exit 1
+          fi
