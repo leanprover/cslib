@@ -15,9 +15,7 @@ public import Cslib.Computability.Languages.Congruences.Basic
 
 variable {Symbol : Type*}
 
-namespace Language
-
-open Cslib
+namespace Cslib.Language
 
 /-- Every right congruence gives rise to a DA whose states are the equivalence classes of
 the right congruence, whose start state is the empty word, and whose transition functiuon
@@ -32,7 +30,7 @@ def RightCongruence.toDA [c : RightCongruence Symbol] : Automata.DA (Quotient c.
   ) s
   start := ⟦ [] ⟧
 
-end Language
+end Cslib.Language
 
 namespace Cslib.Automata.DA
 

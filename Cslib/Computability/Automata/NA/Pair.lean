@@ -131,7 +131,7 @@ theorem language_eq_fin_iSup_hmul_omegaPow
     obtain ⟨zls, rfl, h_zls⟩ := mem_omegaPow.mp h_zs
     let ts := ωSequence.const t
     have h_mtr (n : ℕ) : na.MTr (ts n) (zls n) (ts (n + 1)) := by
-      grind [Language.mem_sub_one, LTS.mem_pairLang]
+      grind [LTS.mem_pairLang]
     have h_pos (n : ℕ) : 0 < (zls n).length := by
       grind only [Language.mem_sub_one, List.eq_nil_iff_length_eq_zero]
     obtain ⟨zss, h_zss, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
