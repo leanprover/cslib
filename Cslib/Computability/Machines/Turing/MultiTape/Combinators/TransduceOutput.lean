@@ -44,11 +44,11 @@ open Cslib.Automata
 
 variable {k : ℕ} {Symbol State StateT : Type*} {input : List Symbol}
 
-/-- The output of `tr` on `w` from state `q`, including the final output if and only if the
-state `s` of the machine producing `w` is the halting state `none`. -/
-def transduced (tr : SubsequentialTransducer StateT Symbol Symbol) (s : Option State) (q : StateT)
+/-- The output of `tr` on `w` from state `q`, including the final output if and only if
+`halted` holds. -/
+def transduced (tr : SubsequentialTransducer StateT Symbol Symbol) (halted : Bool) (q : StateT)
     (w : List Symbol) : List Symbol :=
-  s.elim (tr.evalFrom q w) fun _ => tr.toSequentialTransducer.evalFrom q w
+  if halted then tr.evalFrom q w else tr.toSequentialTransducer.evalFrom q w
 
 /-- The state of `tm.transduceOutput tr n` in which `w` is still to be emitted, where `s` is the
 state of `tm` and `qT` the state of `tr`. If `tm` has halted and nothing is left to emit, this is
@@ -74,7 +74,7 @@ noncomputable def transduceOutput (tm : MultiTapeTM k Symbol State)
     | ((none, _), ⟨[], _⟩) => ⟨0, fun _ => (none, 0), none, none⟩
     | ((some q, qT), ⟨[], _⟩) =>
       let a := tm.tr q inp work
-      let w := (transduced tr a.state qT a.output.toList).take n
+      let w := (transduced tr a.state.isNone qT a.output.toList).take n
       ⟨a.inputTape, a.workTapes, w.head?,
         nextState a.state (a.output.toList.foldl tr.tr qT) w.tail (by grind)⟩
 
@@ -89,27 +89,27 @@ private lemma evalFrom_append (q : StateT) (x y : List Symbol) :
   induction x generalizing q <;> simp_all
 
 @[simp]
-private lemma transduced_none (q : StateT) (w : List Symbol) :
-    transduced tr (none : Option State) q w = tr.evalFrom q w := rfl
+private lemma transduced_true (q : StateT) (w : List Symbol) :
+    transduced tr true q w = tr.evalFrom q w := rfl
 
 @[simp]
-private lemma transduced_some (s : State) (q : StateT) (w : List Symbol) :
-    transduced tr (some s) q w = tr.toSequentialTransducer.evalFrom q w := rfl
+private lemma transduced_false (q : StateT) (w : List Symbol) :
+    transduced tr false q w = tr.toSequentialTransducer.evalFrom q w := rfl
 
 variable {m l : ℕ} (hemit : ∀ q b, (tr.emit q b).length ≤ m)
   (hfinal : ∀ q, (tr.finalOut q).length ≤ l)
 include hemit hfinal in
 /-- The word that `tr` emits on the output of a step of `tm` is short. -/
-private lemma length_transduced_le (s : Option State) (q : StateT) (b : Option Symbol) :
-    (transduced tr s q b.toList).length ≤ m + if s = none then l else 0 := by
-  rcases b <;> rcases s <;> simp <;> grind
+private lemma length_transduced_le (halted : Bool) (q : StateT) (b : Option Symbol) :
+    (transduced tr halted q b.toList).length ≤ m + if halted then l else 0 := by
+  rcases b <;> cases halted <;> simp <;> grind
 
-private lemma transduced_append (s : Option State) (q : StateT) (x y : List Symbol) :
-    transduced tr s q (x ++ y) =
-      tr.toSequentialTransducer.evalFrom q x ++ transduced tr s (x.foldl tr.tr q) y := by
-  cases s
-  · exact evalFrom_append tr q x y
+private lemma transduced_append (halted : Bool) (q : StateT) (x y : List Symbol) :
+    transduced tr halted q (x ++ y) =
+      tr.toSequentialTransducer.evalFrom q x ++ transduced tr halted (x.foldl tr.tr q) y := by
+  cases halted
   · exact evalFrom_append tr.toSequentialTransducer.toSubsequential q x y
+  · exact evalFrom_append tr q x y
 
 private lemma runFrom_succ {tm : MultiTapeTM k Symbol State} (c : Cfg k Symbol State input)
     (t : ℕ) : tm.runFrom c (t + 1) = tm.step (tm.runFrom c t) :=
@@ -155,7 +155,7 @@ configuration `c` of `tm`. It is halted if `c` is. -/
 def cfg (c : Cfg k Symbol State input) :
     Cfg k Symbol ((Option State × StateT) × {w : List Symbol // w.length ≤ n}) input :=
   ⟨nextState c.state (c.output.foldl tr.tr tr.start) [] (by simp), c.inputPos, c.workTapes,
-    c.workTapePos, transduced tr c.state tr.start c.output⟩
+    c.workTapePos, transduced tr c.state.isNone tr.start c.output⟩
 
 section Steps
 
@@ -182,7 +182,7 @@ lemma step_of_running {q : State} {qT : StateT} {hw : [].length ≤ n}
     (he : e.state = some ((some q, qT), ⟨[], hw⟩)) {a : Action k Symbol State}
     (ha : tm.tr q e.inputSymbol e.workTapeSymbols = a) :
     (tm.transduceOutput tr n).step e =
-      let w := (transduced tr a.state qT a.output.toList).take n
+      let w := (transduced tr a.state.isNone qT a.output.toList).take n
       Action.apply ⟨a.inputTape, a.workTapes, w.head?,
         nextState a.state (a.output.toList.foldl tr.tr qT) w.tail (by grind)⟩ e := by
   rw [step_of_state he, transduceOutput, tr_ofTr]
@@ -212,8 +212,8 @@ lemma exists_runFrom_cfg_step {c : Cfg k Symbol State input} (hc : ¬c.Halted) :
   · exact absurd rfl hc
   set c : Cfg k Symbol State input := ⟨some q, pos, tapes, heads, out⟩
   set a := tm.tr q c.inputSymbol c.workTapeSymbols
-  set w := transduced tr a.state (out.foldl tr.tr tr.start) a.output.toList
-  have hw := length_transduced_le tr hemit hfinal a.state (out.foldl tr.tr tr.start) a.output
+  set w := transduced tr a.state.isNone (out.foldl tr.tr tr.start) a.output.toList
+  have hw := length_transduced_le tr hemit hfinal a.state.isNone (out.foldl tr.tr tr.start) a.output
   have hw' : w.length ≤ m + l := hw.trans (by split <;> lia)
   have hc' : tm.step c = a.apply c := step_of_state rfl
   refine ⟨(w.take (m + l)).tail.length + 1, ?_, ?_⟩
