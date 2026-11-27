@@ -30,9 +30,10 @@ more straightforward.
 Future design work might explore this alternative representation and compare its
 advantages and disadvantages.
 
-## TODO
+## Notation
 
-- Make a `::`-like notation.
+- `x ::ₛ xs` (scoped to `Cslib.Turing.StackTape`): prepends `x : Option Symbol` to
+  `xs : StackTape Symbol` via `StackTape.cons`.
 
 -/
 
@@ -83,6 +84,8 @@ def cons (x : Option Symbol) (xs : StackTape Symbol) : StackTape Symbol :=
   | none, ⟨hd :: tl, hl⟩ => ⟨none :: hd :: tl, by grind⟩
   | some a, ⟨l, hl⟩ => ⟨some a :: l, by grind⟩
 
+@[inherit_doc] scoped infixr:67 " ::ₛ " => StackTape.cons
+
 @[simp, scoped grind =]
 lemma cons_none_nil_toList : (cons none (nil : StackTape Symbol)).toList = [] := by
   grind only [nil, cons]
@@ -104,6 +107,12 @@ def head (l : StackTape Symbol) : Option Symbol :=
   match l.toList with
   | [] => none
   | h :: _ => h
+
+@[simp, scoped grind =]
+lemma head_nil : (nil : StackTape Symbol).head = none := rfl
+
+@[simp, scoped grind =]
+lemma tail_nil : (nil : StackTape Symbol).tail = nil := rfl
 
 lemma eq_iff (l1 l2 : StackTape Symbol) :
     l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
@@ -140,6 +149,12 @@ lemma cons_head_tail (l : StackTape Symbol) :
 /-- Create a `StackTape` from a list by mapping all elements to `some` -/
 @[scoped grind]
 def mapSome (l : List Symbol) : StackTape Symbol := ⟨l.map some, by simp⟩
+
+@[simp]
+lemma mapSome_nil : (mapSome [] : StackTape Symbol) = nil := rfl
+
+lemma mapSome_cons (a : Symbol) (l : List Symbol) :
+    mapSome (a :: l) = some a ::ₛ mapSome l := rfl
 
 section Length
 
