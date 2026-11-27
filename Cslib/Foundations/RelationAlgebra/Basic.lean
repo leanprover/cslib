@@ -12,6 +12,7 @@ public import Mathlib.Algebra.Order.Monoid.Unbundled.Basic
 public import Mathlib.Algebra.Order.Quantale
 public import Mathlib.Algebra.Star.Basic
 public import Mathlib.Basic.Rel
+public import Mathlib.Data.Set.Card
 public import Mathlib.Order.Atoms
 
 /-!
@@ -292,10 +293,14 @@ def symmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
 def nonsymmetricDiversityAtoms (α : Type*) [RelationAlgebra α] : Set α :=
   {a : α | IsAtom a ∧ star a ≠ a}
 
+theorem _root_.IsAtom.le_compl_iff {α : Type*} [HeytingAlgebra α] {a b : α} (ha : IsAtom a) :
+    a ≤ bᶜ ↔ ¬a ≤ b := by
+  rw [le_compl_iff_disjoint_right, ha.not_le_iff_disjoint]
+
 /-- Every nonsymmetric atom lies below the complement of identity. -/
 theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
     (h : a ∈ nonsymmetricDiversityAtoms α) : a ≤ 1ᶜ := by
-  rw [le_compl_iff_disjoint_right, ← h.1.not_le_iff_disjoint]
+  rw [h.1.le_compl_iff]
   intro ha
   have hstar : a ≤ star a := by calc
      a = a * 1 ⊓ 1 := by rw [mul_one, inf_eq_left.mpr ha]
@@ -308,6 +313,58 @@ theorem le_compl_one_of_mem_nonsymmetricDiversityAtoms {a : α}
     _ = a := star_star a
   cases h
   grind
+
+@[simp]
+theorem disjoint_identityAtoms_symmetricDiversityAtoms :
+    Disjoint (identityAtoms α) (symmetricDiversityAtoms α) := by
+  rw [Set.disjoint_left]
+  rintro a ⟨ha, hle⟩ ⟨-, hle', -⟩
+  exact ha.le_compl_iff.mp hle' hle
+
+@[simp]
+theorem disjoint_identityAtoms_nonsymmetricDiversityAtoms :
+    Disjoint (identityAtoms α) (nonsymmetricDiversityAtoms α) := by
+  rw [Set.disjoint_left]
+  rintro a ⟨ha, hle⟩ hb
+  exact ha.le_compl_iff.mp (le_compl_one_of_mem_nonsymmetricDiversityAtoms hb) hle
+
+@[simp]
+theorem disjoint_symmetricDiversityAtoms_nonsymmetricDiversityAtoms :
+    Disjoint (symmetricDiversityAtoms α) (nonsymmetricDiversityAtoms α) := by
+  rw [Set.disjoint_left]
+  rintro a ⟨-, -, hstar⟩ ⟨-, hne⟩
+  exact hne hstar
+
+theorem setOf_isAtom_eq : {a : α | IsAtom a} =
+    identityAtoms α ∪ symmetricDiversityAtoms α ∪ nonsymmetricDiversityAtoms α := by
+  ext a
+  grind [identityAtoms, symmetricDiversityAtoms, nonsymmetricDiversityAtoms, IsAtom.le_compl_iff]
+
+theorem identityAtoms_eq_of_isIntegral (h : IsIntegral α) : identityAtoms α = {1} := by
+  ext a
+  constructor
+  · rintro ⟨ha, hle⟩
+    exact (h.le_iff_eq ha.ne_bot).mp hle
+  · rintro rfl
+    exact ⟨h, le_rfl⟩
+
+theorem even_ncard_nonsymmetricDiversityAtoms : Even (nonsymmetricDiversityAtoms α).ncard := by
+  rcases (nonsymmetricDiversityAtoms α).finite_or_infinite with hfin | hinf
+  · rw [Set.ncard_eq_toFinset_card _ hfin, ← neg_one_pow_eq_one_iff_even (R := ℤ) (by decide),
+      ← Finset.prod_const]
+    apply Finset.prod_involution (fun a _ => star a) <;>
+      grind [nonsymmetricDiversityAtoms, isAtom_star_iff, Set.Finite.mem_toFinset, star_star]
+  · simp [hinf.ncard]
+
+theorem ncard_setOf_isAtom [Finite α] :
+    {a : α | IsAtom a}.ncard = (identityAtoms α).ncard +
+      (symmetricDiversityAtoms α).ncard + (nonsymmetricDiversityAtoms α).ncard := by
+  rw [setOf_isAtom_eq, Set.ncard_union_eq (by simp), Set.ncard_union_eq (by simp)]
+
+theorem ncard_setOf_isAtom_of_isIntegral [Finite α] (h : IsIntegral α) :
+    {a : α | IsAtom a}.ncard =
+      1 + (symmetricDiversityAtoms α).ncard + (nonsymmetricDiversityAtoms α).ncard := by
+  rw [ncard_setOf_isAtom, identityAtoms_eq_of_isIntegral h, Set.ncard_singleton]
 
 /-- The relation algebra of all binary relations on a type `α`. This is scoped so that other
 instances, such as those under `Pointwise`, can be used elsewhere. -/

@@ -1,4 +1,4 @@
-module  -- shake: keep-all --deprecated_module: ignore
+module -- shake: keep-all -- deprecated_module: ignore
 
 public import Cslib.Algorithms.CCS.VendingMachine
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
@@ -25,6 +25,7 @@ public import Cslib.Computability.Automata.DA.Buchi
 public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.DA.Transducer
 public import Cslib.Computability.Automata.EpsilonNA.Basic
 public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
 public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
@@ -109,6 +110,8 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Delimit
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.HeadCases
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ClearWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
@@ -124,6 +127,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsT
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.Space
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
+public import Cslib.Computability.Machines.Turing.MultiTape.Transducer
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
 public import Cslib.Computability.Machines.Turing.SingleTape.NonDeterministic
@@ -209,6 +213,7 @@ public import Cslib.Foundations.RelationAlgebra.Basic
 public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.Integral
+public import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
 public import Cslib.Foundations.RelationAlgebra.Pi
 public import Cslib.Foundations.RelationAlgebra.Relativization
 public import Cslib.Foundations.RelationAlgebra.Representation

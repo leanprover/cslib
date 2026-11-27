@@ -73,7 +73,7 @@ theorem isIntegral_ofGroup : IsIntegral (ComplexAlgebra (ofGroup G)) :=
   (isIntegral_iff _).mpr ⟨1, rfl⟩
 
 lemma ofGroup_isRelRefl_iff (x : ComplexAlgebra (ofGroup G)) : IsRelRefl x ↔ 1 ∈ x := by
-  simp [isRelRefl_iff, IsConcreteLE.le_iff]
+  simp [isRelRefl_iff, le_iff_mem_imp_mem]
 
 lemma ofGroup_isRelSymm_iff (x : ComplexAlgebra (ofGroup G)) :
   IsRelSymm x ↔ ∀ {g : G}, g ∈ x → g⁻¹ ∈ x := ComplexAlgebra.isRelSymm_iff x
