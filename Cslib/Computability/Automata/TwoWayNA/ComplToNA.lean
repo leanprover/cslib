@@ -6,10 +6,10 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.TwoWayNA.Basic
-public import Cslib.Foundations.Data.OmegaSequence.Init
-public import Cslib.Foundations.Semantics.LTS.Relation
+
+import Cslib.Foundations.Data.OmegaSequence.Init
+import Cslib.Foundations.Semantics.LTS.Relation
 
 /-! # A finite acceptor for the complement of the language of a two-way automaton
 

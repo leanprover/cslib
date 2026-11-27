@@ -6,9 +6,8 @@ Authors: Sorrachai Yingchareonthawornhcai, Eric Wieser
 
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Control.Monad.IsMonadHom
-public import Mathlib.Algebra.Group.Defs
+public import Mathlib.Algebra.Group.Monoid
 
 /-!
 

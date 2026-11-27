@@ -6,8 +6,8 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
+public import Cslib.Foundations.Relation.Defs
 public import Cslib.Logics.Modal.Unary.Basic
-public import Cslib.Logics.Modal.LogicalEquivalence
 
 /-! # Basic Modal Logic
 

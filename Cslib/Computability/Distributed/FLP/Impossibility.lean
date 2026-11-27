@@ -7,7 +7,10 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Distributed.FLP.OnePseudoConsensus
-public import Cslib.Foundations.Data.OmegaSequence.InfOcc
+public import Mathlib.Order.Filter.AtTopBot.Defs
+
+import Cslib.Foundations.Data.OmegaSequence.InfOcc
+import Mathlib.Order.Filter.AtTopBot.Basic
 
 /-! # Impossibility of asynchronous distributed consensus in the presence of a single fault
 

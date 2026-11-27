@@ -9,6 +9,8 @@ module
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.FairScheduler
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-! # Fault-tolerant pseudo-consensus
 
 A central idea of [Volzer2004] is the notion of pseudo-consensus, which weakens the notion of

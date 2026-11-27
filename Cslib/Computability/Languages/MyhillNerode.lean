@@ -6,8 +6,11 @@ Authors: Akhilesh Balaji, Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Languages.RegularLanguage
-public import Mathlib.SetTheory.Cardinal.NatCard
+public import Cslib.Computability.Automata.DA.Congr
+public import Mathlib.Computability.DFA
+
+import Cslib.Computability.Languages.RegularLanguage
+import Mathlib.SetTheory.Cardinal.NatCard
 
 /-! # Myhill-Nerode Theorem
 

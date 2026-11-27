@@ -6,9 +6,10 @@ Authors: Maximiliano Onofre Martínez
 
 module
 
-public import Cslib.Foundations.Relation.Attr
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Congruence
+
+import Cslib.Foundations.Relation.Attr
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # η-reduction for the λ-calculus -/
 

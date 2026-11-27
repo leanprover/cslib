@@ -8,6 +8,9 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StandardReduction
 
+import Cslib.Foundations.Relation.Attr
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+
 /-! # The Leftmost Reduction Theorem
 
 ## Reference

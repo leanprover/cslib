@@ -6,16 +6,23 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Automata.DA.Buchi
-public import Cslib.Computability.Automata.NA.BuchiEquiv
-public import Cslib.Computability.Automata.NA.BuchiInter
-public import Cslib.Computability.Automata.NA.Concat
-public import Cslib.Computability.Automata.NA.Loop
-public import Cslib.Computability.Automata.NA.Sum
-public import Cslib.Computability.Languages.Congruences.BuchiCongruence
-public import Cslib.Computability.Languages.ExampleEventuallyZero
-public import Mathlib.SetTheory.Cardinal.NatCard
-public import Mathlib.Logic.Equiv.Fin.Basic
+public import Cslib.Computability.Automata.DA.Basic
+public import Cslib.Computability.Automata.NA.Basic
+public import Cslib.Foundations.Data.Set.Saturation
+public import Mathlib.Computability.DFA
+
+import Cslib.Computability.Automata.DA.Buchi
+import Cslib.Computability.Automata.DA.ToNA
+import Cslib.Computability.Automata.NA.BuchiEquiv
+import Cslib.Computability.Automata.NA.BuchiInter
+import Cslib.Computability.Automata.NA.Concat
+import Cslib.Computability.Automata.NA.Loop
+import Cslib.Computability.Automata.NA.Sum
+import Cslib.Computability.Languages.Congruences.BuchiCongruence
+import Cslib.Computability.Languages.ExampleEventuallyZero
+import Cslib.Computability.Languages.RegularLanguage
+import Mathlib.Basic.Finite.Sum
+import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
 # ω-Regular languages

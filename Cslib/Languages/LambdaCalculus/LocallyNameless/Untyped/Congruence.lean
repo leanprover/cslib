@@ -6,7 +6,7 @@ Authors: Maximiliano Onofre Martínez
 
 module
 
-public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.LcAt
 
 /-! # Congruence for the λ-calculus -/
 

@@ -7,7 +7,9 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Foundations.Data.Nat.Segment
-public import Cslib.Foundations.Data.OmegaSequence.Init
+public import Cslib.Foundations.Data.OmegaSequence.Defs
+
+import Cslib.Foundations.Data.OmegaSequence.Init
 
 /-!
 # Flattening an infinite sequence of lists

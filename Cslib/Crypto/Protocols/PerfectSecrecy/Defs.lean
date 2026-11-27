@@ -8,7 +8,6 @@ module
 
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
 public import Cslib.Probability.PMF
-public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 /-!
 # Perfect Secrecy: Definitions

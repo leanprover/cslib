@@ -7,9 +7,10 @@ Authors: Christian Reitwiessner
 module
 
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindInput
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
-public import Mathlib.Basic.Finite.Sum
-public import Cslib.Foundations.Data.Fin.Tuple
+
+import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
+import Cslib.Foundations.Data.Fin.Tuple
+import Mathlib.Basic.Finite.Sum
 
 /-!
 # Concatenating the outputs of two machines on the same input

@@ -6,13 +6,13 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Boolean.Complexity
-public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
+public import Cslib.Foundations.Data.BitString
 public import Mathlib.Basic.Real.Basic
+
+import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 import Cslib.Foundations.Data.Nat.Asymptotics
 import Mathlib.Algebra.Order.Archimedean.Real.Basic
 import Mathlib.Order.Filter.AtTopBot.Basic
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
 
 /-!
 # Lupanov's asymptotically optimal upper bound

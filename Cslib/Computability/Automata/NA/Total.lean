@@ -9,6 +9,8 @@ module
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Foundations.Semantics.LTS.Total
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-! # Making a nondeterministic automaton total.
 -/
 

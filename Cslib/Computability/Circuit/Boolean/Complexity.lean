@@ -5,8 +5,10 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuit.Boolean.LupanovConstruction
+public import Cslib.Computability.Circuit.Boolean.Basic
 public import Cslib.Computability.Circuit.Complexity
+
+import Cslib.Computability.Circuit.Boolean.LupanovConstruction
 
 /-!
 # Completeness of the De Morgan basis

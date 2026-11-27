@@ -6,8 +6,11 @@ Authors: David Wegmann
 
 module
 
+public import Cslib.Languages.LambdaCalculus.LocallyNameless.Stlc.Basic
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.MultiSubst
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
+
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! Strong normalization (termination) for full beta-reduction of simply typed lambda calculus. -/
 

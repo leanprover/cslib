@@ -9,6 +9,8 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.FullBeta
 
+import Cslib.Foundations.Relation.Attr
+
 /-! Multiple application for untyped lambda calculus. -/
 
 set_option linter.unusedDecidableInType false

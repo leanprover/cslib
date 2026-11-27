@@ -7,7 +7,9 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Init
-public import Mathlib.Order.BooleanAlgebra.Basic
+public import Mathlib.Order.BooleanAlgebra.Defs
+
+import Mathlib.Order.BooleanAlgebra.Basic
 
 /-!
 # Huntington's axioms for Boolean Algebras

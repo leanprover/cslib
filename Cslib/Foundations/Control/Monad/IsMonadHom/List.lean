@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 module
 
-public import Cslib.Init
 public import Cslib.Foundations.Control.Monad.IsMonadHom
 public import Mathlib.Data.List.Monad
 

@@ -6,9 +6,9 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
-public import Mathlib.Data.Int.Interval
-public import Mathlib.Order.Lattice.Nat
+public import Cslib.Computability.Machines.Turing.MultiTape.Space
+
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 
 /-!
 # Head movement along run paths

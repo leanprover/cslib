@@ -6,12 +6,11 @@ Authors: Fabrizio Montesi, Thomas Waring
 
 module
 
-public import Cslib.Foundations.Order.FixedPoints
-public import Cslib.Foundations.Relation.Domain
 public import Cslib.Foundations.Semantics.LTS.TraceEq
 public import Mathlib.SetTheory.Ordinal.FixedPointApproximants
-public import Mathlib.Tactic.TFAE
 
+import Cslib.Foundations.Order.FixedPoints
+import Cslib.Foundations.Relation.Domain
 import Mathlib.Data.Fintype.Order
 
 /-! # Bisimulation and Bisimilarity

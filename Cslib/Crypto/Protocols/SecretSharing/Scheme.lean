@@ -7,7 +7,6 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Init
-public import Mathlib.Data.Finset.Basic
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 /-!

@@ -8,7 +8,6 @@ module
 
 public import Cslib.Init
 public import Mathlib.MeasureTheory.Constructions.Pi
-public import Mathlib.MeasureTheory.Measure.Dirac.Basic
 
 /-! # Measures supported on finite sets
 

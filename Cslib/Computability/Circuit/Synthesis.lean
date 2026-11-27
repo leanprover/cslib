@@ -6,11 +6,10 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Basic
-public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-public import Mathlib.Data.Finset.Fold
-public import Mathlib.Data.Fintype.Basic
-public import Mathlib.Data.Set.BooleanAlgebra
-public import Mathlib.Data.Set.Lattice.Bounded
+public import Mathlib.Algebra.BigOperators.Group.Finset.Defs
+
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+import Mathlib.Data.Set.Lattice.Bounded
 
 /-!
 # Simultaneous circuit synthesis

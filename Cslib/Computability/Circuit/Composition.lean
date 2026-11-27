@@ -7,7 +7,6 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Basic
-public import Mathlib.Data.Fin.Tuple.Basic
 
 /-!
 # Composing circuits

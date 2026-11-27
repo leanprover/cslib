@@ -6,8 +6,8 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Mathlib.Data.ZMod.Basic
 public import Cslib.Languages.StatefulProcesses.Network
+public import Mathlib.Data.ZMod.Defs
 
 /-!
 # Diffie-Hellman Key Exchange in Stateful Processes (testbed)

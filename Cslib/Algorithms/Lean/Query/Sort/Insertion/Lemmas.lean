@@ -6,9 +6,10 @@ Authors: Kim Morrison, Shreyas Srinivas, Eric Wieser
 module
 
 public import Cslib.Algorithms.Lean.Query.Bounds
-public import Cslib.Algorithms.Lean.Query.Sort.IsSort
 public import Cslib.Algorithms.Lean.Query.Sort.Insertion.Defs
-public import Mathlib.Data.List.Sort
+public import Cslib.Algorithms.Lean.Query.Sort.IsSort
+
+import Mathlib.Data.Nat.Choose.Basic
 
 /-! # Insertion Sort: Correctness and Upper Bound
 

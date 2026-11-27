@@ -7,7 +7,9 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Total
-public import Cslib.Foundations.Data.OmegaSequence.Temporal
+
+import Cslib.Foundations.Data.OmegaSequence.Init
+import Cslib.Foundations.Data.OmegaSequence.Temporal
 
 /-! # Concatenation of nondeterministic automata. -/
 

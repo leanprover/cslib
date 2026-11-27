@@ -8,6 +8,8 @@ module
 
 public import Cslib.Computability.Languages.Congruences.MyhillCongruence
 
+import Cslib.Computability.Languages.RegularLanguage
+
 /-! # Syntactic monoid
 
 This file has two main results:

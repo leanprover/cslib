@@ -7,7 +7,6 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Languages.OmegaLanguage
-public import Mathlib.Topology.Closure
 
 /-!
 # Safety and Liveness properties of ω-sequences

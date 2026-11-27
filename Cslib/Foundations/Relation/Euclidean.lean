@@ -6,9 +6,13 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 module
 
-public import Cslib.Foundations.Relation.Restriction
-public import Mathlib.Data.Fintype.EquivFin
-public import Mathlib.Tactic.TFAE
+public import Cslib.Foundations.Relation.Defs
+public import Mathlib.Data.Fintype.Card
+
+import Cslib.Foundations.Relation.Domain
+import Cslib.Foundations.Relation.Restriction
+import Mathlib.Data.Fintype.EquivFin
+import Mathlib.Tactic.TFAE
 
 /-! # Relations: Euclidean Relations
 

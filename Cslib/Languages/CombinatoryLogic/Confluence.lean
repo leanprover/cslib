@@ -6,8 +6,12 @@ Authors: Thomas Waring
 
 module
 
+public import Cslib.Foundations.Relation.Defs
 public import Cslib.Languages.CombinatoryLogic.Defs
-public import Cslib.Foundations.Relation.Confluence
+
+import Cslib.Foundations.Relation.Attr
+import Cslib.Foundations.Relation.Basic
+import Cslib.Foundations.Relation.Confluence
 
 /-!
 # SKI reduction is confluent

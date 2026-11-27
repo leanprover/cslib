@@ -7,8 +7,6 @@ Authors: Dhruv Gupta
 module
 
 public import Cslib.MachineLearning.PACLearning.Defs
-public import Mathlib.MeasureTheory.Measure.Dirac.Basic
-public import Mathlib.MeasureTheory.Measure.Map
 
 /-! # Version Space
 

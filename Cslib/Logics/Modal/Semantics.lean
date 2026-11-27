@@ -6,8 +6,10 @@ Authors: Fabrizio Montesi, Marianna Girlando
 
 module
 
-public import Cslib.Logics.Modal.Basic
+public import Cslib.Foundations.Logic.InferenceSystem.Defs
 public import Cslib.Foundations.Semantics.Frame.Basic
+public import Cslib.Foundations.Syntax.HasSubstitution
+public import Cslib.Logics.Modal.Basic
 
 /-! # Semantics of Modal Logic -/
 

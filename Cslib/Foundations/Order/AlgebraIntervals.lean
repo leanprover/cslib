@@ -7,7 +7,6 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Init
-public import Mathlib.Order.BooleanAlgebra.Defs
 public import Mathlib.Order.LatticeIntervals
 
 /-! # Algebra instances on intervals

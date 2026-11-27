@@ -6,10 +6,11 @@ Authors: Fabrizio Montesi, Marco Peressotti, Alexandre Rademaker
 
 module
 
-public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Foundations.Semantics.Frame.LTS
+public import Cslib.Foundations.Semantics.LTS.Bisimulation
 public import Cslib.Logics.Modal.Semantics
-public import Cslib.Logics.Modal.Unary.Basic
+
+import Cslib.Logics.Modal.Unary.Basic
 
 /-! # Hennessy-Milner Logic (HML)
 

@@ -6,7 +6,9 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 module
 
-public import Cslib.Foundations.Relation.Basic
+public import Cslib.Foundations.Relation.Defs
+
+import Mathlib.Order.WellFounded
 
 /-! # Termination (well-foundedness) properties of relations -/
 

@@ -6,6 +6,7 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Complexity
+public import Cslib.Computability.Circuit.Composition
 
 /-!
 # Simulation between circuit bases with gate budgets

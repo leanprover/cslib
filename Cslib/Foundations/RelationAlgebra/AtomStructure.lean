@@ -8,8 +8,9 @@ module
 
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.SpecialElements
-public import Mathlib.Data.Fintype.Powerset
-public import Mathlib.Order.BooleanAlgebra.Set
+public import Mathlib.Basic.Finite.Defs
+
+import Mathlib.Data.Fintype.Powerset
 
 /-!
 # Atom structures

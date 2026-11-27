@@ -8,6 +8,9 @@ module
 
 public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.BetaAt
 
+import Cslib.Foundations.Relation.Attr
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.Properties
+
 /-! # Standard Reduction and the Standardization Theorem
 
 ## References

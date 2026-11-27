@@ -8,7 +8,6 @@ module
 
 public import Cslib.Init
 public import Mathlib.Probability.ProbabilityMassFunction.Constructions
-public import Mathlib.Topology.MetricSpace.Defs
 
 /-!
 # Statistical Distance of Finite Probability Mass Functions

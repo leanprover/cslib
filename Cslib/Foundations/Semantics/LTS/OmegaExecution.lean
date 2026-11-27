@@ -9,6 +9,8 @@ module
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
 public import Cslib.Foundations.Semantics.LTS.Execution
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-!
 # Infinite executions of LTS
 -/

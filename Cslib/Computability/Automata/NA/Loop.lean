@@ -7,7 +7,10 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Automata.NA.Total
-public import Cslib.Foundations.Data.OmegaSequence.Temporal
+
+import Cslib.Computability.Languages.Language
+import Cslib.Foundations.Data.OmegaSequence.Init
+import Cslib.Foundations.Data.OmegaSequence.Temporal
 
 /-! # Loop construction on nondeterministic automata. -/
 

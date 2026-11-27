@@ -6,7 +6,9 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Logics.Modal.Unary.Basic
+public import Cslib.Logics.Modal.Semantics
+
+import Cslib.Logics.Modal.Unary.Basic
 
 /-! # Basic Temporal Logic (BTL)
 

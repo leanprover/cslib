@@ -7,9 +7,9 @@ Authors: Ching-Tsun Chou, Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Data.OmegaSequence.Defs
-public import Mathlib.Algebra.Order.Group.Nat
-public import Mathlib.Algebra.Order.Sub.Basic
-public import Mathlib.Order.Lattice.Nat
+
+import Mathlib.Algebra.Order.Group.Nat
+import Mathlib.Data.List.OfFn
 
 /-!
 # ω-sequences a.k.a. infinite sequences

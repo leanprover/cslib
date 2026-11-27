@@ -8,6 +8,8 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-!
 # An ω-regular language that is not accepted by any deterministic Buchi automaton
 

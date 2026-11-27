@@ -7,7 +7,6 @@ Authors: Thomas Waring
 module
 
 public import Cslib.Foundations.Data.SetRel
-public import Cslib.Foundations.Order.AlgebraIntervals
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Mathlib.Order.FixedPoints
 

@@ -11,6 +11,8 @@ public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
 public import Cslib.Foundations.Data.OmegaSequence.InfOcc
 public import Cslib.Foundations.Semantics.FLTS.Basic
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-! # Deterministic Automata
 
 A Deterministic Automaton (`DA`) is an automaton defined by a transition function equipped with an

@@ -8,8 +8,6 @@ module
 public import Cslib.Computability.Circuit.Simulation
 
 import Mathlib.Algebra.BigOperators.Fin
-import Mathlib.Data.Fin.VecNotation
-import Mathlib.Data.Fintype.Pi
 import Mathlib.SetTheory.Cardinal.Arithmetic
 
 /-!

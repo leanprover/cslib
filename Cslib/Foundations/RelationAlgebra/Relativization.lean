@@ -6,6 +6,7 @@ Authors: Thomas Waring
 
 module
 
+public import Cslib.Foundations.Order.AlgebraIntervals
 public import Cslib.Foundations.RelationAlgebra.Hom
 public import Cslib.Foundations.RelationAlgebra.SpecialElements
 

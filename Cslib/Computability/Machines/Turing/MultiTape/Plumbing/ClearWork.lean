@@ -6,11 +6,12 @@ Authors: Christian Reitwiessner
 
 module
 
-public import Mathlib.Algebra.BigOperators.Fin
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ForwardWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.RewindWork
-public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
+
+import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ForwardWork
+import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.Sequential
+import Mathlib.Algebra.BigOperators.Fin
 
 /-!
 # A machine that clears a work tape

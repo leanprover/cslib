@@ -5,7 +5,7 @@ Authors: Kim Morrison, Shreyas Srinivas
 -/
 module
 
-public import Cslib.Algorithms.Lean.Query.FreeM
+public import Cslib.Foundations.Control.Monad.Free
 
 /-! # Arithmetic Queries and Complex Multiplication
 

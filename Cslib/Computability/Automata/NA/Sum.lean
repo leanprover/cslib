@@ -8,6 +8,8 @@ module
 
 public import Cslib.Computability.Automata.NA.Basic
 
+import Cslib.Foundations.Data.OmegaSequence.Init
+
 /-! # Sum of nondeterministic automata. -/
 
 @[expose] public section

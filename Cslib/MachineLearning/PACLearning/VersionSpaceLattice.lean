@@ -7,9 +7,6 @@ Authors: Dhruv Gupta
 module
 
 public import Cslib.MachineLearning.PACLearning.VersionSpace
-public import Mathlib.Data.Fin.Tuple.Basic
-public import Mathlib.Data.Set.Card
-public import Mathlib.Data.Set.Finite.Powerset
 
 /-! # Version Space Lattice
 

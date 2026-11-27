@@ -5,9 +5,10 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuit.Composition
 public import Cslib.Computability.Circuit.Synthesis
 public import Mathlib.Data.ENat.Lattice
+
+import Cslib.Computability.Circuit.Composition
 
 /-!
 # Circuit complexity

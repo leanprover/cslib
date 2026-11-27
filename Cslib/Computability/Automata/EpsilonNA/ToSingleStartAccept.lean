@@ -7,7 +7,9 @@ Authors: Fabrizio Montesi, Yusuf Demir
 module
 
 public import Cslib.Computability.Automata.EpsilonNA.Basic
-public import Cslib.Foundations.Semantics.LTS.Simulation
+
+import Cslib.Foundations.Semantics.LTS.Simulation
+import Mathlib.Data.List.ReduceOption
 
 /-! # Translation of εNA into εNA with a single start and a single accept state
 

@@ -6,7 +6,7 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Distributed.Consistency.Specification
+public import Cslib.Init
 
 /-! # Transitions
 

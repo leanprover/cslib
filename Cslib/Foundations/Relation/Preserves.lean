@@ -6,8 +6,9 @@ Authors: Fabrizio Montesi
 
 module
 
-public import Cslib.Foundations.Relation.Basic
-public import Mathlib.Logic.Function.Defs
+public import Cslib.Foundations.Relation.Defs
+
+import Mathlib.Order.Basic
 
 /-! # Relations: preservation of properties -/
 

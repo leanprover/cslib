@@ -6,7 +6,11 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Boolean.Complexity
-public import Cslib.Computability.Circuit.Shannon
+public import Cslib.Computability.Circuit.Counting
+public import Cslib.Foundations.Data.BitString
+public import Mathlib.Topology.MetricSpace.Pseudo.Defs
+
+import Cslib.Computability.Circuit.Shannon
 
 /-!
 # Shannon's lower bound for De Morgan circuits

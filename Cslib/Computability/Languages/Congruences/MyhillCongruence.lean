@@ -8,6 +8,8 @@ module
 
 public import Cslib.Computability.Languages.MyhillNerode
 
+import Cslib.Computability.Languages.RegularLanguage
+
 /-! # Myhill congruence
 
 The Myhill congruence of a language `l` is a two-sided congruence that is finer than

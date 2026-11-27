@@ -7,8 +7,9 @@ Authors: Ching-Tsun Chou
 module
 
 public import Cslib.Computability.Distributed.Consistency.Specification
-public import Cslib.Foundations.Relation.Basic
-public import Mathlib.Data.Set.Finite.Basic
+
+import Cslib.Foundations.Relation.Basic
+import Mathlib.Data.Set.Finite.Basic
 
 /-! # Consistency hierarchy
 

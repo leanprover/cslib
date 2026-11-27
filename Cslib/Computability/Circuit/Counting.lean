@@ -6,19 +6,13 @@ Authors: Samuel Schlesinger
 module
 
 public import Cslib.Computability.Circuit.Complexity
-public import Cslib.Computability.Circuit.Finite
 public import Cslib.Computability.Circuit.Normalization
 public import Mathlib.Data.Set.Card
-public import Mathlib.Data.Nat.Factorial.Basic
-public import Mathlib.Tactic.ToAdditive
 
+import Cslib.Computability.Circuit.Finite
 import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Data.Fintype.Perm
-import Mathlib.Data.Set.Finite.Lattice
-import Mathlib.Data.Set.Finite.Range
-import Mathlib.Tactic.GCongr
-import Mathlib.Tactic.NormNum
 
 /-!
 # Counting functions computed by finite circuits

@@ -5,8 +5,11 @@ Authors: Samuel Schlesinger
 -/
 module
 
-public import Cslib.Computability.Circuit.Boolean.Synthesis
+public import Cslib.Computability.Circuit.Boolean.Basic
+public import Cslib.Computability.Circuit.Synthesis
+public import Cslib.Foundations.Data.BitString
 
+import Cslib.Computability.Circuit.Boolean.Synthesis
 import Mathlib.Algebra.BigOperators.Fin
 
 /-!

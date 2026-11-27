@@ -5,8 +5,12 @@ Authors: Kim Morrison
 -/
 module
 
-public import Cslib.Algorithms.Lean.Query.Sort.LowerBound
-public import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
+public import Cslib.Algorithms.Lean.Query.Bounds
+public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
+public import Mathlib.Data.Nat.Factorial.Basic
+
+import Cslib.Algorithms.Lean.Query.Sort.LowerBound
+import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
 
 /-! # Merge Sort: Combined Bounds
 

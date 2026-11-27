@@ -10,7 +10,6 @@ public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Representation
 public import Mathlib.Algebra.Group.Action.Pointwise.Set.Basic
 public import Mathlib.Algebra.Group.Action.Prod
-public import Mathlib.Algebra.Group.Basic
 public import Mathlib.GroupTheory.GroupAction.Defs
 
 /-!

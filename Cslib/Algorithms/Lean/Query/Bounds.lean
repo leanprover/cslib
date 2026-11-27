@@ -6,7 +6,6 @@ Authors: Sebastian Graf, Kim Morrison, Shreyas Srinivas
 module
 
 public import Cslib.Algorithms.Lean.Query.FreeM
-public import Mathlib.Order.Monotone.Defs
 
 /-! # Upper and Lower Bounds for Query Complexity
 

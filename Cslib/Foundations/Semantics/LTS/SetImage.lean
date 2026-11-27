@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi, Yusuf Demir
 module
 
 public import Cslib.Foundations.Semantics.LTS.Basic
+public import Mathlib.Order.SetNotation
 
 /-!
 # Images of sets of states

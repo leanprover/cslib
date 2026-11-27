@@ -7,10 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Languages.CCS.Semantics
-public import Cslib.Foundations.Semantics.LTS.Bisimulation
-public import Cslib.Foundations.Semantics.LTS.TraceEq
 public import Cslib.Logics.HML.Basic
-public import Mathlib.Tactic.FinCases
 
 /-! # Milner's Vending Machine
 
