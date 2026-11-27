@@ -299,6 +299,7 @@ public import Cslib.Languages.Mech.Common.LocalStore
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.BTL.Basic
+public import Cslib.Logics.FirstOrder.BackAndForth
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.Kleene.Basic
 public import Cslib.Logics.LinearLogic.CLL.Basic
