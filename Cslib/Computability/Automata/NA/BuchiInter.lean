@@ -66,7 +66,6 @@ then it sees the other accepting condition infinitely many times as well. -/
 lemma inter_freq_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
     {i : Bool} (h_run : (interNA na acc).Run xs ss) (h_inf : ∃ᶠ k in atTop, ss k ∈ interAcc i acc) :
     ∃ᶠ k in atTop, ss k ∈ interAcc (!i) acc := by
-  have (k : ℕ) := (h_run.trans k).right
   apply frequently_leadsTo_frequently h_inf
   apply leadsTo_trans (q := {s | s.snd = !i})
   · grind
@@ -82,7 +81,6 @@ lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((�
     (h_inf_f : ∃ᶠ k in atTop, ss k ∈ {s | s.fst false ∈ acc false})
     (h_inf_t : ∃ᶠ k in atTop, ss k ∈ {s | s.fst true ∈ acc true}) :
     ∃ᶠ k in atTop, ss k ∈ interAccept acc := by
-  have (k : ℕ) := (h_run.trans k).right
   have h_univ : ∃ᶠ k in atTop, ss k ∈ univ := by simp [atTop_neBot]
   have (b : Bool) : interAcc b acc = {⟨_, b'⟩ | b' = b} ∩ {⟨p,_⟩ | p b ∈ acc b} := by
     ext; grind
@@ -92,7 +90,6 @@ lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((�
   apply leadsTo_cases_or (q := {⟨_, b⟩ | b = false}) <;>
   grind [until_frequently_leadsTo_and, univ_inter]
 
-set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- The language accepted by the intersection automaton is the intersection of
 the languages accepted by the two component automata. -/
 @[simp, scoped grind =]
@@ -106,7 +103,7 @@ theorem inter_language_eq :
   · intro ⟨ss, h_run, h_inf⟩ i
     use ss.map (fun s ↦ s.fst i)
     constructor
-    · apply iProd_run_iff.mp <| hist_run_proj h_run
+    · exact iProd_run_iff.mp (hist_run_proj h_run) i
     · simp only [interAccept, mem_union, frequently_or_distrib] at h_inf
       cases i
       · rcases h_inf with h_inf_f | h_inf_t
@@ -122,8 +119,7 @@ theorem inter_language_eq :
   · intro h
     choose ss_i h_ss_i using h
     let ss_p : ωSequence (Π i, State i) := fun k i ↦ ss_i i k
-    have h_ss_p : (iProd na).Run xs ss_p := by
-      grind only [Run, = iProd_run_iff, = get_fun, = LTS.OmegaExecution, = get_map]
+    have h_ss_p : (iProd na).Run xs ss_p := iProd_run_iff.mpr fun i ↦ (h_ss_i i).1
     have (k : ℕ) (i : Bool) : ss_p k i = ss_i i k := rfl
     obtain ⟨ss, h_run, _⟩ := hist_run_exists h_ss_p
     use ss, h_run
