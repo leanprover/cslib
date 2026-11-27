@@ -25,7 +25,7 @@ namespace Relation
 
 /-! ### Operations on relations -/
 
-/-- The empty (heterogeneous) relation, which always returns `False`. -/
+/-- The empty (heterogeneous) relation, which always returns `False. -/
 @[nolint unusedArguments]
 def emptyHRelation {α : Sort u} {β : Sort v} (_ : α) (_ : β) := False
 
