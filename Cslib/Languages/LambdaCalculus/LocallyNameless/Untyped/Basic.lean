@@ -27,7 +27,7 @@ namespace Cslib
 
 universe u
 
-variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
+variable {Var : Type u}
 
 namespace LambdaCalculus.LocallyNameless.Untyped
 
@@ -66,10 +66,12 @@ lemma openRec_abs : M.abs⟦i ↝ s⟧ = M⟦i + 1 ↝ s⟧.abs := by rfl
 
 /-- Variable opening of the closest binding. -/
 @[scoped grind =]
-def open' {X} (e u):= @Term.openRec X 0 u e
+abbrev open' {X} (e u):= @Term.openRec X 0 u e
 
 @[inherit_doc]
 scoped infixr:80 " ^ " => Term.open'
+
+variable [DecidableEq Var]
 
 /-- Variable closing, replacing a free `fvar x` with `bvar k` -/
 @[scoped grind =]
@@ -82,11 +84,9 @@ def closeRec (k : ℕ) (x : Var) : Term Var → Term Var
 @[inherit_doc]
 scoped notation:68 e "⟦" k " ↜ " x "⟧"=> Term.closeRec k x e
 
-variable {x : Var}
-
 /-- Variable closing of the closest binding. -/
 @[scoped grind =]
-def close {Var} [DecidableEq Var] (e u):= @Term.closeRec Var _ 0 u e
+abbrev close (e : Term Var) (u : Var) := Term.closeRec 0 u e
 
 @[inherit_doc]
 scoped infixr:80 " ^* " => Term.close
@@ -114,7 +114,7 @@ def fv : Term Var → Finset Var
 
 section
 
-omit [HasFresh Var]
+variable {x : Var} {n : Term Var}
 
 lemma closeRec_bvar : (bvar i)⟦k ↜ x⟧ = bvar i := by rfl
 
@@ -123,8 +123,6 @@ lemma closeRec_fvar : (fvar x')⟦k ↜ x⟧ = if x = x' then bvar k else fvar x
 lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x⟧) := by rfl
 
 lemma closeRec_abs : t.abs⟦k ↜ x⟧ = t⟦k + 1 ↜ x⟧.abs := by rfl
-
-variable {x : Var} {n : Term Var}
 
 lemma subst_bvar : (bvar i : Term Var)[x := n] = bvar i := by rfl
 
