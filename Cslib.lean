@@ -107,11 +107,17 @@ public import Cslib.Computability.Languages.SyntacticMonoid
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Concatenate
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.TransduceOutput
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Basic
 public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Delimit
 public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.HeadCases
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.List
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Nat
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Prod
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Sum
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ClearWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
