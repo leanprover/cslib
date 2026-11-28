@@ -18,7 +18,7 @@ This file defines the notion of reflexive (`Cslib.RelationAlgebra.IsRelRefl`), s
 (`Cslib.RelationAlgebra.IsRelSymm`) and transitive (`Cslib.RelationAlgebra.IsRelTrans`) elements
 in a relation algebra. These properties are packaged as typeclasses, so that instance syntheses
 can find `RelationAlgebra (Set.Iic a)` for `a` a symmetric and transitive element in a relation
-algebra (see `Set.Iic.instRelationAlgebra` in `RelationAlgebra/Relativization.lean`).
+algebra (see `Set.Iic.instRelationAlgebra` in `RelationAlgebra.Relativization.lean`).
 
 Coreflexive (`Cslib.RelationAlgebra.IsRelCorefl`) elements are defined as those below `1`, and are
 shown to be the analogue in relation algebras of sets, via the domain and codomain maps `relDom`
@@ -26,7 +26,7 @@ and `relCod`.
 
 In general, most relational properties have RA equivalents, translating universal quantifiers using
 `≤`, and existential quantifiers with `*`. We translate many of the properties defined on
-`α → α → Prop` in `Foundations/Relation/Defs` to the relation algebra `SetRel α α`.
+`α → α → Prop` in `Foundations.Relation.Defs` to the relation algebra `SetRel α α`.
 
 ## References
 
