@@ -113,14 +113,20 @@ private theorem bound_le (n : ℕ) (hn : 5 * Nat.log2 n < n) :
   dsimp [blockCount] at hpattern ⊢
   nlinarith
 
+private theorem three_mul_le_two_pow (k : ℕ) (hk : 4 ≤ k) : 3 * k ≤ 2 ^ k := by
+  induction k, hk using Nat.le_induction with
+  | base => norm_num
+  | succ k _ ih => rw [pow_succ]; omega
+
 /-- For `P > 0`, the leading term is at most `(1 + 1 / P) · 2 ^ n / n` up to a lower-order
 term, once `n` is large enough that dropping `5 log₂ n` rows per block costs at most a factor
 `(P + 1) / P`. The statement is multiplied through by `P n` to stay in `ℕ`. -/
-private theorem mainTerm_le (P n : ℕ)
-    (hn : 5 * Nat.log2 n < n) (hP : (P + 1) * (5 * Nat.log2 n) ≤ n) :
+private theorem mainTerm_le (P n : ℕ) (hP : (P + 1) * (5 * Nat.log2 n) ≤ n) :
     P * n * ((2 ^ (3 * Nat.log2 n) / (n - 5 * Nat.log2 n) + 1) *
       2 ^ (n - 3 * Nat.log2 n)) ≤ (P + 1) * 2 ^ n +
         (P + 1) * n * 2 ^ (n - 3 * Nat.log2 n) := by
+  obtain hn | hn := le_or_gt n (5 * Nat.log2 n)
+  · grind
   let k := 3 * Nat.log2 n
   let s := n - 5 * Nat.log2 n
   let d := n - k
@@ -142,10 +148,19 @@ private theorem mainTerm_le (P n : ℕ)
     _ ≤ (P + 1) * 2 ^ n + (P + 1) * n * 2 ^ d := by gcongr; exact Nat.sub_le _ _
 
 /-- An error term of order `n · 2 ^ d` is `o(2 ^ n / n)`: with `d = n - 3 log₂ n`,
-`c n ^ 2 · 2 ^ d ≤ 2 ^ n` once `n ≥ 8 c` and `3 log₂ n ≤ n`, using
-`2 ^ (3 log₂ n) > (n / 2) ^ 3`. -/
-private theorem error_le (c n : ℕ) (hc : 8 * c ≤ n) (hn : 3 * Nat.log2 n ≤ n) :
+`c n ^ 2 · 2 ^ d ≤ 2 ^ n` once `n ≥ 8 c`, using `2 ^ (3 log₂ n) > (n / 2) ^ 3`. -/
+private theorem error_le (c n : ℕ) (hc : 8 * c ≤ n) :
     c * n ^ 2 * 2 ^ (n - 3 * Nat.log2 n) ≤ 2 ^ n := by
+  obtain hn | hn := lt_or_ge n (3 * Nat.log2 n)
+  · have := Nat.log2_self_le (n := n) (by rintro rfl; simp at hn)
+    have : Nat.log2 n < 4 := by
+      by_contra hk
+      have := three_mul_le_two_pow _ (not_lt.mp hk)
+      omega
+    rw [Nat.sub_eq_zero_of_le hn.le, pow_zero, mul_one]
+    obtain rfl | ⟨rfl, rfl⟩ : c = 0 ∨ c = 1 ∧ n = 8 := by omega
+    · simp
+    · decide
   let q := 2 ^ Nat.log2 n
   have hq : n < 2 * q := by
     simpa [q, pow_succ, Nat.mul_comm] using Nat.lt_log2_self (n := n)
@@ -181,8 +196,8 @@ private theorem eventually_bound_le (P : ℕ) :
   have hl : 0 < Nat.log2 n := (Nat.le_log2 (by omega)).mpr (by simpa using hn2)
   have hstrict : 5 * Nat.log2 n < n := by nlinarith
   have hremoved : (Q + 1) * (5 * Nat.log2 n) ≤ n := by nlinarith
-  have hmain := mainTerm_le Q n hstrict hremoved
-  have herr := error_le (17 * Q + 1) n ((le_max_right _ _).trans hn) (by omega)
+  have hmain := mainTerm_le Q n hremoved
+  have herr := error_le (17 * Q + 1) n ((le_max_right _ _).trans hn)
   have hbound := Nat.mul_le_mul_left (Q * n) (bound_le n hstrict)
   have hsquare : n ≤ n ^ 2 := by nlinarith
   have hmerge : (Q + 1) * n * 2 ^ (n - 3 * Nat.log2 n) ≤

@@ -162,11 +162,11 @@ public theorem runFrom_rewindWork_erase (ip : Fin (input.length + 2)) (t : ℤ �
 open RewindWork in
 /-- At every step, the head is within `[-1, p]`: it walks from its start `p ≤ w.length` down to
 `-1` and back to `0`, where it stays. -/
-public theorem workTapePos_runFrom_rewindWork (write : Option (Option Symbol))
+private lemma workTapePos_runFrom_rewindWork_of_le_length (write : Option (Option Symbol))
     (ip : Fin (input.length + 2)) (t : ℤ → Option Symbol) (out : List Symbol) {w : List Symbol}
     (hw : t = tapeOfList w) {p : ℕ} (hp : p ≤ w.length) (m : ℕ) :
     ((rewindWork Symbol write).runFrom
-        ⟨some (rewindWork Symbol write).q₀, ip, fun _ => t, fun _ => (p : ℤ), out⟩
+        ⟨some (rewindWork Symbol write).q₀, ip, fun _ ↦ t, fun _ ↦ (p : ℤ), out⟩
         m).workTapePos 0 ∈ Set.Icc (-1) (p : ℤ) := by
   rcases m with _ | m
   · simp [runFrom]
@@ -178,6 +178,27 @@ public theorem workTapePos_runFrom_rewindWork (write : Option (Option Symbol))
     constructor <;> omega
   · have hrun := runFrom_rewindWork write ip t out hw hp
     rw [runFrom_eq_of_halt _ _ (by omega : p + 2 ≤ m + 1) (by rw [hrun]), hrun]
+    simp
+
+open RewindWork in
+/-- At every step, the head is within `[-1, p]`: from a start `p ≤ w.length` it walks down to
+`-1` and back to `0`, where it stays; from a start `p > w.length` it moves to `p - 1` and back. -/
+public theorem workTapePos_runFrom_rewindWork (write : Option (Option Symbol))
+    (ip : Fin (input.length + 2)) (t : ℤ → Option Symbol) (out : List Symbol) {w : List Symbol}
+    (hw : t = tapeOfList w) {p : ℕ} (m : ℕ) :
+    ((rewindWork Symbol write).runFrom
+        ⟨some (rewindWork Symbol write).q₀, ip, fun _ ↦ t, fun _ ↦ (p : ℤ), out⟩
+        m).workTapePos 0 ∈ Set.Icc (-1) (p : ℤ) := by
+  obtain hp | hp := le_or_gt p w.length
+  · exact workTapePos_runFrom_rewindWork_of_le_length write ip t out hw hp m
+  have h2 : (rewindWork Symbol write).runFrom
+      ⟨some (rewindWork Symbol write).q₀, ip, fun _ ↦ t, fun _ ↦ (p : ℤ), out⟩ 2 =
+      ⟨none, ip, fun _ ↦ t, fun _ ↦ (p : ℤ) - 1 + 1, out⟩ :=
+    (congrArg _ step_start).trans (step_scan_none (by rw [hw, tapeOfList_eq_none_iff]; omega))
+  match m with
+  | 0 | 1 => simp [runFrom, show (rewindWork Symbol write).q₀ = .start from rfl, step_start]
+  | m + 2 =>
+    rw [runFrom_eq_of_halt _ _ (Nat.le_add_left 2 m) (by rw [h2]), h2]
     simp
 
 end Turing.MultiTapeTM

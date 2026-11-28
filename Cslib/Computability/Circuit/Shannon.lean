@@ -18,7 +18,7 @@ import Mathlib.Order.Filter.AtTopBot.Basic
 import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
-# Shannon's lower bounds for finite carriers
+# Shannon's lower bounds
 
 `exists_hard_full_function` gives a finite criterion for the full basis with every parameter
 explicit, including the arity. The following asymptotic theorem specializes to binary bases.
@@ -29,6 +29,8 @@ gates: the fraction of functions computable within that budget tends to zero. He
 sufficiently large `n`, some function requires more than `qⁿ/n` gates. This also holds when the
 signature has infinitely many operations, because the binary full basis simulates every
 signature of arity at most two gate by gate, so its hard functions are hard for all of them.
+The existence of hard functions also holds on an infinite carrier, where `Nat.card U = 0`
+makes the bound say only that a constant function needs at least one gate.
 For the De Morgan basis on `Bool`, this matches Lupanov's upper bound asymptotically.
 
 The logarithm of the counting bound is at most `s log s + O(s)` for `n + 1 ≤ s`.
@@ -167,11 +169,7 @@ theorem tendsto_card_computableFunctions_div [Finite σ.Op] [Finite U] [Nontrivi
   filter_upwards [eventually_card_le_exp_neg I arity_le] with n hn
   exact (div_le_iff₀ (by positivity)).mpr hn
 
-/-- For all sufficiently large `n`, some function on `n` inputs over `U` requires more than
-`|U|ⁿ/n` gates over a signature whose operations have arity at most two, which may have
-infinitely many operations. The function is hard for the binary full basis, which simulates
-the signature gate by gate. -/
-theorem exists_hard_function [Finite U] [Nontrivial U]
+private theorem exists_hard_function_of_finite [Finite U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
       ∀ c : Circuit σ n 1,
@@ -191,5 +189,29 @@ theorem exists_hard_function [Finite U] [Nontrivial U]
     (hf d fun x => (congrFun hd x).trans (hc x)).trans_le (hsize.trans (by simp))
   apply (div_lt_iff₀ (by exact_mod_cast (by lia : 0 < n) : (0 : ℝ) < n)).mpr
   exact_mod_cast (Nat.div_lt_iff_lt_mul (by lia : 0 < n)).mp hg
+
+/-- For all sufficiently large `n`, some function on `n` inputs over `U` requires more than
+`|U|ⁿ/n` gates over a signature whose operations have arity at most two, which may have
+infinitely many operations. For finite `U`, the function is hard for the binary full basis, which
+simulates the signature gate by gate. For infinite `U`, `|U| = 0` and the constant functions need
+a gate. -/
+theorem exists_hard_function [Nontrivial U]
+    (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
+    ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
+      ∀ c : Circuit σ n 1,
+        c.Computes I (single f) → (card U : ℝ) ^ n / n < (c.size : ℝ) := by
+  cases finite_or_infinite U with
+  | inl _ => exact exists_hard_function_of_finite I arity_le
+  | inr _ =>
+    obtain ⟨a, b, hab⟩ := exists_pair_ne U
+    refine ⟨1, fun n hn ↦ ⟨fun _ ↦ a, fun ⟨p, out⟩ hc ↦ ?_⟩⟩
+    rw [Nat.card_eq_zero_of_infinite, Nat.cast_zero, zero_pow (by omega), zero_div]
+    cases p with
+    | empty =>
+      cases h : out 0 with
+      | input i =>
+        exact absurd (by simpa [Circuit.eval, h] using congrFun (hc fun _ ↦ b) 0) hab.symm
+      | gate g => exact g.elim0
+    | gate => positivity
 
 end Cslib.Circuits.Shannon

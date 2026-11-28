@@ -179,18 +179,19 @@ instance [h : Nonempty na.start] : na.finLoop.Total where
     | inl _ => ⟨inr none, by simpa [finLoop, loop, NA.totalize, LTS.totalize] using h⟩
     | inr _ => ⟨inr none, by grind [finLoop, loop, NA.totalize, LTS.totalize]⟩
 
-/-- `finLoop na` accepts the Kleene star of the language of `na`, assuming that
-the latter is nonempty. -/
-theorem loop_language_eq [Inhabited Symbol] (h : ¬ language na = 0) :
+/-- `finLoop na` accepts the Kleene star of the language of `na`. -/
+theorem loop_language_eq [Inhabited Symbol] :
     language (FinAcc.mk na.finLoop {inl ()}) = (language na)∗ := by
   rw [Language.kstar_iff_mul_add]
   ext xl; constructor
-  · rintro ⟨s, _, t, h_acc, h_mtr⟩
+  · rintro ⟨s, hs, t, h_acc, h_mtr⟩
     by_cases h_xl : xl = []
     · grind [Language.mem_add, Language.mem_one]
-    · have : Nonempty na.start := by
-        obtain ⟨_, s0, _, _⟩ := ne_empty_iff_nonempty.mp h
-        use s0
+    · -- the first step leaves the hub, which requires a start state of `na`
+      have : Nonempty na.start := by
+        obtain ⟨x, xs, rfl⟩ := List.exists_cons_of_ne_nil h_xl
+        cases h_mtr with
+        | stepL htr _ => aesop (add norm [finLoop, loop, NA.totalize, LTS.totalize])
       obtain ⟨xs, ss, h_ωtr, rfl, rfl⟩ := LTS.Total.extend_omegaExecution h_mtr
       have h_run : na.finLoop.Run (xl ++ω xs) ss := by grind [Run]
       obtain ⟨h1, h2⟩ : 0 < xl.length ∧ (ss xl.length).isLeft := by grind

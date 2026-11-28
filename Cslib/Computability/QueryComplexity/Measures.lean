@@ -239,7 +239,7 @@ has the minimal sensitive block flipped. -/
 lemma isSensitiveCoord_flipBlock (hB : IsMinimalSensitiveBlock f x B) (hi : i ∈ B) :
     IsSensitiveCoord f (flipBlock B x) i := by
   unfold IsSensitiveCoord
-  rw [flipBlock_apply_of_mem hi, Bool.not_not, ← flipBlock_erase hi,
+  rw [flipBlock_apply_of_mem hi, Bool.not_not, ← flipBlock_erase,
     not_not.mp (hB.not_isSensitiveBlock_erase hi)]
   exact Ne.symm hB.1
 

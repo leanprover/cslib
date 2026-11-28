@@ -80,8 +80,8 @@ theorem of_consensus [Fintype P] (f : ℕ) (hf : f < card P)
   let xls := a.fairSegActions (a.simpleDeliver ps) ps s
   obtain ⟨ss, h_omega, h_s, _⟩ := fair_omegaExecution (simpleDeliver_fair ps) s trivial
   obtain ⟨ss', h_omega', _, _, _⟩ := LTS.OmegaExecution.append h_xl h_omega h_s
-  have h_dest := omega_forall_actions (r := DestIn ps) (d := a.simpleDeliver ps)
-      (simpleDeliver_fair ps) s trivial (simpleDeliver_forallActions ps) (by simp [DestIn])
+  have h_dest := omega_forall_actions (a := a) (r := DestIn ps) (d := a.simpleDeliver ps) (ps := ps)
+      s (simpleDeliver_forallActions ps) (by simp [DestIn])
   have : ∀ p, p ∈ ps → ProcFair p ss' (xl ++ω xls.flatten) := by
     intro p h_p
     rw [← Algorithm.drop_procFair_iff h_omega' p xl.length]

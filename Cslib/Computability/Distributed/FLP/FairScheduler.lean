@@ -230,14 +230,15 @@ theorem fair_omegaExecution {d : DeliverMsg P M S} {ps : Set P} {q : State P M S
 
 /-- If `d.ForallActions r`, then the concatenation of all `a.fairSegActions d ps s0` segments
 can only use actions satisfying `r`. -/
-theorem omega_forall_actions {d : DeliverMsg P M S} {ps : Set P}
-    {q : State P M S → Prop} {r : Action P M → Prop}
-    (hd : a.FairDeliverMsg d ps q) (s0 : State P M S) (hs0 : q s0)
-    (ha : d.ForallActions r) (hn : r none) :
+theorem omega_forall_actions {d : DeliverMsg P M S} {ps : Set P} {r : Action P M → Prop}
+    (s0 : State P M S) (ha : d.ForallActions r) (hn : r none) :
     ∀ k, r ((a.fairSegActions d ps s0).flatten k) := by
-  have hpos : ∀ k, 0 < (a.fairSegActions d ps s0 k).length := by grind [fair_fairSegs hd s0 hs0]
-  simp only [forall_flatten_iff hpos]
-  grind [fairSeg_forallActions]
+  have key (l : List (Action P M)) (i : ℕ) (hl : l.Forall r) : r l[i]! := by
+    rw [List.getElem!_eq_getElem?_getD]
+    cases h : l[i]? with
+    | none => exact hn
+    | some x => exact List.forall_iff_forall_mem.mp hl x (List.mem_of_getElem? h)
+  exact fun k ↦ key _ _ (fairSeg_forallActions ps s0 _ ha hn)
 
 end FairScheduler
 
