@@ -541,42 +541,39 @@ namespace SetRel
 
 variable {α : Type*} (r : SetRel α α)
 
-theorem isRelRefl_iff_isRefl : IsRelRefl r ↔ r.IsRefl :=
-  isRelRefl_iff.trans r.id_subset_iff
+theorem isRefl_iff_isRelRefl : r.IsRefl ↔ IsRelRefl r :=
+  isRelRefl_iff.trans r.id_subset_iff |>.symm
 
-instance [hr : r.IsRefl] : IsRelRefl r := r.isRelRefl_iff_isRefl.mpr hr
+instance [hr : r.IsRefl] : IsRelRefl r := r.isRefl_iff_isRelRefl.mp hr
 
-theorem isIrrefl_iff : r ⊆ 1ᶜ ↔ r.IsIrrefl := by
+theorem isIrrefl_iff : r.IsIrrefl ↔ r ⊆ 1ᶜ := by
   simp_rw [SetRel.IsIrrefl, irrefl_iff_le_ne, Set.subset_def, LE.le, Prod.forall,
     Set.mem_compl_iff, mem_one]
 
-theorem isRelSymm_iff_isSymm : IsRelSymm r ↔ r.IsSymm :=
-  isRelSymm_iff.trans r.inv_eq_self_iff
+theorem isSymm_iff_isRelSymm : r.IsSymm ↔ IsRelSymm r :=
+  isRelSymm_iff.trans r.inv_eq_self_iff |>.symm
 
-instance [hr : r.IsSymm] : IsRelSymm r := r.isRelSymm_iff_isSymm.mpr hr
+instance [hr : r.IsSymm] : IsRelSymm r := r.isSymm_iff_isRelSymm.mp hr
 
-theorem isRelTrans_iff_isTrans : IsRelTrans r ↔ r.IsTrans :=
-  isRelTrans_iff.trans r.isTrans_iff_comp_subset_self.symm
+theorem isTrans_iff_isRelTrans : r.IsTrans ↔ IsRelTrans r :=
+  r.isTrans_iff_comp_subset_self.trans isRelTrans_iff.symm
 
-instance [hr : r.IsTrans] : IsRelTrans r := r.isRelTrans_iff_isTrans.mpr hr
+instance [hr : r.IsTrans] : IsRelTrans r := r.isTrans_iff_isRelTrans.mp hr
 
 variable {s r : SetRel α α} {x y : α}
 
-theorem mem_reflGen_iff : x ~[reflGen r] y ↔ Relation.ReflGen (· ~[r] ·) x y := by
+theorem reflGen_iff_mem_reflGen : Relation.ReflGen (· ~[r] ·) x y ↔ x ~[reflGen r] y := by
   simp [reflGen, Relation.reflGen_iff, comm]
 
-theorem reflGen_eq : (· ~[reflGen r] ·) = Relation.ReflGen (· ~[r] ·) := by
+theorem reflGen_eq :  Relation.ReflGen (· ~[r] ·) = (· ~[reflGen r] ·):= by
   ext
-  exact mem_reflGen_iff
+  exact reflGen_iff_mem_reflGen
 
-theorem mem_symmGen_iff : x ~[symmGen r] y ↔ Relation.SymmGen (· ~[r] ·) x y := by
-  simp [symmGen, Relation.SymmGen]
+theorem symmGen_iff_mem_symmGen : Relation.SymmGen (· ~[r] ·) x y ↔ x ~[symmGen r] y := .rfl
 
-theorem symmGen_eq : (· ~[symmGen r] ·) = Relation.SymmGen (· ~[r] ·) := by
-  ext
-  exact mem_symmGen_iff
+theorem symmGen_eq : (· ~[symmGen r] ·) = Relation.SymmGen (· ~[r] ·) := rfl
 
-theorem mem_transGen_iff : x ~[transGen r] y ↔ Relation.TransGen (· ~[r] ·) x y := by
+theorem transGen_iff_mem_transGen : Relation.TransGen (· ~[r] ·) x y ↔ x ~[transGen r] y := by
   suffices transGen r = {p | Relation.TransGen (· ~[r] ·) p.1 p.2} by simp_all
   apply le_antisymm
   · rw [transGen_le]
@@ -587,23 +584,24 @@ theorem mem_transGen_iff : x ~[transGen r] y ↔ Relation.TransGen (· ~[r] ·) 
     | single h => exact le_transGen r h
     | @tail y z h h' ih => exact transGen_mul_self_le r ⟨y, ih, h'⟩
 
-theorem transGen_eq : (· ~[transGen r] ·) = Relation.TransGen (· ~[r] ·) := by
+theorem transGen_eq : Relation.TransGen (· ~[r] ·) = (· ~[transGen r] ·) := by
   ext
-  exact mem_transGen_iff
+  exact transGen_iff_mem_transGen
 
-theorem mem_reflTransGen_iff : x ~[reflTransGen r] y ↔ Relation.ReflTransGen (· ~[r] ·) x y := by
+theorem reflTransGen_iff_mem_reflTransGen :
+    Relation.ReflTransGen (· ~[r] ·) x y ↔ x ~[reflTransGen r] y := by
   rw [reflTransGen, reflGen, Relation.reflTransGen_iff_eq_or_transGen, Eq.comm, Set.mem_union,
-    mem_one, mem_transGen_iff]
+    mem_one, transGen_iff_mem_transGen]
 
-theorem reflTransGen_eq : (· ~[reflTransGen r] ·) = Relation.ReflTransGen (· ~[r] ·) := by
+theorem reflTransGen_eq : Relation.ReflTransGen (· ~[r] ·) = (· ~[reflTransGen r] ·) := by
   ext
-  exact mem_reflTransGen_iff
+  exact reflTransGen_iff_mem_reflTransGen
 
-theorem relDom_eq_ofSet : relDom r = ofSet r.dom := by
+theorem ofSet_dom_eq : ofSet r.dom = relDom r := by
   ext ⟨x, y⟩
   simp [relDom, and_comm]
 
-theorem relCod_eq_ofSet : relCod r = ofSet r.cod := by
+theorem ofSet_cod_eq : ofSet r.cod = relCod r := by
   ext ⟨x, y⟩
   simp +contextual [relCod, and_comm]
 
@@ -611,17 +609,10 @@ theorem isRelCorefl_iff_eq_ofSet (r : SetRel α α) : IsRelCorefl r ↔ ∃ s, r
   constructor
   · intro h
     use r.dom
-    nth_rw 1 [← relDom_of_isRelCorefl r, relDom_eq_ofSet]
+    nth_rw 1 [← relDom_of_isRelCorefl r, ofSet_dom_eq]
   · rw [isRelCorefl_iff]
     rintro ⟨s, rfl⟩ ⟨x, y⟩ ⟨(rfl : x = y), -⟩
     exact mem_one.mpr rfl
-
-lemma ofSet_compl_eq {s : Set α} : ofSet sᶜ = 1 \ ofSet s := by
-  ext ⟨a, b⟩
-  simp; grind
-
-lemma ofSet_eq_one_iff {s : Set α} : ofSet s = 1 ↔ s = .univ := by
-  simp [Set.ext_iff]
 
 theorem rightEuclidean_iff : Relation.RightEuclidean (· ~[r] ·) ↔ star r * r ⊆ r :=
   ⟨fun ⟨h⟩ ⟨_, _⟩ ⟨_, hb, ha ⟩ ↦ h hb ha, fun h ↦ ⟨fun hb ha ↦ h ⟨_, hb, ha⟩⟩⟩
@@ -667,7 +658,7 @@ theorem diamond_iff : Relation.Diamond (· ~[r] ·) ↔ star r * r ⊆ r * star 
 
 theorem commute_iff : Relation.Commute (· ~[s] ·) (· ~[r] ·) ↔
     reflTransGen (star s) * reflTransGen r ⊆ reflTransGen r * reflTransGen (star s) := by
-  rw [Relation.Commute, ← reflTransGen_eq, ← reflTransGen_eq, ← star_reflTransGen]
+  rw [Relation.Commute, reflTransGen_eq, reflTransGen_eq, ← star_reflTransGen]
   exact diamondCommute_iff
 
 theorem confluent_iff : Relation.Confluent (· ~[r] ·) ↔
@@ -676,7 +667,7 @@ theorem confluent_iff : Relation.Confluent (· ~[r] ·) ↔
 
 theorem semiCommute_iff : Relation.SemiCommute (· ~[s] ·) (· ~[r] ·) ↔
     star s * reflTransGen r ⊆ reflTransGen r * reflTransGen (star s) := by
-  simp [Relation.SemiCommute, ← reflTransGen_eq, Set.subset_def, ← star_reflTransGen, join₂_iff]
+  simp [Relation.SemiCommute, reflTransGen_eq, Set.subset_def, ← star_reflTransGen, join₂_iff]
   grind
 
 theorem semiConfluent_iff : Relation.SemiConfluent (· ~[r] ·) ↔
@@ -686,11 +677,11 @@ theorem semiConfluent_iff : Relation.SemiConfluent (· ~[r] ·) ↔
 theorem churchRosser_iff : Relation.ChurchRosser (· ~[r] ·) ↔
     reflTransGen (symmGen r) ⊆ reflTransGen r * reflTransGen (star r) := by
   simp [Relation.ChurchRosser, ← Relation.reflTransGen_symmGen, Set.subset_def, Relation.Join,
-    ← reflTransGen_eq, ← symmGen_eq, ← star_reflTransGen]
+    reflTransGen_eq, ← symmGen_eq, ← star_reflTransGen]
 
 theorem locallyCommute_iff : Relation.LocallyCommute (· ~[s] ·) (· ~[r] ·) ↔
     star s * r ⊆ reflTransGen r * reflTransGen (star s) := by
-  simp [Relation.LocallyCommute, ← reflTransGen_eq, join₂_iff, Set.subset_def]
+  simp [Relation.LocallyCommute, reflTransGen_eq, join₂_iff, Set.subset_def]
   grind
 
 theorem locallyConfluent_iff : Relation.LocallyConfluent (· ~[r] ·) ↔
@@ -699,8 +690,7 @@ theorem locallyConfluent_iff : Relation.LocallyConfluent (· ~[r] ·) ↔
 
 theorem stronglyCommute_iff : Relation.StronglyCommute (· ~[s] ·) (· ~[r] ·) ↔
     star s * r ⊆ reflGen r * reflTransGen (star s) := by
-  simp [Relation.StronglyCommute, ← reflGen_eq, ← reflTransGen_eq, Set.subset_def,
-    ← star_reflTransGen]
+  simp [Relation.StronglyCommute, reflGen_eq, reflTransGen_eq, Set.subset_def, ← star_reflTransGen]
   grind
 
 theorem stronglyConfluent_iff : Relation.StronglyConfluent (· ~[r] ·) ↔
@@ -708,30 +698,30 @@ theorem stronglyConfluent_iff : Relation.StronglyConfluent (· ~[r] ·) ↔
   stronglyCommute_iff
 
 theorem ofSet_reducible_eq : ofSet {x | Relation.Reducible (· ~[r] ·) x} = relDom r := by
-  rw [relDom_eq_ofSet]
+  rw [← ofSet_dom_eq]
   congr
 
 theorem ofSet_normal_eq : ofSet {x | Relation.Normal (· ~[r] ·) x} = 1 \ relDom r := by
-  rw [← ofSet_reducible_eq, ← ofSet_compl_eq]
+  rw [← ofSet_reducible_eq, one_eq_id, ← ofSet_compl_eq]
   congr
 
 theorem ofSet_normalizable_eq :
     ofSet {x | Relation.Normalizable (· ~[r] ·) x} = relDom (reflTransGen r * (1 \ relDom r)) := by
-  rw [relDom_eq_ofSet]
+  rw [← ofSet_dom_eq]
   congr
-  simp [Relation.Normalizable, mem_reflTransGen_iff, relDom_eq_ofSet]
+  simp [Relation.Normalizable, reflTransGen_iff_mem_reflTransGen, ← ofSet_dom_eq]
 
 theorem normalizing_iff :
     Relation.Normalizing (· ~[r] ·) ↔ reflTransGen r * (1 \ relDom r) * ⊤ = ⊤ := by
-  rw [← relDom_eq_one_iff, ← ofSet_normalizable_eq, Relation.Normalizing, ofSet_eq_one_iff,
-    Set.eq_univ_iff_forall]
+  rw [← relDom_eq_one_iff, ← ofSet_normalizable_eq, Relation.Normalizing, one_eq_id,
+    ofSet_eq_id_iff, Set.eq_univ_iff_forall]
   rfl
 
 theorem ofSet_preimage_eq {s : Set α} : ofSet (r.preimage s) = relDom (r * ofSet s) := by
-  simp [relDom_eq_ofSet, ofSet, and_comm]
+  simp [← ofSet_dom_eq, ofSet, and_comm]
 
 theorem ofSet_image_eq {s : Set α} : ofSet (r.image s) = relCod (ofSet s * r) := by
-  simp [relCod_eq_ofSet, ofSet]
+  simp [← ofSet_cod_eq, ofSet]
 
 theorem ofSet_core_eq {s : Set α} :
     ofSet (r.core s) = rightResidual (star r) (ofSet s * ⊤) ⊓ 1 := by

@@ -111,6 +111,13 @@ lemma left_mem_of_mem_ofSet (h : x ~[ofSet s] y) : x ∈ s := by grind
 
 lemma right_mem_of_mem_ofSet (h : x ~[ofSet s] y) : y ∈ s := by grind
 
+lemma ofSet_compl_eq {s : Set α} : ofSet sᶜ = .id \ ofSet s := by
+  ext ⟨a, b⟩
+  simp; grind
+
+lemma ofSet_eq_id_iff {s : Set α} : ofSet s = .id ↔ s = .univ := by
+  simp [Set.ext_iff]
+
 lemma ofSet_dom_comp_self (r : SetRel α α) : ofSet r.dom ○ r = r := by
   grind
 
