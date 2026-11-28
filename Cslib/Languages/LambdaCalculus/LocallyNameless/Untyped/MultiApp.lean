@@ -54,11 +54,15 @@ lemma multiApp_tail {N} : (M.multiApp (Ns ++ [N])) = (M.multiApp Ns).app  N:= by
     and only if the leftmost term and all arguments applied to it are locally closed -/
 @[scoped grind ←]
 lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
-  #adaptation_note
-  /-- lean4#16147 replaced the `grind` option `splits`, which capped the depth of the
-  search tree, with `branches`, which caps its total size. This goal splits broadly
-  rather than deeply and needs about 1250 branches, above the default of 1024. -/
-  induction Ns generalizing M with grind (branches := 2048) [cases LC]
+  induction Ns generalizing M with
+  | nil => simp
+  | cons N Ns ih =>
+    simp only [multiApp, ih, List.forall_mem_cons]
+    constructor
+    · rintro ⟨⟨⟩, h⟩
+      exact ⟨‹_›, ‹_›, h⟩
+    · rintro ⟨h₁, h₂, h₃⟩
+      exact ⟨.app h₁ h₂, h₃⟩
 
 /-- Just like ordinary beta reduction, the left-hand side
     of a multi-application step is locally closed -/
