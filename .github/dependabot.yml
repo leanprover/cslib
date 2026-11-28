@@ -1,13 +1,16 @@
 version: 2
 updates:
-  # Keep action pins fresh. Grouped so that all bumps land in a single weekly PR,
-  # which bounds the number of full Lean CI builds this triggers.
+  # Grouped by semver impact so major bumps arrive on their own.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     groups:
-      actions:
+      actions-minor-patch:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-major:
+        patterns: ["*"]
+        update-types: ["major"]
     commit-message:
       prefix: ci
