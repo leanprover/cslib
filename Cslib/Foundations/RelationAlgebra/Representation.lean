@@ -7,7 +7,6 @@ Authors: Chris Henson
 module
 
 public import Cslib.Foundations.RelationAlgebra.Pi
-public import Mathlib.Basic.Rel
 
 /-!
 # Representable relation algebras
@@ -26,66 +25,50 @@ matter of much interest.
 
 @[expose] public section
 
-universe u v w
+universe u₁ u₂ v w
 
 namespace Cslib.RelationAlgebra
 
-/-- The relation algebra of all binary relations on a type `α`. This is scoped so that other
-instances, such as those under `Pointwise`, can be used elsewhere. -/
-scoped instance (α : Type u) : RelationAlgebra (SetRel α α) where
-  one := SetRel.id
-  mul := SetRel.comp
-  mul_assoc := SetRel.comp_assoc
-  one_mul := SetRel.id_comp
-  mul_one := SetRel.comp_id
-  star := SetRel.inv
-  star_involutive _ := SetRel.inv_inv
-  star_mul := SetRel.inv_comp
-  sup_mul a b c := by
-    ext ⟨x, z⟩
-    exact (exists_congr fun y => or_and_right).trans exists_or
-  star_sup _ _ := rfl
-  tarski a b := by
-    rintro ⟨x, z⟩ ⟨y, hxy, hyz⟩ hxz
-    exact hyz ⟨x, hxy, hxz⟩
+variable {α α₁ : Type u₁} {α₂ : Type u₂} [RelationAlgebra α] [RelationAlgebra α₁]
+  [RelationAlgebra α₂] {ι : Type v} {β : ι → Type w}
 
-variable {α : Type u} {R S : SetRel α α} {a b c : α}
-
-theorem _root_.SetRel.mul_eq_comp : R * S = R.comp S := rfl
-
-theorem _root_.SetRel.one_eq_id : (1 : SetRel α α) = SetRel.id := rfl
-
-theorem _root_.SetRel.star_eq_inv : star R = R.inv := rfl
-
-@[simp]
-theorem _root_.SetRel.mem_mul : (a, c) ∈ R * S ↔ ∃ b, (a, b) ∈ R ∧ (b, c) ∈ S := .rfl
-
-@[simp]
-theorem _root_.SetRel.mem_one : (a, b) ∈ (1 : SetRel α α) ↔ a = b := .rfl
-
-@[simp]
-theorem _root_.SetRel.mem_star : (a, b) ∈ star R ↔ (b, a) ∈ R := .rfl
-
+variable (α ι β) in
 /-- A representation of a relation algebra is an injective morphism into a product of relations. -/
-structure Representation (α : Type u) [RelationAlgebra α] (ι : Type v) (β : ι → Type w) where
+structure Representation where
   /-- A `RelationAlgebraHom` into a product of relations. -/
   hom : RelationAlgebraHom α (∀ i, SetRel (β i) (β i))
   injective : Function.Injective hom
 
+variable (α) in
 /-- A relation algebra is representable if a `Representation` exists. -/
-def Representable (α : Type u) [RelationAlgebra α] : Prop :=
-  ∃ (ι : Type u) (β : ι → Type u), Nonempty (Representation α ι β)
+def Representable : Prop := ∃ (ι : Type u₁) (β : ι → Type u₁), Nonempty (Representation α ι β)
+
+/-- Representations can be precomposed with injective homomorphisms. -/
+def Representation.compInjective (r : Representation α₂ ι β) (f : RelationAlgebraHom α₁ α₂)
+    (hf : Function.Injective f) : Representation α₁ ι β where
+  hom := r.hom.comp f
+  injective := r.injective.comp hf
+
+/-- Representations can be precomposed with equivalences. -/
+def Representation.compEquiv (r : Representation α₂ ι β) (e : RelationAlgebraEquiv α₁ α₂) :
+    Representation α₁ ι β := r.compInjective e.toHom e.toHom_injective
 
 /-- A relation algebra that embeds into a representable relation algebra is representable. -/
-theorem Representable.of_injective {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
-    (f : RelationAlgebraHom α α') (hf : Function.Injective f) (h : Representable α') :
-    Representable α :=
+theorem Representable.of_injective (f : RelationAlgebraHom α α₁) (hf : Function.Injective f)
+    (h : Representable α₁) : Representable α :=
   let ⟨ι, β, ⟨r⟩⟩ := h
-  ⟨ι, β, ⟨⟨r.hom.comp f, r.injective.comp hf⟩⟩⟩
+  ⟨ι, β, ⟨r.compInjective f hf⟩⟩
+
+/-- Representability is preserved by equivalence. -/
+theorem Representable.of_equiv (e : RelationAlgebraEquiv α α₁) (h : Representable α₁) :
+    Representable α :=
+  h.of_injective e.toHom e.toHom_injective
+
+theorem _root_.Cslib.RelationAlgebraEquiv.representable_iff (e : RelationAlgebraEquiv α α₁) :
+    Representable α ↔ Representable α₁ :=
+  ⟨fun h ↦ h.of_equiv e.symm, fun h ↦ h.of_equiv e⟩
 
 /-- A `Representation α ι β` in arbitrary universes can be contracted to the universe of `α`. -/
-proof_wanted representable_univ {α : Type u} [RelationAlgebra α] {ι : Type v} {β : ι → Type w} :
-    Representation α ι β → Representable α
+proof_wanted representable_univ (r : Representation α ι β) : Representable α
 
 end Cslib.RelationAlgebra
-

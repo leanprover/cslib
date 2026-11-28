@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 module
 
+public import Cslib.Foundations.Data.SetRel
 public import Cslib.Foundations.RelationAlgebra.Basic
 public import Mathlib.Algebra.Star.MonoidHom
 public import Mathlib.Order.Hom.BoundedLattice
@@ -55,9 +56,16 @@ instance : MonoidHomClass (RelationAlgebraHom α β) α β where
 instance : StarHomClass (RelationAlgebraHom α β) α β where
   map_star f := f.map_star'
 
+/-- See Note [custom simps projection]. -/
+def Simps.apply (f : RelationAlgebraHom α β) : α → β := f
+
+initialize_simps_projections RelationAlgebraHom (toFun → apply)
+
 @[ext]
 theorem ext {f g : RelationAlgebraHom α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
+
+protected theorem mono (f : RelationAlgebraHom α β) : Monotone f := OrderHomClass.mono f
 
 /-- `id` as a `RelationAlgebraHom` -/
 protected def id (α : Type*) [RelationAlgebra α] : RelationAlgebraHom α α :=
@@ -109,32 +117,35 @@ instance : StarHomClass (RelationAlgebraEquiv α β) α β where
 theorem ext {f g : RelationAlgebraEquiv α β} (h : ∀ a, f a = g a) : f = g :=
   DFunLike.ext _ _ h
 
-/-- The reflexive `RelationAlgebraEquiv` -/
-protected def refl (α : Type*) [RelationAlgebra α] : RelationAlgebraEquiv α α :=
-  { OrderIso.refl α, StarMulEquiv.refl α with }
-
 /-- The symmetric `RelationAlgebraEquiv` -/
 def symm (f : RelationAlgebraEquiv α β) : RelationAlgebraEquiv β α :=
   { f.toOrderIso.symm, f.toStarMulEquiv.symm with }
 
+/-- See Note [custom simps projection]. -/
+def Simps.apply (e : RelationAlgebraEquiv α β) : α → β := e
+
+/-- See Note [custom simps projection]. -/
+def Simps.symm_apply (e : RelationAlgebraEquiv α β) : β → α := e.symm
+
+initialize_simps_projections RelationAlgebraEquiv (toFun → apply, invFun → symm_apply)
+
+/-- The reflexive `RelationAlgebraEquiv` -/
+@[simps!]
+protected def refl (α : Type*) [RelationAlgebra α] : RelationAlgebraEquiv α α :=
+  { OrderIso.refl α, StarMulEquiv.refl α with }
+
 /-- The transitive `RelationAlgebraEquiv` -/
+@[simps!]
 def trans (f : RelationAlgebraEquiv α β) (g : RelationAlgebraEquiv β γ) :
     RelationAlgebraEquiv α γ :=
-  { f.toOrderIso.trans g.toOrderIso, f.toStarMulEquiv.trans g.toStarMulEquiv with }
+  { f.toOrderIso.trans g.toOrderIso, f.toStarMulEquiv.trans g.toStarMulEquiv with
+    toFun a := g (f a), invFun c := f.symm (g.symm c)}
 
 /-- The `RelationAlgebraHom` underlying an `RelationAlgebraEquiv` -/
+@[simps]
 def toHom (f : RelationAlgebraEquiv α β) : RelationAlgebraHom α β :=
-  { (f.toOrderIso : BoundedLatticeHom α β), f.toStarMulEquiv.toStarMonoidHom with }
-
-@[simp]
-theorem refl_apply (a : α) : RelationAlgebraEquiv.refl α a = a := rfl
-
-@[simp]
-theorem trans_apply (f : RelationAlgebraEquiv α β) (g : RelationAlgebraEquiv β γ) (a : α) :
-    f.trans g a = g (f a) := rfl
-
-@[simp]
-theorem toHom_apply (f : RelationAlgebraEquiv α β) (a : α) : f.toHom a = f a := rfl
+  { (f.toOrderIso : BoundedLatticeHom α β), f.toStarMulEquiv.toStarMonoidHom with
+    toFun := f}
 
 @[simp]
 theorem symm_apply_apply (f : RelationAlgebraEquiv α β) (a : α) : f.symm (f a) = a :=
@@ -143,6 +154,90 @@ theorem symm_apply_apply (f : RelationAlgebraEquiv α β) (a : α) : f.symm (f a
 @[simp]
 theorem apply_symm_apply (f : RelationAlgebraEquiv α β) (b : β) : f (f.symm b) = b :=
   f.right_inv b
+
+/-- Promote a bijective homomorphism to an equivalence. -/
+@[simps apply]
+noncomputable def ofBijective {f : RelationAlgebraHom α β} (hf : Function.Bijective f) :
+    RelationAlgebraEquiv α β where
+  toFun := f
+  __ := StarMulEquiv.ofBijective f.toStarMonoidHom hf
+  map_rel_iff' {_ _} := by
+    refine ⟨fun h ↦ ?_, (f.mono ·)⟩
+    rwa [← sup_eq_right, ← hf.injective.eq_iff, map_sup f, sup_eq_right]
+
+lemma toHom_bijective (e : RelationAlgebraEquiv α β) : Function.Bijective e.toHom :=
+  EquivLike.bijective e
+
+lemma toHom_injective (e : RelationAlgebraEquiv α β) : Function.Injective e.toHom :=
+  EquivLike.injective e
+
+lemma inj {e : RelationAlgebraEquiv α β} {x y : α} : e x = e y ↔ x = y :=
+  (EquivLike.injective e).eq_iff
+
+lemma toHom_surjective (e : RelationAlgebraEquiv α β) : Function.Surjective e.toHom :=
+  EquivLike.surjective e
+
+/-- Construct an equivalence from a homomorphism and an inverse. -/
+@[simps!]
+def ofHomInv (f : RelationAlgebraHom α β) (g : RelationAlgebraHom β α)
+    (hfg : ∀ b : β, f (g b) = b) (hgf : ∀ a : α, g (f a) = a) : RelationAlgebraEquiv α β where
+  __ := OrderIso.ofHomInv (.ofClass f) (.ofClass g) (by ext x; exact hfg x) (by ext x; exact hgf x)
+  map_mul' := map_mul f
+  map_star' := map_star f
+
+@[simp]
+theorem isAtom_apply_iff (e : RelationAlgebraEquiv α β) : IsAtom (e a) ↔ IsAtom a :=
+  OrderIso.isAtom_iff e.toOrderIso a
+
+@[simp]
+theorem star_apply_eq_iff (e : RelationAlgebraEquiv α β) : star (e a) = e a ↔ star a = a := by
+  simp [← map_star]
+
+@[simp]
+theorem apply_le_compl_one_iff (e : RelationAlgebraEquiv α β) {a : α} : e a ≤ 1ᶜ ↔ a ≤ 1ᶜ := by
+  rw [← map_one e, ← map_compl' e, map_le_map_iff]
+
+@[simp]
+theorem apply_le_one_iff (e : RelationAlgebraEquiv α β) {a : α} : e a ≤ 1 ↔ a ≤ 1 := by
+  rw [← map_one e, map_le_map_iff]
+
+open RelationAlgebra
+
+@[simp]
+theorem apply_mem_identityAtoms_iff (e : RelationAlgebraEquiv α β) {a : α} :
+    e a ∈ identityAtoms β ↔ a ∈ identityAtoms α := by
+  simp [identityAtoms]
+
+@[simp]
+theorem apply_mem_symmetricDiversityAtoms_iff (e : RelationAlgebraEquiv α β) {a : α} :
+    e a ∈ symmetricDiversityAtoms β ↔ a ∈ symmetricDiversityAtoms α := by
+  simp [symmetricDiversityAtoms]
+
+@[simp]
+theorem apply_mem_nonsymmetricDiversityAtoms_iff (e : RelationAlgebraEquiv α β) {a : α} :
+    e a ∈ nonsymmetricDiversityAtoms β ↔ a ∈ nonsymmetricDiversityAtoms α := by
+  simp [nonsymmetricDiversityAtoms]
+
+theorem ncard_identityAtoms (e : RelationAlgebraEquiv α β) :
+    (identityAtoms α).ncard = (identityAtoms β).ncard :=
+  Nat.card_congr (e.toEquiv.subtypeEquiv fun _ => e.apply_mem_identityAtoms_iff.symm)
+
+theorem ncard_symmetricDiversityAtoms (e : RelationAlgebraEquiv α β) :
+    (symmetricDiversityAtoms α).ncard = (symmetricDiversityAtoms β).ncard :=
+  Nat.card_congr (e.toEquiv.subtypeEquiv fun _ => e.apply_mem_symmetricDiversityAtoms_iff.symm)
+
+theorem ncard_nonsymmetricDiversityAtoms (e : RelationAlgebraEquiv α β) :
+    (nonsymmetricDiversityAtoms α).ncard = (nonsymmetricDiversityAtoms β).ncard :=
+  Nat.card_congr (e.toEquiv.subtypeEquiv fun _ => e.apply_mem_nonsymmetricDiversityAtoms_iff.symm)
+
+omit [RelationAlgebra α] [RelationAlgebra β] in
+/-- An equivalence between types lifts to an equivalence between their algebras of relations. -/
+@[simps!]
+def setRelOfEquiv (e : α ≃ β) : RelationAlgebraEquiv (SetRel α α) (SetRel β β) where
+  __ := SetRel.mapEquiv e e
+  map_rel_iff' := SetRel.map_subset_map_iff e.injective e.injective
+  map_mul' _ _ := SetRel.map_comp_of_injective e.injective
+  map_star' _ := SetRel.map_inv.symm
 
 end RelationAlgebraEquiv
 

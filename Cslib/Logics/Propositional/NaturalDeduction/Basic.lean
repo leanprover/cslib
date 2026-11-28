@@ -406,13 +406,13 @@ alias ⟨equiv_top_of_derivableIn, _⟩ := derivable_iff_equiv_top
 /-- Change the conclusion along an equivalence. -/
 def mapEquivConclusion (Γ : Ctx Atom) (e : equiv T A B)
     (D : (ND T)⇓(Γ ⊢ A)) : (ND T)⇓(Γ ⊢ B) :=
-  Γ.union_empty ▸ Derivation.cut (Δ := ∅) D e.1
+  Γ.union_empty ▸ Derivation.cut (Δ := ∅) D e.mp
 
 /-- Replace a hypothesis along an equivalence. -/
 def mapEquivHypothesis (Γ : Ctx Atom) (e : equiv T A B)
     (C : Proposition Atom) (D : (ND T)⇓(insert A Γ ⊢ C)) : (ND T)⇓(insert B Γ ⊢ C) := by
   have : insert B Γ = {B} ∪ Γ := rfl
-  exact this ▸ Derivation.cut e.2 D
+  exact this ▸ Derivation.cut e.mpr D
 
 /-- An equivalence of a proposition with itself. -/
 def equiv.refl (A : Proposition Atom) : equiv T A A := ⟨ass, ass⟩

@@ -26,7 +26,7 @@ namespace Cslib.DistributedConsistency
 
 variable {State Operation Value Message Process : Type*}
 
-/-- Transtion datatype. -/
+/-- Transition datatype. -/
 inductive Transition (State Operation Value Message Process : Type*)
   /-- Initialization transition. -/
   | init : State → Set Message → Transition State Operation Value Message Process

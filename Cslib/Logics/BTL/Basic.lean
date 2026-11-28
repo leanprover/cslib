@@ -70,8 +70,8 @@ structure Model World Atom where
 /-- The bidirectional frame of a temporal model.
 
 This definition guarantees by construction that the future and past accessibility relations are
-inverse of each other. Modally, this is witnessed by `btl_future_past_prop` and
-`btl_past_future_prop`.
+inverse of each other. Modally, this is witnessed by `Satisfies.btl_future_past` and
+`Satisfies.btl_past_future`.
 -/
 def Model.toFrame (m : Model World Atom) : Frame World τBTL :=
   Frame.ofRelations fun

@@ -55,9 +55,9 @@ theorem isChurchListPair_trans {prev curr : List ℕ} {p p' : SKI} (hp : p ↠ p
     (hp' : IsChurchListPair prev curr p') : IsChurchListPair prev curr p := by
   constructor
   · apply isChurchList_trans (MRed.tail Fst hp)
-    exact hp'.1
+    exact hp'.fst
   · apply isChurchList_trans (MRed.tail Snd hp)
-    exact hp'.2
+    exact hp'.snd
 
 namespace List
 
@@ -200,8 +200,8 @@ theorem tailStep_correct {x : ℕ} {xs : List ℕ} {cx p : SKI}
     (hcx : IsChurch x cx) (hp : IsChurchListPair xs.tail xs p) :
     IsChurchListPair xs (x :: xs) (TailStep ⬝ cx ⬝ p) := by
   apply isChurchListPair_trans (tailStep_def cx p)
-  exact ⟨isChurchList_trans (fst_correct _ _) hp.2,
-         isChurchList_trans (snd_correct _ _) (cons_correct hcx hp.2)⟩
+  exact ⟨isChurchList_trans (fst_correct _ _) hp.snd,
+         isChurchList_trans (snd_correct _ _) (cons_correct hcx hp.snd)⟩
 
 theorem tailFold_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns) :
     ∃ p, (cns ⬝ TailStep ⬝ (MkPair ⬝ Nil ⬝ Nil)) ↠ p ∧
@@ -239,7 +239,7 @@ theorem tail_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns) :
   -- Fst ⬝ (cns ⬝ TailStep ⬝ init) ↠ Fst ⬝ p
   apply isChurchList_trans (MRed.tail Fst hp_red)
   -- Fst ⬝ p represents ns.tail (from hp_pair)
-  exact hp_pair.1
+  exact hp_pair.fst
 
 /-! ### Prepending zero to a list (for Code.zero') -/
 
