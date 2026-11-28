@@ -61,9 +61,9 @@ theorem frequently_in_strictMono {p : ℕ → Prop} {f : ℕ → ℕ}
   split_ands
   · by_contra
     have h1 : segment f k + 1 ≤ m := by grind
-    grind [(StrictMono.le_iff_le hm).mpr h1, segment_upper_bound' hm h0]
+    grind [(StrictMono.le_iff_le hm).mpr h1, segment_upper_bound' hm k]
   · use k - f (segment f k)
-    grind [segment_lower_bound' hm h0, segment_upper_bound' hm h0]
+    grind [segment_lower_bound' hm h0, segment_upper_bound' hm k]
 
 open Nat in
 /-- Every infinite subset of ℕ is the range of a strictly monotonic function from ℕ to ℕ. -/

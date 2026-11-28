@@ -43,12 +43,11 @@ theorem infinite_strictMono {ns : Set ℕ} (h : ns.Infinite) :
     ∃ f : ℕ → ℕ, StrictMono f ∧ range f = ns :=
   ⟨nth (· ∈ ns), nth_strictMono h, range_nth_of_infinite h⟩
 
-/-- There is a gap between two successive occurrences of a predicate `p : ℕ → Prop`,
-assuming `p` (as a set) is infinite. -/
-theorem nth_succ_gap {p : ℕ → Prop} (hf : (ofPred p).Infinite) (n : ℕ) :
+/-- There is a gap between two successive occurrences of a predicate `p : ℕ → Prop`. -/
+theorem nth_succ_gap {p : ℕ → Prop} (n : ℕ) :
     ∀ k < nth p (n + 1) - nth p n, 0 < k → ¬ p (k + nth p n) := by
-  intro _ _ _ hp
-  lia [nth_add_one_le_iff (n := n) hf hp]
+  intro k _ _ hp
+  lia [le_nth_of_lt_nth_succ (show k + nth p n < nth p (n + 1) by lia) hp]
 
 /-- For a strictly monotonic function `f : ℕ → ℕ`, `f n` is exactly the n-th
 element of the range of `f`. -/
@@ -94,12 +93,12 @@ theorem segment_pre_zero (hm : StrictMono f) {k : ℕ} (h : k < f 0) :
     lia
   rw [segment, h1]
 
-/-- For a strictly monotonic function `f : ℕ → ℕ` with `f 0 = 0`, `segment f 0 = 0`. -/
+/-- For any function `f : ℕ → ℕ`, `segment f 0 = 0`. -/
 @[scoped grind =]
-theorem segment_zero (hm : StrictMono f) (h0 : f 0 = 0) :
-    segment f 0 = 0 := by
-  calc _ = segment f (f 0) := by simp [h0]
-       _ = _ := by simp [segment_idem hm]
+theorem segment_zero : segment f 0 = 0 := by
+  unfold segment
+  rw [count_succ, count_zero]
+  split <;> rfl
 
 open scoped Classical in
 /-- A slight restatement of the definition of `segment` which has proven useful. -/
@@ -176,7 +175,7 @@ theorem segment'_eq_segment (hm : StrictMono f) :
   unfold segment'
   by_cases hk : k < f 0
   · rw [segment_pre_zero hm hk, Nat.sub_eq_zero_of_le (by lia)]
-    exact segment_zero (base_zero_strictMono hm) (by simp)
+    exact segment_zero
   · have h_lower := segment_lower_bound (base_zero_strictMono hm) (by simp) (k - f 0)
     have h_upper := segment_upper_bound (base_zero_strictMono hm) (by simp) (k - f 0)
     symm
@@ -188,9 +187,12 @@ theorem segment_zero' (hm : StrictMono f) {k : ℕ} (h : k ≤ f 0) :
   rw [← segment'_eq_segment hm, segment', (show k - f 0 = 0 by lia)]
   grind
 
-/-- For a strictly monotonic function `f : ℕ → ℕ`, `k < f (segment f k + 1)` for all `k ≥ f 0`. -/
-theorem segment_upper_bound' (hm : StrictMono f) {k : ℕ} (h : f 0 ≤ k) :
+/-- For a strictly monotonic function `f : ℕ → ℕ`, `k < f (segment f k + 1)` for all `k : ℕ`. -/
+theorem segment_upper_bound' (hm : StrictMono f) (k : ℕ) :
     k < f (segment f k + 1) := by
+  by_cases hk : k < f 0
+  · rw [segment_pre_zero hm hk]
+    exact hk.trans (hm zero_lt_one)
   rw [← segment'_eq_segment hm, segment']
   have := segment_upper_bound (base_zero_strictMono hm) (base_zero_shift f) (k - f 0)
   lia

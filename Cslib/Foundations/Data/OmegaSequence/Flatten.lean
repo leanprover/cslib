@@ -57,11 +57,19 @@ theorem cumLen_strictMono {ls : ωSequence (List α)} (h_ls : ∀ k, 0 < (ls k).
   grind [strictMono_nat_of_lt_succ]
 
 @[simp, scoped grind =]
-theorem cumLen_segment_zero {ls : ωSequence (List α)} (h_ls : ∀ k, 0 < (ls k).length)
+theorem cumLen_segment_zero {ls : ωSequence (List α)}
     (n : ℕ) (h_n : n < (ls 0).length) : segment ls.cumLen n = 0 := by
-  have h0 : ls.cumLen 0 ≤ n := by simp [cumLen_zero]
-  have h1 : n < ls.cumLen 1 := by simpa [cumLen_succ, cumLen_zero]
-  exact segment_range_val (cumLen_strictMono h_ls) h0 h1
+  -- `0` is the only value of `ls.cumLen` that is at most `n`
+  have key (k : ℕ) (hk : ls.cumLen k ≤ n) : ls.cumLen k = 0 := by
+    rcases k with _ | k
+    · exact cumLen_zero
+    · rw [Nat.add_comm, cumLen_one_add_drop] at hk
+      lia
+  classical
+  rw [segment, Nat.sub_eq_zero_iff_le, count_eq_card_filter_range, Finset.card_le_one]
+  simp only [Finset.mem_filter, Finset.mem_range, Set.mem_range]
+  rintro _ ⟨_, i, rfl⟩ _ ⟨_, j, rfl⟩
+  rw [key i (by lia), key j (by lia)]
 
 theorem cumLen_segment_one_add {ls : ωSequence (List α)} (h_ls : ∀ k, 0 < (ls k).length)
     (n : ℕ) (h_n : (ls 0).length ≤ n) :
@@ -99,7 +107,7 @@ theorem cons_flatten [Inhabited α] {ls : ωSequence (List α)} (h_ls : ∀ k, 0
     ls.head ++ω ls.tail.flatten = ls.flatten := by
   ext n; rw [flatten_def, head, tail_eq_drop]
   obtain (h_n | h_n) : n < (ls 0).length ∨ (ls 0).length ≤ n := n.lt_or_ge (ls 0).length
-  · simp [get_append_left _ _ _ h_n, cumLen_segment_zero h_ls n h_n, cumLen_zero,
+  · simp [get_append_left _ _ _ h_n, cumLen_segment_zero n h_n, cumLen_zero,
       getElem?_pos (ls 0) n h_n]
   · simp [get_append_right' h_n, flatten_def, cumLen_segment_one_add h_ls _ h_n,
       cumLen_one_add_drop]
