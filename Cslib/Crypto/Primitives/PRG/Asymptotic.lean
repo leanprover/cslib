@@ -42,7 +42,7 @@ namespace Family
 
 variable {Seed Output : ℕ → Type*}
 variable [∀ n, Fintype (Seed n)] [∀ n, Nonempty (Seed n)]
-variable [∀ n, Fintype (Output n)] [∀ n, Nonempty (Output n)]
+variable [∀ n, Fintype (Output n)]
 
 /-- Every admissible adversary family has negligible distinguishing advantage.
 The predicate can encode computational restrictions; `fun _ => True` permits all families. -/
@@ -113,6 +113,7 @@ theorem not_secure_of_two_mul_card_le (G : Family Seed Output)
     have hlim := h 0
     norm_num at hlim
   · filter_upwards [hsize] with n hn
+    have : Nonempty (Output n) := .map (G n) inferInstance
     have hpos : (0 : ℝ) < Fintype.card (Output n) := by exact_mod_cast Fintype.card_pos
     have hcard : 2 * (Fintype.card (Seed n) : ℝ) ≤ Fintype.card (Output n) := by
       exact_mod_cast hn
