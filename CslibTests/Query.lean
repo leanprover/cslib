@@ -6,6 +6,8 @@ Authors: Kim Morrison
 import Cslib.Algorithms.Lean.Query.Sort.Merge.Bounds
 import Cslib.Algorithms.Lean.Query.Sort.Insertion.Lemmas
 import Cslib.Algorithms.Lean.Query.Arith.Lemmas
+import Cslib.Algorithms.Lean.Query.Maximum
+import Cslib.Algorithms.Lean.Query.MinMax
 
 /-! # Tests for the query complexity framework
 
@@ -57,3 +59,41 @@ example (n : ℕ) : Nat.clog 2 (Nat.factorial n) ≤ n * Nat.clog 2 n :=
 -- `UpperBound` is universe polymorphic in the query family.
 example (Q : Type 1 → Type 2) (prog : Bool → FreeM Q PUnit.{2}) : Prop :=
   UpperBound prog (fun _ => 0) id
+
+-- The linear scan finds the maximum with `n - 1` queries.
+#guard (maximum [3, 1, 4, 1, 5, 9, 2, 6]).eval leOracle == some 9
+#guard (maximum [3, 1, 4, 1, 5, 9, 2, 6]).countQueries leOracle == 7
+#guard (maximum ([] : List ℕ)).eval leOracle == none
+#guard (maximum [3, 1, 2]).countQueries (LEQuery.oracleOf fun _ _ => false) == 2
+
+-- The comparisons asked along a run, and who lost each of them.
+#guard comparisons leOracle (maximum [3, 1, 4]) == [(3, 1), (3, 4)]
+#guard (comparisons leOracle (maximum [3, 1, 4])).map (loser leOracle) == [1, 3]
+
+-- The linear scan is optimal among correct maximum finders on lists of distinct elements.
+example (find : List ℕ → FreeM (LEQuery ℕ) (Option ℕ)) (hfind : IsMaxFinder find)
+    (xs : List ℕ) (hxs : xs.Nodup) :
+    (maximum xs).countQueries leOracle ≤ (find xs).countQueries leOracle :=
+  maximum_optimal hfind xs hxs leOracle (· ≤ ·) fun _ _ => rfl
+
+-- The lower and upper bounds for finding the maximum match.
+example (n : ℕ) : n - 1 ≤ n - 1 :=
+  (maximum_isMaxFinder (α := ℕ)).lowerBound.le_upperBound maximum_upperBound n
+
+-- The pairwise scan finds both the minimum and the maximum with `⌈3n/2⌉ - 2` queries.
+#guard (minMax [3, 1, 4, 1, 5, 9, 2, 6]).eval leOracle == some (1, 9)
+#guard (minMax [3, 1, 4, 1, 5, 9, 2, 6]).countQueries leOracle == 10
+#guard (minMax [5, 3, 8, 1, 9, 2, 7]).eval leOracle == some (1, 9)
+#guard (minMax [5, 3, 8, 1, 9, 2, 7]).countQueries leOracle == 9
+#guard (minMax [42]).eval leOracle == some (42, 42)
+#guard (minMax ([] : List ℕ)).eval leOracle == none
+
+-- The scan is optimal among correct min-max finders on lists of distinct elements.
+example (find : List ℕ → FreeM (LEQuery ℕ) (Option (ℕ × ℕ))) (hfind : IsMinMaxFinder find)
+    (xs : List ℕ) (hxs : xs.Nodup) :
+    ∃ v : ℕ → ℤ, (minMax xs).countQueries leOracle ≤ (find xs).countQueries (valOracle v) :=
+  (minMax_optimal hfind xs hxs).imp fun _ h => h leOracle
+
+-- The lower and upper bounds for finding the minimum and the maximum match.
+example (n : ℕ) : (3 * n + 1) / 2 - 2 ≤ (3 * n + 1) / 2 - 2 :=
+  (minMax_isMinMaxFinder (α := ℕ)).lowerBound.le_upperBound minMax_upperBound n
