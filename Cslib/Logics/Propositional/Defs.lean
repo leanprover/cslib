@@ -25,7 +25,7 @@ derives the principle of explosion.
 
 ## Notation
 
-We instantiate the notation classes `HasAnd`, `HasOr`, `HasImpl`, `HasNot`, `Bot` and `Top` for
+We instantiate the notation classes `HasAnd`, `HasOr`, `HasImp`, `HasNot`, `Bot` and `Top` for
 `Proposition Atom` to give access to, respectively, the notations `∧, ∨, →`, `¬`, `⊥` and `⊤` for
 propositional connectives.
 

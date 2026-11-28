@@ -73,7 +73,7 @@ lemma semanticMap_saturated (τ : Ty Base) : @Saturated Var (semanticMap τ) := 
 abbrev entailsContext (E : Term.Env Var) (Γ : Context Var (Ty Base)) :=
   ∀ {x τ}, ⟨x, τ⟩ ∈ Γ → (multiSubst E (fvar x)) ∈ semanticMap τ
 
-/-- The empty context is entailed by any environment. -/
+/-- The empty environment entails any context. -/
 lemma entailsContext_empty {Γ : Context Var (Ty Base)} : entailsContext [] Γ := by
   have := semanticMap_saturated (Var := Var) (Base := Base)
   grind
