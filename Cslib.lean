@@ -14,6 +14,7 @@ public import Cslib.Algorithms.Lean.Query.Sort.LowerBound
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Bounds
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Defs
 public import Cslib.Algorithms.Lean.Query.Sort.Merge.Lemmas
+public import Cslib.Algorithms.Lean.Sort.Counting
 public import Cslib.Algorithms.Lean.Sort.Insertion
 public import Cslib.Algorithms.Lean.Sort.Merge
 public import Cslib.Algorithms.Lean.TimeM

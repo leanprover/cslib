@@ -150,5 +150,25 @@ macro "✓" body:doElem : doElem => `(doElem| ✓[1] $body)
 /-- Notation for extracting the return value from a `TimeM` computation: `⟪tm⟫` -/
 scoped notation:max "⟪" tm "⟫" => (TimeM.ret tm)
 
+/-- A right fold whose step spends `c` ticks returns the pure right fold. -/
+theorem ret_foldrM_tick {α β : Type*} [AddMonoid T] (c : T) (f : α → β → β) (init : β)
+    (l : List α) :
+    ⟪(l.foldrM (fun a b => do ✓[c] return f a b) init : TimeM T β)⟫ = l.foldr f init := by
+  induction l with
+  | nil => rfl
+  | cons a l ih =>
+    rw [List.foldrM_cons]
+    exact congrArg (f a) ih
+
+/-- A right fold whose step spends `c` ticks costs `c` for each element. -/
+theorem time_foldrM_tick {α β : Type*} [AddMonoid T] (c : T) (f : α → β → β) (init : β)
+    (l : List α) :
+    (l.foldrM (fun a b => do ✓[c] return f a b) init : TimeM T β).time = l.length • c := by
+  induction l with
+  | nil => exact (zero_nsmul c).symm
+  | cons a l ih =>
+    rw [List.foldrM_cons, time_bind, ih, List.length_cons, succ_nsmul, time_bind, time_tick,
+      time_pure, add_zero]
+
 end TimeM
 end Cslib.Algorithms.Lean

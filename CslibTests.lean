@@ -12,6 +12,7 @@ import CslibTests.Circuits
 import CslibTests.Commitment
 import CslibTests.Complexity.Combinators
 import CslibTests.Congruence
+import CslibTests.CountingSort
 import CslibTests.DFA
 import CslibTests.DiffieHellman
 import CslibTests.Encoding
