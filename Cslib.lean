@@ -189,6 +189,8 @@ public import Cslib.Foundations.Data.Set.Saturation
 public import Cslib.Foundations.Data.SetRel
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
+public import Cslib.Foundations.Logic.Consequence
+public import Cslib.Foundations.Logic.ConsequenceRelation
 public import Cslib.Foundations.Logic.InferenceSystem.Basic
 public import Cslib.Foundations.Logic.InferenceSystem.Defs
 public import Cslib.Foundations.Logic.LogicalEquivalence
@@ -301,6 +303,7 @@ public import Cslib.Languages.StatefulProcesses.Network
 public import Cslib.Logics.BTL.Basic
 public import Cslib.Logics.HML.Basic
 public import Cslib.Logics.Kleene.Basic
+public import Cslib.Logics.Kleene.Semantics
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
@@ -318,6 +321,7 @@ public import Cslib.Logics.Modal.Unimodal.Lean.Basic
 public import Cslib.Logics.Modal.Unimodal.Lean.SMul
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
+public import Cslib.Logics.Propositional.NaturalDeduction.Consequence
 public import Cslib.Logics.Propositional.NaturalDeduction.Lemmas
 public import Cslib.MachineLearning.PACLearning.Defs
 public import Cslib.MachineLearning.PACLearning.VCDimension
