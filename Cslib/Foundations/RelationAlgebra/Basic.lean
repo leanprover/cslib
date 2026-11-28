@@ -337,7 +337,6 @@ theorem disjoint_symmetricDiversityAtoms_nonsymmetricDiversityAtoms :
 
 theorem setOf_isAtom_eq : {a : α | IsAtom a} =
     identityAtoms α ∪ symmetricDiversityAtoms α ∪ nonsymmetricDiversityAtoms α := by
-  ext a
   grind [identityAtoms, symmetricDiversityAtoms, nonsymmetricDiversityAtoms, IsAtom.le_compl_iff]
 
 theorem identityAtoms_eq_of_isIntegral (h : IsIntegral α) : identityAtoms α = {1} := by
@@ -385,6 +384,8 @@ scoped instance (α : Type u) : CompleteAtomicRelationAlgebra (SetRel α α) whe
     rintro ⟨x, z⟩ ⟨y, hxy, hyz⟩ hxz
     exact hyz ⟨x, hxy, hxz⟩
 
+open SetRel
+
 variable {α : Type u} {R S : SetRel α α} {a b c : α}
 
 theorem _root_.SetRel.mul_eq_comp : R * S = R.comp S := rfl
@@ -393,23 +394,16 @@ theorem _root_.SetRel.one_eq_id : (1 : SetRel α α) = SetRel.id := rfl
 
 theorem _root_.SetRel.star_eq_inv : star R = R.inv := rfl
 
-@[simp]
-theorem _root_.SetRel.mem_mul : (a, c) ∈ R * S ↔ ∃ b, (a, b) ∈ R ∧ (b, c) ∈ S := .rfl
+@[simp] theorem _root_.SetRel.mem_mul : a ~[R * S] c ↔ ∃ b, a ~[R] b ∧ b ~[S] c := .rfl
 
-@[simp]
-theorem _root_.SetRel.mem_one : (a, b) ∈ (1 : SetRel α α) ↔ a = b := .rfl
+@[simp] theorem _root_.SetRel.mem_one : a ~[(1 : SetRel α α)] b ↔ a = b := .rfl
 
-@[simp]
-theorem _root_.SetRel.mem_star : (a, b) ∈ star R ↔ (b, a) ∈ R := .rfl
+@[simp] theorem _root_.SetRel.mem_star : a ~[star R] b ↔ b ~[R] a := .rfl
 
-theorem _root_.SetRel.mem_leftResidual :
-    (a, b) ∈ leftResidual R S ↔ ∀ c, (b, c) ∈ R → (a, c) ∈ S := by
+theorem _root_.SetRel.mem_leftResidual : a ~[leftResidual R S] b ↔ ∀ c, b ~[R] c → a ~[S] c := by
   simp [leftResidual, not_imp_not]
 
-theorem _root_.SetRel.mem_rightResidual :
-    (a, b) ∈ rightResidual R S ↔ ∀ c, (c, a) ∈ R → (c, b) ∈ S := by
+theorem _root_.SetRel.mem_rightResidual : a ~[rightResidual R S] b ↔ ∀ c, c ~[R] a → c ~[S] b := by
   simp [rightResidual]
 
-end RelationAlgebra
-
-end Cslib
+end Cslib.RelationAlgebra

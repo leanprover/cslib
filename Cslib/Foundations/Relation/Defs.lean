@@ -12,6 +12,10 @@ public import Mathlib.Logic.Relation
 
 /-! # Relations: Definitions
 
+Additional properties and constructions relating to unbundled relations, extending
+`Mathlib.Logic.Relation`. Many of these definitions have more general equivalents for relation
+algebras --- see `Cslib.Foundations.RelationAlgebra.SpecialElements`.
+
 ## References
 
 * [*Term Rewriting and All That*][Baader1998]

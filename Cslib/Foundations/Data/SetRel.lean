@@ -102,7 +102,7 @@ lemma ofSet_injective : Function.Injective (α := Set α) ofSet := by
 
 lemma ofSet_inj {s t : Set α} : ofSet s = ofSet t ↔ s = t := ofSet_injective.eq_iff
 
-lemma ofSet_le_ofSet_iff {s t : Set α} : ofSet s ≤ ofSet t ↔ s ⊆ t := by
+lemma ofSet_subset_ofSet_iff {s t : Set α} : ofSet s ⊆ ofSet t ↔ s ⊆ t := by
   simp [Set.subset_def]
 
 lemma eq_of_mem_ofSet (h : x ~[ofSet s] y) : x = y := by grind
@@ -110,6 +110,12 @@ lemma eq_of_mem_ofSet (h : x ~[ofSet s] y) : x = y := by grind
 lemma left_mem_of_mem_ofSet (h : x ~[ofSet s] y) : x ∈ s := by grind
 
 lemma right_mem_of_mem_ofSet (h : x ~[ofSet s] y) : y ∈ s := by grind
+
+lemma ofSet_compl_eq {s : Set α} : ofSet sᶜ = .id \ ofSet s := by
+  grind
+
+lemma ofSet_eq_id_iff {s : Set α} : ofSet s = .id ↔ s = .univ := by
+  simp [Set.ext_iff]
 
 lemma ofSet_dom_comp_self (r : SetRel α α) : ofSet r.dom ○ r = r := by
   grind
